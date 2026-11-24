@@ -1248,6 +1248,35 @@ pub struct SearchMore {
     /// tapped if it's a land card. Otherwise, put it into your hand."
     pub split: Option<(Filter, mtg_core::card::SearchTo)>,
     pub wording: SearchWording,
+    /// How `different_names` prints: `with different names`, `that have
+    /// different names`, `that each have different names`.
+    pub names: NamesWording,
+    /// `exactly 2 card`: "for exactly two cards" (the count, worded so).
+    pub exactly: bool,
+    /// `with different names that each have mana value X`: the filter's
+    /// mana value printed after the names (Uncage the Menagerie).
+    pub mana_value_last: bool,
+    /// `to hand except 2 chosen by target opponent to graveyard`:
+    /// "Target opponent chooses two of those cards. Put the chosen cards
+    /// into your graveyard and the rest into your hand." (`chosen by
+    /// opponent`: "An opponent chooses").
+    pub pick: Option<(u32, Option<Recipient>, mtg_core::card::SearchTo)>,
+    /// `to battlefield tapped with 1 stun counter`: "puts it onto the
+    /// battlefield tapped with a stun counter on it"; `with X additional
+    /// +1/+1 counters` prints "additional" (the bool).
+    pub counters: Option<(mtg_core::card::CounterKind, Num, bool)>,
+}
+
+/// How a search's "different names" prints.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum NamesWording {
+    /// "with different names".
+    #[default]
+    With,
+    /// "that have different names".
+    ThatHave,
+    /// "that each have different names".
+    ThatEachHave,
 }
 
 /// The zones a search names beyond the library.
@@ -1289,6 +1318,26 @@ pub enum SearchWording {
     /// library for up to three basic Forest cards instead of two" (the
     /// rest as the search before).
     InsteadOf(u32),
+    /// `unshuffled`: no shuffle printed, "Search your library for a card
+    /// and put that card into your hand." (an `instead` sentence after it
+    /// ends "Then shuffle."; Increasing Ambition, From Father to Son).
+    Unshuffled,
+    /// `put instead`: in a trailing `instead` sentence, only the new
+    /// destination, "put that card onto the battlefield instead"
+    /// (Embermouth Sentinel); `put instead then` adds "Then shuffle.";
+    /// `put instead of hand`: "put that card onto the battlefield instead
+    /// of putting it into your hand" (before `instead if`, Caravan
+    /// Vigil).
+    PutInstead {
+        then: bool,
+        of: Option<mtg_core::card::SearchTo>,
+    },
+    /// `repeat`: slots that differ from the first card only by mana value,
+    /// "Search your library for an instant card with mana value 3, reveal
+    /// it, and put it into your hand. Then repeat this process for instant
+    /// cards with mana values 2 and 1. Then shuffle." (Firemind's
+    /// Foresight).
+    Repeat,
 }
 
 /// A filter's combat relation to the source, as printed.

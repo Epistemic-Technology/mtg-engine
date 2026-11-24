@@ -1,0 +1,9 @@
+card "Traverse the Ulvenwald" {
+  oracle_id c9dd2bf5-32e0-47f7-9a49-501c262d745b
+  cost {G}
+  type Sorcery
+  spell {
+    search basic land card reveal to hand
+    label "Delirium" if 4 card types in your graveyard, instead search creature or land card reveal to hand
+  }
+}

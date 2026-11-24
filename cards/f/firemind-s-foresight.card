@@ -1,0 +1,6 @@
+card "Firemind's Foresight" {
+  oracle_id bf5765e0-def0-4ddf-9cd7-083feae71660
+  cost {5}{U}{R}
+  type Instant
+  spell: search instant card with mana value 3 and instant card with mana value 2 and instant card with mana value 1 reveal to hand repeat
+}

@@ -1,0 +1,7 @@
+card "Reclaim the Wastes" {
+  oracle_id ce6f3c67-8806-416d-9156-6f5bb63d5f4c
+  cost {G}
+  type Sorcery
+  kicker {3}
+  spell: search basic land card reveal to hand; if kicked, search 2 basic land card reveal to hand instead of 1
+}

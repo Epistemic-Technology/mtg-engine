@@ -1,0 +1,6 @@
+card "Elemental Teachings" {
+  oracle_id 7255705c-b788-4bb1-824a-9262f4a0864e
+  cost {4}{G}
+  type Instant — Lesson
+  spell: search up to 4 land card with different names reveal to battlefield tapped except 2 chosen by opponent to graveyard
+}

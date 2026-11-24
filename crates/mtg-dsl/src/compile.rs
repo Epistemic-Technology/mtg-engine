@@ -4114,6 +4114,12 @@ impl Compiler<'_> {
                         all: m.zones == crate::ast::SearchZones::HandAnd,
                         different_names: m.different_names,
                         split: m.split.as_ref().map(|(f, to)| (self.filter(f), *to)),
+                        pick: m.pick.map(|(n, by, chosen)| mtg_core::card::SearchPick {
+                            n,
+                            by: by.map(r),
+                            chosen,
+                        }),
+                        counters: m.counters.map(|(k, n, _)| (k, n)),
                     })
                 });
                 out.push(CoreEffect::Search {

@@ -7238,6 +7238,8 @@ impl P {
         use mtg_core::card::SearchTo;
         Ok(if self.eat_words(&["hand", "or", "graveyard"]) {
             SearchTo::HandOrGraveyard
+        } else if self.eat_words(&["hand", "or", "battlefield"]) {
+            SearchTo::HandOrBattlefield
         } else if self.eat_words(&["hand", "and", "graveyard"]) {
             SearchTo::HandAndGraveyard
         } else if self.eat_word("hand") {
@@ -7272,7 +7274,8 @@ impl P {
         // `search up to 3 ... instead of 2`: "search your library for up
         // to three basic Forest cards instead of two" is the trailing form.
         let instead_of = matches!(s.effects.last(), Some(Effect::Search { more: Some(m), .. })
-            if matches!(m.wording, crate::ast::SearchWording::InsteadOf(_)));
+            if matches!(m.wording, crate::ast::SearchWording::InsteadOf(_)
+                | crate::ast::SearchWording::PutInstead { .. }));
         let wording = if lead {
             InsteadWording::Lead
         } else if instead_of || self.eat_word("instead") {
@@ -11718,6 +11721,8 @@ impl P {
                 let graveyard = more.zones != crate::ast::SearchZones::Library
                     || self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
+                // `search exactly 2 card ...`: "for exactly two cards".
+                more.exactly = !up_to && self.eat_word("exactly");
                 // `search up to X ...`, `search up to count where ...`,
                 // `search up to that much ...`: "for up to X basic land
                 // cards, where X is ...", "for up to that many land cards".
@@ -11751,9 +11756,11 @@ impl P {
                     }
                     f
                 };
-                // "a card named ~".
+                // "a card named ~", "cards not named ~".
                 if self.eat_words(&["named", "this"]) {
                     filter.same = Some(SameRef::NamedThis);
+                } else if filter.same.is_none() && self.eat_words(&["not", "named", "this"]) {
+                    filter.same = Some(SameRef::NotNamedThis);
                 }
                 // "a card named Ajani, Valiant Protector".
                 let mut name = None;
@@ -11803,7 +11810,7 @@ impl P {
                 // `and green card and blue card`, `and card named "Thinking
                 // Cap"`: one card more for each.
                 while self.eat_word("and") {
-                    let f = if self.eat_word("card") {
+                    let mut f = if self.eat_word("card") {
                         Filter::default()
                     } else {
                         let f = self.filter()?;
@@ -11812,6 +11819,12 @@ impl P {
                         }
                         f
                     };
+                    // `and instant card with mana value 2`: after the noun.
+                    if f.mana_value.is_none() && self.at_words(&["with", "mana", "value"]) {
+                        let g = self.filter()?;
+                        f.mana_value = g.mana_value;
+                        f.status.mana_value_x = g.status.mana_value_x;
+                    }
                     let mut n = None;
                     if self.at_word("named")
                         && let Some(Tok::Str(s)) = self.peek_at(1)
@@ -11821,11 +11834,65 @@ impl P {
                     }
                     more.slots.push((f, n));
                 }
-                // "with different names" (CR 201.2).
-                more.different_names = self.eat_words(&["with", "different", "names"]);
+                // "with different names" (CR 201.2), "that have different
+                // names", "that each have different names".
+                if self.eat_words(&["with", "different", "names"]) {
+                    more.different_names = true;
+                } else if self.eat_words(&["that", "have", "different", "names"]) {
+                    more.different_names = true;
+                    more.names = crate::ast::NamesWording::ThatHave;
+                } else if self.eat_words(&["that", "each", "have", "different", "names"]) {
+                    more.different_names = true;
+                    more.names = crate::ast::NamesWording::ThatEachHave;
+                }
+                // `with different names that each have mana value X`
+                // (Uncage the Menagerie): the mana value after the names.
+                if more.different_names
+                    && filter.mana_value.is_none()
+                    && self.eat_words(&["that", "each", "have", "mana", "value"])
+                {
+                    if self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x")) {
+                        self.pos += 1;
+                        filter.mana_value = Some((Cmp::Exactly, 0));
+                        filter.status.mana_value_x = true;
+                    } else {
+                        filter.mana_value = Some((
+                            Cmp::Exactly,
+                            u8::try_from(self.number()?).unwrap_or(u8::MAX),
+                        ));
+                    }
+                    more.mana_value_last = true;
+                }
                 let reveal = self.eat_word("reveal");
                 self.expect_word("to")?;
                 let mut to = self.search_to()?;
+                // `to battlefield tapped with 1 stun counter`, `with X
+                // additional +1/+1 counters` (CR 122.6).
+                if matches!(to, mtg_core::card::SearchTo::Battlefield { .. })
+                    && self.at_word("with")
+                    && (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                        || self.word_at(1).is_some_and(|w| w.eq_ignore_ascii_case("x")))
+                {
+                    self.pos += 1;
+                    let n = self.num()?;
+                    let additional = self.eat_word("additional");
+                    let kind = self.counter_kind()?;
+                    more.counters = Some((kind, n, additional));
+                }
+                // `to hand except 2 chosen by target opponent to
+                // graveyard`: another player chooses some of the cards.
+                if self.eat_word("except") {
+                    let n = self.number()?;
+                    self.expect_words(&["chosen", "by"])?;
+                    let by = if self.eat_word("opponent") {
+                        None
+                    } else {
+                        Some(self.recipient()?)
+                    };
+                    self.expect_word("to")?;
+                    let chosen = self.search_to()?;
+                    more.pick = Some((n, by, chosen));
+                }
                 // `to battlefield tapped if land else hand`: "Put it onto
                 // the battlefield tapped if it's a land card. Otherwise, put
                 // it into your hand."
@@ -11853,6 +11920,21 @@ impl P {
                     crate::ast::SearchWording::Rest
                 } else if self.eat_words(&["instead", "of"]) {
                     crate::ast::SearchWording::InsteadOf(self.number()?)
+                } else if self.eat_word("unshuffled") {
+                    crate::ast::SearchWording::Unshuffled
+                } else if self.eat_words(&["put", "instead"]) {
+                    let of = if self.at_word("of") && !self.at_words(&["of", "them"]) {
+                        self.pos += 1;
+                        Some(self.search_to()?)
+                    } else {
+                        None
+                    };
+                    crate::ast::SearchWording::PutInstead {
+                        then: self.eat_word("then"),
+                        of,
+                    }
+                } else if self.eat_word("repeat") {
+                    crate::ast::SearchWording::Repeat
                 } else {
                     crate::ast::SearchWording::Plain
                 };
