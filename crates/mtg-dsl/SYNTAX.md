@@ -4085,7 +4085,10 @@ in an effect "If five or more mana was spent to cast that spell" (`if that
 spell spent 5 mana, put 2 +1/+1 counters on this creature instead`). After
 the comma, `also` prints "also" after the subject (`if that spell spent 5
 mana, also this creature gains double strike`: "this creature also gains
-double strike"). `that spell kicked` likewise reads the triggering
+double strike"). After such a condition, `that much` in a cast trigger is
+the mana spent to cast that spell (`if that spell spent 8 mana, sacrifice
+this and it deals that much damage to each opponent`, Tellah, Great
+Sage); without one it is refused there. `that spell kicked` likewise reads the triggering
 spell's kicker (CR 702.33d): `triggered whenever you cast spell if that
 spell kicked: ...` prints "Whenever you cast a spell, if that spell was
 kicked, ..." (Bloodstone Goblin); plain `kicked` is the source's own

@@ -157,3 +157,16 @@ scenario "Host of the Hereafter dying puts its own counters on the target" {
   assert graveyard A contains "Host of the Hereafter"
   assert counters "Hill Giant" +1/+1 1
 }
+
+# "Sacrifice Mogg Bombers and it deals 3 damage": Mogg Bombers deals it,
+# not the creature that entered (a lifelinked Child of Night gains nothing).
+scenario "Mogg Bombers deals the damage, not the entering creature" {
+  battlefield A: "Mogg Bombers", 2 "Swamp"
+  hand A: "Child of Night"
+  turn 1 A: cast "Child of Night"
+  turn 1 A: trigger "Mogg Bombers" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 20
+  assert graveyard A contains "Mogg Bombers"
+}

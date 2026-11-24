@@ -1,0 +1,7 @@
+card "Tellah, Great Sage" {
+  oracle_id 1a080b26-c766-4f7c-9198-4974d2133f75
+  cost {3}{U}{R}
+  type Legendary Creature — Human Wizard
+  pt 3/3
+  triggered whenever you cast a noncreature spell: create 1 "1/1 colorless Hero creature"; if that spell spent 4 mana, draw 2 cards; if that spell spent 8 mana, sacrifice this and it deals that much damage to each opponent
+}

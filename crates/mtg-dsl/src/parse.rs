@@ -59,6 +59,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         no_trigger_amount: false,
         in_spell: false,
         in_activated: false,
+        that_spell_spent: false,
         group_named: false,
         subject: None,
         subject_each: false,
@@ -759,6 +760,10 @@ struct P {
     /// Inside an activated ability's effects: `it` after an object target
     /// is that target, elsewhere the source.
     in_activated: bool,
+    /// A `that spell spent N mana` condition has been read in this
+    /// ability: after it, `that much` in a cast trigger is the mana spent
+    /// to cast that spell (Tellah, Great Sage).
+    that_spell_spent: bool,
     /// A group (`each <filter>`, `creatures you control`) has been named
     /// in this ability, for `them` and `those creatures` after it.
     group_named: bool,
@@ -2441,6 +2446,7 @@ impl P {
         self.no_trigger_amount = false;
         self.in_spell = false;
         self.in_activated = false;
+        self.that_spell_spent = false;
         self.group_named = false;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
@@ -5830,6 +5836,7 @@ impl P {
             return self.spent_cond();
         }
         if self.eat_words(&["that", "spell", "spent"]) {
+            self.that_spell_spent = true;
             let mut c = self.spent_cond()?;
             if let StaticCond::ManaSpent { that, .. } = &mut c {
                 *that = true;
@@ -13193,10 +13200,12 @@ impl P {
 
     fn num(&mut self) -> R<Num> {
         if self.at_words(&["that", "much"]) {
-            // The triggering event's amount: none for a cast, a step, or
-            // life gain ("If eight or more mana was spent to cast that
-            // spell, ... deals that much damage" would deal 0).
-            if self.in_trigger && !self.in_delayed && self.no_trigger_amount {
+            // The triggering event's amount: none for a step or life
+            // gain; for a cast, the mana spent to cast that spell, read
+            // only after a condition on it ("If eight or more mana was
+            // spent to cast that spell, ... deals that much damage").
+            if self.in_trigger && !self.in_delayed && self.no_trigger_amount && !self.that_spell_spent
+            {
                 return self.fail("`that much`: this trigger's event has no amount");
             }
             self.pos += 2;
@@ -14177,6 +14186,7 @@ impl P {
             no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
             in_activated: self.in_activated,
+            that_spell_spent: self.that_spell_spent,
             group_named: self.group_named,
             subject: None,
             subject_each: false,
@@ -14543,6 +14553,15 @@ impl P {
             // After "create a ... token", the token.
             if self.created_at == Some(self.targets.len()) && !self.at_word("deals") {
                 return Ok(Recipient::CreatedObject);
+            }
+            // "Sacrifice Mogg Bombers and it deals 3 damage": the source,
+            // as it last existed, whatever triggered the ability.
+            let after_sacrifice_this = self.pos >= 4
+                && ["sacrifice", "this", "and"].iter().enumerate().all(|(k, w)| {
+                    matches!(&self.toks[self.pos - 4 + k].tok, Tok::Word(x) if x == w)
+                });
+            if after_sacrifice_this && self.at_word("deals") {
+                return Ok(Recipient::SourceIt);
             }
             if self.in_trigger && !self.it_source {
                 // After a target the ability names, `it` is that target
@@ -15195,6 +15214,7 @@ impl P {
                         no_trigger_amount: false,
                         in_spell: false,
                         in_activated: false,
+                        that_spell_spent: false,
                         group_named: false,
                         subject: None,
                         subject_each: false,
