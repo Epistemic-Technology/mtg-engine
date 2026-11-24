@@ -1,0 +1,59 @@
+// "For each mana from a Cave spent to cast it" (Bat Colony) and "This mana
+// can't be spent to cast spells from your hand." (Heartwood Crafter).
+
+scenario "Bat Colony: a Bat for each mana from a Cave" {
+  battlefield A: 2 "Hidden Courtyard", "Plains"
+  hand A: "Bat Colony"
+  turn 1 A: cast "Bat Colony"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Bat"
+}
+
+scenario "Bat Colony: Caves are spent first" {
+  battlefield A: 3 "Hidden Courtyard", "Plains"
+  hand A: "Bat Colony"
+  turn 1 A: cast "Bat Colony"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Bat"
+  assert untapped "Plains"
+}
+
+scenario "Bat Colony: no Cave, no Bats" {
+  battlefield A: 3 "Plains"
+  hand A: "Bat Colony"
+  turn 1 A: cast "Bat Colony"
+  run_to turn 1 end
+  assert battlefield A contains "Bat Colony"
+  assert battlefield A lacks "Bat"
+}
+
+scenario "Bat Colony: a Cave entering puts a counter on a creature" {
+  battlefield A: "Bat Colony", "Glory Seeker"
+  hand A: "Hidden Courtyard"
+  turn 1 A: play "Hidden Courtyard"
+  run_to turn 1 end
+  assert counters "Glory Seeker" +1/+1 1
+}
+
+scenario "Heartwood Crafter: its mana can't cast a spell from hand" {
+  battlefield A: "Heartwood Crafter", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Heartwood Crafter: its mana pays for an activated ability" {
+  battlefield A: "Heartwood Crafter", "Forest", "Folk of the Pines"
+  turn 1 A: activate "Folk of the Pines"
+  run_to turn 1 end
+  assert tapped "Heartwood Crafter"
+}
+
+scenario "Heartwood Crafter: its mana pays for flashback from the graveyard" {
+  battlefield A: "Heartwood Crafter", "Forest"
+  graveyard A: "Chatter of the Squirrel"
+  turn 1 A: cast "Chatter of the Squirrel" from graveyard
+  run_to turn 1 end
+  assert battlefield A contains "Squirrel"
+}

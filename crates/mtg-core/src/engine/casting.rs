@@ -954,6 +954,7 @@ impl GameState {
                 self.spent_on(ctx.source)
                     .count(crate::card::SpentKind::Treasure) as usize
             }
+            CountExpr::SpentCave => usize::from(self.spent_on(ctx.source).cave),
             CountExpr::SpentTotal => self
                 .spent_on(ctx.source)
                 .count(crate::card::SpentKind::Total) as usize,
@@ -7962,7 +7963,17 @@ impl GameState {
                     how.0 |= SpendWays::FACE_DOWN;
                 }
                 let quals = ways.0 & SpendWays::SPELL_QUALIFIERS;
-                (self.restriction_allows_spell(r, sc, id) && how.0 & quals == quals)
+                // "This mana can't be spent to cast spells from your hand.":
+                // any spell but those matching and cast that way.
+                let spell_ok = if r.wording == crate::card::SpendWording::CantCast && quals != 0 {
+                    !(r.spells
+                        .as_ref()
+                        .is_some_and(|f| f.matches_characteristics(sc))
+                        && how.0 & quals == quals)
+                } else {
+                    self.restriction_allows_spell(r, sc, id) && how.0 & quals == quals
+                };
+                spell_ok
                     || (how.has(SpendWays::COST_X)
                         && r.x_spells.as_ref().is_some_and(|f| {
                             f.matches_characteristics(sc) && self.spell_mana_value_ok(f, id)
@@ -8040,7 +8051,7 @@ impl GameState {
             Some(o.zone)
         };
         match from {
-            Some(Zone::Hand) => {}
+            Some(Zone::Hand) => w.0 |= SpendWays::FROM_HAND,
             Some(Zone::Graveyard) => {
                 w.0 |= SpendWays::FROM_GRAVEYARD | SpendWays::NOT_FROM_HAND;
                 if def.flashback.is_some() || o.cast.flashback() {
@@ -8809,6 +8820,13 @@ impl GameState {
         }
     }
 
+    /// Whether `id` is a Cave, for "mana from a Cave".
+    #[cold]
+    fn is_cave(&self, id: ObjId) -> bool {
+        self.characteristics(id)
+            .is_some_and(|c| c.has_subtype(crate::card::Subtype::CAVE))
+    }
+
     /// Whether `id` is a Treasure (CR 111.10a), for "mana from a Treasure".
     #[cold]
     fn is_treasure(&self, id: ObjId) -> bool {
@@ -8837,6 +8855,17 @@ impl GameState {
         let ps = self.player(p);
         let (pool, life) = (ps.mana_pool, ps.life);
         let mut sources = sources.clone();
+        if want.cave {
+            // Caves first, so generic mana is paid with them.
+            let mut first: Sources = sources
+                .iter()
+                .copied()
+                .filter(|(id, _)| self.is_cave(*id))
+                .collect();
+            sources.retain(|e| !first.contains(e));
+            first.extend_from_slice(&sources);
+            sources = first;
+        }
         if want.treasure > 0 {
             // Treasures first, so generic mana is paid with them.
             let mut first: Sources = sources
@@ -8881,6 +8910,14 @@ impl GameState {
         self.spent_mana.push((spell, spent));
     }
 
+    /// `n` mana a Cave made while a spell whose text asks is paid for.
+    #[cold]
+    fn note_cave_mana(&mut self, n: usize) {
+        if let Some(s) = &mut self.spending {
+            s.cave = s.cave.saturating_add(u8::try_from(n).unwrap_or(u8::MAX));
+        }
+    }
+
     /// Tap (or, for delve, exile) the sources of a plan, adding their mana.
     #[allow(clippy::inline_always)] // measured: out of line costs 0.7% instructions/game
     #[inline(always)]
@@ -8913,6 +8950,9 @@ impl GameState {
             }
             self.tap(id);
             self.player_mut(p).mana_pool.add(mana);
+            if self.spending.is_some() && self.is_cave(id) {
+                self.note_cave_mana(1);
+            }
             if self.sacrifices_for_mana(id) {
                 if self.spending.is_some()
                     && self.is_treasure(id)
@@ -9111,6 +9151,9 @@ impl GameState {
             let made = !act.mana.is_empty();
             for &m in &act.mana {
                 self.player_mut(p).mana_pool.add(m);
+            }
+            if self.spending.is_some() && self.is_cave(act.id) {
+                self.note_cave_mana(act.mana.len());
             }
             // CR 106.11a: "Whenever you tap this creature for mana".
             if act.tap && made && self.mana_trigger_sources > 0 {

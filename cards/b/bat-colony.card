@@ -1,0 +1,7 @@
+card "Bat Colony" {
+  oracle_id c2022f95-2c26-4a2a-b83b-60efa937cdde
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: create count each cave spent "1/1 black Bat creature with flying"
+  triggered whenever Cave you control enters: put 1 +1/+1 counter on target creature you control
+}

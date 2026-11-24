@@ -876,6 +876,7 @@ impl Subtype {
     pub const ROLE: Subtype = Subtype(5 + 36);
     pub const ARCANE: Subtype = Subtype(5 + 43);
     pub const TREASURE: Subtype = Subtype(5 + 27);
+    pub const CAVE: Subtype = Subtype(5);
     pub const VEHICLE: Subtype = Subtype(5 + 28);
     pub const SPACECRAFT: Subtype = Subtype(5 + 29);
     pub const ROOM: Subtype = Subtype(5 + 37);
@@ -2345,6 +2346,9 @@ pub enum CountExpr {
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
+    /// The mana from Caves spent to cast the source ("for each mana from a
+    /// Cave spent to cast it", Bat Colony).
+    SpentCave,
     /// "the amount of mana spent to cast it" (CR 601.2h): all the mana
     /// paid to cast the source, X included.
     SpentTotal,
@@ -2666,6 +2670,7 @@ impl CountExpr {
             | CountExpr::TimesKicked
             | CountExpr::EnergyPaid
             | CountExpr::SpentTreasure
+            | CountExpr::SpentCave
             | CountExpr::SpentTotal
             | CountExpr::ThatSpellSpent
             | CountExpr::ThatSpellSpentColors
@@ -3794,6 +3799,8 @@ pub struct SpentUse {
     pub treasure: u8,
     /// Converge: as many colors as the payment can include.
     pub converge: bool,
+    /// "For each mana from a Cave spent": Caves first.
+    pub cave: bool,
     /// Anything is read, so the cast records what was spent.
     pub record: bool,
 }
@@ -9691,10 +9698,14 @@ impl SpendWays {
     /// Wording: an alternative after the first joined with "or to" ("cast
     /// face-down spells or to turn creatures face up").
     pub const OR_TO: u32 = 1 << 16;
+    /// The spell is cast from its caster's hand ("This mana can't be spent
+    /// to cast spells from your hand.", with `SpendWording::CantCast`).
+    pub const FROM_HAND: u32 = 1 << 17;
 
     /// The spell properties: each must hold of a spell for `spells` to
     /// allow it.
     pub const SPELL_QUALIFIERS: u32 = Self::FROM_EXILE
+        | Self::FROM_HAND
         | Self::FROM_GRAVEYARD
         | Self::NOT_FROM_HAND
         | Self::FLASHBACK
@@ -12746,6 +12757,10 @@ impl CardPool {
                 CountExpr::SpentTreasure => {
                     out.record = true;
                     out.treasure = u8::MAX;
+                }
+                CountExpr::SpentCave => {
+                    out.record = true;
+                    out.cave = true;
                 }
                 CountExpr::SpentTotal => out.record = true,
                 _ => {}

@@ -2266,6 +2266,8 @@ impl P {
                 w |= SpendWays::FROM_EXILE;
             } else if self.eat_words(&["from", "graveyard"]) {
                 w |= SpendWays::FROM_GRAVEYARD;
+            } else if self.eat_words(&["from", "hand"]) {
+                w |= SpendWays::FROM_HAND;
             } else if self.eat_words(&["not", "from", "hand"]) {
                 w |= SpendWays::NOT_FROM_HAND;
             } else if self.eat_words(&["with", "flashback", "from", "graveyard"]) {
@@ -2283,8 +2285,16 @@ impl P {
         use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
         if self.eat_word("not") {
             self.expect_words(&["to", "cast"])?;
-            let f = self.filter()?;
-            self.expect_word("spell")?;
+            // `not to cast spells from hand`: "This mana can't be spent to
+            // cast spells from your hand."
+            let (f, plural) = if self.eat_word("spells") {
+                (crate::ast::Filter::default(), SpendPlural::Or)
+            } else {
+                let f = self.filter()?;
+                self.expect_word("spell")?;
+                (f, SpendPlural::One)
+            };
+            let ways = self.spend_qualifiers();
             return Ok(crate::ast::ManaRestriction {
                 spells: Some(f),
                 abilities: true,
@@ -2292,9 +2302,9 @@ impl P {
                 foretell: false,
                 disturb: false,
                 wording: SpendWording::CantCast,
-                plural: SpendPlural::One,
+                plural,
                 bare: false,
-                ways: SpendWays::default(),
+                ways,
                 x_spells: None,
             });
         }
@@ -15481,6 +15491,9 @@ impl P {
         }
         if self.eat_words(&["treasure", "spent"]) {
             return Ok(CountExpr::SpentTreasure);
+        }
+        if self.eat_words(&["cave", "spent"]) {
+            return Ok(CountExpr::SpentCave);
         }
         if self.eat_word("andor") {
             return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));

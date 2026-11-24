@@ -4742,6 +4742,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TimesKicked => "times kicked".to_string(),
         CountExpr::EnergyPaid => "energy paid".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
+        CountExpr::SpentCave => "cave spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::ExiledWith(None) => "exiled with this".to_string(),
         CountExpr::ExiledWith(Some(f)) => format!("exiled with this {} card", card_filter(f)),
@@ -7869,6 +7870,7 @@ fn restriction_base_text(r: &crate::ast::ManaRestriction) -> String {
     let mut quals = String::new();
     for (bit, words) in [
         (SpendWays::FROM_EXILE, " from exile"),
+        (SpendWays::FROM_HAND, " from hand"),
         (SpendWays::FROM_GRAVEYARD, " from graveyard"),
         (SpendWays::NOT_FROM_HAND, " not from hand"),
         (SpendWays::FLASHBACK, " with flashback from graveyard"),

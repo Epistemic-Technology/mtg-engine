@@ -2997,6 +2997,7 @@ impl Compiler<'_> {
             A::TimesKicked => C::TimesKicked,
             A::EnergyPaid => C::EnergyPaid,
             A::SpentTreasure => C::SpentTreasure,
+            A::SpentCave => C::SpentCave,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
             }

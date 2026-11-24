@@ -1642,6 +1642,7 @@ fn per_count(
         | CountExpr::TimesKicked
         | CountExpr::EnergyPaid
         | CountExpr::SpentTreasure
+        | CountExpr::SpentCave
         | CountExpr::SpentTotal
         | CountExpr::ThatSpellSpent
         | CountExpr::ThatSpellSpentColors

@@ -1,0 +1,14 @@
+card "Heartwood Crafter // Soul Tether" {
+  oracle_id c8b3a070-408e-4a8f-8597-6476eeec0a5f
+  layout prepare
+  cost {G}
+  type Creature — Elf Artificer
+  pt 1/1
+  enters prepared
+  mana {C} not to cast spells from hand
+  face "Soul Tether" {
+    cost {2}{R/G}
+    type Sorcery
+    spell: create 1 "Heartwood"
+  }
+}

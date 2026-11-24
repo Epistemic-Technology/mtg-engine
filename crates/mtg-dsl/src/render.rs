@@ -857,6 +857,7 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
         }
         for (bit, words) in [
             (SpendWays::FROM_EXILE, " from exile"),
+            (SpendWays::FROM_HAND, " from your hand"),
             (SpendWays::FROM_GRAVEYARD, " from your graveyard"),
             (
                 SpendWays::NOT_FROM_HAND,
@@ -6016,6 +6017,18 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "it"
             };
             return format!("the amount of mana spent to cast {it}");
+        }
+        // "for each mana from a Cave spent to cast it" (Bat Colony).
+        CountExpr::SpentCave => {
+            let it = if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            };
+            (
+                format!("mana from a Cave spent to cast {it}"),
+                format!("mana from Caves spent to cast {it}"),
+            )
         }
         CountExpr::SpentColors(_) | CountExpr::SpentTreasure => {
             let it = match c {

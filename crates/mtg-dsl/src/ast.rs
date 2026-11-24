@@ -584,6 +584,8 @@ pub enum CountExpr {
     EnergyPaid,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
+    /// `cave spent`: "mana from a Cave spent to cast it".
+    SpentCave,
     /// `mana spent`: "the amount of mana spent to cast it"; `mana spent
     /// that spell`: "... to cast that spell", the spell that triggered the
     /// ability (CR 601.2h).

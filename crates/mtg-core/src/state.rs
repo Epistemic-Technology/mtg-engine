@@ -533,6 +533,8 @@ pub struct SpentMana {
     pub colored: [u8; 5],
     pub colorless: u8,
     pub treasure: u8,
+    /// Mana Caves made (Bat Colony).
+    pub cave: u8,
 }
 
 impl SpentMana {
