@@ -7405,8 +7405,6 @@ pub enum PlayerStaticKind {
     /// "Unlock costs you pay cost {1} less." (CR 709.5e, 601.2f): the
     /// generic mana of the controller's unlock costs is reduced by `by`.
     UnlockCost { by: u8 },
-    /// "Your opponents can't cast spells during your turn." (CR 101.2).
-    OpponentsCantCastYourTurn,
     /// "You can't lose the game and your opponents can't win the game."
     /// (CR 104.3a-b, 104.2b; Platinum Angel).
     CantLose,

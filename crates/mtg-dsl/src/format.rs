@@ -9340,9 +9340,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 .to_string(),
                 K::CantLose => "you can't lose the game".to_string(),
-                K::OpponentsCantCastYourTurn => {
-                    "opponents can't cast spells during your turn".to_string()
-                }
+                K::Silence {
+                    players: mtg_core::card::RulePlayers::Opponents,
+                    during: mtg_core::card::SilenceWhen::YourTurn,
+                    activate: mtg_core::card::ActivateBan::None,
+                } => "opponents can't cast spells during your turn".to_string(),
                 K::Rule(mtg_core::card::RuleKind::NoLifeGain) => {
                     "players can't gain life".to_string()
                 }

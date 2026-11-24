@@ -2802,7 +2802,13 @@ impl P {
                 ]) =>
             {
                 self.pos += 7;
-                self.player_static(mtg_core::card::PlayerStaticKind::OpponentsCantCastYourTurn)
+                // The rule "During your turn, your opponents can't cast
+                // spells" (`Silence`), worded the other way round.
+                self.player_static(mtg_core::card::PlayerStaticKind::Silence {
+                    players: mtg_core::card::RulePlayers::Opponents,
+                    during: mtg_core::card::SilenceWhen::YourTurn,
+                    activate: mtg_core::card::ActivateBan::None,
+                })
             }
             // "During combat, players can't cast spells or activate
             // abilities that aren't mana abilities.", "During your turn,

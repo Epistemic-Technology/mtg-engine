@@ -3665,9 +3665,6 @@ impl GameState {
     pub fn cant_cast_spells(&self, p: PlayerId) -> bool {
         self.player_static_sources > 0
             && self.player_statics_of().any(|(who, kind, src)| match kind {
-                crate::card::PlayerStaticKind::OpponentsCantCastYourTurn => {
-                    self.active_player != p && who == self.active_player
-                }
                 crate::card::PlayerStaticKind::Silence {
                     players, during, ..
                 } => {
