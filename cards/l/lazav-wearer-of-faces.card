@@ -1,0 +1,8 @@
+card "Lazav, Wearer of Faces" {
+  oracle_id 4ec0b64d-c793-47a6-9c26-9ad4d9e9c182
+  cost {U}{B}
+  type Legendary Creature — Shapeshifter Detective
+  pt 2/3
+  triggered whenever this attacks: exile target card from a graveyard then investigate
+  triggered whenever you sacrifice Clue: you may this becomes a copy of 1 creature card exiled with it until end of turn
+}

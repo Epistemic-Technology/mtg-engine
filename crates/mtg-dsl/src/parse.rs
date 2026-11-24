@@ -7897,6 +7897,16 @@ impl P {
         // hands." (`put all card exiled with this into hand`).
         if self.at_words(&["put", "exiled", "card", "into", "hand"])
             || self.at_words(&["put", "all", "card", "exiled", "with"])
+            || (self.at_word("put") && {
+                // `put 1 card exiled with this into hand` ("Put a card
+                // exiled with this Saga into its owner's hand").
+                let at = self.pos;
+                self.pos += 1;
+                let one = self.one_exiled_with().ok().flatten().is_some()
+                    && self.at_words(&["into", "hand"]);
+                self.pos = at;
+                one
+            })
         {
             self.pos += 1;
             let what = vec![self.recipient()?];
@@ -14376,6 +14386,11 @@ impl P {
     }
 
     fn recipient(&mut self) -> R<Recipient> {
+        // `1 creature card exiled with this`: one of the cards this
+        // permanent's abilities exiled, chosen as it resolves (CR 607.2a).
+        if let Some(r) = self.one_exiled_with()? {
+            return Ok(r);
+        }
         // `each card exiled this way`, `each creature card exiled this
         // way`: the targets the ability exiled, each in turn ("For each
         // card exiled this way, create a token that's a copy of that
@@ -14424,6 +14439,47 @@ impl P {
             self.group_named = true;
         }
         Ok(r)
+    }
+
+    /// `1 [<filter>] card exiled with this` / `... with it`, if there.
+    fn one_exiled_with(&mut self) -> R<Option<Recipient>> {
+        if !matches!(self.peek(), Some(Tok::Num(1))) {
+            return Ok(None);
+        }
+        let at = self.pos;
+        self.pos += 1;
+        let f = if self.at_word("card") {
+            Filter::default()
+        } else {
+            match self.filter() {
+                Ok(f) => f,
+                Err(_) => {
+                    self.pos = at;
+                    return Ok(None);
+                }
+            }
+        };
+        if !self.eat_words(&["card", "exiled", "with"]) {
+            self.pos = at;
+            return Ok(None);
+        }
+        let it = if self.eat_word("it") {
+            true
+        } else {
+            self.expect_word("this")?;
+            false
+        };
+        let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+            i
+        } else {
+            self.groups.push(f);
+            self.groups.len() - 1
+        };
+        let i = u16::try_from(i).map_err(|_| ParseError {
+            line: self.line(),
+            message: "too many groups".to_string(),
+        })?;
+        Ok(Some(Recipient::OneExiledWith(i, it)))
     }
 
     #[allow(clippy::too_many_lines)] // one check per recipient form

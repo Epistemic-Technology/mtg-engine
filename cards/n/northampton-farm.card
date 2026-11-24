@@ -1,0 +1,7 @@
+card "Northampton Farm" {
+  oracle_id e05f1a43-16ce-4e88-b0ad-2202efb25516
+  type Land
+  mana {C}
+  activated {1}, {T}: exile target creature you own
+  activated {2}, {T}, sacrifice this: return 1 creature card exiled with this to battlefield under your control; return each other card exiled with this to hand
+}

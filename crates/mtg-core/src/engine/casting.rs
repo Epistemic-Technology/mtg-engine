@@ -1625,6 +1625,16 @@ impl GameState {
                     filter.matches(*id, o.owner, &c, Some(ctx.source), Some(p))
                 })
                 .collect(),
+            // CR 607.2a: "a creature card exiled with this land", judged
+            // as a card for its owner ("you own").
+            ChooseAct::ExiledWith => self
+                .exiled_with(ctx.source)
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    let c = self.base_characteristics(o);
+                    filter.matches(*id, o.owner, &c, None, Some(p))
+                })
+                .collect(),
             // "from among the milled cards": those still in the graveyard.
             ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => {
                 self.this_way.as_ref().map_or_else(Vec::new, |log| {
@@ -1840,6 +1850,11 @@ impl GameState {
     ) -> usize {
         use crate::card::ChooseAct;
         let mut cands = self.act_candidates(ctx, act, filter);
+        // "Return a creature card exiled with this land ...": with none,
+        // "it" is nothing, not an earlier object.
+        if act == ChooseAct::ExiledWith {
+            ctx.created = None;
+        }
         if n == 0 || (!up_to && cands.len() < n) {
             return 0;
         }
@@ -1874,7 +1889,7 @@ impl GameState {
             };
             cands.retain(|c| *c != id);
             match act {
-                ChooseAct::Choose => {
+                ChooseAct::Choose | ChooseAct::ExiledWith => {
                     ctx.created = Some(id);
                     picked.push((self.objects[id].controller, id));
                 }
@@ -1964,7 +1979,7 @@ impl GameState {
             done += 1;
         }
         // "Choose up to one creature. Destroy the rest." (Duneblast).
-        if act == ChooseAct::Choose
+        if matches!(act, ChooseAct::Choose | ChooseAct::ExiledWith)
             && let Some(log) = self.this_way.as_mut()
         {
             log.chosen = picked;
@@ -10327,12 +10342,31 @@ impl GameState {
                     .retain(|l| objects.get(l.card).is_some_and(|o| o.zone == Zone::Exile));
                 let filter = self.pool.filter(f);
                 let you = ctx.controller;
+                // "Return each other card exiled with this land": other
+                // than the one the resolution chose from them.
+                let other = filter.relation == crate::card::Relation::Other;
+                let chosen: &[(PlayerId, ObjId)] = if other {
+                    self.this_way.as_ref().map_or(&[], |l| &l.chosen)
+                } else {
+                    &[]
+                };
+                let any;
+                let filter = if other {
+                    any = crate::card::ObjFilter {
+                        relation: crate::card::Relation::Any,
+                        ..filter.clone()
+                    };
+                    &any
+                } else {
+                    filter
+                };
                 out.extend(
                     self.exiled_with(ctx.source)
                         .filter(|id| {
                             let o = &self.objects[*id];
                             let c = self.base_characteristics(o);
-                            filter.matches(*id, o.owner, &c, None, Some(you))
+                            !chosen.iter().any(|(_, ch)| ch == id)
+                                && filter.matches(*id, o.owner, &c, None, Some(you))
                         })
                         .map(Target::Object),
                 );
@@ -11716,6 +11750,11 @@ impl GameState {
                                     crate::card::Recipient::ExiledCard
                                         | crate::card::Recipient::ExiledWith(_)
                                 ))
+                            // "Put a card exiled with this Saga into its
+                            // owner's hand": the one chosen from them.
+                            || (o.zone == Zone::Exile
+                                && *what == crate::card::Recipient::CreatedObject
+                                && self.linked_exiles.iter().any(|l| l.card == id && l.source == ctx.source))
                             || (o.zone == Zone::Stack
                                 && (id == ctx.source
                                     || matches!(what, crate::card::Recipient::Target(_)))

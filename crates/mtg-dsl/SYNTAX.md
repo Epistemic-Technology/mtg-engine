@@ -2461,6 +2461,19 @@ still in exile, matching the filter (CR 607.2a). A card whose text says
 exile to the permanent (by any exile effect: a target, the top of a
 library, a graveyard card); a new object after a zone change links
 nothing (CR 400.7).
+`1 creature card exiled with this` (`1 card exiled with this`; `exiled
+with it` prints "exiled with it") is "a creature card exiled with this
+land": one of those cards, chosen as the effect resolves (CR 608.2d, not
+targeted), for `return <it> to battlefield [under your control] [with 2
+additional +1/+1 counters]` ("Return a creature card exiled with this
+land to the battlefield under your control"; `put ... onto battlefield`
+"Put ... onto the battlefield"), `put 1 card exiled with this into hand`
+("Put a card exiled with this Saga into its owner's hand"), and `you may
+this becomes a copy of 1 creature card exiled with it until end of turn`
+("you may have Lazav become a copy of a creature card exiled with it
+until end of turn"); with none, nothing happens. After it, `each other
+card exiled with this` ("Return each other card exiled with this land to
+its owner's hand") is the rest of them.
 `exile <what> until this leaves` ("exile target creature an opponent
 controls until this enchantment leaves the battlefield", CR 610.3: nothing
 is exiled if the source has already left, and the card returns under its

@@ -2258,6 +2258,24 @@ impl<'a> Ctx<'a> {
                     )
                 }
             }
+            // "a creature card exiled with this land", "... with it".
+            Recipient::OneExiledWith(i, it) => {
+                let f = self
+                    .card
+                    .groups
+                    .get(usize::from(i))
+                    .cloned()
+                    .unwrap_or_default();
+                format!(
+                    "{} exiled with {}",
+                    with_article(&cards_phrase(&f, self.card, false)),
+                    if it {
+                        "it".to_string()
+                    } else {
+                        this_ref(self.card)
+                    }
+                )
+            }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
@@ -10220,6 +10238,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ExileFromAnyGraveyard => {
                     format!("exile {} from a graveyard", cards())
                 }
+                // Written as its recipient (`1 card exiled with this`).
+                ChooseAct::ExiledWith => format!(
+                    "choose {} exiled with {}",
+                    cards(),
+                    this_ref(ctx.card)
+                ),
                 // CR 404.2: "exile the top creature card of your graveyard".
                 ChooseAct::ExileTopOfGraveyard => {
                     let what = if one {

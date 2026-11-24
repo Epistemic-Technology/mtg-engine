@@ -6646,6 +6646,16 @@ pub enum ChooseAct {
     /// filter names one): nothing is done to it; the chosen permanent is
     /// "it" for the rest of the resolution (`Recipient::CreatedObject`).
     Choose,
+    /// "Return a creature card exiled with this land to the battlefield",
+    /// "put a card exiled with this Saga into its owner's hand" (CR
+    /// 607.2a, 608.2d): one of the cards the source's abilities exiled,
+    /// still in exile, matching the filter (judged on the card, its owner
+    /// for "you own"), chosen as the effect resolves and not targeted.
+    /// Nothing is done to it: it is "it" for the rest of the resolution
+    /// (`Recipient::CreatedObject`, none if the pile has no such card),
+    /// and the last choice for "each other card exiled with this"
+    /// (`StatusQuals::unchosen` on an `ExiledWith` group).
+    ExiledWith,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,

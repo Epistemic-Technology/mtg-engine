@@ -3046,6 +3046,8 @@ impl Compiler<'_> {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
+            // Chosen first (`Compiler::effect`), then "it".
+            Recipient::OneExiledWith(..) => CoreRecipient::CreatedObject,
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
             Recipient::Rest => CoreRecipient::Rest,
             Recipient::Declined(_) => CoreRecipient::Declined,
@@ -3286,8 +3288,23 @@ impl Compiler<'_> {
     /// An effect; one on "all enchantments of the color of your choice"
     /// asks first (CR 608.2d), unless the resolution already chose.
     fn effect(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
-        let start = out.len();
         self.implied_used.set(None);
+        // "Return a creature card exiled with this land to the
+        // battlefield": the card is chosen from the pile first (CR 607.2a,
+        // 608.2d), then the effect acts on it.
+        if let Some(i) = one_exiled_with(e) {
+            let Some(f) = self.card.groups.get(usize::from(i)) else {
+                return self.err("`1 card exiled with this` names no filter");
+            };
+            let filter = self.filter(f);
+            out.push(CoreEffect::ChooseAct {
+                act: mtg_core::card::ChooseAct::ExiledWith,
+                filter,
+                count: mtg_core::card::Num::N(1),
+                up_to: false,
+            });
+        }
+        let start = out.len();
         self.effect_inner(e, out)?;
         // "When this Aura enters, tap enchanted creature and put X sleep
         // counters on it.": `it` is the creature just tapped, not the
@@ -8529,6 +8546,21 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Freerunning(_)
         | Mechanic::Spectacle(_)
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
+    }
+}
+
+/// The group of `e`'s `1 card exiled with this` recipient, if it acts on
+/// one (`Recipient::OneExiledWith`).
+fn one_exiled_with(e: &Effect) -> Option<u16> {
+    let one = |r: &Recipient| match r {
+        Recipient::OneExiledWith(i, _) => Some(*i),
+        _ => None,
+    };
+    match e {
+        Effect::ReturnToHand { what, .. } => what.iter().find_map(one),
+        Effect::ReturnToBattlefield { what, .. } => one(what),
+        Effect::BecomeCopy { of, .. } => one(of),
+        _ => None,
     }
 }
 

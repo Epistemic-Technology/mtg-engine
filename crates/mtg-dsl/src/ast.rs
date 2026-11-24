@@ -4601,6 +4601,12 @@ pub enum Recipient {
     /// "all cards exiled with this artifact", what this permanent's
     /// abilities exiled (CR 607.2a) matching the `n`th group's filter.
     ExiledWith(u16),
+    /// `1 creature card exiled with this` (`exiled with it` when `.1`):
+    /// "a creature card exiled with this land" ("... exiled with it"),
+    /// one of the cards this permanent's abilities exiled matching the
+    /// `n`th group's filter, chosen as the effect resolves (CR 607.2a,
+    /// 608.2d; the core `ChooseAct::ExiledWith`, then `CreatedObject`).
+    OneExiledWith(u16, bool),
     /// `those cards`: the targets declared so far (`first`, `count`),
     /// after an effect moved them ("Exile two target creatures you
     /// control, then return those cards to the battlefield").

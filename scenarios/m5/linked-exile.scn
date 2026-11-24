@@ -1,0 +1,111 @@
+# The pile of cards exiled with a permanent (CR 607.2a) as something its
+# later abilities use: one card chosen from it ("a creature card exiled
+# with this land", CR 608.2d), the rest of it, and the exiled card of a
+# search.
+
+scenario "Northampton Farm: a creature card under your control, each other card to hand" {
+  battlefield A: "Northampton Farm", 6 "Plains", "Grizzly Bears", "Hill Giant"
+  exile A: "Wind Drake"
+  turn 1 A: activate "Northampton Farm" targeting "Grizzly Bears"
+  run_to turn 2 untap
+  assert exile A contains "Grizzly Bears"
+  turn 3 A: activate "Northampton Farm" targeting "Hill Giant"
+  run_to turn 3 begin_combat
+  assert exile A count 3
+  turn 5 A: activate "Northampton Farm" ability 2
+  turn 5 A: choose "Hill Giant"
+  run_to turn 5 end
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Northampton Farm"
+  # Only the cards it exiled.
+  assert exile A contains "Wind Drake"
+  assert exile A count 1
+}
+
+scenario "Northampton Farm: the other creature card can be the one returned" {
+  battlefield A: "Northampton Farm", 6 "Plains", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Northampton Farm" targeting "Grizzly Bears"
+  turn 3 A: activate "Northampton Farm" targeting "Hill Giant"
+  turn 5 A: activate "Northampton Farm" ability 2
+  turn 5 A: choose "Grizzly Bears"
+  run_to turn 5 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert exile A count 0
+}
+
+scenario "Northampton Farm: only a creature you own is a target" {
+  battlefield A: "Northampton Farm", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "Northampton Farm" targeting "Hill Giant"
+  turn 1 A: activate "Northampton Farm" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Northampton Farm: with nothing exiled, nothing returns" {
+  battlefield A: "Northampton Farm", 2 "Plains", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Northampton Farm" ability 2
+  run_to turn 1 end
+  assert graveyard A contains "Northampton Farm"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Lazav, Wearer of Faces: sacrificing a Clue copies a creature card exiled with it" {
+  battlefield A: "Lazav, Wearer of Faces", 2 "Island"
+  graveyard B: "Hill Giant"
+  turn 1 A: attack "Lazav, Wearer of Faces"
+  turn 1 declare_attackers A: trigger "Lazav, Wearer of Faces" targeting "Hill Giant"
+  turn 1 main2 A: activate "Clue"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Hill Giant"
+  assert power "Hill Giant" 3
+  assert life B 18
+  run_to turn 2 upkeep
+  assert battlefield A contains "Lazav, Wearer of Faces"
+  assert power "Lazav, Wearer of Faces" 2
+}
+
+scenario "Lazav, Wearer of Faces: declining keeps it as it is" {
+  battlefield A: "Lazav, Wearer of Faces", 2 "Island"
+  graveyard B: "Hill Giant"
+  turn 1 A: attack "Lazav, Wearer of Faces"
+  turn 1 declare_attackers A: trigger "Lazav, Wearer of Faces" targeting "Hill Giant"
+  turn 1 main2 A: activate "Clue"
+  turn 1 main2 A: decline "Lazav, Wearer of Faces"
+  run_to turn 1 end
+  assert battlefield A contains "Lazav, Wearer of Faces"
+  assert hand A count 1
+}
+
+scenario "Hoarding Dragon: the exiled artifact goes to hand when it dies" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 3 "Swamp"
+  hand A: "Hoarding Dragon"
+  hand B: "Murder"
+  library A: "Island", "Ornithopter", "Island"
+  turn 1 A: cast "Hoarding Dragon"
+  turn 1 A: choose "Ornithopter"
+  turn 1 end B: cast "Murder" targeting "Hoarding Dragon"
+  run_to turn 2 upkeep
+  assert hand A contains "Ornithopter"
+  assert exile A count 0
+}
+
+scenario "Hoarding Dragon: declining leaves the artifact in exile" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 3 "Swamp"
+  hand A: "Hoarding Dragon"
+  hand B: "Murder"
+  library A: "Island", "Ornithopter", "Island"
+  turn 1 A: cast "Hoarding Dragon"
+  turn 1 A: choose "Ornithopter"
+  turn 1 end B: cast "Murder" targeting "Hoarding Dragon"
+  turn 1 end A: decline "Hoarding Dragon"
+  run_to turn 2 upkeep
+  assert exile A contains "Ornithopter"
+}
