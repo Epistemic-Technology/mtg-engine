@@ -4785,6 +4785,16 @@ pub enum Effect {
     AddManaCommander {
         rider: u8,
     },
+    /// "That player adds one mana of any type that land produced" (Mana
+    /// Flare, CR 106.12): in a triggered mana ability
+    /// (`AbilityDef::ManaTrigger`), one mana of a kind the tapped
+    /// permanent just made (`GameState::tapped_produced`); of several
+    /// kinds, the one it made most of (the engine picks).
+    AddManaProduced,
+    /// "For each color among permanents you control, add one mana of that
+    /// color" (vivid): one mana of each color among the controller's
+    /// permanents matching the filter.
+    AddManaColorsAmong(ObjFilter),
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
         count: Num,
@@ -6275,6 +6285,8 @@ impl Effect {
             | Effect::AddManaTwoColors(_)
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. }
+            | Effect::AddManaProduced
+            | Effect::AddManaColorsAmong(_)
             | Effect::AddManaCommander { .. } => true,
             Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
             Effect::SpendOnly { effects, .. } | Effect::SpendRider { effects, .. } => {

@@ -623,6 +623,7 @@ impl GameState {
             spent_uncounterable: false,
             uncounterable_spells: Vec::new(),
             mana_trigger_sources: 0,
+            tapped_produced: crate::mana::ManaPool::default(),
             turn_static_sources: 0,
             state_trigger_sources: 0,
             mark_sources: 0,

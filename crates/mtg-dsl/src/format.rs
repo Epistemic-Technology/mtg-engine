@@ -2699,6 +2699,8 @@ impl Fmt {
                 _ => "add commander".to_string(),
             },
             Effect::AddManaTwoColors(n) => format!("add any {n} and any {n} other"),
+            Effect::AddManaProduced => "add produced".to_string(),
+            Effect::AddManaColorsAmong(f) => format!("add each color among {}", filter(f)),
             Effect::AddManaLandCould {
                 whose,
                 basic,

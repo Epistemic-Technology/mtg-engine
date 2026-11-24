@@ -1757,6 +1757,15 @@ impl P {
             }
             return Ok(Effect::AddMana(vec![Mana::Chosen]));
         }
+        // CR 106.12: "add one mana of any type that land produced".
+        if self.eat_word("produced") {
+            return Ok(Effect::AddManaProduced);
+        }
+        // "For each color among permanents you control, add one mana of
+        // that color."
+        if self.eat_words(&["each", "color", "among"]) {
+            return Ok(Effect::AddManaColorsAmong(self.filter()?));
+        }
         // CR 903.4f: "one mana of any color in your commander's color
         // identity".
         if self.eat_word("commander") {

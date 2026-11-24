@@ -268,13 +268,13 @@ impl GameState {
                 continue;
             }
             seen.push(*id);
-            let Some(extra) = self.boost_outs(p, *id) else {
-                continue;
-            };
             let own = sources
                 .iter()
                 .filter(|(s, _)| s == id)
                 .fold(0, |k, (_, m)| k | kinds_of(*m));
+            let Some(extra) = self.boost_outs(p, *id, own) else {
+                continue;
+            };
             let mut made: Outs = smallvec::smallvec![own];
             made.extend(extra);
             out.push(AbilityMana {
@@ -332,13 +332,46 @@ impl GameState {
         out
     }
 
+    /// The colors among the permanents `p` controls matching `filter`
+    /// ("For each color among permanents you control"), for `src`'s
+    /// filter.
+    pub(super) fn colors_among(
+        &self,
+        p: PlayerId,
+        filter: &crate::card::ObjFilter,
+        src: ObjId,
+    ) -> crate::mana::ColorSet {
+        let mut seen = crate::mana::ColorSet::default();
+        for id in self.permanents_of(p) {
+            if let Some(c) = self.characteristics(id)
+                && filter.matches(id, p, &c, Some(src), Some(p))
+                && self.status_ok(filter, id)
+            {
+                for col in c.colors.iter() {
+                    seen = seen.with(col);
+                }
+            }
+        }
+        seen
+    }
+
     /// The kinds of the extra mana triggered mana abilities add as
     /// `tapped` is tapped for mana; `None` without any (or with any the
     /// planner can't foresee).
-    fn boost_outs(&self, p: PlayerId, tapped: ObjId) -> Option<Outs> {
+    fn boost_outs(&self, p: PlayerId, tapped: ObjId, own: Kinds) -> Option<Outs> {
         let mut out = Outs::new();
         for (src, a) in self.mana_triggers_on(tapped) {
-            let (made, tie, rest) = self.mana_made(p, src, self.pool.ability(a).effects())?;
+            let effects = self.pool.ability(a).effects();
+            // "One mana of any type that land produced": of a permanent
+            // making one kind, that kind.
+            if matches!(effects, [Effect::AddManaProduced]) {
+                if own.count_ones() != 1 {
+                    return None;
+                }
+                out.push(own);
+                continue;
+            }
+            let (made, tie, rest) = self.mana_made(p, src, effects)?;
             if (tie != Tie::Free && made.len() > 1) || rest {
                 return None;
             }
@@ -527,7 +560,7 @@ impl GameState {
         // to what it makes.
         if cost.tap
             && self.mana_trigger_sources > 0
-            && let Some(extra) = self.boost_outs(p, id)
+            && let Some(extra) = self.boost_outs(p, id, out.iter().fold(0, |k, m| k | m))
         {
             if tie != Tie::Free {
                 return None;
@@ -697,6 +730,11 @@ impl GameState {
                 }
                 // CR 903.4f: no commander, no mana.
                 Effect::AddManaCommander { .. } => {}
+                Effect::AddManaColorsAmong(f) => {
+                    for c in self.colors_among(ctx.controller, f, id).iter() {
+                        made.out.push(1 << (c as u8));
+                    }
+                }
                 // "Add {C}. If you control an Urza's Mine and an Urza's
                 // Power-Plant, add {C}{C} instead." (CR 608.2c): the branch
                 // that would happen now.

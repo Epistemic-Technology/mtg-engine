@@ -1,0 +1,6 @@
+card "Heartbeat of Spring" {
+  oracle_id f15911a5-f597-452e-a015-b115339f28fc
+  cost {2}{G}
+  type Enchantment
+  triggered whenever land is tapped for mana: add produced
+}

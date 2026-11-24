@@ -1,0 +1,7 @@
+card "Dictate of Karametra" {
+  oracle_id 01cb56d7-f859-46fd-b6c9-40d2c4965b69
+  cost {3}{G}{G}
+  type Enchantment
+  keywords flash
+  triggered whenever land is tapped for mana: add produced
+}

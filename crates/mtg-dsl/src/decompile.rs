@@ -1286,6 +1286,8 @@ impl Decompiler<'_> {
                 any_type: *any_type,
             },
             CoreEffect::AddManaCommander { rider } => Effect::AddManaCommander { rider: *rider },
+            CoreEffect::AddManaProduced => Effect::AddManaProduced,
+            CoreEffect::AddManaColorsAmong(f) => Effect::AddManaColorsAmong(self.filter(f)),
             CoreEffect::PumpVar {
                 power,
                 toughness,

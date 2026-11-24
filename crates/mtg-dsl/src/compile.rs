@@ -3899,6 +3899,8 @@ impl Compiler<'_> {
                 basic: *basic,
                 any_type: *any_type,
             }),
+            Effect::AddManaProduced => out.push(CoreEffect::AddManaProduced),
+            Effect::AddManaColorsAmong(f) => out.push(CoreEffect::AddManaColorsAmong(self.filter(f))),
             Effect::AddManaCommander { rider } => {
                 out.push(CoreEffect::AddManaCommander { rider: *rider });
             }

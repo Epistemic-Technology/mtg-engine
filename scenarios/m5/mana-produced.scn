@@ -1,0 +1,139 @@
+// "That player adds one mana of any type that land produced" (CR 106.12,
+// 605.1b) and "For each color among permanents you control, add one mana
+// of that color."
+
+scenario "Mana Flare: one Mountain pays for a two-mana spell" {
+  battlefield A: "Mana Flare", "Mountain"
+  hand A: "Searing Spear"
+  turn 1 A: cast "Searing Spear" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Mana Flare: the opponent's lands make extra mana too" {
+  battlefield A: "Mana Flare"
+  battlefield B: "Mountain"
+  hand B: "Searing Spear"
+  start turn 2 B
+  turn 2 B: cast "Searing Spear" targeting player A
+  run_to turn 2 end
+  assert life A 17
+}
+
+scenario "without Mana Flare one Mountain is one mana" {
+  battlefield A: "Mountain"
+  hand A: "Searing Spear"
+  illegal turn 1 A: cast "Searing Spear" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Lavaleaper: basic lands only" {
+  battlefield A: "Lavaleaper", "Mountain"
+  hand A: "Searing Spear", "Lava Axe"
+  turn 1 A: cast "Searing Spear" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Lavaleaper: a nonbasic land makes no extra mana" {
+  battlefield A: "Lavaleaper", "Rugged Highlands"
+  hand A: "Searing Spear"
+  illegal turn 1 A: cast "Searing Spear" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Keeper of Progenitus: a Forest makes two green" {
+  battlefield A: "Keeper of Progenitus", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Keeper of Progenitus: an Island makes one blue" {
+  battlefield A: "Keeper of Progenitus", "Island"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Mirari's Wake: your lands, and creatures get +1/+1" {
+  battlefield A: "Mirari's Wake", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Mirari's Wake: an opponent's lands make no extra mana" {
+  battlefield A: "Mirari's Wake"
+  battlefield B: "Mountain"
+  hand B: "Searing Spear"
+  start turn 2 B
+  illegal turn 2 B: cast "Searing Spear" targeting player A
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "Zendikar Resurgent: extra mana and a card per creature spell" {
+  battlefield A: "Zendikar Resurgent", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Heartbeat of Spring, Zhur-Taa Ancient, Dictate of Karametra double a land" {
+  battlefield A: "Heartbeat of Spring", "Zhur-Taa Ancient", "Dictate of Karametra", 2 "Mountain"
+  hand A: "Lava Axe"
+  turn 1 A: cast "Lava Axe" targeting player B
+  run_to turn 1 end
+  assert life B 15
+}
+
+scenario "Bloom Tender: one mana of each color among your permanents" {
+  battlefield A: "Bloom Tender", "Watchwolf"
+  hand A: "Watchwolf"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Watchwolf"
+}
+
+scenario "Bloom Tender alone makes only green" {
+  battlefield A: "Bloom Tender"
+  hand A: "Watchwolf"
+  illegal turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A lacks "Watchwolf"
+}
+
+scenario "Faeburrow Elder: colors among permanents, and its size" {
+  battlefield A: "Faeburrow Elder"
+  hand A: "Watchwolf"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains "Watchwolf"
+  assert power "Faeburrow Elder" 2
+}
+
+scenario "Tarnation Vista: one mana of each color among monocolored permanents" {
+  battlefield A: "Tarnation Vista", "Forest", "Grizzly Bears", "Savannah Lions", "Watchwolf"
+  hand A: "Watchwolf"
+  turn 1 A: activate "Tarnation Vista"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Watchwolf"
+}
+
+scenario "Tarnation Vista: a two-colored permanent adds nothing" {
+  battlefield A: "Tarnation Vista", "Forest", "Grizzly Bears", "Watchwolf"
+  hand A: "Watchwolf"
+  turn 1 A: activate "Tarnation Vista"
+  illegal turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Watchwolf"
+}

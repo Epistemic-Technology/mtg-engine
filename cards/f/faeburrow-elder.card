@@ -1,0 +1,9 @@
+card "Faeburrow Elder" {
+  oracle_id 70a6f08e-854d-4e2f-9d8c-c45ec3231157
+  cost {1}{G}{W}
+  type Creature — Treefolk Druid
+  pt 0/0
+  keywords vigilance
+  static this: +1/+1 count each colors among permanents
+  activated {T}: add each color among permanent you control
+}

@@ -10584,6 +10584,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::AddMana(m) => {
             Clause::imperative(format!("add {}", mana_symbols(m, "one mana of any color")))
         }
+        // "That permanent" names the tapped permanent; the trigger's
+        // sentence puts its kind in ("that land produced").
+        Effect::AddManaProduced => Clause::imperative(
+            "add one mana of any type that permanent produced".to_string(),
+        ),
+        Effect::AddManaColorsAmong(f) => Clause::imperative(format!(
+            "for each color among {}, add one mana of that color",
+            filter_phrase(f, ctx.card, true)
+        )),
         Effect::AddManaCommander { rider } => Clause::imperative(format!(
             "add one mana of any color in your commander's color identity{}",
             match rider {
@@ -14050,6 +14059,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!(
                 "whenever you tap {} for mana",
                 trigger_filter_a(&g, ctx.card)
+            )
+        }
+        // "Whenever a player taps a basic land for mana" (Mana Flare):
+        // anyone's permanent.
+        Trigger::TappedForMana(TriggerObj::Filter(f))
+            if f.who.is_none() && !f.enchanted && f.relation == Relation::Any =>
+        {
+            format!(
+                "whenever a player taps {} for mana",
+                trigger_filter_a(f, ctx.card)
             )
         }
         Trigger::TappedForMana(o) => {
@@ -18604,11 +18623,37 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 None => {}
             }
             out.push_str(", ");
-            let text = effects_after(effects, &mut ctx, true);
+            let mut text = effects_after(effects, &mut ctx, true);
+            // "add one mana of any type that land produced": the tapped
+            // permanent named by its kind.
+            if let Trigger::TappedForMana(TriggerObj::Filter(f)) = trigger
+                && text.contains("that permanent produced")
+            {
+                let mut g = f.clone();
+                g.who = None;
+                let a = trigger_filter_a(&g, card);
+                let noun = a
+                    .strip_prefix("an ")
+                    .or_else(|| a.strip_prefix("a "))
+                    .unwrap_or(&a);
+                // A land named by its types ("a basic land", "a Mountain,
+                // Forest, or Plains") is "that land".
+                let land = !g.subtypes.is_empty() || noun.split(' ').any(|w| w == "land");
+                let noun = if land { "land" } else { noun };
+                text = text.replace("that permanent produced", &format!("that {noun} produced"));
+            }
             // A triggered mana ability's mana is for the tapped permanent's
             // controller (CR 605.1b): "its controller adds an additional
             // {G}".
             match (trigger, text.strip_prefix("add ")) {
+                // "Whenever a player taps a land for mana, that player adds
+                // one mana of any type that land produced."
+                (Trigger::TappedForMana(TriggerObj::Filter(f)), Some(rest))
+                    if f.who.is_none() && !f.enchanted && f.relation == Relation::Any =>
+                {
+                    out.push_str("that player adds ");
+                    out.push_str(rest);
+                }
                 // "Whenever you tap a land for mana, add {G}." (you are its
                 // controller).
                 (Trigger::TappedForMana(TriggerObj::Filter(f)), Some(_))

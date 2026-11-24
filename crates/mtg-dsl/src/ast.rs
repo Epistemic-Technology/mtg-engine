@@ -5425,6 +5425,13 @@ pub enum Effect {
     AddManaCommander {
         rider: u8,
     },
+    /// `add produced`: in a triggered mana ability, "add one mana of any
+    /// type that land produced" (Mana Flare, CR 106.12): a kind of the mana
+    /// the tapped permanent made.
+    AddManaProduced,
+    /// `add each color among permanent you control`: "For each color among
+    /// permanents you control, add one mana of that color."
+    AddManaColorsAmong(Filter),
     Surveil(Num),
     /// `learn` (CR 701.48): there is no sideboard here, so "you may
     /// discard a card; if you do, draw a card" (CR 701.48a's other

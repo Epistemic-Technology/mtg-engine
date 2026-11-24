@@ -6896,10 +6896,22 @@ impl GameState {
         }
         // CR 605.3b: a mana ability doesn't use the stack.
         if ab.is_mana_ability() {
+            let before = (self.mana_trigger_sources > 0 && ab.cost.tap)
+                .then(|| (self.player(controller).mana_pool, self.restricted_pool.len()));
             self.resolve_top();
             // CR 605.4a: mana abilities it triggered by tapping its source
             // for mana resolve right after it.
-            if ab.cost.tap && self.mana_trigger_sources > 0 {
+            if let Some((pool, restricted)) = before {
+                let after = self.player(controller).mana_pool;
+                let mut made = crate::mana::ManaPool::default();
+                for c in 0..5 {
+                    made.colored[c] = after.colored[c].saturating_sub(pool.colored[c]);
+                }
+                made.colorless = after.colorless.saturating_sub(pool.colorless);
+                for r in self.restricted_pool.iter().skip(restricted) {
+                    made.add(r.mana);
+                }
+                self.tapped_produced = made;
                 self.fire_mana_triggers(sa.source);
                 self.emit(Event::TappedForMana { obj: sa.source });
             }
@@ -8180,6 +8192,13 @@ impl GameState {
             }
         }
         for id in boosted {
+            let mut made = crate::mana::ManaPool::default();
+            for &(src, mana) in plan {
+                if src == id {
+                    made.add(mana);
+                }
+            }
+            self.tapped_produced = made;
             self.fire_mana_triggers(id);
         }
         for obj in for_mana {
@@ -12029,6 +12048,31 @@ impl GameState {
                     for _ in 0..n.min(1000) {
                         self.player_mut(p).mana_pool.add(m);
                     }
+                    self.bump();
+                }
+            }
+            Effect::AddManaProduced => {
+                // CR 106.12: a kind of mana the tapped permanent made; of
+                // several, the one it made most of.
+                let made = self.tapped_produced;
+                let mut best = (made.colorless, Mana::Colorless);
+                for c in Color::ALL {
+                    if made.colored[c as usize] > best.0 {
+                        best = (made.colored[c as usize], Mana::Colored(c));
+                    }
+                }
+                if best.0 > 0 {
+                    self.player_mut(ctx.controller).mana_pool.add(best.1);
+                    self.bump();
+                }
+            }
+            Effect::AddManaColorsAmong(filter) => {
+                let p = ctx.controller;
+                let seen = self.colors_among(p, filter, ctx.source);
+                for col in seen.iter() {
+                    self.player_mut(p).mana_pool.add(Mana::Colored(col));
+                }
+                if seen.count() > 0 {
                     self.bump();
                 }
             }

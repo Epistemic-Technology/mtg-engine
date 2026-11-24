@@ -2335,6 +2335,10 @@ pub struct GameState {
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.
     pub mana_trigger_sources: u32,
+    /// The mana the permanent whose triggered mana abilities are
+    /// resolving was just tapped for (`Effect::AddManaProduced`: "one
+    /// mana of any type that land produced").
+    pub tapped_produced: crate::mana::ManaPool,
     /// Battlefield permanents with a static ability reading this turn's
     /// history or step (`DefFlags::TURN_STATIC`).
     pub turn_static_sources: u32,

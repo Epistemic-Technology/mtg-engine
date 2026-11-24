@@ -1,0 +1,7 @@
+card "Zendikar Resurgent" {
+  oracle_id a0af158b-f42a-4022-a438-e0a2e1fd6d9e
+  cost {5}{G}{G}
+  type Enchantment
+  triggered whenever land you control is tapped for mana: add produced
+  triggered whenever you cast creature spell: draw 1 card
+}
