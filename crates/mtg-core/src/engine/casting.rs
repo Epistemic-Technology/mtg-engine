@@ -3930,6 +3930,10 @@ impl GameState {
     /// that was chosen (CR 601.2b).
     pub(super) fn additional_of(&self, spell: ObjId) -> &Cost {
         let o = &self.objects[spell];
+        // Jump-start or retrace a permanent gave it: its discard.
+        if let Some(c) = grants::granted_way_additional(o.alt) {
+            return c;
+        }
         let def = self.pool.get(o.def);
         // "Flashback—Sacrifice three creatures.": the flashback cost's
         // chosen permanents are settled like an additional cost's (CR
@@ -8012,6 +8016,11 @@ impl GameState {
             };
             let card = if fb.discard > 0 { discard.take() } else { None };
             self.pay_other_costs(caster, fb, spell, pick, card);
+        }
+        // The card discarded for granted jump-start or retrace.
+        if let Some(c) = grants::granted_way_additional(self.objects[spell].alt) {
+            let card = discard.take();
+            self.pay_other_costs(caster, c, spell, None, card);
         }
         // CR 702.33a: a kicker cost other than mana, its permanent chosen
         // after targets (`additional_of`).

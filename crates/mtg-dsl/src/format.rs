@@ -4361,6 +4361,8 @@ fn filter_one(f: &Filter) -> String {
     if let Some(cc) = f.color_count {
         words.push(if cc == mtg_core::card::ColorCount::Colored {
             "colored".to_string()
+        } else if cc == mtg_core::card::ColorCount::TwoColors {
+            "two-colored".to_string()
         } else {
             format!("{cc:?}").to_lowercase()
         });
@@ -7644,6 +7646,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Granted::Mayhem(c) => format!("mayhem{}", cost(c)),
                 crate::ast::Granted::Warp(c) => format!("warp {c}"),
                 crate::ast::Granted::Miracle(c) => format!("miracle {c}"),
+                crate::ast::Granted::Retrace => "retrace".to_string(),
+                crate::ast::Granted::JumpStart => "jump start".to_string(),
                 crate::ast::Granted::Ability(a) => {
                     let mut tmp = String::new();
                     self::ability(&mut tmp, a, "", groups);

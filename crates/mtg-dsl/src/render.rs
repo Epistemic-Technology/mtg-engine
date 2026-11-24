@@ -3119,6 +3119,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if let Some(cc) = f.color_count
         && cc != mtg_core::card::ColorCount::Colored
+        && cc != mtg_core::card::ColorCount::TwoColors
     {
         words.push(format!("{cc:?}").to_lowercase());
     }
@@ -3449,6 +3450,13 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that are one or more colors"
         } else {
             " that's one or more colors"
+        });
+    }
+    if f.color_count == Some(mtg_core::card::ColorCount::TwoColors) {
+        s.push_str(if plural_form {
+            " that are exactly two colors"
+        } else {
+            " that's exactly two colors"
         });
     }
     s
@@ -11986,6 +11994,24 @@ fn card_grant_text(
     lookup: &dyn Lookup,
 ) -> String {
     use crate::ast::Granted;
+    // "Each instant and sorcery card in your graveyard that's exactly two
+    // colors has jump-start.": the color count after the zone.
+    let two = filter.color_count == Some(mtg_core::card::ColorCount::TwoColors);
+    let colors = match (two, each) {
+        (false, _) => "",
+        (true, true) => " that's exactly two colors",
+        (true, false) => " that are exactly two colors",
+    };
+    let stripped;
+    let filter = if two {
+        stripped = Filter {
+            color_count: None,
+            ..filter.clone()
+        };
+        &stripped
+    } else {
+        filter
+    };
     let cards = |f: &Filter, plural: bool| {
         let p = cards_phrase(f, card, plural);
         // "instant and sorcery card": every card of either type.
@@ -12018,12 +12044,14 @@ fn card_grant_text(
         Granted::Mayhem(Some(c)) => format!("mayhem {c}"),
         Granted::Warp(c) => format!("warp {c}"),
         Granted::Miracle(c) => format!("miracle {c}"),
+        Granted::Retrace => "retrace".to_string(),
+        Granted::JumpStart => "jump-start".to_string(),
         Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
     };
     let s = if each {
-        format!("each {subject} in {place} has {what}.")
+        format!("each {subject} in {place}{colors} has {what}.")
     } else {
-        format!("{subject} in {place} have {what}.")
+        format!("{subject} in {place}{colors} have {what}.")
     };
     match cond {
         None => capitalize(&s),
@@ -15762,6 +15790,7 @@ fn protection_text(f: &Filter, card: &Card) -> String {
                 mtg_core::card::ColorCount::Monocolored => "monocolored",
                 mtg_core::card::ColorCount::Colorless => "colorless",
                 mtg_core::card::ColorCount::Colored => "one or more colors",
+                mtg_core::card::ColorCount::TwoColors => "exactly two colors",
             }
         )
     } else if *f

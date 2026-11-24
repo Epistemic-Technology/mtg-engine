@@ -1522,6 +1522,10 @@ pub enum Granted {
     Mayhem(Option<ManaCost>),
     /// `warp {2}{R}`.
     Warp(ManaCost),
+    /// `retrace` ("have retrace", in a graveyard).
+    Retrace,
+    /// `jump start` ("has jump-start", in a graveyard).
+    JumpStart,
     /// `miracle {2}`.
     Miracle(ManaCost),
     /// An activated keyword ability, activated from the cards' zone:

@@ -6,7 +6,8 @@
 
 use super::{CostBasis, Sources, Spend};
 use crate::card::{
-    AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, CardGrant, GrantedWay, SacCost,
+    AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, CardGrant, CardType, Cost,
+    GrantedWay, ObjFilter, SacCost, TypeSet,
 };
 use crate::decision::Choice;
 use crate::ids::{ObjId, PlayerId};
@@ -32,6 +33,32 @@ impl<'a> GrantCost<'a> {
             GrantCost::Mana => None,
             GrantCost::Fixed(c) => Some(c),
         }
+    }
+}
+
+/// Retrace's additional cost: a land card discarded (CR 702.81a).
+static RETRACE_COST: std::sync::LazyLock<Cost> = std::sync::LazyLock::new(|| Cost {
+    discard: 1,
+    discard_filter: Some(ObjFilter {
+        types: TypeSet::of([CardType::Land]),
+        ..ObjFilter::default()
+    }),
+    ..Cost::default()
+});
+
+/// Jump-start's additional cost: a card discarded (CR 702.133a).
+static JUMP_START_COST: std::sync::LazyLock<Cost> = std::sync::LazyLock::new(|| Cost {
+    discard: 1,
+    ..Cost::default()
+});
+
+/// The additional cost of a way a grant gives (`AltCast::Retrace`,
+/// `AltCast::JumpStart`), `None` for any other way.
+pub(in crate::engine) fn granted_way_additional(alt: AltCast) -> Option<&'static Cost> {
+    match alt {
+        AltCast::Retrace => Some(&RETRACE_COST),
+        AltCast::JumpStart => Some(&JUMP_START_COST),
+        _ => None,
     }
 }
 
@@ -129,6 +156,21 @@ impl GameState {
         .and_then(GrantCost::fixed)
     }
 
+    /// The way to cast from a graveyard by discarding a card a grant gives
+    /// `card`: `AltCast::JumpStart` or `AltCast::Retrace` (jump-start
+    /// first, with both).
+    pub(in crate::engine) fn granted_discard_way(&self, card: ObjId) -> Option<AltCast> {
+        let mut way = None;
+        for g in self.grants_of(card) {
+            match g {
+                GrantedWay::JumpStart => return Some(AltCast::JumpStart),
+                GrantedWay::Retrace => way = Some(AltCast::Retrace),
+                _ => {}
+            }
+        }
+        way
+    }
+
     fn granted_cost<'a>(
         &'a self,
         card: ObjId,
@@ -217,6 +259,34 @@ impl GameState {
                 )
             {
                 options.push(Choice::Cast(id));
+                continue;
+            }
+            // CR 702.133a, 702.81a: jump-start or retrace, for its mana
+            // cost and a card (a land card) discarded besides.
+            if def.flashback.is_none()
+                && !def.no_mana_cost
+                && self.granted_flashback(id).is_none()
+                && let Some(alt) = self.granted_discard_way(id)
+            {
+                let add = granted_way_additional(alt).expect("a discard way");
+                if self
+                    .discard_candidates(p, add.discard_filter.as_ref(), id)
+                    .is_empty()
+                {
+                    continue;
+                }
+                if self.granted_castable(
+                    p,
+                    &CostBasis {
+                        flashback: alt == AltCast::JumpStart,
+                        ..self.offer_basis(p, id, def, alt)
+                    },
+                    sorcery_timing,
+                    sources,
+                    changers,
+                ) {
+                    options.push(Choice::Cast(id));
+                }
                 continue;
             }
             // Mayhem: a card its owner discarded this turn.

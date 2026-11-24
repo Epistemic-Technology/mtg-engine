@@ -151,3 +151,117 @@ scenario "Norman Osborn: unblockable, he connives on combat damage" {
   assert hand A contains "Forest"
   assert counters "Norman Osborn" +1/+1 1
 }
+
+scenario "Six: a creature card in the graveyard is cast with retrace, discarding a land card" {
+  battlefield A: "Six", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Mountain", "Lightning Bolt"
+  turn 1 A: cast "Grizzly Bears" from graveyard discarding "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Mountain"
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "Six: retrace needs a land card to discard" {
+  battlefield A: "Six", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Six: retrace pays the mana cost too" {
+  battlefield A: "Six", "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Mountain"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard discarding "Mountain"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Six: no retrace for an instant card" {
+  battlefield A: "Six", "Mountain"
+  graveyard A: "Lightning Bolt"
+  hand A: "Forest"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard discarding "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Six: only during your turn" {
+  battlefield A: "Six", 2 "Forest"
+  graveyard A: "Ambush Viper"
+  hand A: "Mountain"
+  illegal turn 2 A: cast "Ambush Viper" from graveyard discarding "Mountain"
+  run_to turn 2 end
+  assert graveyard A contains "Ambush Viper"
+}
+
+scenario "Six: a retraced spell countered goes back to the graveyard" {
+  battlefield A: "Six", 2 "Forest"
+  battlefield B: 2 "Island"
+  graveyard A: "Grizzly Bears"
+  hand A: "Mountain"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears" from graveyard discarding "Mountain"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert exile A lacks "Grizzly Bears"
+}
+
+scenario "Six: attacking mills three; a land card from among them goes to the hand" {
+  battlefield A: "Six"
+  library A: "Grizzly Bears", "Forest", "Lightning Bolt", "Island"
+  turn 1 A: attack "Six"
+  run_to turn 1 end
+  assert hand A contains "Forest"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert library A count 1
+  assert life B 18
+}
+
+scenario "Niv-Mizzet, Supreme: a two-colored instant is cast with jump-start, then exiled" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain", "Plains"
+  graveyard A: "Lightning Helix"
+  hand A: "Forest"
+  turn 1 A: cast "Lightning Helix" from graveyard discarding "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert exile A contains "Lightning Helix"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Niv-Mizzet, Supreme: a monocolored instant has no jump-start" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain"
+  graveyard A: "Lightning Bolt"
+  hand A: "Forest"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard discarding "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Niv-Mizzet, Supreme: jump-start needs a card to discard" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain", "Plains"
+  graveyard A: "Lightning Helix"
+  illegal turn 1 A: cast "Lightning Helix" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Niv-Mizzet, Supreme: a jump-started spell countered is exiled" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain", "Plains"
+  battlefield B: 2 "Island"
+  graveyard A: "Lightning Helix"
+  hand A: "Forest"
+  hand B: "Counterspell"
+  turn 1 A: cast "Lightning Helix" from graveyard discarding "Forest" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Lightning Helix" in response to "Lightning Helix"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert exile A contains "Lightning Helix"
+}

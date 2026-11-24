@@ -454,6 +454,13 @@ pub enum AltCast {
     /// its owner's graveyard ("If that spell would be put into your
     /// graveyard, exile it instead", CR 614.1a).
     FreeExile,
+    /// Cast from the graveyard with retrace a permanent gives it (CR
+    /// 702.81a, 113.6b): its mana cost and a land card discarded.
+    Retrace,
+    /// Cast from the graveyard with jump-start a permanent gives it (CR
+    /// 702.133a, 113.6b): its mana cost and a card discarded; exiled as
+    /// it leaves the stack (`CastInfo::flashback`).
+    JumpStart,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask

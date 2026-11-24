@@ -1555,6 +1555,8 @@ pub enum ColorCount {
     Multicolored,
     /// "that's one or more colors": not colorless (CR 105.2).
     Colored,
+    /// "that's exactly two colors".
+    TwoColors,
 }
 
 impl ObjFilter {
@@ -1826,6 +1828,7 @@ impl ObjFilter {
                 ColorCount::Monocolored => n == 1,
                 ColorCount::Multicolored => n >= 2,
                 ColorCount::Colored => n >= 1,
+                ColorCount::TwoColors => n == 2,
             };
             if !ok {
                 return false;
@@ -6558,6 +6561,12 @@ pub enum GrantedWay {
     /// Miracle (CR 702.94a) for this cost, in a hand: the card is revealed
     /// as it is drawn, if it is the first card its owner drew this turn.
     Miracle(crate::mana::ManaCost),
+    /// Retrace (CR 702.81a), in a graveyard: cast for its mana cost and a
+    /// land card discarded; it isn't exiled (`AltCast::Retrace`).
+    Retrace,
+    /// Jump-start (CR 702.133a), in a graveyard: cast for its mana cost
+    /// and a card discarded, then exiled (`AltCast::JumpStart`).
+    JumpStart,
     /// An activated ability of the card, activated from the zone the card
     /// is in (cycling and typecycling from a hand, unearth from a
     /// graveyard): a registered `AbilityDef::Activated`.

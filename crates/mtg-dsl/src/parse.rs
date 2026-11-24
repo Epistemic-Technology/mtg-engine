@@ -1583,6 +1583,14 @@ impl P {
                 self.pos += 1;
                 crate::ast::Granted::Miracle(self.mana_cost()?)
             }
+            Some("retrace") => {
+                self.pos += 1;
+                crate::ast::Granted::Retrace
+            }
+            Some("jump") if self.word_at(1).as_deref() == Some("start") => {
+                self.pos += 2;
+                crate::ast::Granted::JumpStart
+            }
             _ => {
                 let a = self.ability()?;
                 if !matches!(a, Ability::Activated { .. } | Ability::Mechanic(_)) {
@@ -15213,11 +15221,13 @@ impl P {
                         }
                     });
                 }
-                "multicolored" | "monocolored" | "colorless" | "colored" => {
+                "multicolored" | "monocolored" | "colorless" | "colored" | "two-colored" => {
                     f.color_count = Some(match w.as_str() {
                         "multicolored" => ColorCount::Multicolored,
                         "monocolored" => ColorCount::Monocolored,
                         "colored" => ColorCount::Colored,
+                        // "that's exactly two colors".
+                        "two-colored" => ColorCount::TwoColors,
                         _ => ColorCount::Colorless,
                     });
                     self.pos += 1;
