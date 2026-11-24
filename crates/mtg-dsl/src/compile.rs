@@ -1100,6 +1100,28 @@ impl Compiler<'_> {
         if let Some(c) = &card.cast_only {
             let c = self.static_cond(c);
             b = b.cast_only(self.pool.intern_condition(c));
+        } else if card.supertypes.contains(&mtg_core::card::Supertype::Legendary)
+            && card
+                .types
+                .iter()
+                .any(|t| matches!(t, mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery))
+        {
+            // CR 205.4e: a legendary instant or sorcery can be cast only
+            // while its caster controls a legendary creature or a
+            // legendary planeswalker.
+            let legend = |t: mtg_core::card::CardType| StaticCondition::YouControl {
+                filter: ObjFilter {
+                    types: TypeSet::of([t]),
+                    supertypes: SupertypeSet::of([mtg_core::card::Supertype::Legendary]),
+                    ..ObjFilter::default()
+                },
+                at_least: 1,
+            };
+            let c = StaticCondition::Or(
+                Box::new(legend(mtg_core::card::CardType::Creature)),
+                Box::new(legend(mtg_core::card::CardType::Planeswalker)),
+            );
+            b = b.cast_only(self.pool.intern_condition(c));
         }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
