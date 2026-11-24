@@ -80,6 +80,9 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("{} collects evidence.", who(*player, viewer))
         }
         Event::Foraged { player } => format!("{} forages.", who(*player, viewer)),
+        Event::Searched { player } => {
+            format!("{} searches their library.", who(*player, viewer))
+        }
         Event::CommittedCrime { player } => {
             format!("{} commits a crime.", who(*player, viewer))
         }
@@ -131,7 +134,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             let name = state.name_of_or_lki(*old);
             format!("{name} moves from {from:?} to {to:?}.")
         }
-        Event::LandPlayed { player, land } => {
+        Event::LandPlayed { player, land, .. } => {
             format!(
                 "{} {}.",
                 verb(*player, viewer, "play", "plays"),

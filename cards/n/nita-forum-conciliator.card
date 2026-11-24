@@ -1,0 +1,8 @@
+card "Nita, Forum Conciliator" {
+  oracle_id f589e5ee-399c-4613-b7a2-9ab2866cc830
+  cost {1}{W}{B}
+  type Legendary Creature — Human Advisor
+  pt 2/3
+  triggered whenever you cast a spell you don't own: put 1 +1/+1 counter on each creature you control
+  activated {2}, sacrifice other creature, sorcery: exile target instant or sorcery card from an opponent's graveyard; may cast it this turn any type exile instead
+}

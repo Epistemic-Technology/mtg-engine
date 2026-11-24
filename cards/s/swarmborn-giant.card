@@ -1,0 +1,9 @@
+card "Swarmborn Giant" {
+  oracle_id 9d09697f-8c5c-4bf9-811f-2f847ee374f0
+  cost {2}{G}{G}
+  type Creature — Giant
+  pt 6/6
+  triggered when you're dealt combat damage: sacrifice this
+  activated {4}{G}{G}: monstrosity 2
+  static as long as monstrous, this: has reach
+}

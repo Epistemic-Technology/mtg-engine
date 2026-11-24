@@ -1,0 +1,8 @@
+card "Vaan, Street Thief" {
+  oracle_id 24fd1f47-bb15-45c6-a7b1-ba8eb3bb8b1d
+  cost {2}{R}
+  type Legendary Creature — Human Scout
+  pt 2/2
+  triggered whenever one or more andor Scout or Pirate or Rogue you control deal combat damage to a player: exile top 1 card of that player; cast now it; if you dont, create 1 "Treasure"
+  triggered whenever you cast a spell you don't own: put 1 +1/+1 counter on each andlist Scout or Pirate or Rogue you control
+}

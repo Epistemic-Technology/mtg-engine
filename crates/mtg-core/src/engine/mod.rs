@@ -2100,9 +2100,14 @@ impl GameState {
                 // CR 305.1, 110.2a: under the control of the player who
                 // played it, even a card they don't own (played from
                 // exile).
+                let from = self.objects[id].zone;
                 let new = self.put_onto_battlefield(id, player);
                 self.player_mut(player).lands_played_this_turn += 1;
-                self.emit(Event::LandPlayed { player, land: new });
+                self.emit(Event::LandPlayed {
+                    player,
+                    land: new,
+                    from,
+                });
             }
             (Flow::Priority, Choice::Unlock { obj, door }) => {
                 // CR 709.5e: a special action; the player keeps priority.
@@ -2148,9 +2153,14 @@ impl GameState {
                 if let Some(f) = self.land_face(card, face) {
                     self.objects[card].def = f;
                 }
+                let from = self.objects[card].zone;
                 let new = self.move_object(card, Zone::Battlefield, true);
                 self.player_mut(player).lands_played_this_turn += 1;
-                self.emit(Event::LandPlayed { player, land: new });
+                self.emit(Event::LandPlayed {
+                    player,
+                    land: new,
+                    from,
+                });
             }
             // Every way to cast a card from priority (`cast_way`): one
             // description of it, one way to begin the cast.

@@ -1384,6 +1384,45 @@ impl GameState {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
+            // CR 502.3: the controller's own permanents, untapped in their
+            // untap step.
+            (TriggerSpec::UntapsDuringUntapStep, Event::Untapped { obj }) => {
+                (self.step == crate::turn::Step::Untap
+                    && self.active_player == w.controller
+                    && self.objects.get(*obj)?.controller == w.controller)
+                    .then_some((None, Some(w.controller)))
+            }
+            // CR 108.3: the spell's owner isn't its caster.
+            (TriggerSpec::CastsNotOwned { whose }, Event::Cast { player, spell, .. }) => {
+                let owner = self.objects.get(*spell)?.owner;
+                (whose_ok(*whose, *player) && owner != *player)
+                    .then_some((Some(*spell), Some(*player)))
+            }
+            // CR 305.1: a land played, from where `from` names.
+            (
+                TriggerSpec::PlaysLand { whose, from },
+                Event::LandPlayed {
+                    player,
+                    land,
+                    from: z,
+                },
+            ) => (whose_ok(*whose, *player) && from.allows(Some(*z)))
+                .then_some((Some(*land), Some(*player))),
+            (
+                TriggerSpec::PlayerDealtDamage { enchanted, combat },
+                Event::Damage {
+                    target: Target::Player(p),
+                    combat: c,
+                    ..
+                },
+            ) => {
+                let who = if *enchanted {
+                    self.attached_player_of(w.source)?
+                } else {
+                    w.controller
+                };
+                (*p == who && (*c || !*combat)).then_some((None, Some(*p)))
+            }
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
@@ -1419,6 +1458,7 @@ impl GameState {
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. })
             | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player })
             | (TriggerSpec::Forages { whose }, Event::Foraged { player })
+            | (TriggerSpec::Searches { whose }, Event::Searched { player })
             | (TriggerSpec::Discovers { whose }, Event::Discovered { player, .. })
             | (TriggerSpec::GivesGift { whose }, Event::GaveGift { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
@@ -1661,7 +1701,14 @@ impl GameState {
                     .or_else(|| self.pool.get(*def).printed)?;
                 // "Whenever you cast a spell of the chosen color" (Diamond
                 // Mare): what the source chose as it entered.
-                let filter = &*self.with_source_chosen(filter, w.source);
+                let mut filter = self.with_source_chosen(filter, w.source);
+                // "a creature spell with mana value equal to Jackal's
+                // power": the source's count as the spell is cast.
+                if let Some(b) = filter.status.bound {
+                    let v = self.eval_num_of(b.n, w.source, w.controller);
+                    GameState::fill_bound(filter.to_mut(), v);
+                }
+                let filter = &*filter;
                 // Heroic (CR 207.2c): "a spell that targets this creature",
                 // judged with the targets chosen as it was cast (CR 601.2c).
                 let targets_ok = |f: &crate::card::ObjFilter| {
@@ -1690,8 +1737,10 @@ impl GameState {
                     && self.status_ok(filter, *spell))
                 .then_some((Some(*spell), Some(*player)))
             }
-            (TriggerSpec::DrawsNth { whose, n }, Event::Draw { player, .. }) => {
-                (whose_ok(*whose, *player) && self.tallied(crate::card::TurnEvent::Drew, *player) == u32::from(*n))
+            (TriggerSpec::DrawsNth { whose, n, or_next }, Event::Draw { player, .. }) => {
+                let drew = self.tallied(crate::card::TurnEvent::Drew, *player);
+                (whose_ok(*whose, *player)
+                    && (drew == u32::from(*n) || (*or_next && drew == u32::from(*n) + 1)))
                     .then_some((None, Some(*player)))
             }
             // Valiant: by a spell or ability its controller controls, the

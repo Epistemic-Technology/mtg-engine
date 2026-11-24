@@ -1,0 +1,109 @@
+# More cards on the fourteenth wave's trigger events: "you're dealt
+# damage", library searches, land plays from exile.
+
+scenario "Sun Droplet: damage to you puts that many charge counters on it" {
+  battlefield A: "Sun Droplet"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert counters "Sun Droplet" charge 3
+}
+
+scenario "Sun Droplet: damage to an opponent doesn't count" {
+  battlefield A: "Sun Droplet", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Sun Droplet" charge 0
+}
+
+scenario "Darien: damage to you makes that many Soldiers" {
+  battlefield A: "Darien, King of Kjeldor"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+}
+
+scenario "Angelheart Vial: counters from damage, then four pay for life and a card" {
+  battlefield A: "Angelheart Vial", 2 "Plains"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt", "Shock"
+  library A: 5 "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting player A
+  turn 3 A: activate "Angelheart Vial"
+  run_to turn 3 postcombat_main
+  assert counters "Angelheart Vial" charge 1
+  assert life A 17
+  assert hand A count 2
+}
+
+scenario "Swarmborn Giant: combat damage to you sacrifices it" {
+  battlefield A: "Swarmborn Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Swarmborn Giant"
+  assert life A 18
+}
+
+scenario "Swarmborn Giant: noncombat damage doesn't" {
+  battlefield A: "Swarmborn Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Swarmborn Giant"
+}
+
+scenario "Ob Nixilis, Unshackled: an opponent's search costs them a creature and 10 life" {
+  battlefield A: "Ob Nixilis, Unshackled"
+  battlefield B: "Evolving Wilds", "Grizzly Bears"
+  library B: "Forest", 5 "Island"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Evolving Wilds"
+  run_to turn 2 postcombat_main
+  assert life B 10
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Ob Nixilis, Unshackled" +1/+1 1
+}
+
+scenario "Ob Nixilis, Unshackled: your own search doesn't" {
+  battlefield A: "Ob Nixilis, Unshackled", "Evolving Wilds"
+  library A: "Forest", 5 "Island"
+  turn 1 A: activate "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Pia Nalaar, Consul of Revival: lands played and spells cast from exile make hasty Thopters" {
+  battlefield A: "Pia Nalaar, Consul of Revival", 4 "Mountain"
+  hand A: "Light Up the Stage"
+  library A: "Forest", "Shock", 5 "Island"
+  turn 1 A: cast "Light Up the Stage"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains 2 "Thopter"
+  assert has newest A "Thopter" haste
+  assert life B 18
+}
+
+scenario "Pia Nalaar, Consul of Revival: casting from hand makes no Thopter" {
+  battlefield A: "Pia Nalaar, Consul of Revival", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Thopter"
+  assert life B 18
+}

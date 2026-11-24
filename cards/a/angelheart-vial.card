@@ -1,0 +1,7 @@
+card "Angelheart Vial" {
+  oracle_id efbc9b9c-2b8c-4121-b232-350c80f12a2a
+  cost {5}
+  type Artifact
+  triggered whenever you're dealt damage: you may put that much charge counter on this
+  activated {2}, {T}, remove 4 charge counters from this: you gain 2 life and draw 1 card
+}

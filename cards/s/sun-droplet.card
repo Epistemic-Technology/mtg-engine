@@ -1,0 +1,7 @@
+card "Sun Droplet" {
+  oracle_id 1820af5c-9cc2-4b77-b4ca-86084442f087
+  cost {2}
+  type Artifact
+  triggered whenever you're dealt damage: put that much charge counter on this
+  triggered at beginning of every upkeep: you may remove 1 charge counter from this; if you do, you gain 1 life
+}

@@ -1,0 +1,11 @@
+card "Wan Shi Tong, Librarian" {
+  oracle_id 2bace3ea-7d28-4a1c-857a-d3c3a1c11b59
+  cost {X}{U}{U}
+  type Legendary Creature — Bird Spirit
+  pt 1/1
+  pronoun he
+  keywords flash
+  keywords flying, vigilance
+  triggered when this enters: put x +1/+1 counter on this; then draw half down x cards
+  triggered whenever an opponent searches their library: put 1 +1/+1 counter on this and draw 1 card
+}

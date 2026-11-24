@@ -97,6 +97,10 @@ pub enum Event {
     Foraged {
         player: PlayerId,
     },
+    /// A player searched their own library (CR 701.19).
+    Searched {
+        player: PlayerId,
+    },
     /// A player committed a crime (CR 700.13): they cast a spell,
     /// activated an ability, or put a triggered ability on the stack that
     /// targets an opponent, something an opponent controls, or a card in
@@ -139,6 +143,9 @@ pub enum Event {
     LandPlayed {
         player: PlayerId,
         land: ObjId,
+        /// The zone it was played from (CR 305.1: the hand, or a zone a
+        /// permission names).
+        from: Zone,
     },
     Cast {
         player: PlayerId,
@@ -442,7 +449,7 @@ impl Event {
             Event::Block { .. } | Event::Blocked { .. } | Event::Unblocked { .. } => WATCH_BLOCK,
             Event::Damage { .. } => WATCH_DAMAGE,
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
-            Event::Cast { .. } | Event::SpellCopied { .. } => WATCH_CAST,
+            Event::Cast { .. } | Event::SpellCopied { .. } | Event::LandPlayed { .. } => WATCH_CAST,
             Event::Targeted { .. } | Event::CommittedCrime { .. } => WATCH_TARGETED,
             Event::Tapped { .. }
             | Event::Untapped { .. }
@@ -462,6 +469,7 @@ impl Event {
             | Event::GaveGift { .. }
             | Event::Discovered { .. }
             | Event::Foraged { .. }
+            | Event::Searched { .. }
             | Event::ControlChanged { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,
             Event::CountersAdded { .. } | Event::CountersRemoved { .. } => WATCH_COUNTERS,

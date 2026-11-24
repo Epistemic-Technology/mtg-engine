@@ -1910,6 +1910,7 @@ impl Decompiler<'_> {
                 Effect::WhenYouDo {
                     targets: t.targets.iter().map(|t| self.target(*t)).collect(),
                     effects: self.sentences(&t.effects),
+                    discarded: None,
                 }
             }
             CoreEffect::Waterbend(mana) => Effect::Waterbend(mana.clone()),
@@ -2143,6 +2144,9 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::DoubleLife { who } => Effect::DoubleLife { who: r(*who) },
+            CoreEffect::LifeBecomesHalfStarting { who } => {
+                Effect::LifeBecomesHalfStarting { who: r(*who) }
+            }
             CoreEffect::NoMaxHandSize { who } => Effect::NoMaxHandSize { who: r(*who) },
             CoreEffect::Earthbend { count, to } => Effect::Earthbend {
                 count: *count,
@@ -2750,10 +2754,11 @@ impl Decompiler<'_> {
             TriggerSpec::Reflexive => {
                 unreachable!("a reflexive trigger is decompiled with its effect")
             }
-            TriggerSpec::DrawsNth { whose, n } => Trigger::DrawsNth {
+            TriggerSpec::DrawsNth { whose, n, or_next } => Trigger::DrawsNth {
                 whose: *whose,
                 n: *n,
                 in_a_turn: false,
+                or_next: *or_next,
             },
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::TappedForTeamwork(o) => Trigger::TappedForTeamwork(self.trigger_obj(o)),
@@ -2855,6 +2860,18 @@ impl Decompiler<'_> {
             TriggerSpec::Discovers { .. } => Trigger::Discovers,
             TriggerSpec::SolvesCase { .. } => Trigger::SolvesCase,
             TriggerSpec::Forages { .. } => Trigger::Forages,
+            TriggerSpec::Searches { whose } => Trigger::Searches { whose: *whose },
+            TriggerSpec::PlaysLand { whose, from } => Trigger::PlaysLand {
+                whose: *whose,
+                from: *from,
+                or_cast: false,
+            },
+            TriggerSpec::CastsNotOwned { whose } => Trigger::CastsNotOwned { whose: *whose },
+            TriggerSpec::UntapsDuringUntapStep => Trigger::UntapsDuringUntapStep,
+            TriggerSpec::PlayerDealtDamage { enchanted, combat } => Trigger::PlayerDealtDamage {
+                enchanted: *enchanted,
+                combat: *combat,
+            },
             TriggerSpec::CreaturesDealDamage(f) => Trigger::CreaturesDealDamage(self.filter(f)),
             TriggerSpec::CreaturesDealCombatDamage(f) => {
                 Trigger::CreaturesDealCombatDamage(self.filter(f))

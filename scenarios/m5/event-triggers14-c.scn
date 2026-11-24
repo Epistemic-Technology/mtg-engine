@@ -1,0 +1,62 @@
+# Filtered reflexive triggers (fourteenth wave): "When you discard a
+# nonland card this way, ...".
+
+scenario "Glacial Dragonhunt: discarding a nonland card deals 3 damage to target creature" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Glacial Dragonhunt", "Grizzly Bears"
+  library A: "Forest", 5 "Island"
+  turn 1 A: cast "Glacial Dragonhunt"
+  turn 1 A: trigger "Glacial Dragonhunt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+}
+
+scenario "Glacial Dragonhunt: discarding a land card doesn't trigger" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Glacial Dragonhunt", "Forest"
+  library A: "Grizzly Bears", 5 "Island"
+  turn 1 A: cast "Glacial Dragonhunt"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert graveyard A contains "Forest"
+}
+
+scenario "Glacial Dragonhunt: declining the discard doesn't trigger" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Glacial Dragonhunt", "Grizzly Bears"
+  library A: "Forest", 5 "Island"
+  turn 1 A: cast "Glacial Dragonhunt"
+  turn 1 A: decline "Glacial Dragonhunt"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+  assert hand A count 2
+}
+
+scenario "Teo: attacking with a flier loots; a nonland discard puts a +1/+1 counter on target creature" {
+  battlefield A: "Teo, Spirited Glider", "Wind Drake"
+  hand A: "Grizzly Bears"
+  library A: "Forest", 5 "Island"
+  turn 1 A: attack "Wind Drake"
+  turn 1 declare_attackers A: discard "Grizzly Bears"
+  turn 1 A: trigger "Teo, Spirited Glider" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert counters "Wind Drake" +1/+1 1
+  assert life B 17
+}
+
+scenario "Teo: a land discarded puts no counter" {
+  battlefield A: "Teo, Spirited Glider", "Wind Drake"
+  hand A: "Grizzly Bears"
+  library A: "Forest", 5 "Island"
+  turn 1 A: attack "Wind Drake"
+  turn 1 declare_attackers A: discard "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "Wind Drake" +1/+1 0
+  assert counters "Teo, Spirited Glider" +1/+1 0
+}

@@ -1,0 +1,11 @@
+card "Jackal, Genius Geneticist" {
+  oracle_id 5998f07e-01f9-4d02-94dd-867c7166463f
+  cost {G}{U}
+  type Legendary Creature — Human Scientist Villain
+  pt 1/1
+  keywords trample
+  triggered whenever you cast creature with mana value equal to count equal power spell: copy that spell with exceptions; then put 1 +1/+1 counter on this
+  except {
+    not legendary
+  }
+}

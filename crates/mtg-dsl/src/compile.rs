@@ -4744,6 +4744,9 @@ impl Compiler<'_> {
                 to: r(*to),
             }),
             Effect::DoubleLife { who } => out.push(CoreEffect::DoubleLife { who: r(*who) }),
+            Effect::LifeBecomesHalfStarting { who } => {
+                out.push(CoreEffect::LifeBecomesHalfStarting { who: r(*who) });
+            }
             Effect::NoMaxHandSize { who } => out.push(CoreEffect::NoMaxHandSize { who: r(*who) }),
             Effect::EnterTappedAttacking => {
                 return self.err(
@@ -5040,7 +5043,11 @@ impl Compiler<'_> {
                 let i = self.pool.intern_condition(c);
                 out.push(CoreEffect::IfCondition(i, effects));
             }
-            Effect::WhenYouDo { targets, effects } => {
+            Effect::WhenYouDo {
+                targets,
+                effects,
+                discarded,
+            } => {
                 // "When you do, if it has four or more quest counters on
                 // it, put a +1/+1 counter on target creature you control.
                 // It gains trample until end of turn." (Earthbender
@@ -5084,7 +5091,21 @@ impl Compiler<'_> {
                         targets,
                         effects,
                     }));
-                out.push(CoreEffect::Reflexive(id));
+                // "When you discard a nonland card this way": it triggers
+                // only if one was (CR 603.12, 608.2c).
+                if let Some(f) = discarded {
+                    out.push(CoreEffect::IfThisWay {
+                        cond: mtg_core::card::ThisWayCond {
+                            verb: mtg_core::card::ThisWay::Discarded,
+                            filter: Some(Box::new(self.filter(f))),
+                            negated: false,
+                            by_you: true,
+                        },
+                        then: vec![CoreEffect::Reflexive(id)],
+                    });
+                } else {
+                    out.push(CoreEffect::Reflexive(id));
+                }
             }
             Effect::IfYouDo(inner) => {
                 let effects = self.sentences(inner)?;
@@ -6201,9 +6222,12 @@ impl Compiler<'_> {
             Trigger::HauntedDies => TriggerSpec::Dies(CoreTriggerObj::This),
             Trigger::BecomesPlotted => TriggerSpec::BecomesPlotted,
             Trigger::Foretells => TriggerSpec::Foretells,
-            Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
+            Trigger::DrawsNth {
+                whose, n, or_next, ..
+            } => TriggerSpec::DrawsNth {
                 whose: *whose,
                 n: *n,
+                or_next: *or_next,
             },
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
             Trigger::TappedForTeamwork(o) => TriggerSpec::TappedForTeamwork(self.trigger_obj(o)),
@@ -6326,6 +6350,37 @@ impl Compiler<'_> {
             Trigger::Discovers => TriggerSpec::Discovers { whose: Who::You },
             Trigger::SolvesCase => TriggerSpec::SolvesCase { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
+            Trigger::Searches { whose } => TriggerSpec::Searches { whose: *whose },
+            Trigger::PlaysLand {
+                whose,
+                from,
+                or_cast,
+            } => {
+                let land = TriggerSpec::PlaysLand {
+                    whose: *whose,
+                    from: *from,
+                };
+                if *or_cast {
+                    TriggerSpec::Either(Box::new((
+                        land,
+                        TriggerSpec::CastsFiltered {
+                            whose: *whose,
+                            filter: ObjFilter::default(),
+                            from: *from,
+                        },
+                    )))
+                } else {
+                    land
+                }
+            }
+            Trigger::CastsNotOwned { whose } => TriggerSpec::CastsNotOwned { whose: *whose },
+            Trigger::UntapsDuringUntapStep => {
+                TriggerSpec::Batch(Box::new(TriggerSpec::UntapsDuringUntapStep))
+            }
+            Trigger::PlayerDealtDamage { enchanted, combat } => TriggerSpec::PlayerDealtDamage {
+                enchanted: *enchanted,
+                combat: *combat,
+            },
             Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {
                 TriggerSpec::CreaturesDealCombatDamage(self.filter(f))
@@ -6970,6 +7025,14 @@ impl Compiler<'_> {
                     }
                     Some(crate::ast::TrigCond::Outstats) => {
                         Some(mtg_core::card::Condition::Evolves)
+                    }
+                    // Wording: the ability works only from the graveyard.
+                    Some(crate::ast::TrigCond::InGraveyard) => {
+                        if !*from_graveyard {
+                            return self
+                                .err("`while in graveyard` needs `triggered from graveyard`");
+                        }
+                        None
                     }
                     Some(crate::ast::TrigCond::ItsStat { stat, cmp, n, .. }) => {
                         let mut f = ObjFilter::default();

@@ -100,7 +100,7 @@ fn count_words(n: Num, article: &str) -> String {
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
-            .map_or_else(|| n.to_string(), |w| (*w).to_string()),
+            .map_or_else(|| grouped(n), |w| (*w).to_string()),
     }
 }
 
@@ -112,7 +112,7 @@ fn digits(n: Num) -> String {
         Num::XTimes(n) => times_x(n),
         Num::ThatMuchTimes(n) => times_x(n).replacen('X', "that much", 1),
         Num::NMinusX(n) => format!("{n} minus X"),
-        Num::N(n) => n.to_string(),
+        Num::N(n) => grouped(n),
     }
 }
 
@@ -264,7 +264,20 @@ fn tally_cond(t: crate::ast::Tally, n: u32) -> String {
 fn number_word(n: u32) -> String {
     NUMBER_WORDS
         .get((n as usize).wrapping_sub(1))
-        .map_or_else(|| n.to_string(), |w| (*w).to_string())
+        .map_or_else(|| grouped(n), |w| (*w).to_string())
+}
+
+/// Digits, grouped by thousands as Oracle prints them ("1,000").
+fn grouped(n: u32) -> String {
+    let s = n.to_string();
+    let mut out = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
 }
 
 /// "twice X", "three times X".
@@ -12370,6 +12383,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("{v} no maximum hand size for the rest of the game"),
             )
         }
+        Effect::LifeBecomesHalfStarting { .. } => Clause::imperative(
+            "your life total becomes half your starting life total, rounded up".to_string(),
+        ),
         Effect::DoubleLife { who } => {
             let s = ctx.subj(*who);
             Clause::imperative(format!("double {} life total", possessive(&s)))
@@ -12886,7 +12902,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let what = if *color { "color" } else { "type" };
             Clause::with_subject(*to, s, format!("{verb} that {what}")).until_eot()
         }
-        Effect::WhenYouDo { targets, effects } => {
+        Effect::WhenYouDo {
+            targets,
+            effects,
+            discarded,
+        } => {
             // CR 603.12: its own targets; the source and the trigger as the
             // ability around it has them.
             let mut inner = Ctx::new(ctx.card, ctx.lookup, targets);
@@ -12903,7 +12923,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // "Draw a card, then discard a card. When you discard a card
             // this way, ...".
-            let when = if ctx.discarded_one {
+            let when = if let Some(f) = discarded {
+                format!(
+                    "when you discard {} this way",
+                    with_article(&format!("{} card", card_filter_phrase(f, ctx.card)))
+                )
+            } else if ctx.discarded_one {
                 "when you discard a card this way".to_string()
             } else if ctx.removed_from_source {
                 format!(
@@ -15543,7 +15568,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             ),
             t => unreachable!("no per-object form of {t:?}"),
         },
-        Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
+        Trigger::State(c) => {
+            // "When there are 1,000 or more time counters on The
+            // Millennium Calendar, sacrifice it ...": named already.
+            if matches!(c, StaticCond::SourceCountersThere { .. }) {
+                ctx.source_mentioned = true;
+            }
+            format!("when {}", static_cond_text(c, ctx.card))
+        }
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
             let b = trigger_text(b, ctx, next);
@@ -15685,6 +15717,19 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Discovers => "whenever you discover".to_string(),
         Trigger::SolvesCase => "whenever you solve a Case".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
+        Trigger::Searches { whose } => crate::format::searches_words(*whose).to_string(),
+        Trigger::PlaysLand {
+            whose,
+            from,
+            or_cast,
+        } => crate::format::plays_land_words(*whose, *from, *or_cast),
+        Trigger::PlayerDealtDamage { enchanted, combat } => {
+            crate::format::player_dealt_damage_words(*enchanted, *combat).to_string()
+        }
+        Trigger::CastsNotOwned { .. } => "whenever you cast a spell you don't own".to_string(),
+        Trigger::UntapsDuringUntapStep => {
+            "whenever you untap one or more permanents during your untap step".to_string()
+        }
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
             controller_first(f, filter_phrase(f, ctx.card, true))
@@ -15861,6 +15906,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 || f.not_types.contains(&CardType::Land)
                 // `whenever a creature dies`: the older wording.
                 || f.article
+                // A card in a graveyard is no creature dying (CR 400.7).
+                || works_from_graveyard(ctx.current)
             {
                 format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {
@@ -16532,7 +16579,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             whose,
             n,
             in_a_turn,
-        } => crate::format::draws_nth(*whose, *n, *in_a_turn),
+            or_next,
+        } => crate::format::draws_nth(*whose, *n, *in_a_turn, *or_next),
         Trigger::TargetedByYouFirstTime => format!(
             "whenever {} becomes the target of a spell or ability you control for the first time each turn",
             this(ctx)
@@ -19400,10 +19448,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             )
         }
         StaticCond::SourceCountersThere { kind, n } => format!(
-            "there are {} or more {} counters on this {}",
+            "there are {} or more {} counters on {}",
             count_words(Num::N(*n), "one"),
             kind.name(),
-            self_noun(card)
+            this_ref(card)
         ),
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least && *n == 1 {
@@ -21099,6 +21147,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     } else {
                         ", if it had a counter on it"
                     });
+                }
+                // "Whenever a creature you control dies while this card is
+                // in your graveyard" (Furious Forebear).
+                Some(crate::ast::TrigCond::InGraveyard) => {
+                    out.push_str(" while this card is in your graveyard");
                 }
                 Some(crate::ast::TrigCond::Outstats) => {
                     let this = this_ref(card);

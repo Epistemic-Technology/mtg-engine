@@ -1,0 +1,7 @@
+card "The Endstone" {
+  oracle_id 57ee0730-3ac5-4f17-ac82-bd4a6673c2bb
+  cost {7}
+  type Legendary Artifact
+  triggered whenever you play a land or cast a spell: draw 1 card
+  triggered at beginning of your end step: your life total becomes half starting
+}

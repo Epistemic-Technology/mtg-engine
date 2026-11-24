@@ -1,0 +1,7 @@
+card "Furious Forebear" {
+  oracle_id 4fb1d33f-a87d-46cf-a73e-882c3dbcb26f
+  cost {1}{W}
+  type Creature — Spirit Warrior
+  pt 3/1
+  triggered from graveyard whenever creature you control dies while in graveyard: you may pay {1}{W}; if you do, return this to hand
+}

@@ -1,0 +1,8 @@
+card "Teo, Spirited Glider" {
+  oracle_id ea74940f-01de-4804-92ed-b273fddf6d62
+  cost {3}{U}
+  type Legendary Creature — Human Pilot Ally
+  pt 1/4
+  keywords flying
+  triggered whenever one or more creature you control with flying attack: draw 1 card then discard 1 card; when you discard nonland card this way, put 1 +1/+1 counter on target creature you control
+}

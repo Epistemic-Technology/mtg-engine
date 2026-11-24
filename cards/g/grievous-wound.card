@@ -1,0 +1,8 @@
+card "Grievous Wound" {
+  oracle_id 4d97b9d1-1138-40da-b593-8065ea6ed7b3
+  cost {3}{B}{B}
+  type Enchantment — Aura
+  enchant player
+  enchanted player can't gain life
+  triggered whenever enchanted player is dealt damage: they lose half life
+}

@@ -2532,6 +2532,10 @@ pub enum TrigCond {
     /// the event happens ("Whenever this creature attacks while you control
     /// two or more artifacts, ...").
     While(StaticCond),
+    /// `while in graveyard` after a `triggered from graveyard` ability's
+    /// trigger: "while this card is in your graveyard" (Furious
+    /// Forebear). Wording only: such an ability works only from there.
+    InGraveyard,
     /// `if it had counter`, `if it had one or more counters`: the core
     /// `TriggerHadCounters` ("if it had counters on it") printed "if it had
     /// a counter on it" (Leader's Talent) or "if it had one or more
@@ -4545,6 +4549,9 @@ pub enum Trigger {
         whose: Who,
         n: u8,
         in_a_turn: bool,
+        /// `whenever you draw your first or second card each turn`: the
+        /// `n`th card or the next.
+        or_next: bool,
     },
     /// A trigger that would print "Whenever" printed "When" ("When this
     /// creature blocks, return it to its owner's hand"): written `when`.
@@ -4661,6 +4668,36 @@ pub enum Trigger {
     SolvesCase,
     /// `whenever you forage` (CR 701.61).
     Forages,
+    /// `whenever an opponent searches their library` (CR 701.19; `you
+    /// search your library`, `a player searches their library`).
+    Searches {
+        whose: Who,
+    },
+    /// `whenever you play a land` (CR 305.1), `... a land from exile`,
+    /// `... or cast a spell` (The Endstone: one ability with both events),
+    /// `whenever you play a land from exile or cast a spell from exile`
+    /// (Ghost-Spider), `whenever you play a land or cast a spell from
+    /// anywhere other than your hand` (Shadow of the Goblin: both).
+    PlaysLand {
+        whose: Who,
+        from: mtg_core::card::SpellFrom,
+        or_cast: bool,
+    },
+    /// `whenever you untap one or more permanents during your untap
+    /// step` (CR 502.3): once for the permanents untapped together, their
+    /// number `that much`.
+    UntapsDuringUntapStep,
+    /// `whenever you cast a spell you don't own` (CR 108.3).
+    CastsNotOwned {
+        whose: Who,
+    },
+    /// `whenever enchanted player is dealt damage` (a Curse's player),
+    /// `whenever you're dealt combat damage`, `whenever you're dealt
+    /// damage`: that player is `that player` ("they").
+    PlayerDealtDamage {
+        enchanted: bool,
+        combat: bool,
+    },
     /// `whenever one or more creature you control deal combat damage to a
     /// player`, `... one or more Ally you control ...` (once per player,
     /// CR 603.2c).
@@ -6112,6 +6149,11 @@ pub enum Effect {
     DoubleLife {
         who: Recipient,
     },
+    /// `your life total becomes half starting`: "your life total becomes
+    /// half your starting life total, rounded up" (CR 119.5, The Endstone).
+    LifeBecomesHalfStarting {
+        who: Recipient,
+    },
     /// `create 3 "..."; if sneak paid, they enter tapped and attacking`
     /// (The Last Ronin's Technique, CR 508.4): only after a sentence
     /// creating tokens, inside `if <condition>,`: the tokens enter tapped
@@ -6331,6 +6373,10 @@ pub enum Effect {
     WhenYouDo {
         targets: Vec<Target>,
         effects: Vec<Sentence>,
+        /// `when you discard nonland card this way, ...`: "When you
+        /// discard a nonland card this way, ..." (Glacial Dragonhunt): it
+        /// triggers only if a card the resolution discarded matches.
+        discarded: Option<Filter>,
     },
     /// `<clause> unless you pay {2}`, `... unless they pay {2}`: the payer
     /// may pay to stop it.
@@ -7430,7 +7476,9 @@ pub enum SpentOf {
 pub fn exert_parts(effects: &[Sentence]) -> (&[Target], &[Sentence]) {
     match effects {
         [s] if s.effects.len() == 1 => match &s.effects[0] {
-            Effect::WhenYouDo { targets, effects } => (targets, effects),
+            Effect::WhenYouDo {
+                targets, effects, ..
+            } => (targets, effects),
             _ => (&[], effects),
         },
         _ => (&[], effects),

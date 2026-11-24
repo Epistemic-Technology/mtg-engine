@@ -1,0 +1,10 @@
+card "Loki Laufeyson" {
+  oracle_id 9c78778a-6335-4949-8ade-11d0f085cb2b
+  cost {1}{R}
+  type Legendary Creature — God Sorcerer Villain
+  pt 2/1
+  short_name "Loki"
+  pronoun he
+  activated {1}, {T}: delayed this: when next you cast instant or sorcery with mana value at most count equal power spell this turn, copy that spell new targets
+  power-up {4}{R}: put 2 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Shadow of the Goblin" {
+  oracle_id f343b6f9-41c3-419b-a57c-a7b08603ef5c
+  cost {1}{R}
+  type Enchantment
+  label "Unreliable Visions" triggered at beginning of your first main: discard 1 card; if you do, draw 1 card
+  label "Undying Vengeance" triggered whenever you play a land or cast a spell from anywhere other than your hand: deal 1 damage to each opponent
+}
