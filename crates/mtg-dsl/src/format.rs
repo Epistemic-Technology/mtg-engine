@@ -420,6 +420,8 @@ impl Fmt {
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::Granter => "granter".to_string(),
+            Recipient::GranterIt => "granter as it".to_string(),
+            Recipient::GranterController => "controller of granter".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
@@ -4661,6 +4663,9 @@ fn filter_one(f: &Filter) -> String {
     if f.other_than_this {
         words.push("other than this".to_string());
     }
+    if f.not_granter {
+        words.push("other than granter".to_string());
+    }
     if f.no_abilities {
         words.push("with no abilities".to_string());
     }
@@ -5673,13 +5678,21 @@ fn cost_text(c: &Cost) -> String {
                     filter(f)
                 )),
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),
-                Some(SacCost::Granter) => parts.push("sacrifice granter".to_string()),
+                Some(SacCost::Granter) => parts.push(
+                    match c.chosen {
+                        mtg_core::card::ChosenCost::Tap => "tap granter",
+                        mtg_core::card::ChosenCost::Unattach => "unattach granter",
+                        _ => "sacrifice granter",
+                    }
+                    .to_string(),
+                ),
                 Some(SacCost::Filter(f)) => parts.push(format!(
                     "{} {}{}",
                     match c.chosen {
                         mtg_core::card::ChosenCost::Sacrifice => "sacrifice",
                         mtg_core::card::ChosenCost::Return => "return",
                         mtg_core::card::ChosenCost::Tap => "tap",
+                        mtg_core::card::ChosenCost::Unattach => "unattach",
                     },
                     if c.count > 1 {
                         format!("{} ", c.count)

@@ -1,0 +1,7 @@
+card "Hold for Ransom" {
+  oracle_id 0c9336c0-c0ec-4fb4-af7c-a7766265e927
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block, has ability { activated {7}, sorcery: controller of granter sacrifices granter as it and draws 1 card }
+}

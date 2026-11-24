@@ -347,3 +347,36 @@ fn wrong_meaning_forms_of_the_sixth_correctness_wave_are_rejected() {
         .is_ok()
     );
 }
+
+#[test]
+fn granter_in_a_reflexive_ability_and_not_a_delayed_one() {
+    let equipment = "Artifact — Equipment";
+    // "When you do, <granter> deals ...": the reflexive ability carries
+    // the granter.
+    let r = load_card(
+        equipment,
+        "static equipped: has ability { triggered whenever this attacks: you may pay {1}; when you do, granter deals 1 damage to any target }",
+    );
+    assert!(r.is_ok(), "{r:?}");
+    let e = creature_error(
+        "triggered whenever this attacks: you may pay {1}; when you do, granter deals 1 damage to any target",
+    );
+    assert!(e.contains("granter"), "{e}");
+    // A delayed ability doesn't.
+    let e = load_card(
+        equipment,
+        "static equipped: has ability { activated {T}: tap target creature; delayed this: at beginning of the next end step, return granter to hand }",
+    )
+    .unwrap_err();
+    assert!(e.contains("delayed"), "{e}");
+    let r = load_card(
+        equipment,
+        "static equipped: has ability { activated {T}, unattach granter: tap target creature }",
+    );
+    assert!(r.is_ok(), "{r:?}");
+    let r = load_card(
+        equipment,
+        "static equipped: has ability { activated {T}: remove 1 aim counter from granter }",
+    );
+    assert!(r.is_ok(), "{r:?}");
+}

@@ -1,0 +1,7 @@
+card "Blinding Powder" {
+  oracle_id 75e13f7f-aded-405c-97ce-124fa0cb1929
+  cost {1}
+  type Artifact — Equipment
+  static equipped: has ability { activated unattach granter: prevent all combat damage to this this turn }
+  equip {2}
+}

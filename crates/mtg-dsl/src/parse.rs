@@ -6702,6 +6702,7 @@ impl P {
         if self.at_words(&["triggering", "card"])
             || self.at_words(&["controller", "of", "that", "creature"])
             || self.at_words(&["controller", "of", "enchanted"])
+            || self.at_words(&["controller", "of", "granter"])
         {
             return true;
         }
@@ -8104,6 +8105,7 @@ impl P {
                         | Recipient::TriggeringObject
                         | Recipient::Attached
                         | Recipient::Granter
+                        | Recipient::GranterIt
                 ) =>
             {
                 self.pos -= 1;
@@ -8343,7 +8345,8 @@ impl P {
                 if self.at_word("that")
                     || self.at_word("it")
                     || self.at_word("this")
-                    || self.at_word("attached") =>
+                    || self.at_word("attached")
+                    || self.at_word("granter") =>
             {
                 let what = self.recipient()?;
                 Ok(Effect::SacrificeBy { who: subject, what })
@@ -13867,6 +13870,10 @@ impl P {
         if self.eat_words(&["controller", "of", "enchanted"]) {
             return Ok(Recipient::AttachedController);
         }
+        // `controller of granter`: "Hold for Ransom's controller".
+        if self.eat_words(&["controller", "of", "granter"]) {
+            return Ok(Recipient::GranterController);
+        }
         // In a triggered ability with no targets, `its controller` is the
         // triggering object's; `controller of that creature` names it.
         if (self.in_trigger && self.targets.is_empty() || self.delayed_dies)
@@ -13929,6 +13936,9 @@ impl P {
             return Ok(Recipient::ExiledCard);
         }
         if self.eat_word("granter") {
+            if self.eat_words(&["as", "it"]) {
+                return Ok(Recipient::GranterIt);
+            }
             return Ok(Recipient::Granter);
         }
         if self.at_words(&["that", "card"]) {
@@ -14778,6 +14788,12 @@ impl P {
                 // "other than enchanted creature": not the source's host.
                 "other" if self.at_words(&["other", "than", "enchanted"]) => {
                     f.not_attached = true;
+                    self.pos += 3;
+                }
+                // "an artifact other than Dire Blunderbuss": not the
+                // granter.
+                "other" if self.at_words(&["other", "than", "granter"]) => {
+                    f.not_granter = true;
                     self.pos += 3;
                 }
                 // "creature other than this creature".
@@ -17264,6 +17280,19 @@ impl P {
                         self.expect_words(&["on", "this"])?;
                         cost.put_counters = Some((k, n));
                         cost.order.push(CostItem::PutCounters);
+                    }
+                    // `tap granter`, `unattach granter`: "Tap Fishing Pole",
+                    // "Unattach Leonin Bola" (the Equipment granting the
+                    // ability).
+                    "tap" | "unattach" if self.word_at(1).as_deref() == Some("granter") => {
+                        cost.chosen = if w.eq_ignore_ascii_case("tap") {
+                            mtg_core::card::ChosenCost::Tap
+                        } else {
+                            mtg_core::card::ChosenCost::Unattach
+                        };
+                        self.pos += 2;
+                        cost.sacrifice = Some(SacCost::Granter);
+                        cost.order.push(CostItem::Sacrifice);
                     }
                     "return" | "tap" if !matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                         cost.chosen = if w.eq_ignore_ascii_case("return") {

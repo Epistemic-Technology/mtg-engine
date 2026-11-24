@@ -1211,6 +1211,12 @@ pub struct ObjFilter {
     /// "target creature other than enchanted creature": not what the source
     /// is attached to. Judged for targets of an ability of the source.
     pub not_attached: bool,
+    /// "an artifact other than Dire Blunderbuss" in a quoted ability an
+    /// Equipment grants: not that ability's granter (`Recipient::Granter`).
+    /// Judged where a resolving ability chooses permanents
+    /// (`Effect::ChooseAct`).
+    #[serde(default)]
+    pub not_granter: bool,
     /// "creatures enchanted player controls" (CR 303.4): controlled by the
     /// player the source, a Curse, is attached to. A placeholder the engine
     /// fills in (`with_enchanted_player`) where the source is known: a
@@ -4092,6 +4098,10 @@ pub enum Recipient {
     /// (CR 113.2c): two Boomerangs give two, each naming its own. Only in
     /// such an ability (`AbilityDef::names_granter`).
     Granter,
+    /// The controller of the `Granter` ("{7}: Hold for Ransom's controller
+    /// sacrifices it and draws a card"), as it last existed if it has
+    /// left the battlefield.
+    GranterController,
     /// The cards the source's abilities exiled (CR 607.2a), still in
     /// exile, that match the pool's `n`th filter: "Return all cards
     /// exiled with this artifact to their owner's hand", "each creature
@@ -4807,6 +4817,14 @@ pub enum Effect {
     /// Sacrifice a permanent (CR 701.21): its controller puts it into its
     /// owner's graveyard; indestructible does not help.
     Sacrifice {
+        what: Recipient,
+    },
+    /// "Hold for Ransom's controller sacrifices it": the players `who`
+    /// sacrifice those of `what` they control (CR 701.21a: only its
+    /// controller can sacrifice a permanent), whoever controls the
+    /// resolving ability.
+    SacrificeBy {
+        who: Recipient,
         what: Recipient,
     },
     /// Create `count` tokens of a token definition under the recipient's
@@ -6036,13 +6054,22 @@ impl Effect {
         }
     }
 
-    /// Whether this effect acts on or through `Recipient::Granter`.
+    /// Whether this effect acts on or through `Recipient::Granter` (or
+    /// its controller).
     pub fn names_granter(&self) -> bool {
         let g = Recipient::Granter;
         match self {
             Effect::DamageFrom { source, to, .. } => *source == g || *to == g,
-            Effect::DealDamage { to, .. } | Effect::Destroy { to } => *to == g,
+            Effect::DealDamage { to, .. }
+            | Effect::Destroy { to }
+            | Effect::AddCounters { to, .. }
+            | Effect::RemoveCounters { to, .. } => *to == g,
             Effect::ReturnToHand { what } | Effect::Sacrifice { what } => *what == g,
+            Effect::SacrificeBy { who, what } => {
+                *what == g && matches!(who, Recipient::GranterController)
+            }
+            Effect::DrawCards { who, .. } => *who == Recipient::GranterController,
+            Effect::ChooseAct { filter, .. } => filter.not_granter,
             _ => false,
         }
     }
@@ -7926,6 +7953,10 @@ pub enum ChosenCost {
     Sacrifice,
     Return,
     Tap,
+    /// "Unattach Leonin Bola" (with `SacCost::Granter` only): the granting
+    /// Equipment moves off the creature and stays on the battlefield; it
+    /// doesn't matter who controls it (its rulings).
+    Unattach,
 }
 
 /// What an activated ability's cost sacrifices (CR 602.2b, 701.21).
@@ -7938,7 +7969,9 @@ pub enum SacCost {
     /// "Sacrifice Blazing Torch" in an ability an Aura or Equipment grants
     /// the permanent it is attached to ("Equipped creature has '{T},
     /// Sacrifice Blazing Torch: ...'"): the granting permanent, not the
-    /// one with the ability (`Recipient::Granter`).
+    /// one with the ability (`Recipient::Granter`). `Cost::chosen` says
+    /// what the cost does to it: sacrifice it, tap it ("Tap Fishing
+    /// Pole"), or unattach it ("Unattach Leonin Bola").
     Granter,
 }
 
@@ -10959,7 +10992,14 @@ impl CardPool {
                 _ => false,
             }
         }));
-        let granter = a.names_granter();
+        // "When you do, Hankyu deals ...": a reflexive ability naming the
+        // granter makes the ability that creates it name it too, so each
+        // grant carries its granter to it.
+        let granter = a.names_granter()
+            || effects.iter().any(|e| {
+                matches!(e, Effect::Reflexive(r)
+                    if self.names_granter.get(r.0 as usize).copied().unwrap_or(false))
+            });
         self.granter_abilities |= granter;
         self.names_granter.push(granter);
         self.abilities.push(a);

@@ -1939,6 +1939,7 @@ impl Compiler<'_> {
             }),
             that_player: f.that_player,
             not_attached: f.not_attached,
+            not_granter: f.not_granter,
             enchanted_player: f.enchanted_player,
             controlled_by: None,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
@@ -3105,7 +3106,8 @@ impl Compiler<'_> {
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
             Recipient::ExiledCard => CoreRecipient::ExiledCard,
-            Recipient::Granter => CoreRecipient::Granter,
+            Recipient::Granter | Recipient::GranterIt => CoreRecipient::Granter,
+            Recipient::GranterController => CoreRecipient::GranterController,
             Recipient::Those(_) => CoreRecipient::ThoseObjects,
         }
     }
@@ -3381,7 +3383,8 @@ impl Compiler<'_> {
                     by @ (Recipient::TriggeringIt
                     | Recipient::TriggeringObject
                     | Recipient::Attached
-                    | Recipient::Granter),
+                    | Recipient::Granter
+                    | Recipient::GranterIt),
                 ..
             } => {
                 for t in to {
@@ -3617,6 +3620,15 @@ impl Compiler<'_> {
             Effect::ExileGraveyard { who, filter } => out.push(CoreEffect::ExileGraveyard {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| Box::new(self.filter(f))),
+            }),
+            // "Hold for Ransom's controller sacrifices it": someone other
+            // than the ability's controller sacrifices the granter.
+            Effect::SacrificeBy {
+                who,
+                what: what @ (Recipient::Granter | Recipient::GranterIt),
+            } => out.push(CoreEffect::SacrificeBy {
+                who: r(*who),
+                what: r(*what),
             }),
             Effect::Sacrifice { what } | Effect::SacrificeBy { what, .. } => {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
@@ -4433,6 +4445,12 @@ impl Compiler<'_> {
                     _ => effects,
                 };
                 let effects = self.sentences(effects)?;
+                // "When you do, Hankyu deals ...": the granter carries over
+                // to the reflexive ability (`CardPool::register`).
+                if !self.granting && effects.iter().any(CoreEffect::names_granter) {
+                    return self
+                        .err("`granter` only in a quoted ability of `static enchanted: ...`");
+                }
                 let targets = self.targets(targets);
                 let id = self
                     .pool
@@ -4622,6 +4640,10 @@ impl Compiler<'_> {
                     return self.err("a delayed trigger can't be a triggered mana ability");
                 }
                 let trigger = self.trigger(trigger);
+                // A delayed ability doesn't carry the granter.
+                if format!("{effects:?}").contains("Granter") {
+                    return self.err("`granter` isn't supported in a delayed ability");
+                }
                 let id = self
                     .pool
                     .register_ability(AbilityDef::Triggered(TriggeredAbility {

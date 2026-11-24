@@ -414,6 +414,7 @@ impl Decompiler<'_> {
             not_attached: f.not_attached,
             enchanted_player: f.enchanted_player,
             other_than_this: false,
+            not_granter: f.not_granter,
             and_or: false,
             and_list: false,
             that_are: false,
@@ -878,6 +879,7 @@ impl Decompiler<'_> {
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
             CoreRecipient::ExiledCard => Recipient::ExiledCard,
             CoreRecipient::Granter => Recipient::Granter,
+            CoreRecipient::GranterController => Recipient::GranterController,
             CoreRecipient::ThoseObjects => Recipient::Those(crate::ast::Those::Them),
         }
     }
@@ -1100,6 +1102,10 @@ impl Decompiler<'_> {
                 filter: filter.as_ref().map(|f| self.filter(f)),
             },
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
+            CoreEffect::SacrificeBy { who, what } => Effect::SacrificeBy {
+                who: r(*who),
+                what: r(*what),
+            },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },

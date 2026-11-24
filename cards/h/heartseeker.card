@@ -1,0 +1,7 @@
+card "Heartseeker" {
+  oracle_id 9ebd9ceb-05a4-4387-b63e-4c62ead2b98b
+  cost {4}
+  type Artifact — Equipment
+  static equipped: +2/+1, has ability { activated {T}, unattach granter: destroy target creature }
+  equip {5}
+}

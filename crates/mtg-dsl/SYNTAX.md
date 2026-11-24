@@ -335,9 +335,10 @@ one line per paragraph for text that spans paragraphs:
 
 Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
-a matching permanent they control), `sacrifice granter` (in a quoted
-ability an Aura or Equipment grants: "Sacrifice Blazing Torch", see
-`has ability`), `discard 1 card`, `discard 1 card
+a matching permanent they control), `sacrifice granter`, `tap granter`,
+`unattach granter` (in a quoted ability an Aura or Equipment grants:
+"Sacrifice Blazing Torch", "Tap Fishing Pole", "Unattach Leonin Bola",
+see `has ability`), `discard 1 card`, `discard 1 card
 at random` ("Discard a card at random": the card is picked at random as
 the cost is paid, CR 701.9b), `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
@@ -1931,6 +1932,24 @@ Equipment gone or another player's, it can't be done, CR 701.21a). Each
 grant is its own ability (CR 113.2c): two Blazing Torches give the
 creature two, each sacrificing its own; an activation needs its granter
 attached (and, to sacrifice it, controlled by the activating player).
+The costs `unattach granter` ("{T}, Unattach Leonin Bola: Tap target
+creature": the Equipment moves off the creature and stays on the
+battlefield, CR 701.3d; whoever controls it) and `tap granter` ("{1},
+{T}, Tap Fishing Pole": it must be untapped). `granter as it` is the
+granter printed "it" ("{T}, Unattach Razor Boomerang: It deals 1 damage
+to any target"); `controller of granter` its controller, as it last
+existed once gone ("{7}: Hold for Ransom's controller sacrifices it and
+draws a card": `controller of granter sacrifices granter as it and draws
+1 card`, the Aura's controller sacrificing it and drawing, though the
+creature's controller activates the ability). `put 1 bait counter on
+granter` and `remove 1 aim counter from granter` act on it ("{1}, {T},
+Tap Fishing Pole: Put a bait counter on Fishing Pole"). The filter word
+`other than granter` excludes it from what a resolving ability chooses
+(`you may sacrifice 1 artifact other than granter chosen`: "you may
+sacrifice an artifact other than Dire Blunderbuss"). A reflexive ability
+(`when you do, granter deals 1 damage to any target`) names the same
+granter as the ability that creates it; a delayed one can't name it (an
+error).
 `granter` is an error elsewhere, beside a cost that chooses a permanent
 or card, and in other effects.
 A token a quoted ability creates prints its full description. A replacement or

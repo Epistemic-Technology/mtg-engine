@@ -1,0 +1,7 @@
+card "Razor Boomerang" {
+  oracle_id f2649e48-4252-43f3-bd1e-c4c6fcb0aa3a
+  cost {3}
+  type Artifact — Equipment
+  static equipped: has ability { activated {T}, unattach granter: granter as it deals 1 damage to any target; return granter to hand }
+  equip {2}
+}

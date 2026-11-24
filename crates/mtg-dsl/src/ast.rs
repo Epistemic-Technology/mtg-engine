@@ -1154,6 +1154,9 @@ pub struct Filter {
     /// `other than this`: "other than this creature", the relation
     /// `Other` worded after the noun (Weed-Pruner Poplar).
     pub other_than_this: bool,
+    /// `other than granter`: "an artifact other than Dire Blunderbuss",
+    /// not the Equipment granting the quoted ability.
+    pub not_granter: bool,
     /// `andor Villain or artifact`: its alternatives joined "and/or" as a
     /// trigger's subject ("Whenever another Villain and/or artifact you
     /// control enters"); wording only.
@@ -4313,6 +4316,12 @@ pub enum Recipient {
     /// it is attached to, that Aura or Equipment, printed by its name
     /// ("Return Trusty Boomerang to its owner's hand").
     Granter,
+    /// `granter as it`: the `Granter` printed "it" ("{T}, Unattach Razor
+    /// Boomerang: It deals 1 damage to any target"; "Hold for Ransom's
+    /// controller sacrifices it").
+    GranterIt,
+    /// `controller of granter`: "Hold for Ransom's controller".
+    GranterController,
     /// `all card exiled with this`, `each creature card exiled with this`:
     /// "all cards exiled with this artifact", what this permanent's
     /// abilities exiled (CR 607.2a) matching the `n`th group's filter.
