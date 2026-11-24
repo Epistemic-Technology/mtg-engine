@@ -14206,15 +14206,6 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "the \"legend rule\" doesn't apply to permanents {s} {verb} this turn"
             ))
         }
-        // "You have no maximum hand size for the rest of the game."
-        Effect::PlayerRule {
-            who,
-            kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
-        } => Clause::with_subject(
-            *who,
-            "you".to_string(),
-            "have no maximum hand size for the rest of the game".to_string(),
-        ),
         Effect::PlayerRule { who, kind } => {
             // "Your opponents can't gain life this turn." (Atarka's
             // Command).

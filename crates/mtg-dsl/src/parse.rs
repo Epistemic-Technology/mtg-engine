@@ -9249,16 +9249,6 @@ impl P {
                 }
             }
         }
-        // "You have no maximum hand size for the rest of the game."
-        if self.at_words(&[
-            "you", "have", "no", "maximum", "hand", "size", "for", "rest", "of", "game",
-        ]) {
-            self.pos += 10;
-            return Ok(Effect::PlayerRule {
-                who: Recipient::You,
-                kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
-            });
-        }
         // `you and all permanent you control gain hexproof`: "You and
         // permanents you control gain hexproof until end of turn."
         // (Dawn's Truce).

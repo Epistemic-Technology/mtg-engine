@@ -13632,11 +13632,6 @@ impl GameState {
             Effect::PlayerRule { who, kind } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        // "... for the rest of the game" (CR 402.2).
-                        if *kind == crate::card::PlayerRuleKind::NoMaxHandSize {
-                            self.player_mut(p).max_hand_size = usize::MAX;
-                            continue;
-                        }
                         self.player_rules.push(crate::state::PlayerRuleEffect {
                             player: p,
                             kind: *kind,

@@ -7821,10 +7821,6 @@ pub enum PlayerRuleKind {
     NoLegendRule,
     /// "Players can't cast spells this turn." (CR 101.2; Bilbo's Gambit).
     CantCastSpells,
-    /// "You have no maximum hand size for the rest of the game." (CR
-    /// 402.2, 514.1): not until end of turn; the player's own maximum is
-    /// removed for good.
-    NoMaxHandSize,
 }
 
 /// Who or what a replacement or prevention effect's event may affect.

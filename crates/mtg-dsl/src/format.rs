@@ -4372,10 +4372,6 @@ impl Fmt {
                 who,
                 kind: mtg_core::card::PlayerRuleKind::NoLegendRule,
             } => format!("{} ignore legend rule this turn", self.recipient(*who, t)),
-            Effect::PlayerRule {
-                kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
-                ..
-            } => "you have no maximum hand size for rest of game".to_string(),
             Effect::PlayerRule { who, kind } => format!(
                 "{} can't {} this turn",
                 self.recipient(*who, t),
@@ -9606,8 +9602,6 @@ pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
         mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
         mtg_core::card::PlayerRuleKind::CantGainLife => "gain life",
         mtg_core::card::PlayerRuleKind::CantCastSpells => "cast spells",
-        // Worded apart (`you have no maximum hand size for rest of game`).
-        mtg_core::card::PlayerRuleKind::NoMaxHandSize => "have no maximum hand size",
         // Worded apart (`ignore legend rule this turn`).
         mtg_core::card::PlayerRuleKind::NoLegendRule => "ignore the legend rule",
     }
