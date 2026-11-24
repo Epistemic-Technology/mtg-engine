@@ -1,0 +1,7 @@
+card "Cragganwick Cremator" {
+  oracle_id f8ea46e2-84ca-4dcb-b675-a2374bc967bc
+  cost {2}{R}{R}
+  type Creature — Giant Shaman
+  pt 5/4
+  triggered whenever this enters: discard 1 card at random; if you discard creature card this way, this deals damage equal power of that discarded card to target player or planeswalker
+}

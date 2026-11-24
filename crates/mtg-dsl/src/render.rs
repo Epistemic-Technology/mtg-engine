@@ -11498,6 +11498,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::IfThisWay(cond, inner) => {
             let player = cond.verb == mtg_core::card::ThisWay::DamagedPlayer;
+            // "If you discard a creature card this way, this creature deals
+            // damage ...": a card the condition names makes "it" another.
+            if cond.wording == crate::ast::ThisWayWording::YouNow {
+                ctx.source_mentioned = false;
+            }
             let cond = this_way_text(cond, ctx.card);
             let mut body = sentences(inner, ctx);
             // "If a player is dealt damage this way, they discard a card."

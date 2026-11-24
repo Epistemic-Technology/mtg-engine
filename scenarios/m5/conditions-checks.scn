@@ -74,6 +74,28 @@ scenario "Silvan Reveler: a discarded nonland card stays in the graveyard" {
   assert battlefield A lacks "Plains"
 }
 
+scenario "Cragganwick Cremator: a creature card discarded deals damage equal to its power" {
+  battlefield A: 4 "Mountain"
+  hand A: "Cragganwick Cremator", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cragganwick Cremator"
+  turn 1 A: trigger "Cragganwick Cremator" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "Cragganwick Cremator: a noncreature card discarded deals nothing" {
+  battlefield A: 4 "Mountain"
+  hand A: "Cragganwick Cremator", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cragganwick Cremator"
+  turn 1 A: trigger "Cragganwick Cremator" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Shock"
+  assert life B 20
+}
+
 scenario "Silvan Reveler: landfall returns it from the graveyard for {1}{G}{U}" {
   battlefield A: 2 "Forest", "Island"
   hand A: "Plains"
