@@ -9445,12 +9445,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             match until {
                 mtg_core::card::CopyUntil::Permanent => {}
                 // "Until end of turn, it becomes a copy of ..." (Fleeting
-                // Reflection): the duration printed first.
-                mtg_core::card::CopyUntil::EndOfTurn if ctx.eot_first => {}
+                // Reflection), "Until your next turn, Absorbing Man becomes
+                // a copy of ...": the duration printed first.
+                mtg_core::card::CopyUntil::EndOfTurn | mtg_core::card::CopyUntil::YourNextTurn
+                    if ctx.eot_first => {}
                 mtg_core::card::CopyUntil::EndOfTurn => text.push_str(" until end of turn"),
-                // "Until your next turn, Absorbing Man becomes a copy of
-                // ...": the duration printed first.
-                mtg_core::card::CopyUntil::YourNextTurn if ctx.eot_first => {}
                 mtg_core::card::CopyUntil::YourNextTurn => text.push_str(" until your next turn"),
             }
             if *except {

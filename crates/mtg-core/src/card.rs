@@ -9251,6 +9251,7 @@ pub enum ModeOnce {
 /// artifact in addition to its other types". They become part of the
 /// copiable values.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+#[allow(clippy::struct_excessive_bools)] // one per exception
 pub struct CopyExcept {
     pub subtypes: Vec<String>,
     pub keywords: KeywordSet,

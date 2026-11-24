@@ -1761,6 +1761,7 @@ fn granted_twice(state: &GameState, a: crate::card::AbilityId) -> bool {
         && !state.pool.ability_names_granter(a)
 }
 
+#[allow(clippy::too_many_lines)] // one arm per modification
 fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id: ObjId) {
     match part {
         Modification::AddTypes(t) => c.types = c.types.union(*t),

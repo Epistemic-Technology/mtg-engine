@@ -10136,10 +10136,9 @@ impl P {
                             return self.fail("expected a keyword after `with`");
                         };
                         keywords.push(k);
-                        if self.peek() == Some(&Tok::Comma) {
-                            self.pos += 1;
-                        } else if self.at_word("and")
-                            && self.word_at(1).as_deref() == Some("ability")
+                        if self.peek() == Some(&Tok::Comma)
+                            || (self.at_word("and")
+                                && self.word_at(1).as_deref() == Some("ability"))
                         {
                             self.pos += 1;
                         } else {
