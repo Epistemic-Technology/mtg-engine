@@ -1,0 +1,31 @@
+# "When this creature enters, look at target player's hand. You may
+# choose a card from it. If you do, that player discards that card, then
+# draws a card." (Oildeep Gearhulk): the target player discards the
+# chosen card and draws.
+
+scenario "Oildeep Gearhulk: the target player discards the chosen card, then draws" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  hand A: "Oildeep Gearhulk"
+  hand B: "Shock", "Grizzly Bears"
+  library B: "Hill Giant"
+  turn 1 A: cast "Oildeep Gearhulk"
+  turn 1 A: trigger "Oildeep Gearhulk" targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Shock"
+  assert hand B contains "Hill Giant"
+  assert hand B count 2
+  assert hand A count 0
+}
+
+scenario "Oildeep Gearhulk: an empty hand, nothing is discarded or drawn" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  hand A: "Oildeep Gearhulk"
+  library B: "Hill Giant"
+  turn 1 A: cast "Oildeep Gearhulk"
+  turn 1 A: trigger "Oildeep Gearhulk" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert library B contains "Hill Giant"
+}

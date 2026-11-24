@@ -4344,7 +4344,7 @@ permanent card" (CR 110.4a). `discarding nonland with mana value 3 or less
 card` prints "You choose a nonland card from it with mana value 3 or less."
 (the qualifier after "from it"), and `discarding may nonland card; if you
 don't, that player discards 2 cards` "You may choose a nonland card from it.
-If you do, that player discards that card. If you don't, ...". A sentence
+If you do, that player discards that card. If you don't, ..."; `look at hand of target player discarding may card; if you do, that player draws 1 card` prints "... You may choose a card from it. If you do, that player discards that card, then draws a card." (Oildeep Gearhulk: the draw only if a card was chosen). A sentence
 may start `then` ("Then discard two cards unless ..."). After `return
 target permanent to hand`, `that player` is that permanent's owner:
 `return target permanent to hand; then that player discards 1 card`

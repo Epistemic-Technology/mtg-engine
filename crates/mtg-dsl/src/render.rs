@@ -15294,7 +15294,45 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
 /// lines.
 fn sentences(ss: &[Sentence], ctx: &mut Ctx) -> String {
     let mut out = String::new();
+    let mut skip = false;
     for (i, s) in ss.iter().enumerate() {
+        if std::mem::take(&mut skip) {
+            continue;
+        }
+        // "Look at target player's hand. You may choose a card from it. If
+        // you do, that player discards that card, then draws a card."
+        // (Oildeep Gearhulk): the discard and the "if you do" draw after
+        // it are one sentence.
+        if let [
+            Effect::DiscardChosen {
+                look: true,
+                may: true,
+                top: false,
+                ..
+            },
+        ] = s.effects.as_slice()
+            && let Some(n) = ss.get(i + 1)
+            && !n.para
+            && n.label.is_none()
+            && matches!(n.effects.as_slice(), [Effect::IfYouDo(_)])
+            && s.label.is_none()
+        {
+            let head = sentence(&sentence_text(s, ctx));
+            let next = sentence(&sentence_text(n, ctx));
+            if let Some(h) = head.strip_suffix(" That player discards that card.")
+                && let Some(t) = next.strip_prefix("If you do, that player ")
+            {
+                if i > 0 {
+                    out.push(if s.para { '\n' } else { ' ' });
+                }
+                let _ = write!(
+                    out,
+                    "{h} If you do, that player discards that card, then {t}"
+                );
+                skip = true;
+                continue;
+            }
+        }
         if i > 0 {
             out.push(if s.para { '\n' } else { ' ' });
         }
