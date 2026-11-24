@@ -4819,7 +4819,9 @@ impl GameState {
                 .as_deref()
                 .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())
             && match (&c.remove_among, c.remove_counters) {
-                (Some(f), Some((k, n))) => self.counters_among(p, f, k, n, except).is_some(),
+                (Some(among), Some((kind, n))) => {
+                    self.counters_among(p, among, kind, n, except).is_some()
+                }
                 _ => true,
             }
     }
@@ -4832,20 +4834,20 @@ impl GameState {
     pub fn counters_among(
         &self,
         p: PlayerId,
-        f: &crate::card::ObjFilter,
-        k: CounterKind,
+        among: &crate::card::ObjFilter,
+        kind: CounterKind,
         n: u32,
         except: ObjId,
     ) -> Option<Vec<(ObjId, u32)>> {
         let mut have: Vec<(ObjId, u32)> = self
             .permanents_of(p)
             .filter_map(|id| {
-                let c = self.objects[id].counters(k);
-                (c > 0
+                let have = self.objects[id].counters(kind);
+                (have > 0
                     && self
                         .characteristics(id)
-                        .is_some_and(|ch| f.matches(id, p, &ch, Some(except), Some(p))))
-                .then_some((id, c))
+                        .is_some_and(|ch| among.matches(id, p, &ch, Some(except), Some(p))))
+                .then_some((id, have))
             })
             .collect();
         have.sort_by_key(|(_, c)| std::cmp::Reverse(*c));
