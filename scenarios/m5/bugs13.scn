@@ -124,3 +124,13 @@ scenario "Spires of Orazca untaps the attacker and removes it from combat" {
   assert life A 20
   assert untapped "Grizzly Bears"
 }
+
+# "They gain vigilance" after distributing among a variable number of
+# targets is every one of those targets.
+scenario "Ajani, Sleeper Agent's -3: they all gain vigilance" {
+  battlefield A: "Ajani, Sleeper Agent", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" vigilance
+  assert has "Hill Giant" vigilance
+}

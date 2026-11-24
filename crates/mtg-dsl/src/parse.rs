@@ -14979,6 +14979,17 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::AnOpponent);
         }
+        // "Distribute three +1/+1 counters among up to three target
+        // creatures. They gain vigilance": the variable group's targets,
+        // not a triggering player.
+        if self.at_word("they")
+            && !self.at_words(&["they", "control"])
+            && !self.group_named
+            && matches!(self.targets.last(), Some(Target::Many { .. }))
+        {
+            self.pos += 1;
+            return Ok(Recipient::Target(self.targets.len() - 1));
+        }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
                 // "each creature with flying" is a group, not "each creature";

@@ -3380,7 +3380,10 @@ your opponents control until end of turn; untap them; they gain haste`
 ("Gain control of all artifacts your opponents control until end of turn.
 Untap them. They gain haste until end of turn.": the stolen artifacts, not
 every permanent you now control), `put 1 +1/+1 counters on each token
-creature you control; they gain trample`. As a count, `count each those
+creature you control; they gain trample`. After a variable number of
+targets (`distribute 3 +1/+1 counters among 0 to 3 target creatures; they
+gain vigilance until end of turn`), `they` is those targets, as `target
+1` is. As a count, `count each those
 creatures` is "for each of those creatures" (Bounding Felidar's "You gain
 1 life for each of those creatures"). Without a group before it, `those
 creatures` is an error. In a triggered ability, `+1/+1 counters on it`
