@@ -1,0 +1,7 @@
+card "Cruelclaw's Heist" {
+  oracle_id 7a0bc265-6b40-48d6-a588-c9624df7d1bc
+  cost {B}{B}
+  type Sorcery
+  gift card
+  spell: target opponent reveals hand exiling nonland card split; if kicked, may cast that card remains any type it
+}

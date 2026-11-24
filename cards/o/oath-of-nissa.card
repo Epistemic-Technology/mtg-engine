@@ -1,0 +1,7 @@
+card "Oath of Nissa" {
+  oracle_id c4efdbab-711d-4269-9b24-b05d36f7e5c7
+  cost {G}
+  type Legendary Enchantment
+  triggered when this enters: dig 3 take creature or land or planeswalker card may revealing rest bottom
+  spells planeswalker you cast have spend any color
+}

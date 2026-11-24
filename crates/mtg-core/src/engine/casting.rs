@@ -4763,7 +4763,9 @@ impl GameState {
         let o = &self.objects[spell];
         let zone = if (o.cast.flashback() && !self.pool.get(o.def).retrace)
             || o.alt == AltCast::FreeExile
-        {
+            || self.exile_casts.as_ref().is_some_and(|e| {
+                e.riders && e.rider_spells.iter().any(|(s, r)| *s == spell && r.exile)
+            }) {
             Zone::Exile
         } else {
             Zone::Graveyard
@@ -5221,7 +5223,47 @@ impl GameState {
         if self.player_static_sources > 0 {
             self.static_activation_cost(source, ab, p, false, &mut req);
         }
+        // CR 609.4b: "You may spend mana as though it were mana of any
+        // color." (after the cost is determined).
+        if self.pool.spend_grants && self.cost_change_sources > 0 {
+            self.activation_spend(source).apply(&mut req);
+        }
         req
+    }
+
+    /// How a static ability lets the controller of `source` spend mana to
+    /// activate its abilities (`SpellGrant::spend_abilities`).
+    #[cold]
+    #[inline(never)]
+    fn activation_spend(&self, source: ObjId) -> crate::card::SpendAs {
+        let mut spend = crate::card::SpendAs::Normal;
+        let Some(obj) = self.objects.get(source) else {
+            return spend;
+        };
+        let p = obj.controller;
+        let Some(chars) = self.characteristics(source) else {
+            return spend;
+        };
+        for src in self.cost_changers() {
+            let o = &self.objects[src];
+            for a in &self.pool.get(o.def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && let Some(g) = &cc.grant
+                    && g.spend_abilities
+                    && match cc.whose {
+                        crate::card::Who::Any => true,
+                        crate::card::Who::You => p == o.controller,
+                        crate::card::Who::Opponents => p != o.controller,
+                    }
+                    && cc
+                        .spells
+                        .matches(source, p, &chars, Some(src), Some(o.controller))
+                {
+                    spend = spend.or(g.spend);
+                }
+            }
+        }
+        spend
     }
 
     /// "Activated abilities of artifacts you control cost {1} less to
@@ -12879,6 +12921,9 @@ impl GameState {
                     for card in chosen {
                         if *exile {
                             let new = self.move_object(card, Zone::Exile, false);
+                            // "Exile that card. ... you may cast that card":
+                            // the card exiled.
+                            ctx.created = Some(new);
                             if *until
                                 && self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
                             {
@@ -14968,9 +15013,11 @@ impl GameState {
                 free,
                 what,
                 adventure,
+                rider,
+                owner,
+                more_opponents,
             } => {
-                let p = ctx.controller;
-                let own_ends = if self.active_player == p { 2 } else { 1 };
+                let you = ctx.controller;
                 // "You may cast target Zombie creature card from your
                 // graveyard this turn": the targets, where they are.
                 let cards: SmallVec<[ObjId; 2]> = match what {
@@ -14978,6 +15025,12 @@ impl GameState {
                         .recipients(ctx, *r)
                         .into_iter()
                         .filter_map(|t| match t {
+                            // "Exile up to X target creatures. For each of
+                            // those cards, ...": where this resolution moved
+                            // them (CR 400.7).
+                            Target::Object(id) if !self.objects.contains_key(id) => {
+                                self.current_object(id)
+                            }
                             Target::Object(id) => Some(id),
                             Target::Player(_) => None,
                         })
@@ -15000,20 +15053,29 @@ impl GameState {
                         .collect(),
                 };
                 for id in cards {
-                    self.exile_casts
-                        .get_or_insert_with(Box::default)
-                        .playable
-                        .push(crate::state::PlayableExile {
-                            card: id,
-                            player: p,
-                            until: *until,
-                            cond: None,
-                            own_ends,
-                            cast_only: *cast,
-                            free: *free,
-                            source: ctx.source,
-                            adventure: *adventure,
-                        });
+                    // "its owner may play it": each card's owner's (CR
+                    // 108.3), "until the end of their next turn" theirs.
+                    let p = if *owner { self.objects[id].owner } else { you };
+                    let own_ends = if self.active_player == p { 2 } else { 1 };
+                    let mut rider = *rider;
+                    // "A spell cast by an opponent this way costs {2} more".
+                    if *more_opponents && p == you {
+                        rider.more = 0;
+                    }
+                    let e = self.exile_casts.get_or_insert_with(Box::default);
+                    e.riders |= !rider.is_none();
+                    e.playable.push(crate::state::PlayableExile {
+                        card: id,
+                        player: p,
+                        until: *until,
+                        cond: None,
+                        own_ends,
+                        cast_only: *cast,
+                        free: *free,
+                        source: ctx.source,
+                        adventure: *adventure,
+                        rider,
+                    });
                 }
             }
             Effect::RevealUntil { who, filter } => {
@@ -16026,6 +16088,7 @@ impl GameState {
                             free: false,
                             source: ObjId::default(),
                             adventure: false,
+                            rider: crate::card::CastRider::default(),
                         });
                 }
             }
@@ -16057,6 +16120,7 @@ impl GameState {
                                 free: false,
                                 source: ObjId::default(),
                                 adventure: false,
+                                rider: crate::card::CastRider::default(),
                             });
                     }
                 }
@@ -16068,6 +16132,7 @@ impl GameState {
                 from,
                 face_down,
                 cond,
+                rider,
             } => {
                 let p = ctx.controller;
                 // "Target opponent exiles the top card of their library":
@@ -16119,20 +16184,20 @@ impl GameState {
                     }
                 }
                 for new in exiled {
-                    self.exile_casts
-                        .get_or_insert_with(Box::default)
-                        .playable
-                        .push(crate::state::PlayableExile {
-                            card: new,
-                            player: p,
-                            until: *until,
-                            cond: *cond,
-                            own_ends,
-                            cast_only: false,
-                            free: false,
-                            source: ctx.source,
-                            adventure: false,
-                        });
+                    let e = self.exile_casts.get_or_insert_with(Box::default);
+                    e.riders |= !rider.is_none();
+                    e.playable.push(crate::state::PlayableExile {
+                        card: new,
+                        player: p,
+                        until: *until,
+                        cond: *cond,
+                        own_ends,
+                        cast_only: false,
+                        free: false,
+                        source: ctx.source,
+                        adventure: false,
+                        rider: *rider,
+                    });
                 }
             }
             Effect::Manifest => {

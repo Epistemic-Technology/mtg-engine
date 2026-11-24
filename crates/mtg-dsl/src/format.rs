@@ -1139,8 +1139,12 @@ impl Fmt {
                 until,
                 cast,
                 adventure,
+                owner,
+                remains,
+                rider,
             } => format!(
-                "may {} {}{} {}",
+                "{}may {} {}{} {}{}",
+                if *owner { "owner " } else { "" },
                 if *cast { "cast" } else { "play" },
                 self.recipient(*what, t),
                 if *adventure {
@@ -1149,12 +1153,14 @@ impl Fmt {
                     ""
                 },
                 match until {
+                    _ if *remains => "remains",
                     mtg_core::card::PlayUntil::ThisTurn => "this turn",
                     mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                     mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
                     mtg_core::card::PlayUntil::Forever => "forever",
                     mtg_core::card::PlayUntil::WhileYouControlSource => "while you control this",
-                }
+                },
+                rider_text(rider.as_ref()),
             ),
             Effect::MayPlayCard {
                 until,
@@ -1164,9 +1170,12 @@ impl Fmt {
                 it,
                 from_exile,
                 remains,
+                owner,
+                rider,
             } => {
                 let mut s = format!(
-                    "may {} {}{} {}",
+                    "{}may {} {}{} {}",
+                    if *owner { "owner " } else { "" },
                     if *cast { "cast" } else { "play" },
                     if *it { "it" } else { "that card" },
                     if *from_exile { " from exile" } else { "" },
@@ -1186,6 +1195,7 @@ impl Fmt {
                 if *free {
                     s.push_str(" free");
                 }
+                s.push_str(&rider_text(rider.as_ref()));
                 s
             }
             Effect::RevealUntil { who, filter: f } => match who {
@@ -1324,7 +1334,9 @@ impl Fmt {
                 remains,
                 face_down,
                 look_first,
+                look_those,
                 cond,
+                rider,
             } => {
                 let mut s = format!(
                     "impulse {} {}",
@@ -1352,7 +1364,7 @@ impl Fmt {
                     s.push_str(" this way");
                 }
                 if *look_first && *face_down {
-                    s.push_str(" look");
+                    s.push_str(if *look_those { " look those" } else { " look" });
                 }
                 if *face_down {
                     s.push_str(" face down");
@@ -1364,6 +1376,7 @@ impl Fmt {
                 if let Some(c) = cond {
                     let _ = write!(s, " if {}", static_cond(c));
                 }
+                s.push_str(&rider_text(rider.as_ref()));
                 s
             }
             Effect::ExileTop { count, who, face } => {
@@ -3717,6 +3730,39 @@ thread_local! {
         const { std::cell::RefCell::new(Vec::new()) };
     /// The noun the card being formatted uses for itself (`this creature`).
     static NOUN: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) };
+}
+
+/// A play permission's `Rider`, with its leading space; empty for none.
+fn rider_text(rider: Option<&crate::ast::Rider>) -> String {
+    use crate::ast::SpendWording;
+    use mtg_core::card::SpendAs;
+    let Some(r) = rider else {
+        return String::new();
+    };
+    let kind = match r.spend {
+        SpendAs::Normal => "",
+        SpendAs::AnyColor => "any color",
+        SpendAs::AnyType => "any type",
+    };
+    let mut s = String::new();
+    if !kind.is_empty() {
+        s = match r.wording {
+            SpendWording::CanBeSpent => format!(" {kind}"),
+            SpendWording::CanBeSpentIt => format!(" {kind} it"),
+            SpendWording::AsThough => format!(" spend {kind}"),
+            SpendWording::ThisWay => format!(" spend {kind} this way"),
+        };
+    }
+    if r.more > 0 {
+        let _ = write!(s, " costs {{{}}} more", r.more);
+        if r.more_opponents {
+            s.push_str(" opponent");
+        }
+    }
+    if r.exile {
+        s.push_str(" exile instead");
+    }
+    s
 }
 
 fn pay_amount(mana: &mtg_core::mana::ManaCost, life: u32) -> String {
@@ -7434,12 +7480,28 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             storm,
             affinity,
             uncounterable,
+            spend,
         } => {
             let subject = if *f == Filter::default() {
                 String::new()
             } else {
                 format!(" {}", filter(f))
             };
+            if let Some((kind, can, abilities)) = spend {
+                let from = spell_from(*from);
+                let kind = if *kind == mtg_core::card::SpendAs::AnyType {
+                    "any type"
+                } else {
+                    "any color"
+                };
+                let can = if *can { " can" } else { "" };
+                let abilities = if *abilities { " and abilities" } else { "" };
+                let _ = writeln!(
+                    out,
+                    "{indent}spells{subject} you cast{from} have spend {kind}{can}{abilities}"
+                );
+                return;
+            }
             if *uncounterable {
                 let whose = if *whose == Who::Any {
                     ""

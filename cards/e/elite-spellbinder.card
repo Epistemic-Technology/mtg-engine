@@ -1,0 +1,8 @@
+card "Elite Spellbinder" {
+  oracle_id 8c4d7cbc-9cfc-4f0a-8844-e458ab806056
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 3/1
+  keywords flying
+  triggered when this enters: look at hand of target opponent exiling may nonland card; owner may play it remains first costs {2} more
+}

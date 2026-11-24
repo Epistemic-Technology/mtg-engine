@@ -1,0 +1,8 @@
+card "Dire Fleet Daredevil" {
+  oracle_id 7a3e50a5-c163-4c41-b62d-d52c233c55b7
+  cost {1}{R}
+  type Creature — Human Pirate
+  pt 2/1
+  keywords first strike
+  triggered when this enters: exile target instant or sorcery card from an opponent's graveyard; may cast it this turn any type exile instead
+}

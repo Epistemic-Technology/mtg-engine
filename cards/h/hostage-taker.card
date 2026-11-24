@@ -1,0 +1,7 @@
+card "Hostage Taker" {
+  oracle_id c5c2d209-e3ef-4b0d-85f5-e7402dcf09eb
+  cost {2}{U}{B}
+  type Creature — Human Pirate
+  pt 2/3
+  triggered when this enters: exile another target creature or artifact until this leaves; may cast that card remains any type
+}

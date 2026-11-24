@@ -4478,6 +4478,7 @@ impl P {
                 storm: false,
                 affinity: None,
                 uncounterable: true,
+                spend: None,
             });
         }
         if cond.is_none()
@@ -4494,6 +4495,7 @@ impl P {
                 storm: false,
                 affinity: None,
                 uncounterable: true,
+                spend: None,
             });
         }
         // "Instant and sorcery spells you cast [from your hand] have
@@ -6407,6 +6409,30 @@ impl P {
     /// After `spells <filter> you cast [from hand] have`: convoke,
     /// improvise, delve, cascade, `storm`, `affinity for <filter>`.
     fn spells_have(&mut self, filter: Filter, from: mtg_core::card::SpellFrom) -> R<Ability> {
+        // CR 609.4b: "You may spend mana as though it were mana of any
+        // color to cast planeswalker spells."
+        if self.eat_word("spend") {
+            let kind = if self.eat_words(&["any", "type"]) {
+                mtg_core::card::SpendAs::AnyType
+            } else if self.eat_words(&["any", "color"]) {
+                mtg_core::card::SpendAs::AnyColor
+            } else {
+                return self.unexpected("`any type` or `any color`");
+            };
+            let can = self.eat_word("can");
+            let abilities = self.eat_words(&["and", "abilities"]);
+            self.end_stmt()?;
+            return Ok(Ability::SpellsHave {
+                filter,
+                from,
+                whose: Who::You,
+                keywords: Vec::new(),
+                storm: false,
+                affinity: None,
+                uncounterable: false,
+                spend: Some((kind, can, abilities)),
+            });
+        }
         let mut keywords = Vec::new();
         let mut storm = false;
         let mut affinity = None;
@@ -6446,6 +6472,7 @@ impl P {
             storm,
             affinity,
             uncounterable: false,
+            spend: None,
         })
     }
 
@@ -10427,6 +10454,102 @@ impl P {
         Ok(Effect::ExileSameName { what })
     }
 
+    /// After `may` (`owner may`): `play target ...` / `cast that card ...`
+    /// with a duration and a `CastRider`.
+    fn may_play(&mut self, owner: bool) -> R<Effect> {
+        let cast = self.word()? == "cast";
+        // `may cast target Zombie creature card from your graveyard this
+        // turn`.
+        if self.at_word("target") || self.at_words(&["this", "card"]) {
+            let what = self.recipient()?;
+            let adventure = self.eat_words(&["from", "graveyard", "as", "adventure"]);
+            let remains = self.eat_word("remains");
+            let until = if remains {
+                mtg_core::card::PlayUntil::Forever
+            } else {
+                self.play_until()?
+            };
+            let rider = self.cast_rider()?;
+            return Ok(Effect::MayPlayTarget {
+                what,
+                until,
+                cast,
+                adventure,
+                owner,
+                remains,
+                rider,
+            });
+        }
+        let it = self.eat_word("it");
+        if !it {
+            self.expect_words(&["that", "card"])?;
+        }
+        let from_exile = self.eat_words(&["from", "exile"]);
+        let remains = self.eat_word("remains");
+        let until = if remains {
+            mtg_core::card::PlayUntil::Forever
+        } else {
+            self.play_until()?
+        };
+        let first = self.eat_word("first");
+        let free = self.eat_word("free");
+        let rider = self.cast_rider()?;
+        Ok(Effect::MayPlayCard {
+            until,
+            cast,
+            free,
+            first,
+            it,
+            from_exile,
+            remains,
+            owner,
+            rider,
+        })
+    }
+
+    /// A play permission's `Rider`, if one follows: `any type [it]`,
+    /// `spend any color`, `spend any type this way`, then `costs {2} more
+    /// [opponent]`.
+    fn cast_rider(&mut self) -> R<Option<crate::ast::Rider>> {
+        use crate::ast::SpendWording;
+        use mtg_core::card::SpendAs;
+        let mut rider = crate::ast::Rider::default();
+        let kind = |p: &mut Self| {
+            if p.eat_words(&["any", "type"]) {
+                Some(SpendAs::AnyType)
+            } else if p.eat_words(&["any", "color"]) {
+                Some(SpendAs::AnyColor)
+            } else {
+                None
+            }
+        };
+        if self.at_words(&["spend", "any"]) {
+            self.pos += 1;
+            let Some(k) = kind(self) else {
+                return self.unexpected("`any type` or `any color`");
+            };
+            rider.spend = k;
+            rider.wording = if self.eat_words(&["this", "way"]) {
+                SpendWording::ThisWay
+            } else {
+                SpendWording::AsThough
+            };
+        } else if let Some(k) = kind(self) {
+            rider.spend = k;
+            if self.eat_word("it") {
+                rider.wording = SpendWording::CanBeSpentIt;
+            }
+        }
+        if self.eat_word("costs") {
+            let n = self.mana_cost()?.mana_value();
+            self.expect_word("more")?;
+            rider.more = u8::try_from(n).unwrap_or(u8::MAX);
+            rider.more_opponents = self.eat_word("opponent");
+        }
+        rider.exile = self.eat_words(&["exile", "instead"]);
+        Ok((rider != crate::ast::Rider::default()).then_some(rider))
+    }
+
     #[allow(clippy::too_many_lines)]
     fn verb_first(&mut self) -> R<Effect> {
         if self.chosen_act_ahead() {
@@ -10895,6 +11018,13 @@ impl P {
                 self.subject = Some(Recipient::SourceOwner);
                 self.subject_verb(Recipient::SourceOwner, true)
             }
+            "owner"
+                if self.at_word("may")
+                    && matches!(self.word_at(1).as_deref(), Some("play" | "cast")) =>
+            {
+                self.pos += 1;
+                self.may_play(true)
+            }
             "owner" => {
                 let of = self.eat_word("of");
                 let what = if of { Some(self.recipient()?) } else { None };
@@ -11306,9 +11436,10 @@ impl P {
                 let it = self.eat_word("it");
                 let choose = self.eat_word("choose");
                 let this_way = self.eat_words(&["this", "way"]);
-                let look_first = self.at_words(&["look", "face", "down"]);
+                let look_those = self.at_words(&["look", "those", "face", "down"]);
+                let look_first = look_those || self.at_words(&["look", "face", "down"]);
                 if look_first {
-                    self.pos += 1;
+                    self.pos += if look_those { 2 } else { 1 };
                 }
                 let face_down = self.eat_words(&["face", "down"]);
                 let possessive = self.at_word("from");
@@ -11324,6 +11455,7 @@ impl P {
                 } else {
                     None
                 };
+                let rider = self.cast_rider()?;
                 Ok(Effect::ExilePlayable {
                     count,
                     until,
@@ -11336,7 +11468,9 @@ impl P {
                     remains,
                     face_down,
                     look_first,
+                    look_those,
                     cond,
+                    rider,
                 })
             }
             "dig" if self.eat_words(&["face", "down"]) => {
@@ -11466,53 +11600,15 @@ impl P {
                 Ok(Effect::MayCastThisFromExile)
             }
             // `may cast target Zombie creature card from your graveyard
-            // this turn`.
+            // this turn`, `may cast that card this turn [first] [free]`;
+            // `owner may play ...`: the card's owner's permission.
             "may"
                 if (self.at_word("play") || self.at_word("cast"))
-                    && (self.word_at(1).as_deref() == Some("target")
+                    && (matches!(self.word_at(1).as_deref(), Some("target" | "it" | "that"))
                         || (self.word_at(1).as_deref() == Some("this")
                             && self.word_at(2).as_deref() == Some("card"))) =>
             {
-                let cast = self.word()? == "cast";
-                let what = self.recipient()?;
-                let adventure = self.eat_words(&["from", "graveyard", "as", "adventure"]);
-                let until = self.play_until()?;
-                Ok(Effect::MayPlayTarget {
-                    what,
-                    until,
-                    cast,
-                    adventure,
-                })
-            }
-            // `may cast that card this turn [first] [free]`.
-            "may"
-                if (self.at_word("play") || self.at_word("cast"))
-                    && (self.word_at(1).as_deref() == Some("it")
-                        || self.word_at(1).as_deref() == Some("that")) =>
-            {
-                let cast = self.word()? == "cast";
-                let it = self.eat_word("it");
-                if !it {
-                    self.expect_words(&["that", "card"])?;
-                }
-                let from_exile = self.eat_words(&["from", "exile"]);
-                let remains = self.eat_word("remains");
-                let until = if remains {
-                    mtg_core::card::PlayUntil::Forever
-                } else {
-                    self.play_until()?
-                };
-                let first = self.eat_word("first");
-                let free = self.eat_word("free");
-                Ok(Effect::MayPlayCard {
-                    until,
-                    cast,
-                    free,
-                    first,
-                    it,
-                    from_exile,
-                    remains,
-                })
+                self.may_play(false)
             }
             "face-down" if self.at_words(&["spells", "cost"]) => {
                 self.pos += 2;
