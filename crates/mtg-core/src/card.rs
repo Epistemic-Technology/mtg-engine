@@ -4065,6 +4065,10 @@ pub enum Recipient {
     /// (CR 113.2c): two Boomerangs give two, each naming its own. Only in
     /// such an ability (`AbilityDef::names_granter`).
     Granter,
+    /// The controller of the `Granter` ("{7}: Hold for Ransom's controller
+    /// sacrifices it and draws a card"), as it last existed if it has
+    /// left the battlefield.
+    GranterController,
     /// The cards the source's abilities exiled (CR 607.2a), still in
     /// exile, that match the pool's `n`th filter: "Return all cards
     /// exiled with this artifact to their owner's hand", "each creature
@@ -4761,6 +4765,14 @@ pub enum Effect {
     /// Sacrifice a permanent (CR 701.21): its controller puts it into its
     /// owner's graveyard; indestructible does not help.
     Sacrifice {
+        what: Recipient,
+    },
+    /// "Hold for Ransom's controller sacrifices it": the players `who`
+    /// sacrifice those of `what` they control (CR 701.21a: only its
+    /// controller can sacrifice a permanent), whoever controls the
+    /// resolving ability.
+    SacrificeBy {
+        who: Recipient,
         what: Recipient,
     },
     /// Create `count` tokens of a token definition under the recipient's
@@ -5990,13 +6002,21 @@ impl Effect {
         }
     }
 
-    /// Whether this effect acts on or through `Recipient::Granter`.
+    /// Whether this effect acts on or through `Recipient::Granter` (or
+    /// its controller).
     pub fn names_granter(&self) -> bool {
         let g = Recipient::Granter;
         match self {
             Effect::DamageFrom { source, to, .. } => *source == g || *to == g,
-            Effect::DealDamage { to, .. } | Effect::Destroy { to } => *to == g,
+            Effect::DealDamage { to, .. }
+            | Effect::Destroy { to }
+            | Effect::AddCounters { to, .. }
+            | Effect::RemoveCounters { to, .. } => *to == g,
             Effect::ReturnToHand { what } | Effect::Sacrifice { what } => *what == g,
+            Effect::SacrificeBy { who, what } => {
+                *what == g && matches!(who, Recipient::GranterController)
+            }
+            Effect::DrawCards { who, .. } => *who == Recipient::GranterController,
             _ => false,
         }
     }
@@ -7822,6 +7842,10 @@ pub enum ChosenCost {
     Sacrifice,
     Return,
     Tap,
+    /// "Unattach Leonin Bola" (with `SacCost::Granter` only): the granting
+    /// Equipment moves off the creature and stays on the battlefield; it
+    /// doesn't matter who controls it (its rulings).
+    Unattach,
 }
 
 /// What an activated ability's cost sacrifices (CR 602.2b, 701.21).
@@ -7834,7 +7858,9 @@ pub enum SacCost {
     /// "Sacrifice Blazing Torch" in an ability an Aura or Equipment grants
     /// the permanent it is attached to ("Equipped creature has '{T},
     /// Sacrifice Blazing Torch: ...'"): the granting permanent, not the
-    /// one with the ability (`Recipient::Granter`).
+    /// one with the ability (`Recipient::Granter`). `Cost::chosen` says
+    /// what the cost does to it: sacrifice it, tap it ("Tap Fishing
+    /// Pole"), or unattach it ("Unattach Leonin Bola").
     Granter,
 }
 

@@ -1,0 +1,7 @@
+card "Leonin Bola" {
+  oracle_id d5f72164-441e-4e04-8b2b-0d6ab618d22e
+  cost {1}
+  type Artifact — Equipment
+  static equipped: has ability { activated {T}, unattach granter: tap target creature }
+  equip {1}
+}

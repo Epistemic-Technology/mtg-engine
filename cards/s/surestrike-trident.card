@@ -1,0 +1,7 @@
+card "Surestrike Trident" {
+  oracle_id bf09b97b-9387-4b94-a3fc-00080881f052
+  cost {2}
+  type Artifact — Equipment
+  static equipped: has first strike, has ability { activated {T}, unattach granter: this deals damage equal power to target player or planeswalker }
+  equip {4}
+}

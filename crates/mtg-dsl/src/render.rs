@@ -2056,6 +2056,8 @@ impl<'a> Ctx<'a> {
             // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
             // deals 2 damage to any target."
             Recipient::Granter => self.card.name.clone(),
+            Recipient::GranterIt => "it".to_string(),
+            Recipient::GranterController => format!("{}'s controller", self.card.name),
             Recipient::ExiledWith(i) => {
                 // CR 607.2a: "all cards exiled with this artifact", "each
                 // creature card exiled with this land".
@@ -3780,6 +3782,7 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
                 format!("return {what} to its owner's hand")
             }
             mtg_core::card::ChosenCost::Tap => format!("tap {what}"),
+            mtg_core::card::ChosenCost::Unattach => format!("unattach {what}"),
             mtg_core::card::ChosenCost::Sacrifice => format!("sacrifice {what}"),
         });
     }
@@ -4033,7 +4036,16 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     filter_phrase(f, ctx.card, true)
                 )),
                 Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
-                Some(SacCost::Granter) => parts.push(format!("Sacrifice {}", ctx.card.name)),
+                // "Tap Fishing Pole", "Unattach Leonin Bola".
+                Some(SacCost::Granter) => parts.push(format!(
+                    "{} {}",
+                    match cost.chosen {
+                        mtg_core::card::ChosenCost::Tap => "Tap",
+                        mtg_core::card::ChosenCost::Unattach => "Unattach",
+                        _ => "Sacrifice",
+                    },
+                    ctx.card.name
+                )),
                 Some(SacCost::Filter(f)) => {
                     // "Tap two untapped artifacts and/or creatures you
                     // control".
@@ -4070,6 +4082,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                             format!("Return {what} to its owner's hand")
                         }
                         mtg_core::card::ChosenCost::Tap => format!("Tap {what}"),
+                        mtg_core::card::ChosenCost::Unattach => format!("Unattach {what}"),
                     });
                 }
                 None => {}

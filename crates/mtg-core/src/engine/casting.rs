@@ -4947,8 +4947,17 @@ impl GameState {
                     // one per granter (CR 113.2c), carried in the choice;
                     // "Sacrifice Blazing Torch" needs it to be yours.
                     _ if self.pool.ability_names_granter(*a) => {
-                        let mine = (ab.cost.sacrifice == Some(SacCost::Granter)).then_some(p);
-                        let g = self.granters_of(id, *a, mine);
+                        // "Sacrifice Blazing Torch" needs it to be yours (CR
+                        // 701.21a); "Tap Fishing Pole" needs it untapped;
+                        // "Unattach Leonin Bola" doesn't care who controls it.
+                        let granter_cost = ab.cost.sacrifice == Some(SacCost::Granter);
+                        let mine = (granter_cost
+                            && ab.cost.chosen == crate::card::ChosenCost::Sacrifice)
+                            .then_some(p);
+                        let mut g = self.granters_of(id, *a, mine);
+                        if granter_cost && ab.cost.chosen == crate::card::ChosenCost::Tap {
+                            g.retain(|g| !self.objects[*g].tapped);
+                        }
                         if g.is_empty() {
                             continue;
                         }
@@ -7315,7 +7324,24 @@ impl GameState {
                 if let Some(g) = sacrifice
                     && self.objects.contains_key(g)
                 {
-                    self.sacrifice(g);
+                    match cost.chosen {
+                        crate::card::ChosenCost::Sacrifice | crate::card::ChosenCost::Return => {
+                            self.sacrifice(g);
+                        }
+                        // "Tap Fishing Pole".
+                        crate::card::ChosenCost::Tap => {
+                            self.tap(g);
+                            self.note_tapped_for_cost(g);
+                        }
+                        // "Unattach Leonin Bola": it stays on the
+                        // battlefield, unattached (CR 701.3d).
+                        crate::card::ChosenCost::Unattach => {
+                            if self.objects[g].attached_to.take().is_some() {
+                                self.cbump();
+                                self.emit(Event::Unattached { obj: g });
+                            }
+                        }
+                    }
                 }
             }
             Some(SacCost::Filter(ref f)) => {
@@ -7341,6 +7367,8 @@ impl GameState {
                                 self.tap(s);
                                 self.note_tapped_for_cost(s);
                             }
+                            // Only with `SacCost::Granter` (the compiler's).
+                            crate::card::ChosenCost::Unattach => {}
                         }
                     }
                 }
@@ -9610,6 +9638,19 @@ impl GameState {
                     && self.objects.contains_key(g)
                 {
                     out.push(Target::Object(g));
+                }
+            }
+            // "Hold for Ransom's controller": the granter's controller, as
+            // it last existed once it has left (CR 608.2h).
+            Recipient::GranterController => {
+                if let Some(g) = self.this_way.as_ref().and_then(|l| l.granter) {
+                    let p = match self.objects.get(g) {
+                        Some(o) if o.zone == Zone::Battlefield => Some(o.controller),
+                        _ => self.lki.get(&g).map(|l| l.object.controller),
+                    };
+                    if let Some(p) = p {
+                        out.push(Target::Player(p));
+                    }
                 }
             }
             Recipient::Attached => {
@@ -12601,6 +12642,30 @@ impl GameState {
                     if let Some(id) = on_battlefield(self, t) {
                         self.sacrifice(id);
                     }
+                }
+                self.end_together(together);
+            }
+            // "Hold for Ransom's controller sacrifices it": only a
+            // permanent one of them controls (CR 701.21a).
+            Effect::SacrificeBy { who, what } => {
+                let players: SmallVec<[PlayerId; 2]> = self
+                    .recipients(ctx, *who)
+                    .into_iter()
+                    .filter_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    })
+                    .collect();
+                let ts: SmallVec<[ObjId; 2]> = self
+                    .recipients(ctx, *what)
+                    .into_iter()
+                    .filter_map(|t| on_battlefield(self, t))
+                    .filter(|id| players.contains(&self.objects[*id].controller))
+                    .collect();
+                let together = self.begin_together(ts.len());
+                for id in ts {
+                    self.sacrifice(id);
+                    ctx.did = true;
                 }
                 self.end_together(together);
             }

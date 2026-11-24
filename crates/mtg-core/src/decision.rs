@@ -371,10 +371,27 @@ impl Choice {
                 let granted_only = matches!(state.pool.ability(*ability),
                     AbilityDef::Activated(a) if a.cost.sacrifice.is_none())
                     && state.pool.ability_names_granter(*ability);
+                // "Tap Fishing Pole", "Unattach Leonin Bola".
+                let granter_verb = match state.pool.ability(*ability) {
+                    AbilityDef::Activated(a)
+                        if a.cost.sacrifice == Some(crate::card::SacCost::Granter) =>
+                    {
+                        match a.cost.chosen {
+                            crate::card::ChosenCost::Tap => Some("tapping"),
+                            crate::card::ChosenCost::Unattach => Some("unattaching"),
+                            _ => None,
+                        }
+                    }
+                    _ => None,
+                };
                 if let Some(s) = sacrifice
                     && granted_only
                 {
                     out = format!("{out} (from {})", name(s));
+                } else if let Some(s) = sacrifice
+                    && let Some(v) = granter_verb
+                {
+                    out = format!("{out} ({v} {})", name(s));
                 } else if let Some(s) = sacrifice {
                     out = format!("{out} (sacrificing {})", name(s));
                 }

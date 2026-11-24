@@ -3105,7 +3105,8 @@ impl Compiler<'_> {
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
             Recipient::ExiledCard => CoreRecipient::ExiledCard,
-            Recipient::Granter => CoreRecipient::Granter,
+            Recipient::Granter | Recipient::GranterIt => CoreRecipient::Granter,
+            Recipient::GranterController => CoreRecipient::GranterController,
             Recipient::Those(_) => CoreRecipient::ThoseObjects,
         }
     }
@@ -3378,7 +3379,8 @@ impl Compiler<'_> {
                     by @ (Recipient::TriggeringIt
                     | Recipient::TriggeringObject
                     | Recipient::Attached
-                    | Recipient::Granter),
+                    | Recipient::Granter
+                    | Recipient::GranterIt),
                 ..
             } => {
                 for t in to {
@@ -3614,6 +3616,15 @@ impl Compiler<'_> {
             Effect::ExileGraveyard { who, filter } => out.push(CoreEffect::ExileGraveyard {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| Box::new(self.filter(f))),
+            }),
+            // "Hold for Ransom's controller sacrifices it": someone other
+            // than the ability's controller sacrifices the granter.
+            Effect::SacrificeBy {
+                who,
+                what: what @ (Recipient::Granter | Recipient::GranterIt),
+            } => out.push(CoreEffect::SacrificeBy {
+                who: r(*who),
+                what: r(*what),
             }),
             Effect::Sacrifice { what } | Effect::SacrificeBy { what, .. } => {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });

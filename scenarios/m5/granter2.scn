@@ -1,0 +1,177 @@
+# What the granted-ability-names-its-granter work left: a granted ability
+# whose cost unattaches or taps its granter ("{T}, Unattach Leonin Bola:
+# ...", "{1}, {T}, Tap Fishing Pole: ..."), the granter's controller as a
+# recipient ("Hold for Ransom's controller sacrifices it and draws a
+# card"), counters put on or read from the granter, and the granter named
+# in a reflexive ability.
+
+scenario "Leonin Bola: tap a creature; the Bola is unattached and stays" {
+  battlefield A: "Grizzly Bears", "Leonin Bola" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+  assert battlefield A contains "Leonin Bola"
+}
+
+scenario "Leonin Bola unattached: the creature no longer has the ability" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Leonin Bola" on "Grizzly Bears"
+  battlefield B: "Serra Angel", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting "Serra Angel"
+  illegal turn 1 postcombat_main A: activate "Grizzly Bears"
+  illegal turn 1 postcombat_main A: activate "Hill Giant"
+  run_to turn 1 end
+  assert tapped "Serra Angel"
+  assert untapped "Wind Drake"
+}
+
+scenario "Leonin Bola: an opponent's Bola on your creature can still be unattached" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Leonin Bola" on "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert battlefield B contains "Leonin Bola"
+}
+
+scenario "Leonin Bola: an untapped creature is needed for {T}" {
+  battlefield A: "Grizzly Bears" tapped, "Leonin Bola" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Heartseeker: +2/+1, then unattached to destroy a creature" {
+  battlefield A: "Grizzly Bears", "Heartseeker" on "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  turn 1 A: activate "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Heartseeker"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "two Heartseekers: unattaching one keeps the other's bonus" {
+  battlefield A: "Grizzly Bears", "Heartseeker" on "Grizzly Bears", "Heartseeker" on "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 6
+  turn 1 A: activate "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "Razor Boomerang: the Boomerang deals 1 damage and returns to hand" {
+  battlefield A: "Vampire Nighthawk", "Razor Boomerang" on "Vampire Nighthawk"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vampire Nighthawk" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  # The damage is the Boomerang's, not the lifelinking creature's.
+  assert life A 20
+  assert hand A contains "Razor Boomerang"
+  assert battlefield A lacks "Razor Boomerang"
+}
+
+scenario "Razor Boomerang destroyed in response: it still deals the damage, and stays in the graveyard" {
+  battlefield A: "Grizzly Bears", "Razor Boomerang" on "Grizzly Bears"
+  battlefield B: "Hill Giant", 2 "Mountain"
+  hand B: "Shatter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting "Hill Giant"
+  turn 1 B: cast "Shatter" targeting "Razor Boomerang"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert graveyard A contains "Razor Boomerang"
+  assert hand A lacks "Razor Boomerang"
+}
+
+scenario "Hold for Ransom: the creature can't attack" {
+  battlefield A: "Hold for Ransom" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  illegal turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Hold for Ransom: the creature's controller pays {7}; the Aura's controller sacrifices it and draws" {
+  library A: "Island", "Island"
+  library B: "Forest", "Forest"
+  battlefield A: "Hold for Ransom" on "Hill Giant"
+  battlefield B: "Hill Giant", 7 "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Hold for Ransom"
+  assert hand A count 1
+  assert hand B count 0
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Hold for Ransom: the Aura's controller can't activate it, and only as a sorcery" {
+  battlefield A: "Hold for Ransom" on "Hill Giant", 7 "Plains"
+  battlefield B: "Hill Giant", 7 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Hill Giant"
+  run_to turn 1 end
+  illegal turn 1 end B: activate "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hold for Ransom"
+}
+
+scenario "Surestrike Trident: first strike; unattached for damage equal to the creature's power" {
+  battlefield A: "Hill Giant", "Surestrike Trident" on "Hill Giant"
+  start turn 1 A precombat_main
+  assert has "Hill Giant" first_strike
+  turn 1 A: activate "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert has not "Hill Giant" first_strike
+  assert battlefield A contains "Surestrike Trident"
+}
+
+scenario "Surestrike Trident: the damage follows the creature's power as it resolves" {
+  battlefield A: "Grizzly Bears", "Surestrike Trident" on "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears" targeting player B
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Blinding Powder: unattached during combat, the blocked creature takes no combat damage" {
+  battlefield A: "Grizzly Bears", "Blinding Powder" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  turn 2 declare_blockers A: activate "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Blinding Powder"
+}
+
+scenario "Blinding Powder kept on: the blocked creature dies" {
+  battlefield A: "Grizzly Bears", "Blinding Powder" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
