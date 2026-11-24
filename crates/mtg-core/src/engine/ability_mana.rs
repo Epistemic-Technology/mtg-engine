@@ -89,7 +89,12 @@ fn rest_ok(e: &Effect) -> bool {
         | Effect::LoseLife { .. }
         | Effect::Delayed { .. }
         | Effect::DealDamage { .. }
-        | Effect::Sacrifice { .. } => true,
+        | Effect::Sacrifice { .. }
+        // "This land doesn't untap during your next untap step." (the
+        // bounce-tap lands).
+        | Effect::SkipNextUntap {
+            to: crate::card::Recipient::Source,
+        } => true,
         _ => false,
     }
 }
@@ -478,7 +483,12 @@ impl GameState {
             return None;
         }
         let req = cost.mana.requirements(0);
-        if !req.is_plain() || !self.activation_allowed(ab, a, p, id) {
+        // A hybrid symbol in the ability's cost ("{U/B}, {T}: Add {U}{U},
+        // {U}{B}, or {B}{B}", the filter lands) is matched to mana of
+        // either color; the other kinds of symbol aren't planned.
+        let plain_or_hybrid =
+            req.two_hybrid == [0; 5] && req.phyrexian == [0; 5] && req.snow == 0;
+        if !plain_or_hybrid || !self.activation_allowed(ab, a, p, id) {
             return None;
         }
         let used = if ab.per_turn > 0 {
@@ -1102,6 +1112,14 @@ fn matching(
                 act,
             });
         }
+        for (i, (a, b)) in crate::mana::HYBRID_PAIRS.iter().enumerate() {
+            for _ in 0..r.hybrid[i] {
+                syms.push(Sym {
+                    need: Some((1 << (*a as u8)) | (1 << (*b as u8))),
+                    act,
+                });
+            }
+        }
     };
     for (i, a) in acts.iter().enumerate() {
         push(&a.cost, Some(i), &mut syms);
@@ -1146,7 +1164,15 @@ fn matching(
     let made = |u: &Unit, s: &Sym| -> Mana {
         match s.need {
             Some(COLORLESS) => Mana::Colorless,
-            Some(n) => some_mana(n),
+            // A hybrid symbol: the color the unit makes.
+            Some(n) => {
+                let k = if s.act.is_some() {
+                    u.cost_kinds
+                } else {
+                    u.kinds
+                };
+                some_mana(if k & n != 0 { k & n } else { n })
+            }
             None => match u.from {
                 From::Plain(i) if plain[i].first == Mana::Any => Mana::Colorless,
                 From::Plain(i) => plain[i].first,

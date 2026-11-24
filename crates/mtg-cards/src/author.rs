@@ -1972,6 +1972,32 @@ impl Templates {
             (r(r"^[Yy]ou gain that much life$"), |_, _| {
                 Some("you gain that much life".to_string())
             }),
+            // "When this creature dies, you gain life equal to its power."
+            // (Packsong Pup): "its" is the triggering object, as `of it`
+            // is.
+            (r(r"^[Yy]ou gain life equal to its (power|toughness)$"), |c, _| {
+                Some(format!("you gain count equal {} of it life", cap(c, 1)))
+            }),
+            // "Whenever this creature attacks, you may draw cards equal to
+            // its power." (Horrid Shadowspinner).
+            (
+                r(r"^[Yy]ou (may )?draw cards equal to its (power|toughness)$"),
+                |c, _| {
+                    Some(format!(
+                        "you {}draw count equal {} of it cards",
+                        c.get(1).map_or("", |m| m.as_str()),
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            (r(r"^[Dd]raw cards equal to its (power|toughness)$"), |c, _| {
+                Some(format!("draw count equal {} of it cards", cap(c, 1)))
+            }),
+            // "Whenever Eivor deals combat damage to a player, you mill
+            // that many cards."
+            (r(r"^[Yy]ou mill that many cards$"), |_, _| {
+                Some("you mill that much cards".to_string())
+            }),
             // "{T}: Add {G} or {W}. This land doesn't untap during your next
             // untap step." (the bounce-tap lands, Arbalest Elite).
             (
@@ -2971,6 +2997,18 @@ impl Templates {
             (r(r"^Add ((?:\{[WUBRGC]\})+)$"), |c, _| {
                 Some(format!("add {}", cap(c, 1)))
             }),
+            // "Add {W}{W}, {W}{U}, or {U}{U}." (the filter lands).
+            (
+                r(r"^Add (\{[WUBRG]\}\{[WUBRG]\}), (\{[WUBRG]\}\{[WUBRG]\}), or (\{[WUBRG]\}\{[WUBRG]\})$"),
+                |c, _| {
+                    Some(format!(
+                        "add {} or {} or {}",
+                        cap(c, 1),
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
             (r(r"^Add (\{[WUBRGC]\}) or (\{[WUBRGC]\})$"), |c, _| {
                 Some(format!("add {} or {}", cap(c, 1), cap(c, 2)))
             }),

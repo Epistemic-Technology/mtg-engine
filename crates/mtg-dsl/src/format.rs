@@ -2484,9 +2484,18 @@ impl Fmt {
                 )
             }
             Effect::AddManaCombination {
+                listed: true,
+                colors,
+                ..
+            } => {
+                let (a, b) = crate::render::listed_pair(*colors);
+                format!("add {{{a}}}{{{a}}} or {{{a}}}{{{b}}} or {{{b}}}{{{b}}}")
+            }
+            Effect::AddManaCombination {
                 count,
                 colors,
                 different,
+                ..
             } => {
                 // "Add X mana ..., where X is ...": the count after.
                 let (n, tail) = match count {

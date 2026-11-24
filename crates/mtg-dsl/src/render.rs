@@ -142,6 +142,21 @@ fn plural(n: Num, word: &str) -> String {
     }
 }
 
+/// The two colors of `add {W}{W} or {W}{U} or {U}{U}`, in the order
+/// Oracle lists them: the color wheel's, which wraps around ("{G}{G},
+/// {G}{W}, or {W}{W}", "{R}{R}, {R}{W}, or {W}{W}", "{G}{G}, {G}{U}, or
+/// {U}{U}").
+pub(crate) fn listed_pair(colors: mtg_core::mana::ColorSet) -> (char, char) {
+    let v: Vec<char> = colors.iter().map(|c| c.letter()).collect();
+    let a = v.first().copied().unwrap_or('W');
+    let b = v.get(1).copied().unwrap_or('U');
+    if matches!((a, b), ('W', 'G' | 'R') | ('U', 'G')) {
+        (b, a)
+    } else {
+        (a, b)
+    }
+}
+
 fn pluralize(word: &str) -> String {
     // Creature types with irregular or unchanged plurals.
     match word {
@@ -9968,10 +9983,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "add {}",
             mana_symbols(&[*mana], "X mana of any one color")
         )),
+        // "Add {W}{W}, {W}{U}, or {U}{U}." (the filter lands).
+        Effect::AddManaCombination {
+            listed: true,
+            colors,
+            ..
+        } => {
+            let (a, b) = listed_pair(*colors);
+            Clause::imperative(format!(
+                "add {{{a}}}{{{a}}}, {{{a}}}{{{b}}}, or {{{b}}}{{{b}}}"
+            ))
+        }
         Effect::AddManaCombination {
             count,
             colors,
             different,
+            ..
         } => {
             let n = count_words(*count, "one");
             Clause::imperative(if *different {

@@ -1,0 +1,167 @@
+# Fourteenth-wave template phrases, third round: the filter lands' "Add
+# {U}{U}, {U}{B}, or {B}{B}." (`add {U}{U} or {U}{B} or {B}{B}`, two mana
+# in any combination of the two colors), and Radiance's "each other
+# creature that shares a color with it", and "you gain life equal to its
+# power" / "draw cards equal to its power" (`count equal power of it`).
+
+scenario "Sunken Ruins: an Island pays the filter, two black mana" {
+  battlefield A: "Sunken Ruins", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Hymn to Tourach"
+  hand B: "Forest", "Mountain", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hymn to Tourach" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hymn to Tourach"
+  assert hand B count 1
+}
+
+scenario "Sunken Ruins: two blue mana" {
+  battlefield A: "Sunken Ruins", "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Counterspell"
+  hand B: "Lightning Bolt"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Counterspell" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Sunken Ruins: colorless alone" {
+  battlefield A: "Sunken Ruins"
+  hand A: "Ornithopter", "Hymn to Tourach"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  illegal turn 1 A: cast "Hymn to Tourach" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "Mystic Gate: {W}{U} for a two-color spell" {
+  battlefield A: "Mystic Gate", "Plains"
+  hand A: "Wrath of God"
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wrath of God"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Wooded Bastion, Fire-Lit Thicket, Graven Cairns: each makes its pair" {
+  battlefield A: "Wooded Bastion", "Forest", "Fire-Lit Thicket", "Mountain", "Graven Cairns", "Swamp"
+  hand A: "Nature's Lore", "Hymn to Tourach"
+  library A: "Forest", "Plains"
+  battlefield B: "Hill Giant"
+  hand B: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hymn to Tourach" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+}
+
+scenario "Rugged Prairie, Twilight Mire, Flooded Grove, Cascade Bluffs, Fetid Heath: enemy pairs" {
+  battlefield A: "Twilight Mire", "Swamp"
+  hand A: "Hymn to Tourach"
+  hand B: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hymn to Tourach" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+}
+
+scenario "Fetid Heath: two black mana from a Plains" {
+  battlefield A: "Fetid Heath", "Plains"
+  hand A: "Hymn to Tourach"
+  hand B: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hymn to Tourach" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+}
+
+scenario "Cascade Bluffs: two blue mana from a Mountain" {
+  battlefield A: "Cascade Bluffs", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Counterspell"
+  hand B: "Lightning Bolt"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Counterspell" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Wojek Embermage: 1 to the target and each creature sharing a color" {
+  battlefield A: "Wojek Embermage"
+  battlefield B: "Savannah Lions", "Llanowar Elves", "Grizzly Bears", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Wojek Embermage" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Savannah Lions"
+  assert damage "Savannah Lions" 0
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "Packsong Pup: a counter with another Wolf, then life equal to its power" {
+  battlefield A: "Packsong Pup", "Treacherous Werewolf"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert counters "Packsong Pup" +1/+1 1
+  turn 1 postcombat_main B: cast "Murder" targeting "Packsong Pup"
+  run_to turn 1 end
+  assert graveyard A contains "Packsong Pup"
+  assert life A 22
+}
+
+scenario "Packsong Pup: no other Wolf, no counter" {
+  battlefield A: "Packsong Pup", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert counters "Packsong Pup" +1/+1 0
+}
+
+scenario "Willow Geist: grows as cards leave the graveyard, life as it dies" {
+  battlefield A: "Willow Geist", 2 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Disentomb"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disentomb" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Willow Geist" +1/+1 1
+  turn 1 postcombat_main B: cast "Murder" targeting "Willow Geist"
+  run_to turn 1 end
+  assert life A 22
+}
+
+scenario "Champion of Wits: draw cards equal to its power, then discard two" {
+  battlefield A: 3 "Island"
+  hand A: "Champion of Wits"
+  library A: "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Champion of Wits"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "Champion of Wits: decline, no cards" {
+  battlefield A: 3 "Island"
+  hand A: "Champion of Wits"
+  library A: "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Champion of Wits"
+  turn 1 A: decline "Champion of Wits"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 3
+}

@@ -1,0 +1,6 @@
+card "Mystic Gate" {
+  oracle_id e9f5feb2-2c1a-46ce-885a-4f378d7d10af
+  type Land
+  mana {C}
+  activated {W/U}, {T}: add {W}{W} or {W}{U} or {U}{U}
+}

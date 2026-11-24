@@ -4971,6 +4971,11 @@ pub enum Effect {
         count: Num,
         colors: mtg_core::mana::ColorSet,
         different: bool,
+        /// `add {W}{W} or {W}{U} or {U}{U}`: two mana of two colors, the
+        /// combinations listed ("Add {W}{W}, {W}{U}, or {U}{U}.", the
+        /// filter lands); the same mana as `add 2 mana any combination
+        /// of {W}{U}`. Wording only.
+        listed: bool,
     },
     /// `add any 2 and any 2 other`: "Add two mana of any one color and two
     /// mana of any other color."

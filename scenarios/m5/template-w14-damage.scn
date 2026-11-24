@@ -17,6 +17,16 @@ scenario "Tranquil Garden: two colors, then it stays tapped" {
   assert tapped "Tranquil Garden"
 }
 
+scenario "Tranquil Garden: payment taps it for a color" {
+  battlefield A: "Tranquil Garden"
+  hand A: "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert tapped "Tranquil Garden"
+}
+
 scenario "Tranquil Garden: colorless, and it untaps" {
   battlefield A: "Tranquil Garden"
   hand A: "Ornithopter"

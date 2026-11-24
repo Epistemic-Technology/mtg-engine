@@ -1,0 +1,6 @@
+card "Cascade Bluffs" {
+  oracle_id f1603384-4361-49c9-98aa-7785fc3504c4
+  type Land
+  mana {C}
+  activated {U/R}, {T}: add {U}{U} or {U}{R} or {R}{R}
+}

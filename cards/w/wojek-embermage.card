@@ -1,0 +1,7 @@
+card "Wojek Embermage" {
+  oracle_id ac8630ac-defb-4774-ac71-d35fe02a7324
+  cost {3}{R}
+  type Creature — Human Wizard
+  pt 1/2
+  label "Radiance" activated {T}: deal 1 damage to target creature and each other creature that shares color with target 1
+}

@@ -1,0 +1,9 @@
+card "Willow Geist" {
+  oracle_id 7a7096a7-ef1b-4015-b1eb-5c2174d7ec9a
+  cost {G}
+  type Creature — Treefolk Spirit
+  pt 1/1
+  keywords trample
+  triggered whenever one or more cards leave your graveyard: put 1 +1/+1 counters on this
+  triggered when this dies: you gain count equal power of it life
+}

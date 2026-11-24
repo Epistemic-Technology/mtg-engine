@@ -1,0 +1,6 @@
+card "Fetid Heath" {
+  oracle_id 42bf259d-4bb9-49c3-b4ec-223dca62f4d6
+  type Land
+  mana {C}
+  activated {W/B}, {T}: add {W}{W} or {W}{B} or {B}{B}
+}

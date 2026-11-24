@@ -1,0 +1,6 @@
+card "Flooded Grove" {
+  oracle_id dc974eb4-72b9-4213-887b-8ee684b93420
+  type Land
+  mana {C}
+  activated {G/U}, {T}: add {G}{G} or {G}{U} or {U}{U}
+}

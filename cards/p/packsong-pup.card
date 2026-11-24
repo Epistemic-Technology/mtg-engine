@@ -1,0 +1,8 @@
+card "Packsong Pup" {
+  oracle_id cd796e12-c422-4869-8d59-794600425381
+  cost {1}{G}
+  type Creature — Wolf
+  pt 1/1
+  triggered at beginning of your combat if you control other Wolf or Werewolf: put 1 +1/+1 counters on this
+  triggered when this dies: you gain count equal power of it life
+}

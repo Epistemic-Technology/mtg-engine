@@ -1,0 +1,6 @@
+card "Wooded Bastion" {
+  oracle_id 61b85077-64aa-4bcc-890d-2d88da9543c0
+  type Land
+  mana {C}
+  activated {G/W}, {T}: add {G}{G} or {G}{W} or {W}{W}
+}
