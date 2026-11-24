@@ -731,6 +731,7 @@ impl Fmt {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per event
     fn replaces(&mut self, r: &Replaces, targets: &[Target]) -> String {
         match r {
             Replaces::Damage { .. } | Replaces::DamageToAndBy { .. } => {

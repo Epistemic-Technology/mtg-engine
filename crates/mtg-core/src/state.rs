@@ -4706,7 +4706,7 @@ impl GameState {
                     .objects
                     .get(source)
                     .map_or(0, |o| o.counters(crate::card::CounterKind::Any));
-                (have % 2 == 0) == *even
+                have.is_multiple_of(2) == *even
             }
             C::OpponentPoisonAtLeast(n) => self
                 .players_in_game()

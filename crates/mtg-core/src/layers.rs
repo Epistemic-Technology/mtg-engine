@@ -677,7 +677,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 .objects
                 .get(source)
                 .map_or(0, |o| o.counters(crate::card::CounterKind::Any));
-            (have % 2 == 0) == *even
+            have.is_multiple_of(2) == *even
         }
         // CR 702.176a: cast for its impending cost, with a time counter.
         StaticCondition::Impending => state.objects.get(source).is_some_and(|o| {
