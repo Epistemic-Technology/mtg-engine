@@ -1,0 +1,6 @@
+card "Singularity Rupture" {
+  oracle_id e1976b6c-7e43-4f4a-b082-f95495a1b260
+  cost {3}{U}{B}{B}
+  type Sorcery
+  spell: destroy all creatures, then any number of target players each mills half down library
+}

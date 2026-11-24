@@ -860,6 +860,11 @@ impl Decompiler<'_> {
             CoreRecipient::ExiledWith(i) => Recipient::ExiledWith(i),
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
+            CoreRecipient::Declined => Recipient::Declined(crate::ast::Declined {
+                player: false,
+                tense: crate::ast::DeclinedTense::Didnt,
+                tail: false,
+            }),
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
             CoreRecipient::AttachedAndSharing(i) => Recipient::AttachedAnd(i),
             CoreRecipient::Attached => Recipient::Attached,
@@ -1623,6 +1628,13 @@ impl Decompiler<'_> {
                         .first()
                         .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
                 ),
+            },
+            CoreEffect::MayOr { who, sacrifice, .. } => Effect::MayOr {
+                who: Self::recipient(*who),
+                sacrifice: sacrifice
+                    .as_ref()
+                    .map_or_else(Filter::default, |f| self.filter(f)),
+                sacrifice_first: false,
             },
             CoreEffect::UnlessSacrifices {
                 payer,

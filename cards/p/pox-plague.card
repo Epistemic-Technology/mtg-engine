@@ -1,0 +1,6 @@
+card "Pox Plague" {
+  oracle_id c505d304-9428-4532-87a2-167c69f16969
+  cost {B}{B}{B}{B}{B}
+  type Sorcery
+  spell: each player loses half down life, then discards half down hand, then sacrifices half down permanent
+}

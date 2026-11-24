@@ -1,0 +1,3 @@
+emblem "Liliana, Waker of the Dead emblem" {
+  triggered at beginning of your combat: put target creature card from a graveyard onto battlefield under your control; target 1 gains haste indefinitely
+}

@@ -1,0 +1,10 @@
+card "Rush of Dread" {
+  oracle_id 0dfe6ec6-a0df-41c8-90dd-1ddf0417700a
+  cost {1}{B}{B}
+  type Sorcery
+  spree {
+  mode {1}: target opponent sacrifices half up creature
+  mode {2}: target opponent discards half up hand
+  mode {2}: target opponent loses half life
+  }
+}

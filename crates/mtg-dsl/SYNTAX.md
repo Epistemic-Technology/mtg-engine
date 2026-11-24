@@ -936,7 +936,42 @@ battlefield": each chooses, then the cards enter together). `each opponent
 who doesn't control Elf loses 1 life` ("each opponent who doesn't control
 an Elf", judged as it resolves). After a discard, `for each opponent who
 can't, you gain 4 life` ("For each opponent who can't, ..."): once for each
-player who had too few cards to discard. `target player can't play lands
+player who had too few cards to discard. Halves counted for each player
+as the effect happens for them (CR 107.1a), written right after the verb:
+`target opponent sacrifices half up creature` ("sacrifices half the
+creatures they control of their choice, rounded up"; any filter, without
+who controls it: `each player sacrifices half down non-God creature`),
+`discards half up hand` ("discards half the cards in their hand, rounded
+up"), `mills half down library` ("mills half their library, rounded
+down"; `any number of target players each mills half down library`: each
+their own), `loses half down life` ("loses half their life, rounded
+down"; `loses half life` is rounded up). A sentence with two or more
+halves, all rounded down, prints them bare and adds "Round down each
+time." (Pox Plague: `each player loses half down life, then discards half
+down hand, then sacrifices half down permanent`). The counts `their
+hand`, `their library`, `their life` are the acting player's, and `they
+control` in a count of `each player` or of a group of target players
+(`each player loses count each creature they control life`) is each
+player's own, for life loss, draws, mills, discards, and sacrifices.
+`each opponent may discard 1 card or sacrifice permanent` ("Each opponent
+may discard a card or sacrifice a permanent of their choice.", CR 608.2d;
+`may sacrifice nonland permanent or discard 1 card` in the other order):
+each in turn chooses (in a scenario `choose "1"` sacrifices, `"2"`
+discards, `"3"` does neither). After it, after `each player may discard 1
+card`, after a discard by each player, or after a counted sacrifice, the
+recipient `each opponent who didn't` (`each player who doesn't`, `each
+opponent who can't`; `each opponent who didn't sacrifice or discard`:
+"... who didn't sacrifice a permanent or discard a card this way") is
+those who didn't or couldn't: `this deals 3 damage to each opponent who
+didn't`, `each opponent who can't loses 3 life` (after `each opponent
+discards 1 card`), `each opponent who can't discards 1 card` (after `each
+opponent sacrifices 1 creature or Vehicle`). The count `opponents didn't
+discard 2 nonland card` ("for each opponent who didn't discard two
+nonland cards this way") counts the players the last discard asked who
+discarded fewer such cards; `those opponents didn't discard 1 card with
+mana value 4 or greater` prints "For each of those opponents who didn't
+discard a card with mana value 4 or greater" (after `any number of
+target opponents each discards 1 card`). `target player can't play lands
 this turn` and `target player can't cast creature spells this turn` (CR
 614.17: until end of turn, the player isn't offered land plays or creature
 spells, face-down ones included). `creature dealt damage this way can't be

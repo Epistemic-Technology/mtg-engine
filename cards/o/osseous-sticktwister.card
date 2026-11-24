@@ -1,0 +1,8 @@
+card "Osseous Sticktwister" {
+  oracle_id 33c3a81a-6cea-48c9-b966-67084d96e74f
+  cost {1}{B}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  keywords lifelink
+  label "Delirium" triggered at beginning of your end step if 4 card types in your graveyard: each opponent may sacrifice nonland permanent or discard 1 card; then this deals damage equal power to each opponent who didn't sacrifice or discard
+}

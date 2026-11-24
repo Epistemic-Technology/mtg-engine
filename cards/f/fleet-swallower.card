@@ -1,0 +1,7 @@
+card "Fleet Swallower" {
+  oracle_id 52d349e7-4bd2-468a-ab26-df8cd262f6f6
+  cost {5}{U}{U}
+  type Creature — Fish
+  pt 6/6
+  triggered whenever this attacks: target player mills half up library
+}

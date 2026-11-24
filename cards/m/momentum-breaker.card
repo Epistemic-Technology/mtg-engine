@@ -1,0 +1,8 @@
+card "Momentum Breaker" {
+  oracle_id 087d2e42-c69f-4cd2-b2e3-e0b64ac2893b
+  cost {1}{B}
+  type Enchantment
+  start your engines
+  triggered when this enters: each opponent sacrifices 1 creature or Vehicle; each opponent who can't discards 1 card
+  activated {2}, sacrifice this: you gain count equal speed life
+}

@@ -1,0 +1,10 @@
+card "Lord Xander, the Collector" {
+  oracle_id d17bfa94-5046-46ae-80af-be5d1d35af13
+  cost {4}{U}{B}{R}
+  type Legendary Creature — Vampire Demon Noble
+  pt 6/6
+  short_name "Lord Xander"
+  triggered when this enters: target opponent discards half down hand
+  triggered whenever this attacks: defending player mills half down library
+  triggered when this dies: target opponent sacrifices half down nonland permanent
+}

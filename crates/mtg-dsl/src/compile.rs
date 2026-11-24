@@ -2697,6 +2697,11 @@ impl Compiler<'_> {
             },
             A::Life => C::Life,
             A::Speed => C::Speed,
+            A::Their(what) => C::Their(*what),
+            A::PlayersDidntDiscard { n, filter, .. } => C::PlayersDidntDiscard {
+                n: *n,
+                filter: filter.as_ref().map(|f| self.filter(f)),
+            },
             A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
             A::Divided { by, up, inner } => C::Divided {
                 by: *by,
@@ -2977,6 +2982,7 @@ impl Compiler<'_> {
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
+            Recipient::Declined(_) => CoreRecipient::Declined,
             Recipient::OpponentsWithout(i) => {
                 CoreRecipient::OpponentsWithout(groups[usize::from(i)])
             }
@@ -4375,6 +4381,11 @@ impl Compiler<'_> {
                 self.effect(effect, &mut effects)?;
                 out.push(CoreEffect::UnlessYou { act: acts, effects });
             }
+            Effect::MayOr { who, sacrifice, .. } => out.push(CoreEffect::MayOr {
+                who: r(*who),
+                sacrifice: Some(self.filter(sacrifice)),
+                discard: true,
+            }),
             Effect::UnlessSacrifices {
                 payer,
                 filter,

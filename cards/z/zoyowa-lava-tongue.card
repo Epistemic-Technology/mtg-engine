@@ -1,0 +1,9 @@
+card "Zoyowa Lava-Tongue" {
+  oracle_id e90f298f-c54b-4fe8-82db-5b9153a57712
+  cost {B}{R}
+  type Legendary Creature — Goblin Warlock
+  pt 2/2
+  short_name "Zoyowa"
+  keywords deathtouch
+  triggered at beginning of your end step if descended this turn: each opponent may discard 1 card or sacrifice permanent; this deals 3 damage to each opponent who didn't
+}

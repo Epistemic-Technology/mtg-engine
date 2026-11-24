@@ -1435,6 +1435,10 @@ struct Ctx<'a> {
     /// then discard a card"): a reflexive trigger after it is "When you
     /// discard a card this way".
     discarded_one: bool,
+    /// The sentence ends "Round down each time." (Pox Plague) or "Round up
+    /// each time." (Fraying Omnipotence), so its halves don't say
+    /// "rounded down" each.
+    round_each: bool,
     /// What this is attached to has been named in the ability, so it is
     /// "it" as an object ("tap enchanted creature and remove all counters
     /// from it"; "if enchanted creature is untapped, tap it").
@@ -1521,6 +1525,7 @@ impl<'a> Ctx<'a> {
             those_tokens: None,
             last_token_tapped: false,
             discarded_one: false,
+            round_each: false,
             attached_mentioned: false,
             attached_by_cond: false,
             amassed: false,
@@ -1816,6 +1821,11 @@ impl<'a> Ctx<'a> {
                 "each opponent".to_string()
             }
             Recipient::EachOtherPlayer => "each other player".to_string(),
+            Recipient::Declined(d) => format!(
+                "each {} who {}",
+                if d.player { "player" } else { "opponent" },
+                d.verb()
+            ),
             Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
             Recipient::AnOpponent => "an opponent".to_string(),
             Recipient::Source => self.source(),
@@ -5221,6 +5231,43 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "opponent who has more cards in hand than you".to_string(),
             "opponents who have more cards in hand than you".to_string(),
         ),
+        CountExpr::Their(what) => match what {
+            mtg_core::card::PlayerCount::Hand => (
+                "card in their hand".to_string(),
+                "cards in their hand".to_string(),
+            ),
+            mtg_core::card::PlayerCount::Library => (
+                "card in their library".to_string(),
+                "cards in their library".to_string(),
+            ),
+            mtg_core::card::PlayerCount::Life => return "their life".to_string(),
+        },
+        // "For each opponent who didn't discard two nonland cards this
+        // way", "For each of those opponents who didn't discard a card
+        // with mana value 4 or greater".
+        CountExpr::PlayersDidntDiscard { n, filter, those } => {
+            let what = match filter {
+                Some(f) if *n == 1 => {
+                    let one = cards_phrase(f, card, false);
+                    with_article(&one)
+                }
+                Some(f) => format!(
+                    "{} {}",
+                    count_words(Num::N(*n), "a"),
+                    cards_phrase(f, card, true)
+                ),
+                None if *n == 1 => "a card".to_string(),
+                None => format!("{} cards", count_words(Num::N(*n), "a")),
+            };
+            let tail = if *those { "" } else { " this way" };
+            let who = if *those {
+                "of those opponents"
+            } else {
+                "opponent"
+            };
+            let one = format!("{who} who didn't discard {what}{tail}");
+            (one.clone(), one)
+        }
         CountExpr::Total(stat, f) => {
             return format!(
                 "the total {} of {}",
@@ -5333,6 +5380,47 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
     }
 }
 
+/// A count written right after a per-player verb (`CountStyle::Half`):
+/// "half the cards in their hand, rounded up", "half their library,
+/// rounded down", "half their life, rounded down", "half the creatures
+/// they control of their choice, rounded up". Pox Plague's sentence says
+/// "Round down each time." once instead (`ctx.round_each`).
+fn half_text(n: Num, ctx: &Ctx) -> Option<String> {
+    use crate::ast::CountExpr;
+    let Num::Count(i) = n else {
+        return None;
+    };
+    let c = ctx
+        .card
+        .counts
+        .get(usize::from(i))
+        .filter(|c| c.style == crate::ast::CountStyle::Half)?;
+    let CountExpr::Divided { by: 2, up, inner } = &c.expr else {
+        return None;
+    };
+    let what = match &**inner {
+        CountExpr::Their(mtg_core::card::PlayerCount::Hand) => {
+            "the cards in their hand".to_string()
+        }
+        CountExpr::Their(mtg_core::card::PlayerCount::Library) => "their library".to_string(),
+        CountExpr::Their(mtg_core::card::PlayerCount::Life) => "their life".to_string(),
+        CountExpr::Permanents(f) if f.who == Some(Who::You) => {
+            format!("the {}", filter_phrase(f, ctx.card, true))
+        }
+        CountExpr::Permanents(f) => {
+            format!("the {} of their choice", filter_phrase(f, ctx.card, true))
+        }
+        _ => return None,
+    };
+    if ctx.round_each {
+        return Some(format!("half {what}"));
+    }
+    Some(format!(
+        "half {what}, rounded {}",
+        if *up { "up" } else { "down" }
+    ))
+}
+
 #[allow(clippy::too_many_lines)] // one arm per count style
 fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
     use crate::ast::CountStyle;
@@ -5343,6 +5431,8 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             continue;
         };
         match count.style {
+            // Printed by the verb (`half_text`).
+            CountStyle::Half => {}
             // "deals damage equal to that creature's power to ...".
             // "put a number of +1/+1 counters equal to that creature's
             // power on this creature".
@@ -7211,6 +7301,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::LoseLife { amount, who } => {
             let s = ctx.subj(*who);
+            if let Some(h) = half_text(*amount, ctx) {
+                let each = ctx.each_many(*who);
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!("{each}{} {h}", ctx.verb(*who, "loses", "lose")),
+                );
+            }
             Clause::with_subject(
                 *who,
                 s,
@@ -7283,7 +7381,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
         }
         Effect::Mill { count, who } => {
-            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            let what = half_text(*count, ctx).unwrap_or_else(|| {
+                format!("{} {}", count_words(*count, "a"), plural(*count, "card"))
+            });
             match who {
                 None => Clause::imperative(format!("mill {what}")),
                 Some(w) => {
@@ -8440,6 +8540,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             choice_first,
         } => {
             let s = ctx.subj(*who);
+            if let Some(h) = half_text(*count, ctx) {
+                // "sacrifice half the non-Demon permanents you control,
+                // rounded up" (Rakdos the Defiler).
+                if *who == Recipient::You {
+                    return Clause::imperative(format!("sacrifice {h}"));
+                }
+                let each = ctx.each_many(*who);
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!("{each}{} {h}", ctx.verb(*who, "sacrifices", "sacrifice")),
+                );
+            }
             let some = |count: Num, filter: &Filter| {
                 if count == Num::N(1) {
                     with_article(&filter_phrase(filter, ctx.card, false))
@@ -9522,7 +9635,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Discard { count, who } => {
             ctx.discarded_one = who.is_none() && *count == Num::N(1);
-            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            let what = half_text(*count, ctx).unwrap_or_else(|| {
+                format!("{} {}", count_words(*count, "a"), plural(*count, "card"))
+            });
             match who {
                 None => Clause::imperative(format!("discard {what}")),
                 Some(w) => {
@@ -10125,6 +10240,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             let _ = write!(c.tail, " unless {who} {amount}");
             c
+        }
+        // "Each opponent may discard a card or sacrifice a permanent of
+        // their choice."
+        Effect::MayOr {
+            who,
+            sacrifice,
+            sacrifice_first,
+        } => {
+            let s = ctx.subj(*who);
+            let sac = format!(
+                "sacrifice {} of their choice",
+                filter_a(sacrifice, ctx.card)
+            );
+            let text = if *sacrifice_first {
+                format!("may {sac} or discard a card")
+            } else {
+                format!("may discard a card or {sac}")
+            };
+            Clause::with_subject(*who, s, text)
         }
         // "unless they sacrifice a nonland permanent of their choice or
         // discard a card", "unless that player sacrifices a creature of
@@ -11795,10 +11929,54 @@ fn sentences(ss: &[Sentence], ctx: &mut Ctx) -> String {
                 Some(Effect::IfYouDont { cant: false, .. })
             )
         });
+        // "Each player loses half their life, then discards half the
+        // cards in their hand, then sacrifices half the permanents they
+        // control of their choice. Round down each time." (Pox Plague).
+        let round_each = halves_alike(s, ctx.card);
+        ctx.round_each = round_each.is_some();
         out.push_str(&sentence(&sentence_text(s, ctx)));
+        ctx.round_each = false;
+        if let Some(up) = round_each {
+            out.push_str(if up {
+                " Round up each time."
+            } else {
+                " Round down each time."
+            });
+        }
         ctx.before_if_you_dont = saved;
     }
     out
+}
+
+/// Whether two or more of the sentence's effects halve a count right after
+/// their verb (`CountStyle::Half`), all rounding the same way: up or not.
+fn halves_alike(s: &Sentence, card: &Card) -> Option<bool> {
+    let mut n = 0;
+    let mut way = None;
+    for e in &s.effects {
+        let mut nums = nums_of(e);
+        if let Effect::SacrificeChosen { count, .. } = e {
+            nums.push(*count);
+        }
+        for k in nums {
+            let Num::Count(i) = k else { continue };
+            let Some(c) = card.counts.get(usize::from(i)) else {
+                continue;
+            };
+            if c.style != crate::ast::CountStyle::Half {
+                continue;
+            }
+            let crate::ast::CountExpr::Divided { up, .. } = c.expr else {
+                return None;
+            };
+            if way.is_some_and(|w| w != up) {
+                return None;
+            }
+            way = Some(up);
+            n += 1;
+        }
+    }
+    way.filter(|_| n >= 2)
 }
 
 /// Sentences after a trigger or cost: the first starts lowercase after a

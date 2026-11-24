@@ -453,6 +453,14 @@ impl Fmt {
                 format!("{first} and {group}")
             }
             Recipient::DamagedThisWay => "creature dealt damage this way".to_string(),
+            Recipient::Declined(d) => format!(
+                "each {} who {}",
+                if d.player { "player" } else { "opponent" },
+                match (d.tense, d.tail) {
+                    (crate::ast::DeclinedTense::Didnt, true) => "didn't sacrifice or discard",
+                    _ => d.verb(),
+                }
+            ),
             Recipient::OpponentsWithout(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("each opponent who doesn't control {}", filter(f)),
                 None => "each opponent".to_string(),
@@ -1510,6 +1518,9 @@ impl Fmt {
                 } else {
                     "loses"
                 };
+                if let Some(h) = half(*amount) {
+                    return format!("{} {v} {h}", self.recipient(*who, t));
+                }
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
             }
             Effect::LoseGame { who } => {
@@ -1552,6 +1563,9 @@ impl Fmt {
                     } else {
                         "mills"
                     };
+                    if let Some(h) = half(*count) {
+                        return format!("{} {v} {h}", self.recipient(*w, t));
+                    }
                     format!(
                         "{} {v} {} {}",
                         self.recipient(*w, t),
@@ -1996,6 +2010,12 @@ impl Fmt {
                 and,
                 choice_first,
             } => {
+                if let Some(h) = half(*count) {
+                    if *who == Recipient::You {
+                        return format!("sacrifice {h}");
+                    }
+                    return format!("{} sacrifices {h}", self.recipient(*who, t));
+                }
                 let mut s = format!("{} sacrifices {} ", self.recipient(*who, t), num(*count));
                 // `1 creature of their choice with flying`.
                 if *choice_first && !f.keywords.is_empty() && f.or.is_none() {
@@ -2541,6 +2561,9 @@ impl Fmt {
                     } else {
                         "discards"
                     };
+                    if let Some(h) = half(*count) {
+                        return format!("{} {v} {h}", self.recipient(*w, t));
+                    }
                     format!(
                         "{} {v} {} {}",
                         self.recipient(*w, t),
@@ -3167,6 +3190,24 @@ impl Fmt {
                 let inner = self.effect(effect, t);
                 format!("{inner} unless ward {}", ward_alts(alts))
             }
+            Effect::MayOr {
+                who,
+                sacrifice,
+                sacrifice_first,
+            } => {
+                let who = self.recipient(*who, t);
+                if *sacrifice_first {
+                    format!(
+                        "{who} may sacrifice {} or discard 1 card",
+                        filter(sacrifice)
+                    )
+                } else {
+                    format!(
+                        "{who} may discard 1 card or sacrifice {}",
+                        filter(sacrifice)
+                    )
+                }
+            }
             Effect::UnlessSacrifices {
                 payer,
                 filter: f,
@@ -3440,6 +3481,38 @@ fn num(n: Num) -> String {
     }
 }
 
+/// A count written right after a per-player verb (`CountStyle::Half`):
+/// `half up hand`, `half down library`, `half down life`, `half up
+/// creature`.
+fn half(n: Num) -> Option<String> {
+    use crate::ast::CountExpr;
+    let Num::Count(i) = n else {
+        return None;
+    };
+    COUNTS.with(|counts| {
+        let counts = counts.borrow();
+        let count = counts
+            .get(usize::from(i))
+            .filter(|c| c.style == crate::ast::CountStyle::Half)?;
+        let CountExpr::Divided { by: 2, up, inner } = &count.expr else {
+            return None;
+        };
+        let what = match &**inner {
+            CountExpr::Their(mtg_core::card::PlayerCount::Hand) => "hand".to_string(),
+            CountExpr::Their(mtg_core::card::PlayerCount::Library) => "library".to_string(),
+            CountExpr::Their(mtg_core::card::PlayerCount::Life) => "life".to_string(),
+            CountExpr::Permanents(theirs) => filter(&Filter {
+                they_control: false,
+                that_player: None,
+                who: None,
+                ..theirs.clone()
+            }),
+            _ => return None,
+        };
+        Some(format!("half {} {what}", if *up { "up" } else { "down" }))
+    })
+}
+
 /// A count printed before the recipient (`deal damage equal <expr> to
 /// ...`), as its expression.
 fn equal_before(n: Num) -> Option<String> {
@@ -3483,7 +3556,8 @@ fn count_text(c: &crate::ast::Count) -> String {
     use crate::ast::CountStyle;
     let style = match c.style {
         CountStyle::Where => "where",
-        CountStyle::Equal => "equal",
+        // `Half` is printed by the verb (`half`); elsewhere as `equal`.
+        CountStyle::Equal | CountStyle::Half => "equal",
         CountStyle::Each => "each",
         CountStyle::ForEach => "foreach",
         CountStyle::ThatMany => "that many",
@@ -3712,6 +3786,22 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::DiscardedThisTurn => "discarded this turn".to_string(),
 
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
+        CountExpr::Their(what) => match what {
+            mtg_core::card::PlayerCount::Hand => "their hand",
+            mtg_core::card::PlayerCount::Library => "their library",
+            mtg_core::card::PlayerCount::Life => "their life",
+        }
+        .to_string(),
+        CountExpr::PlayersDidntDiscard {
+            n,
+            filter: f,
+            those,
+        } => format!(
+            "{}opponents didn't discard {n} {}",
+            if *those { "those " } else { "" },
+            f.as_ref()
+                .map_or_else(|| "card".to_string(), |f| format!("{} card", filter(f)))
+        ),
         CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
         CountExpr::TargetLibrary(n) => format!("library of target {}", n + 1),
         CountExpr::GreatestManaValueOf(f) => format!("greatest mana value among {}", filter(f)),
@@ -4228,6 +4318,7 @@ fn filter_one(f: &Filter) -> String {
     }
     match f.that_player {
         Some(_) if f.they_control => words.push("they control".to_string()),
+        Some(mtg_core::card::ThatPlayer::Acting) => words.push("they control".to_string()),
         Some(mtg_core::card::ThatPlayer::Triggering) => {
             words.push("that player controls".to_string());
         }
