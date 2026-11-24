@@ -9735,6 +9735,11 @@ pub struct CardDef {
     /// of the turn, so step changes refresh the cache.
     #[serde(skip)]
     pub step_static: bool,
+    /// Filled in by `CardPool::add`: it has a static ability
+    /// (`has_static`), read by the layer pass's fast path for every
+    /// permanent on every cache miss.
+    #[serde(skip)]
+    pub any_static: bool,
     /// Filled in by `CardPool::add`: a static whose condition reads a
     /// record of the turn that changes without a zone change ("as long as
     /// you gained life this turn", "an opponent was dealt damage this
@@ -9933,6 +9938,13 @@ impl DefFlags {
     /// activate this ability."): priority then looks at other players'
     /// permanents.
     const FOREIGN_ACTIVATED: u32 = 268_435_456;
+    /// Of `GRANTS`, a grant that could give a triggered ability: a granted
+    /// ability that isn't an activated or plain mana ability, or a
+    /// keyword that is a triggered ability (`CardPool::grants_triggers`).
+    /// Trigger detection looks past definitions only while such a grant
+    /// exists ("Enchanted land has '{T}, Pay 1 life: Draw a card.'" does
+    /// not make every permanent a watcher).
+    const TRIGGER_GRANTS: u32 = 536_870_912;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -10001,6 +10013,10 @@ impl DefFlags {
 
     pub const fn grants_abilities(self) -> bool {
         self.has(DefFlags::GRANTS)
+    }
+
+    pub const fn grants_triggers(self) -> bool {
+        self.has(DefFlags::TRIGGER_GRANTS)
     }
 
     pub const fn has_restricted_mana(self) -> bool {
@@ -10309,10 +10325,10 @@ impl CardDef {
                 .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.from_graveyard))
     }
 
+    /// Has a static ability (`AbilityDef::Static`): precomputed by
+    /// `CardPool::add` (`any_static`).
     pub fn has_static(&self) -> bool {
-        self.abilities
-            .iter()
-            .any(|a| matches!(a, AbilityDef::Static(_)))
+        self.any_static
     }
 
     /// Has a printed triggered ability or a keyword that is one. Checked on
@@ -10972,6 +10988,40 @@ impl CardPool {
         self.basic_mana[c as usize]
     }
 
+    /// Whether a static ability among `abilities` grants something that
+    /// could be a triggered ability (`DefFlags::TRIGGER_GRANTS`): any
+    /// granted ability but an activated or plain mana ability (a granted
+    /// static could grant one in turn), or a keyword that triggers, as
+    /// `DefFlags::GRANTS` counts them.
+    fn grants_triggers(&self, abilities: &[AbilityDef]) -> bool {
+        abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| match m {
+                // Not registered yet: counted, to be safe.
+                Modification::AddAbility(id) => !matches!(
+                    self.abilities.get(id.0 as usize),
+                    Some(
+                        AbilityDef::Activated(_)
+                            | AbilityDef::TapForMana(_)
+                            | AbilityDef::SacForMana(_)
+                    )
+                ),
+                Modification::AddKeywords(ks) => [
+                    Keyword::Prowess,
+                    Keyword::Exalted,
+                    Keyword::Persist,
+                    Keyword::Undying,
+                    Keyword::Flanking,
+                    Keyword::Exploit,
+                    Keyword::Decayed,
+                ]
+                .into_iter()
+                .any(|k| ks.contains(k))
+                    || ks.intersects(KeywordSet::TRIGGERED),
+                _ => false,
+            }))
+        })
+    }
+
     fn register(&mut self, a: AbilityDef) -> AbilityId {
         let id = AbilityId(u32::try_from(self.abilities.len()).expect("too many abilities"));
         let effects = a.all_effects();
@@ -11500,6 +11550,12 @@ impl CardPool {
                     .map_or(&[], |x| x.abilities.as_slice()),
                 x.keywords,
             );
+            let triggers = def.except_flags.grants_abilities()
+                && def
+                    .copy_except
+                    .as_ref()
+                    .is_some_and(|x| self.grants_triggers(&x.abilities));
+            def.except_flags.set(DefFlags::TRIGGER_GRANTS, triggers);
         }
         let mask = |abilities: &[AbilityDef]| {
             abilities.iter().fold(0u32, |m, a| match a {
@@ -11552,6 +11608,10 @@ impl CardPool {
                         if hand_reader(self.ability(*ability)))
                 })
         });
+        def.any_static = def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::Static(_)));
         def.step_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(StaticCondition::During(_))))
         });
@@ -11565,6 +11625,10 @@ impl CardPool {
             None => def.enchant().into_iter().collect(),
         };
         let mut flags = DefFlags::of(&def.abilities, def.keywords);
+        flags.set(
+            DefFlags::TRIGGER_GRANTS,
+            flags.grants_abilities() && self.grants_triggers(&def.abilities),
+        );
         flags.set(
             DefFlags::EQUIPMENT,
             def.subtypes.iter().any(|s| s == "Equipment"),
@@ -11974,6 +12038,7 @@ impl Builder {
             hand_static: false,
             spent: SpentUse::default(),
             step_static: false,
+            any_static: false,
             history_static: false,
             other_casts: false,
             no_mana_cost: false,

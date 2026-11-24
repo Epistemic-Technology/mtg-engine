@@ -946,6 +946,7 @@ impl GameState {
             self.turn_static_sources += d(flags.has_turn_static());
             self.attack_rule_sources += d(flags.has_attack_rule());
             self.grant_sources += d(flags.grants_abilities());
+            self.trigger_grant_sources += d(flags.grants_triggers());
             self.spent_watchers += d(flags.watches_spent());
             self.valiant_watchers += d(flags.has_valiant());
             self.state_trigger_sources += d(flags.has_state_trigger());
@@ -970,6 +971,7 @@ impl GameState {
             self.turn_static_sources -= d(flags.has_turn_static());
             self.attack_rule_sources -= d(flags.has_attack_rule());
             self.grant_sources -= d(flags.grants_abilities());
+            self.trigger_grant_sources -= d(flags.grants_triggers());
             self.spent_watchers -= d(flags.watches_spent());
             self.valiant_watchers -= d(flags.has_valiant());
             self.state_trigger_sources -= d(flags.has_state_trigger());

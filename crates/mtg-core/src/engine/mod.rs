@@ -283,6 +283,7 @@ impl Engine {
                 state.turn_static_sources += u32::from(def.flags().has_turn_static());
                 state.attack_rule_sources += u32::from(def.flags().has_attack_rule());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
+                state.trigger_grant_sources += u32::from(def.flags().grants_triggers());
                 state.spent_watchers += u32::from(def.flags().watches_spent());
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
@@ -624,6 +625,7 @@ impl GameState {
             banding_sources: 0,
             attack_rule_sources: 0,
             grant_sources: 0,
+            trigger_grant_sources: 0,
             eot_grants: 0,
             lasting_grants: 0,
             lasting: None,
@@ -3303,10 +3305,48 @@ impl GameState {
         self.cbump();
     }
 
+    /// Whether a new turn could change what a state-based action reads: a
+    /// static ability on the battlefield ("during turns other than yours,
+    /// this Vehicle is an artifact creature"), a copy exception's, a
+    /// player-level static, an emblem, or a stored effect or rule.
+    /// Without any, characteristics are the printed values plus counters
+    /// (`layers::pass`'s fast path), which no turn changes.
+    fn turn_may_change_characteristics(&self) -> bool {
+        !self.effects.is_empty()
+            || !self.emblems.is_empty()
+            || !self.rules.is_empty()
+            || !self.player_rules.is_empty()
+            || self.player_static_sources > 0
+            || self.desig.tempted != [0; 4]
+            || self.battlefield.iter().any(|id| {
+                let o = &self.objects[*id];
+                o.except.is_some() || self.pool.get(o.def).has_static()
+            })
+    }
+
     fn finish_cleanup(&mut self) {
         self.combat_durations = 0;
-        let pool = std::sync::Arc::clone(&self.pool);
-        for (_, o) in &mut self.objects {
+        // Only permanents are dealt damage (CR 120.3), and a permanent
+        // that changes zones is a new object without it (CR 400.7): the
+        // battlefield and the phased-out permanents hold all there is.
+        debug_assert!(
+            self.objects
+                .iter()
+                .filter(|(id, _)| {
+                    !self.battlefield.contains(id) && !self.phased_out.iter().any(|p| p.id == *id)
+                })
+                .all(|(_, o)| o.damage == 0 && !o.deathtouch_damage),
+            "damage on an object that is not a permanent"
+        );
+        let (pool, objects) = (&self.pool, &mut self.objects);
+        let damaged = self
+            .battlefield
+            .iter()
+            .chain(self.phased_out.iter().map(|p| &p.id));
+        for id in damaged {
+            let Some(o) = objects.get_mut(*id) else {
+                continue;
+            };
             // "Damage isn't removed from this creature during cleanup
             // steps." (CR 514.2).
             if o.damage > 0
@@ -3578,9 +3618,13 @@ impl GameState {
             // "During turns other than yours, this Vehicle is an artifact
             // creature" (Midnight Mangler): a new turn can stop a
             // permanent being a creature, and an Aura on it is then
-            // illegally attached (CR 704.5m). Once a turn costs nothing
-            // worth a flag.
-            self.sba_touch();
+            // illegally attached (CR 704.5m). Only a static ability or a
+            // stored effect can change with the turn (`layers::pass`
+            // derives the printed values without either), so a board
+            // without one needs no check.
+            if self.turn_may_change_characteristics() {
+                self.sba_touch();
+            }
             self.extra_phases.clear();
             self.resume_step = None;
             self.combats_this_turn = 0;
