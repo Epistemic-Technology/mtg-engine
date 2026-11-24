@@ -1,0 +1,15 @@
+card "Serah Farron // Crystallized Serah" {
+  oracle_id a8a7a3b7-015c-4fbd-8b90-e0ddf71663e4
+  layout transform
+  cost {1}{G}{W}
+  type Legendary Creature — Human Citizen
+  pt 2/2
+  spells first legendary creature you cast cost {2} less
+  triggered at beginning of your combat if you control 2 other legendary creature: you may transform this
+  face "Crystallized Serah" {
+    type Legendary Artifact
+    color green white
+    spells first legendary creature you cast cost {2} less
+    static legendary creature you control: +2/+2
+  }
+}
