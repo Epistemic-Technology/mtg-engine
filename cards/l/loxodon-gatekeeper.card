@@ -1,0 +1,7 @@
+card "Loxodon Gatekeeper" {
+  oracle_id 861f0b1c-3b37-4d38-9232-e42565247076
+  cost {2}{W}{W}
+  type Creature — Elephant Soldier
+  pt 2/3
+  replace andlist artifact or creature or land your opponents control enter: tapped
+}

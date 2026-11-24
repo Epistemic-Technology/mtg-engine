@@ -1499,7 +1499,9 @@ creature": one effect, CR 615), `you gain life`,
 it."), `replace other creature you control enter: with count each
 opponents lost life this turn +1/+1 counters` ("Other creatures you
 control enter with an additional +1/+1 counter on them for each opponent
-who lost life this turn."); a count is the replacement source's, counted
+who lost life this turn."), `replace andlist creature or nonbasic land
+your opponents control enter: tapped` ("Creatures and nonbasic lands your
+opponents control enter tapped."); a count is the replacement source's, counted
 as the permanent enters ("for each Angel you already control"), and the
 permanent matches by its card under the controller it will have.
 

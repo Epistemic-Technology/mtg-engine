@@ -1,0 +1,8 @@
+card "Manglehorn" {
+  oracle_id b67db32b-30a9-49d2-b4c2-90a9f80c36eb
+  cost {2}{G}
+  type Creature — Beast
+  pt 2/2
+  triggered when this enters: you may destroy target artifact
+  replace artifact your opponents control enter: tapped
+}

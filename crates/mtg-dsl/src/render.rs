@@ -13620,6 +13620,21 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             "As {} enters, you may pay {n} life. If you don't, it enters tapped.",
             this_ref(ctx.card)
         ),
+        // "Creatures your opponents control enter tapped." (CR 614.1c),
+        // "Artifacts, creatures, and lands your opponents control ...".
+        (Replaces::OthersEnter { what, each }, Outcome::EnterTapped) => {
+            if *each {
+                format!(
+                    "Each {} enters tapped.",
+                    controller_first(what, filter_phrase(what, ctx.card, false))
+                )
+            } else {
+                format!(
+                    "{} enter tapped.",
+                    capitalize(&controller_first(what, filter_phrase(what, ctx.card, true)))
+                )
+            }
+        }
         (Replaces::Enters, Outcome::EnterPrepared) => {
             format!("{} enters prepared.", capitalize(&this_ref(ctx.card)))
         }

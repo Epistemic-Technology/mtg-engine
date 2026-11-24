@@ -1,0 +1,8 @@
+card "Dauntless Dismantler" {
+  oracle_id 7129bdec-83e0-4c1e-a87b-ac0da1a714b3
+  cost {1}{W}
+  type Creature — Human Artificer
+  pt 1/4
+  replace artifact your opponents control enter: tapped
+  activated {X}{X}{W}, sacrifice this: destroy each single artifact with mana value X
+}

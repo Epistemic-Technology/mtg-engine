@@ -1,0 +1,8 @@
+card "Urabrask the Hidden" {
+  oracle_id 5b2ffb53-86b7-4665-a5c7-b85b035b6c81
+  cost {3}{R}{R}
+  type Legendary Creature — Phyrexian Praetor
+  pt 4/4
+  static creature you control: has haste
+  replace creature your opponents control enter: tapped
+}

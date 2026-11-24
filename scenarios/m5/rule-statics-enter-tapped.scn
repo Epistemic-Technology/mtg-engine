@@ -1,0 +1,81 @@
+# "Creatures your opponents control enter tapped." (CR 614.1c):
+# `replace creature your opponents control enter: tapped`.
+
+scenario "Authority of the Consuls: an opponent's creature enters tapped, and its controller gains 1" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Authority of the Consuls"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert life B 21
+}
+
+scenario "Authority of the Consuls: its controller's own creatures enter untapped" {
+  battlefield A: 2 "Forest", "Authority of the Consuls"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Imposing Sovereign: a land an opponent plays enters untapped" {
+  battlefield B: "Imposing Sovereign"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+}
+
+scenario "Thalia, Heretic Cathar: nonbasic lands and creatures tapped, basics not" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Thalia, Heretic Cathar"
+  hand A: "Grizzly Bears", "Evolving Wilds", "Mountain"
+  library A: "Island", "Plains", "Swamp"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: play "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Evolving Wilds"
+  turn 3 A: play "Mountain"
+  run_to turn 3 postcombat_main
+  assert untapped "Mountain"
+}
+
+scenario "Frozen Aether: artifacts, creatures, and lands an opponent controls enter tapped" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Frozen Aether"
+  hand A: "Ornithopter", "Mountain", "Grizzly Bears"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert tapped "Ornithopter"
+  assert tapped "Mountain"
+}
+
+scenario "Dauntless Dismantler: only artifacts enter tapped; X=0 destroys tokens and 0-cost artifacts" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Dauntless Dismantler", "Plains", "Ornithopter", "Darksteel Relic", "Mind Stone"
+  hand A: "Ornithopter", "Grizzly Bears"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert tapped A "Ornithopter"
+  turn 2 B: activate "Dauntless Dismantler"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Ornithopter"
+  assert battlefield B contains "Darksteel Relic"
+  assert battlefield B contains "Mind Stone"
+}
+
+scenario "Blind Obedience: an opponent's creature token enters tapped" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Blind Obedience"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert tapped oldest "Soldier"
+  assert tapped newest "Soldier"
+}
