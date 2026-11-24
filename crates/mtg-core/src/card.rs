@@ -8347,6 +8347,11 @@ pub enum TriggerSpec {
     /// at least `min` creatures (with `this`, the source among them)
     /// attack.
     AttacksWith { this: bool, min: u8 },
+    /// "Whenever you attack with creatures with total power 12 or
+    /// greater" (Desert Were-Worm): once per declaration of attackers by
+    /// the controller (CR 508.1m) whose attackers' total power, as
+    /// declared, is at least this.
+    AttacksWithPower(u16),
     /// "Whenever a player attacks with three or more creatures" (CR
     /// 508.1m): once per declaration of attackers by a player matching
     /// `whose`, when at least `min` creatures attack; that player is the
@@ -8988,6 +8993,7 @@ impl TriggerSpec {
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksPlayerAlone(_)
             | TriggerSpec::AttacksWith { .. }
+            | TriggerSpec::AttacksWithPower(_)
             | TriggerSpec::PlayerAttacksWith { .. }
             | TriggerSpec::AttacksWithFilter { .. }
             | TriggerSpec::PlayersAttacked { .. } => WATCH_ATTACK,

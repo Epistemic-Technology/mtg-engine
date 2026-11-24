@@ -19646,6 +19646,25 @@ impl P {
             });
         }
         // "Whenever you attack [with three or more creatures]" (CR 508.1m).
+        // "Whenever you attack with creatures with total power 12 or
+        // greater for the first time each turn" (Desert Were-Worm).
+        if self.eat_words(&[
+            "you",
+            "attack",
+            "with",
+            "creatures",
+            "with",
+            "total",
+            "power",
+        ]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "greater"])?;
+            let first = self.eat_words(&["first", "time", "each", "turn"]);
+            return Ok(Trigger::AttacksWithPower {
+                power: u16::try_from(n).unwrap_or(u16::MAX),
+                first,
+            });
+        }
         if self.eat_words(&["you", "attack"]) {
             // "you attack with one or more Faeries", "you attack a player
             // with one or more creatures with power 4 or greater".

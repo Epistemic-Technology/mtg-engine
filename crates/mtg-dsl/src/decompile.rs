@@ -2661,6 +2661,10 @@ impl Decompiler<'_> {
                 whose: *whose,
                 min: *min,
             },
+            TriggerSpec::AttacksWithPower(power) => Trigger::AttacksWithPower {
+                power: *power,
+                first: false,
+            },
             TriggerSpec::AttacksWith { this, min } => Trigger::AttacksWith {
                 this: *this,
                 min: *min,

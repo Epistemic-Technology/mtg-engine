@@ -6225,6 +6225,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::AttacksWith { this: false, min } => {
             format!("whenever you attack with {min} or more creatures")
         }
+        Trigger::AttacksWithPower { power, first } => format!(
+            "whenever you attack with creatures with total power {power} or greater{}",
+            if *first { " first time each turn" } else { "" }
+        ),
         Trigger::AttacksWith { this: true, min } => format!(
             "whenever this and at least {} other creatures attack",
             min.saturating_sub(1)

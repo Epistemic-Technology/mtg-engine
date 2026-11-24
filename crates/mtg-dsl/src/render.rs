@@ -15854,6 +15854,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever you attack with {} or more creatures",
             count_words(Num::N(u32::from(*min)), "one")
         ),
+        Trigger::AttacksWithPower { power, first } => format!(
+            "whenever you attack with creatures with total power {power} or greater{}",
+            if *first {
+                " for the first time each turn"
+            } else {
+                ""
+            }
+        ),
         // "Whenever Sokka and at least one other creature attack".
         Trigger::AttacksWith { this: true, min } => format!(
             "whenever {} and at least {} other {} attack",

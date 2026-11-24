@@ -6154,6 +6154,7 @@ impl Compiler<'_> {
                 this: *this,
                 min: *min,
             },
+            Trigger::AttacksWithPower { power, .. } => TriggerSpec::AttacksWithPower(*power),
             Trigger::AttacksUnblocked(o) => TriggerSpec::AttacksUnblocked(self.trigger_obj(o)),
             Trigger::BecomesBlocked(o) => TriggerSpec::BecomesBlocked(self.trigger_obj(o)),
             Trigger::BlocksOrBlocked(o) => TriggerSpec::BlocksOrBlocked(self.trigger_obj(o)),
@@ -6965,7 +6966,10 @@ impl Compiler<'_> {
                 limit,
             } => AbilityDef::Triggered(TriggeredAbility {
                 // "for the first time each turn" is "only once each turn".
-                limit: if matches!(trigger, Trigger::TargetedFirstTime) {
+                limit: if matches!(
+                    trigger,
+                    Trigger::TargetedFirstTime | Trigger::AttacksWithPower { first: true, .. }
+                ) {
                     mtg_core::card::TurnLimit::Triggers(1)
                 } else {
                     *limit

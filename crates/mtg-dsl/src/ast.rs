@@ -4225,6 +4225,13 @@ pub enum Trigger {
         this: bool,
         min: u8,
     },
+    /// `whenever you attack with creatures with total power 12 or greater
+    /// first time each turn` ("... for the first time each turn": only
+    /// once each turn).
+    AttacksWithPower {
+        power: u16,
+        first: bool,
+    },
     /// `whenever a player attacks with 3 or more creatures`, `whenever an
     /// opponent attacks with 2 or more creatures`.
     PlayerAttacksWith {

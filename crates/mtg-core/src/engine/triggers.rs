@@ -1229,6 +1229,22 @@ impl GameState {
                 (ok && c.attackers.len() >= usize::from(*min))
                     .then_some((this.then_some(*attacker), Some(w.controller)))
             }
+            // Once per declaration, on the first attacker declared.
+            (TriggerSpec::AttacksWithPower(n), Event::Attack { attacker, .. }) => {
+                let c = self.combat.as_ref()?;
+                if c.attackers.first().is_none_or(|a| a.id != *attacker)
+                    || self.objects.get(*attacker)?.controller != w.controller
+                {
+                    return None;
+                }
+                let total: i32 = c
+                    .attackers
+                    .iter()
+                    .filter_map(|a| self.characteristics(a.id))
+                    .map(|ch| i32::from(ch.power.max(0)))
+                    .sum();
+                (total >= i32::from(*n)).then_some((None, Some(w.controller)))
+            }
             (TriggerSpec::PlayerAttacksWith { whose, min }, Event::Attack { attacker, .. }) => {
                 // Once per declaration, on the first attacker declared.
                 let c = self.combat.as_ref()?;
