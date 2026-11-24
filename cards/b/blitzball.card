@@ -1,0 +1,7 @@
+card "Blitzball" {
+  oracle_id 75719f87-ce1a-40d6-ac5a-5ebf0c936c84
+  cost {3}
+  type Artifact
+  activated {T}: add any
+  label "GOOOOAAAALLL!" activated {T}, sacrifice this, if 1 opponent dealt combat damage by legendary creature this turn: draw 2 cards
+}

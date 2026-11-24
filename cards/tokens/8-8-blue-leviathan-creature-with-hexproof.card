@@ -1,0 +1,7 @@
+token "8/8 blue Leviathan creature with hexproof" {
+  name "Leviathan"
+  type Creature — Leviathan
+  pt 8/8
+  color blue
+  keywords hexproof
+}

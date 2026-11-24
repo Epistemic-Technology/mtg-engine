@@ -1,0 +1,8 @@
+card "Cactuar" {
+  oracle_id 3e61d7c4-263f-4077-bdbc-d79020f2a479
+  cost {G}
+  type Creature — Plant
+  pt 3/3
+  keywords trample
+  triggered at beginning of your end step if this not entered this turn: return this to its owner's hand
+}

@@ -1801,6 +1801,12 @@ impl Compiler<'_> {
 
     #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
+        // "that you've put one or more +1/+1 counters on this turn": the
+        // game keeps who put counters on what.
+        if f.status.counters_put {
+            self.pool
+                .note_history(mtg_core::card::CardPool::HISTORY_COUNTERS);
+        }
         // "an outlaw" (CR 700.12): one alternative per creature type.
         if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
             let mut chain = f.or.clone();
@@ -2621,6 +2627,27 @@ impl Compiler<'_> {
                     gained
                 }
             }
+            StaticCond::SourceHistory { what, not } => {
+                use mtg_core::card::{CardPool, SourceHistory as H};
+                match what {
+                    H::CountersPut { .. } => self.pool.note_history(CardPool::HISTORY_COUNTERS),
+                    H::DealtDamage { .. } => self.pool.note_history(CardPool::HISTORY_DAMAGE),
+                    H::EnteredThisTurn | H::AttackedThisCombat => {}
+                }
+                let c = StaticCondition::SourceHistory(*what);
+                if *not {
+                    StaticCondition::Not(Box::new(c))
+                } else {
+                    c
+                }
+            }
+            StaticCond::EarlyTurn => StaticCondition::EarlyTurn(3),
+            StaticCond::OpponentNoncombatLastTurn => StaticCondition::OpponentNoncombatLastTurn,
+            StaticCond::Tally { what, n } => StaticCondition::Happened {
+                count: what.count(),
+                cmp: mtg_core::card::Cmp::AtLeast,
+                n: *n,
+            },
             StaticCond::DescendedThisTurn => {
                 StaticCondition::happened(TurnEvent::Descended, TurnWho::You)
             }
@@ -2873,6 +2900,7 @@ impl Compiler<'_> {
                 C::Happened(TurnCount::of(TurnEvent::CreatureEntered, TurnWho::You))
             }
             A::DiscardedThisTurn => C::Happened(TurnCount::of(TurnEvent::Discarded, TurnWho::You)),
+            A::Tally(t) => C::Happened(t.count()),
 
             A::OpponentsMoreCards => C::OpponentsMoreCards,
             A::OpponentsHandAtMost(n) => C::OpponentsHandAtMost(*n),

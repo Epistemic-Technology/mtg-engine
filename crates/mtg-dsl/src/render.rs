@@ -116,6 +116,143 @@ fn digits(n: Num) -> String {
     }
 }
 
+/// The creature types of `thatare Fungus or Saproling creature you
+/// control`: alternatives of one creature type each, creatures you
+/// control, and nothing else.
+fn creature_types_only(f: &Filter) -> Option<Vec<String>> {
+    let mut subs = Vec::new();
+    let mut alt = Some(f);
+    let mut creature = false;
+    while let Some(a) = alt {
+        let [s] = a.subtypes.as_slice() else {
+            return None;
+        };
+        if !a
+            .types
+            .iter()
+            .all(|t| *t == mtg_core::card::CardType::Creature)
+            || a.who.is_some_and(|w| w != Who::You)
+        {
+            return None;
+        }
+        creature |= !a.types.is_empty();
+        let rest = Filter {
+            subtypes: Vec::new(),
+            types: Vec::new(),
+            who: None,
+            or: None,
+            that_are: false,
+            and_or: false,
+            ..a.clone()
+        };
+        if rest != Filter::default() {
+            return None;
+        }
+        subs.push(s.clone());
+        alt = a.or.as_deref();
+    }
+    (creature && subs.len() > 1).then_some(subs)
+}
+
+/// "that was put there this turn" after a graveyard card's zone ("that
+/// were ..." for several), taken off the filter so its own phrase leaves
+/// it out.
+fn put_there_suffix(f: &mut Filter, plural: bool) -> String {
+    if !f.status.put_there_this_turn {
+        return String::new();
+    }
+    f.status.put_there_this_turn = false;
+    let anywhere = if std::mem::take(&mut f.put_there_anywhere) {
+        " from anywhere"
+    } else {
+        ""
+    };
+    let was = if plural { "were" } else { "was" };
+    format!(" that {was} put there{anywhere} this turn")
+}
+
+/// A turn-log count's noun phrase, singular and plural ("for each time you
+/// descended this turn", "the number of times you descended this turn").
+fn tally_nouns(t: crate::ast::Tally) -> (&'static str, &'static str) {
+    use crate::ast::Tally;
+    match t {
+        Tally::LeftGraveyard => (
+            "card that left your graveyard this turn",
+            "cards that left your graveyard this turn",
+        ),
+        Tally::Descended => (
+            "time you descended this turn",
+            "times you descended this turn",
+        ),
+        Tally::LandsEntered => (
+            "land that entered the battlefield under your control this turn",
+            "lands that entered the battlefield under your control this turn",
+        ),
+        Tally::Exiled => (
+            "card that was put into exile this turn",
+            "cards that were put into exile this turn",
+        ),
+        Tally::CreatureCardsToGraveyards => (
+            "creature card that was put into a graveyard from anywhere this turn",
+            "creature cards that were put into graveyards from anywhere this turn",
+        ),
+        Tally::CreaturesExiledOpponents => (
+            "creature that was exiled under your opponents' control this turn",
+            "creatures that were exiled under your opponents' control this turn",
+        ),
+        Tally::DamageSources => (
+            "source you controlled that dealt damage this turn",
+            "sources you controlled that dealt damage this turn",
+        ),
+        Tally::LoyaltyActivated => (
+            "loyalty ability you've activated this turn",
+            "loyalty abilities you've activated this turn",
+        ),
+        Tally::CreaturesAttacked => (
+            "creature that attacked this turn",
+            "creatures that attacked this turn",
+        ),
+        Tally::LegendaryCombatDamaged => (
+            "opponent who was dealt combat damage by a legendary creature this turn",
+            "opponents who were dealt combat damage by a legendary creature this turn",
+        ),
+    }
+}
+
+/// A turn-log count of `n` or more as a condition ("three or more cards
+/// left your graveyard this turn", "one or more cards were put into exile
+/// this turn").
+fn tally_cond(t: crate::ast::Tally, n: u32) -> String {
+    use crate::ast::Tally;
+    let k = format!("{} or more", number_word(n));
+    match t {
+        Tally::LeftGraveyard => format!("{k} cards left your graveyard this turn"),
+        Tally::Descended => format!("you descended {k} times this turn"),
+        Tally::LandsEntered => {
+            format!("{k} lands entered the battlefield under your control this turn")
+        }
+        Tally::Exiled => format!("{k} cards were put into exile this turn"),
+        Tally::CreatureCardsToGraveyards => {
+            format!("{k} creature cards were put into graveyards from anywhere this turn")
+        }
+        Tally::CreaturesExiledOpponents => {
+            format!("{k} creatures were exiled under your opponents' control this turn")
+        }
+        Tally::DamageSources => format!("{k} sources you controlled dealt damage this turn"),
+        Tally::LoyaltyActivated if n == 1 => {
+            "you've activated a loyalty ability this turn".to_string()
+        }
+        Tally::LoyaltyActivated => format!("you've activated {k} loyalty abilities this turn"),
+        Tally::CreaturesAttacked => format!("{k} creatures attacked this turn"),
+        Tally::LegendaryCombatDamaged if n == 1 => {
+            "an opponent was dealt combat damage by a legendary creature this turn".to_string()
+        }
+        Tally::LegendaryCombatDamaged => format!(
+            "an opponent was dealt combat damage by a legendary creature {k} times this turn"
+        ),
+    }
+}
+
 /// "three" (a number in words, digits past twenty).
 fn number_word(n: u32) -> String {
     NUMBER_WORDS
@@ -177,6 +314,7 @@ fn pluralize(word: &str) -> String {
         "Ox" => return "Oxen".to_string(),
         "Mouse" => return "Mice".to_string(),
         "Homunculus" => return "Homunculi".to_string(),
+        "Fungus" => return "Fungi".to_string(),
         _ => {}
     }
     if word.ends_with('y') && !word.ends_with("ey") {
@@ -1230,6 +1368,16 @@ fn list(items: &[String]) -> String {
     }
 }
 
+/// "Fungi and/or Saprolings", "A, B, and/or C".
+fn and_or_list(items: &[String]) -> String {
+    match items.split_last() {
+        Some((last, rest)) if rest.len() > 1 => format!("{}, and/or {last}", rest.join(", ")),
+        Some((last, [first])) => format!("{first} and/or {last}"),
+        Some((last, _)) => last.clone(),
+        None => String::new(),
+    }
+}
+
 /// Ends a sentence unless it already carries its own terminator (a quoted
 /// ability ends with `."`).
 fn sentence(s: &str) -> String {
@@ -1937,7 +2085,13 @@ impl<'a> Ctx<'a> {
                 } else {
                     "target"
                 };
-                format!("{tgt} {} from {whose}", cards_phrase(&g, self.card, false))
+                // "target creature card from a graveyard that was put there
+                // this turn": after the zone.
+                let there = put_there_suffix(&mut g, false);
+                format!(
+                    "{tgt} {} from {whose}{there}",
+                    cards_phrase(&g, self.card, false)
+                )
             }
         }
     }
@@ -2732,6 +2886,8 @@ impl<'a> Ctx<'a> {
                 let mut filter = filter.clone();
                 filter.that_player = None;
                 filter.their = false;
+                let there = put_there_suffix(&mut filter, true);
+                let whose = format!("{whose}{there}");
                 let each = std::mem::take(&mut filter.each);
                 let filter = &filter;
                 if each {
@@ -3700,6 +3856,21 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.dealt_damage {
         s.push_str(" that dealt damage this turn");
+    }
+    if f.status.counters_put {
+        s.push_str(" that you've put one or more +1/+1 counters on this turn");
+    }
+    if f.status.put_there_this_turn {
+        let anywhere = if f.put_there_anywhere {
+            " from anywhere"
+        } else {
+            ""
+        };
+        if plural_form {
+            let _ = write!(s, " that were put there{anywhere} this turn");
+        } else {
+            let _ = write!(s, " that was put there{anywhere} this turn");
+        }
     }
     if f.status.blocked_this_turn {
         s.push_str(" that blocked this turn");
@@ -5186,6 +5357,19 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 ),
             )
         }
+        // "the number of creatures you control that are Fungi and/or
+        // Saprolings" (The Mycotyrant): creature types after the noun.
+        CountExpr::Permanents(f) if f.that_are && creature_types_only(f).is_some() => {
+            let subs = creature_types_only(f).unwrap_or_default();
+            let many: Vec<String> = subs.iter().map(|s| pluralize(s)).collect();
+            (
+                format!(
+                    "creature you control that's {}",
+                    with_article(&subs.join(" or "))
+                ),
+                format!("creatures you control that are {}", and_or_list(&many)),
+            )
+        }
         // "the number of permanents you control that are creatures and/or
         // Vehicles" (Collision Course).
         CountExpr::Permanents(f) if f.that_are && f.who == Some(Who::You) => {
@@ -5680,6 +5864,10 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "opponent who lost life this turn".to_string(),
             "opponents who lost life this turn".to_string(),
         ),
+        CountExpr::Tally(t) => {
+            let (one, many) = tally_nouns(*t);
+            (one.to_string(), many.to_string())
+        }
         CountExpr::DiscardedThisTurn => (
             "card you've discarded this turn".to_string(),
             "cards you've discarded this turn".to_string(),
@@ -16386,6 +16574,11 @@ fn cda_count_text(c: &crate::ast::CountExpr, card: &Card) -> String {
         // "twice the number of instant and sorcery cards in your
         // graveyard".
         CountExpr::Times(2, inner) => format!("twice {}", cda_count_text(inner, card)),
+        // "the number of creatures you control that are Fungi and/or
+        // Saprolings".
+        CountExpr::Permanents(f) if f.that_are && creature_types_only(f).is_some() => {
+            count_phrase(c, card, false)
+        }
         CountExpr::Permanents(f) => format!(
             "the number of {}{}",
             filter_phrase(f, card, true),
@@ -18227,6 +18420,52 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you gained and lost life this turn".to_string()
         }
         StaticCond::DescendedThisTurn => "you descended this turn".to_string(),
+        StaticCond::Tally { what, n } => tally_cond(*what, *n),
+        StaticCond::SourceHistory { what, not } => {
+            use mtg_core::card::SourceHistory as H;
+            let this = this_ref(card);
+            match (what, not) {
+                (H::CountersPut { plus: true }, false) => {
+                    format!("you've put one or more +1/+1 counters on {this} this turn")
+                }
+                (H::CountersPut { plus: true }, true) => {
+                    format!("you haven't put a +1/+1 counter on {this} this turn")
+                }
+                (H::CountersPut { plus: false }, false) => {
+                    format!("you put a counter on {this} this turn")
+                }
+                (H::CountersPut { plus: false }, true) => {
+                    format!("you didn't put a counter on {this} this turn")
+                }
+                (H::DealtDamage { combat }, not) => {
+                    let combat = if *combat { "combat " } else { "" };
+                    let it = it_subj(card);
+                    let has = match (card.pronoun, not) {
+                        (Some(crate::ast::Pronoun::They), true) => "haven't",
+                        (Some(crate::ast::Pronoun::They), false) => "have",
+                        (_, true) => "hasn't",
+                        (_, false) => "has",
+                    };
+                    if *not {
+                        format!("{it} {has} dealt {combat}damage yet")
+                    } else {
+                        format!("{it} {has} dealt {combat}damage")
+                    }
+                }
+                (H::EnteredThisTurn, false) => {
+                    format!("{this} entered the battlefield this turn")
+                }
+                (H::EnteredThisTurn, true) => {
+                    format!("{this} didn't enter the battlefield this turn")
+                }
+                (H::AttackedThisCombat, false) => format!("{this} attacked this combat"),
+                (H::AttackedThisCombat, true) => format!("{this} didn't attack this combat"),
+            }
+        }
+        StaticCond::EarlyTurn => "it's your first, second, or third turn of the game".to_string(),
+        StaticCond::OpponentNoncombatLastTurn => {
+            "an opponent was dealt noncombat damage last turn".to_string()
+        }
         StaticCond::SpellNumber(n) => {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
         }
@@ -18592,6 +18831,10 @@ fn conditional_static(
             // "As long as this creature has four or more oil counters on
             // it, it gets +2/+0."
             format!("it {}", &body[this.len()..])
+        } else if matches!(c, StaticCond::SourceHistory { .. }) && body.starts_with(&this) {
+            // "As long as you've put one or more +1/+1 counters on Beast
+            // this turn, he has flying."
+            format!("{} {}", it_subj(card), &body[this.len()..])
         } else if starts_with_name(body, card) {
             body.to_string()
         } else if matches!(
@@ -19165,6 +19408,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                                 | StaticCond::SourceLacksCounter(_)
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
+                                | StaticCond::SourceHistory { .. }
                         );
                     ctx.attached_mentioned = matches!(c, StaticCond::AttachedIs(_));
                     ctx.attached_by_cond = ctx.attached_mentioned;

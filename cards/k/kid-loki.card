@@ -1,0 +1,8 @@
+card "Kid Loki" {
+  oracle_id 19ef0329-08de-4835-8079-2e791e19f3a6
+  cost {U}
+  type Legendary Creature — God Hero Villain
+  pt 1/1
+  static each creature you control with counters put this turn: has hexproof
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counter on this
+}

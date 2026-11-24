@@ -4537,6 +4537,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::OpponentsLostLife => "opponents lost life this turn".to_string(),
         CountExpr::CreaturesEnteredThisTurn => "creatures entered this turn".to_string(),
         CountExpr::DiscardedThisTurn => "discarded this turn".to_string(),
+        CountExpr::Tally(t) => t.words().join(" "),
 
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
         CountExpr::OpponentsHandAtMost(n) => format!("opponents hand {n} or less"),
@@ -4674,6 +4675,22 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 /// `target card from a graveyard`, `target instant card from your
 /// graveyard`.
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
+    // `... from a graveyard put there this turn`: after the zone, as it
+    // prints.
+    if f.status.put_there_this_turn {
+        let mut g = f.clone();
+        g.status.put_there_this_turn = false;
+        g.put_there_anywhere = false;
+        let anywhere = if f.put_there_anywhere {
+            " from anywhere"
+        } else {
+            ""
+        };
+        return format!(
+            "{} put there{anywhere} this turn",
+            graveyard_target(&g, who, graveyards)
+        );
+    }
     let whose = match who {
         _ if matches!(f.that_player, Some(mtg_core::card::ThatPlayer::Target(_))) => {
             if f.their {
@@ -5168,6 +5185,16 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.dealt_damage {
         words.push("that dealt damage this turn".to_string());
+    }
+    if f.status.counters_put {
+        words.push("with counters put this turn".to_string());
+    }
+    if f.status.put_there_this_turn {
+        words.push(if f.put_there_anywhere {
+            "put there from anywhere this turn".to_string()
+        } else {
+            "put there this turn".to_string()
+        });
     }
     if f.status.blocked_this_turn {
         words.push("that blocked this turn".to_string());
@@ -7128,6 +7155,23 @@ fn static_cond(c: &StaticCond) -> String {
             "gained and lost life this turn".to_string()
         }
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
+        StaticCond::Tally { what, n } => format!("{n} {}", what.words().join(" ")),
+        StaticCond::SourceHistory { what, not } => {
+            use mtg_core::card::SourceHistory as H;
+            let not = if *not { "not " } else { "" };
+            match what {
+                H::CountersPut { plus: true } => format!("this {not}plus counters put this turn"),
+                H::CountersPut { plus: false } => format!("this {not}counters put this turn"),
+                H::DealtDamage { combat: true } => format!("this {not}dealt combat damage"),
+                H::DealtDamage { combat: false } => format!("this {not}dealt damage"),
+                H::EnteredThisTurn => format!("this {not}entered this turn"),
+                H::AttackedThisCombat => format!("this {not}attacked this combat"),
+            }
+        }
+        StaticCond::EarlyTurn => "early turn".to_string(),
+        StaticCond::OpponentNoncombatLastTurn => {
+            "opponent dealt noncombat damage last turn".to_string()
+        }
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
         StaticCond::ScriedOrSurveilledThisTurn => "scried or surveilled this turn".to_string(),

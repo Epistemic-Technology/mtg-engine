@@ -1,0 +1,10 @@
+card "Ruric Thar, Magecrusher" {
+  oracle_id 453b2b3c-7df5-4515-9565-82f603cf451b
+  cost {5}{G}{G}
+  type Legendary Creature — Ogre Warrior
+  pt 7/7
+  pronoun they
+  this spell can't be countered
+  keywords reach, vigilance, trample
+  static this: has hexproof as long as this not dealt combat damage
+}

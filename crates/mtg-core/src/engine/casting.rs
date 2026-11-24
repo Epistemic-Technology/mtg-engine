@@ -5914,6 +5914,9 @@ impl GameState {
     ) {
         self.consecutive_passes = 0;
         let def = self.objects[source].def;
+        if matches!(self.pool.ability(ability), AbilityDef::Activated(a) if a.cost.loyalty != 0) {
+            self.log_event(crate::card::TurnEvent::LoyaltyActivated, player, 1);
+        }
         if let AbilityDef::Activated(a) = self.pool.ability(ability) {
             if a.cost.loyalty != 0 {
                 self.loyalty_activated.push(source);

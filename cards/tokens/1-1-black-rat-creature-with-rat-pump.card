@@ -1,0 +1,7 @@
+token "1/1 black Rat creature with rat pump" {
+  name "Rat"
+  type Creature — Rat
+  pt 1/1
+  color black
+  static this: +1/+1 count each other Rat you control
+}

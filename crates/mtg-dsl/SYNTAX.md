@@ -546,7 +546,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this deals 4 or more damage` | "Whenever Spinneret and Spiderling deals 4 or more damage": one damage event of at least that much from the source (as it last existed, if it has left) to one creature, player, or other permanent; damage to different recipients at once doesn't add up. The recipient is `that creature` or `that player` |
 | `whenever counter put on creature you control`, `whenever one or more counters put on creature you control` | "Whenever a counter is put on a creature you control", "Whenever one or more counters are put on ...": counters of any kind put on a matching permanent, by anyone; once per instruction putting counters on it (the first form is the older wording, the same trigger) |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
-| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; wording only) |
+| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; `count andor thatare Fungus or Saproling creature you control`, alternatives of one creature type each, prints "creatures you control that are Fungi and/or Saprolings", The Mycotyrant; wording only) |
 
 A trigger's subject prints its controller before its "with" qualities
 ("Whenever a creature you control with power 5 or greater enters").
@@ -940,7 +940,51 @@ or spell an opponent controls, or a card in an opponent's graveyard),
 graveyard this turn"), `sacrificed artifact this turn` ("you've
 sacrificed an artifact this turn"; `sacrificed permanent this turn`, "you
 sacrificed a permanent this turn", any permanent), and `creature card to your graveyard this turn` ("a
-creature card was put into your graveyard from anywhere this turn"). A
+creature card was put into your graveyard from anywhere this turn").
+A number before a turn-log phrase is "N or more" of it (`Tally`; the
+same words without the number are a count, `count where times descended
+this turn`, `count each lands entered this turn`): `3 cards left your
+graveyard this turn` ("three or more cards left your graveyard this
+turn"; a count, "cards that left your graveyard this turn"), `2 times
+descended this turn` ("you descended two or more times this turn"; "the
+number of times you descended this turn", CR 700.11), `2 lands entered
+this turn` ("lands that entered the battlefield under your control this
+turn"), `1 cards exiled this turn` ("one or more cards were put into
+exile this turn", any player's cards; "cards that were put into exile
+this turn"), `3 creature cards to graveyards this turn` ("three or more
+creature cards were put into graveyards from anywhere this turn"),
+`1 creatures exiled under opponents this turn` (from the battlefield, as
+they last existed; as a count, "the number of creatures that were exiled
+under your opponents' control this turn", all opponents' together),
+`3 sources dealt damage this turn` ("three or more sources you
+controlled dealt damage this turn", each source once, by its controller
+as it dealt damage), `1 loyalty abilities activated this turn` ("you've
+activated a loyalty ability this turn"; with 2 or more, "you've
+activated two or more loyalty abilities this turn"), and `3 creatures
+attacked this turn` ("three or more creatures attacked this turn", any
+player's; only a condition, the count being `creature attacked this
+turn`), and `1 opponent dealt combat damage by legendary creature this
+turn` ("an opponent was dealt combat damage by a legendary creature this
+turn"). About the source (negated with `not` after `this`): `this plus
+counters put this turn` ("you've put one or more +1/+1 counters on Beast
+this turn"; "As long as ..., he has flying" with the source as subject),
+`this counters put this turn` ("you put a counter on this creature this
+turn", any kind), both by the ability's controller; `this not dealt
+damage` ("it hasn't dealt damage yet", since it became this object),
+`this not dealt combat damage` ("they haven't dealt combat damage yet"
+with `pronoun they`); `this not entered this turn` ("this creature didn't
+enter the battlefield this turn"; "it" after); `this attacked this combat`
+("Tolsimir attacked this combat"). `early turn`: "it's your first,
+second, or third turn of the game" (CR 500.1; a set-up position counts
+the turns as if the players had taken them in order from turn 1);
+`opponent dealt noncombat damage last turn`: "an opponent was dealt
+noncombat damage last turn". A filter's `with counters put this turn`
+prints "that you've put one or more +1/+1 counters on this turn" (by the
+permanent's controller: "Each creature you control that ..."), and a
+graveyard card target's `... from a graveyard put there this turn`
+(`put there from anywhere this turn`) prints "... from a graveyard that
+was put there this turn" (Night Nurse: "target permanent card in your
+graveyard that was put there from anywhere this turn"). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).

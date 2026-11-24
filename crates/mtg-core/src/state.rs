@@ -1015,6 +1015,9 @@ pub struct PlayerState {
     pub exile: Vec<ObjId>,
     pub mana_pool: ManaPool,
     pub lands_played_this_turn: u32,
+    /// Turns of the game the player has begun ("your first, second, or
+    /// third turn of the game"): counted as each of their turns begins.
+    pub turns_begun: u32,
     /// Additional land plays granted this turn by resolved effects ("You
     /// may play an additional land this turn", CR 305.2).
     pub extra_land_plays: u32,
@@ -2095,6 +2098,19 @@ pub struct GameState {
     /// Sources that dealt damage this turn ("that dealt damage this
     /// turn"), each once.
     pub dealt_damage_this_turn: Vec<ObjId>,
+    /// Counters put on permanents this turn, with the player who put them
+    /// and whether they were +1/+1 counters ("as long as you've put one or
+    /// more +1/+1 counters on this creature this turn"), each once; kept
+    /// only with such a card in the pool (`CardPool::HISTORY_COUNTERS`).
+    pub counters_put_this_turn: Vec<(ObjId, PlayerId, bool)>,
+    /// Sources that have dealt damage, and whether combat damage, since
+    /// they became the objects they are ("as long as it hasn't dealt
+    /// damage yet"), each once; kept only with such a card in the pool
+    /// (`CardPool::HISTORY_DAMAGE`).
+    pub dealt_damage_ever: Vec<(ObjId, bool)>,
+    /// Players dealt noncombat damage during the previous turn, one bit
+    /// each ("if an opponent was dealt noncombat damage last turn").
+    pub noncombat_last_turn: u8,
     /// Permanents that entered the battlefield this turn, with the player
     /// they entered under the control of ("another Knight entered the
     /// battlefield under your control this turn").
@@ -2725,6 +2741,12 @@ impl GameState {
             TurnWho::Anyone => self.turn_log.tally[c.kind as usize]
                 .iter()
                 .fold(0u32, |a, n| a.saturating_add(*n)),
+            TurnWho::Opponents => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .fold(0u32, |a, p| {
+                    a.saturating_add(self.turn_count_of(c, p, you, source))
+                }),
         }
     }
 
@@ -4003,6 +4025,22 @@ impl GameState {
         if q.dealt_damage && !self.dealt_damage_this_turn.contains(&id) {
             return false;
         }
+        // "that you've put one or more +1/+1 counters on this turn": by
+        // its controller.
+        if q.counters_put
+            && !self
+                .counters_put_this_turn
+                .iter()
+                .any(|&(x, by, plus)| x == id && by == o.controller && plus)
+        {
+            return false;
+        }
+        // "card in a graveyard that was put there this turn".
+        if q.put_there_this_turn
+            && (o.zone != Zone::Graveyard || o.timestamp < self.turn_started_at)
+        {
+            return false;
+        }
         if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
             return false;
         }
@@ -4948,6 +4986,12 @@ impl GameState {
     ) -> bool {
         use crate::card::StaticCondition as C;
         match cond {
+            C::SourceHistory(h) => self.source_history(*h, you, source),
+            // CR 500.1: one of your first turns, and it's your turn.
+            C::EarlyTurn(n) => self.active_player == you && self.player(you).turns_begun <= *n,
+            C::OpponentNoncombatLastTurn => self
+                .players_in_game()
+                .any(|p| p != you && self.noncombat_last_turn & (1 << p.index().min(7)) != 0),
             C::GraveyardCards { filter, at_least } => {
                 let n = self
                     .player(you)
@@ -5082,6 +5126,32 @@ impl GameState {
                 self.condition_history(a, you, source) && self.condition_history(b, you, source)
             }
             _ => false,
+        }
+    }
+
+    /// What `source` did or had done to it (`SourceHistory`), for `you`.
+    pub fn source_history(
+        &self,
+        h: crate::card::SourceHistory,
+        you: PlayerId,
+        source: ObjId,
+    ) -> bool {
+        use crate::card::SourceHistory as H;
+        match h {
+            H::CountersPut { plus } => self
+                .counters_put_this_turn
+                .iter()
+                .any(|&(o, by, p)| o == source && by == you && (p || !plus)),
+            H::DealtDamage { combat } => self
+                .dealt_damage_ever
+                .iter()
+                .any(|&(o, c)| o == source && (c || !combat)),
+            H::EnteredThisTurn => self.objects.get(source).is_some_and(|o| {
+                o.zone == Zone::Battlefield && o.timestamp >= self.turn_started_at
+            }),
+            H::AttackedThisCombat => {
+                self.combat.is_some() && self.attackers_this_turn.contains(&source)
+            }
         }
     }
 
