@@ -326,6 +326,19 @@ fn a_static_condition_the_layers_never_hold_is_rejected() {
 }
 
 #[test]
+fn a_mana_rider_effect_lasting_on_the_spell_is_rejected() {
+    // "it" in `spent on ...` is the spell; "it gains haste until end of
+    // turn" would end as the spell becomes a permanent (CR 400.7).
+    assert!(compiles(
+        "activated {T}: add {G} spent on Dragon creature spell: you gain 2 life"
+    ));
+    let e = creature_error(
+        "activated {T}: add {R} spent on Dragon creature spell: it gains haste until end of turn",
+    );
+    assert!(e.contains("\"it\" is the spell"), "{e}");
+}
+
+#[test]
 fn the_tapped_creatures_power_is_stations_only() {
     // Station's count reads toughness for Tapestry Warden's creatures; a
     // hand-written "the tapped creature's power" would too, so the card

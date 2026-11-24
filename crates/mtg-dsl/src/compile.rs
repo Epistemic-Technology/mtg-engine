@@ -4939,6 +4939,22 @@ impl Compiler<'_> {
                     return self.err("`spent on ...` follows an effect that adds mana");
                 }
                 let then = self.sentences(then)?;
+                // "it" in the rider means the spell: an effect that lasts
+                // on the spell ("it gains haste until end of turn",
+                // Carnelian Orb of Dragonkind) would end as it becomes a
+                // permanent, a new object (CR 400.7). Only a copy of the
+                // spell may name it.
+                // `it` there compiles to the source (the mana ability's
+                // permanent), which is wrong too: refused with it.
+                if then.iter().any(|e| {
+                    let text = format!("{e:?}");
+                    !matches!(e, CoreEffect::CopySpell | CoreEffect::CopySpells { .. })
+                        && (text.contains("TriggeringObject") || text.contains("Source"))
+                }) {
+                    return self.err(
+                        "`spent on ...`: \"it\" is the spell, and an effect on it would end as it resolves",
+                    );
+                }
                 let spells = Box::new(self.filter(spells));
                 let ability = self
                     .pool
