@@ -153,45 +153,70 @@ wrong thing in some case.
   judges earlier spells by their printed characteristics; "until end of
   combat" made outside combat lasts to the end of the turn's next
   combat.
-- **Found in the eleventh wave, in cards that are in** (none fixed yet):
-  - A static ability granted inside a quoted ability is not applied:
-    `static enchanted: has ability { static this: has hexproof as long as
-    this is untapped }` gates and gives nothing (Giant's Amulet was
-    removed; the template author now skips the form, but hand-written
-    cards may use it).
-  - "Can't attack alone" is offered as a legal attack that then deals no
-    damage (Loyal Pegasus, Sightless Brawler bestowed).
-  - A granted "base power is equal to ..." is applied as a
-    characteristic-defining ability in layer 7a, not in 7b by timestamp
-    (Ms. Marvel, Kamala Khan): differs only against another effect that
-    sets base power.
-  - Evoke is offered only at sorcery timing, even for a creature with
-    flash.
-  - A target cost ("costs {3} less if it targets ...") is judged by the
-    first target only.
-  - Who may look at a hideaway card is fixed as it is exiled: a new
-    controller of the permanent can't look. The controller can't decline
-    to play the exiled card once the condition holds.
-  - A card exiled face down keeps its characteristics for counts and
-    filters (CR 406.3 says it has none), and an AI search's resampling
-    does not hide it.
+- **Found in the eleventh wave and still open** (the twelfth fixed the
+  rest):
+  - The controller of a hideaway permanent can't decline to play the
+    exiled card once the condition holds.
   - A spell limit ("can't cast more than one spell each turn") counts
     spells cast earlier in the turn, before the limiter arrived (the
     rule; recorded for review, no known discrepancy).
-  - "Creatures ... can't attack you" does not constrain a creature put
-    onto the battlefield attacking (CR 508.4 lets its controller choose
-    any defender; the engine still attacks the player): Blazing Archon,
-    Reverence, Sandwurm Convergence.
+  - A creature put onto the battlefield attacking always attacks the
+    player; its controller should choose the player or a planeswalker
+    (CR 508.4). That it ignores "can't attack you" is the rule (CR
+    508.4c).
   - Under "Players can't draw cards" a draw is skipped silently; an
     effect that counts "cards drawn this way" counts 0. No card known
     to combine them.
   - "Each opponent may ... or ..." and "unless that player sacrifices"
     act on every opponent inside each payer's turn: right for two
     players only.
+- **Found in the twelfth wave, in cards that are in:**
+  - A "0:" loyalty ability is not counted as a loyalty ability
+    (`ActivatedAbility::is_loyalty` is `cost.loyalty != 0`): Eidolon of
+    Obstruction's cost increase and "whenever you activate a loyalty
+    ability" miss it.
+  - "Look at an opponent's hand" (Sorcerous Spyglass) reveals the hand
+    to every player.
+  - With more than ten eligible attackers (declared one at a time),
+    Done is still offered with a lone creature that can't attack alone;
+    it is then sent home.
+  - Phyrexian symbols in an activated ability's cost (Birthing Pod) are
+    paid with mana when possible and the player is never asked; the
+    choice of life covers spells only. "Spend mana as though it were
+    mana of any type" leaves Phyrexian symbols as they are, and does
+    not reach a kicker or buyback cost added during the cast; Chromatic
+    Orrery covers spells and activated abilities only (not ward, echo
+    or "unless its controller pays").
+  - A filter's mana value still sees a face-down exiled card's printed
+    value (CR 406.3a: 0).
+  - "Spells you cast from exile" on the stack also matches a spell cast
+    from a library (`CastInfo::cast_from` reports exile).
+  - A card with a mandatory additional cost of its own cast by a
+    granted retrace or jump-start skips its own additional cost.
+  - Sanctum Prelate's ban judges the printed mana value with X as 0;
+    name bans until your next turn are not checked for a free cast made
+    during a resolution (as Meddling Mage's).
+  - "the rest" and "not chosen this way" read the resolution's last
+    choice only. "a card exiled with this" copies every linked card
+    (right while one is linked).
+  - A modal double-faced card's land face played as a land is not
+    offered "enters as a copy"; a permanent spell with "enters tapped
+    as a copy" would enter untapped. No such card known.
+  - Mana abilities with a rider the payment planner doesn't know
+    (`rest_ok`) are usable only by activating them by hand; cost
+    changes to mana abilities with a mana cost apply only where the
+    planner uses them. Not audited.
+- **Engine picks, twelfth wave:** "an opponent chooses" among searched
+  cards, and one target per player, assume two players; "choose a
+  number" offers 0 to 20; of several granted graveyard ways one is
+  offered (flashback, then jump-start, retrace, mayhem), a card's own
+  sneak cost is used ahead of a granted one, and a top card castable
+  for life or for mana is cast for mana; a granted foretell's cost is
+  always the mana cost less {2}; looking at a new top card while a
+  spell is being cast is not held back.
 - **Engine picks, eleventh wave:** the cards exiled by a "search their
   graveyard, hand, and library for cards with that name" (hand first);
-  which permanents are tapped for a tap cost among mana sources (by
-  battlefield order, so a payable cast can be judged unpayable); the
+  the
   creature copied by "a copy of one of them" (Twilight Diviner); the
   cheapest of several granted flashback costs; an optional cost whose
   discount the offer assumed can't be declined unless the full cost is
@@ -239,33 +264,34 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **Found in the eighth wave and still open** (the ninth fixed or made
-  compile errors of the rest):
+- **Found in the eighth wave and still open:**
   - `return that card to battlefield` in "Whenever a creature is put
     into your graveyard" returns nothing; `triggering card` works
-    (Angelic Renewal, accepted with that form).
+    (Angelic Renewal, accepted with that form). A fix needs to know
+    which of about thirty effects set the created object.
   - "you may exile it and collect evidence 4" in a dies trigger exiles
     the card even when the evidence can't be collected, and `return this
-    card` after `exile it` returns nothing (Lamplight Phoenix).
-  - `you own` in a filter is judged only for targets and an effect's
-    groups, not in a count or a static's subject.
+    card` after `exile it` returns nothing (Lamplight Phoenix): needs a
+    joint optional cost.
   - An "If you do" after a target check (`if target 1 is ...`) reads the
     check, not an earlier optional action. No card has that order.
-- **Found in the ninth wave** (each card named was rejected):
-  - `destroy each other creature` after creating tokens also destroys
-    those tokens: "all other creatures" on Martial Coup means all but
-    the Soldiers just made.
-  - A replacement-order choice that comes up while a spell resolves in
-    a scripted scenario panics the runner ("choice Replacement does not
-    fit flow Priority").
-  - A filter "is put into a graveyard" without "from the battlefield"
-    compiles to a dies trigger, wrong for a card going there from a hand
-    or library. Not audited.
-  - `flashback tap 1 untapped white creature you control` does not
-    survive formatting; `flashback tap untapped ...` does (Prismatic
-    Strands is written so).
-  - A scenario's `"Spirit"` token did not count for "Tap two untapped
-    Spirits you control" (Shacklegeist). Not investigated.
+- **Found in the twelfth wave:**
+  - `create token copy of it` after `exile target ... card` in an
+    activated ability copies the source, not the target, and gates
+    (The Scarab God is written with `target 1`). Worth a compile-time
+    refusal.
+  - "they gain <keyword>" after `distribute ... among targets` parses
+    as the triggering player and gates (Ajani, Sleeper Agent is written
+    with `target 1 gains`). After a group ("untap them; they gain
+    haste") it is right and has scenarios.
+  - `target red, white, or black creature card` parses as "red
+    permanent or white or black creature card", so a red noncreature
+    card is a legal target, and it does not survive formatting
+    (Offspring's Revenge is written `red or white or black creature
+    card`).
+  - `discard that much cards` after "you may draw cards equal to its
+    power. If you do," renders right; whether "that many" is the number
+    drawn is not checked (Horrid Shadowspinner left out).
 - **`put its counters on <target>` in a trigger about another object**
   now moves the triggering object's counters but renders "put those
   counters on" (Host of the Hereafter does not gate).
@@ -470,31 +496,49 @@ named the feature; a card may need more than one.
   a future step; "target opponent chooses a creature they control";
   "two target creatures controlled by the same player"; the Flagbearer
   rule.
-- **Left by the eleventh wave's branches** (each several cards): "mana
-  of any type can be spent to cast it" as a rider on a play permission
-  (about fifteen cards: Gonti, Thief of Sanity, Hostage Taker, Nita,
-  Agatha's Soul Cauldron, Outrageous Robbery); a play permission given
-  to the card's owner; token copies of cards in exile or a graveyard
-  (The Scarab God, Lazav, Mimeoplasm); "that player has two or fewer
-  cards in hand" on each opponent's upkeep (Prickle Faeries, Davriel,
-  Shrieking Affliction, Bandit's Talent); a per-player choice that is
-  not a target and is remembered (Winnowing); one target per player;
-  "can't be sacrificed"; compleated (hybrid Phyrexian mana, and the
-  life paid for a spell recorded); sneak, retrace, jump-start and
-  foretell granted to cards in other zones; a land entering as a copy;
-  "activated abilities of <group> can't be activated"; a static
-  condition on the top card of a library; dig-then-exile-one-face-down;
-  "You may look at cards exiled with this"; pile forms with other
-  destinations; an as-enters number; a name ban until your next turn;
-  the remaining Sieges (each its own primitive).
-- **Mechanics not yet in:** harness, hideaway, cloak, epic,
-  offering, compleated, companion, mutate, the Everywhere land token;
+- **Left by the twelfth wave's branches** (the eleventh's list is
+  built; each of these is named by several cards): a copy "except its
+  name is X" (Lazav, the Multifarious; Superior Spider-Man; the name
+  is read from the definition everywhere); "as this enters, exile
+  cards" with a copy of them (The Mimeoplasm, Dermotaxi) and imprint
+  forms (Mimic Vat, Soul Foundry, Prototype Portal); "If damage is
+  prevented this way, <source> deals that much damage to ..." and "that
+  source's controller" (Deflecting Palm, Vengeful Archon, Refraction
+  Trap, about nine cards); a `-X` loyalty cost and X fixed as an
+  ability is activated (Tamiyo, Compleated Sage; Jace, the Perfected
+  Mind; Lukka); "becomes a Treasure artifact and loses all other card
+  types and abilities" (Vraska, Kitesail Larcenist); "you win the
+  game" on an empty library (Jace, Wielder of Mysteries); "Skip your
+  draw step"; a cost filter and trigger for "spells you cast but don't
+  own" (Gonti, Canny Acquisitor; Nita); gaining the activated abilities
+  of opponents' permanents (Drana and Linvala, Sharkey); a cost change
+  by a count for a player static (Agatha of the Vile Cauldron,
+  Dragonkin Berserker); "the first activated ability you activate each
+  turn"; "Only you may activate this ability"; choosing one card among
+  those exiled with a permanent (Bane Alley Broker, Lazav, Wearer of
+  Faces); "all other cards exiled with this"; a delayed ability with
+  targets of its own (Fatal Fissure) and one naming its granter; a
+  trigger on a time counter removed in exile; a free cast from the top
+  of the library and a filter on lands played from it; per-player
+  splits into three piles (Whims of the Fates); exactly one target per
+  player (Vaevictis Asmadi); companion (Zirda); "assign combat damage
+  as though it weren't blocked"; the amount of life gained in a
+  "whenever you gain life" trigger; "Equipped creatures you control".
+- **Mechanics not yet in:** harness, cloak, epic,
+  offering, companion, mutate, the Everywhere land token;
   "Each Sliver card in each player's hand has slivercycling {3}" (an
   ability granted to cards in hands, Homing Sliver); "has flying and
   trample if it devoured a creature" (Hellkite Hatchling).
 - **"This creature or equipped creature" as a leaves or dies trigger's
   subject** still sees only the equipped creature, not the source (the
   attack, block, and damage forms see both). No card known.
+- **Scenario runner, twelfth wave:** `illegal ... choose "X"` never
+  fires at a library search's decision; `illegal trigger ... targeting
+  X, Y` checks only the first target; `illegal activate ... x N
+  targeting` passes when X has no legal target; `assert known` never
+  counts a face-up exiled card; a "cast from exile" offer is always
+  accepted; a bare token name takes the first token of that name
+  ("Spirit" is the 0/0).
 - **Scenario runner:** a mana ability can't be scripted as an action
   (the engine offers none at priority; it taps for mana while paying);
   `x N` on a spell cast by a trigger isn't passed on (no corpus card
@@ -509,6 +553,22 @@ named the feature; a card may need more than one.
 
 ## 4. Process
 
+- **Throughput after the twelfth wave.** The eleventh period (two
+  refactorings and fourteen branches) added 6.4% instructions to a
+  mono-red mirror game; measured merge by merge, the largest parts were
+  a state-based mark at the start of every turn, the shared cast check
+  on the priority listing, and player-level statics checked on casts
+  and draws. The twelfth wave's perf branch took back 8.2% on the
+  mirror and 36% on random decks (a linked exile had made every action
+  snapshot the whole state: `GameState::clone` was 41% of a random
+  game). The hazard stays: `may_need_mid_decision` reads global counts,
+  so one card anywhere can make every action snapshot. Left:
+  `priority_options` is 29% of a mirror game (`mana_sources` copies its
+  cached list on every hit, `castable` builds a whole `CostBasis` per
+  hand card: a per-card "plain cast" bit would skip most); in random
+  games snapshots are still about 20%, layer passes and trigger
+  detection 20% each; `eot_grants` still counts activated-ability
+  grants for trigger detection.
 - **Throughput after the tenth wave.** Waves seven to nine cost 5% on
   the mono-red mirror without adding instructions (callgrind counts in
   `mtg_sim::play` were flat from 9dfb5c71 to c537ba2b): the loss was
@@ -570,5 +630,8 @@ named the feature; a card may need more than one.
 - **Merges can collide silently** on free bits (`DefFlags`,
   `GameObject::marks`; `CastInfo` has a test) and on the length of
   `Keyword::ALL`. Only `CastInfo` is checked automatically.
+  The twelfth wave had one collision (two branches took `DefFlags` bit
+  29). `DefFlags` now has one free bit (31), `GameObject::marks` none and
+  `CastInfo` one: the next flag needs a wider word or a side table.
 - **The census scripts** (`scripts/coverage/census/`) still name Pauper
   and have not been run over the union of the three pools.

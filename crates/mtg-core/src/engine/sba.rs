@@ -344,8 +344,14 @@ impl GameState {
                 acted = true;
             }
             for id in to_destroy {
+                let damage = self.objects[id].damage;
                 self.destroy(id);
-                if self.objects.contains_key(id) {
+                if self.objects.get(id).is_some_and(|o| o.damage < damage) {
+                    // Replaced (umbra armor, regeneration): its damage is
+                    // gone and something else may have left, so the next
+                    // pass looks again (an Aura that was its toughness).
+                    acted = true;
+                } else if self.objects.contains_key(id) {
                     // Indestructible: the creature stays, with its damage
                     // (CR 702.12b). Nothing changed, so this is not an
                     // action, or the loop would never end; the deathtouch

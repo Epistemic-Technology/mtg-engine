@@ -437,6 +437,7 @@ impl GameState {
     /// `ab` as an `AbilityMana`, if it is a mana ability whose costs the
     /// planner can pay (mana, {T}, sacrificing its source, life) and that
     /// may be activated now.
+    #[allow(clippy::too_many_lines)] // one check per reason a mana ability can't be planned
     fn usable_mana_ability(
         &self,
         p: PlayerId,

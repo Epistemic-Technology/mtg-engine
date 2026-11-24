@@ -3034,6 +3034,7 @@ impl Compiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per recipient
     fn recipient(
         groups: &[u16],
         many: Option<usize>,

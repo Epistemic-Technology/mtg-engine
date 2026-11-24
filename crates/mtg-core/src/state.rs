@@ -3699,10 +3699,16 @@ impl GameState {
     /// loop instead of one per object, and a reference instead of a copy.
     /// Nothing may change the state while it is held.
     pub fn battlefield_chars(&self) -> BattlefieldChars<'_> {
-        let fresh = matches!(&*self.cache.0.borrow(), Some((v, _)) if *v == self.cversion);
+        // The same freshness test as `characteristics`: a lookup made while
+        // the view is held must hit, not recompute under the borrow.
+        let fresh = matches!(&*self.cache.0.borrow(), Some((v, _)) if *v == self.cversion)
+            && (self.top_static_sources == 0 || self.cache.2.get() == self.top_key());
         if !fresh {
             let derived = crate::layers::compute_battlefield(self);
             *self.cache.0.borrow_mut() = Some((self.cversion, derived));
+            if self.top_static_sources > 0 {
+                self.cache.2.set(self.top_key());
+            }
         }
         BattlefieldChars {
             pool: &self.pool,

@@ -3239,6 +3239,11 @@ impl GameState {
         if Keyword::helps_pay(keywords) || def.additional.waterbend {
             s.extend(self.helper_sources(o.controller, def, keywords));
         }
+        // CR 702.180b: the creature tapped for harmonize is tapped as a
+        // cost, so it can't also tap for mana (the X of Nature's Rhythm).
+        if let Some((_, c, _)) = self.harmonized.iter().find(|(sp, ..)| *sp == spell) {
+            s.retain(|(id, _)| id != c);
+        }
         s
     }
 

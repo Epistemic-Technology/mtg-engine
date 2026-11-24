@@ -12186,6 +12186,20 @@ impl CardPool {
                 _ => false,
             },
         );
+        // A granted static that reads tapped state ("has hexproof as long
+        // as it's untapped" given by Giant's Amulet) changes as its bearer
+        // taps, like one of the card's own.
+        flags.set(
+            DefFlags::TAP_STATIC,
+            def.abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(m,
+                    Modification::AddAbility(id) if DefFlags::of(
+                        std::slice::from_ref(self.ability(*id)),
+                        KeywordSet::default(),
+                    )
+                    .has_tap_static())))
+            }),
+        );
         def.history_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa)
                 if sa.condition.as_ref().is_some_and(StaticCondition::refreshes_with_turn_log)

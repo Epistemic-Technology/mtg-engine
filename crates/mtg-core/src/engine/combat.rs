@@ -235,7 +235,39 @@ impl GameState {
                 .unwrap_or(0);
             total = total.saturating_add(least);
         }
-        self.can_pay_generic(self.active_player, total)
+        if !self.can_pay_generic(self.active_player, total) {
+            return false;
+        }
+        // CR 508.1f comes before 508.1i: the attackers are tapped before
+        // the cost is paid, so an attacker without vigilance can't tap for
+        // mana to pay it (Paradise Druid under Ghostly Prison). Judged on a
+        // copy with them tapped, only when the tax is real and an attacker
+        // could be a mana source.
+        let p = self.active_player;
+        let taps: SmallVec<[ObjId; 8]> = set
+            .iter()
+            .copied()
+            .filter(|id| {
+                !self.objects[*id].tapped
+                    && !self
+                        .characteristics(*id)
+                        .is_some_and(|c| c.has(Keyword::Vigilance))
+            })
+            .collect();
+        if total == 0
+            || !taps.iter().any(|id| {
+                self.flags_of(&self.objects[*id]).has_mana_ability()
+                    || self.mana_sources(p).iter().any(|(s, _)| s == id)
+                    || self.grant_sources > 0
+            })
+        {
+            return true;
+        }
+        let mut after = self.clone();
+        for id in taps {
+            after.tap(id);
+        }
+        after.can_pay_generic(p, total)
     }
 
     /// Whether `p` can pay `generic` mana (a combat tax).

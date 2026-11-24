@@ -1,0 +1,43 @@
+# Faults the twelfth wave's 400-pair sweep found.
+
+scenario "attack tax: an attacker's own mana can't pay it (CR 508.1f before 508.1i)" {
+  battlefield A: "Llanowar Elves", "Forest"
+  battlefield B: "Ghostly Prison"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "attack tax: other mana pays it and the attacker attacks" {
+  battlefield A: "Llanowar Elves", 2 "Forest"
+  battlefield B: "Ghostly Prison"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "umbra armor: the creature dies when the Aura was its toughness" {
+  battlefield A: "Grizzly Bears", "Spider Umbra" on "Grizzly Bears", "Enfeeblement" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  assert toughness "Grizzly Bears" 1
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Spider Umbra"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Giant's Amulet: hexproof goes as its creature taps to attack" {
+  battlefield A: "Grizzly Bears", "Giant's Amulet" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  assert has "Grizzly Bears" hexproof
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
