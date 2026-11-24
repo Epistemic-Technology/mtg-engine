@@ -3728,6 +3728,39 @@ impl GameState {
             })
     }
 
+    /// With two or more legendary permanents on the battlefield, whether
+    /// an action with nothing new entering could meet the legend rule (CR
+    /// 704.5j): two of them already share a name (a change of control, or
+    /// an effect ending, can bring them under one player), or some
+    /// permanent is not plainly its card (a copy, a transformed or
+    /// face-down permanent, a copy exception, a card with faces, a
+    /// phased-out permanent), whose name and supertypes could change with
+    /// no spell resolving. What enters is judged by the stack and
+    /// land-play checks of `may_need_mid_decision`.
+    #[cold]
+    #[inline(never)]
+    fn legends_may_meet(&self) -> bool {
+        if !self.phased_out.is_empty() {
+            return true;
+        }
+        let mut names: SmallVec<[&str; 8]> = SmallVec::new();
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            let d = self.pool.get(o.def);
+            if o.def != o.card || o.except.is_some() || !d.faces.is_empty() {
+                return true;
+            }
+            if self.legend_of(o) {
+                let name = self.obj_name(o);
+                if names.contains(&name) {
+                    return true;
+                }
+                names.push(name);
+            }
+        }
+        false
+    }
+
     /// Whether a card exiled "until this leaves the battlefield" (CR
     /// 610.3) could ask a question as it returns with nothing on the
     /// stack: a replacement could meet it, or the card chooses as it
@@ -3807,8 +3840,10 @@ impl GameState {
             // the whole game's counts snapshotted every action).
             || (!self.linked_exiles.is_empty() && self.linked_return_may_ask(replacers))
             || replacers >= 2
-            || self.legendary_count >= 2
-            || self.stack.iter().any(|id| {
+            || (self.legendary_count >= 2 && self.legends_may_meet())
+            // What is on the stack asks only as it resolves: not during an
+            // action that leaves it be (`stack_stays`).
+            || (!self.stack.is_empty() && !self.stack_stays(action) && self.stack.iter().any(|id| {
                 let o = &self.objects[*id];
                 let d = self.pool.get(o.def);
                 // A spell or ability that asks something as it resolves
@@ -3834,7 +3869,7 @@ impl GameState {
                     }
                     None => {
                         d.has_mid_choice()
-                            || (self.legendary_count == 1 && d.is_legendary())
+                            || (self.legendary_count >= 1 && d.is_legendary())
                             || (replacers >= 1 && d.modifies_entering())
                             // A spell that makes a token copy or returns
                             // a card to the battlefield (Self-Reflection
@@ -3844,7 +3879,41 @@ impl GameState {
                                 && d.ability_ids.iter().any(|a| self.pool.ability_enters(*a)))
                     }
                 }
-            })
+            }))
+    }
+
+    /// Whether `action` leaves the stack as it is, nothing on it resolving:
+    /// a pass that hands priority on (not the last of the players' passes
+    /// in succession, CR 117.4), casting a spell or activating an ability
+    /// (it goes on top, CR 601.2a, 602.2a; a mana ability resolves at once,
+    /// and `may_need_mid_decision` judges it by itself), or choosing a
+    /// target for one being cast (CR 601.2c).
+    fn stack_stays(&self, action: Option<&crate::decision::Choice>) -> bool {
+        use crate::decision::Choice;
+        match action {
+            Some(Choice::Pass) => {
+                matches!(self.flow, Flow::Priority)
+                    && usize::from(self.consecutive_passes) + 1 < self.players_in_game().count()
+            }
+            Some(
+                Choice::Cast(_)
+                | Choice::CastEvoke(_)
+                | Choice::CastDash(_)
+                | Choice::CastFree(_)
+                | Choice::CastWarp(_)
+                | Choice::CastSneak(_)
+                | Choice::CastAlt(_)
+                | Choice::CastBestow(_)
+                | Choice::CastOverload(_)
+                | Choice::CastAwaken(_)
+                | Choice::CastWebSlinging(_)
+                | Choice::CastImpending(_)
+                | Choice::CastDisturb(_)
+                | Choice::Activate { .. },
+            ) => matches!(self.flow, Flow::Priority),
+            Some(Choice::Target(_)) => matches!(self.flow, Flow::Casting { .. }),
+            _ => false,
+        }
     }
 
     /// The cards in `p`'s graveyard: a token there until the next
