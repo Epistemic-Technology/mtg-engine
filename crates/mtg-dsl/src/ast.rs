@@ -6853,6 +6853,10 @@ pub enum Effect {
         /// card remains exiled, its owner may play it" (the permission is
         /// the card's owner's).
         owner: bool,
+        /// `may play exiled card this turn`: "you may play the exiled card
+        /// this turn" (Reno and Rude; wording only, the resolution's card
+        /// as for "that card").
+        exiled: bool,
         /// `any type`: "..., and mana of any type can be spent to cast that
         /// spell"; `costs {2} more`: "A spell cast this way costs {2} more
         /// to cast." (`CastRider`).

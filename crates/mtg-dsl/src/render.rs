@@ -7964,6 +7964,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             from_exile,
             remains,
             owner,
+            exiled,
             rider,
         } => {
             use mtg_core::card::PlayUntil;
@@ -7993,6 +7994,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let what = match (*it, *from_exile) {
                 (true, false) => "it",
                 (true, true) => "it from exile",
+                // "the exiled card" (Reno and Rude).
+                (false, false) if *exiled => "the exiled card",
                 (false, false) => "that card",
                 (false, true) => "that card from exile",
             };

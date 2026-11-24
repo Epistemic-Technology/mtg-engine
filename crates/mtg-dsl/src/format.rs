@@ -1403,13 +1403,20 @@ impl Fmt {
                 from_exile,
                 remains,
                 owner,
+                exiled,
                 rider,
             } => {
                 let mut s = format!(
                     "{}may {} {}{} {}",
                     if *owner { "owner " } else { "" },
                     if *cast { "cast" } else { "play" },
-                    if *it { "it" } else { "that card" },
+                    if *it {
+                        "it"
+                    } else if *exiled {
+                        "exiled card"
+                    } else {
+                        "that card"
+                    },
                     if *from_exile { " from exile" } else { "" },
                     match until {
                         _ if *remains => "remains",

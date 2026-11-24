@@ -12115,7 +12115,8 @@ impl P {
             });
         }
         let it = self.eat_word("it");
-        if !it {
+        let exiled = !it && self.eat_words(&["exiled", "card"]);
+        if !it && !exiled {
             self.expect_words(&["that", "card"])?;
         }
         let from_exile = self.eat_words(&["from", "exile"]);
@@ -12137,6 +12138,7 @@ impl P {
             from_exile,
             remains,
             owner,
+            exiled,
             rider,
         })
     }
@@ -13477,6 +13479,8 @@ impl P {
             "may"
                 if (self.at_word("play") || self.at_word("cast"))
                     && (matches!(self.word_at(1).as_deref(), Some("target" | "it" | "that"))
+                        || (self.word_at(1).as_deref() == Some("exiled")
+                            && self.word_at(2).as_deref() == Some("card"))
                         || (self.word_at(1).as_deref() == Some("this")
                             && self.word_at(2).as_deref() == Some("card"))) =>
             {

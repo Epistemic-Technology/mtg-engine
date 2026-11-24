@@ -4389,7 +4389,9 @@ library's top cards are exiled one at a time until their mana values
 add up to that much, or the library runs out. `may cast that card this turn` ("You may cast that card this
 turn."; `may play that card next turn first`: "Until the end of your next
 turn, you may play that card."; `free`: "... without paying its mana
-cost"; `it` for "it"; the durations are impulse's; `may play that card
+cost"; `it` for "it"; `exiled card` for "the exiled card", Reno and
+Rude's `if you do, may play exiled card this turn any type it`; the
+durations are impulse's; `may play that card
 remains`: "You may play that card for as long as it remains exiled.") lets
 the controller play or cast the resolution's card from exile, also after
 `exile target ... card from your graveyard` and `that player exiles 1 card

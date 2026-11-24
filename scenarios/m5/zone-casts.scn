@@ -231,6 +231,39 @@ scenario "Gisa and Geralf: a Zombie creature from the graveyard, but not a non-Z
   assert graveyard A contains "Grizzly Bears"
 }
 
+scenario "Reno and Rude: a sacrifice lets the exiled card be played this turn with any mana" {
+  battlefield A: "Reno and Rude", "Ornithopter", 2 "Swamp"
+  library A: 3 "Island"
+  library B: "Grizzly Bears", 3 "Island"
+  turn 1 declare_attackers A: attack "Reno and Rude"
+  turn 1 combat_damage A: choose "Ornithopter"
+  turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "Reno and Rude: without a sacrifice the exiled card can't be played" {
+  battlefield A: "Reno and Rude", 2 "Swamp"
+  library A: 3 "Island"
+  library B: "Grizzly Bears", 3 "Island"
+  turn 1 declare_attackers A: attack "Reno and Rude"
+  illegal turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Reno and Rude: the permission ends with the turn" {
+  battlefield A: "Reno and Rude", "Ornithopter", 2 "Swamp"
+  library A: 3 "Island"
+  library B: "Grizzly Bears", 3 "Island"
+  turn 1 declare_attackers A: attack "Reno and Rude"
+  illegal turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert exile B contains "Grizzly Bears"
+}
+
 scenario "Danitha: an Equipment from the graveyard, once" {
   battlefield A: "Danitha, New Benalia's Light", 4 "Plains"
   graveyard A: "Bonesplitter", "Short Sword"
