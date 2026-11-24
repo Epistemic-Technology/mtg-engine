@@ -1,0 +1,8 @@
+card "Howling Galefang" {
+  oracle_id f12c2b65-4a04-4fab-ae77-973fe5cc823d
+  cost {2}{G}{G}
+  type Creature — Beast
+  pt 4/4
+  keywords vigilance
+  static this: has haste as long as you own adventurer card in exile
+}

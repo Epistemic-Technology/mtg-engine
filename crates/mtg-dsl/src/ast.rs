@@ -3581,6 +3581,9 @@ pub enum StaticCond {
     OpponentPoison(u32),
     /// `you own card in exile`: "you own a card in exile".
     OwnCardInExile,
+    /// `you own adventurer card in exile`: "you own a card in exile that
+    /// has an Adventure" (`<filter> card`).
+    OwnInExile(Filter),
     /// `3 cards exiled with this`: "there are three or more cards exiled
     /// with this creature" (CR 607.2a).
     ExiledWith(u32),

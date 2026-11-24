@@ -7741,6 +7741,7 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
+        StaticCond::OwnInExile(f) => format!("you own {} card in exile", filter(f)),
         StaticCond::ExiledWith(n) => format!("{n} cards exiled with this"),
         StaticCond::TypesExiledWith(n) => format!("{n} card types exiled with this"),
         StaticCond::Monarch => "you are monarch".to_string(),

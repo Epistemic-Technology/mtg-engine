@@ -770,7 +770,10 @@ impl GameState {
                 .battlefield
                 .iter()
                 .any(|b| self.pool.get(self.objects[*b].def).hand_static);
-        if affects_chars(old.zone) || affects_chars(to) || hand_static {
+        // "As long as you own a card in exile that has an Adventure".
+        let exile_static =
+            (old.zone == Zone::Exile || to == Zone::Exile) && self.exile_static_sources > 0;
+        if affects_chars(old.zone) || affects_chars(to) || hand_static || exile_static {
             self.cbump();
         } else {
             self.bump();
@@ -1029,6 +1032,7 @@ impl GameState {
             self.player_static_sources += d(flags.has_player_static());
             self.top_play_sources += d(flags.has_top_play());
             self.top_static_sources += d(flags.has_top_static());
+            self.exile_static_sources += d(flags.has_exile_static());
             self.foreign_activated_sources += d(flags.has_foreign_activated());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
@@ -1055,6 +1059,7 @@ impl GameState {
             self.player_static_sources -= d(flags.has_player_static());
             self.top_play_sources -= d(flags.has_top_play());
             self.top_static_sources -= d(flags.has_top_static());
+            self.exile_static_sources -= d(flags.has_exile_static());
             self.foreign_activated_sources -= d(flags.has_foreign_activated());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).

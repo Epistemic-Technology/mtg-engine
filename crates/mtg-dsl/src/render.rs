@@ -20285,6 +20285,21 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("an opponent has {} poison counters", or_more(*n))
         }
         StaticCond::OwnCardInExile => "you own a card in exile".to_string(),
+        // "you own a card in exile that has an Adventure" (Howling
+        // Galefang).
+        StaticCond::OwnInExile(f)
+            if *f
+                == (Filter {
+                    status: mtg_core::card::StatusQuals {
+                        adventure: true,
+                        ..Default::default()
+                    },
+                    ..Filter::default()
+                }) =>
+        {
+            "you own a card in exile that has an Adventure".to_string()
+        }
+        StaticCond::OwnInExile(f) => format!("you own {} in exile", card_filter_a(f, card)),
         StaticCond::ExiledWith(n) => format!(
             "there are {} cards exiled with {}",
             or_more(*n),

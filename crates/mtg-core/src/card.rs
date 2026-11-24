@@ -3577,6 +3577,11 @@ pub enum StaticCondition {
     OpponentPoison(u32),
     /// "you own a card in exile".
     OwnCardInExile,
+    /// "as long as you own a card in exile that has an Adventure": one of
+    /// your cards in exile matches, by its printed characteristics. A
+    /// static ability with it bumps the characteristics cache as cards
+    /// enter or leave exile (`DefFlags::EXILE_STATIC`).
+    OwnInExile(ObjFilter),
     /// "there are three or more cards exiled with this creature" (CR
     /// 607.2a: what the source's abilities exiled, still in exile).
     ExiledWith(u32),
@@ -11343,6 +11348,10 @@ impl DefFlags {
     /// card of a library (`StaticCondition::TopCard`, `CountExpr::LibraryTop`):
     /// the characteristics cache then keys on the top cards.
     const TOP_STATIC: u64 = 1_073_741_824;
+    /// A static ability whose condition reads the cards its controller
+    /// owns in exile (`StaticCondition::OwnInExile`): a card entering or
+    /// leaving exile then bumps the characteristics cache.
+    const EXILE_STATIC: u64 = 1 << 38;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11475,6 +11484,10 @@ impl DefFlags {
 
     pub const fn has_top_static(self) -> bool {
         self.has(DefFlags::TOP_STATIC)
+    }
+
+    pub const fn has_exile_static(self) -> bool {
+        self.has(DefFlags::EXILE_STATIC)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -11611,6 +11624,13 @@ impl DefFlags {
                     a,
                     AbilityDef::PlayFromTop { .. } | AbilityDef::TopRevealed { .. }
                 )
+            }),
+        );
+        flags.set(
+            DefFlags::EXILE_STATIC,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(sa)
+                    if matches!(sa.condition, Some(StaticCondition::OwnInExile(_))))
             }),
         );
         flags.set(

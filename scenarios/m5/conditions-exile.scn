@@ -1,0 +1,56 @@
+# "as long as you own a card in exile that has an Adventure" (`you own
+# adventurer card in exile`): a card going on an adventure (CR 715.4)
+# changes the static ability's condition at once.
+
+scenario "Howling Galefang: an adventure cast after it gives it haste" {
+  battlefield A: 5 "Forest"
+  hand A: "Howling Galefang", "Curious Pair"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Howling Galefang"
+  turn 1 A: wait
+  turn 1 A: cast "Treats to Share"
+  turn 1 A: attack "Howling Galefang"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert exile A contains "Curious Pair"
+}
+
+scenario "Howling Galefang: without an adventurer in exile it has no haste" {
+  battlefield A: 4 "Forest"
+  hand A: "Howling Galefang"
+  exile A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Howling Galefang"
+  illegal turn 1 A: attack "Howling Galefang"
+  run_to turn 1 postcombat_main
+  assert has not "Howling Galefang" haste
+  assert life B 20
+}
+
+scenario "Howling Galefang: an adventurer card already in exile" {
+  battlefield A: "Howling Galefang"
+  exile A: "Curious Pair"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has "Howling Galefang" haste
+}
+
+scenario "Howling Galefang: the adventurer cast from exile takes haste away" {
+  battlefield A: 3 "Forest", "Howling Galefang"
+  hand A: "Curious Pair"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Treats to Share"
+  turn 1 A: wait
+  turn 1 A: cast "Curious Pair"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Curious Pair"
+  assert has not "Howling Galefang" haste
+}
+
+scenario "Howling Galefang: an opponent's adventurer in exile doesn't count" {
+  battlefield A: "Howling Galefang"
+  exile B: "Curious Pair"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has not "Howling Galefang" haste
+}

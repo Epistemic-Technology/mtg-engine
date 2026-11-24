@@ -909,6 +909,7 @@ impl Decompiler<'_> {
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
+            StaticCondition::OwnInExile(f) => StaticCond::OwnInExile(self.filter(f)),
             StaticCondition::ExiledWith(n) => StaticCond::ExiledWith(*n),
             StaticCondition::TypesExiledWith(n) => StaticCond::TypesExiledWith(*n),
             StaticCondition::Monarch => StaticCond::Monarch,

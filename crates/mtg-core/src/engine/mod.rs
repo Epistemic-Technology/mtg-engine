@@ -294,6 +294,7 @@ impl Engine {
                 state.player_static_sources += u32::from(def.flags().has_player_static());
                 state.top_play_sources += u32::from(def.flags().has_top_play());
                 state.top_static_sources += u32::from(def.flags().has_top_static());
+                state.exile_static_sources += u32::from(def.flags().has_exile_static());
                 state.foreign_activated_sources += u32::from(def.flags().has_foreign_activated());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
@@ -664,6 +665,7 @@ impl GameState {
             room_count: 0,
             top_play_sources: 0,
             top_static_sources: 0,
+            exile_static_sources: 0,
             top_grants: Vec::new(),
             grave_turn_grants: Vec::new(),
             grave_cast_spells: Vec::new(),

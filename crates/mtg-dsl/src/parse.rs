@@ -6100,6 +6100,17 @@ impl P {
         if self.eat_words(&["you", "own", "card", "in", "exile"]) {
             return Ok(StaticCond::OwnCardInExile);
         }
+        // `you own adventurer card in exile`.
+        if self.at_words(&["you", "own"]) && self.word_at(2).as_deref() != Some("no") {
+            let at = self.pos;
+            self.pos += 2;
+            if let Ok(f) = self.filter()
+                && self.eat_words(&["card", "in", "exile"])
+            {
+                return Ok(StaticCond::OwnInExile(f));
+            }
+            self.pos = at;
+        }
         if self.eat_words(&["you", "have"]) {
             let at_least = self.number()?;
             let filter = self.filter()?;

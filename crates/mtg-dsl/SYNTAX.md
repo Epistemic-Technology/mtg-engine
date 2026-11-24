@@ -750,7 +750,10 @@ this turn"), `not cast from hand this turn` ("you haven't cast a
 spell from your hand this turn": a spell cast from a graveyard or exile
 doesn't count), `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
-3 or more`, `you own card in exile`, `3 cards exiled with this` ("there
+3 or more`, `you own card in exile`, `you own adventurer card in exile`
+("you own a card in exile that has an Adventure": by its printed
+characteristics; in a static ability, judged again as cards enter or
+leave exile), `3 cards exiled with this` ("there
 are three or more cards exiled with this creature", CR 607.2a), `4 card
 types exiled with this` ("there are four or more card types among cards
 exiled with this creature"), `total power 8 or more` ("creatures you

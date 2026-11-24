@@ -2900,6 +2900,7 @@ impl Compiler<'_> {
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
             StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
+            StaticCond::OwnInExile(f) => StaticCondition::OwnInExile(self.filter(f)),
             StaticCond::ExiledWith(n) => StaticCondition::ExiledWith(*n),
             StaticCond::TypesExiledWith(n) => StaticCondition::TypesExiledWith(*n),
             StaticCond::Monarch => StaticCondition::Monarch,
