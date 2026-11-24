@@ -58,6 +58,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         created_at: None,
         no_trigger_amount: false,
         in_spell: false,
+        in_activated: false,
         group_named: false,
         subject: None,
         subject_each: false,
@@ -755,6 +756,9 @@ struct P {
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
     in_spell: bool,
+    /// Inside an activated ability's effects: `it` after an object target
+    /// is that target, elsewhere the source.
+    in_activated: bool,
     /// A group (`each <filter>`, `creatures you control`) has been named
     /// in this ability, for `them` and `those creatures` after it.
     group_named: bool,
@@ -2436,6 +2440,7 @@ impl P {
         self.created_at = None;
         self.no_trigger_amount = false;
         self.in_spell = false;
+        self.in_activated = false;
         self.group_named = false;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
@@ -3974,6 +3979,7 @@ impl P {
             }
             "activated" | "boast" | "exhaust" | "power-up" => {
                 self.pos += 1;
+                self.in_activated = true;
                 let mut cost = self.cost()?;
                 cost.keyword = match w.as_str() {
                     "boast" => Some(mtg_core::card::ActivatedKeyword::Boast),
@@ -3992,6 +3998,7 @@ impl P {
             }
             "loyalty" => {
                 self.pos += 1;
+                self.in_activated = true;
                 // "0:" (CR 606.3) is written `loyalty 0:` or `loyalty +0:`.
                 let n = match self.next() {
                     Some(Tok::Signed(n)) => n,
@@ -14167,6 +14174,7 @@ impl P {
             created_at: self.created_at,
             no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
+            in_activated: self.in_activated,
             group_named: self.group_named,
             subject: None,
             subject_each: false,
@@ -14556,6 +14564,17 @@ impl P {
             // damage.
             if self.in_spell && !self.targets.is_empty() && !self.at_word("deals") {
                 return Ok(Recipient::Target(self.targets.len() - 1));
+            }
+            // In an activated ability, `it` after an object target is that
+            // target, as in a spell ("Untap target attacking creature an
+            // opponent controls and remove it from combat"; "Exile target
+            // creature card from a graveyard. Create a token that's a copy
+            // of it."), unless it deals the damage.
+            if self.in_activated
+                && !self.at_word("deals")
+                && let Some(n) = self.last_object_target()
+            {
+                return Ok(Recipient::Target(n));
             }
             // In a spell or an activated ability, `it` is the source,
             // printed "it" ("If this spell was kicked, it deals 2 damage").
@@ -15162,6 +15181,7 @@ impl P {
                         created_at: None,
                         no_trigger_amount: false,
                         in_spell: false,
+                        in_activated: false,
                         group_named: false,
                         subject: None,
                         subject_each: false,

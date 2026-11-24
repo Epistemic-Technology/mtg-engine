@@ -111,3 +111,16 @@ scenario "a spell cast from a library isn't cast from exile" {
   assert battlefield A contains "Grizzly Bears"
   assert hand A count 0
 }
+
+# In an activated ability, `it` after an object target is that target:
+# Spires of Orazca removes the attacker from combat, not itself.
+scenario "Spires of Orazca untaps the attacker and removes it from combat" {
+  battlefield A: "Spires of Orazca"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: activate "Spires of Orazca" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert untapped "Grizzly Bears"
+}
