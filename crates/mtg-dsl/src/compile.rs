@@ -6713,7 +6713,6 @@ impl Compiler<'_> {
         })
     }
 
-    #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         let def = self.ability_def(a)?;
         // A static ability's condition is judged by the layers
@@ -6730,6 +6729,7 @@ impl Compiler<'_> {
         Ok(def)
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability_def(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         self.many = None;
         self.tmap = TargetMap::default();

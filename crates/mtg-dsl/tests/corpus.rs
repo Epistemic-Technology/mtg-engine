@@ -305,14 +305,22 @@ fn a_static_condition_the_layers_never_hold_is_rejected() {
     // `count N <expr>` with a resolution-only count read 0, and "not their
     // turn", "a creature is attacking" and a triggering-object check never
     // held, in a static ability (`layers::condition_holds`).
-    assert!(compiles("static this: has flying as long as count 2 colors among creature you control"));
+    assert!(compiles(
+        "static this: has flying as long as count 2 colors among creature you control"
+    ));
     for (line, why) in [
         (
             "static this: has flying as long as count 2 different powers among creature you control",
             "can't use this count",
         ),
-        ("static this: has flying as long as not their turn", "no \"they\""),
-        ("static this: has flying as long as attacker Rat", "not by a static ability"),
+        (
+            "static this: has flying as long as not their turn",
+            "no \"they\"",
+        ),
+        (
+            "static this: has flying as long as attacker Rat",
+            "not by a static ability",
+        ),
         (
             "static this: has flying as long as attacker Rat at you",
             "not by a static ability",
@@ -322,7 +330,9 @@ fn a_static_condition_the_layers_never_hold_is_rejected() {
         assert!(e.contains(why), "{line}: {e}");
     }
     // A trigger's condition still reads them.
-    assert!(compiles("triggered whenever a player casts spell if not their turn: draw 1 card"));
+    assert!(compiles(
+        "triggered whenever a player casts spell if not their turn: draw 1 card"
+    ));
 }
 
 #[test]
