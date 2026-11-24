@@ -1,0 +1,6 @@
+card "Dream Harvest" {
+  oracle_id 70b9497f-0dd6-4b66-9675-57c7041fe3c0
+  cost {5}{U/B}{U/B}
+  type Sorcery
+  spell: each opponent exiles until total mana value 5; may cast cards exiled this way this turn free
+}

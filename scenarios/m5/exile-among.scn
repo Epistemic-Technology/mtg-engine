@@ -1,0 +1,368 @@
+# M5: casting from among the cards an effect just exiled or looked at
+# (CR 608.2g: cast as the effect finishes, timing ignored): "you may cast
+# it without paying its mana cost if that spell's mana value is 8 or
+# less", "If you don't, put that card into your hand", "You may cast that
+# card" (its costs paid), "by discarding a card rather than paying its
+# mana cost", "any number of / up to two spells from among them", and
+# "exile cards ... until you exile cards with total mana value 4 or
+# greater".
+
+scenario "Breaching Dragonstorm: a nonland card with mana value 8 or less is cast free" {
+  battlefield A: 5 "Mountain"
+  hand A: "Breaching Dragonstorm"
+  library A: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Breaching Dragonstorm"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert exile A contains "Forest"
+  assert hand A count 0
+  assert library A count 1
+}
+
+scenario "Breaching Dragonstorm: declined, the card goes to the hand" {
+  battlefield A: 5 "Mountain"
+  hand A: "Breaching Dragonstorm"
+  library A: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Breaching Dragonstorm"
+  turn 1 A: decline "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+  assert exile A count 1
+}
+
+scenario "Solstice Revelations: mana value less than the Mountains is cast free" {
+  battlefield A: 3 "Mountain"
+  hand A: "Solstice Revelations"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Solstice Revelations"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Solstice Revelations: mana value equal to the Mountains goes to the hand" {
+  battlefield A: 3 "Mountain"
+  hand A: "Solstice Revelations"
+  library A: "Divination", "Island"
+  turn 1 A: cast "Solstice Revelations"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+  assert hand A count 1
+  assert library A count 1
+}
+
+scenario "Bre of Clan Stoutarm: life gained bounds the free spell" {
+  battlefield A: "Bre of Clan Stoutarm", "Grizzly Bears", 2 "Plains"
+  library A: "Forest", "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Bre of Clan Stoutarm" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert life A 22
+  assert battlefield A count 5
+  assert hand A count 0
+  assert exile A contains "Forest"
+}
+
+scenario "Bre of Clan Stoutarm: a spell with greater mana value goes to the hand" {
+  battlefield A: "Bre of Clan Stoutarm", "Grizzly Bears", 2 "Plains"
+  library A: "Hill Giant", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Bre of Clan Stoutarm" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert life A 22
+  assert hand A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Bre of Clan Stoutarm: no life gained, no trigger" {
+  battlefield A: "Bre of Clan Stoutarm", "Grizzly Bears", 2 "Plains"
+  library A: "Hill Giant", "Island"
+  start turn 2 A precombat_main
+  run_to turn 2 cleanup
+  assert library A count 2
+  assert hand A count 0
+}
+
+scenario "Chandra, Torch of Defiance: the exiled card is cast for its cost" {
+  battlefield A: "Chandra, Torch of Defiance", "Mountain"
+  library A: "Shock", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Chandra, Torch of Defiance" ability 1
+  turn 2 A: wait
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Shock"
+  assert tapped "Mountain"
+  assert counters "Chandra, Torch of Defiance" loyalty 5
+}
+
+scenario "Chandra, Torch of Defiance: declined, 2 damage to each opponent" {
+  battlefield A: "Chandra, Torch of Defiance", "Mountain"
+  library A: "Shock", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Chandra, Torch of Defiance" ability 1
+  turn 2 A: decline "Shock"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert exile A contains "Shock"
+  assert untapped "Mountain"
+}
+
+scenario "Chandra, Torch of Defiance: an exiled land can't be cast, so 2 damage" {
+  battlefield A: "Chandra, Torch of Defiance"
+  library A: "Forest", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Chandra, Torch of Defiance" ability 1
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert exile A contains "Forest"
+}
+
+scenario "Chandra, Torch of Defiance: without the mana to pay, 2 damage" {
+  battlefield A: "Chandra, Torch of Defiance"
+  library A: "Hill Giant", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Chandra, Torch of Defiance" ability 1
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert exile A contains "Hill Giant"
+}
+
+scenario "The Infamous Cruelclaw: the exiled card is cast by discarding a card" {
+  battlefield A: "The Infamous Cruelclaw"
+  hand A: "Forest"
+  library A: "Island", "Serra Angel", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: attack "The Infamous Cruelclaw"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Forest"
+  assert hand A count 0
+  assert exile A contains "Island"
+}
+
+scenario "The Infamous Cruelclaw: with no card to discard, it stays exiled" {
+  battlefield A: "The Infamous Cruelclaw"
+  library A: "Island", "Serra Angel", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: attack "The Infamous Cruelclaw"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Serra Angel"
+  assert exile A contains "Serra Angel"
+}
+
+scenario "Improvisation Capstone: exiles until total mana value 4, casts any number free" {
+  battlefield A: 7 "Mountain"
+  hand A: "Improvisation Capstone"
+  library A: "Grizzly Bears", "Shock", "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Improvisation Capstone"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert life B 18
+  assert exile A contains "Forest"
+  assert exile A contains "Improvisation Capstone"
+  assert library A count 1
+}
+
+scenario "Improvisation Capstone: only the spells chosen are cast" {
+  battlefield A: 7 "Mountain"
+  hand A: "Improvisation Capstone"
+  library A: "Grizzly Bears", "Shock", "Hill Giant", "Island"
+  turn 1 A: cast "Improvisation Capstone"
+  turn 1 A: decline "Grizzly Bears"
+  turn 1 A: decline "Shock"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Shock"
+  assert life B 20
+}
+
+scenario "Doom Reigns Supreme: the fifth plan counter casts up to two of the opponent's cards" {
+  battlefield A: "Doom Reigns Supreme" with 4 plan, 3 "Swamp"
+  hand A: "Armed Assailant"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel", "Forest", "Wind Drake", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Armed Assailant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Doom Reigns Supreme"
+  assert life A 21
+  assert life B 19
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert exile B contains "Serra Angel"
+  assert exile B contains "Wind Drake"
+  assert exile B contains "Forest"
+  assert library B count 1
+}
+
+scenario "Etali, Primal Storm: casts spells from the top of each player's library" {
+  battlefield A: "Etali, Primal Storm"
+  library A: "Hill Giant", "Island"
+  library B: "Grizzly Bears", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Etali, Primal Storm"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 14
+}
+
+scenario "Etali, Primal Storm: a land exiled stays in exile" {
+  battlefield A: "Etali, Primal Storm"
+  library A: "Island", "Hill Giant"
+  library B: "Forest", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Etali, Primal Storm"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Island"
+  assert exile B contains "Forest"
+  assert battlefield A count 1
+}
+
+scenario "Planetarium of Wan Shi Tong: after a scry, the top card is cast free, once a turn" {
+  battlefield A: "Planetarium of Wan Shi Tong", 2 "Island"
+  library A: "Hill Giant", "Island", "Grizzly Bears", "Forest", "Wind Drake", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Planetarium of Wan Shi Tong"
+  turn 2 A: scry "Hill Giant", "Island"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  assert library A count 5
+}
+
+scenario "Planetarium of Wan Shi Tong: a second scry the same turn casts nothing" {
+  battlefield A: "Planetarium of Wan Shi Tong", 3 "Island"
+  hand A: "Opt"
+  library A: "Grizzly Bears", "Wind Drake", "Hill Giant", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Planetarium of Wan Shi Tong"
+  turn 2 A: wait
+  turn 2 A: cast "Opt"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Wind Drake"
+  assert battlefield A lacks "Hill Giant"
+  assert hand A contains "Wind Drake"
+}
+
+scenario "Planetarium of Wan Shi Tong: a land on top stays there" {
+  battlefield A: "Planetarium of Wan Shi Tong", 2 "Island"
+  library A: "Forest", "Hill Giant", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Planetarium of Wan Shi Tong"
+  run_to turn 2 end
+  assert library A count 3
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Doom Reigns Supreme: one declined, the next two are cast" {
+  battlefield A: "Doom Reigns Supreme" with 4 plan, 3 "Swamp"
+  hand A: "Armed Assailant"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel", "Forest", "Wind Drake", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Armed Assailant"
+  turn 2 A: decline "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Serra Angel"
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Wind Drake"
+}
+
+scenario "Dream Harvest: the opponent exiles until total mana value 5; those cards are castable free this turn" {
+  battlefield A: 7 "Swamp"
+  hand A: "Dream Harvest"
+  library B: "Grizzly Bears", "Forest", "Shock", "Hill Giant", "Island"
+  turn 1 A: cast "Dream Harvest"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert life B 18
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Forest"
+  assert library B count 1
+}
+
+scenario "Dream Harvest: the permission ends with the turn" {
+  battlefield A: 7 "Swamp"
+  hand A: "Dream Harvest"
+  library B: "Grizzly Bears", "Forest", "Shock", "Hill Giant", "Island", 3 "Plains"
+  turn 1 A: cast "Dream Harvest"
+  illegal turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Ugin, Eye of the Storms: casting it exiles a colored permanent" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Grizzly Bears", "Steel Wall"
+  hand A: "Ugin, Eye of the Storms"
+  turn 1 A: cast "Ugin, Eye of the Storms"
+  turn 1 A: trigger "Ugin, Eye of the Storms" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B contains "Steel Wall"
+}
+
+scenario "Ugin, Eye of the Storms: a colorless permanent can't be its target" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Steel Wall"
+  hand A: "Ugin, Eye of the Storms"
+  turn 1 A: cast "Ugin, Eye of the Storms"
+  run_to turn 1 end
+  assert battlefield B contains "Steel Wall"
+}
+
+scenario "Ugin, Eye of the Storms: the searched colorless cards are cast free this turn" {
+  battlefield A: "Ugin, Eye of the Storms" with 11 loyalty
+  library A: "Steel Wall", "Grizzly Bears", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ugin, Eye of the Storms" ability 3
+  turn 2 A: choose "Steel Wall"
+  turn 2 A: wait
+  turn 2 A: cast "Steel Wall"
+  run_to turn 2 end
+  assert battlefield A contains "Steel Wall"
+  assert library A count 3
+}
+
+scenario "Inside Information: the opponent's cards are played this turn, spells for life" {
+  battlefield A: 4 "Swamp"
+  hand A: "Inside Information"
+  library B: "Hill Giant", "Forest", "Island"
+  turn 1 A: cast "Inside Information" x 2 targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Forest"
+  assert life A 16
+  assert library B count 1
+}
+
+scenario "Inside Information: without the life, the spell can't be cast" {
+  battlefield A: 4 "Swamp"
+  hand A: "Inside Information"
+  life A 3
+  library B: "Hill Giant", "Forest", "Island"
+  turn 1 A: cast "Inside Information" x 2 targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert life A 3
+}

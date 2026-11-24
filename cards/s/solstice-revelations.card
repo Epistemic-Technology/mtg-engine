@@ -1,0 +1,7 @@
+card "Solstice Revelations" {
+  oracle_id 310c1280-dee8-426f-8440-6132a634a1e0
+  cost {2}{R}
+  type Instant — Lesson
+  spell: exile until nonland card; cast free that card with mana value below count where Mountain you control; put exiled card into hand if not cast this way
+  flashback {6}{R}
+}

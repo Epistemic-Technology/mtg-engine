@@ -1976,6 +1976,18 @@ impl Runner {
     /// step) supplies the spell's targets.
     fn cast_from_exile(&mut self, d: &Decision, pos: Position, card: ObjId) -> ChoiceId {
         let name = self.state().name_of(card).to_string();
+        // `decline "X"`: an effect's "you may cast that card" not taken
+        // (Breaching Dragonstorm's "If you don't, ...").
+        let declines = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::YouMay { name: n, accept: false } if *n == name),
+        );
+        if let Some(&i) = declines.first() {
+            self.fired[i] = true;
+            return index_of(d, &Choice::Decline).unwrap_or(0);
+        }
         let idxs = self.matching(
             d.player,
             pos,

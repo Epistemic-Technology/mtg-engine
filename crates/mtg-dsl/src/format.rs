@@ -1201,6 +1201,75 @@ impl Fmt {
                     self.recipient(*to, t)
                 ),
             },
+            Effect::MayCastExiled { those, free } => format!(
+                "may cast {} this turn{}",
+                if *those {
+                    "those cards"
+                } else {
+                    "cards exiled this way"
+                },
+                if *free { " free" } else { "" }
+            ),
+            Effect::ExileUntilTotal { who, total } => match who {
+                None => format!("exile until total mana value {}", num(*total)),
+                Some(w) => format!(
+                    "{} exiles until total mana value {}",
+                    self.recipient(*w, t),
+                    num(*total)
+                ),
+            },
+            Effect::CastAmong {
+                words,
+                count,
+                filter: f,
+                mv,
+                below,
+                cost,
+            } => {
+                use crate::ast::AmongWords;
+                use mtg_core::card::AmongCost;
+                let mut s = if *cost == AmongCost::Free {
+                    "cast free "
+                } else {
+                    "cast now "
+                }
+                .to_string();
+                match words {
+                    AmongWords::It => s.push_str("it"),
+                    AmongWords::ThatCard => s.push_str("that card"),
+                    AmongWords::ExiledCard => s.push_str("exiled card"),
+                    AmongWords::Them | AmongWords::Those | AmongWords::TheExiled => {
+                        match count {
+                            Some(n) => {
+                                let _ = write!(s, "up to {n} ");
+                            }
+                            None => s.push_str("any number "),
+                        }
+                        if let Some(f) = f {
+                            s.push_str(&filter(f));
+                            s.push(' ');
+                        }
+                        s.push_str("spell from among ");
+                        s.push_str(match words {
+                            AmongWords::Them => "them",
+                            AmongWords::Those => "those cards",
+                            _ => "exiled cards",
+                        });
+                    }
+                }
+                if let Some(n) = mv {
+                    let _ = write!(
+                        s,
+                        " with mana value {} {}",
+                        if *below { "below" } else { "up to" },
+                        num(*n)
+                    );
+                }
+                if *cost == AmongCost::Discard {
+                    s.push_str(" by discarding");
+                }
+                s
+            }
             Effect::ExileUntilCard { who, filter: f } => match who {
                 None => format!("exile until {} card", filter(f)),
                 Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
@@ -1364,6 +1433,12 @@ impl Fmt {
                     CardWords::ExiledIfNotCast => {
                         return "put exiled card into hand if not cast".to_string();
                     }
+                    CardWords::ExiledOtherwise => {
+                        return "put exiled card into hand otherwise".to_string();
+                    }
+                    CardWords::ExiledIfNotCastThisWay => {
+                        return "put exiled card into hand if not cast this way".to_string();
+                    }
                 };
                 let d = match to {
                     CardDest::Hand => "into hand",
@@ -1455,7 +1530,12 @@ impl Fmt {
                 s.push_str(&rider_text(rider.as_ref()));
                 s
             }
-            Effect::ExileTop { count, who, face } => {
+            Effect::ExileTop {
+                count,
+                who,
+                face,
+                of,
+            } => {
                 let n = num(*count);
                 let cs = if *count == Num::N(1) { "card" } else { "cards" };
                 let face = match face {
@@ -1464,6 +1544,9 @@ impl Fmt {
                     mtg_core::card::ExileFace::Look => " face down look",
                 };
                 match who {
+                    Some(w) if *of => {
+                        format!("exile top {n} {cs} of {}{face}", self.recipient(*w, t))
+                    }
                     None => format!("exile top {n} {cs}{face}"),
                     Some(w) => format!("{} exiles top {n} {cs}{face}", self.recipient(*w, t)),
                 }
@@ -3975,6 +4058,9 @@ fn rider_text(rider: Option<&crate::ast::Rider>) -> String {
     }
     if r.exile {
         s.push_str(" exile instead");
+    }
+    if r.life {
+        s.push_str(" pay life");
     }
     s
 }

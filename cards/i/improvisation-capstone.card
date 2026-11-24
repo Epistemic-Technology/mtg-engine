@@ -1,0 +1,7 @@
+card "Improvisation Capstone" {
+  oracle_id fd4f0315-567a-4cc5-bc7e-88a9d2cee910
+  cost {5}{R}{R}
+  type Sorcery — Lesson
+  spell: exile until total mana value 4; cast free any number spell from among them
+  keywords paradigm
+}

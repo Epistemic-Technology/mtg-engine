@@ -114,6 +114,7 @@ impl GameState {
                 spend: a.spend.or(b.spend),
                 more: a.more.min(b.more),
                 exile: a.exile && b.exile,
+                life: a.life && b.life,
             })
             .unwrap_or_default();
         // "Mana of any type can be spent to cast those spells." (a
@@ -425,7 +426,11 @@ impl GameState {
             // Cast without paying its mana cost: X is 0 (CR 107.3b).
             _ if matches!(
                 alt,
-                AltCast::Free | AltCast::Suspend | AltCast::FreeExile | AltCast::PayLife
+                AltCast::Free
+                    | AltCast::Suspend
+                    | AltCast::FreeExile
+                    | AltCast::PayLife
+                    | AltCast::DiscardCost
             ) =>
             {
                 ManaRequirement::default()

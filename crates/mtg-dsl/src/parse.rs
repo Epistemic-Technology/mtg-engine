@@ -6521,6 +6521,84 @@ impl P {
         self.condition_suffix(s)
     }
 
+    /// The words at offsets `n` and `n + 1`, lowercased ("" if not
+    /// words).
+    fn word_pair_at(&self, n: usize) -> (&'static str, &'static str) {
+        const WORDS: [&str; 6] = ["that", "card", "up", "to", "any", "number"];
+        let pick = |w: Option<String>| {
+            w.and_then(|w| WORDS.iter().find(|x| **x == w).copied())
+                .unwrap_or("")
+        };
+        (pick(self.word_at(n)), pick(self.word_at(n + 1)))
+    }
+
+    /// `cast now <card>` / `cast free <card>` (`Effect::CastAmong`).
+    fn cast_among(&mut self) -> R<Effect> {
+        use crate::ast::AmongWords;
+        use mtg_core::card::AmongCost;
+        self.expect_word("cast")?;
+        let mut cost = if self.eat_word("free") {
+            AmongCost::Free
+        } else {
+            self.expect_word("now")?;
+            AmongCost::Paid
+        };
+        let (words, count, filter) = if self.eat_word("it") {
+            (AmongWords::It, None, None)
+        } else if self.eat_words(&["that", "card"]) {
+            (AmongWords::ThatCard, None, None)
+        } else if self.eat_words(&["exiled", "card"]) {
+            (AmongWords::ExiledCard, None, None)
+        } else {
+            let count = if self.eat_words(&["up", "to"]) {
+                let Some(Tok::Num(n)) = self.peek().cloned() else {
+                    return self.unexpected("a number");
+                };
+                self.pos += 1;
+                Some(u8::try_from(n).map_err(|_| ParseError {
+                    line: self.line(),
+                    message: "too many".to_string(),
+                })?)
+            } else {
+                self.expect_words(&["any", "number"])?;
+                None
+            };
+            let filter = if self.at_word("spell") {
+                None
+            } else {
+                Some(self.filter()?)
+            };
+            self.expect_words(&["spell", "from", "among"])?;
+            let words = if self.eat_word("them") {
+                AmongWords::Them
+            } else if self.eat_words(&["those", "cards"]) {
+                AmongWords::Those
+            } else {
+                self.expect_words(&["exiled", "cards"])?;
+                AmongWords::TheExiled
+            };
+            (words, count, filter)
+        };
+        let (mv, below) = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
+            (Some(self.num()?), false)
+        } else if self.eat_words(&["with", "mana", "value", "below"]) {
+            (Some(self.num()?), true)
+        } else {
+            (None, false)
+        };
+        if cost == AmongCost::Paid && self.eat_words(&["by", "discarding"]) {
+            cost = AmongCost::Discard;
+        }
+        Ok(Effect::CastAmong {
+            words,
+            count,
+            filter,
+            mv,
+            below,
+            cost,
+        })
+    }
+
     /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
     /// hand [with mana value up to <n>]`; then `exile instead`.
     fn cast_free(&mut self) -> R<Effect> {
@@ -7898,6 +7976,29 @@ impl P {
             *no_also = true;
             return Ok(e);
         }
+        // `may cast cards exiled this way this turn free`, `may cast those
+        // cards this turn free` (CR 601.3).
+        if self.at_words(&[
+            "may", "cast", "cards", "exiled", "this", "way", "this", "turn",
+        ]) || self.at_words(&["may", "cast", "those", "cards", "this", "turn"])
+        {
+            let those = self.word_at(2).as_deref() == Some("those");
+            self.pos += if those { 6 } else { 8 };
+            let free = self.eat_word("free");
+            return Ok(Effect::MayCastExiled { those, free });
+        }
+        // Casting from among the cards the resolution exiled or revealed
+        // (CR 608.2g): `cast now that card`, `cast free it ...`, `cast
+        // free up to 2 spell from among exiled cards`.
+        if self.at_words(&["cast", "now"])
+            || self.at_words(&["cast", "free"])
+                && (self.word_at(2).as_deref() == Some("it")
+                    || self.word_pair_at(2) == ("that", "card")
+                    || self.word_pair_at(2) == ("up", "to")
+                    || self.word_pair_at(2) == ("any", "number"))
+        {
+            return self.cast_among();
+        }
         // "You may cast ... without paying its mana cost" (CR 608.2g).
         if self.eat_words(&["cast", "free"]) {
             return self.cast_free();
@@ -7925,17 +8026,23 @@ impl P {
             self.expect_words(&["into", "hand"])?;
             // "Put the exiled card into your hand if it wasn't cast this
             // way." (Beseech the Mirror).
-            let not_cast = what == [Recipient::ExiledCard] && self.at_words(&["if", "not", "cast"]);
-            if not_cast {
-                self.pos += 3;
-            }
-            if not_cast || what == [Recipient::ExiledCard] && self.eat_words(&["unless", "cast"]) {
+            let exiled = what == [Recipient::ExiledCard];
+            let words = if !exiled {
+                None
+            } else if self.eat_words(&["if", "not", "cast", "this", "way"]) {
+                Some(crate::ast::CardWords::ExiledIfNotCastThisWay)
+            } else if self.eat_words(&["if", "not", "cast"]) {
+                Some(crate::ast::CardWords::ExiledIfNotCast)
+            } else if self.eat_word("otherwise") {
+                Some(crate::ast::CardWords::ExiledOtherwise)
+            } else if self.eat_words(&["unless", "cast"]) {
+                Some(crate::ast::CardWords::ExiledUnlessCast)
+            } else {
+                None
+            };
+            if let Some(words) = words {
                 return Ok(Effect::PutCard {
-                    what: if not_cast {
-                        crate::ast::CardWords::ExiledIfNotCast
-                    } else {
-                        crate::ast::CardWords::ExiledUnlessCast
-                    },
+                    what: words,
                     to: mtg_core::card::CardDest::Hand,
                     who: None,
                     that_player: false,
@@ -9480,6 +9587,17 @@ impl P {
             "chooses" if !self.at_word("and") && !self.at_word("one") => {
                 self.choose_for(subject, crate::ast::ChooseBy::Each)
             }
+            // "Each opponent exiles cards from the top of their library
+            // until they have exiled cards with total mana value 5 or
+            // greater this way."
+            "exiles" if self.at_words(&["until", "total", "mana", "value"]) => {
+                self.pos += 4;
+                let total = self.num()?;
+                Ok(Effect::ExileUntilTotal {
+                    who: Some(subject),
+                    total,
+                })
+            }
             "exiles" if self.at_word("until") => {
                 self.pos += 1;
                 self.revealed = true;
@@ -9499,6 +9617,7 @@ impl P {
                     count,
                     who: Some(subject),
                     face,
+                    of: false,
                 })
             }
             // `each player exiles library but bottom 6 face down`.
@@ -11003,6 +11122,7 @@ impl P {
             rider.more_opponents = self.eat_word("opponent");
         }
         rider.exile = self.eat_words(&["exile", "instead"]);
+        rider.life = self.eat_words(&["pay", "life"]);
         Ok((rider != crate::ast::Rider::default()).then_some(rider))
     }
 
@@ -11732,6 +11852,11 @@ impl P {
                 if self.chosen_name_ahead() {
                     return self.exile_chosen_name();
                 }
+                // `exile until total mana value 4`.
+                if self.eat_words(&["until", "total", "mana", "value"]) {
+                    let total = self.num()?;
+                    return Ok(Effect::ExileUntilTotal { who: None, total });
+                }
                 // `exile until nonland card`.
                 if self.eat_word("until") {
                     self.revealed = true;
@@ -11750,10 +11875,17 @@ impl P {
                     self.pos += 1;
                     let count = self.num()?;
                     self.cards_word()?;
+                    // `exile top 1 card of each player` (Etali).
+                    let who = if self.eat_word("of") {
+                        Some(self.recipient()?)
+                    } else {
+                        None
+                    };
                     let face = self.exile_face();
                     return Ok(Effect::ExileTop {
                         count,
-                        who: None,
+                        of: who.is_some(),
+                        who,
                         face,
                     });
                 }

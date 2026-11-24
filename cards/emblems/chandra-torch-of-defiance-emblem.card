@@ -1,0 +1,3 @@
+emblem "Chandra, Torch of Defiance emblem" {
+  triggered whenever you cast spell: deal 5 damage to any target
+}

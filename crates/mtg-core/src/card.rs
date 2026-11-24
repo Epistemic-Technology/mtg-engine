@@ -456,6 +456,18 @@ pub enum Builtin {
     Miracle,
 }
 
+/// What `Effect::CastAmong` pays for the spell (CR 118.9).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum AmongCost {
+    /// "without paying its mana cost".
+    #[default]
+    Free,
+    /// Its mana cost and other costs, as usual ("You may cast that card.").
+    Paid,
+    /// "by discarding a card rather than paying its mana cost".
+    Discard,
+}
+
 /// How an exiled card is cast by a built-in trigger.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum ExileCast {
@@ -2742,6 +2754,11 @@ pub struct CastRider {
     /// "If that spell would be put into a graveyard, exile it instead."
     /// (CR 614.1a).
     pub exile: bool,
+    /// "If you cast a spell this way, pay life equal to its mana value
+    /// rather than pay its mana cost." (CR 118.9, 119.4; Inside
+    /// Information): cast `AltCast::PayLife`.
+    #[serde(default)]
+    pub life: bool,
 }
 
 impl CastRider {
@@ -4300,6 +4317,10 @@ pub enum Recipient {
     /// control. They gain trample". The same objects even if they no
     /// longer match the group's filter (CR 608.2c).
     ThoseObjects,
+    /// The cards this resolution exiled, still in exile ("Until end of
+    /// turn, you may cast cards exiled this way without paying their mana
+    /// costs.", "those cards"; `ThisWay::Exiled`).
+    ExiledThisWay,
 }
 
 /// How long a "becomes a copy" effect lasts (CR 611.2b).
@@ -5479,6 +5500,38 @@ pub enum Effect {
     DrawCastOne {
         count: u32,
     },
+    /// Casting from among the cards this resolution just exiled or
+    /// revealed, as the effect finishes (CR 608.2g: timing ignored): "You
+    /// may cast that card.", "You may cast it without paying its mana cost
+    /// if that spell's mana value is 8 or less.", "You may cast up to two
+    /// spells from among the exiled cards without paying their mana
+    /// costs.", "... any number of instant and/or sorcery spells from
+    /// among them ...". With `exiled`, the cards the resolution exiled
+    /// (`ThisWay::Exiled`) still in exile, `count` of them at most (`None`:
+    /// any number), each matching `filter`; without, the resolution's card
+    /// ("that card": `EffectCtx::created`) wherever it is (exile, or the
+    /// top of a library after "look at the top card"). `mv` bounds the
+    /// spell's mana value (at most, or with `below` less than). Sets "if
+    /// you do" to whether one will be cast.
+    CastAmong {
+        exiled: bool,
+        count: Option<u8>,
+        filter: Option<ObjFilter>,
+        mv: Option<Num>,
+        below: bool,
+        cost: AmongCost,
+    },
+    /// "Exile cards from the top of your library until you exile cards
+    /// with total mana value 4 or greater." ("Each opponent exiles cards
+    /// from the top of their library until they have exiled cards with
+    /// total mana value 5 or greater this way."): each recipient player
+    /// exiles from the top until the mana values of the cards they
+    /// exiled add up to `total`, or the library runs out. The last card
+    /// is the resolution's card.
+    ExileUntilTotal {
+        who: Recipient,
+        total: Num,
+    },
     /// "You may cast a spell from your hand with mana value less than or
     /// equal to that damage without paying its mana cost", "you may cast
     /// target instant or sorcery card from your graveyard without paying
@@ -6449,6 +6502,7 @@ impl Effect {
                 | Effect::Venture { .. }
                 | Effect::PunishEach { .. }
                 | Effect::DrawCastOne { .. }
+                | Effect::CastAmong { .. }
                 | Effect::CastFree { .. }
                 | Effect::Hideaway { .. }
                 | Effect::RevealPutCreature { .. }

@@ -1,0 +1,6 @@
+card "Inside Information" {
+  oracle_id 66961bcb-f588-47a7-b3f3-12f4ac674477
+  cost {X}{B}{B}
+  type Sorcery
+  spell: impulse X this turn from target opponent pay life
+}

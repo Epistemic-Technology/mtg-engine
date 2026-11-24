@@ -1,0 +1,7 @@
+card "Planetarium of Wan Shi Tong" {
+  oracle_id f89d093d-c815-4df7-a348-2005aa227586
+  cost {6}
+  type Legendary Artifact
+  activated {1}, {T}: scry 2
+  triggered do once each turn whenever you scry or surveil: look at top card; cast free that card
+}

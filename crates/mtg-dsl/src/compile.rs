@@ -5037,6 +5037,28 @@ impl Compiler<'_> {
                 kind: *kind,
                 count: *count,
             }),
+            Effect::ExileUntilTotal { who, total } => out.push(CoreEffect::ExileUntilTotal {
+                who: who.map_or(CoreRecipient::You, r),
+                total: *total,
+            }),
+            Effect::CastAmong {
+                words,
+                count,
+                filter,
+                mv,
+                below,
+                cost,
+            } => {
+                let filter = filter.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::CastAmong {
+                    exiled: words.many(),
+                    count: *count,
+                    filter,
+                    mv: *mv,
+                    below: *below,
+                    cost: *cost,
+                });
+            }
             Effect::ExileUntilCard { who, filter } => out.push(CoreEffect::ExileUntilCard {
                 who: who.map_or(CoreRecipient::You, r),
                 filter: self.filter(filter),
@@ -5058,6 +5080,16 @@ impl Compiler<'_> {
                 rider: core_rider(rider.as_ref()),
                 owner: *owner,
                 more_opponents: rider.is_some_and(|r| r.more_opponents),
+            }),
+            Effect::MayCastExiled { free, .. } => out.push(CoreEffect::MayPlayCard {
+                until: mtg_core::card::PlayUntil::ThisTurn,
+                cast: true,
+                free: *free,
+                what: Some(CoreRecipient::ExiledThisWay),
+                adventure: false,
+                rider: mtg_core::card::CastRider::default(),
+                owner: false,
+                more_opponents: false,
             }),
             Effect::MayPlayTarget {
                 what,
@@ -5156,9 +5188,10 @@ impl Compiler<'_> {
                             CardSet::Revealed
                         }
                         CardWords::OtherRevealed => CardSet::OtherRevealed,
-                        CardWords::ExiledUnlessCast | CardWords::ExiledIfNotCast => {
-                            CardSet::ItUnlessCast
-                        }
+                        CardWords::ExiledUnlessCast
+                        | CardWords::ExiledIfNotCast
+                        | CardWords::ExiledOtherwise
+                        | CardWords::ExiledIfNotCastThisWay => CardSet::ItUnlessCast,
                     },
                     to: *to,
                     random: *random,
@@ -5173,7 +5206,9 @@ impl Compiler<'_> {
                     });
                 }
             }
-            Effect::ExileTop { count, who, face } => out.push(CoreEffect::ExileTop {
+            Effect::ExileTop {
+                count, who, face, ..
+            } => out.push(CoreEffect::ExileTop {
                 who: who.map_or(CoreRecipient::You, r),
                 count: *count,
                 face: *face,
@@ -9116,6 +9151,7 @@ fn core_rider(rider: Option<&crate::ast::Rider>) -> mtg_core::card::CastRider {
             spend: r.spend,
             more: r.more,
             exile: r.exile,
+            life: r.life,
         }
     })
 }

@@ -476,6 +476,10 @@ pub enum AltCast {
     /// value rather than its mana cost (Bolas's Citadel, Gwenom; CR 118.9,
     /// 119.4): X is 0.
     PayLife,
+    /// Cast from exile by an effect "by discarding a card rather than
+    /// paying its mana cost" (The Infamous Cruelclaw; CR 118.9): X is 0,
+    /// and a card is discarded as a cost.
+    DiscardCost,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
