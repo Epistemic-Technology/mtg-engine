@@ -71,6 +71,7 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
                     | TurnEvent::DamageSource
                     | TurnEvent::LoyaltyActivated
                     | TurnEvent::LegendaryCombatDamaged
+                    | TurnEvent::LibraryToGraveyard
             )
             || (count.kind, count.who) == (TurnEvent::Attacked, TurnWho::Anyone))
     {
@@ -137,7 +138,8 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
             | TurnEvent::CreatureCardToGraveyard
             | TurnEvent::DamageSource
             | TurnEvent::LoyaltyActivated
-            | TurnEvent::LegendaryCombatDamaged,
+            | TurnEvent::LegendaryCombatDamaged
+            | TurnEvent::LibraryToGraveyard,
             ..,
         ) => unreachable!("worded as a tally"),
     }
@@ -329,6 +331,9 @@ impl Decompiler<'_> {
             C::CountersAmong(k, f) => A::CountersAmong(*k, self.filter(f)),
             C::CounterKindsAmong(f) => A::CounterKindsAmong(self.filter(f)),
             C::SharingCreatureType(f) => A::SharingCreatureType(self.filter(f)),
+            C::Happened(t) if *t == TurnCount::of(TurnEvent::Drew, TurnWho::You) => {
+                A::CardsDrawnThisTurn
+            }
             _ => A::Domain,
         }
     }
@@ -882,9 +887,18 @@ impl Decompiler<'_> {
                 Some(f) => match count.kind {
                     TurnEvent::Attacked if *n == 1 => StaticCond::AttackedWith(self.filter(f)),
                     TurnEvent::Attacked => StaticCond::AttackedWithAtLeast(self.filter(f), *n),
+                    TurnEvent::Entered if *n != 1 => StaticCond::EnteredAtLeast {
+                        filter: self.filter(f),
+                        n: *n,
+                    },
                     TurnEvent::Entered => StaticCond::EnteredWith {
                         filter: self.filter(f),
                         had: false,
+                    },
+                    TurnEvent::Sacrificed => StaticCond::SacrificedWith {
+                        filter: self.filter(f),
+                        n: (*n != 1).then_some(*n),
+                        have: false,
                     },
                     _ => StaticCond::CastThisTurn {
                         filter: unowned(f),

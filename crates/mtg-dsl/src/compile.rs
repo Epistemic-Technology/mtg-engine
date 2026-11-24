@@ -2586,6 +2586,9 @@ impl Compiler<'_> {
             StaticCond::EnteredWith { filter, .. } => {
                 listed(TurnEvent::Entered, self.filter(filter), 1, false)
             }
+            StaticCond::EnteredAtLeast { filter, n } => {
+                listed(TurnEvent::Entered, self.filter(filter), *n, false)
+            }
             StaticCond::AttackedBattleThisTurn => StaticCondition::SourceAttackedBattle,
             StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
             StaticCond::CreatureDiedThisTurn => {
@@ -2893,6 +2896,13 @@ impl Compiler<'_> {
             StaticCond::SacrificedThisTurn(t) => {
                 of_types(TurnEvent::Sacrificed, TypeSet::of(t.iter().copied()))
             }
+            // Judged on the permanents as they last existed.
+            StaticCond::SacrificedWith { filter, n, .. } => listed(
+                TurnEvent::Sacrificed,
+                self.filter(filter),
+                n.unwrap_or(1),
+                false,
+            ),
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
             StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
@@ -3017,7 +3027,7 @@ impl Compiler<'_> {
                 ..TurnCount::of(TurnEvent::Died, TurnWho::Anyone)
             }),
             A::GreatestPowerInGraveyard(f) => C::GreatestPowerInGraveyard(self.filter(f)),
-            A::TriggerStat { stat, .. } => C::TriggerStat(*stat),
+            A::TriggerStat { stat, .. } | A::DiedStat(stat) => C::TriggerStat(*stat),
             A::AttachedStat(stat) => C::AttachedStat(*stat),
             A::MovedStat { verb, stat, .. } => C::MovedStat {
                 verb: *verb,
@@ -3046,6 +3056,35 @@ impl Compiler<'_> {
             A::SacrificedThisTurn => {
                 C::Happened(TurnCount::of(TurnEvent::Sacrificed, TurnWho::You))
             }
+            A::DifferentManaValues { filter, graveyard } => C::DifferentManaValues {
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                graveyard: *graveyard,
+            },
+            // The triggering player's spells, as they were cast.
+            A::TheyCast(f) => C::HappenedTo {
+                count: TurnCount {
+                    filter: Some(Box::new(self.filter(f))),
+                    ..TurnCount::of(TurnEvent::Cast, TurnWho::You)
+                },
+                target: None,
+            },
+            A::TargetMilled(n) => C::HappenedTo {
+                count: TurnCount::of(TurnEvent::LibraryToGraveyard, TurnWho::You),
+                target: Some(target_index(self.tmap, *n)),
+            },
+            // "Other" than the triggering permanent, which entered under
+            // your control this turn too.
+            A::EnteredCount { filter, other } => {
+                let n = C::Happened(TurnCount {
+                    filter: Some(Box::new(self.filter(filter))),
+                    ..TurnCount::of(TurnEvent::Entered, TurnWho::You)
+                });
+                if *other { C::Less(1, Box::new(n)) } else { n }
+            }
+            A::SpellsCastButFirst => C::Less(
+                1,
+                Box::new(C::Happened(TurnCount::of(TurnEvent::Cast, TurnWho::You))),
+            ),
             A::TwoToX => C::TwoToX,
             // Every attacker declared this turn, by any player.
             A::AttackedThisTurn => C::Happened(TurnCount::of(TurnEvent::Attacked, TurnWho::Anyone)),

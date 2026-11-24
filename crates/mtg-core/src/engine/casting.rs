@@ -969,6 +969,54 @@ impl GameState {
             CountExpr::Difference(k, inner) => {
                 return k.saturating_sub(self.eval_count(inner, ctx));
             }
+            CountExpr::Less(k, inner) => return self.eval_count(inner, ctx).saturating_sub(*k),
+            // A turn count of the target player's or the triggering
+            // player's events, judged as if they controlled the ability.
+            CountExpr::HappenedTo { count, target } => {
+                let p = match target {
+                    Some(n) => match ctx.targets.get(*n) {
+                        Some(Target::Player(p)) => Some(*p),
+                        _ => None,
+                    },
+                    None => ctx.trigger_player,
+                };
+                return p.map_or(0, |p| self.turn_count(count, p, ctx.source));
+            }
+            CountExpr::DifferentManaValues { filter, graveyard } => {
+                let f = filter.as_ref().map(|f| self.chosen_filter(f, ctx));
+                let f = f.as_deref();
+                let mut v: SmallVec<[u32; 16]> = if *graveyard {
+                    self.player(you)
+                        .graveyard
+                        .iter()
+                        .filter_map(|id| {
+                            let o = &self.objects[*id];
+                            let c = self.base_characteristics(o);
+                            f.is_none_or(|f| {
+                                f.matches(*id, o.owner, &c, None, Some(you))
+                                    && self.status_ok(f, *id)
+                            })
+                            .then(|| self.pool.get(c.def).mana_cost.mana_value())
+                        })
+                        .collect()
+                } else {
+                    self.battlefield
+                        .iter()
+                        .filter_map(|id| {
+                            let o = &self.objects[*id];
+                            let c = self.characteristics(*id)?;
+                            f.is_none_or(|f| {
+                                f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                                    && self.status_ok(f, *id)
+                            })
+                            .then(|| self.pool.get(c.def).mana_cost.mana_value())
+                        })
+                        .collect()
+                };
+                v.sort_unstable();
+                v.dedup();
+                v.len()
+            }
             CountExpr::CardsInGraveyard(f) => {
                 let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
                 self.graveyard_count(std::slice::from_ref(&you), f.as_deref(), you)

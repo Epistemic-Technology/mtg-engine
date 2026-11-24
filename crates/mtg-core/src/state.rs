@@ -2274,6 +2274,10 @@ pub struct GameState {
     /// were, their controller, and their characteristics, for "for each
     /// Zubera that died this turn". Empty, unallocated, on most turns.
     pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
+    /// The permanents sacrificed this turn as they last existed, with the
+    /// player who sacrificed them, for "if you've sacrificed a Food this
+    /// turn" (CR 701.21). Empty, unallocated, on most turns.
+    pub sacrificed_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
     /// The players who dealt combat damage to a player this turn with a
     /// creature of each prowl card's creature types (CR 702.76a), kept
     /// only with a prowl card in the pool.
@@ -2735,6 +2739,11 @@ impl GameState {
                 .filter(|(id, controller, ch)| {
                     whose(*controller) && f.matches(*id, *controller, ch, None, Some(you))
                 })
+                .count(),
+            TurnEvent::Sacrificed => self
+                .sacrificed_this_turn
+                .iter()
+                .filter(|(id, who, ch)| whose(*who) && f.matches(*id, *who, ch, None, Some(you)))
                 .count(),
             TurnEvent::Cast => {
                 // "a spell with mana value 4 or greater": the mana value

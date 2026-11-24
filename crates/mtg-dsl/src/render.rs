@@ -216,6 +216,10 @@ fn tally_nouns(t: crate::ast::Tally) -> (&'static str, &'static str) {
             "opponent who was dealt combat damage by a legendary creature this turn",
             "opponents who were dealt combat damage by a legendary creature this turn",
         ),
+        Tally::LibraryToGraveyard => (
+            "card that was put into your graveyard from your library this turn",
+            "cards that were put into your graveyard from your library this turn",
+        ),
     }
 }
 
@@ -250,6 +254,9 @@ fn tally_cond(t: crate::ast::Tally, n: u32) -> String {
         Tally::LegendaryCombatDamaged => format!(
             "an opponent was dealt combat damage by a legendary creature {k} times this turn"
         ),
+        Tally::LibraryToGraveyard => {
+            format!("{k} cards were put into your graveyard from your library this turn")
+        }
     }
 }
 
@@ -6062,6 +6069,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             return format!("{whose} {}", stat_word(*stat));
         }
         CountExpr::AttachedStat(stat) => return format!("its {}", stat_word(*stat)),
+        CountExpr::DiedStat(stat) => {
+            return format!("the {} of the creature that died", stat_word(*stat));
+        }
         // "the sacrificed creature's toughness", "that creature's
         // toughness".
         CountExpr::MovedStat {
@@ -6398,6 +6408,56 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 format!("cards in target {who}'s hand"),
             )
         }
+        // "for each different mana value among nonland permanents you
+        // control", "the number of different mana values among cards in
+        // your graveyard".
+        CountExpr::DifferentManaValues { filter, graveyard } => {
+            let among = match (filter, graveyard) {
+                (None, true) => "cards in your graveyard".to_string(),
+                (Some(f), true) => format!("{} in your graveyard", cards_phrase(f, card, true)),
+                (f, false) => f.as_ref().map_or_else(
+                    || "permanents".to_string(),
+                    |f| filter_phrase(f, card, true),
+                ),
+            };
+            (
+                format!("different mana value among {among}"),
+                format!("different mana values among {among}"),
+            )
+        }
+        // "the number of noncreature spells they've cast this turn".
+        CountExpr::TheyCast(f) => {
+            let noun = card_filter_phrase(f, card);
+            (
+                format!("{} they've cast this turn", spell_noun(&noun)),
+                format!("{} they've cast this turn", spell_noun_plural(&noun)),
+            )
+        }
+        CountExpr::TargetMilled(_) => (
+            "card that was put into target player's graveyard from their library this turn"
+                .to_string(),
+            "cards that were put into target player's graveyard from their library this turn"
+                .to_string(),
+        ),
+        // "the number of Goblins that entered the battlefield under your
+        // control this turn", "for each other Zombie that entered ...".
+        CountExpr::EnteredCount { filter: f, other } => {
+            let other = if *other { "other " } else { "" };
+            (
+                format!(
+                    "{other}{} that entered the battlefield under your control this turn",
+                    filter_phrase(f, card, false)
+                ),
+                format!(
+                    "{other}{} that entered the battlefield under your control this turn",
+                    filter_phrase(f, card, true)
+                ),
+            )
+        }
+        CountExpr::SpellsCastButFirst => (
+            "spell you've cast this turn other than the first".to_string(),
+            "spells you've cast this turn other than the first".to_string(),
+        ),
     };
     if each {
         format!("for each {one}")
@@ -6797,6 +6857,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "then draw that many cards"; `count that many plus 1
             // discarded this way`: "then draw that many cards plus one".
             CountStyle::ThatMany => {
+                // "deals that much damage" (Sawblade Skinripper): damage is
+                // an amount, not a number of things.
+                if c.text.contains("X damage") {
+                    c.text = c.text.replacen("X damage", "that much damage", 1);
+                }
                 c.text = c.text.replacen("X ", "that many ", 1);
                 if let crate::ast::CountExpr::Plus { n, .. } = &count.expr {
                     let _ = write!(c.text, " plus {}", count_words(Num::N(*n), "one"));
@@ -19765,6 +19830,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you had {} enter the battlefield under your control this turn",
             filter_a(f, card)
         ),
+        StaticCond::EnteredAtLeast { filter: f, n } => format!(
+            "{} {} entered the battlefield under your control this turn",
+            or_more(*n),
+            filter_phrase(f, card, true)
+        ),
         StaticCond::UnlockedDoors(n) => format!(
             "there are {} or more unlocked doors among Rooms you control",
             count_words(Num::N(*n), "one")
@@ -20220,6 +20290,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 "you've sacrificed {} this turn",
                 with_article(&names.join(" or "))
             )
+        }
+        // "you've sacrificed a Food this turn", "you sacrificed three or
+        // more Clues this turn".
+        StaticCond::SacrificedWith { filter, n, have } => {
+            let you = if *have { "you've" } else { "you" };
+            let what = match n {
+                None => with_article(&card_filter_phrase(filter, card)),
+                Some(n) => format!("{} {}", or_more(*n), filter_phrase(filter, card, true)),
+            };
+            format!("{you} sacrificed {what} this turn")
         }
         StaticCond::CardToGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
