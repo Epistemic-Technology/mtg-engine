@@ -2068,7 +2068,8 @@ impl GameState {
                 if let Some(half) = half {
                     let cost = self.pool.get(half).mana_cost.clone();
                     let sources = self.special_sources(player, &cost, true);
-                    self.pay_from(player, &cost.requirements(0), &sources, None);
+                    let req = self.unlock_cost(player, &cost);
+                    self.pay_from(player, &req, &sources, None);
                     self.unlock(obj, door);
                 }
                 self.give_priority(player);

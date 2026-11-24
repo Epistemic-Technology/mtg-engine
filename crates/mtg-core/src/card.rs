@@ -5962,6 +5962,34 @@ pub enum Effect {
     BecomePrepared {
         what: Recipient,
     },
+    /// "It becomes plotted." after the recipient card was exiled (CR
+    /// 702.170a, c): a card in exile, followed through its zone change,
+    /// becomes plotted; its owner may cast it free as a sorcery on a later
+    /// turn ("exile target spell. It becomes plotted.", "you may exile a
+    /// nonland card ... from your hand. If you do, it becomes plotted.").
+    BecomePlotted {
+        what: Recipient,
+    },
+    /// "exile that spell instead of putting it into your graveyard as it
+    /// resolves. If you do, it becomes plotted." (Lilah, Undefeated
+    /// Slickshot): marks the recipient spell (`OBJ_PLOT_ON_RESOLVE`); as
+    /// it resolves it is exiled and plotted instead of going to the
+    /// graveyard (CR 608.2n).
+    PlotOnResolve {
+        what: Recipient,
+    },
+    /// A Room's doors as an effect (CR 709.5): "unlock a locked door of
+    /// up to one target Room you control", "unlock a locked door of a Room
+    /// you control" (`own`: any Room its controller controls, `what`
+    /// unused), "lock or unlock a door of target Room you control"
+    /// (`lock`). The controller picks the Room and the door as it
+    /// resolves (CR 608.2d); an unlocked door unlocks as by the special
+    /// action, without paying its cost (CR 709.5f).
+    Door {
+        what: Recipient,
+        own: bool,
+        lock: bool,
+    },
     /// Monstrosity N (CR 701.37a): if the source isn't monstrous, N +1/+1
     /// counters on it and it becomes monstrous.
     Monstrosity(Num),
@@ -6380,6 +6408,7 @@ impl Effect {
                 | Effect::DigSplit { .. }
                 | Effect::Piles { .. }
                 | Effect::ManifestDread
+                | Effect::Door { .. }
                 | Effect::Champion(_)
                 | Effect::Blight(_)
                 | Effect::BlightBy { .. }
@@ -6794,6 +6823,9 @@ pub enum PlayerStaticKind {
     /// controller may play land cards from their graveyard, using their
     /// land plays.
     LandsFromGraveyard,
+    /// "Unlock costs you pay cost {1} less." (CR 709.5e, 601.2f): the
+    /// generic mana of the controller's unlock costs is reduced by `by`.
+    UnlockCost { by: u8 },
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
     /// "You can't lose the game and your opponents can't win the game."
@@ -7729,7 +7761,14 @@ pub enum TriggerSpec {
     DealsDamageTo { what: TriggerObj, filter: ObjFilter },
     /// "Whenever you cast an artifact spell", "a multicolored spell", "a
     /// Spirit or Arcane spell": the spell matches the filter.
-    CastsFiltered { whose: Who, filter: ObjFilter },
+    CastsFiltered {
+        whose: Who,
+        filter: ObjFilter,
+        /// "... spell from your hand" (Lilah, Undefeated Slickshot): only
+        /// a spell cast from there.
+        #[serde(default)]
+        from: SpellFrom,
+    },
     /// "When this creature is turned face up", "Whenever a permanent is
     /// turned face up" (CR 708.8), the permanent judged face up.
     TurnedFaceUp(TriggerObj),
@@ -9151,6 +9190,8 @@ pub enum SpellFrom {
     Exile,
     /// "from anywhere other than your hand".
     NotHand,
+    /// "from graveyards or from exile" (Aven Interrupter).
+    GraveyardOrExile,
 }
 
 impl SpellFrom {
@@ -9163,6 +9204,7 @@ impl SpellFrom {
             SpellFrom::Graveyard => zone == Some(Zone::Graveyard),
             SpellFrom::Exile => zone == Some(Zone::Exile),
             SpellFrom::NotHand => zone.is_some_and(|z| z != Zone::Hand),
+            SpellFrom::GraveyardOrExile => matches!(zone, Some(Zone::Graveyard | Zone::Exile)),
         }
     }
 }

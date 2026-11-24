@@ -6776,6 +6776,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "connives".to_string())
         }
+        // "It becomes plotted.": always the card just exiled.
+        Effect::BecomePlotted { what } => {
+            Clause::with_subject(*what, "it".to_string(), "becomes plotted".to_string())
+        }
+        Effect::Door { own: true, .. } => {
+            Clause::imperative("unlock a locked door of a Room you control".to_string())
+        }
+        Effect::Door { what, lock, .. } => {
+            let s = ctx.obj(*what);
+            Clause::imperative(format!(
+                "{} {s}",
+                if *lock {
+                    "lock or unlock a door of"
+                } else {
+                    "unlock a locked door of"
+                }
+            ))
+        }
+        Effect::PlotOnResolve { what } => {
+            let s = if *what == Recipient::TriggeringObject {
+                "that spell".to_string()
+            } else {
+                ctx.obj(*what)
+            };
+            Clause::imperative(format!(
+                "exile {s} instead of putting it into your graveyard as it resolves. If you do, it becomes plotted"
+            ))
+        }
         Effect::BecomePrepared { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "becomes prepared".to_string())
@@ -14145,7 +14173,23 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 mtg_core::card::DamageTo::Opponent => " to an opponent",
             }
         ),
-        Trigger::CastsFiltered { whose, filter } => {
+        Trigger::CastsFiltered {
+            whose,
+            filter,
+            from,
+        } if *from != mtg_core::card::SpellFrom::Anywhere => {
+            let base = trigger_text(
+                &Trigger::CastsFiltered {
+                    whose: *whose,
+                    filter: filter.clone(),
+                    from: mtg_core::card::SpellFrom::Anywhere,
+                },
+                ctx,
+                next,
+            );
+            format!("{base}{}", spell_from_text(*from))
+        }
+        Trigger::CastsFiltered { whose, filter, .. } => {
             let who = match whose {
                 Who::You => "you cast",
                 Who::Opponents => "an opponent casts",
@@ -19968,6 +20012,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     }
                 ),
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::UnlockCost { by } => format!("unlock costs you pay cost {{{by}}} less"),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {
@@ -21223,5 +21268,6 @@ fn spell_from_text(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Graveyard => " from your graveyard",
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from anywhere other than your hand",
+        SpellFrom::GraveyardOrExile => " from graveyards or from exile",
     }
 }

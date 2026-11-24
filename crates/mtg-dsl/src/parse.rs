@@ -2618,6 +2618,13 @@ impl P {
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
             }
             // Chosen-name bans (CR 201.3): Meddling Mage, Pithing Needle.
+            // "Unlock costs you pay cost {1} less." (CR 709.5e).
+            "unlock" if self.at_words(&["unlock", "costs", "you", "pay", "cost"]) => {
+                self.pos += 5;
+                let by = u8::try_from(self.mana_cost()?.mana_value()).unwrap_or(u8::MAX);
+                self.expect_word("less")?;
+                self.player_static(mtg_core::card::PlayerStaticKind::UnlockCost { by })
+            }
             "you"
                 if self.at_words(&["you", "may", "play", "lands", "from", "your", "graveyard"]) =>
             {
@@ -4662,6 +4669,10 @@ impl P {
         // storm", "Spells you cast from your graveyard cost {2} less".
         let from = if whose == Who::You {
             self.spell_from()
+        } else if self.eat_words(&["from", "graveyards", "or", "exile"]) {
+            // "Spells your opponents cast from graveyards or from exile
+            // cost {2} more to cast." (Aven Interrupter).
+            mtg_core::card::SpellFrom::GraveyardOrExile
         } else {
             mtg_core::card::SpellFrom::Anywhere
         };
@@ -4707,6 +4718,8 @@ impl P {
             SpellFrom::Exile
         } else if self.eat_words(&["from", "other", "than", "hand"]) {
             SpellFrom::NotHand
+        } else if self.eat_words(&["from", "graveyards", "or", "exile"]) {
+            SpellFrom::GraveyardOrExile
         } else {
             SpellFrom::Anywhere
         }
@@ -9853,6 +9866,10 @@ impl P {
                 Ok(Effect::PhaseOut { what: subject })
             }
             "connives" => Ok(Effect::Connive { what: subject }),
+            "becomes" if self.at_word("plotted") => {
+                self.pos += 1;
+                Ok(Effect::BecomePlotted { what: subject })
+            }
             "becomes" if self.at_word("prepared") => {
                 self.pos += 1;
                 Ok(Effect::BecomePrepared { what: subject })
@@ -10977,6 +10994,36 @@ impl P {
         }
         let w = self.word()?;
         match w.as_str() {
+            // "exile that spell instead of putting it into your graveyard
+            // as it resolves. If you do, it becomes plotted."
+            // "Unlock a locked door of up to one target Room you control.",
+            // "unlock a locked door of a Room you control", "Lock or
+            // unlock a door of target Room you control." (CR 709.5).
+            "unlock" | "lock"
+                if self.at_words(&["a", "locked", "door", "of"])
+                    || self.at_words(&["or", "unlock", "a", "door", "of"]) =>
+            {
+                let lock = w == "lock";
+                self.pos += if lock { 5 } else { 4 };
+                if !lock && self.eat_words(&["a", "Room", "you", "control"]) {
+                    return Ok(Effect::Door {
+                        what: Recipient::You,
+                        own: true,
+                        lock,
+                    });
+                }
+                let what = self.recipient()?;
+                Ok(Effect::Door {
+                    what,
+                    own: false,
+                    lock,
+                })
+            }
+            "plot" => {
+                let what = self.recipient()?;
+                self.expect_words(&["as", "it", "resolves"])?;
+                Ok(Effect::PlotOnResolve { what })
+            }
             // "Choose a creature type." as the effect resolves.
             "choose"
                 if matches!(
@@ -17522,7 +17569,11 @@ impl P {
                     targeting: self.spell_targeting()?,
                     ..Filter::default()
                 };
-                return Ok(Trigger::CastsFiltered { whose, filter });
+                return Ok(Trigger::CastsFiltered {
+                    whose,
+                    filter,
+                    from: mtg_core::card::SpellFrom::Anywhere,
+                });
             }
             // Repartee: "an instant or sorcery spell that targets a
             // creature" is a filter with targets.
@@ -17538,7 +17589,18 @@ impl P {
                 let mut filter = self.filter()?;
                 self.expect_word("spell")?;
                 filter.targeting = self.spell_targeting()?;
-                return Ok(Trigger::CastsFiltered { whose, filter });
+                // "... spell from your hand" (Lilah, Undefeated Slickshot).
+                let from =
+                    if filter.targeting.is_none() && self.eat_words(&["from", "your", "hand"]) {
+                        mtg_core::card::SpellFrom::Hand
+                    } else {
+                        mtg_core::card::SpellFrom::Anywhere
+                    };
+                return Ok(Trigger::CastsFiltered {
+                    whose,
+                    filter,
+                    from,
+                });
             }
             let noncreature = self.eat_word("noncreature");
             let instant_or_sorcery = self.eat_words(&["instant", "or", "sorcery"]);

@@ -2208,6 +2208,29 @@ impl GameState {
         self.emit(Event::StageChanged { obj: id, stage });
     }
 
+    /// Lock a Room's unlocked door ("Lock or unlock a door of target
+    /// Room you control", CR 709.5): the permanent takes the definition of
+    /// its remaining unlocked doors. Nothing triggers.
+    pub(super) fn lock(&mut self, id: ObjId, door: u8) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        let Some(doors) = self.pool.get(o.def).doors.as_deref().copied() else {
+            return;
+        };
+        let mut unlocked = doors.unlocked(o.def);
+        if !unlocked[usize::from(door)] {
+            return;
+        }
+        unlocked[usize::from(door)] = false;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, false, false);
+        self.objects[id].def = doors.def_for(unlocked);
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, false, true);
+        self.cbump();
+    }
+
     pub(super) fn unlock(&mut self, id: ObjId, door: u8) {
         let Some(o) = self.objects.get(id) else {
             return;

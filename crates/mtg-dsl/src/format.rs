@@ -1018,6 +1018,24 @@ impl Fmt {
                 unreachable!("only in expansions")
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
+            Effect::BecomePlotted { what } => {
+                format!("{} becomes plotted", self.recipient(*what, t))
+            }
+            Effect::Door { own: true, .. } => {
+                "unlock a locked door of a Room you control".to_string()
+            }
+            Effect::Door { what, lock, .. } => format!(
+                "{} {}",
+                if *lock {
+                    "lock or unlock a door of"
+                } else {
+                    "unlock a locked door of"
+                },
+                self.recipient(*what, t)
+            ),
+            Effect::PlotOnResolve { what } => {
+                format!("plot {} as it resolves", self.recipient(*what, t))
+            }
             Effect::BecomePrepared { what } => {
                 format!("{} becomes prepared", self.recipient(*what, t))
             }
@@ -5801,7 +5819,29 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 mtg_core::card::DamageTo::Opponent => " to opponent",
             }
         ),
-        Trigger::CastsFiltered { whose, filter: f } => {
+        Trigger::CastsFiltered {
+            whose,
+            filter: f,
+            from,
+        } if *from != mtg_core::card::SpellFrom::Anywhere => format!(
+            "{}{}",
+            trigger_text_one(
+                &Trigger::CastsFiltered {
+                    whose: *whose,
+                    filter: f.clone(),
+                    from: mtg_core::card::SpellFrom::Anywhere,
+                },
+                next
+            ),
+            if *from == mtg_core::card::SpellFrom::Hand {
+                " from your hand"
+            } else {
+                ""
+            }
+        ),
+        Trigger::CastsFiltered {
+            whose, filter: f, ..
+        } => {
             let mut g = f.clone();
             let t = g.targeting.take();
             let base = filter(&g);
@@ -8503,6 +8543,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "first equip free during your turns".to_string()
                 }
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::UnlockCost { by } => format!("unlock costs you pay cost {{{by}}} less"),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {
@@ -8815,5 +8856,6 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Graveyard => " from graveyard",
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from other than hand",
+        SpellFrom::GraveyardOrExile => " from graveyards or exile",
     }
 }

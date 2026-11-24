@@ -1564,12 +1564,21 @@ impl GameState {
                 .then_some((Some(*o), Some(obj.controller)))
             }
             (
-                TriggerSpec::CastsFiltered { whose, filter },
+                TriggerSpec::CastsFiltered {
+                    whose,
+                    filter,
+                    from,
+                },
                 Event::Cast {
                     player, spell, def, ..
                 },
             ) => {
                 if !whose_ok(*whose, *player) {
+                    return None;
+                }
+                if *from != crate::card::SpellFrom::Anywhere
+                    && !from.allows(self.objects.get(*spell).and_then(|o| o.cast.cast_from()))
+                {
                     return None;
                 }
                 let c = self

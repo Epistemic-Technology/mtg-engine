@@ -1979,6 +1979,13 @@ impl Decompiler<'_> {
             },
             CoreEffect::CumulativeUpkeep(c) => Effect::CumulativeUpkeep(c.clone()),
             CoreEffect::BecomePrepared { what } => Effect::BecomePrepared { what: r(*what) },
+            CoreEffect::BecomePlotted { what } => Effect::BecomePlotted { what: r(*what) },
+            CoreEffect::PlotOnResolve { what } => Effect::PlotOnResolve { what: r(*what) },
+            CoreEffect::Door { what, own, lock } => Effect::Door {
+                what: r(*what),
+                own: *own,
+                lock: *lock,
+            },
             CoreEffect::BecomeSaddledTarget { what } => {
                 Effect::BecomeSaddledTarget { what: r(*what) }
             }
@@ -2499,9 +2506,14 @@ impl Decompiler<'_> {
                 obj: self.trigger_obj(what),
                 filter: Box::new(self.filter(filter)),
             },
-            TriggerSpec::CastsFiltered { whose, filter } => Trigger::CastsFiltered {
+            TriggerSpec::CastsFiltered {
+                whose,
+                filter,
+                from,
+            } => Trigger::CastsFiltered {
                 whose: *whose,
                 filter: self.filter(filter),
+                from: *from,
             },
             TriggerSpec::BlockedBy(f) => {
                 Trigger::BecomesBlocked(TriggerObj::Filter(self.filter(f)))

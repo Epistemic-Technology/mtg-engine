@@ -2136,6 +2136,19 @@ impl GameState {
                 who: crate::card::Recipient::You,
                 ..
             } => !self.player(ctx.controller).hand.is_empty(),
+            // "or unlock a locked door of a Room you control".
+            Effect::Door {
+                own: true,
+                lock: false,
+                ..
+            } => self.permanents_of(ctx.controller).any(|id| {
+                let def = self.objects[id].def;
+                self.pool
+                    .get(def)
+                    .doors
+                    .as_deref()
+                    .is_some_and(|d| d.unlocked(def).contains(&false))
+            }),
             _ => true,
         }
     }
@@ -2863,7 +2876,7 @@ impl GameState {
                 let cost = &self.pool.get(doors.half(door)).mana_cost;
                 let ways =
                     crate::card::SpendWays::of_cost(cost).with(crate::card::SpendWays::UNLOCK);
-                if self.payable_for(p, sources, &cost.requirements(0), Spend::Special(ways)) {
+                if self.payable_for(p, sources, &self.unlock_cost(p, cost), Spend::Special(ways)) {
                     options.push(Choice::Unlock { obj: id, door });
                 }
             }
@@ -7628,6 +7641,75 @@ impl GameState {
     /// may cast it free as a sorcery from a later turn on. The exiled card.
     pub(super) fn plot(&mut self, card: ObjId) -> ObjId {
         let new = self.move_object(card, Zone::Exile, true);
+        self.mark_plotted(new);
+        new
+    }
+
+    /// "Unlock a locked door of target Room you control", "... of a Room
+    /// you control" (`own`), "Lock or unlock a door of target Room you
+    /// control" (`lock`), CR 709.5: the controller picks the Room and the
+    /// door as it resolves (CR 608.2d), each pair offered as a
+    /// `Choice::Unlock` (for `lock`, the door to lock or unlock).
+    fn door_effect(&mut self, ctx: &EffectCtx, what: Recipient, own: bool, lock: bool) {
+        let rooms: Vec<ObjId> = if own {
+            self.permanents_of(ctx.controller).collect()
+        } else {
+            self.recipients(ctx, what)
+                .into_iter()
+                .filter_map(|t| match t {
+                    Target::Object(id) => self
+                        .objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                        .then_some(id),
+                    Target::Player(_) => None,
+                })
+                .collect()
+        };
+        let mut options: Vec<Choice> = Vec::new();
+        for id in rooms {
+            let def = self.objects[id].def;
+            let Some(doors) = self.pool.get(def).doors.as_deref() else {
+                continue;
+            };
+            let unlocked = doors.unlocked(def);
+            for door in 0..2u8 {
+                if lock || !unlocked[usize::from(door)] {
+                    options.push(Choice::Unlock { obj: id, door });
+                }
+            }
+        }
+        let k = match options.len() {
+            0 => return,
+            1 => 0,
+            _ => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                self.choose_mid(
+                    ctx.controller,
+                    DecisionKind::ChooseOption { def },
+                    options.clone(),
+                )
+            }
+        };
+        let Choice::Unlock { obj, door } = options[k] else {
+            return;
+        };
+        let def = self.objects[obj].def;
+        let unlocked = self.pool.get(def).doors.as_deref().map(|d| d.unlocked(def));
+        if unlocked.is_some_and(|u| u[usize::from(door)]) {
+            self.lock(obj, door);
+        } else {
+            self.unlock(obj, door);
+        }
+    }
+
+    /// A card in exile becomes plotted (CR 702.170a, c).
+    fn mark_plotted(&mut self, new: ObjId) {
         self.objects[new].alt = AltCast::Plotted;
         let owner = self.objects[new].owner;
         self.player_mut(owner).adventures_in_exile += 1;
@@ -7645,7 +7727,6 @@ impl GameState {
                 self.queue_builtin(owner, *a, new, def);
             }
         }
-        new
     }
 
     /// The sources `p` may tap to unlock a door (`unlock`) or turn a
@@ -9209,6 +9290,10 @@ impl GameState {
             } else if obj.cast.bought_back() && !obj.cast.flashback() {
                 // CR 702.27a: to its owner's hand as it resolves.
                 self.move_object(spell, Zone::Hand, false);
+            } else if obj.marks & crate::state::OBJ_PLOT_ON_RESOLVE != 0 {
+                // "exile that spell instead of putting it into your
+                // graveyard as it resolves. If you do, it becomes plotted."
+                self.plot(spell);
             } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
                 self.rebound(spell);
             } else if def.keywords.contains(Keyword::Paradigm) {
@@ -14917,12 +15002,26 @@ impl GameState {
                             if self.objects.get(id).is_some_and(|o| {
                                 o.zone == Zone::Graveyard
                                     || (o.zone == Zone::Stack && id == ctx.source)
+                                    // "Exile target spell." (Aven
+                                    // Interrupter): a spell, not an ability.
+                                    || (o.zone == Zone::Stack
+                                        && o.ability.is_none()
+                                        && matches!(what, Recipient::Target(_)))
                             }) =>
                         {
                             Some(id)
                         }
                         _ => None,
                     });
+                    // CR 707.10a: a copy of a spell ceases to exist off
+                    // the stack.
+                    if let Some(id) = id
+                        && self.objects[id].zone == Zone::Stack
+                        && self.objects[id].cast.copy()
+                    {
+                        self.remove_from_game(id);
+                        continue;
+                    }
                     if let Some(id) = id {
                         let new = self.move_object(id, Zone::Exile, true);
                         ctx.created = Some(new);
@@ -16037,6 +16136,28 @@ impl GameState {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {
                         self.become_prepared(id);
+                    }
+                }
+            }
+            Effect::BecomePlotted { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && let Some(card) = self.current_object(id)
+                        && self.objects[card].zone == Zone::Exile
+                        && self.objects[card].alt != AltCast::Plotted
+                    {
+                        self.mark_plotted(card);
+                    }
+                }
+            }
+            Effect::Door { what, own, lock } => self.door_effect(ctx, *what, *own, *lock),
+            Effect::PlotOnResolve { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && let Some(o) = self.objects.get_mut(id)
+                        && o.zone == Zone::Stack
+                    {
+                        o.marks |= crate::state::OBJ_PLOT_ON_RESOLVE;
                     }
                 }
             }

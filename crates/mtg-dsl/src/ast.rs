@@ -3983,6 +3983,8 @@ pub enum Trigger {
     CastsFiltered {
         whose: Who,
         filter: Filter,
+        /// `from hand`: "... spell from your hand".
+        from: mtg_core::card::SpellFrom,
     },
     /// `when this exploits a creature` (CR 702.110).
     Exploits,
@@ -5968,6 +5970,25 @@ pub enum Effect {
     /// 722.3a).
     BecomePrepared {
         what: Recipient,
+    },
+    /// `it becomes plotted`: "It becomes plotted." after the card was
+    /// exiled (CR 702.170).
+    BecomePlotted {
+        what: Recipient,
+    },
+    /// `plot that spell as it resolves`: "exile that spell instead of
+    /// putting it into your graveyard as it resolves. If you do, it
+    /// becomes plotted." (Lilah, Undefeated Slickshot).
+    PlotOnResolve {
+        what: Recipient,
+    },
+    /// `unlock a locked door of <recipient>`, `unlock a locked door of a
+    /// Room you control` (`own`), `lock or unlock a door of <recipient>`
+    /// (`lock`): a Room's doors as an effect (CR 709.5).
+    Door {
+        what: Recipient,
+        own: bool,
+        lock: bool,
     },
     /// `this connives` (CR 701.50).
     Connive {

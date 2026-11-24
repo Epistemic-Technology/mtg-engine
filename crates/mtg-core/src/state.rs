@@ -168,6 +168,9 @@ pub const OBJ_EXILE_ON_LEAVE: u16 = 64;
 /// characteristics they can see. A zone change makes a new object (CR
 /// 400.7), face up.
 pub const OBJ_FACE_DOWN_EXILE: u16 = 128;
+/// A spell to be exiled and plotted as it resolves instead of going to
+/// the graveyard (`Effect::PlotOnResolve`, CR 608.2n, 702.170).
+pub const OBJ_PLOT_ON_RESOLVE: u16 = 1 << 10;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -3322,6 +3325,34 @@ impl GameState {
                         _ => false,
                     }
             })
+    }
+
+    /// How much less `p`'s unlock costs cost ("Unlock costs you pay cost
+    /// {1} less.", CR 709.5e).
+    pub fn unlock_reduction(&self, p: PlayerId) -> u32 {
+        if self.player_static_sources == 0 {
+            return 0;
+        }
+        self.player_statics()
+            .filter(|(who, _)| *who == p)
+            .map(|(_, kind)| match kind {
+                crate::card::PlayerStaticKind::UnlockCost { by } => u32::from(by),
+                _ => 0,
+            })
+            .sum()
+    }
+
+    /// The cost `p` pays to unlock a door whose half costs `cost`, after
+    /// "Unlock costs you pay cost {1} less" (generic mana only).
+    pub fn unlock_cost(
+        &self,
+        p: PlayerId,
+        cost: &crate::mana::ManaCost,
+    ) -> crate::mana::ManaRequirement {
+        let mut req = cost.requirements(0);
+        let by = self.unlock_reduction(p);
+        req.generic = req.generic.saturating_sub(by);
+        req
     }
 
     /// "You may play lands from your graveyard." applies to `p`.

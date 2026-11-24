@@ -4964,6 +4964,19 @@ impl Compiler<'_> {
             Effect::BecomeSaddledTarget { what } => {
                 out.push(CoreEffect::BecomeSaddledTarget { what: r(*what) });
             }
+            Effect::BecomePlotted { what } => {
+                out.push(CoreEffect::BecomePlotted { what: r(*what) });
+            }
+            Effect::Door { what, own, lock } => {
+                out.push(CoreEffect::Door {
+                    what: r(*what),
+                    own: *own,
+                    lock: *lock,
+                });
+            }
+            Effect::PlotOnResolve { what } => {
+                out.push(CoreEffect::PlotOnResolve { what: r(*what) });
+            }
             Effect::BecomePrepared { what } => {
                 out.push(CoreEffect::BecomePrepared { what: r(*what) });
             }
@@ -5585,9 +5598,14 @@ impl Compiler<'_> {
                 what: self.trigger_obj(obj),
                 filter: self.filter(filter),
             },
-            Trigger::CastsFiltered { whose, filter } => TriggerSpec::CastsFiltered {
+            Trigger::CastsFiltered {
+                whose,
+                filter,
+                from,
+            } => TriggerSpec::CastsFiltered {
                 whose: *whose,
                 filter: self.filter(filter),
+                from: *from,
             },
             Trigger::Cycles {
                 this,

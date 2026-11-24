@@ -1,0 +1,9 @@
+card "Ghostly Dancers" {
+  oracle_id c53d958a-f660-4d2e-87cd-87702f973b3a
+  cost {3}{W}{W}
+  type Creature — Spirit
+  pt 2/5
+  keywords flying
+  triggered when this enters: return 1 enchantment card from your graveyard to hand chosen or unlock a locked door of a Room you control
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: create 1 "3/1 white Spirit creature with flying"
+}
