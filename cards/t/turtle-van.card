@@ -1,0 +1,8 @@
+card "Turtle Van" {
+  oracle_id aeb9a2e6-ad11-4e2c-81d0-caf279d31ece
+  cost {3}
+  type Artifact — Vehicle
+  pt 4/4
+  triggered whenever this attacks: put 1 +1/+1 counter on target creature crewed it; then if that target 1 is Mutant or Ninja or Turtle, double the number of +1/+1 counters on it
+  crew 1
+}

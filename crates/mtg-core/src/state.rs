@@ -2105,6 +2105,13 @@ pub struct GameState {
     /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
     /// it leaves the battlefield, which makes it a new object).
     pub saddled: Vec<ObjId>,
+    /// (Vehicle or Mount, creature) for each creature tapped to pay a crew
+    /// or saddle cost this turn (CR 702.122, 702.171): "creature that
+    /// crewed it this turn", "creatures that saddled it this turn". The
+    /// pair names the creature as the object it was then; one that has
+    /// left the battlefield still counts ("for each creature that crewed
+    /// it this turn", Luxurious Locomotive).
+    pub crewed: Vec<(ObjId, ObjId)>,
     /// The first timestamp of this turn: a permanent whose timestamp is
     /// not older entered this turn (power-up, CR 702.193a), as a
     /// permanent's timestamp is the time it entered (CR 613.7e).
@@ -5308,6 +5315,9 @@ impl GameState {
         let Some(source) = source else {
             return true;
         };
+        if matches!(with, CombatWith::Crewed | CombatWith::Saddled) {
+            return self.crewed.contains(&(source, id));
+        }
         if self
             .objects
             .get(source)
@@ -5330,6 +5340,7 @@ impl GameState {
             CombatWith::Blocking => blocking(),
             CombatWith::BlockedBy => blocked_by(),
             CombatWith::BlockingOrBlockedBy => blocking() || blocked_by(),
+            CombatWith::Crewed | CombatWith::Saddled => false,
         }
     }
 

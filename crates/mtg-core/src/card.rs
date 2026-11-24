@@ -1265,6 +1265,13 @@ pub enum CombatWith {
     BlockedBy,
     /// Either.
     BlockingOrBlockedBy,
+    /// "creature that crewed it this turn" (CR 702.122): it was tapped to
+    /// pay the source's crew cost this turn (`GameState::crewed`), judged
+    /// even once the source has left the battlefield.
+    Crewed,
+    /// "creature that saddled it this turn" (CR 702.171): the same for a
+    /// saddle cost.
+    Saddled,
 }
 
 /// Game-state qualifiers of a filter beyond tapped, attacking, blocking,

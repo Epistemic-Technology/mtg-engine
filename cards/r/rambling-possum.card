@@ -1,0 +1,8 @@
+card "Rambling Possum" {
+  oracle_id 4b100e6f-6c19-49d2-b9c4-613d63d42151
+  cost {2}{G}
+  type Creature — Possum Mount
+  pt 3/3
+  triggered whenever this attacks while saddled: this gets +1/+2; then you may return any number creature saddled it to hand chosen
+  saddle 1
+}

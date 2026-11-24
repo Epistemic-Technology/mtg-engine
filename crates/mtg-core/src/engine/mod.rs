@@ -518,6 +518,7 @@ impl GameState {
             entered_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
+            crewed: Vec::new(),
             phased_out: Vec::new(),
             encoded: Vec::new(),
             turn_started_at: 0,
@@ -3685,6 +3686,7 @@ impl GameState {
             self.entered_this_turn.clear();
             self.damaged_by_this_turn.clear();
             self.saddled.clear();
+            self.crewed.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
             self.resolutions_this_turn = 0;

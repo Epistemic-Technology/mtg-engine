@@ -409,6 +409,8 @@ impl Decompiler<'_> {
                     CombatWith::Blocking => CombatRef::BlockingThis,
                     CombatWith::BlockedBy => CombatRef::BlockedByThis,
                     CombatWith::BlockingOrBlockedBy => CombatRef::BlockingOrBlockedByThis,
+                    CombatWith::Crewed => CombatRef::CrewedIt,
+                    CombatWith::Saddled => CombatRef::SaddledIt,
                 }
             }),
             that_player: f.that_player,

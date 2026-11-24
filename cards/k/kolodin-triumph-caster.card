@@ -1,0 +1,9 @@
+card "Kolodin, Triumph Caster" {
+  oracle_id 45682055-d02a-450c-a41d-aa67162ff015
+  cost {R}{W}
+  type Legendary Creature — Human Pilot
+  pt 2/3
+  static Mount or Vehicle you control: has haste
+  triggered whenever Mount you control enters: it becomes saddled until end of turn
+  triggered whenever Vehicle you control enters: it becomes artifact creature until end of turn
+}

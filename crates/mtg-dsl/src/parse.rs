@@ -3467,6 +3467,15 @@ impl P {
             {
                 self.pos += 1;
                 let n = self.number()?;
+                // "Crew 1. Activate only once each turn."
+                if w == "crew"
+                    && self.peek() == Some(&Tok::Comma)
+                    && self.word_at(1).as_deref() == Some("once")
+                {
+                    self.pos += 2;
+                    self.end_stmt()?;
+                    return Ok(Ability::Mechanic(Mechanic::CrewOnce(n)));
+                }
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
                     "devour" => Mechanic::Devour(None, n),
@@ -15200,6 +15209,7 @@ impl P {
                         | (Some("with"), Some("counter" | "toxic" | "morph" | "no" | "same"))
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
+                        | (Some("crewed" | "saddled"), Some("it"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
                         && !matches!(
@@ -16114,6 +16124,18 @@ impl P {
                     };
                     f.combat_with = Some(r);
                     self.pos += n;
+                }
+                // "creature that crewed it this turn", "creatures that
+                // saddled it this turn" (CR 702.122, 702.171).
+                "crewed" | "saddled"
+                    if f.combat_with.is_none() && self.word_at(1).as_deref() == Some("it") =>
+                {
+                    f.combat_with = Some(if w == "crewed" {
+                        crate::ast::CombatRef::CrewedIt
+                    } else {
+                        crate::ast::CombatRef::SaddledIt
+                    });
+                    self.pos += 2;
                 }
                 "attacking" if self.at_words(&["attacking", "or", "blocking"]) => {
                     f.attacking = true;

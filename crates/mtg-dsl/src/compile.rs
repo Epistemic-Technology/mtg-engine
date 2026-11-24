@@ -1947,6 +1947,8 @@ impl Compiler<'_> {
                     CombatRef::BlockingThis | CombatRef::BlockingIt => CombatWith::Blocking,
                     CombatRef::BlockedByThis | CombatRef::BlockedByIt => CombatWith::BlockedBy,
                     CombatRef::BlockingOrBlockedByThis => CombatWith::BlockingOrBlockedBy,
+                    CombatRef::CrewedIt => CombatWith::Crewed,
+                    CombatRef::SaddledIt => CombatWith::Saddled,
                 }
             }),
             that_player: f.that_player,
@@ -8375,12 +8377,13 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             equip: false,
             cycling: false,
         },
-        Mechanic::Crew(n) => {
+        Mechanic::Crew(n) | Mechanic::CrewOnce(n) => {
             // The Vehicle keeps its printed power and toughness (CR
             // 301.7a).
             Ability::Activated {
                 cost: Cost {
                     crew: *n,
+                    per_turn: u8::from(matches!(m, Mechanic::CrewOnce(_))),
                     ..Default::default()
                 },
                 targets: Vec::new(),

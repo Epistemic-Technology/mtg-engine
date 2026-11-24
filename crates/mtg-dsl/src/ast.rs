@@ -1421,6 +1421,10 @@ pub enum CombatRef {
     /// `blocking or blocked by this`: "blocking or blocked by this
     /// creature".
     BlockingOrBlockedByThis,
+    /// `crewed it`: "that crewed it this turn" (CR 702.122).
+    CrewedIt,
+    /// `saddled it`: "that saddled it this turn" (CR 702.171).
+    SaddledIt,
 }
 
 /// What a filter's objects must be attached to.
@@ -2412,6 +2416,9 @@ pub enum Mechanic {
     /// with total power N or more: This Vehicle becomes an artifact
     /// creature until end of turn."
     Crew(u32),
+    /// `crew 1, once`: "Crew 1. Activate only once each turn." (Luxurious
+    /// Locomotive).
+    CrewOnce(u32),
     /// CR 702.74: an alternative cost; sacrificed as it enters if evoked.
     Evoke(ManaCost),
     /// CR 702.35: cast for this cost as it's discarded.

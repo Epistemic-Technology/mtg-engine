@@ -866,6 +866,16 @@ impl GameState {
             CountExpr::Divided { by, up, inner } => {
                 return CountExpr::divide(self.eval_count(inner, ctx), *by, *up);
             }
+            // "for each creature that crewed it this turn" (Luxurious
+            // Locomotive): those gone from the battlefield count too.
+            CountExpr::Permanents(f)
+                if matches!(
+                    f.combat_with,
+                    Some(crate::card::CombatWith::Crewed | crate::card::CombatWith::Saddled)
+                ) =>
+            {
+                self.crewed.iter().filter(|(v, _)| *v == ctx.source).count()
+            }
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let host = f.attached_to.map(|a| self.attached_host(ctx, a));
@@ -1575,6 +1585,8 @@ impl GameState {
                             .characteristics(*id)
                             .is_some_and(|c| filter.matches(*id, p, &c, Some(ctx.source), Some(p)))
                         && self.status_ok(filter, *id)
+                        // "a creature that saddled it this turn".
+                        && self.combat_with_ok(filter.combat_with, Some(ctx.source), *id)
                 })
                 .collect(),
             ChooseAct::Discard
@@ -6804,6 +6816,7 @@ impl GameState {
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
+                self.crewed.push((sa.source, c));
                 self.emit(Event::Crewed {
                     crew: c,
                     vehicle: sa.source,

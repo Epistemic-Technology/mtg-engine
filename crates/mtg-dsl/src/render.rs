@@ -3670,6 +3670,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             crate::ast::CombatRef::BlockingOrBlockedByThis => {
                 write!(s, " blocking or blocked by {this}")
             }
+            crate::ast::CombatRef::CrewedIt => write!(s, " that crewed it this turn"),
+            crate::ast::CombatRef::SaddledIt => write!(s, " that saddled it this turn"),
         };
     }
     if f.status.entered_this_turn {
@@ -5195,6 +5197,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 && !f.attacking
                 && !f.blocking
                 && f.attached_to.is_none()
+                // "for each creature that crewed it this turn".
+                && f.combat_with.is_none()
             {
                 " on the battlefield"
             } else {
@@ -19196,6 +19200,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Buyback(c) => format!("Buyback {c}"),
             crate::ast::Mechanic::Outlast(c) => format!("Outlast {c}"),
             crate::ast::Mechanic::Crew(n) => format!("Crew {n}"),
+            crate::ast::Mechanic::CrewOnce(n) => format!("Crew {n}. Activate only once each turn."),
             crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
             crate::ast::Mechanic::Evoke(c) => format!("Evoke {c}"),
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),

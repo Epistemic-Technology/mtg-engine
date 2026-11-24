@@ -4962,6 +4962,8 @@ fn filter_one(f: &Filter) -> String {
                 crate::ast::CombatRef::BlockedByThis => "blocked by this",
                 crate::ast::CombatRef::BlockedByIt => "blocked by it",
                 crate::ast::CombatRef::BlockingOrBlockedByThis => "blocking or blocked by this",
+                crate::ast::CombatRef::CrewedIt => "crewed it",
+                crate::ast::CombatRef::SaddledIt => "saddled it",
             }
             .to_string(),
         );
@@ -7897,6 +7899,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Buyback(c) => format!("buyback {c}"),
                 crate::ast::Mechanic::Outlast(c) => format!("outlast {c}"),
                 crate::ast::Mechanic::Crew(n) => format!("crew {n}"),
+                crate::ast::Mechanic::CrewOnce(n) => format!("crew {n}, once"),
                 crate::ast::Mechanic::Morph(c) => format!("morph {c}"),
                 crate::ast::Mechanic::Evoke(c) => format!("evoke {c}"),
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
