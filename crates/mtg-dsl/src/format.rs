@@ -3799,7 +3799,8 @@ impl Fmt {
                 let trig = if *it {
                     this_turn_trigger(trigger).replacen("that creature", "it", 1)
                 } else if *this_turn && !about_that_creature(trigger) {
-                    format!("{} this turn", trigger_text(trigger, true))
+                    let next = !matches!(trigger, Trigger::BeginningOfStep { .. });
+                    format!("{} this turn", trigger_text(trigger, next))
                 } else if *this_turn {
                     this_turn_trigger(trigger).to_string()
                 } else {

@@ -277,8 +277,10 @@ impl GameState {
                 _ => false,
             };
             if at {
-                // "... for the rest of the game" (paradigm) stays.
-                if dt.forever {
+                // "... for the rest of the game" (paradigm) stays, and so
+                // does "At the beginning of each combat this turn" (Full
+                // Throttle), until the cleanup step ends it (CR 603.7c).
+                if dt.forever || dt.this_turn {
                     i += 1;
                 } else {
                     self.delayed_triggers.remove(i);

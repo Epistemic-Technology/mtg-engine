@@ -3356,7 +3356,10 @@ step."), and `them` prints "them" (`delayed those tokens: exile them at
 beginning of the next end step`). `those tokens gains haste` right after
 prints "They gain haste until end of turn.". In `delayed that token: ...`, `it` prints "it" and `that token`
 "that token" ("Exile that token at the beginning of the next end
-step."); both are the token. `delayed this: whenever <trigger> this turn, <effects>` triggers on
+step."); both are the token. `delayed this: at beginning of each combat this turn, <effects>` ("At
+the beginning of each combat this turn, untap all creatures that attacked
+this turn.", Full Throttle) triggers at each such step until the turn
+ends. `delayed this: whenever <trigger> this turn, <effects>` triggers on
 every such event until the turn ends (CR 603.7c), as its controller's
 ability: "Whenever a creature blocks this turn, its controller loses 1
 life." (`its controller` is the triggering object's), "Whenever a

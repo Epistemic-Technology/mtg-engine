@@ -184,3 +184,24 @@ scenario "Long River Lurker: the unblockable creature blinks after combat damage
   assert battlefield A contains "Grizzly Bears"
   assert untapped "Grizzly Bears"
 }
+
+scenario "Full Throttle: two more combats, and attackers untap at the beginning of each combat" {
+  battlefield A: "Grizzly Bears", 4 "Mountain", 2 "Forest"
+  hand A: "Full Throttle"
+  turn 1 A: cast "Full Throttle"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_attackers combat 2 A: attack "Grizzly Bears"
+  turn 1 declare_attackers combat 3 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 14
+}
+
+scenario "Full Throttle: without it a creature that attacked stays tapped for the next combat" {
+  battlefield A: "Grizzly Bears", 4 "Mountain", 2 "Forest"
+  hand A: "Relentless Assault"
+  turn 1 A: cast "Relentless Assault"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert tapped "Grizzly Bears"
+}

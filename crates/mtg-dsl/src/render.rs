@@ -12422,7 +12422,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else if *this_turn && !crate::format::about_that_creature(trigger) {
                 // "Until end of turn, whenever ...": the duration is
                 // printed first instead.
-                let t = trigger_text(trigger, ctx, true);
+                // "At the beginning of each combat this turn" (a step
+                // trigger that repeats until the turn ends): "each".
+                let next = !matches!(trigger, Trigger::BeginningOfStep { .. });
+                let t = trigger_text(trigger, ctx, next);
                 // About a target: the trigger's own object is "that
                 // creature" ("Whenever a creature dealt damage by that
                 // creature dies this turn", Touch of Moonglove).
