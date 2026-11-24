@@ -11387,6 +11387,7 @@ fn card_grant_text(
         Granted::Mayhem(None) => "mayhem. The mayhem cost is equal to its mana cost".to_string(),
         Granted::Mayhem(Some(c)) => format!("mayhem {c}"),
         Granted::Warp(c) => format!("warp {c}"),
+        Granted::Miracle(c) => format!("miracle {c}"),
         Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
     };
     let s = if each {

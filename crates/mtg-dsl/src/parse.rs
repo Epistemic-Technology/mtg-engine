@@ -1529,6 +1529,10 @@ impl P {
                 self.pos += 1;
                 crate::ast::Granted::Warp(self.mana_cost()?)
             }
+            Some("miracle") => {
+                self.pos += 1;
+                crate::ast::Granted::Miracle(self.mana_cost()?)
+            }
             _ => {
                 let a = self.ability()?;
                 if !matches!(a, Ability::Activated { .. } | Ability::Mechanic(_)) {

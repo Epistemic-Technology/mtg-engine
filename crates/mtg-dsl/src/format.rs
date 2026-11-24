@@ -7194,6 +7194,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Granted::Flashback(c) => format!("flashback{}", cost(c)),
                 crate::ast::Granted::Mayhem(c) => format!("mayhem{}", cost(c)),
                 crate::ast::Granted::Warp(c) => format!("warp {c}"),
+                crate::ast::Granted::Miracle(c) => format!("miracle {c}"),
                 crate::ast::Granted::Ability(a) => {
                     let mut tmp = String::new();
                     self::ability(&mut tmp, a, "", groups);

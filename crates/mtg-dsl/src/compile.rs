@@ -6913,6 +6913,7 @@ impl Compiler<'_> {
                     crate::ast::Granted::Flashback(c) if !hand => GrantedWay::Flashback(c.clone()),
                     crate::ast::Granted::Mayhem(c) if !hand => GrantedWay::Mayhem(c.clone()),
                     crate::ast::Granted::Warp(c) if hand => GrantedWay::Warp(c.clone()),
+                    crate::ast::Granted::Miracle(c) if hand => GrantedWay::Miracle(c.clone()),
                     crate::ast::Granted::Ability(a) => {
                         let def = self.ability(a)?;
                         match &def {
@@ -6928,7 +6929,7 @@ impl Compiler<'_> {
                     }
                     _ => {
                         return self.err(
-                            "flashback and mayhem are granted in a graveyard, warp in a hand",
+                            "flashback and mayhem are granted in a graveyard, warp and miracle in a hand",
                         );
                     }
                 };

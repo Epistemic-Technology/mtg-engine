@@ -4362,7 +4362,10 @@ impl GameState {
         // A cost the card doesn't have can't be paid (CR 118.6).
         let has_cost = match alt {
             AltCast::Madness => def.madness.is_some(),
-            AltCast::Miracle => def.miracle.is_some(),
+            AltCast::Miracle => {
+                def.miracle.is_some()
+                    || self.card_grants_live() && self.granted_miracle(card).is_some()
+            }
             AltCast::Foretell => def.foretell.is_some(),
             _ => true,
         };

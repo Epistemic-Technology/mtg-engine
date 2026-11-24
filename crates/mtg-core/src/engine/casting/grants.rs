@@ -120,6 +120,15 @@ impl GameState {
         .and_then(GrantCost::fixed)
     }
 
+    /// The miracle cost a grant gives `card` (CR 702.94a).
+    pub(in crate::engine) fn granted_miracle(&self, card: ObjId) -> Option<&ManaCost> {
+        self.granted_cost(card, |g| match g {
+            GrantedWay::Miracle(c) => Some(GrantCost::Fixed(c)),
+            _ => None,
+        })
+        .and_then(GrantCost::fixed)
+    }
+
     fn granted_cost<'a>(
         &'a self,
         card: ObjId,
@@ -152,6 +161,7 @@ impl GameState {
                 self.granted_mayhem(b.id).and_then(GrantCost::fixed)
             }
             AltCast::Warp if def.warp.is_none() => self.granted_warp(b.id),
+            AltCast::Miracle if def.miracle.is_none() => self.granted_miracle(b.id),
             _ => None,
         }
     }

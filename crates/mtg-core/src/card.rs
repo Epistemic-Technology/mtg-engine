@@ -6242,6 +6242,9 @@ pub enum GrantedWay {
     Mayhem(Option<crate::mana::ManaCost>),
     /// Warp (CR 702.185a), cast from the hand for this cost.
     Warp(crate::mana::ManaCost),
+    /// Miracle (CR 702.94a) for this cost, in a hand: the card is revealed
+    /// as it is drawn, if it is the first card its owner drew this turn.
+    Miracle(crate::mana::ManaCost),
     /// An activated ability of the card, activated from the zone the card
     /// is in (cycling and typecycling from a hand, unearth from a
     /// graveyard): a registered `AbilityDef::Activated`.

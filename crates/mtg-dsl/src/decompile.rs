@@ -2662,6 +2662,9 @@ impl Decompiler<'_> {
                     }
                     mtg_core::card::GrantedWay::Mayhem(c) => crate::ast::Granted::Mayhem(c.clone()),
                     mtg_core::card::GrantedWay::Warp(c) => crate::ast::Granted::Warp(c.clone()),
+                    mtg_core::card::GrantedWay::Miracle(c) => {
+                        crate::ast::Granted::Miracle(c.clone())
+                    }
                     mtg_core::card::GrantedWay::Ability(a) => {
                         crate::ast::Granted::Ability(Box::new(self.ability(self.pool.ability(*a))))
                     }

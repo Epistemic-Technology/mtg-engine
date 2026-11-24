@@ -1,0 +1,9 @@
+card "Lorehold, the Historian" {
+  oracle_id 61a41cf1-60cc-45ba-aa98-493c14e87d9d
+  cost {3}{R}{W}
+  type Legendary Creature — Elder Dragon
+  pt 5/5
+  keywords flying, haste
+  static each instant or sorcery card in your hand: has miracle {2}
+  triggered at beginning of each opponent's upkeep step: you may discard 1 card; if you do, draw 1 card
+}

@@ -1397,6 +1397,8 @@ pub enum Granted {
     Mayhem(Option<ManaCost>),
     /// `warp {2}{R}`.
     Warp(ManaCost),
+    /// `miracle {2}`.
+    Miracle(ManaCost),
     /// An activated keyword ability, activated from the cards' zone:
     /// `slivercycling {3}`, `cycling {2}`, `unearth {2}`.
     Ability(Box<Ability>),
