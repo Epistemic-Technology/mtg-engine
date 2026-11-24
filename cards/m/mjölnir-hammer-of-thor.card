@@ -1,0 +1,9 @@
+card "Mjölnir, Hammer of Thor" {
+  oracle_id 7f9a8845-d760-44a7-a4c9-8a20dba4e14a
+  cost {3}{R}
+  type Legendary Artifact — Equipment
+  triggered when this enters: deal 4 damage to up to 1 target creature
+  replace damage equipped creature would deal: double
+  equip worthy {1}
+  activated {2}{R}, discard this: it deals 2 damage to each creature
+}

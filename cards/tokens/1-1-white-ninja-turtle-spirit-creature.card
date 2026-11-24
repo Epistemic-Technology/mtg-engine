@@ -1,0 +1,6 @@
+token "1/1 white Ninja Turtle Spirit creature" {
+  name "Ninja Turtle Spirit"
+  type Creature — Ninja Turtle Spirit
+  pt 1/1
+  color white
+}

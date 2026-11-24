@@ -171,6 +171,10 @@ pub const OBJ_FACE_DOWN_EXILE: u16 = 128;
 /// A spell to be exiled and plotted as it resolves instead of going to
 /// the graveyard (`Effect::PlotOnResolve`, CR 608.2n, 702.170).
 pub const OBJ_PLOT_ON_RESOLVE: u16 = 1 << 10;
+/// Harnessed (an Infinity Stone's "Harness ~"): its ∞ ability is active
+/// (`Condition::Harnessed`). A zone change makes a new object (CR
+/// 400.7), not harnessed.
+pub const OBJ_HARNESSED: u16 = 1 << 12;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -423,7 +427,8 @@ pub enum AltCast {
     /// Cast for its dash cost (CR 702.109a); kept by the permanent, which
     /// has haste.
     Dash,
-    /// Cast for its warp cost (CR 702.185a).
+    /// Cast for its warp cost (CR 702.185a); kept by the permanent ("if
+    /// that creature was cast for its warp cost").
     Warp,
     /// Cast for its sneak cost (CR 702.190a); kept by the permanent, which
     /// enters tapped and attacking.
@@ -2570,6 +2575,12 @@ pub struct GameState {
     /// them directly after the current turn, the most recently created
     /// first.
     pub extra_turns: Vec<PlayerId>,
+    /// The extra turns (by their place in `extra_turns`) during which
+    /// power-up abilities can't be activated (Kang the Conqueror).
+    pub no_powerup_extra: Vec<usize>,
+    /// "During that turn, power-up abilities can't be activated": this
+    /// turn is such an extra turn.
+    pub no_powerup_turn: bool,
     /// The controller of the spell or ability whose effect is being
     /// applied: who puts counters it puts ("Whenever you put one or more
     /// +1/+1 counters on a creature", CR 122.6).
@@ -4455,6 +4466,12 @@ impl GameState {
         if q.attacked_this_turn && !self.attackers_this_turn.contains(&id) {
             return false;
         }
+        // CR 722.3c: the copy cast from a prepared permanent remembers it
+        // in `attached_to` (unused on the stack otherwise).
+        if q.prepared_spell && !(o.zone == Zone::Stack && o.cast.copy() && o.attached_to.is_some())
+        {
+            return false;
+        }
         if q.modified
             && !self.modified(
                 id,
@@ -5233,6 +5250,19 @@ impl GameState {
                 .prowl_damage
                 .iter()
                 .any(|(p, t)| *p == you && types.contains(t)),
+            C::SneakPaidThisTurn(_) => {
+                self.objects
+                    .get(source)
+                    .is_some_and(|o| o.alt == AltCast::Sneak)
+                    && self.entered_this_turn.iter().any(|(_, id)| *id == source)
+            }
+            C::MayhemPaid => match self.objects.get(source) {
+                Some(o) => o.alt == AltCast::Mayhem,
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.alt == AltCast::Mayhem),
+            },
             C::SneakPaid(_) => match self.objects.get(source) {
                 Some(o) => o.alt == AltCast::Sneak,
                 None => self

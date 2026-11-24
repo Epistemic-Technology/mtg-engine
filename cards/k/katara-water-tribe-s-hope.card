@@ -1,0 +1,9 @@
+card "Katara, Water Tribe's Hope" {
+  oracle_id 234fb291-0b62-4092-9071-81311c71bd53
+  cost {2}{W}{U}{U}
+  type Legendary Creature — Human Warrior Ally
+  pt 3/3
+  keywords vigilance
+  triggered when this enters: create 1 "1/1 white Ally creature"
+  activated waterbend {X}, x can't be 0, during your turn: each creature you control has base power and toughness X until end of turn
+}

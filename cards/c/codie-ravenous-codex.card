@@ -1,0 +1,8 @@
+card "Codie, Ravenous Codex" {
+  oracle_id a17e414c-8de0-47fd-bcbc-540c7fec7642
+  cost {3}
+  type Legendary Artifact Creature — Book Construct
+  pt 1/4
+  triggered whenever you cast prepared spell: copy it new targets
+  activated {W}{U}{B}{R}{G}, {T}: each single creature you control becomes prepared
+}

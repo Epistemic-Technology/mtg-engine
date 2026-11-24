@@ -1,0 +1,9 @@
+card "The Mind Stone" {
+  oracle_id b175e826-09e8-4fae-9f2e-b902f95b282d
+  cost {1}{W}
+  type Legendary Artifact — Infinity Stone
+  keywords indestructible
+  mana {W}
+  activated {5}{W}, {T}: harness this
+  label "∞" triggered at beginning of your end step if harnessed: exile up to 1 another target nonland permanent you control then return that card to battlefield under its owner's control
+}

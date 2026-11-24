@@ -1,0 +1,7 @@
+card "Too Evil to Stay Dead" {
+  oracle_id e50fecff-8872-42f5-8882-41ad13d9d1ae
+  cost {2}{B}
+  type Sorcery
+  teamwork 4
+  spell: choose target creature card with mana value 4 or less from your graveyard; if teamwork, instead choose target creature card from your graveyard; return the chosen target 1 to battlefield
+}

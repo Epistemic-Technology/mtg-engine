@@ -242,6 +242,24 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (
         &[
+            "stations",
+            "permanents",
+            "using",
+            "its",
+            "toughness",
+            "rather",
+            "than",
+            "its",
+            "power",
+        ],
+        Keyword::StationsToughness,
+    ),
+    (
+        &["stations", "using", "toughness"],
+        Keyword::StationsToughness,
+    ),
+    (
+        &[
             "untaps", "during", "each", "other", "player's", "untap", "step",
         ],
         Keyword::UntapsDuringOthers,
@@ -1313,11 +1331,21 @@ impl P {
                     && !self.at_words(&["may", "sacrifice", "any"])
                     && self.eat_word("may")
                 {
-                    // `additional cost may collect evidence 6` (CR 601.2b).
+                    // `additional cost may collect evidence 6` (CR 601.2b);
+                    // `additional cost may waterbend {4}` (CR 701.67a).
                     let c = self.cost()?;
-                    if !c.mana.is_empty() || c.blight == 0 && c.evidence == 0 {
-                        return self
-                            .fail("an optional additional cost is blight or collect evidence");
+                    let bend = c.waterbend
+                        && !c.mana.is_empty()
+                        && c == crate::ast::Cost {
+                            mana: c.mana.clone(),
+                            order: c.order.clone(),
+                            waterbend: true,
+                            ..crate::ast::Cost::default()
+                        };
+                    if !bend && (!c.mana.is_empty() || c.blight == 0 && c.evidence == 0) {
+                        return self.fail(
+                            "an optional additional cost is blight, collect evidence, or waterbend",
+                        );
                     }
                     card.optional_cost = Some(c);
                 } else {
@@ -3389,6 +3417,11 @@ impl P {
                     cond,
                 })
             }
+            "power-up" if self.word_at(1).as_deref() == Some("again") => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::PowerUpAgain)
+            }
             "hand" if self.word_at(1).as_deref() == Some("size") => {
                 self.pos += 2;
                 let whose = if self.eat_word("opponents") {
@@ -4234,6 +4267,11 @@ impl P {
                 // "Equip Knight {1}": only onto a creature of that type
                 // you control (CR 702.6c).
                 let target = match self.peek() {
+                    // "Equip worthy {1}".
+                    Some(Tok::Word(w)) if w == "worthy" => {
+                        self.pos += 1;
+                        Target::Filter(Filter::worthy())
+                    }
                     Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase) => {
                         let sub = w.clone();
                         self.pos += 1;
@@ -6170,8 +6208,16 @@ impl P {
                 &[w, "sneak", "paid"]
             };
             if self.eat_words(words) {
-                return Ok(StaticCond::SneakPaid(u8::try_from(i).unwrap_or(0)));
+                let p = u8::try_from(i).unwrap_or(0);
+                // `her sneak paid this turn` (Karai, Future of the Foot).
+                if self.eat_words(&["this", "turn"]) {
+                    return Ok(StaticCond::SneakPaidThisTurn(p));
+                }
+                return Ok(StaticCond::SneakPaid(p));
             }
+        }
+        if self.eat_words(&["mayhem", "paid"]) {
+            return Ok(StaticCond::MayhemPaid);
         }
         if self.eat_words(&["prowl", "paid"]) {
             return Ok(StaticCond::ProwlPaid);
@@ -7866,6 +7912,29 @@ impl P {
         Ok(())
     }
 
+    /// `if target 1 warped, [also] ...`: "If that creature was cast for
+    /// its warp cost, it also ..." (Full Bore), after the number.
+    fn if_target_warped(&mut self, n: usize) -> R<Effect> {
+        if n == 0 || n > self.targets.len() {
+            return self.fail(format!("target {n} has not been declared"));
+        }
+        self.expect(&Tok::Comma)?;
+        let also = self.eat_word("also");
+        let saved = self.subject.take();
+        let s = self.sentence()?;
+        self.subject = saved;
+        Ok(Effect::IfTarget(
+            n - 1,
+            Filter::warped(),
+            vec![s],
+            crate::ast::TargetCheck {
+                tense: crate::ast::TargetTense::Is,
+                also,
+                ..crate::ast::TargetCheck::default()
+            },
+        ))
+    }
+
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
     /// judged on the target's last state.
     #[allow(clippy::too_many_lines)] // one branch per tense
@@ -7877,6 +7946,9 @@ impl P {
         let n = self.number()? as usize;
         if n == 0 || n > self.targets.len() {
             return self.fail(format!("target {n} has not been declared"));
+        }
+        if !full && !that && self.eat_word("warped") {
+            return self.if_target_warped(n);
         }
         // `if target 1 isnt creature`: "If it isn't a creature", the
         // check `noncreature`.
@@ -10391,6 +10463,32 @@ impl P {
                     becomes: false,
                 })
             }
+            // "When that creature dies this turn, you earthbend 4." (Fatal
+            // Fissure): the delayed ability's own target land.
+            "earthbend" if subject == Recipient::You && self.in_delayed => {
+                let count = self.num()?;
+                Ok(Effect::Earthbend {
+                    count,
+                    to: Recipient::Source,
+                    delayed: true,
+                })
+            }
+            // "If this spell's sneak cost was paid, they enter tapped and
+            // attacking" (the tokens just created).
+            "enter"
+                if subject == Recipient::TriggeringThey
+                    && self.at_words(&["tapped", "and", "attacking"]) =>
+            {
+                self.pos += 3;
+                Ok(Effect::EnterTappedAttacking)
+            }
+            // CR 402.2: "you have no maximum hand size for the rest of the
+            // game".
+            "have" if self.at_words(&["no", "maximum", "hand", "size"]) => {
+                self.pos += 4;
+                self.expect_words(&["for", "the", "rest", "of", "the", "game"])?;
+                Ok(Effect::NoMaxHandSize { who: subject })
+            }
             "has" | "have" => {
                 self.expect_words(&["base", "power", "and", "toughness"])?;
                 if !matches!(self.peek(), Some(Tok::Pt { .. })) {
@@ -10636,9 +10734,10 @@ impl P {
                 self.pos += 1;
                 Ok(Effect::BecomePlotted { what: subject })
             }
-            "becomes" if self.at_word("prepared") => {
+            "becomes" if self.at_word("prepared") || self.at_word("unprepared") => {
+                let on = self.at_word("prepared");
                 self.pos += 1;
-                Ok(Effect::BecomePrepared { what: subject })
+                Ok(Effect::BecomePrepared { what: subject, on })
             }
             "becomes" if self.at_word("saddled") => {
                 self.pos += 1;
@@ -10676,7 +10775,12 @@ impl P {
                 if !self.eat_word("turn") {
                     self.expect_word("turns")?;
                 }
-                Ok(Effect::ExtraTurns { who: subject, n })
+                let no_powerup = self.eat_words(&["without", "power-up"]);
+                Ok(Effect::ExtraTurns {
+                    who: subject,
+                    n,
+                    no_powerup,
+                })
             }
             "doesn't" => {
                 self.expect_words(&["untap", "next", "untap"])?;
@@ -12739,7 +12843,7 @@ impl P {
                 // Fissure's "When that creature dies this turn, you
                 // earthbend 4" needs targets of its own).
                 if self.in_delayed {
-                    return self.fail("`earthbend` in a delayed ability: its target would be chosen as the spell is cast");
+                    return self.fail("`earthbend` in a delayed ability: write `you earthbend N` (its own target, chosen as it triggers)");
                 }
                 let count = self.num()?;
                 self.targets.push(Target::Filter(Filter {
@@ -12750,6 +12854,7 @@ impl P {
                 Ok(Effect::Earthbend {
                     count,
                     to: Recipient::Target(self.targets.len() - 1),
+                    delayed: false,
                 })
             }
             "recruit" => Ok(Effect::Recruit { you: false }),
@@ -12764,6 +12869,10 @@ impl P {
                 },
             }),
             "populate" => Ok(Effect::Populate),
+            "harness" => {
+                self.expect_word("this")?;
+                Ok(Effect::Harness)
+            }
             "exchange" if self.eat_words(&["life", "totals", "with"]) => Ok(Effect::ExchangeLife {
                 with: self.recipient()?,
             }),
@@ -13732,6 +13841,19 @@ impl P {
             "surveil" => Ok(Effect::Surveil(self.num()?)),
             "learn" => Ok(Effect::Learn),
             // CR 701.10.
+            // `triple target creature power and toughness` (CR 701.10).
+            "triple" => {
+                let to = self.recipient()?;
+                self.expect_word("power")?;
+                let toughness = self.eat_words(&["and", "toughness"]);
+                self.until_end_of_turn();
+                Ok(Effect::DoublePt {
+                    to,
+                    toughness,
+                    of: false,
+                    triple: true,
+                })
+            }
             "double" => {
                 if self.eat_words(&["the", "number", "of"]) {
                     let kind = if self.eat_words(&["each", "kind", "of", "counter"]) {
@@ -13763,7 +13885,12 @@ impl P {
                     (to, self.eat_words(&["and", "toughness"]))
                 };
                 self.until_end_of_turn();
-                Ok(Effect::DoublePt { to, toughness, of })
+                Ok(Effect::DoublePt {
+                    to,
+                    toughness,
+                    of,
+                    triple: false,
+                })
             }
             // `copy target instant or sorcery spell you control [times
             // N] [new targets] [with exceptions]` (CR 707.10).
@@ -16543,7 +16670,7 @@ impl P {
                         | (
                             Some("that"),
                             Some(
-                                "was" | "entered" | "dealt" | "blocked" | "player" | "share"
+                                "was" | "entered" | "dealt" | "blocked" | "attacked" | "player" | "share"
                                     | "opponent" | "doesn't"
                             )
                         )
@@ -17540,6 +17667,11 @@ impl P {
                 // `adventurer`: "that has an Adventure" (CR 715.2a).
                 "adventurer" if !f.status.adventure => {
                     f.status.adventure = true;
+                    self.pos += 1;
+                }
+                // "Whenever you cast a prepared spell" (CR 722.3c).
+                "prepared" if !f.status.prepared_spell => {
+                    f.status.prepared_spell = true;
                     self.pos += 1;
                 }
                 // CR 903.3: "commander creatures you own", "a commander".
@@ -19540,6 +19672,10 @@ impl P {
                 };
                 Ok(Trigger::DealsDamage { obj, to, combat })
             }
+            "becomes" if self.at_words(&["tapped", "for", "teamwork"]) => {
+                self.pos += 3;
+                Ok(Trigger::TappedForTeamwork(obj))
+            }
             "becomes" if self.at_word("tapped") => {
                 self.pos += 1;
                 Ok(Trigger::BecomesTapped(obj))
@@ -19635,6 +19771,10 @@ impl P {
         }
         if self.eat_words(&["this", "isn't", "prepared"]) {
             return Ok(Condition::NotPrepared);
+        }
+        // An ∞ ability (`label "∞" triggered ... if harnessed: ...`).
+        if self.eat_word("harnessed") {
+            return Ok(Condition::Harnessed);
         }
         if self.eat_word("evolves") {
             return Ok(Condition::Evolves);
@@ -19924,6 +20064,19 @@ impl P {
                         cost.exile_this = true;
                         cost.order.push(CostItem::Exile);
                     }
+                    // `exile creature you control`: "Exile a creature you
+                    // control" (The Soul Stone), a permanent chosen.
+                    "exile"
+                        if (1..6).any(|k| {
+                            self.word_at(k).as_deref() == Some("you")
+                                && self.word_at(k + 1).as_deref() == Some("control")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        cost.chosen = mtg_core::card::ChosenCost::Exile;
+                        cost.sacrifice = Some(SacCost::Filter(self.filter()?));
+                        cost.order.push(CostItem::Sacrifice);
+                    }
                     // `exile 2 cards from graveyard`, `exile creature card
                     // from graveyard`, `exile X creature cards from
                     // graveyard`.
@@ -20166,6 +20319,14 @@ impl P {
                         self.pos += 1;
                         cost.sorcery = true;
                         cost.restrict.push(Restrict::Sorcery);
+                    }
+                    // `x can't be 0` (CR 107.3).
+                    "x" if self.word_at(1).as_deref() == Some("can't")
+                        && self.word_at(2).as_deref() == Some("be")
+                        && self.peek_at(3) == Some(&Tok::Num(0)) =>
+                    {
+                        self.pos += 4;
+                        cost.x_not_zero = true;
                     }
                     // `reduced {1} each Town you control`, `reduced {4}{B}
                     // if drew 3 cards this turn`.

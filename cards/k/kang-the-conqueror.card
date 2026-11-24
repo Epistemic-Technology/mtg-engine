@@ -1,0 +1,10 @@
+card "Kang the Conqueror" {
+  oracle_id da6e24a4-8adc-41a1-b5eb-3e31dc1250c9
+  cost {2}{U}{U}
+  type Legendary Creature — Human Villain
+  pt 4/5
+  pronoun he
+  short_name "Kang"
+  keywords flying
+  power-up {5}{U}{U}{U}: put 1 +1/+1 counter on this; you take extra turn without power-up
+}

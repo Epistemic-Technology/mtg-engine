@@ -355,6 +355,10 @@ pub enum Keyword {
     /// his power were positive." (CR 510.1a): a negative power assigns
     /// its absolute value.
     AssignsNegativePower,
+    /// "stations permanents using its toughness rather than its power"
+    /// (Tapestry Warden, CR 702.184a): tapped for a station cost, it
+    /// counts its toughness.
+    StationsToughness,
     /// CR 702.147: "This creature can't block. When this creature
     /// attacks, sacrifice it at end of combat." Its triggered half is
     /// `CardPool::keyword_trigger`.
@@ -623,7 +627,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 80] = [
+    pub const ALL: [Keyword; 81] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -704,6 +708,7 @@ impl Keyword {
         Keyword::MayNotUntap,
         Keyword::CantBeEquipped,
         Keyword::AssignsNegativePower,
+        Keyword::StationsToughness,
     ];
 
     /// The keyword as Oracle prints it.
@@ -794,6 +799,9 @@ impl Keyword {
             }
             Keyword::AssignsNegativePower => {
                 "assigns combat damage as though its power were positive"
+            }
+            Keyword::StationsToughness => {
+                "stations permanents using its toughness rather than its power"
             }
         }
     }
@@ -1426,6 +1434,16 @@ pub struct StatusQuals {
     /// doesn't restrict.
     #[serde(default)]
     pub protector: Option<Who>,
+    /// "If that creature was cast for its warp cost" (Full Bore, CR
+    /// 702.185): a permanent that was a spell cast for its warp cost.
+    /// Judged only by a check of a target (`Effect::IfTarget`); elsewhere
+    /// it doesn't restrict.
+    #[serde(default)]
+    pub warped: bool,
+    /// "a prepared spell" (Codie, Ravenous Codex; CR 722.3c): the copy of
+    /// a prepare spell cast from a prepared permanent.
+    #[serde(default)]
+    pub prepared_spell: bool,
     /// "Noncreature spells with mana value equal to the chosen number",
     /// "a spell with mana value, power, or toughness equal to the chosen
     /// number" (Sanctum Prelate, Talion): the number the source chose as
@@ -1560,6 +1578,8 @@ impl StatusQuals {
             || self.except_your_tokens
             || self.x_in_cost
             || self.adventure
+            || self.warped
+            || self.prepared_spell
     }
 }
 
@@ -3614,6 +3634,15 @@ pub enum StaticCondition {
     /// the permanent). The number is wording only: the pronoun for a
     /// permanent (0 "its", 1 "his", 2 "her").
     SneakPaid(u8),
+    /// "If her sneak cost was paid this turn" (Karai, Future of the
+    /// Foot): the source was cast for its sneak cost and entered this
+    /// turn (a permanent cast with sneak enters as it resolves, and one
+    /// that left and returned is a new object, CR 400.7). The pronoun as
+    /// for `SneakPaid`.
+    SneakPaidThisTurn(u8),
+    /// "If this spell's mayhem cost was paid": the source was cast from
+    /// the graveyard for its mayhem cost.
+    MayhemPaid,
     /// "if its prowl cost was paid", "if this spell's prowl cost was paid"
     /// (CR 702.76a).
     ProwlPaid,
@@ -6222,6 +6251,9 @@ pub enum Effect {
     DoublePt {
         to: Recipient,
         toughness: bool,
+        /// "Triple ..." (CR 701.10): +2X/+0 (+2X/+2Y).
+        #[serde(default)]
+        triple: bool,
     },
     /// "Double the number of +1/+1 counters on ..." (`kind`), "... of each
     /// kind of counter on ..." (`None`) (CR 701.10e): each recipient gets
@@ -6233,6 +6265,11 @@ pub enum Effect {
     /// "Double your life total" (CR 701.10d): each recipient player gains
     /// (or, below zero, loses) life equal to their life total.
     DoubleLife {
+        who: Recipient,
+    },
+    /// "You have no maximum hand size for the rest of the game" (CR
+    /// 402.2): each recipient player's maximum hand size is gone.
+    NoMaxHandSize {
         who: Recipient,
     },
     /// Firebending's effect (CR 702.189a): "add N {R}. Until end of
@@ -6347,6 +6384,9 @@ pub enum Effect {
     /// control and creates a token that's a copy of it; with none, nothing
     /// happens (CR 701.36b).
     Populate,
+    /// "Harness The Mind Stone": the source permanent becomes harnessed
+    /// (`OBJ_HARNESSED`), so its ∞ ability is active.
+    Harness,
     /// "End the turn." (CR 724.1): triggered abilities waiting to be put
     /// on the stack cease to exist, every object on the stack (this spell
     /// included) is exiled, and the game skips to the cleanup step.
@@ -6373,9 +6413,11 @@ pub enum Effect {
         what: Recipient,
     },
     /// The recipient permanent becomes prepared (CR 722.3a): only one with
-    /// a prepare spell, and only if it isn't already.
+    /// a prepare spell, and only if it isn't already. Not `on`: "becomes
+    /// unprepared", the designation removed.
     BecomePrepared {
         what: Recipient,
+        on: bool,
     },
     /// "It becomes plotted." after the recipient card was exiled (CR
     /// 702.170a, c): a card in exile, followed through its zone change,
@@ -6629,6 +6671,10 @@ pub enum Effect {
     ExtraTurns {
         who: Recipient,
         n: u8,
+        /// "During that turn, power-up abilities can't be activated."
+        /// (Kang the Conqueror).
+        #[serde(default)]
+        no_powerup: bool,
     },
     /// "After this phase, there is an additional combat phase", "After
     /// this main phase, there is an additional combat phase followed by an
@@ -8412,6 +8458,8 @@ pub enum TriggerSpec {
     BecomesAttachedTo(ObjFilter),
     /// "Whenever this creature becomes tapped".
     BecomesTapped(TriggerObj),
+    /// "Whenever Agent Maria Hill becomes tapped to pay a teamwork cost".
+    TappedForTeamwork(TriggerObj),
     /// "Whenever this creature becomes untapped" (inspired).
     BecomesUntapped(TriggerObj),
     /// "Whenever this creature is dealt damage" (enrage); the damaged
@@ -8917,6 +8965,7 @@ impl TriggerSpec {
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_)
+            | TriggerSpec::TappedForTeamwork(_)
             | TriggerSpec::BecomesUntapped(_)
             | TriggerSpec::TapsForMana { .. } => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
@@ -9023,6 +9072,10 @@ pub enum Condition {
     WasBlocking(bool),
     /// "if this creature isn't prepared" (CR 722.3a).
     NotPrepared,
+    /// An ∞ ability ("∞ — At the beginning of your end step, ..."): it
+    /// triggers only while the source is harnessed (`OBJ_HARNESSED`).
+    /// Printed as the label, not as an "if".
+    Harnessed,
     /// Evolve (CR 702.100a): the triggering creature's power is greater
     /// than the source's, or its toughness is greater than the source's.
     Evolves,
@@ -9121,6 +9174,9 @@ pub enum ChosenCost {
     /// Equipment moves off the creature and stays on the battlefield; it
     /// doesn't matter who controls it (its rulings).
     Unattach,
+    /// "Exile a creature you control" (The Soul Stone): the chosen
+    /// permanent is exiled.
+    Exile,
 }
 
 /// What an activated ability's cost sacrifices (CR 602.2b, 701.21).
@@ -9144,6 +9200,10 @@ pub enum SacCost {
 #[allow(clippy::struct_excessive_bools)] // each is one independent cost part
 pub struct Cost {
     pub mana: ManaCost,
+    /// "X can't be 0." (Katara, Water Tribe's Hope; CR 107.3): the
+    /// activation's X is chosen from 1 up.
+    #[serde(default)]
+    pub x_not_zero: bool,
     /// "Discard this card" (cycling, CR 702.29): the source leaves the hand
     /// as the cost is paid.
     pub discard_self: bool,
@@ -9392,6 +9452,7 @@ impl Cost {
     pub fn parse(mana: &str) -> Cost {
         Cost {
             mana: ManaCost::parse(mana).unwrap_or_else(|e| panic!("{mana}: {e}")),
+            x_not_zero: false,
             discard_self: false,
             exile_self: false,
             exile_this: false,
@@ -10199,6 +10260,9 @@ pub enum AbilityDef {
     /// triggered ability `AbilityId` (a registered `BeginningOfStep`
     /// trigger), which happens once, at the next such step.
     OpeningHandReveal(AbilityId),
+    /// "Each power-up ability of permanents you control can be activated
+    /// an additional time." (Wonder Man, Hollywood Hero; CR 702.193a).
+    PowerUpAgain,
     /// "You have no maximum hand size" (`delta` None), "Your maximum hand
     /// size is increased by one" (CR 402.2); `whose` from the controller.
     HandSize {
@@ -10338,6 +10402,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
+            | AbilityDef::PowerUpAgain
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
@@ -10379,6 +10444,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::Landwalk(_)
             | AbilityDef::HandSize { .. }
+            | AbilityDef::PowerUpAgain
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
@@ -11867,6 +11933,9 @@ pub struct CardPool {
     /// there ("Instant and sorcery spells you control have lifelink",
     /// "... split second"; `SpellGrant::keywords`).
     pub stack_grants: bool,
+    /// Whether some card lets power-up abilities be activated an
+    /// additional time (`AbilityDef::PowerUpAgain`).
+    pub powerup_again: bool,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -11972,6 +12041,7 @@ impl CardPool {
             card_grants: false,
             spend_grants: false,
             stack_grants: false,
+            powerup_again: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -12752,6 +12822,10 @@ impl CardPool {
             .abilities
             .iter()
             .any(|a| matches!(a, AbilityDef::CardGrant(_)));
+        self.powerup_again |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::PowerUpAgain));
         self.spend_grants |= def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))

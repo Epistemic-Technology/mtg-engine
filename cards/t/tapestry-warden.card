@@ -1,0 +1,9 @@
+card "Tapestry Warden" {
+  oracle_id 981138d0-bf61-406a-85be-68cc5e58796c
+  cost {3}{G}
+  type Artifact Creature — Robot Soldier
+  pt 3/4
+  keywords vigilance
+  static each creature you control with toughness greater than power: has assigns combat damage equal to toughness
+  static each creature you control with toughness greater than power: has stations using toughness
+}

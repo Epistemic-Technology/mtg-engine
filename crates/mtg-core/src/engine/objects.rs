@@ -503,6 +503,9 @@ impl GameState {
                         | AltCast::Sneak
                         | AltCast::WebSlinging
                         | AltCast::Impending
+                        // "If that creature was cast for its warp cost"
+                        // (Full Bore).
+                        | AltCast::Warp
                 ) {
                 old.alt
             } else if old.zone == Zone::Stack

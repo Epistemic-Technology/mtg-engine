@@ -1,0 +1,7 @@
+card "Sozin's Comet" {
+  oracle_id bc0da02c-2b85-4ddc-9ce0-63934dd14164
+  cost {3}{R}{R}
+  type Sorcery
+  spell: each single creature you control gains firebending 5 until end of turn
+  foretell {2}{R}
+}

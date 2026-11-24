@@ -1054,9 +1054,15 @@ impl Fmt {
             }
             Effect::BlightBy { who, n } => format!("{} blights {n}", self.recipient(*who, t)),
             Effect::Firebend(_) => unreachable!("only in expansions"),
+            Effect::Earthbend {
+                count,
+                delayed: true,
+                ..
+            } => format!("you earthbend {}", num(*count)),
             Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
+            Effect::Harness => "harness this".to_string(),
             Effect::TurnFaceUpExiled => {
                 "turn face up exiled card put creature onto battlefield".to_string()
             }
@@ -1108,9 +1114,11 @@ impl Fmt {
                     format!("plot {} as it resolves", self.recipient(*what, t))
                 }
             }
-            Effect::BecomePrepared { what } => {
-                format!("{} becomes prepared", self.recipient(*what, t))
-            }
+            Effect::BecomePrepared { what, on } => format!(
+                "{} becomes {}",
+                self.recipient(*what, t),
+                if *on { "prepared" } else { "unprepared" }
+            ),
             Effect::BecomeSaddledTarget { what } => {
                 format!("{} becomes saddled", self.recipient(*what, t))
             }
@@ -1896,16 +1904,17 @@ impl Fmt {
                     self.recipient(*to, t)
                 )
             }
-            Effect::ExtraTurns { who, n } => {
+            Effect::ExtraTurns { who, n, no_powerup } => {
                 let v = if *who == Recipient::You {
                     "take"
                 } else {
                     "takes"
                 };
+                let rider = if *no_powerup { " without power-up" } else { "" };
                 if *n == 1 {
-                    format!("{} {v} extra turn", self.recipient(*who, t))
+                    format!("{} {v} extra turn{rider}", self.recipient(*who, t))
                 } else {
-                    format!("{} {v} {n} extra turns", self.recipient(*who, t))
+                    format!("{} {v} {n} extra turns{rider}", self.recipient(*who, t))
                 }
             }
             Effect::AddedCombatAttackers(f) => {
@@ -3292,17 +3301,23 @@ impl Fmt {
             }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
             Effect::Learn => "learn".to_string(),
-            Effect::DoublePt { to, toughness, of } => {
+            Effect::DoublePt {
+                to,
+                toughness,
+                of,
+                triple,
+            } => {
                 let pt = if *toughness {
                     "power and toughness"
                 } else {
                     "power"
                 };
                 let who = self.recipient(*to, t);
+                let verb = if *triple { "triple" } else { "double" };
                 if *of {
-                    format!("double the {pt} of {who}")
+                    format!("{verb} the {pt} of {who}")
                 } else {
-                    format!("double {who} {pt}")
+                    format!("{verb} {who} {pt}")
                 }
             }
             Effect::DoubleCounters { kind, to } => format!(
@@ -3312,6 +3327,11 @@ impl Fmt {
                     Num::N(2)
                 )),
                 self.recipient(*to, t)
+            ),
+            Effect::EnterTappedAttacking => "they enter tapped and attacking".to_string(),
+            Effect::NoMaxHandSize { who } => format!(
+                "{} have no maximum hand size for the rest of the game",
+                self.recipient(*who, t)
             ),
             Effect::DoubleLife { who } => {
                 if *who == Recipient::You {
@@ -3689,6 +3709,18 @@ impl Fmt {
                         ""
                     },
                     n + 1,
+                    self.line(inner, t)
+                )
+            }
+            Effect::IfTarget(n, f, inner, check)
+                if check.tense == crate::ast::TargetTense::Is
+                    && !check.after
+                    && *f == Filter::warped() =>
+            {
+                format!(
+                    "if target {} warped, {}{}",
+                    n + 1,
+                    if check.also { "also " } else { "" },
                     self.line(inner, t)
                 )
             }
@@ -5211,6 +5243,9 @@ fn filter_one(f: &Filter) -> String {
     if f.status.adventure {
         words.push("adventurer".to_string());
     }
+    if f.status.prepared_spell {
+        words.push("prepared".to_string());
+    }
     if let Some(cc) = f.color_count {
         words.push(if cc == mtg_core::card::ColorCount::Colored {
             "colored".to_string()
@@ -6255,6 +6290,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} becomes targeted", trigger_obj(o))
         }
         Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_obj(o)),
+        Trigger::TappedForTeamwork(o) => {
+            format!("whenever {} becomes tapped for teamwork", trigger_obj(o))
+        }
         Trigger::BecomesAttachedTo(f) => {
             format!("whenever {} becomes attached to this", filter(f))
         }
@@ -6620,6 +6658,7 @@ fn cost_text(c: &Cost) -> String {
                         mtg_core::card::ChosenCost::Return => "return",
                         mtg_core::card::ChosenCost::Tap => "tap",
                         mtg_core::card::ChosenCost::Unattach => "unattach",
+                        mtg_core::card::ChosenCost::Exile => "exile",
                     },
                     if c.count > 0 {
                         format!("{} ", c.count)
@@ -6783,6 +6822,9 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
         }
+    }
+    if c.x_not_zero {
+        parts.push("x can't be 0".to_string());
     }
     if c.restrict.is_empty() {
         if c.sorcery && c.loyalty.is_none() {
@@ -7388,6 +7430,16 @@ fn static_cond(c: &StaticCond) -> String {
             }
         ),
         StaticCond::ProwlPaid => "prowl paid".to_string(),
+        StaticCond::MayhemPaid => "mayhem paid".to_string(),
+        StaticCond::SneakPaidThisTurn(p) => format!(
+            "{}sneak paid this turn",
+            match p {
+                1 => "his ",
+                2 => "her ",
+                3 => "this ",
+                _ => "",
+            }
+        ),
         StaticCond::MoreVotes { word, ties, .. } => {
             format!(
                 "more votes for {word}{}",
@@ -8125,6 +8177,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::NotPrepared) => {
                     head.push_str(" if this isn't prepared");
                 }
+                Some(mtg_core::card::Condition::Harnessed) => head.push_str(" if harnessed"),
                 Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
                 Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
                 Some(mtg_core::card::Condition::Trains) => head.push_str(" if trains"),
@@ -9056,6 +9109,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 .as_ref()
                 .map_or_else(String::new, |c| format!(" as long as {}", static_cond(c)));
             let _ = writeln!(out, "{indent}tax {what} {amount}{those}{cond}");
+        }
+        Ability::PowerUpAgain => {
+            let _ = writeln!(out, "{indent}power-up again");
         }
         Ability::HandSize { whose, delta, set } => {
             let who = if *whose == Who::Opponents {

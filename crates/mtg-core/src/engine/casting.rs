@@ -1369,10 +1369,22 @@ impl GameState {
             // CR 608.2h: the moved object as it last existed.
             CountExpr::MovedStat { verb, stat } => {
                 return self.this_way.as_ref().map_or(0, |log| {
-                    log.moved
-                        .iter()
-                        .find(|m| m.is(*verb))
-                        .map_or(0, |m| self.stat_value(m.old, *stat))
+                    log.moved.iter().find(|m| m.is(*verb)).map_or(0, |m| {
+                        // Station's "the tapped creature's power" (the only
+                        // tapped stat): Tapestry Warden's creatures station
+                        // using their toughness (CR 702.184a).
+                        let stat = if *verb == crate::card::ThisWay::Tapped
+                            && *stat == crate::card::Stat::Power
+                            && self
+                                .characteristics_or_lki(m.old)
+                                .is_some_and(|c| c.has(Keyword::StationsToughness))
+                        {
+                            crate::card::Stat::Toughness
+                        } else {
+                            *stat
+                        };
+                        self.stat_value(m.old, stat)
+                    })
                 });
             }
             CountExpr::TargetHand(n) => match ctx.targets.get(*n) {
@@ -3363,12 +3375,7 @@ impl GameState {
     /// paying one mana of its color, or generic) and untapped artifacts
     /// (generic) that may be tapped to help cast `def`; after mana
     /// sources, so they are used last.
-    pub(super) fn helper_sources(
-        &self,
-        p: PlayerId,
-        def: &crate::card::CardDef,
-        keywords: KeywordSet,
-    ) -> Sources {
+    pub(super) fn helper_sources(&self, p: PlayerId, keywords: KeywordSet, bend: u32) -> Sources {
         let convoke = keywords.contains(Keyword::Convoke);
         let improvise = keywords.contains(Keyword::Improvise);
         let mut out = Sources::new();
@@ -3379,10 +3386,9 @@ impl GameState {
             }
         }
         // CR 701.67b: an additional waterbend cost's artifacts and
-        // creatures pay only its own generic mana.
-        if def.additional.waterbend {
-            let n = def.additional.mana.requirements(0).generic;
-            out.extend(self.waterbend_sources(p, n, None));
+        // creatures pay only its own generic mana (`bend_cap`).
+        if bend > 0 {
+            out.extend(self.waterbend_sources(p, bend, None));
         }
         if !convoke && !improvise {
             return out;
@@ -3408,6 +3414,23 @@ impl GameState {
             }
         }
         out
+    }
+
+    /// CR 701.67b: how much of a spell's generic mana its artifacts and
+    /// creatures may pay: an additional waterbend cost's, and an optional
+    /// one's ("you may waterbend {4}") once `cast` has chosen to pay it.
+    pub(super) fn bend_cap(def: &crate::card::CardDef, cast: crate::state::CastInfo) -> u32 {
+        let mut n = 0;
+        if def.additional.waterbend {
+            n += def.additional.mana.requirements(0).generic;
+        }
+        if cast.optional_paid()
+            && let Some(c) = def.optional_cost.as_deref()
+            && c.waterbend
+        {
+            n += c.mana.requirements(0).generic;
+        }
+        n
     }
 
     /// CR 701.67a: the untapped artifacts and creatures `p` controls that
@@ -3449,8 +3472,9 @@ impl GameState {
         }
         let def = self.pool.get(o.def);
         let keywords = self.spell_keywords(o.controller, def, spell).0;
-        if Keyword::helps_pay(keywords) || def.additional.waterbend {
-            s.extend(self.helper_sources(o.controller, def, keywords));
+        let bend = Self::bend_cap(def, o.cast);
+        if Keyword::helps_pay(keywords) || bend > 0 {
+            s.extend(self.helper_sources(o.controller, keywords, bend));
         }
         // CR 702.180b: the creature tapped for harmonize is tapped as a
         // cost, so it can't also tap for mana (the X of Nature's Rhythm).
@@ -5833,6 +5857,33 @@ impl GameState {
     /// 702.142a boast: only if the creature attacked this turn, once each
     /// turn; CR 702.177a exhaust, 702.193a power-up: only once).
     fn keyword_allows(&self, k: ActivatedKeyword, id: ObjId, a: AbilityId) -> bool {
+        if k == ActivatedKeyword::PowerUp && (self.no_powerup_turn || self.pool.powerup_again) {
+            // Kang the Conqueror's extra turn; Wonder Man, Hollywood
+            // Hero: "Each power-up ability of permanents you control can
+            // be activated an additional time."
+            if self.no_powerup_turn {
+                return false;
+            }
+            let used = self
+                .activated_ever
+                .iter()
+                .filter(|e| **e == (id, a))
+                .count();
+            let p = self.objects[id].controller;
+            let more = self
+                .battlefield
+                .iter()
+                .filter(|s| self.objects[**s].controller == p)
+                .filter_map(|s| self.characteristics(*s))
+                .map(|c| {
+                    c.abilities
+                        .iter()
+                        .filter(|x| matches!(self.pool.ability(**x), AbilityDef::PowerUpAgain))
+                        .count()
+                })
+                .sum::<usize>();
+            return used < 1 + more;
+        }
         if k.once_ever() {
             !self.activated_ever.contains(&(id, a))
         } else {
@@ -5849,7 +5900,8 @@ impl GameState {
         ab: &ActivatedAbility,
         p: PlayerId,
     ) -> ManaRequirement {
-        self.activation_mana_x(source, ab, 0, p)
+        // "X can't be 0": the least it may cost is with X 1.
+        self.activation_mana_x(source, ab, u32::from(ab.cost.x_not_zero), p)
     }
 
     /// `activation_mana` with X as `x` (CR 107.3); "Spend only black mana
@@ -6538,6 +6590,8 @@ impl GameState {
                 )
             })
             .filter(|x| x_specs.iter().all(|s| self.x_fits(caster, *s, spell, *x)))
+            // "X can't be 0."
+            .filter(|x| *x > 0 || !ability.is_some_and(|(_, a)| a.cost.x_not_zero))
             .map(Choice::X)
             .collect()
     }
@@ -8366,7 +8420,9 @@ impl GameState {
                     && self.objects.contains_key(g)
                 {
                     match cost.chosen {
-                        crate::card::ChosenCost::Sacrifice | crate::card::ChosenCost::Return => {
+                        crate::card::ChosenCost::Sacrifice
+                        | crate::card::ChosenCost::Return
+                        | crate::card::ChosenCost::Exile => {
                             self.sacrifice(g);
                         }
                         // "Tap Fishing Pole".
@@ -8403,6 +8459,9 @@ impl GameState {
                             crate::card::ChosenCost::Sacrifice => self.sacrifice(s),
                             crate::card::ChosenCost::Return => {
                                 self.move_object(s, Zone::Hand, false);
+                            }
+                            crate::card::ChosenCost::Exile => {
+                                self.move_object(s, Zone::Exile, false);
                             }
                             crate::card::ChosenCost::Tap => {
                                 self.tap(s);
@@ -9385,7 +9444,10 @@ impl GameState {
             let n = def.teamwork;
             if let Some(cs) = self.teamwork_tappers(caster, n) {
                 for c in cs {
-                    self.tap(c);
+                    if !self.objects[c].tapped {
+                        self.tap(c);
+                        self.emit(Event::TappedForTeamwork { obj: c });
+                    }
                 }
             } else {
                 self.objects[spell].cast.set_teamwork(false);
@@ -13844,10 +13906,13 @@ impl GameState {
             }
             // CR 500.7: the most recently created extra turn comes first,
             // so each goes on top of the stack of turns to come.
-            Effect::ExtraTurns { who, n } => {
+            Effect::ExtraTurns { who, n, no_powerup } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         for _ in 0..*n {
+                            if *no_powerup {
+                                self.no_powerup_extra.push(self.extra_turns.len());
+                            }
                             self.extra_turns.push(p);
                         }
                     }
@@ -17042,6 +17107,13 @@ impl GameState {
                 self.bolster(ctx, n);
             }
             Effect::Populate => self.populate(ctx),
+            Effect::Harness => {
+                if let Some(o) = self.objects.get_mut(ctx.source)
+                    && o.zone == Zone::Battlefield
+                {
+                    o.marks |= crate::state::OBJ_HARNESSED;
+                }
+            }
             Effect::ExchangeControl { a, b } => {
                 let mut objs: SmallVec<[ObjId; 2]> = SmallVec::new();
                 for r in std::iter::once(*a).chain(*b) {
@@ -17191,10 +17263,15 @@ impl GameState {
                     o.marks |= crate::state::OBJ_RENOWNED;
                 }
             }
-            Effect::BecomePrepared { what } => {
+            Effect::BecomePrepared { what, on } => {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {
-                        self.become_prepared(id);
+                        if *on {
+                            self.become_prepared(id);
+                        } else if let Some(id) = on_battlefield(self, t) {
+                            // "It becomes unprepared" (CR 722.3a).
+                            self.objects[id].marks &= !crate::state::OBJ_PREPARED;
+                        }
                     }
                 }
             }
@@ -17250,7 +17327,11 @@ impl GameState {
                     }
                 }
             }
-            Effect::DoublePt { to, toughness } => {
+            Effect::DoublePt {
+                to,
+                toughness,
+                triple,
+            } => {
                 for t in self.recipients(ctx, *to) {
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
@@ -17259,10 +17340,11 @@ impl GameState {
                         continue;
                     };
                     // CR 701.10b, c: +X/+0 with X its power, which may be
-                    // negative.
-                    let power = i32::from(c.power);
+                    // negative; tripled, +2X/+0.
+                    let k = if *triple { 2 } else { 1 };
+                    let power = i32::from(c.power) * k;
                     let tough = if *toughness {
-                        i32::from(c.toughness)
+                        i32::from(c.toughness) * k
                     } else {
                         0
                     };
@@ -17290,6 +17372,13 @@ impl GameState {
                         .collect();
                     for (k, n) in have {
                         self.add_counters(id, k, n);
+                    }
+                }
+            }
+            Effect::NoMaxHandSize { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.player_mut(p).max_hand_size = usize::MAX;
                     }
                 }
             }
@@ -19014,6 +19103,7 @@ impl GameState {
                     q.bound = None;
                     q.mana_value_x = false;
                     q.protector = None;
+                    q.warped = false;
                     q.any()
                 }
         }
@@ -19048,6 +19138,15 @@ impl GameState {
             };
             id
         };
+        // "If that creature was cast for its warp cost": the permanent
+        // still on the battlefield, kept how it was cast.
+        if filter.status.warped
+            && !self.objects.get(id).is_some_and(|o| {
+                o.zone == Zone::Battlefield && o.alt == crate::state::AltCast::Warp
+            })
+        {
+            return false;
+        }
         // "If an opponent protects it" (CR 310.8): a battle still on the
         // battlefield, its protector judged from the effect's controller.
         if let Some(who) = filter.status.protector {

@@ -1,0 +1,7 @@
+card "Hexhaven Dueling Arena" {
+  oracle_id 2cc075da-f79b-4050-84eb-2c1b9a30260c
+  type Land
+  mana {C}
+  activated {2}, {T}, sorcery: target creature that attacked this turn becomes prepared
+  activated {4}, {T}: target creature becomes prepared
+}

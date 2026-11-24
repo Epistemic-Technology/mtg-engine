@@ -1,0 +1,7 @@
+card "Sandman's Quicksand" {
+  oracle_id f2b376d2-a2f4-4d23-a1fb-eb7b6ebd0b7a
+  cost {1}{B}{B}
+  type Sorcery
+  mayhem {3}{B}
+  spell: all creatures get -2/-2 until end of turn; if mayhem paid, each creature your opponents control gets -2/-2 until end of turn instead
+}

@@ -1,0 +1,8 @@
+card "Agent Maria Hill" {
+  oracle_id a2d90efe-80f2-4069-b135-a8bd00ccd2b0
+  cost {W}
+  type Legendary Creature — Human Spy Hero
+  pt 2/1
+  pronoun she
+  triggered whenever this becomes tapped for teamwork: put 1 +1/+1 counter on this and draw 1 card
+}

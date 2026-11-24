@@ -1,0 +1,9 @@
+card "Karai, Future of the Foot" {
+  oracle_id 7246638e-0361-40e3-8019-3c10210a593e
+  cost {1}{W}{B}
+  type Legendary Creature — Human Ninja
+  pt 3/3
+  pronoun she
+  sneak {2}{W}{B}
+  triggered whenever this deals combat damage to a player: return target creature card from your graveyard to hand; if her sneak paid this turn, instead return that target 1 to battlefield
+}

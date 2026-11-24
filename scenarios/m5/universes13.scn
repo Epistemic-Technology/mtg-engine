@@ -1,0 +1,346 @@
+# Crossover-set pieces (wave 13): an optional waterbend cost, "X can't be
+# 0", granted firebending, tiered tripling, mayhem / sneak / warp /
+# teamwork conditions, prepared and unprepared, harness and ∞ abilities,
+# and stationing by toughness.
+
+scenario "you may waterbend: paid by tapping creatures, the life trigger is set up" {
+  battlefield A: 3 "Swamp", 4 "Hill Giant"
+  battlefield B: 2 "Grizzly Bears"
+  hand A: "Ruinous Waterbending"
+  turn 1 A: cast "Ruinous Waterbending" kicked
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 2 "Grizzly Bears"
+  assert power oldest A "Hill Giant" 1
+  assert tapped oldest A "Hill Giant"
+  assert tapped newest A "Hill Giant"
+  # Two creatures died this turn: a life each.
+  assert life A 22
+}
+
+scenario "you may waterbend: declined, no life trigger" {
+  battlefield A: 3 "Swamp", 4 "Hill Giant"
+  battlefield B: 2 "Grizzly Bears"
+  hand A: "Ruinous Waterbending"
+  turn 1 A: cast "Ruinous Waterbending"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 2 "Grizzly Bears"
+  assert life A 20
+  assert untapped oldest A "Hill Giant"
+}
+
+scenario "you may waterbend: creatures pay only the waterbend part, not the spell's own {1}" {
+  battlefield A: 2 "Swamp", 4 "Hill Giant"
+  hand A: "Ruinous Waterbending"
+  illegal turn 1 A: cast "Ruinous Waterbending"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ruinous Waterbending"
+}
+
+scenario "Spirit Water Revival: paid, shuffle the graveyard in, draw seven, no maximum hand size" {
+  battlefield A: 3 "Island", 6 "Hill Giant"
+  hand A: "Spirit Water Revival", "Forest", "Forest", "Forest"
+  graveyard A: "Grizzly Bears", "Serra Angel"
+  library A: "Island", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Spirit Water Revival" kicked
+  run_to turn 2 upkeep
+  assert exile A contains "Spirit Water Revival"
+  assert graveyard A count 0
+  # 3 + 7 cards, and none discarded at cleanup.
+  assert hand A count 10
+}
+
+scenario "Spirit Water Revival: declined, draw two" {
+  battlefield A: 3 "Island"
+  hand A: "Spirit Water Revival"
+  graveyard A: "Grizzly Bears"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Spirit Water Revival"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert exile A contains "Spirit Water Revival"
+}
+
+scenario "Tifa's Limit Break: Final Heaven triples power and toughness" {
+  battlefield A: 8 "Forest", "Grizzly Bears"
+  hand A: "Tifa's Limit Break"
+  turn 1 A: cast "Tifa's Limit Break" mode 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+}
+
+scenario "Tifa's Limit Break: Meteor Strikes doubles, Somersault +2/+2" {
+  battlefield A: 4 "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Tifa's Limit Break", "Tifa's Limit Break"
+  turn 1 A: cast "Tifa's Limit Break" mode 2 targeting "Hill Giant"
+  turn 1 main2 A: cast "Tifa's Limit Break" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Hill Giant" 6
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Sozin's Comet: each creature gains firebending 5" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  hand A: "Sozin's Comet", "Lightning Bolt"
+  turn 1 A: cast "Sozin's Comet"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Fire Nation Cadets: firebending 2 with a Lesson in the graveyard" {
+  battlefield A: "Fire Nation Cadets"
+  hand A: "Lightning Bolt"
+  graveyard A: "Ruinous Waterbending"
+  turn 1 A: attack "Fire Nation Cadets"
+  turn 1 declare_blockers A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Fire Nation Cadets: no Lesson, no firebending" {
+  battlefield A: "Fire Nation Cadets"
+  hand A: "Lightning Bolt"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: attack "Fire Nation Cadets"
+  illegal turn 1 declare_blockers A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Sandman's Quicksand: for its mayhem cost only the opponents' creatures shrink" {
+  battlefield A: 6 "Swamp", "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tormenting Voice", "Sandman's Quicksand"
+  library A: "Island", "Island"
+  turn 1 A: cast "Tormenting Voice" discarding "Sandman's Quicksand"
+  turn 1 main2 A: cast "Sandman's Quicksand" from graveyard
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 3
+}
+
+scenario "Sandman's Quicksand: cast from hand, all creatures shrink" {
+  battlefield A: 3 "Swamp", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sandman's Quicksand"
+  turn 1 A: cast "Sandman's Quicksand"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 1
+}
+
+scenario "Karai: cast for its sneak cost this turn, the card returns to the battlefield" {
+  battlefield A: "Grizzly Bears", 2 "Swamp", 2 "Plains"
+  hand A: "Karai, Future of the Foot"
+  graveyard A: "Serra Angel"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Karai, Future of the Foot" sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "Karai: not cast with sneak, the card returns to hand" {
+  battlefield A: "Karai, Future of the Foot"
+  graveyard A: "Serra Angel"
+  turn 1 A: attack "Karai, Future of the Foot"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A contains "Serra Angel"
+}
+
+scenario "Too Evil to Stay Dead: without teamwork, mana value 4 or less only" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Serra Angel"
+  hand A: "Too Evil to Stay Dead"
+  illegal turn 1 A: cast "Too Evil to Stay Dead" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "Too Evil to Stay Dead: a small creature without teamwork" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Too Evil to Stay Dead"
+  turn 1 A: cast "Too Evil to Stay Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Too Evil to Stay Dead: with teamwork, any creature card" {
+  battlefield A: 3 "Swamp", "Hill Giant", "Grizzly Bears"
+  graveyard A: "Serra Angel"
+  hand A: "Too Evil to Stay Dead"
+  turn 1 A: cast "Too Evil to Stay Dead" teamwork targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Biblioplex Tomekeeper: a creature becomes prepared" {
+  battlefield A: 6 "Forest", "Studious First-Year"
+  hand A: "Biblioplex Tomekeeper"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Biblioplex Tomekeeper"
+  turn 1 A: trigger "Biblioplex Tomekeeper" mode 1 targeting "Studious First-Year"
+  turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 1 end
+  assert battlefield A contains 7 "Forest"
+}
+
+scenario "Biblioplex Tomekeeper: a creature becomes unprepared" {
+  battlefield A: 6 "Forest"
+  hand A: "Studious First-Year", "Biblioplex Tomekeeper"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Studious First-Year"
+  turn 1 A: cast "Biblioplex Tomekeeper"
+  turn 1 A: trigger "Biblioplex Tomekeeper" mode 2 targeting "Studious First-Year"
+  illegal turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 1 end
+}
+
+scenario "Infinite Coursework: taps, unprepares, and stops untapping" {
+  battlefield A: 4 "Island", "Forest"
+  hand A: "Studious First-Year", "Infinite Coursework"
+  turn 1 A: cast "Studious First-Year"
+  turn 1 A: cast "Infinite Coursework" targeting "Studious First-Year"
+  illegal turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 3 precombat_main
+  assert tapped "Studious First-Year"
+}
+
+scenario "Hexhaven Dueling Arena: a creature that attacked this turn becomes prepared" {
+  battlefield A: "Hexhaven Dueling Arena", 4 "Forest", "Studious First-Year"
+  library A: "Forest", "Island"
+  turn 1 A: attack "Studious First-Year"
+  turn 1 main2 A: activate "Hexhaven Dueling Arena" ability 1 targeting "Studious First-Year"
+  turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 1 end
+  assert battlefield A contains 5 "Forest"
+}
+
+scenario "Hexhaven Dueling Arena: not a creature that didn't attack" {
+  battlefield A: "Hexhaven Dueling Arena", 4 "Forest", "Studious First-Year"
+  illegal turn 1 main2 A: activate "Hexhaven Dueling Arena" ability 1 targeting "Studious First-Year"
+  run_to turn 1 end
+}
+
+scenario "Full Bore: a creature cast for its warp cost also gains trample and haste" {
+  battlefield A: "Swamp", "Mountain"
+  hand A: "Susurian Voidborn", "Full Bore"
+  turn 1 A: cast "Susurian Voidborn" warped
+  turn 1 A: wait
+  turn 1 A: cast "Full Bore" targeting "Susurian Voidborn"
+  turn 1 A: attack "Susurian Voidborn"
+  run_to turn 1 postcombat_main
+  assert has "Susurian Voidborn" trample
+  assert power "Susurian Voidborn" 5
+  assert life B 15
+}
+
+scenario "Full Bore: not warped, only +3/+2" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Full Bore"
+  turn 1 A: cast "Full Bore" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 4
+  assert has not "Grizzly Bears" trample
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "The Last Ronin's Technique: sneaked, the tokens enter tapped and attacking" {
+  battlefield A: "Grizzly Bears", "Plains", "Plains"
+  hand A: "The Last Ronin's Technique"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "The Last Ronin's Technique" sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Ninja Turtle Spirit"
+  assert tapped oldest A "Ninja Turtle Spirit"
+  assert tapped newest A "Ninja Turtle Spirit"
+  assert life B 17
+}
+
+scenario "The Last Ronin's Technique: cast normally, untapped tokens" {
+  battlefield A: 4 "Plains"
+  hand A: "The Last Ronin's Technique"
+  turn 1 A: cast "The Last Ronin's Technique"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Ninja Turtle Spirit"
+  assert untapped oldest A "Ninja Turtle Spirit"
+  assert life B 20
+}
+
+scenario "Katara: waterbend {X}, creatures have base power and toughness X/X" {
+  battlefield A: "Katara, Water Tribe's Hope", "Grizzly Bears", "Island", "Island"
+  turn 1 A: activate "Katara, Water Tribe's Hope" x 4
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Katara, Water Tribe's Hope" 4
+}
+
+scenario "Katara: X can't be 0, so with nothing to pay {1} it can't be activated" {
+  battlefield A: "Katara, Water Tribe's Hope" tapped
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Katara, Water Tribe's Hope" x 0
+  run_to turn 1 postcombat_main
+  assert power "Katara, Water Tribe's Hope" 3
+}
+
+scenario "Katara: X 1 paid by tapping a creature" {
+  battlefield A: "Katara, Water Tribe's Hope" tapped, "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Katara, Water Tribe's Hope" x 1
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert tapped "Hill Giant"
+}
+
+scenario "Katara: only during your turn" {
+  battlefield A: "Katara, Water Tribe's Hope", "Island", "Island"
+  start turn 2 B
+  illegal turn 2 A: activate "Katara, Water Tribe's Hope" x 2
+  run_to turn 2 end
+}
+
+scenario "The Mind Stone: harnessed, its ∞ ability flickers at the end step" {
+  battlefield A: "The Mind Stone", 6 "Plains", "Grizzly Bears" with 2 +1/+1
+  turn 1 A: activate "The Mind Stone" ability 1
+  turn 1 end A: trigger "The Mind Stone" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "The Mind Stone: not harnessed, no ∞ ability" {
+  battlefield A: "The Mind Stone", "Grizzly Bears" with 2 +1/+1
+  run_to turn 2 upkeep
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "The Soul Stone: exile a creature to harness it, then return a creature each upkeep" {
+  battlefield A: "The Soul Stone", 7 "Swamp", "Grizzly Bears"
+  graveyard A: "Serra Angel"
+  turn 1 A: activate "The Soul Stone" sacrificing "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A contains "Serra Angel"
+}
+
+scenario "Tapestry Warden: stations using toughness" {
+  battlefield A: "Wurmwall Sweeper", "Tapestry Warden"
+  turn 1 A: activate "Wurmwall Sweeper" sacrificing "Tapestry Warden"
+  run_to turn 1 end
+  assert counters "Wurmwall Sweeper" charge 4
+}
+
+scenario "Tapestry Warden: a creature with power at least its toughness stations by power" {
+  battlefield A: "Wurmwall Sweeper", "Tapestry Warden", "Hill Giant"
+  turn 1 A: activate "Wurmwall Sweeper" sacrificing "Hill Giant"
+  run_to turn 1 end
+  assert counters "Wurmwall Sweeper" charge 3
+}

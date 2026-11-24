@@ -1518,6 +1518,7 @@ impl GameState {
             }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
+            | (TriggerSpec::TappedForTeamwork(what), Event::TappedForTeamwork { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })
             // CR 708.8: judged as the permanent is face up.
             | (TriggerSpec::TurnedFaceUp(what), Event::TurnedFaceUp { obj })
@@ -2662,6 +2663,10 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
             Condition::WasBlocking(b) => self.was_blocking(source) == b,
             Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
+            Condition::Harnessed => self
+                .objects
+                .get(source)
+                .is_some_and(|o| o.marks & crate::state::OBJ_HARNESSED != 0),
             Condition::Evolves => {
                 let this = self.characteristics_or_lki(source);
                 self.evolves(this.as_ref(), trigger_obj)
@@ -2733,6 +2738,10 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::WasBlocking(b) => self.was_blocking(w.source) == b,
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
+            Condition::Harnessed => self
+                .objects
+                .get(w.source)
+                .is_some_and(|o| o.marks & crate::state::OBJ_HARNESSED != 0),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),

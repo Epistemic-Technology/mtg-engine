@@ -1,0 +1,6 @@
+card "Full Bore" {
+  oracle_id 4b96d003-d3b4-4181-9f50-06a3e6eb1916
+  cost {R}
+  type Instant
+  spell: target creature you control gets +3/+2 until end of turn; if target 1 warped, also target 1 gains trample and haste until end of turn
+}

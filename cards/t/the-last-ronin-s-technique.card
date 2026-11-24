@@ -1,0 +1,7 @@
+card "The Last Ronin's Technique" {
+  oracle_id 6a51bb21-0c01-4ad8-99d7-17685db90b69
+  cost {3}{W}
+  type Instant
+  sneak {1}{W}
+  spell: create 3 "1/1 white Ninja Turtle Spirit creature"; if sneak paid, they enter tapped and attacking
+}
