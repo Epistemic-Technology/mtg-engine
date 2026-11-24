@@ -4492,6 +4492,7 @@ impl GameState {
                     }
                 })
             }
+            C::NotTheirTurn => that.is_some_and(|p| self.active_player != p),
             C::PlayerMoreHand(who) => self.hand_player_any(*who, you, source, that, |p| {
                 self.player(p).hand.len() > self.player(you).hand.len()
             }),
@@ -4633,6 +4634,8 @@ impl GameState {
             C::YourTurn => self.active_player == you,
             C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::NotYourTurn => self.active_player != you,
+            // Judged by `condition_about`, which knows "they".
+            C::NotTheirTurn => false,
             C::YourMainPhase => self.active_player == you && self.step.is_main(),
             C::YourCombatPhase => {
                 self.active_player == you && self.step.phase() == crate::turn::Phase::Combat

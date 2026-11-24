@@ -1,0 +1,51 @@
+# "if it's not their turn" (`not their turn`): the player the ability
+# triggered for, here the spell's caster (CR 603.4: judged as it triggers
+# and as it resolves).
+
+scenario "Scytheclaw Raptor: a spell cast on another player's turn deals 4 to its caster" {
+  battlefield A: "Scytheclaw Raptor"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 18
+}
+
+scenario "Scytheclaw Raptor: a spell cast on its caster's own turn deals nothing" {
+  battlefield A: "Scytheclaw Raptor", "Mountain"
+  hand A: "Shock"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert life B 18
+}
+
+scenario "Adrenaline Jockey: a spell cast on another player's turn deals 4 to its caster" {
+  battlefield A: "Adrenaline Jockey"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "March of the World Ooze: an opponent's spell on your turn makes an Elephant; creatures are 6/6 Oozes" {
+  battlefield A: "March of the World Ooze", "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting player A
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Elephant"
+  assert power "Grizzly Bears" 6
+  assert toughness "Elephant" 6
+  assert is "Grizzly Bears" Ooze
+}

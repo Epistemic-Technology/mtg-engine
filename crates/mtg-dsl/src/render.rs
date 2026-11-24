@@ -16878,6 +16878,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         .replacen("you control", "your team controls", 1),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
+        StaticCond::NotTheirTurn => "it's not their turn".to_string(),
         StaticCond::CastDuringMain => "you cast this spell during your main phase".to_string(),
         StaticCond::ControlledAsCast(f) => format!(
             "you controlled {} as you cast this spell",

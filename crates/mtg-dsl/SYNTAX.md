@@ -577,7 +577,7 @@ Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
 artifact` ("you control three or more artifacts"), `you control Island`
 ("you control an Island"), `you control 1 or more Egg` ("you control one
-or more Eggs", the same condition), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"),
+or more Eggs", the same condition), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"), `not their turn` ("it's not their turn": the player the ability triggered for, or a spell's targeted player; "Whenever a player casts a spell, if it's not their turn, ..."),
 `cast during main phase` ("you cast this spell during your main phase")
 and `controlled Mount as cast` ("you controlled a Mount as you cast this
 spell"), both judged as the spell is cast and remembered by it, `attacking`,

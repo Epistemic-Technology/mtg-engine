@@ -3064,6 +3064,10 @@ pub enum StaticCondition {
     /// "during turns other than yours": it isn't the controller's turn.
     /// The turn change bumps the characteristics cache, as for `YourTurn`.
     NotYourTurn,
+    /// "if it's not their turn": "they" is the player the ability
+    /// triggered for ("Whenever a player casts a spell, if it's not their
+    /// turn, ...") or a spell's targeted player; false without one.
+    NotTheirTurn,
     /// "it's your main phase" (CR 505.1), "it's your combat phase" (CR
     /// 506.1), and "it's the first combat phase of the turn": for effects
     /// that add phases (`Effect::AdditionalPhases`), judged as they

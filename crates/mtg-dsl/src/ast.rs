@@ -2801,6 +2801,9 @@ pub enum StaticCond {
     /// `not your turn`: "it's not your turn"; `static during turns other
     /// than yours, ...` prints "During turns other than yours, ...".
     NotYourTurn,
+    /// `not their turn`: "it's not their turn", the player the ability
+    /// triggered for (Scytheclaw Raptor).
+    NotTheirTurn,
     /// `cast during main phase`: "you cast this spell during your main
     /// phase" (judged as it was cast).
     CastDuringMain,

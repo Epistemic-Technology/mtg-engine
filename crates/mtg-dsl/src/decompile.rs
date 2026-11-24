@@ -619,6 +619,7 @@ impl Decompiler<'_> {
             },
             StaticCondition::YourTurn => StaticCond::YourTurn,
             StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
+            StaticCondition::NotTheirTurn => StaticCond::NotTheirTurn,
             StaticCondition::AsCast(inner) => match &**inner {
                 StaticCondition::YouControl { filter, .. } => {
                     StaticCond::ControlledAsCast(self.filter(filter))

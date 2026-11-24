@@ -2333,6 +2333,7 @@ impl Compiler<'_> {
             }
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
+            StaticCond::NotTheirTurn => StaticCondition::NotTheirTurn,
             StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
                 let inner = match c {
                     StaticCond::ControlledAsCast(f) => StaticCondition::YouControl {

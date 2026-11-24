@@ -1,0 +1,8 @@
+card "Adrenaline Jockey" {
+  oracle_id c3dc6b0e-8790-4bd3-b166-63b2dc77488f
+  cost {2}{R}
+  type Creature — Minotaur Pilot
+  pt 3/3
+  triggered whenever a player casts spell if not their turn: deal 4 damage to they
+  triggered whenever you activate an exhaust ability: put 1 +1/+1 counter on this
+}

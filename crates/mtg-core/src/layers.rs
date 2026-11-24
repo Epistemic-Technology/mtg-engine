@@ -599,6 +599,8 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::TopCard(_) => state.condition_now(cond, you, source),
         StaticCondition::SourceAttackedBattle => state.battle_attackers_this_turn.contains(&source),
         StaticCondition::NotYourTurn => state.active_player != you,
+        // No "they" in a static ability.
+        StaticCondition::NotTheirTurn => false,
         StaticCondition::YourMainPhase => state.active_player == you && state.step.is_main(),
         StaticCondition::YourCombatPhase => {
             state.active_player == you && state.step.phase() == crate::turn::Phase::Combat

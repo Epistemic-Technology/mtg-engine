@@ -5391,6 +5391,9 @@ impl P {
         if self.eat_words(&["not", "your", "turn"]) {
             return Ok(StaticCond::NotYourTurn);
         }
+        if self.eat_words(&["not", "their", "turn"]) {
+            return Ok(StaticCond::NotTheirTurn);
+        }
         if self.eat_words(&["cast", "during", "main", "phase"]) {
             return Ok(StaticCond::CastDuringMain);
         }
@@ -7510,7 +7513,7 @@ impl P {
         if !self.in_trigger || self.no_trigger_obj || self.revealed || self.it_source {
             return None;
         }
-        if self.last_object_target().is_some() || !self.at_word("if") {
+        if !self.at_word("if") {
             return None;
         }
         let (words, noun) = match self.word_at(1).as_deref() {
@@ -7521,6 +7524,12 @@ impl P {
             }
             _ => return None,
         };
+        // After a target, "it" is that target; "that spell" in a cast
+        // trigger is still the spell ("earthbend 1. If that spell is a
+        // Lesson, ...", Toph, Hardheaded Teacher).
+        if self.last_object_target().is_some() && noun != Some("spell") {
+            return None;
+        }
         let verb = self.word_at(words)?;
         matches!(verb.as_str(), "is" | "isnt" | "was" | "wasnt").then_some((words + 1, noun, verb))
     }
