@@ -1,0 +1,6 @@
+card "Cache Grab" {
+  oracle_id 06ccec61-27d2-4079-80b5-29ebd3a980ee
+  cost {1}{G}
+  type Instant
+  spell: mill 4 cards; you may put 1 permanent card from among milled this way cards into hand chosen; either same if you control Squirrel, if you returned Squirrel card to hand this way, create 1 "Food"
+}

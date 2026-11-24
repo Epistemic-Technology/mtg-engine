@@ -3522,7 +3522,10 @@ impl Compiler<'_> {
             verb: c.verb,
             filter: c.filter.as_ref().map(|f| Box::new(self.filter(f))),
             negated: c.negated,
-            by_you: c.wording == crate::ast::ThisWayWording::You,
+            by_you: matches!(
+                c.wording,
+                crate::ast::ThisWayWording::You | crate::ast::ThisWayWording::Returned
+            ),
         }
     }
 
@@ -5054,6 +5057,7 @@ impl Compiler<'_> {
                     Some(
                         CoreEffect::IfCondition(..)
                             | CoreEffect::IfTarget { .. }
+                            | CoreEffect::IfAny { .. }
                             | CoreEffect::Clash { .. }
                             | CoreEffect::IfCard { .. }
                             | CoreEffect::IfYouDo(..)
@@ -5347,12 +5351,12 @@ impl Compiler<'_> {
             Effect::ManifestDreadBy { who } => {
                 out.push(CoreEffect::ManifestDreadBy { who: r(*who) });
             }
-            Effect::Behold { filter, n } => {
+            Effect::Behold { filter, n, hand } => {
                 out.push(CoreEffect::Behold(Box::new(mtg_core::card::Behold {
                     filter: self.filter(filter),
                     n: *n,
                     exile: false,
-                    hand: false,
+                    hand: *hand,
                     x: false,
                 })));
             }
@@ -5951,6 +5955,42 @@ impl Compiler<'_> {
             Effect::IfExcessDamage(inner, _) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfExcessDamage(then));
+            }
+            Effect::Either { conds, then, .. } => {
+                let mut checks = Vec::new();
+                for c in conds {
+                    let mut one = Vec::new();
+                    self.effect(c, &mut one)?;
+                    let check = match one.as_slice() {
+                        [
+                            CoreEffect::IfTarget {
+                                n,
+                                filter,
+                                negated: false,
+                                ..
+                            },
+                        ] => mtg_core::card::EffectCond::Target {
+                            n: *n,
+                            filter: filter.clone(),
+                        },
+                        [CoreEffect::IfCondition(i, _)] => mtg_core::card::EffectCond::Static(*i),
+                        [CoreEffect::IfThisWay { cond, .. }] => {
+                            mtg_core::card::EffectCond::ThisWay(cond.clone())
+                        }
+                        [CoreEffect::IfYouDo(_)] => mtg_core::card::EffectCond::Did,
+                        _ => {
+                            return self.err(
+                                "`either` joins target, condition, `this way`, and `you do` checks",
+                            );
+                        }
+                    };
+                    checks.push(check);
+                }
+                let then = self.sentences(then)?;
+                out.push(CoreEffect::IfAny {
+                    conds: checks,
+                    then,
+                });
             }
             Effect::ChooseAct {
                 act,

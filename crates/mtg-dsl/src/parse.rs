@@ -7917,6 +7917,52 @@ impl P {
         })
     }
 
+    /// After `reveal`: `<filter> card from hand` before the clause ends.
+    fn reveal_from_hand_ahead(&self) -> bool {
+        let mut k = 0;
+        loop {
+            match self.peek_at(k) {
+                None | Some(Tok::Comma | Tok::Semi | Tok::Newline) => return false,
+                _ => {}
+            }
+            if self.word_at(k).as_deref() == Some("card")
+                && self.word_at(k + 1).as_deref() == Some("from")
+                && self.word_at(k + 2).as_deref() == Some("hand")
+            {
+                return k > 0;
+            }
+            k += 1;
+        }
+    }
+
+    /// After `either [same]`: `if <check>, if <check>, <sentence>`, parsed
+    /// as the first check whose sentence is the second, then unnested.
+    fn either(&mut self, same: bool) -> R<Effect> {
+        if !self.at_word("if") {
+            return self.unexpected("`if` after `either`");
+        }
+        let mut first = self.clause()?;
+        let Some(body) = first.either_body_mut() else {
+            return self.fail("`either` joins `if` checks with nothing else in them");
+        };
+        let mut second = match std::mem::take(body).as_mut_slice() {
+            [s] if s.effects.len() == 1 && s.label.is_none() => s.effects.remove(0),
+            _ => return self.fail("`either if <check>,` takes a second `if <check>,`"),
+        };
+        let Some(then) = second.either_body_mut().map(std::mem::take) else {
+            return self.fail("`either if <check>,` takes a second `if <check>,`");
+        };
+        // "If you control a Squirrel or returned ...": both say "you".
+        if same && !matches!(second, Effect::IfThisWay(..)) {
+            return self.fail("`either same`: the second check is `if you <verb> ... this way`");
+        }
+        Ok(Effect::Either {
+            conds: vec![first, second],
+            then,
+            same,
+        })
+    }
+
     /// `if revealed creature card, <sentence>`: "If a creature card is
     /// revealed this way, ...".
     fn if_revealed_card(&mut self) -> R<Effect> {
@@ -8263,6 +8309,18 @@ impl P {
                 wording: ThisWayWording::You,
             });
         }
+        // `you returned Squirrel card to hand this way`.
+        if self.eat_words(&["you", "returned"]) {
+            let (filter, card) = self.this_way_what()?;
+            self.expect_words(&["to", "hand", "this", "way"])?;
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::PutInHand,
+                filter,
+                card,
+                negated: false,
+                wording: ThisWayWording::Returned,
+            });
+        }
         if self.eat_word("you") {
             let verb = if self.eat_word("put") {
                 mtg_core::card::ThisWay::PutInHand
@@ -8603,6 +8661,13 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        // `either [same] if <check>, if <check>, <sentence>`: either check
+        // ("If you do or if you control another Dinosaur, ...").
+        if self.at_word("either") && matches!(self.word_at(1).as_deref(), Some("if" | "same")) {
+            self.pos += 1;
+            let same = self.eat_word("same");
+            return self.either(same);
+        }
         // "That spell gains deathtouch and lifelink." (`verb_first`).
         if self.at_words(&["that", "spell", "gains"]) {
             return self.verb_first();
@@ -12740,7 +12805,23 @@ impl P {
                     1
                 };
                 let filter = self.filter()?;
-                Ok(Effect::Behold { filter, n })
+                Ok(Effect::Behold {
+                    filter,
+                    n,
+                    hand: false,
+                })
+            }
+            // `reveal Dinosaur card from hand`: "you may reveal a Dinosaur
+            // card from your hand. If you do, ..." (CR 701.20a): a behold
+            // from the hand only.
+            "reveal" if self.reveal_from_hand_ahead() => {
+                let filter = self.filter()?;
+                self.expect_words(&["card", "from", "hand"])?;
+                Ok(Effect::Behold {
+                    filter,
+                    n: 1,
+                    hand: true,
+                })
             }
             "reduce" if self.at_words(&["speed", "of"]) => {
                 self.pos += 2;

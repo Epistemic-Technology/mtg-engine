@@ -6740,6 +6740,14 @@ pub enum Effect {
     /// "If excess damage was dealt this way, [these]" (CR 120.4a): the
     /// resolution has dealt damage beyond lethal so far.
     IfExcessDamage(Vec<Effect>),
+    /// "If that creature's power is 2 or less or if you control another
+    /// Lizard, [these]", "If you do or if you control another Dinosaur":
+    /// any of the checks holds as the effect resolves (CR 608.2c). Sets the
+    /// resolution's `did`, for an "Otherwise" after it.
+    IfAny {
+        conds: Vec<EffectCond>,
+        then: Vec<Effect>,
+    },
     /// "you may tap two other untapped creatures you control", "return up
     /// to two lands you control to their owner's hand": the controller
     /// chooses `count` objects matching `filter` (up to `count` with
@@ -6855,6 +6863,7 @@ impl Effect {
                 | Effect::Otherwise(_)
                 | Effect::IfCondition(..)
                 | Effect::IfTarget { .. }
+                | Effect::IfAny { .. }
                 | Effect::IfCard { .. }
                 // "Choose one of them."
                 | Effect::ExilePlayable { choose: true, .. }
@@ -7014,6 +7023,9 @@ pub enum EffectCond {
     /// "If the sacrificed creature was legendary": what the spell or
     /// ability did, or paid, this way.
     ThisWay(ThisWayCond),
+    /// "If you do": the optional action before happened (the
+    /// resolution's `did`, CR 608.2c); only in `Effect::IfAny`.
+    Did,
 }
 
 /// What a resolving spell or ability did to objects "this way" (CR
@@ -10554,6 +10566,7 @@ impl AbilityDef {
             | Effect::IfCard { then: inner, .. }
             | Effect::IfThisWay { then: inner, .. }
             | Effect::IfExcessDamage(inner)
+            | Effect::IfAny { then: inner, .. }
             | Effect::OneOf(inner)
             | Effect::Lasting { effects: inner, .. }
             | Effect::UnlessPays { effects: inner, .. }

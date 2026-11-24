@@ -1680,7 +1680,9 @@ with the card's behold filter: the behold cost was paid. Behold is also
 an effect: `you may behold Dragon; if you do, create 1 "Treasure"` ("you
 may behold a Dragon. If you do, create a Treasure token."; `behold 2
 Elf`, "behold two Elves"): with too few matching permanents and cards in
-hand nothing happens and `if you do` sees that. `enters tapped unless
+hand nothing happens and `if you do` sees that. `you may reveal Dinosaur
+card from hand; if you do, ...` ("you may reveal a Dinosaur card from your
+hand. If you do, ...") is the same from the hand only. `enters tapped unless
 behold Jace` prints "As this land enters, you may behold a Jace. If you
 don't, this land enters tapped." (a Jace card in hand or a Jace it
 controls).
@@ -4237,12 +4239,25 @@ is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
 ...` (cards you owned), `if you put Town card into hand this way, ...`,
 `if you put no cards into hand this way, ...` ("If you put no cards into
-your hand this way", Nashi), `if Dragon is damaged this way, ...` ("If a
+your hand this way", Nashi), `if you returned Squirrel card to hand this
+way, ...` ("If you returned a Squirrel card to your hand this way"),
+`if Dragon is damaged this way, ...` ("If a
 Dragon is dealt damage this way": a permanent the resolution dealt damage
 to, as it is or last existed, The Black Arrow) and `if player is damaged
 this way, ...` ("If a player is dealt damage this way"; a target player
 acting in the sentence prints "they": "they discard a card", Sonic
 Shrieker).
+Two checks joined by "or": `either if that target 1 is with power 2 or
+less, if you control other Lizard, <sentence>` prints "If that creature's
+power is 2 or less or if you control another Lizard, ..." (Reptilian
+Recruiter), `either if you do, if you control other Dinosaur, ...` "If you
+do or if you control another Dinosaur, ..." (Armored Kincaller), and
+`either same if you control Squirrel, if you returned Squirrel card to hand
+this way, ...` "If you control a Squirrel or returned a Squirrel card to
+your hand this way, ..." (the subject said once; the second check a "this
+way" one). Each check is a target check, a condition, `if you do`, or a
+"this way" check; the sentence happens if any holds as it resolves, and an
+`otherwise` after it if none does.
 Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
 `returned` (put into a hand), `shuffled` (put into a library), and in a
 count only `revealed` (parley: `each player reveals top card; you create

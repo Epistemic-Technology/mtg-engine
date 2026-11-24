@@ -6409,6 +6409,9 @@ pub enum Effect {
     Behold {
         filter: Filter,
         n: u32,
+        /// `reveal Dinosaur card from hand`: "reveal a Dinosaur card from
+        /// your hand" (the hand only, never a permanent).
+        hand: bool,
     },
     /// `reduce speed of <player>`: "If that opponent's speed is greater
     /// than each other player's speed, reduce that opponent's speed by 1.
@@ -7181,6 +7184,19 @@ pub enum Effect {
     /// that permanent this way, ...` (`true`): "If excess damage was dealt
     /// to that permanent this way, ..." (Violent Echoes; wording only).
     IfExcessDamage(Vec<Sentence>, bool),
+    /// `either if that target 1 is with power 2 or less, if you control
+    /// other Lizard, <sentence>`: "If that creature's power is 2 or less or
+    /// if you control another Lizard, ..."; `either same if you control
+    /// Squirrel, if you returned Squirrel card to hand this way, ...`: "If
+    /// you control a Squirrel or returned a Squirrel card to your hand this
+    /// way, ..." (the subject said once). Each check is a conditional
+    /// effect (`IfTarget`, `IfCondition`, `IfThisWay`, `IfYouDo`) with no
+    /// sentence of its own; the sentence happens if any holds.
+    Either {
+        conds: Vec<Effect>,
+        then: Vec<Sentence>,
+        same: bool,
+    },
     /// `tap 1 other untapped Citizen you control chosen`, `exile 2
     /// creature card from your graveyard chosen`, `return up to 2 land you
     /// control chosen`: the controller chooses what to act on.
@@ -7306,6 +7322,10 @@ pub enum ThisWayWording {
     /// "If you discarded a card this way", "If you put an artifact card
     /// into your hand this way".
     You,
+    /// `you returned Squirrel card to hand this way`: "returned a
+    /// Squirrel card to your hand this way" (Cache Grab), put into the
+    /// hand.
+    Returned,
     /// "If the sacrificed creature was a Human": the noun.
     The(String),
 }
@@ -7371,6 +7391,19 @@ impl Declined {
             (DeclinedTense::Doesnt, _) => "doesn't",
             (DeclinedTense::Cant, _) => "can't",
             (DeclinedTense::Does, _) => "does",
+        }
+    }
+}
+
+impl Effect {
+    /// The sentence a check `Effect::Either` joins says, if this is one.
+    pub fn either_body_mut(&mut self) -> Option<&mut Vec<Sentence>> {
+        match self {
+            Effect::IfTarget(_, _, inner, _)
+            | Effect::IfCondition(_, inner, IfWording::Lead)
+            | Effect::IfThisWay(_, inner)
+            | Effect::IfYouDo(inner) => Some(inner),
+            _ => None,
         }
     }
 }

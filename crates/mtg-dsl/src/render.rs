@@ -7312,7 +7312,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*who);
             Clause::with_subject(*who, s, "manifests dread".to_string())
         }
-        Effect::Behold { filter, n } => {
+        Effect::Behold {
+            filter, hand: true, ..
+        } => Clause::imperative(format!(
+            "reveal {} from your hand",
+            card_filter_a(filter, ctx.card)
+        )),
+        Effect::Behold { filter, n, .. } => {
             let what = if *n == 1 {
                 filter_a(filter, ctx.card)
             } else {
@@ -11459,6 +11465,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 body.trim_end_matches('.')
             ))
         }
+        // "If that creature's power is 2 or less or if you control another
+        // Lizard, ...": each check rendered as its own conditional with no
+        // sentence, then joined.
+        Effect::Either { conds, then, same } => {
+            let mut parts = Vec::new();
+            for c in conds {
+                let t = clause_inner(c, ctx).text;
+                let t = t.trim_end();
+                let t = t.strip_suffix(',').unwrap_or(t);
+                parts.push(t.strip_prefix("if ").unwrap_or(t).to_string());
+            }
+            let joined = if *same {
+                let rest: Vec<String> = parts[1..]
+                    .iter()
+                    .map(|p| p.strip_prefix("you ").unwrap_or(p).to_string())
+                    .collect();
+                format!("{} or {}", parts[0], rest.join(" or "))
+            } else {
+                parts.join(" or if ")
+            };
+            let body = sentences(then, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("if {joined}, {}", body.trim_end_matches('.')))
+        }
         Effect::IfThisWay(cond, inner) => {
             let player = cond.verb == mtg_core::card::ThisWay::DamagedPlayer;
             let cond = this_way_text(cond, ctx.card);
@@ -14477,6 +14511,7 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
             format!("you put {what} into your hand this way")
         }
         ThisWayWording::You => format!("you {verb} {what} this way"),
+        ThisWayWording::Returned => format!("you returned {what} to your hand this way"),
         ThisWayWording::The(noun) => {
             let pred = match (&c.filter, c.card) {
                 // "If the sacrificed creature was legendary".

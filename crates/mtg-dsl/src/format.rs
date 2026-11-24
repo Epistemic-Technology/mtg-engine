@@ -1042,8 +1042,15 @@ impl Fmt {
             }
             Effect::DreadCardToHand => "dread card to hand".to_string(),
             Effect::ReduceSpeed { who } => format!("reduce speed of {}", self.recipient(*who, t)),
-            Effect::Behold { filter: f, n: 1 } => format!("behold {}", filter(f)),
-            Effect::Behold { filter: f, n } => format!("behold {n} {}", filter(f)),
+            Effect::Behold {
+                filter: f,
+                hand: true,
+                ..
+            } => format!("reveal {} card from hand", filter(f)),
+            Effect::Behold {
+                filter: f, n: 1, ..
+            } => format!("behold {}", filter(f)),
+            Effect::Behold { filter: f, n, .. } => format!("behold {n} {}", filter(f)),
             Effect::Blight(n) => format!("blight {n}"),
             Effect::CollectEvidence(n) => format!("collect evidence {n}"),
             Effect::Forage => "forage".to_string(),
@@ -3831,6 +3838,23 @@ impl Fmt {
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
+            // `either if A, if B, <sentence>`: written nested, A's sentence
+            // being B.
+            Effect::Either { conds, then, same } => {
+                let mut nested = conds[1].clone();
+                if let Some(b) = nested.either_body_mut() {
+                    b.clone_from(then);
+                }
+                let mut outer = conds[0].clone();
+                if let Some(b) = outer.either_body_mut() {
+                    *b = vec![crate::ast::Sentence::new(vec![nested])];
+                }
+                format!(
+                    "either {}{}",
+                    if *same { "same " } else { "" },
+                    self.effect(&outer, t)
+                )
+            }
             Effect::IfExcessDamage(inner, to_that) => format!(
                 "if excess damage dealt {}this way, {}",
                 if *to_that { "to that permanent " } else { "" },
@@ -4567,6 +4591,7 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
             format!("you put {what} into hand this way")
         }
         ThisWayWording::You => format!("you {verb} {what} this way"),
+        ThisWayWording::Returned => format!("you returned {what} to hand this way"),
         ThisWayWording::The(noun) => format!(
             "the {verb} {noun} {} {what}",
             if c.negated { "wasn't" } else { "was" }
