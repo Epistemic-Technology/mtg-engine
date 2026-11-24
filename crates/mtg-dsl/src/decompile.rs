@@ -1900,7 +1900,9 @@ impl Decompiler<'_> {
             | CoreEffect::TokenPtX(_)
             | CoreEffect::EnteredAttack
             | CoreEffect::ReturnTransformed
-            | CoreEffect::BecomeSaddled => {
+            | CoreEffect::BecomeSaddled
+            // Compiled after a gift's effects (`Mechanic::Gift`) only.
+            | CoreEffect::GaveGift => {
                 unreachable!("built-in abilities only")
             }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
@@ -2558,6 +2560,8 @@ impl Decompiler<'_> {
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::ManifestsDread { .. } => Trigger::ManifestsDread,
+            TriggerSpec::GivesGift { .. } => Trigger::GivesGift,
+            TriggerSpec::SolvesCase { .. } => Trigger::SolvesCase,
             TriggerSpec::Forages { .. } => Trigger::Forages,
             TriggerSpec::CreaturesDealDamage(f) => Trigger::CreaturesDealDamage(self.filter(f)),
             TriggerSpec::CreaturesDealCombatDamage(f) => {

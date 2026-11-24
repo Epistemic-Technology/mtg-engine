@@ -1,0 +1,48 @@
+# "Whenever you give a gift" (CR 702.174) and "whenever you solve a Case"
+# (CR 719.3a).
+
+scenario "Jolly Gerbils: a promised gift draws a card" {
+  battlefield A: "Jolly Gerbils", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Longstalk Brawl"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Longstalk Brawl" gift targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert battlefield B contains "Fish"
+}
+
+scenario "Jolly Gerbils: no gift promised, no card" {
+  battlefield A: "Jolly Gerbils", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Longstalk Brawl"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Longstalk Brawl" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Island"
+  assert battlefield B lacks "Fish"
+}
+
+scenario "Case File Auditor: a Case solved, an enchantment card from the top six" {
+  battlefield A: "Case File Auditor", "Case of the Filched Falcon", "Mind Stone", "Sol Ring", "Bonesplitter"
+  library A: "Grizzly Bears", "Inquisitive Glimmer", "Forest"
+  run_to turn 2 upkeep
+  assert hand A contains "Inquisitive Glimmer"
+  assert hand A lacks "Grizzly Bears"
+}
+
+scenario "Case File Auditor: an unsolved Case, nothing" {
+  battlefield A: "Case File Auditor", "Case of the Filched Falcon", "Mind Stone", "Bonesplitter"
+  library A: "Grizzly Bears", "Inquisitive Glimmer", "Forest"
+  run_to turn 2 upkeep
+  assert hand A lacks "Inquisitive Glimmer"
+}
+
+scenario "Case File Auditor: when it enters, too" {
+  battlefield A: 3 "Plains"
+  hand A: "Case File Auditor"
+  library A: "Grizzly Bears", "Inquisitive Glimmer", "Forest"
+  turn 1 A: cast "Case File Auditor"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Inquisitive Glimmer"
+}

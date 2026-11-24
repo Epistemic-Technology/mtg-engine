@@ -4107,6 +4107,10 @@ pub enum Trigger {
     CollectsEvidence,
     /// `whenever you manifest dread` (CR 701.62).
     ManifestsDread,
+    /// `whenever you give a gift` (CR 702.174).
+    GivesGift,
+    /// `whenever you solve a Case` (CR 719.3a).
+    SolvesCase,
     /// `whenever you forage` (CR 701.61).
     Forages,
     /// `whenever one or more creature you control deal combat damage to a

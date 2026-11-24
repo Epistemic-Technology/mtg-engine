@@ -17228,6 +17228,12 @@ impl P {
         if self.eat_words(&["you", "manifest", "dread"]) {
             return Ok(Trigger::ManifestsDread);
         }
+        if self.eat_words(&["you", "give", "a", "gift"]) {
+            return Ok(Trigger::GivesGift);
+        }
+        if self.eat_words(&["you", "solve", "a", "Case"]) {
+            return Ok(Trigger::SolvesCase);
+        }
         if self.eat_words(&["you", "forage"]) {
             return Ok(Trigger::Forages);
         }
@@ -19511,6 +19517,8 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::DrawsNth { .. }
         | Trigger::CollectsEvidence
         | Trigger::ManifestsDread
+        | Trigger::GivesGift
+        | Trigger::SolvesCase
         | Trigger::Forages
         | Trigger::CreaturesDealCombatDamage(_)
         | Trigger::CreaturesDealDamage(_)

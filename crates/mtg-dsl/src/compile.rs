@@ -2137,7 +2137,10 @@ impl Compiler<'_> {
             GiftKind::TappedFish => token("1/1 blue Fish creature", true),
             GiftKind::Treasure => token("Treasure", false),
         };
-        self.sentences(&[Sentence::new(vec![e])])
+        let mut out = self.sentences(&[Sentence::new(vec![e])])?;
+        // "Whenever you give a gift" triggers after it is given.
+        out.push(CoreEffect::GaveGift);
+        Ok(out)
     }
 
     /// The modes under another head (CR 700.2). "Choose one or more":
@@ -5665,6 +5668,8 @@ impl Compiler<'_> {
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
             Trigger::ManifestsDread => TriggerSpec::ManifestsDread { whose: Who::You },
+            Trigger::GivesGift => TriggerSpec::GivesGift { whose: Who::You },
+            Trigger::SolvesCase => TriggerSpec::SolvesCase { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
             Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {

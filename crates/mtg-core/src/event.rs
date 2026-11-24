@@ -73,6 +73,11 @@ pub enum Event {
         stage: u8,
     },
     /// A player collected evidence (CR 701.59a).
+    /// A player gave a gift (CR 702.174: as the spell resolves, or as the
+    /// permanent's gift trigger resolves).
+    GaveGift {
+        player: PlayerId,
+    },
     /// A player manifested dread (CR 701.62), with the card they put into
     /// their graveyard this way, if any ("Whenever you manifest dread", it
     /// triggers even if nothing could be manifested).
@@ -443,6 +448,7 @@ impl Event {
             | Event::StageChanged { .. }
             | Event::CollectedEvidence { .. }
             | Event::ManifestedDread { .. }
+            | Event::GaveGift { .. }
             | Event::Foraged { .. }
             | Event::ControlChanged { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,

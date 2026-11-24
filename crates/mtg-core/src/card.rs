@@ -851,6 +851,7 @@ impl Subtype {
     pub const VEHICLE: Subtype = Subtype(5 + 28);
     pub const SPACECRAFT: Subtype = Subtype(5 + 29);
     pub const ROOM: Subtype = Subtype(5 + 37);
+    pub const CASE: Subtype = Subtype(5 + 33);
     pub const SAGA: Subtype = Subtype(5 + 39);
     pub const SIEGE: Subtype = Subtype(5 + 47);
     /// Not interned: "is every creature type" (layer 4), held among an
@@ -6082,6 +6083,9 @@ pub enum Effect {
     ManifestDreadBy {
         who: Recipient,
     },
+    /// The gift has been given (CR 702.174): after a gift's effects, for
+    /// "Whenever you give a gift".
+    GaveGift,
     /// "Target creature gains '...' until end of turn": a registered
     /// ability granted until end of turn (layer 6).
     GrantAbility {
@@ -7669,6 +7673,11 @@ pub enum TriggerSpec {
     /// "Whenever you manifest dread" (CR 701.62): the card put into the
     /// graveyard this way, if any, is the triggering object.
     ManifestsDread { whose: Who },
+    /// "Whenever you give a gift" (CR 702.174).
+    GivesGift { whose: Who },
+    /// "Whenever you solve a Case" (CR 719.3a): a Case the player controls
+    /// becomes solved.
+    SolvesCase { whose: Who },
     /// "Whenever you forage" (CR 701.61).
     Forages { whose: Who },
     /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
@@ -8266,6 +8275,8 @@ impl TriggerSpec {
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::ManifestsDread { .. }
+            | TriggerSpec::GivesGift { .. }
+            | TriggerSpec::SolvesCase { .. }
             | TriggerSpec::Forages { .. }
             | TriggerSpec::OpponentGainsControl
             | TriggerSpec::DayNight => WATCH_DESIG,

@@ -16951,6 +16951,9 @@ impl GameState {
                     ctx.created = Some(new);
                 }
             }
+            Effect::GaveGift => self.emit(Event::GaveGift {
+                player: ctx.controller,
+            }),
             Effect::ManifestDreadBy { who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t

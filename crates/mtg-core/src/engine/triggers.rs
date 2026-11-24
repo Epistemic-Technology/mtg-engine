@@ -1381,6 +1381,17 @@ impl GameState {
             | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
+            (TriggerSpec::GivesGift { whose }, Event::GaveGift { player }) => {
+                whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
+            // CR 719.3a: a Case becomes solved (its second stage).
+            (TriggerSpec::SolvesCase { whose }, Event::StageChanged { obj, stage: 1 }) => {
+                let o = self.objects.get(*obj)?;
+                let case = self
+                    .characteristics(*obj)
+                    .is_some_and(|c| c.has_subtype(crate::card::Subtype::CASE));
+                (case && whose_ok(*whose, o.controller)).then_some((Some(*obj), Some(o.controller)))
+            }
             (TriggerSpec::ManifestsDread { whose }, Event::ManifestedDread { player, milled }) => {
                 whose_ok(*whose, *player).then_some((*milled, Some(*player)))
             }
