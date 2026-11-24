@@ -1587,6 +1587,10 @@ impl P {
                 self.pos += 1;
                 crate::ast::Granted::Retrace
             }
+            Some("sneak") => {
+                self.pos += 1;
+                crate::ast::Granted::Sneak(self.mana_cost()?)
+            }
             Some("jump") if self.word_at(1).as_deref() == Some("start") => {
                 self.pos += 2;
                 crate::ast::Granted::JumpStart

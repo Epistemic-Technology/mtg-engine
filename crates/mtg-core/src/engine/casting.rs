@@ -3636,14 +3636,15 @@ impl GameState {
     /// with an unblocked attacker to return.
     #[cold]
     #[inline(never)]
-    fn sneak_castable(
+    pub(super) fn sneak_castable(
         &self,
         p: PlayerId,
         def: &crate::card::CardDef,
         id: ObjId,
         sources: &Sources,
     ) -> bool {
-        if def.sneak.is_none() {
+        // Its own sneak, or one a permanent gives it (Ninja Teen).
+        if def.sneak.is_none() && !(self.card_grants_live() && self.granted_sneak(id).is_some()) {
             return false;
         }
         if self.step != crate::turn::Step::DeclareBlockers

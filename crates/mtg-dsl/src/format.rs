@@ -7647,6 +7647,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Granted::Warp(c) => format!("warp {c}"),
                 crate::ast::Granted::Miracle(c) => format!("miracle {c}"),
                 crate::ast::Granted::Retrace => "retrace".to_string(),
+                crate::ast::Granted::Sneak(c) => format!("sneak {c}"),
                 crate::ast::Granted::JumpStart => "jump start".to_string(),
                 crate::ast::Granted::Ability(a) => {
                     let mut tmp = String::new();

@@ -1410,6 +1410,10 @@ impl Runner {
                         Choice::CastWarp(self.in_hand(a.line, d.player, name)?)
                     } else if *free {
                         Choice::CastFree(self.in_hand(a.line, d.player, name)?)
+                    } else if *sneaked && *from_graveyard {
+                        // "You may cast creature spells from your graveyard
+                        // using their sneak abilities." (Ninja Teen).
+                        Choice::CastSneak(self.in_graveyard(a.line, d.player, name)?)
                     } else if *sneaked {
                         Choice::CastSneak(self.in_hand(a.line, d.player, name)?)
                     } else if *impending {

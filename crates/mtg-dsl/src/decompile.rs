@@ -2789,6 +2789,7 @@ impl Decompiler<'_> {
                         crate::ast::Granted::Miracle(c.clone())
                     }
                     mtg_core::card::GrantedWay::Retrace => crate::ast::Granted::Retrace,
+                    mtg_core::card::GrantedWay::Sneak(c) => crate::ast::Granted::Sneak(c.clone()),
                     mtg_core::card::GrantedWay::JumpStart => crate::ast::Granted::JumpStart,
                     mtg_core::card::GrantedWay::Ability(a) => {
                         crate::ast::Granted::Ability(Box::new(self.ability(self.pool.ability(*a))))

@@ -1526,6 +1526,9 @@ pub enum Granted {
     Retrace,
     /// `jump start` ("has jump-start", in a graveyard).
     JumpStart,
+    /// `sneak {3}{B}`, in a graveyard: "have sneak {3}{B}. You may cast
+    /// creature spells from your graveyard using their sneak abilities."
+    Sneak(ManaCost),
     /// `miracle {2}`.
     Miracle(ManaCost),
     /// An activated keyword ability, activated from the cards' zone:

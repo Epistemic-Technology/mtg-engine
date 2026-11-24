@@ -12045,6 +12045,13 @@ fn card_grant_text(
         Granted::Warp(c) => format!("warp {c}"),
         Granted::Miracle(c) => format!("miracle {c}"),
         Granted::Retrace => "retrace".to_string(),
+        // The permission is the card's next sentence (Ninja Teen).
+        Granted::Sneak(c) => format!(
+            "sneak {c}.\nYou may cast {} spells from your graveyard using their sneak abilities",
+            lowercase_first(&cards_phrase(filter, card, false))
+                .trim_end_matches(" card")
+                .to_string()
+        ),
         Granted::JumpStart => "jump-start".to_string(),
         Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
     };

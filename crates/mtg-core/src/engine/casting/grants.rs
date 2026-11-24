@@ -147,6 +147,15 @@ impl GameState {
         .and_then(GrantCost::fixed)
     }
 
+    /// The sneak cost a grant gives `card` (CR 702.190a).
+    pub(in crate::engine) fn granted_sneak(&self, card: ObjId) -> Option<&ManaCost> {
+        self.granted_cost(card, |g| match g {
+            GrantedWay::Sneak(c) => Some(GrantCost::Fixed(c)),
+            _ => None,
+        })
+        .and_then(GrantCost::fixed)
+    }
+
     /// The miracle cost a grant gives `card` (CR 702.94a).
     pub(in crate::engine) fn granted_miracle(&self, card: ObjId) -> Option<&ManaCost> {
         self.granted_cost(card, |g| match g {
@@ -204,6 +213,7 @@ impl GameState {
             }
             AltCast::Warp if def.warp.is_none() => self.granted_warp(b.id),
             AltCast::Miracle if def.miracle.is_none() => self.granted_miracle(b.id),
+            AltCast::Sneak if def.sneak.is_none() => self.granted_sneak(b.id),
             _ => None,
         }
     }
@@ -242,6 +252,14 @@ impl GameState {
             }
             if def.is_land() || options.contains(&Choice::Cast(id)) {
                 continue;
+            }
+            // CR 702.190a: "You may cast creature spells from your
+            // graveyard using their sneak abilities." (Ninja Teen).
+            if self.step == crate::turn::Step::DeclareBlockers
+                && self.granted_sneak(id).is_some()
+                && self.sneak_castable(p, def, id, sources)
+            {
+                options.push(Choice::CastSneak(id));
             }
             // CR 702.34a: cast with flashback, for the granted cost.
             if def.flashback.is_none()

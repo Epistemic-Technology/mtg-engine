@@ -6567,6 +6567,12 @@ pub enum GrantedWay {
     /// Jump-start (CR 702.133a), in a graveyard: cast for its mana cost
     /// and a card discarded, then exiled (`AltCast::JumpStart`).
     JumpStart,
+    /// Sneak (CR 702.190a) for this cost, in a graveyard, with "You may
+    /// cast creature spells from your graveyard using their sneak
+    /// abilities." (Ninja Teen): cast from there for its sneak cost during
+    /// its controller's declare blockers step (a card's own sneak cost
+    /// first).
+    Sneak(crate::mana::ManaCost),
     /// An activated ability of the card, activated from the zone the card
     /// is in (cycling and typecycling from a hand, unearth from a
     /// graveyard): a registered `AbilityDef::Activated`.

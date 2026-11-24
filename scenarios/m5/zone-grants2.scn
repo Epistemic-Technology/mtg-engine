@@ -265,3 +265,50 @@ scenario "Niv-Mizzet, Supreme: a jump-started spell countered is exiled" {
   assert life B 20
   assert exile A contains "Lightning Helix"
 }
+
+scenario "Ninja Teen level 3: a creature card in the graveyard is cast for sneak {3}{B}" {
+  battlefield A: "Ninja Teen", 7 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: wait
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Hill Giant" from graveyard sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  # The Bears left the battlefield (1), and the Giant dealt 3 +1 damage.
+  assert life B 15
+}
+
+scenario "Ninja Teen level 2: no sneak from the graveyard yet" {
+  battlefield A: "Ninja Teen", 6 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers A: cast "Hill Giant" from graveyard sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  # Level 2: the Bears are 3/2 with menace.
+  assert life B 17
+}
+
+scenario "Ninja Teen level 3: sneak only in the declare blockers step" {
+  battlefield A: "Ninja Teen", 7 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: wait
+  turn 1 A: activate "Ninja Teen"
+  illegal turn 1 postcombat_main A: cast "Hill Giant" from graveyard
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Ninja Teen: a creature leaving the battlefield costs each opponent 1 life" {
+  battlefield A: "Ninja Teen", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

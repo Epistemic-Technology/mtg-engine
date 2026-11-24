@@ -7145,6 +7145,7 @@ impl Compiler<'_> {
                     crate::ast::Granted::Warp(c) if hand => GrantedWay::Warp(c.clone()),
                     crate::ast::Granted::Miracle(c) if hand => GrantedWay::Miracle(c.clone()),
                     crate::ast::Granted::Retrace if !hand => GrantedWay::Retrace,
+                    crate::ast::Granted::Sneak(c) if !hand => GrantedWay::Sneak(c.clone()),
                     crate::ast::Granted::JumpStart if !hand => GrantedWay::JumpStart,
                     crate::ast::Granted::Ability(a) => {
                         let def = self.ability(a)?;
