@@ -2062,9 +2062,7 @@ impl Fmt {
                 until,
             } => {
                 let subject = match who {
-                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
-                        "this".to_string()
-                    }
+                    Recipient::Source | Recipient::SourceIt => "this".to_string(),
                     w => self.recipient(*w, t),
                 };
                 let mut s = format!("{subject} becomes a copy of {}", self.recipient(*of, t));

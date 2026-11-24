@@ -370,11 +370,12 @@ scenario "offspring's revenge: a 1/1 copy with haste of a red, white, or black c
   assert has A "Hill Giant" haste
 }
 
-scenario "offspring's revenge: a green creature card isn't a legal target" {
+scenario "offspring's revenge: a green creature card or a red instant card isn't a legal target" {
   battlefield A: "Offspring's Revenge"
-  graveyard A: "Grizzly Bears"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
   run_to turn 1 declare_attackers
   assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
   assert battlefield A count 1
 }
 

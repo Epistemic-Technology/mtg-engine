@@ -1918,7 +1918,9 @@ impl<'a> Ctx<'a> {
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::SameTheToken => "the token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
-            Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
+            Recipient::TriggeringCard | Recipient::SameCard | Recipient::CreatedThatCard => {
+                "that card".to_string()
+            }
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
                     enchanted_noun(self.card)
@@ -1974,8 +1976,6 @@ impl<'a> Ctx<'a> {
             }
             Recipient::CreatedThat => "that creature".to_string(),
             Recipient::CreatedThatLand => "that land".to_string(),
-            Recipient::CreatedThatCard => "that card".to_string(),
-            Recipient::CreatedExiledCard => "the exiled card".to_string(),
             Recipient::ACardExiledWith => format!("a card exiled with {}", this_ref(self.card)),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
@@ -2054,7 +2054,7 @@ impl<'a> Ctx<'a> {
                 let first = self.obj(Recipient::Source);
                 format!("{first} and {}", self.obj(Recipient::Target(a)))
             }
-            Recipient::ExiledCard => "the exiled card".to_string(),
+            Recipient::ExiledCard | Recipient::CreatedExiledCard => "the exiled card".to_string(),
             // The granting card is the quoted ability's holder's name
             // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
             // deals 2 damage to any target."
