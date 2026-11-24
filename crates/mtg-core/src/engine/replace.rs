@@ -623,6 +623,7 @@ impl GameState {
                 Replaces::ToGraveyard {
                     whose,
                     from_battlefield,
+                    tokens,
                 },
                 Proposed::ZoneChange {
                     obj,
@@ -630,7 +631,13 @@ impl GameState {
                     ..
                 },
             ) => self.objects.get(*obj).is_some_and(|o| {
-                whose_ok(*whose, o.owner) && (!*from_battlefield || o.zone == Zone::Battlefield)
+                whose_ok(*whose, o.owner)
+                    && (!*from_battlefield || o.zone == Zone::Battlefield)
+                    // "If a card would be put into your graveyard": a token
+                    // isn't a card (CR 108.2).
+                    && (*tokens
+                        || *whose == crate::card::Who::Any
+                        || o.kind == crate::state::ObjKind::Card)
             }),
             (
                 Replaces::ThisToGraveyard,

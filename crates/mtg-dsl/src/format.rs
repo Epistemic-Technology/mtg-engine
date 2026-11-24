@@ -778,6 +778,7 @@ impl Fmt {
             Replaces::ToGraveyard {
                 whose,
                 from_battlefield,
+                tokens,
             } => {
                 let mut s = match whose {
                     Who::Any => "card put into a graveyard",
@@ -785,6 +786,9 @@ impl Fmt {
                     Who::Opponents => "card put into an opponent's graveyard",
                 }
                 .to_string();
+                if *tokens && *whose != Who::Any {
+                    s = s.replacen("card", "card or token", 1);
+                }
                 if *from_battlefield {
                     s.push_str(" from the battlefield");
                 }
@@ -1764,6 +1768,11 @@ impl Fmt {
                 if *that_card { " that card" } else { "" }
             ),
             Effect::GrantGraveyardCast(f) => format!("grant graveyard cast to {} cards", filter(f)),
+            Effect::GraveCastTurn { cards, rider } => format!(
+                "graveyard cast this turn {} cards{}",
+                filter(cards),
+                grave_rider(rider)
+            ),
             Effect::ProtectionOr { to, filter: f } => format!(
                 "{} gains protection from {} or from color of choice",
                 self.recipient(*to, t),
@@ -7057,6 +7066,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Void => "void".to_string(),
         StaticCond::NotYourMainPhase => "not your main phase".to_string(),
         StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
+        StaticCond::WasntCastFromHand => "not cast from hand".to_string(),
         StaticCond::WasCast => "you cast it".to_string(),
         StaticCond::CameFrom { zone, wording } => {
             let z = if *zone == mtg_core::state::Zone::Exile {
@@ -8549,6 +8559,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     };
                     format!("{} card or {} card", filter(&base), filter(alt))
                 }
+                // "you may play cards from your graveyard": any card.
+                _ if *f == Filter::default() => "card".to_string(),
                 _ => format!("{} card", filter(f)),
             };
             let place = match (players, zone) {
@@ -8569,6 +8581,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Granted::Retrace => "retrace".to_string(),
                 crate::ast::Granted::Foretell => "foretell".to_string(),
                 crate::ast::Granted::Sneak(c) => format!("sneak {c}"),
+                crate::ast::Granted::Cast(r) => format!(
+                    "{}{}",
+                    if r.lands { "play" } else { "cast" },
+                    grave_rider(r)
+                ),
                 crate::ast::Granted::JumpStart => "jump start".to_string(),
                 crate::ast::Granted::Ability(a) => {
                     let mut tmp = String::new();
@@ -8578,8 +8595,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let _ = writeln!(
                 out,
-                "{indent}static {cond}{}{cards} in {place}: has {what}",
-                if *each { "each " } else { "" }
+                "{indent}static {cond}{}{} in {place}: has {what}",
+                if *each { "each " } else { "" },
+                cards.trim_start()
             );
         }
         Ability::CastFree {
@@ -9197,4 +9215,22 @@ pub(crate) fn its_stat_word(s: crate::ast::ItStat) -> &'static str {
         crate::ast::ItStat::Toughness => "toughness",
         crate::ast::ItStat::ManaValue => "mana value",
     }
+}
+
+/// A graveyard permission's rider after `cast` (`Granted::Cast`,
+/// `Effect::GraveCastTurn`): ` by pay 3 life brief finality`.
+fn grave_rider(r: &mtg_core::card::GraveRider) -> String {
+    let mut s = String::new();
+    if r.forage {
+        s.push_str(" by forage");
+    } else if r.life > 0 {
+        let _ = write!(s, " by pay {} life", r.life);
+    }
+    if r.brief {
+        s.push_str(" brief");
+    }
+    if r.finality {
+        s.push_str(" finality");
+    }
+    s
 }

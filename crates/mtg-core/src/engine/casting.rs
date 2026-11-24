@@ -8673,6 +8673,18 @@ impl GameState {
             let card = discard.take();
             self.pay_other_costs(caster, c, spell, None, card);
         }
+        // "by paying 3 life", "by foraging" in addition to its other costs
+        // (the permission it was cast from a graveyard by, CR 601.3).
+        if !self.grave_cast_spells.is_empty()
+            && let Some(c) = self
+                .grave_cast_spells
+                .iter()
+                .find(|(s, _)| *s == spell)
+                .filter(|(_, r)| r.costs())
+                .map(|(_, r)| r.cost())
+        {
+            self.pay_other_costs(caster, &c, spell, None, None);
+        }
         // CR 702.33a: a kicker cost other than mana, its permanent chosen
         // after targets (`additional_of`).
         if let (Some(k), true) = (&def.kicker_cost, self.objects[spell].cast.kicked()) {
@@ -9263,7 +9275,19 @@ impl GameState {
                     self.objects[spell].kind = ObjKind::Token;
                 }
                 self.choose_copy_on_resolving(spell);
-                if obj.alt == AltCast::Sneak {
+                let counters = self.cast_way_counters(spell);
+                if counters.is_some() {
+                    // "that creature enters with a finality counter on it"
+                    // (the permission it was cast from a graveyard by).
+                    self.put_onto_battlefield_with(
+                        spell,
+                        obj.controller,
+                        super::replace::Enter {
+                            counters,
+                            ..Default::default()
+                        },
+                    );
+                } else if obj.alt == AltCast::Sneak {
                     self.enter_sneaking(spell, obj.controller);
                 } else if obj.alt == AltCast::Impending
                     && let Some(n) = def.impending.as_deref().map(|i| i.0)
@@ -9339,6 +9363,23 @@ impl GameState {
                 }
             }
         }
+    }
+
+    /// The counters a permanent spell enters with by the way it was cast:
+    /// a finality counter from the permission it was cast from a
+    /// graveyard by (`GameState::grave_cast_spells`, CR 122.1h). Free
+    /// unless such a spell is being cast.
+    #[inline]
+    fn cast_way_counters(&mut self, spell: ObjId) -> Option<(CounterKind, u32)> {
+        if self.grave_cast_spells.is_empty() {
+            return None;
+        }
+        let i = self
+            .grave_cast_spells
+            .iter()
+            .position(|(s, _)| *s == spell)?;
+        let (_, r) = self.grave_cast_spells.remove(i);
+        r.finality.then_some((CounterKind::Finality, 1))
     }
 
     /// CR 702.190b: a permanent spell whose sneak cost was paid enters
@@ -13131,6 +13172,13 @@ impl GameState {
                     })
                     .collect();
                 self.granted_graveyard_cast.extend(cards);
+            }
+            // CR 601.3: "Until end of turn, you may cast creature spells
+            // from your graveyard by foraging ..." (Osteomancer Adept).
+            Effect::GraveCastTurn { cards, rider } => {
+                self.grave_turn_grants
+                    .push((ctx.controller, cards.clone(), (**rider).clone()));
+                self.bump();
             }
             // "Until end of turn, you may look at the top card of your
             // library any time, and you may play lands and cast spells from

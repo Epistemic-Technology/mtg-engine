@@ -1120,8 +1120,19 @@ impl Compiler<'_> {
             // "Flashback—Sacrifice three creatures.", "Flashback—Tap three
             // untapped white creatures you control." settle the permanent
             // the way an additional cost does, so not alongside one.
-            if fb.tap || fb.discard > 0 || fb.discard_self {
-                return self.err("a flashback cost may only be mana, life, and a chosen permanent");
+            // "Flashback—{1}{U/R}{U/R}, Discard a card." (Twinned Vision):
+            // the card discarded is chosen as a graveyard cast's is.
+            if fb.tap || fb.discard_self || fb.discard > 1 || fb.discard_x || fb.discard_random {
+                return self.err(
+                    "a flashback cost may only be mana, life, a discarded card, and a chosen permanent",
+                );
+            }
+            if fb.discard > 0
+                && (fb.sacrifice.is_some()
+                    || card.additional.is_some()
+                    || card.additional_or.is_some())
+            {
+                return self.err("a flashback cost discarding a card with another chosen cost");
             }
             if fb.sacrifice.is_some() && (card.additional.is_some() || card.additional_or.is_some())
             {
@@ -2563,6 +2574,9 @@ impl Compiler<'_> {
             StaticCond::NotCastFromHand => {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
+            StaticCond::WasntCastFromHand => StaticCondition::Not(Box::new(
+                StaticCondition::CastFrom(mtg_core::state::Zone::Hand),
+            )),
             StaticCond::WasCast | StaticCond::WasCastPassive => StaticCondition::WasCast,
             StaticCond::CameFrom { zone, wording } => StaticCondition::CameFrom {
                 zone: *zone,
@@ -5403,6 +5417,13 @@ impl Compiler<'_> {
                     },
                 )));
             }
+            Effect::GraveCastTurn { cards, rider } => {
+                let cards = self.filter(cards);
+                out.push(CoreEffect::GraveCastTurn {
+                    cards,
+                    rider: Box::new(rider.clone()),
+                });
+            }
             Effect::GrantGraveyardCast(f) => {
                 let f = self.filter(f);
                 out.push(CoreEffect::GrantGraveyardCast(f));
@@ -5920,9 +5941,11 @@ impl Compiler<'_> {
             Replaces::ToGraveyard {
                 whose,
                 from_battlefield,
+                tokens,
             } => CoreReplaces::ToGraveyard {
                 whose: *whose,
                 from_battlefield: *from_battlefield,
+                tokens: *tokens && *whose != Who::Any,
             },
             Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
             Replaces::FilteredToGraveyard(f) => CoreReplaces::FilteredToGraveyard {
@@ -7640,6 +7663,7 @@ impl Compiler<'_> {
                     crate::ast::Granted::Foretell if hand => GrantedWay::Foretell,
                     crate::ast::Granted::Sneak(c) if !hand => GrantedWay::Sneak(c.clone()),
                     crate::ast::Granted::JumpStart if !hand => GrantedWay::JumpStart,
+                    crate::ast::Granted::Cast(r) if !hand => GrantedWay::Cast(r.clone()),
                     crate::ast::Granted::Ability(a) => {
                         let def = self.ability(a)?;
                         match &def {

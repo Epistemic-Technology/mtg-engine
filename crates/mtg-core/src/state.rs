@@ -2391,6 +2391,14 @@ pub struct GameState {
     /// Permissions to play from the top of a library until end of turn
     /// (`Effect::TopPermission`), by player.
     pub top_grants: Vec<(PlayerId, crate::card::TopPlay)>,
+    /// Permissions to cast spells from a graveyard until end of turn
+    /// (`Effect::GraveCastTurn`): the player, the cards, the rider.
+    pub grave_turn_grants: Vec<(PlayerId, crate::card::ObjFilter, crate::card::GraveRider)>,
+    /// Spells being cast or on the stack that a permission to cast from a
+    /// graveyard let be cast (`GrantedWay::Cast`, `Effect::GraveCastTurn`),
+    /// with its rider: its cost is paid with the spell's, and a finality
+    /// counter put on the permanent it becomes.
+    pub grave_cast_spells: Vec<(ObjId, crate::card::GraveRider)>,
     /// Each player's starting life total (CR 103.4): the game's, or 20
     /// for a prepared position.
     pub starting_life: i32,

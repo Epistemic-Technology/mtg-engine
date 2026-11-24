@@ -791,6 +791,11 @@ impl Decompiler<'_> {
                 StaticCond::FlashPay(2)
             }
             StaticCondition::SorceryTiming => StaticCond::Not(Box::new(StaticCond::FlashPay(2))),
+            StaticCondition::Not(a)
+                if matches!(**a, StaticCondition::CastFrom(mtg_core::state::Zone::Hand)) =>
+            {
+                StaticCond::WasntCastFromHand
+            }
             StaticCondition::Not(a) => match &**a {
                 StaticCondition::SourceHistory(what) => StaticCond::SourceHistory {
                     what: *what,
@@ -2411,6 +2416,10 @@ impl Decompiler<'_> {
                 harmonize: *harmonize,
             },
             CoreEffect::GrantGraveyardCast(f) => Effect::GrantGraveyardCast(self.filter(f)),
+            CoreEffect::GraveCastTurn { cards, rider } => Effect::GraveCastTurn {
+                cards: self.filter(cards),
+                rider: (**rider).clone(),
+            },
             CoreEffect::TopPermission(t) => {
                 Effect::TopPermission(Box::new(crate::ast::TopPlayAst {
                     lands: t.lands,
@@ -2866,9 +2875,11 @@ impl Decompiler<'_> {
                 CoreReplaces::ToGraveyard {
                     whose,
                     from_battlefield,
+                    tokens,
                 } => Replaces::ToGraveyard {
                     whose: *whose,
                     from_battlefield: *from_battlefield,
+                    tokens: *tokens,
                 },
                 CoreReplaces::ThisToGraveyard => Replaces::ThisToGraveyard,
                 CoreReplaces::FilteredToGraveyard { filter } => {
@@ -3114,7 +3125,12 @@ impl Decompiler<'_> {
                 n: *n,
             },
             AbilityDef::CardGrant(g) => Ability::CardGrant {
-                filter: self.filter(&g.cards),
+                // "you may play cards from your graveyard": any card.
+                filter: if g.cards == mtg_core::card::ObjFilter::default() {
+                    crate::ast::Filter::default()
+                } else {
+                    self.filter(&g.cards)
+                },
                 zone: g.zone,
                 players: g.players,
                 each: g.each,
@@ -3131,6 +3147,7 @@ impl Decompiler<'_> {
                     mtg_core::card::GrantedWay::Foretell => crate::ast::Granted::Foretell,
                     mtg_core::card::GrantedWay::Sneak(c) => crate::ast::Granted::Sneak(c.clone()),
                     mtg_core::card::GrantedWay::JumpStart => crate::ast::Granted::JumpStart,
+                    mtg_core::card::GrantedWay::Cast(r) => crate::ast::Granted::Cast(r.clone()),
                     mtg_core::card::GrantedWay::Ability(a) => {
                         crate::ast::Granted::Ability(Box::new(self.ability(self.pool.ability(*a))))
                     }
