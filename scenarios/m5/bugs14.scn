@@ -36,3 +36,26 @@ scenario "Abyssal Harvester can't target a creature card put into a graveyard la
   illegal turn 1 A: activate "Abyssal Harvester" targeting "Grizzly Bears"
   run_to turn 1 end
 }
+
+# ----- "Return target Aura or Equipment card from your graveyard to the
+# battlefield attached to a creature you control." with no creature: an
+# Equipment enters unattached (CR 301.5c), an Aura stays (CR 303.4g). -----
+
+scenario "One Last Job with no creature: the Equipment returns unattached" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Bonesplitter"
+  hand A: "One Last Job"
+  turn 1 A: cast "One Last Job" mode 4 targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+  assert graveyard A lacks "Bonesplitter"
+}
+
+scenario "One Last Job with no creature: the Aura stays in the graveyard" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Holy Strength"
+  hand A: "One Last Job"
+  turn 1 A: cast "One Last Job" mode 4 targeting "Holy Strength"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Holy Strength"
+}

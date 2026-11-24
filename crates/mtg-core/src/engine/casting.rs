@@ -16283,17 +16283,18 @@ impl GameState {
                     return;
                 }
                 // CR 303.4f: "attached to that creature": the host must
-                // still be on the battlefield (CR 303.4g).
+                // still be on the battlefield. With none, an Aura stays
+                // where it is (CR 303.4g) and anything else (an Equipment,
+                // One Last Job) enters unattached (CR 301.5c).
+                let mut hostless = false;
                 let host = match attached {
                     Some(r) => {
-                        let Some(h) = self
+                        let h = self
                             .recipients(ctx, *r)
                             .into_iter()
-                            .find_map(|t| on_battlefield(self, t))
-                        else {
-                            return;
-                        };
-                        Some(h)
+                            .find_map(|t| on_battlefield(self, t));
+                        hostless = h.is_none();
+                        h
                     }
                     None => None,
                 };
@@ -16343,6 +16344,9 @@ impl GameState {
                         if !self.is_legal_attachment(spec, h) {
                             continue;
                         }
+                    }
+                    if hostless && self.pool.get(o.def).enchant().is_some() {
+                        continue;
                     }
                     let controller = if *under_you { ctx.controller } else { o.owner };
                     // CR 712.14a: "return it to the battlefield
