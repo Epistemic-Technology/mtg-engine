@@ -1,0 +1,7 @@
+card "Blood Spatter Analysis" {
+  oracle_id aa929252-5dcc-4c9b-9e7c-61d0bef98d6d
+  cost {B}{R}
+  type Enchantment
+  triggered when this enters: this deals 3 damage to target creature an opponent controls
+  triggered whenever one or more creatures die: mill 1 card and put 1 bloodstain counter on this; then sacrifice this if this has 5 or more bloodstain counter; when you do, return target creature card from your graveyard to hand
+}

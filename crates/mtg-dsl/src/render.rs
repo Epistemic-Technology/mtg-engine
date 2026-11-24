@@ -10245,8 +10245,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             c
         }
         Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
-            let cond = static_cond_text(c, ctx.card);
+            let mut cond = static_cond_text(c, ctx.card);
             let body = sentences(inner, ctx);
+            // "put a bloodstain counter on this enchantment. Then sacrifice
+            // it if it has five or more bloodstain counters on it" (Blood
+            // Spatter Analysis): the source named before.
+            if matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
+                && ctx.source_mentioned
+                && !is_spell(ctx.card)
+            {
+                cond = cond.replacen(&this_ref(ctx.card), "it", 1);
+            }
             let body = body.trim_end_matches('.');
             // "copy it if you gained life this turn. You may choose new
             // targets for the copy."
