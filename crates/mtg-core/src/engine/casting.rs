@@ -5457,9 +5457,11 @@ impl GameState {
             .iter()
             .all(|c| self.condition_now(c, p, source))
             && !(ab.once_ever && self.activated_ever.contains(&(source, ability)))
-            // Pithing Needle (CR 201.3, 605.1a).
+            // Pithing Needle (CR 201.3, 605.1a); Grand Abolisher (CR
+            // 101.2).
             && !(self.player_static_sources > 0
-                && self.name_cant_activate(source, ab.is_mana_ability()))
+                && (self.name_cant_activate(source, ab.is_mana_ability())
+                    || self.activation_silenced(p, source, ab.is_mana_ability())))
     }
 
     /// Whether an ability with this keyword may be activated now (CR
@@ -7113,7 +7115,8 @@ impl GameState {
             // (Encrust on a mana artifact; Voidstone Gargoyle's chosen
             // name).
             if c.has(Keyword::CantActivate)
-                || (self.player_static_sources > 0 && self.name_cant_activate(id, true))
+                || (self.player_static_sources > 0
+                    && (self.name_cant_activate(id, true) || self.activation_silenced(p, id, true)))
             {
                 continue;
             }
@@ -7155,7 +7158,9 @@ impl GameState {
                 };
                 if (c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste))
                     || c.has(Keyword::CantActivate)
-                    || (self.player_static_sources > 0 && self.name_cant_activate(id, true))
+                    || (self.player_static_sources > 0
+                        && (self.name_cant_activate(id, true)
+                            || self.activation_silenced(p, id, true)))
                 {
                     continue;
                 }

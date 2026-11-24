@@ -2638,6 +2638,51 @@ impl P {
                 self.pos += 7;
                 self.player_static(mtg_core::card::PlayerStaticKind::OpponentsCantCastYourTurn)
             }
+            // "During combat, players can't cast spells or activate
+            // abilities that aren't mana abilities.", "During your turn,
+            // your opponents can't cast spells or activate abilities of
+            // artifacts, creatures, or enchantments." (CR 101.2).
+            "during"
+                if self.at_words(&["during", "combat"])
+                    || self.at_words(&["during", "your", "turn", "opponents", "can't"])
+                    || self.at_words(&["during", "your", "turn", "players", "can't"]) =>
+            {
+                use mtg_core::card::{ActivateBan, PlayerStaticKind, RulePlayers, SilenceWhen};
+                self.pos += 1;
+                let during = if self.eat_word("combat") {
+                    SilenceWhen::Combat
+                } else {
+                    self.expect_words(&["your", "turn"])?;
+                    SilenceWhen::YourTurn
+                };
+                let players = if self.eat_word("opponents") {
+                    RulePlayers::Opponents
+                } else {
+                    self.expect_word("players")?;
+                    RulePlayers::Each
+                };
+                self.expect_words(&["can't", "cast", "spells"])?;
+                let activate = if self.eat_words(&["or", "activate", "nonmana", "abilities"]) {
+                    ActivateBan::NonMana
+                } else if self.eat_words(&[
+                    "or",
+                    "activate",
+                    "abilities",
+                    "of",
+                    "artifacts",
+                    "creatures",
+                    "enchantments",
+                ]) {
+                    ActivateBan::ArtifactsCreaturesEnchantments
+                } else {
+                    ActivateBan::None
+                };
+                self.player_static(PlayerStaticKind::Silence {
+                    players,
+                    during,
+                    activate,
+                })
+            }
             // "You may pay {0} rather than pay the equip cost of the first
             // equip ability you activate each turn."
             "first" if self.at_words(&["first", "equip", "free"]) => {
@@ -9731,12 +9776,15 @@ impl P {
             "can't"
                 if self.at_words(&["play", "lands"])
                     || self.at_words(&["cast", "creature", "spells"])
+                    || self.at_words(&["cast", "spells", "this", "turn"])
                     || self.at_words(&["gain", "life", "this", "turn"]) =>
             {
                 let kind = if self.eat_words(&["play", "lands"]) {
                     mtg_core::card::PlayerRuleKind::CantPlayLands
                 } else if self.eat_words(&["gain", "life"]) {
                     mtg_core::card::PlayerRuleKind::CantGainLife
+                } else if self.eat_words(&["cast", "spells"]) {
+                    mtg_core::card::PlayerRuleKind::CantCastSpells
                 } else {
                     self.expect_words(&["cast", "creature", "spells"])?;
                     mtg_core::card::PlayerRuleKind::CantCastCreatureSpells

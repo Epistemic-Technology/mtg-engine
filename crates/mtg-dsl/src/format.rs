@@ -8589,6 +8589,28 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "opponents permanents can't be turned face up during your turn".to_string()
                 }
                 K::CantAttackYou { .. } => unreachable!("Ability::CantAttackYou"),
+                K::Silence {
+                    players,
+                    during,
+                    activate,
+                } => format!(
+                    "during {} {} can't cast spells{}",
+                    match during {
+                        mtg_core::card::SilenceWhen::Combat => "combat",
+                        mtg_core::card::SilenceWhen::YourTurn => "your turn",
+                    },
+                    match players {
+                        mtg_core::card::RulePlayers::Opponents => "opponents",
+                        _ => "players",
+                    },
+                    match activate {
+                        mtg_core::card::ActivateBan::None => "",
+                        mtg_core::card::ActivateBan::NonMana => " or activate nonmana abilities",
+                        mtg_core::card::ActivateBan::ArtifactsCreaturesEnchantments => {
+                            " or activate abilities of artifacts creatures enchantments"
+                        }
+                    }
+                ),
                 K::ExtraLands { n, each_player } => format!(
                     "additional land{}{}",
                     if *n == 1 {
@@ -8789,6 +8811,7 @@ pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
         mtg_core::card::PlayerRuleKind::CantPlayLands => "play lands",
         mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
         mtg_core::card::PlayerRuleKind::CantGainLife => "gain life",
+        mtg_core::card::PlayerRuleKind::CantCastSpells => "cast spells",
         // Worded apart (`ignore legend rule this turn`).
         mtg_core::card::PlayerRuleKind::NoLegendRule => "ignore the legend rule",
     }

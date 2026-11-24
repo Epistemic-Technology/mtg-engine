@@ -6862,6 +6862,40 @@ pub enum PlayerStaticKind {
     /// "Permanents your opponents control can't be turned face up during
     /// your turn."
     FaceUpBan(FaceUpBan),
+    /// "During combat, players can't cast spells or activate abilities
+    /// that aren't mana abilities." (Yuriko), "During your turn, your
+    /// opponents can't cast spells or activate abilities of artifacts,
+    /// creatures, or enchantments." (Grand Abolisher; CR 101.2): while
+    /// `during` holds, those `players` can't cast spells, nor activate the
+    /// abilities `activate` names.
+    Silence {
+        players: RulePlayers,
+        during: SilenceWhen,
+        activate: ActivateBan,
+    },
+}
+
+/// When a `PlayerStaticKind::Silence` applies.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SilenceWhen {
+    /// "During combat" (CR 506.1: the combat phase).
+    Combat,
+    /// "During your turn": its controller's.
+    YourTurn,
+}
+
+/// Which activated abilities a `PlayerStaticKind::Silence` forbids.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ActivateBan {
+    /// None: spells only.
+    None,
+    /// "abilities that aren't mana abilities" (CR 605.1a), of any source
+    /// in any zone.
+    NonMana,
+    /// "abilities of artifacts, creatures, or enchantments": of such
+    /// permanents on the battlefield, mana abilities included (Grand
+    /// Abolisher's rulings: not cycling from a hand).
+    ArtifactsCreaturesEnchantments,
 }
 
 /// Whose activated abilities a `PlayerStaticKind::ActivationCost` changes.
@@ -7122,6 +7156,8 @@ pub enum PlayerRuleKind {
     /// "The "legend rule" doesn't apply to permanents you control this
     /// turn." (CR 704.5j).
     NoLegendRule,
+    /// "Players can't cast spells this turn." (CR 101.2; Bilbo's Gambit).
+    CantCastSpells,
 }
 
 /// Who or what a replacement or prevention effect's event may affect.

@@ -12506,6 +12506,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // Command).
             let s = if *who == Recipient::EachOpponent {
                 "your opponents".to_string()
+            } else if *who == Recipient::EachPlayer {
+                // "Players can't cast spells this turn." (Bilbo's Gambit).
+                "players".to_string()
             } else {
                 ctx.subj(*who)
             };
@@ -20062,6 +20065,30 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         .to_string()
                 }
                 K::CantAttackYou { .. } => unreachable!("Ability::CantAttackYou"),
+                K::Silence {
+                    players,
+                    during,
+                    activate,
+                } => format!(
+                    "during {}, {} can't cast spells{}",
+                    match during {
+                        mtg_core::card::SilenceWhen::Combat => "combat",
+                        mtg_core::card::SilenceWhen::YourTurn => "your turn",
+                    },
+                    match players {
+                        mtg_core::card::RulePlayers::Opponents => "your opponents",
+                        _ => "players",
+                    },
+                    match activate {
+                        mtg_core::card::ActivateBan::None => "",
+                        mtg_core::card::ActivateBan::NonMana => {
+                            " or activate abilities that aren't mana abilities"
+                        }
+                        mtg_core::card::ActivateBan::ArtifactsCreaturesEnchantments => {
+                            " or activate abilities of artifacts, creatures, or enchantments"
+                        }
+                    }
+                ),
                 K::ExtraLands {
                     n,
                     each_player: true,
