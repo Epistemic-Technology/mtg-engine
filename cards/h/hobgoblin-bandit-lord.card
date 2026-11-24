@@ -1,0 +1,8 @@
+card "Hobgoblin Bandit Lord" {
+  oracle_id 43fea418-db6f-4953-89d1-6873b2ca41a8
+  cost {1}{R}{R}
+  type Creature — Goblin Rogue
+  pt 2/3
+  static other Goblin you control: +1/+1
+  activated {R}, {T}: this deals damage equal entered Goblin this turn to any target
+}

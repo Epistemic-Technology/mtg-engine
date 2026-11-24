@@ -1,0 +1,9 @@
+card "Duelist of the Mind" {
+  oracle_id ff78f166-cca2-44bc-abe3-3a338bf543be
+  cost {1}{U}
+  type Creature — Human Advisor
+  pt */3
+  keywords flying, vigilance
+  static this: cda power drawn this turn
+  triggered once each turn whenever you commit a crime: you may draw 1 card; if you do, discard 1 card
+}

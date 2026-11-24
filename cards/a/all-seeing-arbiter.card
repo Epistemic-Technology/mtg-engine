@@ -1,0 +1,9 @@
+card "All-Seeing Arbiter" {
+  oracle_id f15460d9-0133-436c-b0fe-1661989124f0
+  cost {4}{U}{U}
+  type Creature — Avatar
+  pt 5/4
+  keywords flying
+  triggered whenever this enters or attacks: draw 2 cards, then discard 1 card
+  triggered whenever you discard a card: target creature an opponent controls gets -1/-0 count where different mana values among graveyard until your next turn
+}

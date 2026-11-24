@@ -1,0 +1,7 @@
+card "Oath of Liliana" {
+  oracle_id 0bd7fd12-a0b7-4b4e-8a33-cace6e6bd6d1
+  cost {2}{B}
+  type Legendary Enchantment
+  triggered when this enters: each opponent sacrifices 1 creature
+  triggered at beginning of every end step if entered planeswalker this turn: create 1 "2/2 black Zombie creature"
+}

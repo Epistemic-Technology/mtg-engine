@@ -1,0 +1,7 @@
+card "Bonecache Overseer" {
+  oracle_id be3c7e4c-81fd-49e7-8fb5-5eb83994dafd
+  cost {B}
+  type Creature — Squirrel Warlock
+  pt 1/1
+  activated {T}, pay 1 life, if 3 cards left your graveyard this turn or if have sacrificed Food this turn: draw 1 card
+}

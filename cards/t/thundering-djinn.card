@@ -1,0 +1,8 @@
+card "Thundering Djinn" {
+  oracle_id da0042a7-89a1-4500-b689-b0ea7cab5ed8
+  cost {3}{U}{R}
+  type Creature — Djinn
+  pt 3/4
+  keywords flying
+  triggered whenever this attacks: this deals count equal drawn this turn damage to any target
+}

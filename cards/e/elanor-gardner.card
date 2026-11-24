@@ -1,0 +1,9 @@
+card "Elanor Gardner" {
+  oracle_id ad4c39d6-a8b3-4dd9-816d-09761fc9651d
+  cost {3}{G}
+  type Legendary Creature — Halfling Scout
+  pt 2/4
+  short_name "Elanor"
+  triggered when this enters: create 1 "Food"
+  triggered at beginning of your end step if sacrificed Food this turn: you may search basic land card to battlefield tapped that card
+}

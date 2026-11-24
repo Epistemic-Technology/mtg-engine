@@ -1,0 +1,6 @@
+card "Death's Presence" {
+  oracle_id d0db5996-f749-48d2-8fb3-a69104113828
+  cost {5}{G}
+  type Enchantment
+  triggered whenever creature you control dies: put count where power of the creature that died +1/+1 counters on target creature you control
+}
