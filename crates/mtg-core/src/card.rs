@@ -8806,6 +8806,16 @@ pub enum TriggerSpec {
     },
 }
 
+/// An event about one object, counted per object each turn for
+/// `Condition::FirstTime`.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ObjEvent {
+    /// It became tapped (CR 701.26a).
+    Tapped,
+    /// Counters were put on it (CR 122.6), one event per instruction.
+    CountersPut,
+}
+
 /// The event whose triggers an `AbilityDef::TriggerAgain` with a cause
 /// filter doubles: a permanent entering, a creature dying, a creature
 /// attacking (CR 603.2d).
@@ -9123,6 +9133,19 @@ pub enum Condition {
     WasBlocking(bool),
     /// "if this creature isn't prepared" (CR 722.3a).
     NotPrepared,
+    /// "if it's the first time that creature has become tapped this turn"
+    /// (Captain America, Living Legend), "if it's the first time counters
+    /// have been put on that creature this turn" (Stalwart Successor): the
+    /// triggering event is the first of its kind this turn for the
+    /// triggering object (`GameState::object_events`, kept while a
+    /// permanent with `DefFlags::has_object_firsts` is on the
+    /// battlefield). A fact about the event, so it still holds as the
+    /// ability resolves. `your_turn`: the trigger condition "during your
+    /// turn" before it too (CR 603.2).
+    FirstTime {
+        what: ObjEvent,
+        your_turn: bool,
+    },
     /// An ∞ ability ("∞ — At the beginning of your end step, ..."): it
     /// triggers only while the source is harnessed (`OBJ_HARNESSED`).
     /// Printed as the label, not as an "if".
@@ -11336,6 +11359,10 @@ impl DefFlags {
     /// card of a library (`StaticCondition::TopCard`, `CountExpr::LibraryTop`):
     /// the characteristics cache then keys on the top cards.
     const TOP_STATIC: u64 = 1_073_741_824;
+    /// A triggered ability with `Condition::FirstTime`: while one is on the
+    /// battlefield, taps and counters put are counted per object
+    /// (`GameState::object_events`).
+    const OBJECT_FIRSTS: u64 = 1 << 32;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11464,6 +11491,10 @@ impl DefFlags {
 
     pub const fn has_foreign_activated(self) -> bool {
         self.has(DefFlags::FOREIGN_ACTIVATED)
+    }
+
+    pub const fn has_object_firsts(self) -> bool {
+        self.has(DefFlags::OBJECT_FIRSTS)
     }
 
     pub const fn has_top_static(self) -> bool {
@@ -11688,6 +11719,18 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.is_valiant())),
+        );
+        flags.set(
+            DefFlags::OBJECT_FIRSTS,
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::Triggered(TriggeredAbility {
+                        condition: Some(Condition::FirstTime { .. }),
+                        ..
+                    })
+                )
+            }),
         );
         flags
     }

@@ -1,0 +1,8 @@
+card "Stalwart Successor" {
+  oracle_id 45392882-e4b9-4c74-a10f-985c2b4e2be9
+  cost {1}{B}{G}
+  type Creature — Human Warrior
+  pt 3/2
+  keywords menace
+  triggered whenever one or more counters put on creature you control if first time counters this turn: put 1 +1/+1 counter on that creature
+}

@@ -2557,6 +2557,13 @@ pub struct GameState {
     /// Battlefield permanents with valiant (`DefFlags::has_valiant`):
     /// while nonzero, targeting records `targeted_by_controller`.
     pub valiant_watchers: u32,
+    /// Battlefield permanents with `DefFlags::has_object_firsts`: while
+    /// nonzero, `object_events` is kept.
+    pub object_first_watchers: u32,
+    /// How many times each object became tapped or had counters put on it
+    /// this turn ("if it's the first time that creature has become tapped
+    /// this turn", `Condition::FirstTime`).
+    pub object_events: Vec<(ObjId, crate::card::ObjEvent, u16)>,
     /// Permanents that became the target of a spell or ability their
     /// controller controlled this turn (valiant's "for the first time
     /// each turn"), recorded only while `valiant_watchers` is nonzero.

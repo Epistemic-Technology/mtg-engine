@@ -4419,7 +4419,32 @@ impl P {
                 // "attacks while saddled", "attacks while you control two
                 // or more artifacts": a trigger condition, not an
                 // intervening "if" (CR 603.2, 603.4).
-                let condition = if self.eat_word("while") {
+                // "Whenever a creature you control becomes tapped during
+                // your turn, if it's the first time that creature has
+                // become tapped this turn" (Captain America, Living Legend).
+                let first_time = |p: &mut Self, your_turn: bool| {
+                    let at = p.pos;
+                    let what = if p.eat_words(&["if", "first", "time", "tapped", "this", "turn"]) {
+                        mtg_core::card::ObjEvent::Tapped
+                    } else if p.eat_words(&["if", "first", "time", "counters", "this", "turn"]) {
+                        mtg_core::card::ObjEvent::CountersPut
+                    } else {
+                        p.pos = at;
+                        return None;
+                    };
+                    Some(crate::ast::TrigCond::Core(
+                        mtg_core::card::Condition::FirstTime { what, your_turn },
+                    ))
+                };
+                let condition = if let Some(c) = first_time(self, false) {
+                    Some(c)
+                } else if self.at_words(&["during", "your", "turn", "if", "first", "time"]) {
+                    self.pos += 3;
+                    let Some(c) = first_time(self, true) else {
+                        return self.fail("expected `if first time tapped this turn` or `if first time counters this turn`");
+                    };
+                    Some(c)
+                } else if self.eat_word("while") {
                     Some(crate::ast::TrigCond::While(self.static_cond()?))
                 } else if self.eat_words(&["during", "your", "turn"]) {
                     // "Whenever a land enters during your turn": a trigger

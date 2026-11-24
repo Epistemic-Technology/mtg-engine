@@ -825,6 +825,9 @@ impl GameState {
                     } else {
                         0
                     };
+                    if self.object_first_watchers > 0 {
+                        self.note_object_event(new, crate::card::ObjEvent::CountersPut);
+                    }
                     self.emit(Event::CountersAdded {
                         obj: new,
                         kind,
@@ -1022,6 +1025,7 @@ impl GameState {
             self.trigger_grant_sources += d(flags.grants_triggers());
             self.spent_watchers += d(flags.watches_spent());
             self.valiant_watchers += d(flags.has_valiant());
+            self.object_first_watchers += d(flags.has_object_firsts());
             self.state_trigger_sources += d(flags.has_state_trigger());
             self.mark_sources += d(flags.has_marks());
             self.banding_sources += d(flags.has_banding());
@@ -1048,6 +1052,7 @@ impl GameState {
             self.trigger_grant_sources -= d(flags.grants_triggers());
             self.spent_watchers -= d(flags.watches_spent());
             self.valiant_watchers -= d(flags.has_valiant());
+            self.object_first_watchers -= d(flags.has_object_firsts());
             self.state_trigger_sources -= d(flags.has_state_trigger());
             self.mark_sources -= d(flags.has_marks());
             self.banding_sources -= d(flags.has_banding());
@@ -1583,6 +1588,19 @@ impl GameState {
         }
     }
 
+    /// Count an event about `id` this turn (`GameState::object_events`).
+    #[cold]
+    fn note_object_event(&mut self, id: ObjId, what: crate::card::ObjEvent) {
+        match self
+            .object_events
+            .iter_mut()
+            .find(|(o, w, _)| *o == id && *w == what)
+        {
+            Some(e) => e.2 = e.2.saturating_add(1),
+            None => self.object_events.push((id, what, 1)),
+        }
+    }
+
     pub(super) fn tap(&mut self, id: ObjId) {
         if let Some(o) = self.objects.get_mut(id)
             && !o.tapped
@@ -1595,6 +1613,9 @@ impl GameState {
                 // An Aura that enchants only a tapped (or untapped)
                 // permanent may have become illegal (CR 704.5m).
                 self.sba_touch();
+            }
+            if self.object_first_watchers > 0 {
+                self.note_object_event(id, crate::card::ObjEvent::Tapped);
             }
             self.emit(Event::Tapped { obj: id });
         }
@@ -2065,6 +2086,9 @@ impl GameState {
             && self.characteristics(id).is_some_and(|c| c.is_creature())
         {
             self.log_event(TurnEvent::CountersOnCreatureBy, by, 1);
+        }
+        if self.object_first_watchers > 0 {
+            self.note_object_event(id, crate::card::ObjEvent::CountersPut);
         }
         self.emit(Event::CountersAdded {
             obj: id,

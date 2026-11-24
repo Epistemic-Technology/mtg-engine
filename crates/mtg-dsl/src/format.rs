@@ -8256,6 +8256,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::WasBlocking(false)) => {
                     head.push_str(" if it wasn't blocking");
                 }
+                Some(mtg_core::card::Condition::FirstTime { what, your_turn }) => {
+                    if *your_turn {
+                        head.push_str(" during your turn");
+                    }
+                    head.push_str(match what {
+                        mtg_core::card::ObjEvent::Tapped => " if first time tapped this turn",
+                        mtg_core::card::ObjEvent::CountersPut => {
+                            " if first time counters this turn"
+                        }
+                    });
+                }
                 Some(mtg_core::card::Condition::NotPrepared) => {
                     head.push_str(" if this isn't prepared");
                 }

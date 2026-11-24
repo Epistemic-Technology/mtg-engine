@@ -16598,6 +16598,16 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::WasBlocking(true) => "if it was blocking".to_string(),
         Condition::WasBlocking(false) => "if it wasn't blocking".to_string(),
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
+        Condition::FirstTime { what, your_turn } => format!(
+            "{}if it's the first time {}",
+            if your_turn { "during your turn, " } else { "" },
+            match what {
+                mtg_core::card::ObjEvent::Tapped => "that creature has become tapped this turn",
+                mtg_core::card::ObjEvent::CountersPut => {
+                    "counters have been put on that creature this turn"
+                }
+            }
+        ),
         Condition::Harnessed => unreachable!("printed as the ∞ label"),
         Condition::Evolves => format!(
             "if it has greater power or toughness than {}",
@@ -20978,6 +20988,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     } else {
                         write!(out, ", if its {word} was {n}{}", cmp_words(*cmp))
                     };
+                }
+                // "Whenever a creature you control becomes tapped during
+                // your turn, if it's the first time ...": the trigger
+                // condition before the intervening "if".
+                Some(crate::ast::TrigCond::Core(c @ Condition::FirstTime { your_turn, .. })) => {
+                    let cond = condition_text(*c, &mut ctx);
+                    if *your_turn {
+                        let _ = write!(
+                            out,
+                            " during your turn, {}",
+                            cond.trim_start_matches("during your turn, ")
+                        );
+                    } else {
+                        let _ = write!(out, ", {cond}");
+                    }
                 }
                 // An ∞ ability: the label says it.
                 #[allow(clippy::match_same_arms)]

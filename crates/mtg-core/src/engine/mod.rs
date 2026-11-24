@@ -286,6 +286,7 @@ impl Engine {
                 state.trigger_grant_sources += u32::from(def.flags().grants_triggers());
                 state.spent_watchers += u32::from(def.flags().watches_spent());
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
+                state.object_first_watchers += u32::from(def.flags().has_object_firsts());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 state.mark_sources += u32::from(def.flags().has_marks());
                 state.banding_sources += u32::from(def.flags().has_banding());
@@ -683,6 +684,8 @@ impl GameState {
             spending: None,
             spent_watchers: 0,
             valiant_watchers: 0,
+            object_first_watchers: 0,
+            object_events: Vec::new(),
             targeted_by_controller: Vec::new(),
             pending_triggers: Vec::new(),
             delayed_triggers: Vec::new(),
@@ -3805,6 +3808,7 @@ impl GameState {
             self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
             self.counters_put_this_turn.clear();
+            self.object_events.clear();
             self.entered_this_turn.clear();
             self.damaged_by_this_turn.clear();
             self.saddled.clear();

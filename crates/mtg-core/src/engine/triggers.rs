@@ -2732,6 +2732,8 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
             Condition::WasBlocking(b) => self.was_blocking(source) == b,
             Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
+            // A fact about the triggering event (judged as it triggered).
+            Condition::FirstTime { .. } => true,
             Condition::Harnessed => self
                 .objects
                 .get(source)
@@ -2807,6 +2809,14 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::WasBlocking(b) => self.was_blocking(w.source) == b,
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
+            Condition::FirstTime { what, your_turn } => {
+                (!your_turn || self.active_player == w.controller)
+                    && trigger_obj.is_some_and(|o| {
+                        self.object_events
+                            .iter()
+                            .any(|(x, k, n)| *x == o && *k == what && *n == 1)
+                    })
+            }
             Condition::Harnessed => self
                 .objects
                 .get(w.source)
