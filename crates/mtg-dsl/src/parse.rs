@@ -15210,7 +15210,10 @@ impl P {
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter" | "toxic" | "morph" | "no" | "same"))
+                        | (
+                            Some("with"),
+                            Some("counter" | "toxic" | "morph" | "no" | "same" | "lesser")
+                        )
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
@@ -15290,10 +15293,20 @@ impl P {
             f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));
         }
-        let named = self.at_words(&["card", "named", "this", "from"]);
+        let mut named = self.at_words(&["card", "named", "this", "from"]);
         if named {
             self.pos += 2;
             f.same = Some(SameRef::NamedThis);
+        }
+        // "another target creature card with lesser mana value from your
+        // graveyard" (than the triggering object, Jackdaw Savior).
+        if !named
+            && f.same.is_none()
+            && self.at_words(&["card", "with", "lesser", "mana", "value", "from"])
+        {
+            self.pos += 4;
+            f.same = Some(SameRef::LesserManaValue);
+            named = true;
         }
         // "creature card with mana value X or less from your graveyard":
         // the mana value after the noun.
@@ -15589,6 +15602,15 @@ impl P {
                     f.relation = Relation::Other;
                     f.other_than_this = true;
                     self.pos += 3;
+                }
+                // "other than that creature" (the triggering object).
+                "other"
+                    if self.at_words(&["other", "than", "that", "creature"])
+                        && f.same.is_none()
+                        && consumed > 0 =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::NotTriggering);
                 }
                 "other" | "another" => {
                     f.relation = Relation::Other;
@@ -16334,6 +16356,14 @@ impl P {
                     self.pos += 3;
                     f.same = Some(SameRef::WithSameController);
                 }
+                // "with lesser mana value" (than the triggering object).
+                "with"
+                    if self.at_words(&["with", "lesser", "mana", "value"]) && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::LesserManaValue);
+                }
+
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
                     self.pos += 3;

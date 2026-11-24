@@ -5250,6 +5250,12 @@ impl GameState {
                     | crate::card::SameWhat::SharesCreatureType
                     | crate::card::SameWhat::DifferentController
                     | crate::card::SameWhat::SameController,
+            })
+            // A relation to the triggering object is judged with the
+            // stack object (`trigger_rel_ok`).
+            | Some(crate::card::Same {
+                of: crate::card::SameOf::Triggering,
+                ..
             }) => {
                 let mut g = f.clone();
                 g.same = None;
@@ -5463,6 +5469,53 @@ impl GameState {
     /// as it last existed if it has left. With that player unknown, or no
     /// such relation, it doesn't restrict.
     #[allow(clippy::too_many_lines)] // one check per relation
+    /// A target's relation to the object that triggered its ability
+    /// (`SameOf::Triggering`): "with lesser mana value" (than it, as it is
+    /// or last existed), "other than that creature". Without a triggering
+    /// object, or for another spec, it holds.
+    pub fn trigger_rel_ok(
+        &self,
+        spec: crate::card::TargetSpec,
+        t: Target,
+        trigger_obj: Option<ObjId>,
+    ) -> bool {
+        use crate::card::TargetSpec;
+        let (TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. }) =
+            self.pool.base_spec(spec)
+        else {
+            return true;
+        };
+        let Some(crate::card::Same {
+            of: crate::card::SameOf::Triggering,
+            what,
+        }) = self.pool.filter(f).same
+        else {
+            return true;
+        };
+        let (Some(trig), Target::Object(id)) = (trigger_obj, t) else {
+            return true;
+        };
+        match what {
+            crate::card::SameWhat::NotIt => {
+                id != trig && self.lki.get(&trig).and_then(|l| l.moved_to) != Some(id)
+            }
+            crate::card::SameWhat::LesserManaValue => {
+                let mv = |x: ObjId| {
+                    self.objects
+                        .get(x)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&x).map(|l| l.object.def))
+                        .map(|d| self.pool.get(d).mana_cost.mana_value())
+                };
+                match (mv(id), mv(trig)) {
+                    (Some(a), Some(b)) => a < b,
+                    _ => false,
+                }
+            }
+            _ => true,
+        }
+    }
+
     pub fn that_player_ok(
         &self,
         spec: crate::card::TargetSpec,

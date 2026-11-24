@@ -2401,6 +2401,7 @@ impl GameState {
             &obj.targets,
             Some(sa.source),
             sa.trigger_player,
+            sa.trigger_obj,
         );
         // An activated ability's X (CR 107.3): "target artifact with mana
         // value X" is judged with it.

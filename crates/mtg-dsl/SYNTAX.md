@@ -1821,6 +1821,17 @@ value at most count equal greatest mana value`, a spell's mana value on
 the stack), and `destroy target creature if target 1 is tapped` "if it's
 tapped". `with total power and toughness 5 or less` ("target creature
 with total power and toughness 5 or less", the sum of the two, Cut Down);
+In a triggered ability, a target can be related to the object that
+triggered it: `with lesser mana value` ("Whenever this or creature you
+control enters, return up to 1 target creature with lesser mana value you
+control to hand": "... target creature you control with lesser mana
+value ...", Clement; on a card, `return another target creature card with
+lesser mana value from your graveyard to battlefield`, Jackdaw Savior: its
+mana value less than the triggering object's, as it is or last existed)
+and `other than that creature` ("put a +1/+1 counter on target creature
+you control other than that creature", Pawpatch Recruit: neither it nor
+the card it became). Both are judged as targets are chosen and again as
+the ability resolves; elsewhere they don't restrict.
 `with mana value 4 or 5` (either value: "search your library for an
 artifact card with mana value 4 or 5", Transit Mage);
 `with greatest power`, `with greatest toughness`, `with greatest mana

@@ -1479,6 +1479,12 @@ pub enum SameRef {
     /// or equal to this creature's power" (the source's, as it is or last
     /// existed).
     ManaValueAtMostPower,
+    /// `with lesser mana value`: "with lesser mana value" (than the object
+    /// that triggered the ability, as it is or last existed).
+    LesserManaValue,
+    /// `other than that creature`: "other than that creature" (the object
+    /// that triggered the ability).
+    NotTriggering,
 }
 
 /// How a filter refers to a chosen color or type, as printed after the

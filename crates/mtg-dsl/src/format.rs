@@ -5091,6 +5091,8 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SameOpponent => "controlled by the same opponent".to_string(),
         SameRef::WithSameController => "with same controller".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
+        SameRef::LesserManaValue => "with lesser mana value".to_string(),
+        SameRef::NotTriggering => "other than that creature".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }
 }

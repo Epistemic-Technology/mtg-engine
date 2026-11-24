@@ -276,6 +276,67 @@ scenario "Prehistoric Pet returns another creature only during your turn" {
   assert hand A contains "Grizzly Bears"
 }
 
+scenario "Clement, the Worrywort returns a creature with lesser mana value than the one entering" {
+  battlefield A: "Clement, the Worrywort", "Grizzly Bears", 4 "Mountain"
+  hand A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Hill Giant"
+  illegal turn 2 A: trigger "Clement, the Worrywort" targeting "Hill Giant"
+  turn 2 A: trigger "Clement, the Worrywort" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Clement, the Worrywort: nothing has lesser mana value than a 1-drop" {
+  battlefield A: "Clement, the Worrywort", "Grizzly Bears", "Forest"
+  hand A: "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Clement, the Worrywort: Frogs tap for mana for creature spells" {
+  battlefield A: "Clement, the Worrywort", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Clement, the Worrywort"
+  turn 2 A: choose green
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Clement, the Worrywort"
+}
+
+scenario "Jackdaw Savior returns a creature card with lesser mana value" {
+  battlefield A: "Jackdaw Savior", "Mountain"
+  graveyard A: "Serra Angel", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Jackdaw Savior"
+  illegal turn 2 A: trigger "Jackdaw Savior" targeting "Serra Angel"
+  turn 2 A: trigger "Jackdaw Savior" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Serra Angel"
+  assert graveyard A contains "Jackdaw Savior"
+}
+
+scenario "Pawpatch Recruit: a counter on another creature, not the one targeted" {
+  battlefield A: "Pawpatch Recruit", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  illegal turn 2 A: trigger "Pawpatch Recruit" targeting "Grizzly Bears"
+  turn 2 A: trigger "Pawpatch Recruit" targeting "Pawpatch Recruit"
+  run_to turn 2 postcombat_main
+  assert counters "Pawpatch Recruit" +1/+1 1
+  assert graveyard A contains "Grizzly Bears"
+}
+
 scenario "Anticausal Vestige: a permanent card with mana value up to the lands you control" {
   battlefield A: 4 "Island"
   hand A: "Anticausal Vestige", "Craw Wurm", "Hill Giant"

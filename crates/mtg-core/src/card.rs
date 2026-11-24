@@ -1532,6 +1532,12 @@ pub enum SameOf {
     Source,
     /// The `n`th target ("with the same name as that creature").
     Target(u8),
+    /// The object that triggered the ability ("return up to one target
+    /// creature you control with lesser mana value", "target creature you
+    /// control other than that creature"), as it is or last existed. Only
+    /// a relation for a triggered ability's targets
+    /// (`GameState::trigger_rel_ok`); elsewhere it doesn't restrict.
+    Triggering,
 }
 
 /// What a `Same` relation compares.
@@ -1567,6 +1573,12 @@ pub enum SameWhat {
     /// existed if they have left the battlefield. Only a relation between
     /// targets (`GameState::that_player_ok`).
     SameController,
+    /// Has a lesser mana value (than the triggering object: Clement, the
+    /// Worrywort; Jackdaw Savior).
+    LesserManaValue,
+    /// Isn't that object ("other than that creature", Pawpatch Recruit):
+    /// neither it nor the card it became.
+    NotIt,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1765,7 +1777,9 @@ impl ObjFilter {
             // Judged against the other target (`that_player_ok`).
             SameWhat::SharesCreatureType
             | SameWhat::DifferentController
-            | SameWhat::SameController => {}
+            | SameWhat::SameController
+            | SameWhat::LesserManaValue
+            | SameWhat::NotIt => {}
         }
         f
     }

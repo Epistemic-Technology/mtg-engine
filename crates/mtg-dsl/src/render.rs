@@ -3847,6 +3847,8 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             if plural_form { "share" } else { "shares" }
         ),
         Some(SameRef::LesserPower) => " with lesser power".to_string(),
+        Some(SameRef::LesserManaValue) => " with lesser mana value".to_string(),
+        Some(SameRef::NotTriggering) => " other than that creature".to_string(),
         Some(SameRef::ManaValueAtMostPower) => format!(
             " with mana value less than or equal to {}'s power",
             this_ref(card)

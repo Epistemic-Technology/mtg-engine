@@ -366,6 +366,8 @@ impl Decompiler<'_> {
                 match (r.of, r.what) {
                     (SameOf::Source, SameWhat::NotName) => SameRef::NotNamedThis,
                     (SameOf::Source, SameWhat::LesserPower) => SameRef::LesserPower,
+                    (SameOf::Triggering, SameWhat::LesserManaValue) => SameRef::LesserManaValue,
+                    (SameOf::Triggering, _) => SameRef::NotTriggering,
                     (SameOf::Source, SameWhat::ManaValueAtMostPower) => {
                         SameRef::ManaValueAtMostPower
                     }

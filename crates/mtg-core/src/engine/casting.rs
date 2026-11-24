@@ -6504,6 +6504,14 @@ impl GameState {
                 _ => true,
             });
         }
+        // "with lesser mana value", "other than that creature": against
+        // the triggering object.
+        if let Some(trigger_obj) = o.ability.and_then(|a| a.trigger_obj) {
+            options.retain(|c| match c {
+                Choice::Target(t) => self.trigger_rel_ok(spec, *t, Some(trigger_obj)),
+                _ => true,
+            });
+        }
         let related: SmallVec<[usize; 2]> = (index + 1..specs.len())
             .filter(|i| {
                 matches!(
@@ -9077,7 +9085,8 @@ impl GameState {
             let specs = spliced.as_ref().map_or(specs, |s| s.targets.as_slice());
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
-            let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None);
+            let legal =
+                self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None, None);
             // A spell whose optional targets were all declined has none.
             if all_illegal(&legal, &obj.targets) {
                 self.emit(Event::Fizzle {
@@ -9956,6 +9965,7 @@ impl GameState {
         targets: &[Target],
         source: Option<ObjId>,
         trigger_player: Option<PlayerId>,
+        trigger_obj: Option<ObjId>,
     ) -> Vec<bool> {
         targets
             .iter()
@@ -9965,6 +9975,7 @@ impl GameState {
                     !t.is_none()
                         && self.is_legal_target_for(controller, spec, *t, source)
                         && self.that_player_ok(spec, *t, trigger_player, targets)
+                        && self.trigger_rel_ok(spec, *t, trigger_obj)
                 })
             })
             .collect()
@@ -10696,6 +10707,8 @@ impl GameState {
                     Some(Target::Object(id)) => Some(*id),
                     _ => None,
                 },
+                // Judged for targets only (`trigger_rel_ok`).
+                crate::card::SameOf::Triggering => None,
             };
             g = self.with_same_of(&g, of);
         }

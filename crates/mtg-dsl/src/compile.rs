@@ -1898,6 +1898,14 @@ impl Compiler<'_> {
                         of: SameOf::Source,
                         what: SameWhat::ManaValueAtMostPower,
                     },
+                    SameRef::LesserManaValue => Same {
+                        of: SameOf::Triggering,
+                        what: SameWhat::LesserManaValue,
+                    },
+                    SameRef::NotTriggering => Same {
+                        of: SameOf::Triggering,
+                        what: SameWhat::NotIt,
+                    },
                 }
             }),
             // `named "Keimi"`: a token definition's name; an unknown one
