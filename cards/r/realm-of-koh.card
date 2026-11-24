@@ -1,0 +1,7 @@
+card "Realm of Koh" {
+  oracle_id bb9ce416-eef1-49e8-89a0-2b6837505070
+  type Land
+  enters tapped unless you control basic land
+  mana {B}
+  activated {3}{B}, {T}: create 1 "1/1 colorless Spirit creature that can't block or be blocked by non-Spirits"
+}

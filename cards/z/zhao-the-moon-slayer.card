@@ -1,0 +1,11 @@
+card "Zhao, the Moon Slayer" {
+  oracle_id 94c64d41-d756-42b6-b0e7-0a351d64a68c
+  cost {1}{R}
+  type Legendary Creature — Human Soldier
+  pt 2/2
+  pronoun he
+  keywords menace
+  replace nonbasic land enter: tapped
+  activated {7}: put 1 conqueror counter on this
+  static as long as this has 1 or more conqueror counters, nonbasic land: set land Mountain
+}

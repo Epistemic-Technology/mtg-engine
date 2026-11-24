@@ -440,6 +440,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::MayNotUntap
             | Keyword::CantBeEquipped
             | Keyword::AssignsToughness
+            | Keyword::AssignsNegativePower
             | Keyword::CantTransform
     )
 }
@@ -555,6 +556,22 @@ fn keyword_line(card: &Card, k: Keyword) -> String {
     if k == Keyword::Lure {
         let what = this_ref(card);
         return format!("{}.", capitalize(&lure_sentence(&what, false)));
+    }
+    // "If Loot's power is negative, he assigns combat damage as though his
+    // power were positive."
+    if k == Keyword::AssignsNegativePower {
+        let this = this_ref(card);
+        let its = match card.pronoun {
+            Some(crate::ast::Pronoun::He) => "his",
+            Some(crate::ast::Pronoun::She) => "her",
+            Some(crate::ast::Pronoun::They) => "their",
+            None => "its",
+        };
+        return format!(
+            "If {}'s power is negative, {} assigns combat damage as though {its} power were positive.",
+            capitalize(&this),
+            it_subj(card)
+        );
     }
     if is_restriction(k) {
         format!("{} {}.", capitalize(&this_ref(card)), keyword_name(k))
@@ -5111,7 +5128,12 @@ fn token_description_plain(
     {
         words.push(format!("{p}/{t}"));
     }
-    if let Some(colors) = &token.color_indicator {
+    // "a 2/2 Elemental creature token that's all colors" (The Wandering
+    // Minstrel).
+    let all_colors = token.color_indicator.as_ref().is_some_and(|c| c.len() == 5);
+    if let Some(colors) = &token.color_indicator
+        && !all_colors
+    {
         if colors.is_empty() {
             words.push("colorless".to_string());
         } else {
@@ -5123,7 +5145,7 @@ fn token_description_plain(
                     .join(" and "),
             );
         }
-    } else {
+    } else if !all_colors {
         words.push("colorless".to_string());
     }
     words.extend(token.subtypes.iter().cloned());
@@ -5134,6 +5156,9 @@ fn token_description_plain(
         words.join(" "),
         plural(count, "token")
     );
+    if all_colors {
+        s.push_str(" that's all colors");
+    }
     // A creature token whose name is not its subtypes is named (CR
     // 111.4): "a 2/2 colorless Wizard Soldier creature token named Cadet".
     let shown = token.display_name.as_deref().unwrap_or(&token.name);
@@ -8807,6 +8832,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Clause::with_subject(*who, s, format!("{v} {turns} after this one"))
             }
         }
+        // "Only land creatures can attack during that combat phase."
+        Effect::AddedCombatAttackers(f) => Clause::imperative(format!(
+            "only {} can attack during that combat phase",
+            filter_phrase(f, ctx.card, true)
+        )),
         // CR 500.8.
         Effect::AdditionalPhases {
             combats,
@@ -9470,7 +9500,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     o
                 };
-                format!("return {o} to the battlefield{tapped} under their owner's control")
+                // "Exile any number of target creatures. At the beginning of
+                // the next end step, return those cards to the battlefield
+                // tapped under their owners' control." (Morningtide's
+                // Light): any number of them.
+                let owners = if matches!(
+                    ctx.targets.first(),
+                    Some(Target::Many { max: None, .. })
+                ) {
+                    "owners'"
+                } else {
+                    "owner's"
+                };
+                format!("return {o} to the battlefield{tapped} under their {owners} control")
             } else if matches!(what, Recipient::Targets(..) | Recipient::SameExiledCards) {
                 // "exile up to one target artifact you control and up to
                 // one target creature you control. Then return them to the
@@ -9852,6 +9894,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 return Clause::imperative(lure_sentence(&o, true));
             }
             let s = ctx.subj(*to);
+            // "Target creature attacks or blocks this turn if able."
+            // (Hustle): on its controller's turn it attacks, on another's
+            // it blocks.
+            if keywords.as_slice() == [Keyword::MustAttack, Keyword::MustBlock] {
+                let v = ctx.verb(*to, "attacks or blocks", "attack or block");
+                return Clause::with_subject(*to, s, format!("{v} this turn if able"));
+            }
             if keywords.iter().any(|k| is_block_rule(*k))
                 && keywords.iter().all(|k| is_restriction(*k))
             {
@@ -9890,6 +9939,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if keywords.len() == 1 && is_activation_bar(keywords[0]) {
                 let mut c =
                     Clause::imperative(format!("{} {}", possessive(&s), &keywords[0].name()[4..]));
+                c.suffix = Some("this turn");
+                return c;
+            }
+            // "creatures you control with toughness greater than their
+            // power assign combat damage equal to their toughness rather
+            // than their power" (The Kingpin of Crime).
+            if keywords.as_slice() == [Keyword::AssignsToughness] {
+                let v = ctx.verb(
+                    *to,
+                    "assigns combat damage equal to its toughness rather than its power",
+                    "assign combat damage equal to their toughness rather than their power",
+                );
+                let mut c = Clause::with_subject(*to, s, v.to_string());
                 c.suffix = Some("this turn");
                 return c;
             }
@@ -12651,7 +12713,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Some(rest) => format!("{who} is {rest}"),
                     None => format!("{who}{}", &t["it".len()..]),
                 }
-            } else if matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
+            } else if (matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
+                || matches!(c, StaticCond::SourceCounterParity(_)))
                 && ctx.source_mentioned
                 && !is_spell(ctx.card)
             {
@@ -16167,6 +16230,9 @@ fn damage_source(a: &Affects, ctx: &mut Ctx) -> String {
 fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
     let lasting = ctx.lasting.as_ref().map(|t| format!(" {t}"));
     let turn = match &lasting {
+        // "Until your next turn, prevent all damage that would be dealt to
+        // you." (Morningtide's Light): the duration printed first.
+        Some(_) if this_turn && ctx.eot_first => "",
         Some(t) if this_turn => t.as_str(),
         _ if this_turn => " this turn",
         _ => "",
@@ -16741,6 +16807,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             Replaces::Draw {
                 whose,
                 library_empty,
+                except_first,
             },
             outcome,
         ) => {
@@ -16750,6 +16817,9 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             };
             let cond = if *library_empty {
                 " while your library has no cards in it"
+            } else if *except_first {
+                // Bard, King of Dale.
+                " except the first one you draw in each of your draw steps"
             } else {
                 ""
             };
@@ -16765,6 +16835,77 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 }
                 _ => format!("If {subj} would draw a card{cond}, something else happens instead."),
             }
+        }
+        // "As long as you have one or fewer cards in hand, if you would
+        // draw one or more cards, you draw that many cards plus one
+        // instead." (Quantum Riddler).
+        (Replaces::DrawMany { whose }, outcome) => {
+            let (subj, obj) = match whose {
+                Who::You => ("you", "you draw"),
+                Who::Opponents => ("an opponent", "they draw"),
+                Who::Any => ("a player", "that player draws"),
+            };
+            let many = match outcome {
+                Outcome::Double => "twice that many cards".to_string(),
+                Outcome::PlusOne => "that many cards plus one".to_string(),
+                Outcome::PlusN { n, .. } => format!("that many cards plus {}", number_word(*n)),
+                _ => "something else".to_string(),
+            };
+            let text = format!("if {subj} would draw one or more cards, {obj} {many} instead.");
+            match &r.cond {
+                Some(c) => format!("As long as {}, {text}", static_cond_text(c, ctx.card)),
+                None => capitalize(&text),
+            }
+        }
+        // "If an opponent would mill one or more cards, they mill that many
+        // cards plus four instead." (The Water Crystal), "... twice that
+        // many cards instead." (Bruvac the Grandiloquent).
+        (Replaces::Mill { whose }, outcome) => {
+            let (subj, obj) = match whose {
+                Who::You => ("you", "you mill"),
+                Who::Opponents => ("an opponent", "they mill"),
+                Who::Any => ("a player", "that player mills"),
+            };
+            let many = match outcome {
+                Outcome::Double => "twice that many cards".to_string(),
+                Outcome::PlusOne => "that many cards plus one".to_string(),
+                Outcome::PlusN { n, .. } => format!("that many cards plus {}", number_word(*n)),
+                _ => "something else".to_string(),
+            };
+            format!("If {subj} would mill one or more cards, {obj} {many} instead.")
+        }
+        // "If a creature you control would connive, instead you draw a
+        // card, then that creature connives." (Leader, Super-Genius).
+        (Replaces::Connive { what } | Replaces::Explore { what }, Outcome::First) => {
+            let verb = if matches!(r.event, Replaces::Connive { .. }) {
+                ("connive", "connives")
+            } else {
+                ("explore", "explores")
+            };
+            let first = sentences(&r.then, ctx);
+            let first = first.trim_end_matches('.');
+            let first = match first.split_once(' ') {
+                Some((w, rest)) if w.chars().next().is_some_and(char::is_uppercase) => {
+                    format!("{} {rest}", w.to_lowercase())
+                }
+                _ => first.to_string(),
+            };
+            let first = if first.starts_with("you ") {
+                first
+            } else {
+                format!("you {first}")
+            };
+            let noun = if what.types.contains(&CardType::Creature) {
+                "creature"
+            } else {
+                "permanent"
+            };
+            return format!(
+                "If {} would {}, instead {first}, then that {noun} {}.",
+                filter_a(what, ctx.card),
+                verb.0,
+                verb.1
+            );
         }
         (
             Replaces::ToGraveyard {
@@ -16947,6 +17088,11 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         ),
         // "Creatures your opponents control enter tapped." (CR 614.1c),
         // "Artifacts, creatures, and lands your opponents control ...".
+        // "Lands you control enter untapped." (Spelunking).
+        (Replaces::OthersEnter { what, each: false }, Outcome::EnterUntapped) => format!(
+            "{} enter untapped.",
+            capitalize(&controller_first(what, filter_phrase(what, ctx.card, true)))
+        ),
         (Replaces::OthersEnter { what, each }, Outcome::EnterTapped) => {
             if *each {
                 format!(
@@ -17611,7 +17757,21 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                 | Mod::AddChosenType { .. }
         )
     });
-    let (subject, plural_form) = if filter.relation == Relation::This {
+    let (subject, plural_form) = if filter.relation == Relation::This
+        && let Some(alt) = filter.or.as_deref()
+        && alt.relation == Relation::Other
+    {
+        // "Dion and other Knights you control have flying." (Dion,
+        // Bahamut's Dominant): the source or the others.
+        (
+            format!(
+                "{} and {}",
+                capitalize(&this_ref(card)),
+                filter_phrase(alt, card, true)
+            ),
+            true,
+        )
+    } else if filter.relation == Relation::This {
         (capitalize(&this_ref(card)), false)
     } else if filter.enchanted {
         (capitalize(&filter_phrase(filter, card, false)), false)
@@ -18556,6 +18716,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "{} has one or more {} counters on it",
             this_ref(card),
             kind.name()
+        ),
+        // "Sab-Sunen has an even number of counters on it".
+        StaticCond::SourceCounterParity(even) => format!(
+            "{} has an {} number of counters on {}",
+            this_ref(card),
+            if *even { "even" } else { "odd" },
+            it_obj(card)
         ),
         StaticCond::SourceLacksCounter(kind) => {
             let c = kind.name();
@@ -19805,6 +19972,7 @@ fn conditional_static(
             StaticCond::SourceCounters { .. }
                 | StaticCond::SourceCountersOneOrMore(_)
                 | StaticCond::SourceLacksCounter(_)
+                | StaticCond::SourceCounterParity(_)
         ) && body.starts_with(&this)
         {
             // "As long as this creature has four or more oil counters on
@@ -20411,6 +20579,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             StaticCond::SourceCounters { .. }
                                 | StaticCond::SourceCountersOneOrMore(_)
                                 | StaticCond::SourceLacksCounter(_)
+                                | StaticCond::SourceCounterParity(_)
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
                                 | StaticCond::SourceHistory { .. }
@@ -21321,6 +21490,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             // "unless an opponent has been dealt damage this turn".
             let cond = static_cond_text(cond, card).replace(" was dealt ", " has been dealt ");
+            // "Sab-Sunen can't attack or block unless it has an even
+            // number of counters on it.": named just before.
+            let cond = match cond.strip_prefix(&format!("{} has ", this_ref(card))) {
+                Some(rest) => format!("{} has {rest}", it_subj(card)),
+                None => cond,
+            };
             format!(
                 "{} can't {what} {} {cond}.",
                 capitalize(&this_ref(card)),

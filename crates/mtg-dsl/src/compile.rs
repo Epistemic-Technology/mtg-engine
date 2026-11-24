@@ -2517,6 +2517,9 @@ impl Compiler<'_> {
                 n: 1,
                 at_least: true,
             },
+            StaticCond::SourceCounterParity(even) => {
+                StaticCondition::SourceCounterParity { even: *even }
+            }
             StaticCond::SourceLacksCounter(kind) => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: 0,
@@ -3290,7 +3293,9 @@ impl Compiler<'_> {
             // "X target attacking creatures become blocked. ... deals 1
             // damage to each of those creatures": through a variable
             // group, to the end of the list.
-            Recipient::ThoseTargets(a, n) | Recipient::EachExiledThisWay(a, n, _)
+            Recipient::ThoseTargets(a, n)
+            | Recipient::EachExiledThisWay(a, n, _)
+            | Recipient::ThoseCards(a, n)
                 if many.is_some_and(|m| a <= m && m < a + n) =>
             {
                 CoreRecipient::Targets(u8::try_from(ti(a)).unwrap_or(u8::MAX), u8::MAX)
@@ -5764,6 +5769,9 @@ impl Compiler<'_> {
                     main: *main,
                 });
             }
+            Effect::AddedCombatAttackers(f) => {
+                out.push(CoreEffect::AddedCombatAttackers(self.filter(f)));
+            }
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
@@ -6242,9 +6250,19 @@ impl Compiler<'_> {
             Replaces::Draw {
                 whose,
                 library_empty,
+                except_first,
             } => CoreReplaces::Draw {
                 whose: *whose,
                 library_empty: *library_empty,
+                except_first: *except_first,
+            },
+            Replaces::DrawMany { whose } => CoreReplaces::DrawMany { whose: *whose },
+            Replaces::Mill { whose } => CoreReplaces::Mill { whose: *whose },
+            Replaces::Connive { what } => CoreReplaces::Connive {
+                what: self.filter(what),
+            },
+            Replaces::Explore { what } => CoreReplaces::Explore {
+                what: self.filter(what),
             },
             Replaces::ToGraveyard {
                 whose,

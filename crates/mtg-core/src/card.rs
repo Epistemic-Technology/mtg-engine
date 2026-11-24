@@ -351,6 +351,10 @@ pub enum Keyword {
     /// "assigns combat damage equal to its toughness rather than its
     /// power" (CR 510.1a): its combat damage is its toughness.
     AssignsToughness,
+    /// "If Loot's power is negative, he assigns combat damage as though
+    /// his power were positive." (CR 510.1a): a negative power assigns
+    /// its absolute value.
+    AssignsNegativePower,
     /// CR 702.147: "This creature can't block. When this creature
     /// attacks, sacrifice it at end of combat." Its triggered half is
     /// `CardPool::keyword_trigger`.
@@ -619,7 +623,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 79] = [
+    pub const ALL: [Keyword; 80] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -699,6 +703,7 @@ impl Keyword {
         Keyword::LandwalkFilter,
         Keyword::MayNotUntap,
         Keyword::CantBeEquipped,
+        Keyword::AssignsNegativePower,
     ];
 
     /// The keyword as Oracle prints it.
@@ -786,6 +791,9 @@ impl Keyword {
             Keyword::CantBeEquipped => "can't be equipped",
             Keyword::AssignsToughness => {
                 "assigns combat damage equal to its toughness rather than its power"
+            }
+            Keyword::AssignsNegativePower => {
+                "assigns combat damage as though its power were positive"
             }
         }
     }
@@ -3376,6 +3384,11 @@ pub enum StaticCondition {
         n: u32,
         at_least: bool,
     },
+    /// "it has an even number of counters on it" (`even`; zero is even),
+    /// "an odd number": of every kind together (Sab-Sunen).
+    SourceCounterParity {
+        even: bool,
+    },
     /// "defending player controls an Island" (the opponent, judged as
     /// attackers are declared); `at_least` 0: "defending player controls
     /// no Glimmer creatures".
@@ -3987,6 +4000,8 @@ pub enum CounterKind {
     /// Keyword counter (CR 122.1b): the permanent has decayed (Rot-Curse
     /// Rakshasa).
     Decayed,
+    /// Zhao, the Moon Slayer.
+    Conqueror,
     /// Not a kind: "remove a counter from this creature" (a cost), counters
     /// of every kind. `GameObject::counters` totals them; removing them
     /// takes -1/-1 counters first, then kinds that don't change power or
@@ -4036,7 +4051,7 @@ pub struct CombatTax {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 90] = [
+    pub const NAMED: [(&'static str, CounterKind); 91] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -4127,6 +4142,7 @@ impl CounterKind {
         ("bait", CounterKind::Bait),
         ("incarnation", CounterKind::Incarnation),
         ("decayed", CounterKind::Decayed),
+        ("conqueror", CounterKind::Conqueror),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -6624,6 +6640,10 @@ pub enum Effect {
         combats: u8,
         main: bool,
     },
+    /// "Only land creatures can attack during that combat phase." (Bumi,
+    /// Unleashed, CR 508.1c): in the next additional combat phase to
+    /// begin, only creatures matching the filter can attack.
+    AddedCombatAttackers(ObjFilter),
     /// "That creature can't be regenerated this turn" (CR 701.15): no
     /// regeneration shield replaces its destruction this turn.
     CantBeRegenerated {
@@ -7814,17 +7834,51 @@ pub enum Replaces {
     /// combat damage that would be dealt to and dealt by enchanted
     /// creature", Gaseous Form). One effect: it applies once to damage a
     /// creature would deal to itself (CR 614.5).
-    DamageToAndBy { what: Affects, combat: Option<bool> },
+    DamageToAndBy {
+        what: Affects,
+        combat: Option<bool>,
+    },
     /// A player would gain life.
-    GainLife { whose: Who },
+    GainLife {
+        whose: Who,
+    },
     /// A player would lose life (CR 119.3), damage included, but not life
     /// paid as a cost: "If an opponent would lose life during your turn,
     /// they lose twice that much life instead." (Bloodletter of
     /// Aclazotz).
-    LoseLife { whose: Who },
+    LoseLife {
+        whose: Who,
+    },
     /// A player would draw a card; `library_empty` requires an empty
-    /// library (Laboratory Maniac).
-    Draw { whose: Who, library_empty: bool },
+    /// library (Laboratory Maniac); `except_first`: not the first card
+    /// the player draws in each of their draw steps (Bard, King of Dale).
+    Draw {
+        whose: Who,
+        library_empty: bool,
+        #[serde(default)]
+        except_first: bool,
+    },
+    /// A player would draw one or more cards: one event for each
+    /// instruction to draw (CR 121.2), "you draw that many cards plus one
+    /// instead" (Quantum Riddler).
+    DrawMany {
+        whose: Who,
+    },
+    /// A player would mill one or more cards (CR 701.13): one event for
+    /// each instruction to mill, "they mill that many cards plus four
+    /// instead" (The Water Crystal), "twice that many" (Bruvac).
+    Mill {
+        whose: Who,
+    },
+    /// A permanent matching `what` would connive (CR 701.50) or explore
+    /// (CR 701.44): `Replacement::First`'s effects happen, then it does
+    /// (Leader, Super-Genius; Twists and Turns).
+    Connive {
+        what: ObjFilter,
+    },
+    Explore {
+        what: ObjFilter,
+    },
     /// A card would be put into a graveyard owned by `whose`, from anywhere
     /// or only from the battlefield; a token too for `Who::Any` or with
     /// `tokens` ("If a card or token would be put into your graveyard from
@@ -7839,30 +7893,43 @@ pub enum Replaces {
     /// would be put into a graveyard from anywhere: "If an instant or
     /// sorcery card would be put into a graveyard from anywhere, exile it
     /// instead." (Dryad Militant).
-    FilteredToGraveyard { filter: ObjFilter },
+    FilteredToGraveyard {
+        filter: ObjFilter,
+    },
     /// The ability's own card would be put into a graveyard from anywhere
     /// (Progenitus): the ability functions in every zone (CR 113.6b).
     ThisToGraveyard,
     /// +1/+1 counters would be put on a permanent matching `on`, including
     /// as it enters (CR 122.6).
-    PlusCounters { on: ObjFilter },
+    PlusCounters {
+        on: ObjFilter,
+    },
     /// Counters of any kind would be put on a permanent matching `on`,
     /// including as it enters (CR 122.6): "If one or more counters would
     /// be put on ..." (`by` says whose putting counts).
-    AnyCounters { on: ObjFilter, by: CountersBy },
+    AnyCounters {
+        on: ObjFilter,
+        by: CountersBy,
+    },
     /// A permanent would be destroyed (CR 701.7); regeneration shields
     /// (CR 701.15) replace this.
-    Destroy { to: Affects },
+    Destroy {
+        to: Affects,
+    },
     /// A creature would die ("If that creature would die this turn, exile
     /// it instead").
-    Dies { to: Affects },
+    Dies {
+        to: Affects,
+    },
     /// How this permanent itself enters the battlefield (CR 614.1c).
     Enters,
     /// How another permanent matching the filter enters ("Each Dragon you
     /// control enters with an additional +1/+1 counter on it", CR
     /// 614.1c), judged by its card as it enters, under the controller it
     /// will have.
-    OthersEnter { what: ObjFilter },
+    OthersEnter {
+        what: ObjFilter,
+    },
     /// One or more tokens (`creature`: creature tokens; `artifact`:
     /// artifact tokens) would be created under the controller's control
     /// (CR 111.1, 614.1a). `effect` prints the older "If an effect would
@@ -7968,6 +8035,14 @@ pub enum Replacement {
     IntoLibrary { top: bool },
     /// Draw two cards instead of one.
     DrawTwo,
+    /// "instead you draw a card, then that creature connives": the
+    /// ability's effects, then the event (connive and explore).
+    First,
+    /// "Lands you control enter untapped." (Spelunking): the permanent
+    /// enters untapped, however it would enter tapped (its controller
+    /// orders the replacements so, CR 616.1; one put onto the
+    /// battlefield tapped enters untapped, the card's ruling).
+    EnterUntapped,
     /// The player wins the game instead.
     WinGame,
     /// "If you would draw a card while your library has no cards in it,

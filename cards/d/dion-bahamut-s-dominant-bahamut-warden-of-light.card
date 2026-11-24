@@ -1,0 +1,18 @@
+card "Dion, Bahamut's Dominant // Bahamut, Warden of Light" {
+  oracle_id 4a0cc2a2-3711-473a-b2c5-b1e52b34e4fb
+  layout transform
+  cost {3}{W}
+  type Legendary Creature — Human Noble Knight
+  pt 3/3
+  label "Dragonfire Dive" static during your turn, this or other Knight you control: has flying
+  triggered when this enters: create 1 "2/2 white Knight creature"
+  activated {4}{W}{W}, {T}, sorcery: exile this then return this to battlefield transformed
+  face "Bahamut, Warden of Light" {
+    type Legendary Enchantment Creature — Saga Dragon
+    pt 5/5
+    color white
+    label "Wings of Light" triggered chapter 1, 2: put 1 +1/+1 counter on each other creature you control; those creatures gain flying until end of turn
+    label "Gigaflare" triggered chapter 3: destroy target permanent; exile this then return this to battlefield front face up
+    keywords flying
+  }
+}

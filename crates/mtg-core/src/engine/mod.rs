@@ -631,6 +631,7 @@ impl GameState {
             untargetable: Vec::new(),
             player_grants: Vec::new(),
             replacement_sources: 0,
+            drawn_before_draw_step: 0,
             control_sources: 0,
             control_effects: 0,
             control_dirty: false,
@@ -698,6 +699,8 @@ impl GameState {
             effect_controller: None,
             resume_player: None,
             extra_phases: Vec::new(),
+            pending_combat_attackers: None,
+            combat_attackers: None,
             resume_step: None,
             combats_this_turn: 0,
             result: None,
@@ -3158,8 +3161,9 @@ impl GameState {
             }
             Step::Draw => {
                 // CR 103.8a: the starting player skips their first draw.
+                self.drawn_before_draw_step = self.tallied(crate::card::TurnEvent::Drew, active);
                 if !(self.turn_number == 1 && active == self.starting_player) {
-                    self.draw(active);
+                    self.draw_n(active, 1);
                 }
                 self.give_priority(active);
             }
@@ -3371,6 +3375,8 @@ impl GameState {
         if self.combat.take().is_some() {
             self.combat_bump();
         }
+        self.pending_combat_attackers = None;
+        self.combat_attackers = None;
         self.extra_phases.clear();
         self.resume_step = None;
         self.cleanup_repeat = false;
@@ -3581,7 +3587,14 @@ impl GameState {
         if !phase_ends {
             return;
         }
+        // The restricted combat phase is over.
+        if self.step == Step::EndOfCombat {
+            self.combat_attackers = None;
+        }
         if self.extra_phases.first() == Some(&next) {
+            if next == Step::BeginningOfCombat && self.pending_combat_attackers.is_some() {
+                self.combat_attackers = self.pending_combat_attackers.take();
+            }
             self.extra_phases.remove(0);
             if self.resume_step.is_none() {
                 self.resume_step = self.step.next();

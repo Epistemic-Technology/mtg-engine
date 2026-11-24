@@ -1,0 +1,236 @@
+# Replacements of whole events (CR 614.1a): "If an opponent would mill one
+# or more cards, they mill that many cards plus four instead." (The Water
+# Crystal), "As long as you have one or fewer cards in hand, if you would
+# draw one or more cards, you draw that many cards plus one instead."
+# (Quantum Riddler), "If you would draw a card except the first one you
+# draw in each of your draw steps, draw two cards instead." (Bard, King of
+# Dale), "If a creature you control would connive, instead you draw a card,
+# then that creature connives." (Leader, Super-Genius), "... would explore,
+# instead you scry 1, then that creature explores." (Twists and Turns),
+# "Lands you control enter untapped." (The Wandering Minstrel), "Nonbasic
+# lands enter tapped." (Zhao, the Moon Slayer), and "three times that many
+# of those tokens" (Ojer Taq).
+
+scenario "mill plus four: an opponent's mill of seven mills eleven" {
+  battlefield A: "The Water Crystal", 2 "Island"
+  hand A: "Mind Sculpt"
+  turn 1 A: cast "Mind Sculpt" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 11
+}
+
+scenario "mill plus four: not the controller's own mill" {
+  battlefield A: "The Water Crystal", "Island"
+  hand A: "Thought Scour"
+  turn 1 A: cast "Thought Scour" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+}
+
+scenario "mill plus four: the activated ability, two opponents' worth of cards in hand" {
+  battlefield A: "The Water Crystal", 6 "Island"
+  hand A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "The Water Crystal"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 6
+}
+
+scenario "draw plus one: with one card in hand, a draw of one draws two" {
+  battlefield A: "Quantum Riddler", 3 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "draw plus one: with two other cards in hand, Divination draws two" {
+  battlefield A: "Quantum Riddler", 3 "Island"
+  hand A: "Divination", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+}
+
+scenario "draw plus one: the draw step's draw" {
+  battlefield A: "Quantum Riddler"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert hand A count 2
+}
+
+scenario "draw two except the first in the draw step: the draw step draws one" {
+  battlefield A: "Bard, King of Dale"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert hand A count 1
+}
+
+scenario "draw two except the first in the draw step: Divination draws four" {
+  battlefield A: "Bard, King of Dale", 3 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+}
+
+scenario "draw two except the first in the draw step: on the opponent's turn, each card is two" {
+  battlefield A: "Bard, King of Dale", "Island"
+  hand A: "Brainstorm"
+  start turn 2 B
+  turn 2 A: cast "Brainstorm"
+  run_to turn 2 postcombat_main
+  assert hand A count 4
+}
+
+scenario "connive replacement: Leader draws first, then the creature connives" {
+  battlefield A: "Leader, Super-Genius", 4 "Island"
+  hand A: "Echo Inspector"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 A: cast "Echo Inspector"
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Echo Inspector" +1/+1 1
+}
+
+scenario "connive replacement: Leader's own trigger at the beginning of combat" {
+  battlefield A: "Leader, Super-Genius", "Grizzly Bears"
+  library A: "Island", "Forest"
+  turn 1 A: trigger "Leader, Super-Genius" targeting "Grizzly Bears"
+  turn 1 begin_combat A: discard "Island"
+  run_to turn 1 declare_attackers
+  assert hand A count 1
+  assert hand A contains "Forest"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "connive replacement: an opponent's creature conniving isn't replaced" {
+  battlefield A: "Leader, Super-Genius"
+  battlefield B: 4 "Island"
+  hand B: "Echo Inspector"
+  library B: "Island", "Forest"
+  start turn 2 B
+  turn 2 B: cast "Echo Inspector"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert graveyard B count 1
+}
+
+scenario "explore replacement: scry 1, then the creature explores" {
+  battlefield A: "Twists and Turns", 2 "Forest"
+  hand A: "Merfolk Branchwalker"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: cast "Merfolk Branchwalker"
+  turn 1 A: scry "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert counters "Merfolk Branchwalker" +1/+1 0
+}
+
+scenario "explore replacement: Twists and Turns' own trigger" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Twists and Turns"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: cast "Twists and Turns"
+  turn 1 A: trigger "Twists and Turns" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "lands you control enter untapped: an enters-tapped land" {
+  battlefield A: "The Wandering Minstrel"
+  hand A: "Bojuka Bog"
+  turn 1 A: play "Bojuka Bog"
+  run_to turn 1 postcombat_main
+  assert untapped "Bojuka Bog"
+}
+
+scenario "lands you control enter untapped: a land put onto the battlefield tapped" {
+  battlefield A: "The Wandering Minstrel", 2 "Forest"
+  hand A: "Rampant Growth"
+  library A: "Forest"
+  turn 1 A: cast "Rampant Growth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Forest"
+  assert untapped newest A "Forest"
+}
+
+scenario "lands you control enter untapped: an opponent's land still enters tapped" {
+  battlefield A: "The Wandering Minstrel"
+  hand B: "Bojuka Bog"
+  start turn 2 B
+  turn 2 B: play "Bojuka Bog"
+  run_to turn 2 postcombat_main
+  assert tapped "Bojuka Bog"
+}
+
+scenario "nonbasic lands enter tapped: either player's" {
+  battlefield A: "Zhao, the Moon Slayer"
+  hand A: "Mishra's Factory", "Forest"
+  turn 1 A: play "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert tapped "Mishra's Factory"
+}
+
+scenario "nonbasic lands enter tapped: a basic land doesn't" {
+  battlefield A: "Zhao, the Moon Slayer"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+}
+
+scenario "nonbasic lands enter tapped, lands you control enter untapped: untapped" {
+  battlefield A: "Zhao, the Moon Slayer", "The Wandering Minstrel"
+  hand A: "Mishra's Factory"
+  turn 1 A: play "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert untapped "Mishra's Factory"
+}
+
+scenario "Zhao: with a conqueror counter, nonbasic lands are Mountains" {
+  battlefield A: "Zhao, the Moon Slayer", 7 "Plains"
+  battlefield B: "Mishra's Factory"
+  turn 1 A: activate "Zhao, the Moon Slayer"
+  run_to turn 1 postcombat_main
+  assert counters "Zhao, the Moon Slayer" conqueror 1
+  assert is "Mishra's Factory" mountain
+}
+
+scenario "three times that many tokens: one creature token becomes three" {
+  battlefield A: "Ojer Taq, Deepest Foundation", 3 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Soldier"
+}
+
+scenario "three times that many tokens: not a noncreature token" {
+  battlefield A: "Ojer Taq, Deepest Foundation", 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bake into a Pie"
+  turn 1 A: cast "Bake into a Pie" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Food"
+}
+
+scenario "Realm of Koh: untapped with a basic land; its Spirit can't block a non-Spirit" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Realm of Koh"
+  turn 1 A: play "Realm of Koh"
+  turn 1 A: activate "Realm of Koh"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Spirit"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Spirit"
+  assert life A 18
+}
+
+scenario "Realm of Koh: tapped without a basic land" {
+  hand A: "Realm of Koh"
+  turn 1 A: play "Realm of Koh"
+  run_to turn 1 postcombat_main
+  assert tapped "Realm of Koh"
+}

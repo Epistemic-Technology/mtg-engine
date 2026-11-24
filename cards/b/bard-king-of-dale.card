@@ -1,0 +1,9 @@
+card "Bard, King of Dale" {
+  oracle_id d05db2c1-a19a-4803-8e8a-fa2f9b798181
+  cost {4}{W}{U}
+  type Legendary Creature — Human Noble Archer
+  pt 3/5
+  keywords reach, vigilance
+  replace you draw a card except first in draw step: draw two
+  replace tokens created under your control: double
+}

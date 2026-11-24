@@ -1,0 +1,9 @@
+card "Loot, the Anomaly" {
+  oracle_id e0142e7d-7b0b-4290-a56c-5fa950fdccf8
+  cost {2}{B}
+  type Legendary Creature — Beast Horror
+  pt -2/4
+  pronoun he
+  keyword assigns combat damage as though its power were positive
+  label "Threshold" activated sacrifice another creature or planeswalker, if threshold: this gets -2/-0 until end of turn
+}

@@ -3185,6 +3185,9 @@ pub enum StaticCond {
     /// flying counter on it" (Inventive Wingsmith; the same condition as
     /// `this has no flying counters`, worded from the source).
     SourceLacksCounter(CounterKind),
+    /// `this has even counters`: "it has an even number of counters on
+    /// it"; `odd`: "an odd number".
+    SourceCounterParity(bool),
     /// `defending player controls Island`: "defending player controls an
     /// Island"; `at_least` 0, `defending player controls no Glimmer
     /// creature`: "... controls no Glimmer creatures".
@@ -4000,6 +4003,24 @@ pub enum Replaces {
     Draw {
         whose: Who,
         library_empty: bool,
+        /// `except first in draw step`: "except the first one you draw in
+        /// each of your draw steps" (Bard, King of Dale).
+        except_first: bool,
+    },
+    /// `you draw cards`: "if you would draw one or more cards".
+    DrawMany {
+        whose: Who,
+    },
+    /// `opponent mills`: "If an opponent would mill one or more cards".
+    Mill {
+        whose: Who,
+    },
+    /// `creature you control connives`, `... explores`.
+    Connive {
+        what: Filter,
+    },
+    Explore {
+        what: Filter,
     },
     /// `card put into your graveyard`; `card or token put into your
     /// graveyard` ("If a card or token would be put into your graveyard
@@ -6948,6 +6969,9 @@ pub enum Effect {
         /// "this main phase" rather than "this phase" (wording only).
         main_phase: bool,
     },
+    /// `only land creature can attack during that combat phase` (Bumi,
+    /// Unleashed): after `after this phase, additional combat phase`.
+    AddedCombatAttackers(Filter),
     /// `that creature can't be regenerated`: "That creature can't be
     /// regenerated this turn."
     CantBeRegenerated {

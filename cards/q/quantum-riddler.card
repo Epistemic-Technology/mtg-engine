@@ -1,0 +1,10 @@
+card "Quantum Riddler" {
+  oracle_id 58582fac-4c42-4a1c-9ab1-4a892b500da4
+  cost {3}{U}{U}
+  type Creature — Sphinx
+  pt 4/6
+  keywords flying
+  triggered when this enters: draw 1 card
+  replace you draw cards while hand 1 or less: plus one
+  warp {1}{U}
+}

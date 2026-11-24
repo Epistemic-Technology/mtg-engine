@@ -126,7 +126,9 @@ fn lex_pt(text: &str) -> Option<(Tok, usize)> {
     if b.get(i).is_some_and(u8::is_ascii_alphanumeric) {
         return None;
     }
-    let signed = power_sign.is_some() || toughness_sign.is_some();
+    // `-2/4`: a printed negative base power (Loot, the Anomaly), unsigned.
+    let negative_base = power_sign == Some(-1) && toughness_sign.is_none();
+    let signed = !negative_base && (power_sign.is_some() || toughness_sign.is_some());
     if signed && (power_sign.is_none() || toughness_sign.is_none()) {
         return None;
     }

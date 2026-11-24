@@ -236,6 +236,12 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (
         &[
+            "assigns", "combat", "damage", "as", "though", "its", "power", "were", "positive",
+        ],
+        Keyword::AssignsNegativePower,
+    ),
+    (
+        &[
             "untaps", "during", "each", "other", "player's", "untap", "step",
         ],
         Keyword::UntapsDuringOthers,
@@ -5346,6 +5352,13 @@ impl P {
 
     /// After `this has`: `4 or more oil counters`, `no arrowhead counters`.
     fn source_counters_cond(&mut self) -> R<StaticCond> {
+        // `this has even counters`, `this has odd counters` (Sab-Sunen).
+        if self.eat_words(&["even", "counters"]) {
+            return Ok(StaticCond::SourceCounterParity(true));
+        }
+        if self.eat_words(&["odd", "counters"]) {
+            return Ok(StaticCond::SourceCounterParity(false));
+        }
         if self.eat_words(&["one", "or", "more"]) {
             return Ok(StaticCond::SourceCountersOneOrMore(self.counter_kind()?));
         }
@@ -11622,6 +11635,15 @@ impl P {
         })
     }
 
+    /// After `only`: a filter then `can attack during that combat phase`.
+    fn at_ahead_words_until_can_attack(&self) -> bool {
+        (1..8).any(|k| {
+            self.word_at(k).as_deref() == Some("can")
+                && self.word_at(k + 1).as_deref() == Some("attack")
+                && self.word_at(k + 2).as_deref() == Some("during")
+        })
+    }
+
     /// `[2] additional combat phase[s] [after this phase] [then main
     /// phase]` (CR 500.8): how many combat phases, and whether a main
     /// phase follows them.
@@ -11926,6 +11948,12 @@ impl P {
             "flip" if self.eat_word("coin") => Ok(Effect::FlipCoin),
             // CR 701.23: "clash with an opponent".
             "clash" => Ok(Effect::Clash),
+            // "Only land creatures can attack during that combat phase."
+            "only" if self.at_ahead_words_until_can_attack() => {
+                let f = self.filter()?;
+                self.expect_words(&["can", "attack", "during", "that", "combat", "phase"])?;
+                Ok(Effect::AddedCombatAttackers(f))
+            }
             // CR 500.8: "After this phase, there is an additional combat
             // phase."
             "after" if self.at_word("this") => {
@@ -20364,10 +20392,18 @@ impl P {
         }
         {
             let at = self.pos;
-            if let Ok(what) = self.filter()
-                && self.eat_word("enter")
-            {
-                return Ok(Replaces::OthersEnter { what, each: false });
+            if let Ok(what) = self.filter() {
+                if self.eat_word("enter") {
+                    return Ok(Replaces::OthersEnter { what, each: false });
+                }
+                // `creature you control connives` (CR 701.50), `...
+                // explores` (CR 701.44).
+                if self.eat_word("connives") {
+                    return Ok(Replaces::Connive { what });
+                }
+                if self.eat_word("explores") {
+                    return Ok(Replaces::Explore { what });
+                }
             }
             self.pos = at;
         }
@@ -20411,6 +20447,27 @@ impl P {
                 whose: Who::Opponents,
             });
         }
+        // `you mill`, `an opponent mills`, `a player mills` (CR 701.13).
+        for (words, whose) in [
+            (&["you", "mill"][..], Who::You),
+            (&["an", "opponent", "mills"][..], Who::Opponents),
+            (&["opponent", "mills"][..], Who::Opponents),
+            (&["a", "player", "mills"][..], Who::Any),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Replaces::Mill { whose });
+            }
+        }
+        // `you draw cards`: "if you would draw one or more cards".
+        for (words, whose) in [
+            (&["you", "draw", "cards"][..], Who::You),
+            (&["an", "opponent", "draws", "cards"][..], Who::Opponents),
+            (&["a", "player", "draws", "cards"][..], Who::Any),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Replaces::DrawMany { whose });
+            }
+        }
         if self.at_words(&["you", "draw"]) || self.at_words(&["a", "player", "draws"]) {
             let whose = if self.at_word("you") {
                 Who::You
@@ -20421,9 +20478,11 @@ impl P {
             self.eat_words(&["a", "card"]);
             let library_empty = self.eat_words(&["with", "empty", "library"])
                 || self.eat_words(&["while", "your", "library", "has", "no", "cards", "in", "it"]);
+            let except_first = self.eat_words(&["except", "first", "in", "draw", "step"]);
             return Ok(Replaces::Draw {
                 whose,
                 library_empty,
+                except_first,
             });
         }
         // "If an instant or sorcery card would be put into a graveyard
@@ -20678,6 +20737,9 @@ impl P {
                 Outcome::SkipDraw
             }
             "tapped" => Outcome::EnterTapped,
+            "untapped" => Outcome::EnterUntapped,
+            // `instead { you draw 1 card }`: those effects, then the event.
+            "instead" => Outcome::First,
             "with" => {
                 let n = self.num()?;
                 let kind = self.counter_kind()?;

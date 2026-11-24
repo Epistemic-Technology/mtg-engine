@@ -1,0 +1,8 @@
+card "Michelangelo, Mutant BFF" {
+  oracle_id fe1eb8b3-c605-4711-a057-ed3565bfe75c
+  cost {2}{G}{G}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 4/4
+  static each creature with counter you control: has ability { can't be blocked by more than one creature }
+  triggered whenever this enters or attacks: create 1 "Mutagen"
+}

@@ -712,6 +712,7 @@ impl Decompiler<'_> {
             },
             StaticCondition::AnyPlayerLifeAtMost(n) => StaticCond::AnyPlayerLifeAtMost(*n),
             StaticCondition::OpponentPoisonAtLeast(n) => StaticCond::OpponentPoisonAtLeast(*n),
+            StaticCondition::SourceCounterParity { even } => StaticCond::SourceCounterParity(*even),
             StaticCondition::SourceCounters { kind, n, at_least } => StaticCond::SourceCounters {
                 kind: *kind,
                 n: *n,
@@ -2473,6 +2474,7 @@ impl Decompiler<'_> {
                 who: r(*who),
                 n: *n,
             },
+            CoreEffect::AddedCombatAttackers(f) => Effect::AddedCombatAttackers(self.filter(f)),
             CoreEffect::AdditionalPhases { combats, main } => Effect::AdditionalPhases {
                 combats: *combats,
                 main: *main,
@@ -2958,9 +2960,19 @@ impl Decompiler<'_> {
                 CoreReplaces::Draw {
                     whose,
                     library_empty,
+                    except_first,
                 } => Replaces::Draw {
                     whose: *whose,
                     library_empty: *library_empty,
+                    except_first: *except_first,
+                },
+                CoreReplaces::DrawMany { whose } => Replaces::DrawMany { whose: *whose },
+                CoreReplaces::Mill { whose } => Replaces::Mill { whose: *whose },
+                CoreReplaces::Connive { what } => Replaces::Connive {
+                    what: self.filter(what),
+                },
+                CoreReplaces::Explore { what } => Replaces::Explore {
+                    what: self.filter(what),
                 },
                 CoreReplaces::ToGraveyard {
                     whose,
