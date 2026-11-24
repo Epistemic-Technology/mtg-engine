@@ -349,3 +349,40 @@ scenario "reveal until: Aurora Awakener reveals until X permanent cards and puts
   run_to turn 3 precombat_main
   assert hand A contains "Serra Angel"
 }
+
+scenario "mill all: Grub's Command puts each Goblin card the target player milled into their hand" {
+  battlefield A: 3 "Swamp", 2 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Grub's Command"
+  library B: "Goblin Arsonist", "Plains", "Goblin Assailant", "Shock", "Island", "Forest"
+  turn 1 A: cast "Grub's Command" mode 6 targeting "Ornithopter", player B
+  run_to turn 1 end
+  assert graveyard B contains "Ornithopter"
+  assert hand B contains "Goblin Arsonist"
+  assert hand B contains "Goblin Assailant"
+  assert hand B count 2
+  assert graveyard B count 4
+  assert hand A count 0
+}
+
+scenario "discarded this way: Mind Roots puts a discarded land onto the battlefield under your control" {
+  battlefield A: "Swamp", "Forest", "Island"
+  hand A: "Mind Roots"
+  hand B: "Plains", "Shock"
+  turn 1 A: cast "Mind Roots" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+  assert graveyard B contains "Shock"
+  assert graveyard B count 1
+}
+
+scenario "discarded this way: Mind Roots puts nothing onto the battlefield without a land discarded" {
+  battlefield A: "Swamp", "Forest", "Island"
+  hand A: "Mind Roots"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Mind Roots" targeting player B
+  run_to turn 1 end
+  assert graveyard B count 2
+  assert battlefield A count 3
+}

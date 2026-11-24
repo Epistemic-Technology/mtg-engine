@@ -9241,6 +9241,28 @@ impl P {
                     wording: LibraryWording::By(subject),
                 })
             }
+            // "Target player mills five cards, then puts each Goblin card
+            // milled this way into their hand." (every one, so no one
+            // chooses).
+            "puts"
+                if self.at_word("all")
+                    && (1..12).any(|k| self.word_at(k).as_deref() == Some("chosen")) =>
+            {
+                self.pos -= 1;
+                let mut e = self.chosen_act()?;
+                if let Effect::ChooseAct {
+                    act: mtg_core::card::ChooseAct::MilledToHand,
+                    this_way: true,
+                    by,
+                    ..
+                } = &mut e
+                {
+                    *by = Some(subject);
+                    Ok(e)
+                } else {
+                    self.fail("`<player> puts all ...` is `... from among milled this way cards into hand chosen`")
+                }
+            }
             // "Each player puts a creature card from their graveyard onto
             // the battlefield."
             "puts"
@@ -10460,6 +10482,21 @@ impl P {
                 f.who = Some(mtg_core::card::Who::Opponents);
                 (ChooseAct::ExileToGraveyard, f)
             }
+            // `put up to 1 land card discarded this way onto battlefield
+            // tapped chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let d = card_filter(self).is_ok()
+                        && self.at_words(&["discarded", "this", "way", "onto"]);
+                    self.pos = at;
+                    d
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.expect_words(&["discarded", "this", "way", "onto", "battlefield", "tapped"])?;
+                (ChooseAct::DiscardedToBattlefield, f)
+            }
             _ => {
                 let f = card_filter(self)?;
                 self.expect_words(&["from", "among"])?;
@@ -10501,6 +10538,7 @@ impl P {
             among_those,
             this_way,
             returns,
+            by: None,
         })
     }
 

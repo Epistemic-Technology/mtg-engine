@@ -1,0 +1,6 @@
+card "Mind Roots" {
+  oracle_id 5d32dbf3-c157-4543-8813-da88f463de0e
+  cost {1}{B}{G}
+  type Sorcery
+  spell: target player discards 2 cards; put up to 1 land card discarded this way onto battlefield tapped chosen
+}

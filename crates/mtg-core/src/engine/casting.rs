@@ -1626,11 +1626,19 @@ impl GameState {
                 })
                 .collect(),
             // "from among the milled cards": those still in the graveyard.
-            ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield | ChooseAct::MilledToTop => {
+            ChooseAct::MilledToHand
+            | ChooseAct::MilledToBattlefield
+            | ChooseAct::MilledToTop
+            | ChooseAct::DiscardedToBattlefield => {
+                let kind = if act == ChooseAct::DiscardedToBattlefield {
+                    crate::card::ThisWay::Discarded
+                } else {
+                    crate::card::ThisWay::Milled
+                };
                 self.this_way.as_ref().map_or_else(Vec::new, |log| {
                     log.moved
                         .iter()
-                        .filter(|m| m.is(crate::card::ThisWay::Milled))
+                        .filter(|m| m.is(kind))
                         .map(|m| m.new)
                         .filter(|id| {
                             self.objects
@@ -1940,6 +1948,17 @@ impl GameState {
                 | ChooseAct::ReturnRandomFromGraveyard
                 | ChooseAct::MilledToHand => {
                     ctx.created = Some(self.move_object(id, Zone::Hand, false));
+                }
+                // CR 110.2a: "under your control".
+                ChooseAct::DiscardedToBattlefield => {
+                    ctx.created = Some(self.put_onto_battlefield_with(
+                        id,
+                        ctx.controller,
+                        super::replace::Enter {
+                            tapped: true,
+                            ..super::replace::Enter::default()
+                        },
+                    ));
                 }
                 ChooseAct::MilledToBattlefield | ChooseAct::GraveyardToBattlefield { .. } => {
                     let tapped = matches!(act, ChooseAct::GraveyardToBattlefield { tapped: true });

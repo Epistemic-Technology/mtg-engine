@@ -2343,6 +2343,7 @@ impl Decompiler<'_> {
                 among_those: false,
                 this_way: false,
                 returns: false,
+                by: None,
             },
             CoreEffect::OneOf(options) => {
                 // "gains your choice of lifelink or indestructible".

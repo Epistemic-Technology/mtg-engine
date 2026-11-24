@@ -10274,8 +10274,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             among_those,
             this_way,
             returns,
+            by,
         } => {
             use mtg_core::card::ChooseAct;
+            // "then puts each Goblin card milled this way into their
+            // hand".
+            if let Some(w) = by {
+                let s = ctx.subj(*w);
+                return Clause::with_subject(
+                    *w,
+                    s,
+                    format!(
+                        "puts each {} milled this way into their hand",
+                        cards_phrase(filter, ctx.card, false)
+                    ),
+                );
+            }
             // After another permanent is sacrificed, "it" would be that
             // one: the source is named again ("you may sacrifice an
             // artifact. When you do, this creature deals 3 damage",
@@ -10424,6 +10438,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::MilledToHand if *returns => {
                     format!("return {} from among them to your hand", cards())
                 }
+                ChooseAct::DiscardedToBattlefield => format!(
+                    "put {} discarded this way onto the battlefield tapped under your control",
+                    cards()
+                ),
                 ChooseAct::GraveyardToBattlefield { tapped } => format!(
                     "return {} from your graveyard to the battlefield{}",
                     cards(),

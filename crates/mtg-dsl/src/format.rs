@@ -3505,8 +3505,16 @@ impl Fmt {
                 among_those,
                 this_way,
                 returns,
+                by,
             } => {
                 use mtg_core::card::ChooseAct;
+                if let Some(w) = by {
+                    return format!(
+                        "{} puts all {} card from among milled this way cards into hand chosen",
+                        self.recipient(*w, t),
+                        filter(f)
+                    );
+                }
                 let n = if *count == Num::N(crate::ast::ANY_NUMBER) && !*up_to {
                     "all".to_string()
                 } else if *count == Num::N(crate::ast::ANY_NUMBER) {
@@ -3625,6 +3633,9 @@ impl Fmt {
                             ChooseAct::MilledToTop => "on top of library",
                             _ => "onto battlefield",
                         }
+                    ),
+                    ChooseAct::DiscardedToBattlefield => format!(
+                        "put {n} {f} {cs} discarded this way onto battlefield tapped chosen"
                     ),
                     ChooseAct::GraveyardToBattlefield { tapped } => format!(
                         "return {n} {f} {cs} from your graveyard to battlefield{} chosen",

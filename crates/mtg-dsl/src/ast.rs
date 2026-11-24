@@ -6516,6 +6516,11 @@ pub enum Effect {
         /// `MilledToHand` only: written `return ... from among them to
         /// hand`, "return ... from among them to your hand".
         returns: bool,
+        /// `target 1 puts all Goblin card from among milled this way cards
+        /// into hand chosen`, wording only: "then puts each Goblin card
+        /// milled this way into their hand" (every card goes to its
+        /// owner's hand; with `all` no one chooses).
+        by: Option<Recipient>,
     },
     /// `sacrifice 1 artifact chosen or discard 1 card`: one of these, as
     /// the controller chooses.

@@ -3778,6 +3778,16 @@ do` then sees:
   (`all` takes any chosen act's every candidate); `put 1 creature or land
   card from among milled cards on top of library chosen`: "put a creature
   or land card from among the milled cards on top of your library".
+  With a player subject after their mill, `target player mills 5 cards
+  then target 1 puts all Goblin card from among milled this way cards into
+  hand chosen` prints "Target player mills five cards, then puts each
+  Goblin card milled this way into their hand" (each card to its owner's
+  hand).
+- `put up to 1 land card discarded this way onto battlefield tapped
+  chosen` ("Put up to one land card discarded this way onto the
+  battlefield tapped under your control."): cards this resolution
+  discarded that are still in a graveyard, under the controller's control
+  (CR 110.2a).
 
 `permanent card` is a card that is not an instant or sorcery (CR 110.4a);
 `nonland permanent card` likewise, and not a land.

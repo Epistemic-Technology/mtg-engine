@@ -6637,6 +6637,11 @@ pub enum ChooseAct {
     /// your library": cards this resolution milled, still in the
     /// graveyard, onto the top of their owner's library.
     MilledToTop,
+    /// "Put up to one land card discarded this way onto the battlefield
+    /// tapped under your control.": cards this resolution discarded, still
+    /// in a graveyard, onto the battlefield tapped under the controller's
+    /// control (CR 110.2a).
+    DiscardedToBattlefield,
     /// "return a land card from your graveyard to the battlefield
     /// [tapped]" (cards in your graveyard).
     GraveyardToBattlefield { tapped: bool },
