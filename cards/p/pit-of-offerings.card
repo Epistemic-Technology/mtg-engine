@@ -1,0 +1,8 @@
+card "Pit of Offerings" {
+  oracle_id 044d2788-6daa-4849-a813-1f577eef9295
+  type Land — Cave
+  enters tapped
+  triggered when this enters: exile up to 3 target card from graveyards
+  mana {C}
+  activated {T}: add exiled color
+}

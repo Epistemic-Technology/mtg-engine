@@ -1906,6 +1906,10 @@ impl P {
         if self.eat_word("produced") {
             return Ok(Effect::AddManaProduced);
         }
+        // "Add one mana of any of the exiled cards' colors." (CR 607.2a).
+        if self.eat_words(&["exiled", "color"]) {
+            return Ok(Effect::AddManaExiledColors);
+        }
         // "For each color among permanents you control, add one mana of
         // that color."
         if self.eat_words(&["each", "color", "among"]) {
@@ -2150,6 +2154,13 @@ impl P {
         // spend this mana to cast a Dragon creature spell, ...".
         let wording = if self.eat_words(&["when", "spent", "on"]) {
             Some(1)
+        } else if self.eat_words(&["if", "any", "spent", "on"]) {
+            // "If any of that mana is spent on a creature spell, ..."
+            Some(3)
+        } else if self.eat_words(&["if", "spent", "on"]) {
+            // "If that mana is spent on a creature spell, it gains haste
+            // until end of turn." (Generator Servant).
+            Some(2)
         } else if self.eat_words(&["spent", "on"]) {
             Some(0)
         } else {
@@ -2160,7 +2171,12 @@ impl P {
             self.expect_word("spell")?;
             self.expect(&Tok::Colon)?;
             let saved = self.subject.take();
-            let then = self.sentence()?;
+            // "it gains haste until end of turn": `it` is the spell the
+            // mana was spent on, the rider's triggering object.
+            let was = std::mem::replace(&mut self.in_trigger, true);
+            let then = self.sentence();
+            self.in_trigger = was;
+            let then = then?;
             self.subject = saved;
             return Ok(Effect::SpendRider {
                 inner: vec![Sentence::new(vec![e])],
@@ -2311,6 +2327,8 @@ impl P {
                 w |= SpendWays::FROM_EXILE;
             } else if self.eat_words(&["from", "graveyard"]) {
                 w |= SpendWays::FROM_GRAVEYARD;
+            } else if self.eat_words(&["from", "hand"]) {
+                w |= SpendWays::FROM_HAND;
             } else if self.eat_words(&["not", "from", "hand"]) {
                 w |= SpendWays::NOT_FROM_HAND;
             } else if self.eat_words(&["with", "flashback", "from", "graveyard"]) {
@@ -2328,8 +2346,18 @@ impl P {
         use mtg_core::card::{SpendPlural, SpendWays, SpendWording};
         if self.eat_word("not") {
             self.expect_words(&["to", "cast"])?;
-            let f = self.filter()?;
-            self.expect_word("spell")?;
+            // `not to cast spells from hand`: "This mana can't be spent to
+            // cast spells from your hand."
+            // (The formatter writes the empty filter as `permanent`.)
+            let (f, plural) = if self.eat_word("spells") || self.eat_words(&["permanent", "spells"])
+            {
+                (crate::ast::Filter::default(), SpendPlural::Or)
+            } else {
+                let f = self.filter()?;
+                self.expect_word("spell")?;
+                (f, SpendPlural::One)
+            };
+            let ways = self.spend_qualifiers();
             return Ok(crate::ast::ManaRestriction {
                 spells: Some(f),
                 abilities: true,
@@ -2337,9 +2365,9 @@ impl P {
                 foretell: false,
                 disturb: false,
                 wording: SpendWording::CantCast,
-                plural: SpendPlural::One,
+                plural,
                 bare: false,
-                ways: SpendWays::default(),
+                ways,
                 x_spells: None,
             });
         }
@@ -15996,6 +16024,9 @@ impl P {
         if self.eat_words(&["treasure", "spent"]) {
             return Ok(CountExpr::SpentTreasure);
         }
+        if self.eat_words(&["cave", "spent"]) {
+            return Ok(CountExpr::SpentCave);
+        }
         if self.eat_word("andor") {
             return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));
         }
@@ -20242,9 +20273,14 @@ impl P {
                     filter.alt_article = true;
                 }
                 // "... spell from your hand" (Lilah, Undefeated Slickshot).
+                // "... spell using mana produced by Tecutlan".
                 let from =
                     if filter.targeting.is_none() && self.eat_words(&["from", "your", "hand"]) {
                         mtg_core::card::SpellFrom::Hand
+                    } else if filter.targeting.is_none()
+                        && self.eat_words(&["using", "mana", "from", "this"])
+                    {
+                        mtg_core::card::SpellFrom::ManaFromThis
                     } else {
                         mtg_core::card::SpellFrom::Anywhere
                     };
@@ -20482,9 +20518,32 @@ impl P {
                 self.pos += 3;
                 Ok(Trigger::DealtCombatDamage(obj))
             }
-            "is" if self.at_words(&["tapped", "for", "mana"]) => {
-                self.pos += 3;
-                Ok(Trigger::TappedForMana(obj))
+            "is" if self.at_words(&["tapped", "for", "mana"])
+                || (self.at_words(&["tapped", "for", "chosen"]))
+                || (self.at_words(&["tapped", "for"])
+                    && matches!(self.peek_at(2), Some(Tok::Sym(c)) if c == "C")) =>
+            {
+                self.pos += 2;
+                // `is tapped for {C}`, `is tapped for chosen`: only when it
+                // makes mana of that kind.
+                let made = if self.eat_word("mana") {
+                    None
+                } else if self.eat_word("chosen") {
+                    Some(mtg_core::mana::Mana::Chosen)
+                } else {
+                    self.pos += 1;
+                    Some(mtg_core::mana::Mana::Colorless)
+                };
+                let passive = self.eat_word("passive");
+                let additional = self.eat_word("additional");
+                Ok(Trigger::TappedForMana(
+                    obj,
+                    mtg_core::card::ManaTriggerForm {
+                        made,
+                        additional,
+                        passive,
+                    },
+                ))
             }
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;
@@ -21422,6 +21481,13 @@ impl P {
     fn replaces(&mut self) -> R<Replaces> {
         if self.eat_word("enters") {
             return Ok(Replaces::Enters);
+        }
+        // `tapped for mana permanent you control` (CR 106.12): "If you tap
+        // a permanent for mana, it produces three times as much ...".
+        if self.eat_words(&["tapped", "for", "mana"]) {
+            return Ok(Replaces::TappedForMana {
+                what: self.filter()?,
+            });
         }
         // `target 1 dies`.
         if self.at_word("target")

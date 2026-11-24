@@ -1,0 +1,37 @@
+// "Add one mana of any of the exiled cards' colors." (Pit of Offerings, CR
+// 607.2a): the colors of the cards its own ability exiled.
+
+scenario "Pit of Offerings: an exiled red card makes red mana" {
+  battlefield A: "Plains"
+  hand A: "Pit of Offerings", "Searing Spear"
+  graveyard A: "Grizzly Bears"
+  graveyard B: "Lightning Bolt"
+  turn 1 A: play "Pit of Offerings"
+  turn 1 A: trigger "Pit of Offerings" targeting "Lightning Bolt", "Grizzly Bears"
+  turn 3 A: cast "Searing Spear" targeting player B
+  run_to turn 3 end
+  assert exile B contains "Lightning Bolt"
+  assert exile A contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Pit of Offerings: colorless exiled cards make no colored mana" {
+  battlefield A: "Plains"
+  hand A: "Pit of Offerings", "Searing Spear"
+  graveyard B: "Island"
+  turn 1 A: play "Pit of Offerings"
+  turn 1 A: trigger "Pit of Offerings" targeting "Island"
+  illegal turn 3 A: cast "Searing Spear" targeting player B
+  run_to turn 3 end
+  assert exile B contains "Island"
+  assert life B 20
+}
+
+scenario "Pit of Offerings: another permanent's exiled cards don't count" {
+  battlefield A: "Plains", "Pit of Offerings"
+  exile B: "Lightning Bolt"
+  hand A: "Searing Spear"
+  illegal turn 1 A: cast "Searing Spear" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}

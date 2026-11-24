@@ -1,0 +1,8 @@
+card "Leyline of Abundance" {
+  oracle_id 1197a595-3afc-4f18-b868-bbb096771922
+  cost {2}{G}{G}
+  type Enchantment
+  opening hand
+  triggered whenever creature you control is tapped for mana additional: add {G}
+  activated {6}{G}{G}: put 1 +1/+1 counter on each creature you control
+}

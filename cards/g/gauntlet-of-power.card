@@ -1,0 +1,8 @@
+card "Gauntlet of Power" {
+  oracle_id 1182591d-8660-4a2e-8d77-2fc544b02b66
+  cost {5}
+  type Artifact
+  as this enters choose color
+  static creature of chosen color: +1/+1
+  triggered whenever basic land is tapped for chosen passive: add chosen
+}

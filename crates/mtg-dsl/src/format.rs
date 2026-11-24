@@ -826,6 +826,7 @@ impl Fmt {
                 s
             }
             Replaces::ThisToGraveyard => "this put into a graveyard".to_string(),
+            Replaces::TappedForMana { what } => format!("tapped for mana {}", filter(what)),
             Replaces::CreateTokens {
                 creature,
                 effect,
@@ -3110,6 +3111,7 @@ impl Fmt {
             },
             Effect::AddManaTwoColors(n) => format!("add any {n} and any {n} other"),
             Effect::AddManaProduced => "add produced".to_string(),
+            Effect::AddManaExiledColors => "add exiled color".to_string(),
             Effect::AddManaOneOfTimes { mana, count, each } => {
                 let syms: Vec<String> = mana
                     .iter()
@@ -3761,6 +3763,8 @@ impl Fmt {
                 self.line(inner, t),
                 match wording {
                     1 => "when ",
+                    2 => "if ",
+                    3 => "if any ",
                     _ => "",
                 },
                 filter(spells),
@@ -4882,6 +4886,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TimesKicked => "times kicked".to_string(),
         CountExpr::EnergyPaid => "energy paid".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
+        CountExpr::SpentCave => "cave spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::ExiledWith(None) => "exiled with this".to_string(),
         CountExpr::ExiledWith(Some(f)) => format!("exiled with this {} card", card_filter(f)),
@@ -6613,7 +6618,17 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::BecomesAttachedTo(f) => {
             format!("whenever {} becomes attached to this", filter(f))
         }
-        Trigger::TappedForMana(o) => format!("whenever {} is tapped for mana", trigger_obj(o)),
+        Trigger::TappedForMana(o, form) => format!(
+            "whenever {} is tapped for {}{}{}",
+            trigger_obj(o),
+            match form.made {
+                None => "mana",
+                Some(mtg_core::mana::Mana::Chosen) => "chosen",
+                Some(_) => "{C}",
+            },
+            if form.passive { " passive" } else { "" },
+            if form.additional { " additional" } else { "" }
+        ),
         Trigger::TapsForMana { what, whose } => format!(
             "whenever {} {} for mana",
             match whose {
@@ -6704,10 +6719,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 },
                 next
             ),
-            if *from == mtg_core::card::SpellFrom::Hand {
-                " from your hand"
-            } else {
-                ""
+            match from {
+                mtg_core::card::SpellFrom::Hand => " from your hand",
+                mtg_core::card::SpellFrom::ManaFromThis => " using mana from this",
+                _ => "",
             }
         ),
         Trigger::CastsFiltered {
@@ -8138,6 +8153,7 @@ fn restriction_base_text(r: &crate::ast::ManaRestriction) -> String {
     let mut quals = String::new();
     for (bit, words) in [
         (SpendWays::FROM_EXILE, " from exile"),
+        (SpendWays::FROM_HAND, " from hand"),
         (SpendWays::FROM_GRAVEYARD, " from graveyard"),
         (SpendWays::NOT_FROM_HAND, " not from hand"),
         (SpendWays::FLASHBACK, " with flashback from graveyard"),
@@ -9961,6 +9977,7 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from other than hand",
         SpellFrom::GraveyardOrExile => " from graveyards or exile",
+        SpellFrom::ManaFromThis => " using mana from this",
     }
 }
 

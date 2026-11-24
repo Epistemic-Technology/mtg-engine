@@ -1,0 +1,249 @@
+// Triggered mana abilities worded "add an additional", "its controller
+// adds", "for mana of the chosen color"; delayed ones lasting the turn
+// (High Tide); and mana replacements multiplying what a permanent makes
+// (CR 106.12, 605.1b, 603.7c).
+
+scenario "Crypt Ghast: a Swamp you tap makes an additional {B}" {
+  battlefield A: "Crypt Ghast", 2 "Swamp"
+  hand A: "Gravedigger"
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 end
+  assert battlefield A contains "Gravedigger"
+}
+
+scenario "Crypt Ghast: an opponent's Swamps make no extra mana" {
+  battlefield A: "Crypt Ghast"
+  battlefield B: 2 "Swamp"
+  hand B: "Mind Rot"
+  start turn 2 B
+  illegal turn 2 B: cast "Mind Rot" targeting player A
+  run_to turn 2 end
+  assert hand B contains "Mind Rot"
+}
+
+scenario "Nirkana Revenant: two Swamps pay for four" {
+  battlefield A: "Nirkana Revenant", 2 "Swamp"
+  hand A: "Gravedigger"
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 end
+  assert battlefield A contains "Gravedigger"
+}
+
+scenario "Vernal Bloom: any player's Forest makes an additional {G}" {
+  battlefield A: "Vernal Bloom"
+  battlefield B: 3 "Forest"
+  hand B: "Craw Wurm"
+  start turn 2 B
+  turn 2 B: cast "Craw Wurm"
+  run_to turn 2 end
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Leyline of Abundance: a creature tapped for mana makes an additional {G}" {
+  battlefield A: "Leyline of Abundance", "Llanowar Elves"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Leyline of Abundance: a land isn't a creature" {
+  battlefield A: "Leyline of Abundance", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Badgermole Cub: Llanowar Elves pays for Grizzly Bears" {
+  battlefield A: "Badgermole Cub", "Llanowar Elves"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Wolfwillow Haven: the enchanted Forest makes two" {
+  battlefield A: "Forest", "Wolfwillow Haven" on "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Kinnan: a nonland permanent makes one more of its mana" {
+  battlefield A: "Kinnan, Bonder Prodigy", "Llanowar Elves"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Kinnan: a land makes no more" {
+  battlefield A: "Kinnan, Bonder Prodigy", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Gauntlet of Power: basic lands tapped for the chosen color make two" {
+  battlefield A: 5 "Mountain"
+  hand A: "Gauntlet of Power", "Shivan Dragon"
+  turn 1 A: cast "Gauntlet of Power"
+  turn 1 A: choose red
+  turn 3 A: cast "Shivan Dragon"
+  run_to turn 3 end
+  assert battlefield A contains "Shivan Dragon"
+}
+
+scenario "Gauntlet of Power: mana of another color makes no extra" {
+  battlefield A: 5 "Mountain"
+  hand A: "Gauntlet of Power", "Shivan Dragon"
+  turn 1 A: cast "Gauntlet of Power"
+  turn 1 A: choose green
+  illegal turn 3 A: cast "Shivan Dragon"
+  run_to turn 3 end
+  assert hand A contains "Shivan Dragon"
+}
+
+scenario "High Tide: Islands make an additional {U} this turn" {
+  battlefield A: 3 "Island"
+  hand A: "High Tide", "Concentrate"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: cast "High Tide"
+  turn 1 A: wait
+  turn 1 A: cast "Concentrate"
+  run_to turn 1 end
+  assert graveyard A contains "Concentrate"
+  assert hand A count 3
+}
+
+scenario "High Tide ends with the turn" {
+  battlefield A: 3 "Island"
+  hand A: "High Tide", "Concentrate"
+  turn 1 A: cast "High Tide"
+  illegal turn 3 A: cast "Concentrate"
+  run_to turn 3 end
+  assert hand A contains "Concentrate"
+}
+
+scenario "without High Tide two Islands are two mana" {
+  battlefield A: 2 "Island"
+  hand A: "Concentrate"
+  illegal turn 1 A: cast "Concentrate"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "High Tide: an opponent's Islands make extra mana too" {
+  battlefield A: "Island"
+  battlefield B: 2 "Island"
+  hand A: "High Tide"
+  hand B: "Concentrate"
+  start turn 2 B
+  turn 2 upkeep A: cast "High Tide"
+  turn 2 B: cast "Concentrate"
+  run_to turn 2 end
+  assert graveyard B contains "Concentrate"
+}
+
+scenario "Bubbling Muck: Swamps make an additional {B} this turn" {
+  battlefield A: 3 "Swamp"
+  hand A: "Bubbling Muck", "Gravedigger"
+  turn 1 A: cast "Bubbling Muck"
+  turn 1 A: wait
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 end
+  assert battlefield A contains "Gravedigger"
+}
+
+scenario "Molten Tide: your Mountains make an additional {R} this turn" {
+  battlefield A: 6 "Mountain"
+  hand A: "Pyre Rhymer", "Hill Giant"
+  turn 1 A: cast "Pyre Rhymer"
+  turn 1 main2 A: cast "Molten Tide"
+  turn 1 main2 A: wait
+  turn 1 main2 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Molten Tide: an opponent's Mountains make no extra mana" {
+  battlefield A: 4 "Mountain"
+  battlefield B: 2 "Mountain"
+  hand A: "Pyre Rhymer"
+  hand B: "Lava Axe"
+  turn 1 A: cast "Pyre Rhymer"
+  turn 1 main2 A: cast "Molten Tide"
+  illegal turn 1 main2 B: cast "Lava Axe" targeting player A
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "Nyxbloom Ancient: a Mountain makes three {R}" {
+  battlefield A: "Nyxbloom Ancient", 2 "Mountain"
+  hand A: "Shivan Dragon"
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 end
+  assert battlefield A contains "Shivan Dragon"
+}
+
+scenario "Mana Reflection: twice as much, Sol Ring's too" {
+  battlefield A: "Mana Reflection", "Sol Ring", "Mountain"
+  hand A: "Shivan Dragon"
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 end
+  assert battlefield A contains "Shivan Dragon"
+}
+
+scenario "Mana Reflection: one Mountain is two mana, not four" {
+  battlefield A: "Mana Reflection", "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "two Mana Reflections make four times as much" {
+  battlefield A: 2 "Mana Reflection", "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Mana Reflection: an opponent's lands aren't doubled" {
+  battlefield A: "Mana Reflection"
+  battlefield B: "Mountain"
+  hand B: "Searing Spear"
+  start turn 2 B
+  illegal turn 2 B: cast "Searing Spear" targeting player A
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "Virtue of Strength: a basic land makes three times as much" {
+  battlefield A: "Virtue of Strength", 2 "Mountain"
+  hand A: "Shivan Dragon"
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 end
+  assert battlefield A contains "Shivan Dragon"
+}
+
+scenario "Virtue of Strength: a nonbasic land isn't" {
+  battlefield A: "Virtue of Strength", "Rugged Highlands"
+  hand A: "Searing Spear"
+  illegal turn 1 A: cast "Searing Spear" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Nyxbloom Ancient doesn't triple a triggered mana ability's mana" {
+  battlefield A: "Nyxbloom Ancient", "Forest", "Wolfwillow Haven" on "Forest"
+  hand A: "Axebane Beast", "Craw Wurm"
+  illegal turn 1 A: cast "Craw Wurm"
+  turn 1 A: cast "Axebane Beast"
+  run_to turn 1 end
+  assert battlefield A contains "Axebane Beast"
+}

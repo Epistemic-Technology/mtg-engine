@@ -1,0 +1,45 @@
+// "If that mana is spent on a creature spell, it gains haste until end of
+// turn." (Generator Servant, Carnelian Orb of Dragonkind): the permanent
+// the spell becomes has haste this turn.
+
+scenario "Carnelian Orb of Dragonkind: a Dragon cast with its mana attacks at once" {
+  battlefield A: "Carnelian Orb of Dragonkind", 5 "Mountain"
+  hand A: "Shivan Dragon"
+  turn 1 A: activate "Carnelian Orb of Dragonkind"
+  turn 1 A: cast "Shivan Dragon"
+  turn 1 A: attack "Shivan Dragon"
+  run_to turn 1 end
+  assert life B 15
+}
+
+scenario "Carnelian Orb of Dragonkind: the haste ends with the turn" {
+  battlefield A: "Carnelian Orb of Dragonkind", 5 "Mountain"
+  hand A: "Shivan Dragon"
+  turn 1 A: activate "Carnelian Orb of Dragonkind"
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert has "Shivan Dragon" haste
+  run_to turn 2 upkeep
+  assert has not "Shivan Dragon" haste
+}
+
+scenario "Carnelian Orb of Dragonkind: a non-Dragon doesn't gain haste" {
+  battlefield A: "Carnelian Orb of Dragonkind", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Carnelian Orb of Dragonkind"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert has not "Hill Giant" haste
+}
+
+scenario "Generator Servant: a creature cast with its mana has haste" {
+  battlefield A: "Generator Servant", 2 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Generator Servant"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Generator Servant"
+  assert life B 17
+}

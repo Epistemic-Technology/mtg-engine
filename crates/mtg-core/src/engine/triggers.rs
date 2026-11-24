@@ -1696,6 +1696,13 @@ impl GameState {
                 {
                     return None;
                 }
+                // "Whenever you cast a permanent spell using mana produced
+                // by Tecutlan": the source was tapped for mana to pay for it.
+                if *from == crate::card::SpellFrom::ManaFromThis
+                    && !self.cast_sources.contains(&(*spell, w.source))
+                {
+                    return None;
+                }
                 let c = self
                     .characteristics(*spell)
                     .or_else(|| self.pool.get(*def).printed)?;

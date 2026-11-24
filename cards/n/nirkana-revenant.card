@@ -1,0 +1,8 @@
+card "Nirkana Revenant" {
+  oracle_id 6dff1def-5b94-40c8-a942-dea8743ab47c
+  cost {4}{B}{B}
+  type Creature — Vampire Shade
+  pt 4/4
+  triggered whenever Swamp you control is tapped for mana additional: add {B}
+  activated {B}: this gets +1/+1
+}

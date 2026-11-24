@@ -296,6 +296,7 @@ impl Engine {
                 state.top_static_sources += u32::from(def.flags().has_top_static());
                 state.exile_static_sources += u32::from(def.flags().has_exile_static());
                 state.foreign_activated_sources += u32::from(def.flags().has_foreign_activated());
+                state.mana_from_watchers += u32::from(def.flags().watches_mana_from());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -648,6 +649,7 @@ impl GameState {
             spent_uncounterable: false,
             uncounterable_spells: Vec::new(),
             mana_trigger_sources: 0,
+            eot_mana_triggers: 0,
             tapped_produced: crate::mana::ManaPool::default(),
             turn_static_sources: 0,
             state_trigger_sources: 0,
@@ -672,6 +674,9 @@ impl GameState {
             grave_cast_spells: Vec::new(),
             starting_life: 20,
             foreign_activated_sources: 0,
+            mana_from_watchers: 0,
+            cast_sources: Vec::new(),
+            spell_grants: Vec::new(),
             saga_count: 0,
             player_static_sources: 0,
             mid: crate::state::MidDecision::default(),
@@ -3557,6 +3562,12 @@ impl GameState {
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);
+        }
+        // "Until end of turn, whenever a player taps an Island for mana"
+        // (High Tide) ended with them.
+        self.mana_trigger_sources -= std::mem::take(&mut self.eot_mana_triggers);
+        if !self.spell_grants.is_empty() {
+            self.spell_grants.clear();
         }
         // What an effect gave may have kept an Aura or Equipment legally
         // attached, or a creature alive (CR 704.5).

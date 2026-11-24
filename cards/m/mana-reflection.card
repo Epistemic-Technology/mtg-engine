@@ -1,0 +1,6 @@
+card "Mana Reflection" {
+  oracle_id a3a8a044-283d-443e-bc40-c2f826d70c22
+  cost {4}{G}{G}
+  type Enchantment
+  replace tapped for mana permanent you control: double
+}

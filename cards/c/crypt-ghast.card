@@ -1,0 +1,8 @@
+card "Crypt Ghast" {
+  oracle_id a3c8d817-7949-4dae-b9f5-f9d952479270
+  cost {3}{B}
+  type Creature — Spirit
+  pt 2/2
+  extort
+  triggered whenever Swamp you control is tapped for mana additional: add {B}
+}

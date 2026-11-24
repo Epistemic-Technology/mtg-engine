@@ -599,6 +599,8 @@ pub enum CountExpr {
     EnergyPaid,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
+    /// `cave spent`: "mana from a Cave spent to cast it".
+    SpentCave,
     /// `mana spent`: "the amount of mana spent to cast it"; `mana spent
     /// that spell`: "... to cast that spell", the spell that triggered the
     /// ability (CR 601.2h).
@@ -4209,6 +4211,11 @@ pub enum Replaces {
     /// `this put into a graveyard`: "If ~ would be put into a graveyard
     /// from anywhere" (CR 113.6b).
     ThisToGraveyard,
+    /// `tapped for mana permanent you control`: "If you tap a permanent for
+    /// mana, it produces ... instead" (CR 106.12; `double`, `triple`).
+    TappedForMana {
+        what: Filter,
+    },
     PlusCounters {
         on: Filter,
     },
@@ -4515,7 +4522,11 @@ pub enum Trigger {
     /// enchanted land is tapped for mana, its controller adds an
     /// additional {G}." A triggered mana ability (CR 605.1b); its effects
     /// are mana for the tapped permanent's controller, nothing else.
-    TappedForMana(TriggerObj),
+    /// `is tapped for {C}` / `is tapped for chosen` (the kind it must
+    /// make), then `passive` ("Whenever a Forest is tapped for mana, its
+    /// controller adds an additional {G}.") and `additional` ("Whenever you
+    /// tap a Swamp for mana, add an additional {B}."): the form.
+    TappedForMana(TriggerObj, mtg_core::card::ManaTriggerForm),
     /// `whenever you tap this for mana`, `whenever a player taps land for
     /// mana`, `whenever an opponent taps Mountain for mana`: not a mana
     /// ability (its effects use the stack, CR 605.1b).
@@ -6156,6 +6167,9 @@ pub enum Effect {
     /// type that land produced" (Mana Flare, CR 106.12): a kind of the mana
     /// the tapped permanent made.
     AddManaProduced,
+    /// `add exiled color`: "Add one mana of any of the exiled cards'
+    /// colors."
+    AddManaExiledColors,
     /// `add each color among permanent you control`: "For each color among
     /// permanents you control, add one mana of that color."
     AddManaColorsAmong(Filter),
@@ -6652,7 +6666,10 @@ pub enum Effect {
         spells: Filter,
         then: Vec<Sentence>,
         /// Wording only: 0, `spent on`; 1, `when spent on`: "When that
-        /// mana is spent to cast a red instant or sorcery spell, ...".
+        /// mana is spent to cast a red instant or sorcery spell, ...";
+        /// 2, `if spent on`: "If that mana is spent on a creature spell,
+        /// ..."; 3, `if any spent on`: "If any of that mana is spent on
+        /// ...".
         wording: u8,
     },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay

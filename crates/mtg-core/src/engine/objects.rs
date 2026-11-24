@@ -1037,6 +1037,7 @@ impl GameState {
             self.top_static_sources += d(flags.has_top_static());
             self.exile_static_sources += d(flags.has_exile_static());
             self.foreign_activated_sources += d(flags.has_foreign_activated());
+            self.mana_from_watchers += d(flags.watches_mana_from());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -1064,6 +1065,7 @@ impl GameState {
             self.top_static_sources -= d(flags.has_top_static());
             self.exile_static_sources -= d(flags.has_exile_static());
             self.foreign_activated_sources -= d(flags.has_foreign_activated());
+            self.mana_from_watchers -= d(flags.watches_mana_from());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();

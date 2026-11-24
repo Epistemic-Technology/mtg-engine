@@ -49,6 +49,26 @@ const MAX_OUT: u32 = 8;
 /// pool.
 const BOOSTED_TAP: AbilityId = AbilityId(u32::MAX);
 
+/// A triggered mana ability that triggers as a permanent is tapped for
+/// mana (`GameState::mana_boosts`).
+#[derive(Copy, Clone, Debug)]
+pub(super) struct ManaBoost {
+    pub source: ObjId,
+    pub ability: AbilityId,
+    /// The kinds of mana the permanent must have made for it to trigger
+    /// ("Whenever you tap a land for {C}"); 0 if it names the chosen color
+    /// and none is chosen.
+    pub made: Option<Kinds>,
+}
+
+/// The kinds `m` names, "the chosen color" being `chosen`'s.
+fn chosen_kind(m: Mana, chosen: Chosen) -> Kinds {
+    match m {
+        Mana::Chosen => chosen.color().map_or(0, |c| 1 << (c as u8)),
+        m => kinds_of(m),
+    }
+}
+
 fn kinds_of(m: Mana) -> Kinds {
     match m {
         Mana::Colored(c) => 1 << (c as u8),
@@ -272,7 +292,7 @@ impl GameState {
                 .iter()
                 .filter(|(s, _)| s == id)
                 .fold(0, |k, (_, m)| k | kinds_of(*m));
-            let Some(extra) = self.boost_outs(p, *id, own) else {
+            let Some(extra) = self.boost_outs(p, *id, &[own]) else {
                 continue;
             };
             let mut made: Outs = smallvec::smallvec![own];
@@ -299,15 +319,20 @@ impl GameState {
     }
 
     /// The triggered mana abilities (`AbilityDef::ManaTrigger`) that
-    /// trigger when `tapped` is tapped for mana: their sources and
-    /// abilities.
-    pub(super) fn mana_triggers_on(&self, tapped: ObjId) -> SmallVec<[(ObjId, AbilityId); 2]> {
+    /// trigger when `tapped` is tapped for mana, and by how much mana
+    /// replacements (`Replaces::TappedForMana`) multiply its own mana.
+    /// Each trigger comes with its source, its controller (a delayed one's,
+    /// "Until end of turn, whenever a player taps an Island for mana"),
+    /// and the kind of mana it needs the permanent to have made ("for
+    /// {C}"; the chosen color filled in).
+    pub(super) fn mana_boosts(&self, tapped: ObjId) -> (SmallVec<[ManaBoost; 2]>, u32) {
         let mut out = SmallVec::new();
+        let mut times = 1u32;
         let Some(t) = self.objects.get(tapped) else {
-            return out;
+            return (out, times);
         };
         let Some(tc) = self.characteristics(tapped) else {
-            return out;
+            return (out, times);
         };
         for src in &self.battlefield {
             let o = &self.objects[*src];
@@ -318,18 +343,94 @@ impl GameState {
                 continue;
             };
             for a in &c.abilities {
-                let AbilityDef::ManaTrigger { what, .. } = self.pool.ability(*a) else {
-                    continue;
-                };
-                if (!what.enchanted || o.attached_to == Some(tapped))
-                    && what.matches(tapped, t.controller, &tc, Some(*src), Some(o.controller))
-                    && self.status_ok(what, tapped)
-                {
-                    out.push((*src, *a));
+                match self.pool.ability(*a) {
+                    AbilityDef::ManaTrigger { what, form, .. } => {
+                        if (!what.enchanted || o.attached_to == Some(tapped))
+                            && what.matches(
+                                tapped,
+                                t.controller,
+                                &tc,
+                                Some(*src),
+                                Some(o.controller),
+                            )
+                            && self.status_ok(what, tapped)
+                        {
+                            out.push(ManaBoost {
+                                source: *src,
+                                ability: *a,
+                                made: form.made.map(|m| chosen_kind(m, o.chosen)),
+                            });
+                        }
+                    }
+                    // CR 106.12, 614.1a: "it produces three times as much
+                    // of that mana instead"; several multiply together.
+                    AbilityDef::Replacement(r) => {
+                        if let crate::card::Replaces::TappedForMana { what } = &r.replaces
+                            && what.matches(
+                                tapped,
+                                t.controller,
+                                &tc,
+                                Some(*src),
+                                Some(o.controller),
+                            )
+                            && self.status_ok(what, tapped)
+                        {
+                            times = times.saturating_mul(match r.replacement {
+                                crate::card::Replacement::Triple => 3,
+                                _ => 2,
+                            });
+                        }
+                    }
+                    _ => {}
                 }
             }
         }
-        out
+        // CR 603.7c: "Until end of turn, whenever a player taps an Island
+        // for mana, that player adds an additional {U}." (High Tide), a
+        // delayed triggered mana ability, its controller's.
+        if self.eot_mana_triggers > 0 {
+            for dt in &self.delayed_triggers {
+                let AbilityDef::ManaTrigger { what, form, .. } =
+                    self.pool.ability(dt.ability.ability)
+                else {
+                    continue;
+                };
+                let src = dt.ability.source;
+                if what.matches(tapped, t.controller, &tc, Some(src), Some(dt.controller))
+                    && self.status_ok(what, tapped)
+                {
+                    out.push(ManaBoost {
+                        source: src,
+                        ability: dt.ability.ability,
+                        made: form.made.map(|m| chosen_kind(m, Chosen::None)),
+                    });
+                }
+            }
+        }
+        (out, times)
+    }
+
+    /// Whether tapping `tapped` for mana triggers a mana ability or has
+    /// its mana multiplied.
+    pub(super) fn mana_boosted(&self, tapped: ObjId) -> bool {
+        let (triggers, times) = self.mana_boosts(tapped);
+        !triggers.is_empty() || times > 1
+    }
+
+    /// The colors among the cards `source` exiled that are still in exile
+    /// (CR 607.2a), each judged as the card is (CR 406.3: a face-down one
+    /// has none).
+    pub(super) fn exiled_colors(&self, source: ObjId) -> ColorSet {
+        let mut seen = ColorSet::default();
+        for id in self.exiled_with(source) {
+            if self.objects[id].exiled_face_down() {
+                continue;
+            }
+            for col in self.base_characteristics(&self.objects[id]).colors.iter() {
+                seen = seen.with(col);
+            }
+        }
+        seen
     }
 
     /// The colors among the permanents `p` controls matching `filter`
@@ -356,22 +457,45 @@ impl GameState {
     }
 
     /// The kinds of the extra mana triggered mana abilities add as
-    /// `tapped` is tapped for mana; `None` without any (or with any the
-    /// planner can't foresee).
-    fn boost_outs(&self, p: PlayerId, tapped: ObjId, own: Kinds) -> Option<Outs> {
+    /// `tapped` is tapped for mana, making `own` (the kinds of each of its
+    /// mana), and the extra mana a mana replacement makes of it; `None`
+    /// without any (or with any the planner can't foresee).
+    fn boost_outs(&self, p: PlayerId, tapped: ObjId, own: &[Kinds]) -> Option<Outs> {
         let mut out = Outs::new();
-        for (src, a) in self.mana_triggers_on(tapped) {
-            let effects = self.pool.ability(a).effects();
+        let all = own.iter().fold(0, |k, m| k | m);
+        let (triggers, times) = self.mana_boosts(tapped);
+        if times > 1 {
+            // Three times as much of that mana: of a permanent making
+            // mana of known kinds, as much again of the same kinds.
+            if own.iter().any(|k| k.count_ones() != 1) {
+                return None;
+            }
+            for _ in 1..times.min(MAX_OUT) {
+                out.extend_from_slice(own);
+            }
+        }
+        for b in triggers {
+            // "Whenever you tap a land for {C}": only if it makes that
+            // kind (a permanent that may make others isn't foreseen).
+            if let Some(need) = b.made {
+                if all & need == 0 {
+                    continue;
+                }
+                if all != need {
+                    return None;
+                }
+            }
+            let effects = self.pool.ability(b.ability).effects();
             // "One mana of any type that land produced": of a permanent
             // making one kind, that kind.
             if matches!(effects, [Effect::AddManaProduced]) {
-                if own.count_ones() != 1 {
+                if all.count_ones() != 1 {
                     return None;
                 }
-                out.push(own);
+                out.push(all);
                 continue;
             }
-            let (made, tie, rest) = self.mana_made(p, src, effects)?;
+            let (made, tie, rest) = self.mana_made(p, b.source, effects)?;
             if (tie != Tie::Free && made.len() > 1) || rest {
                 return None;
             }
@@ -381,14 +505,32 @@ impl GameState {
     }
 
     /// CR 605.4a: the triggered mana abilities of `tapped`, just tapped for
-    /// mana, resolve at once, adding their mana for its controller.
+    /// mana, resolve at once, adding their mana for its controller; first a
+    /// mana replacement multiplies what it made (`tapped_produced`).
     #[cold]
     #[inline(never)]
     pub(super) fn fire_mana_triggers(&mut self, tapped: ObjId) {
         let Some(p) = self.objects.get(tapped).map(|o| o.controller) else {
             return;
         };
-        for (src, a) in self.mana_triggers_on(tapped) {
+        let (triggers, times) = self.mana_boosts(tapped);
+        let made = self.tapped_produced;
+        for _ in 1..times {
+            let pool = &mut self.player_mut(p).mana_pool;
+            for c in 0..5 {
+                pool.colored[c] = pool.colored[c].saturating_add(made.colored[c]);
+            }
+            pool.colorless = pool.colorless.saturating_add(made.colorless);
+        }
+        for b in triggers {
+            if let Some(need) = b.made {
+                let has = (0..5).any(|c| need & (1 << c) != 0 && made.colored[c] > 0)
+                    || (need & COLORLESS != 0 && made.colorless > 0);
+                if !has {
+                    continue;
+                }
+            }
+            let (src, a) = (b.source, b.ability);
             let pool = std::sync::Arc::clone(&self.pool);
             let mut ctx = EffectCtx {
                 source: src,
@@ -560,7 +702,7 @@ impl GameState {
         // to what it makes.
         if cost.tap
             && self.mana_trigger_sources > 0
-            && let Some(extra) = self.boost_outs(p, id, out.iter().fold(0, |k, m| k | m))
+            && let Some(extra) = self.boost_outs(p, id, &out)
         {
             if tie != Tie::Free {
                 return None;
@@ -746,6 +888,13 @@ impl GameState {
                 Effect::AddManaColorsAmong(f) => {
                     for c in self.colors_among(ctx.controller, f, id).iter() {
                         made.out.push(1 << (c as u8));
+                    }
+                }
+                // "one mana of any of the exiled cards' colors".
+                Effect::AddManaExiledColors => {
+                    let k = color_kinds(self.exiled_colors(id));
+                    if k != 0 {
+                        made.out.push(k);
                     }
                 }
                 // "Add {C}. If you control an Urza's Mine and an Urza's

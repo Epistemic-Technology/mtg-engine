@@ -170,10 +170,18 @@ fn a_granted_static_that_changes_types_is_rejected() {
 }
 
 #[test]
-fn a_delayed_triggered_mana_ability_is_an_error() {
-    // A compile error, not a panic.
+fn a_delayed_triggered_mana_ability_only_adds_mana() {
+    // High Tide's form compiles; one doing more than adding mana is a
+    // compile error, not a panic.
+    assert!(
+        load_card(
+            "Sorcery",
+            "spell: until end of turn, delayed this: whenever Forest is tapped for mana additional, add {G}"
+        )
+        .is_ok()
+    );
     let e = spell_error(
-        "until end of turn, delayed this: whenever Forest is tapped for mana this turn, add {G}",
+        "until end of turn, delayed this: whenever Forest is tapped for mana, draw 1 cards",
     );
     assert!(e.contains("mana ability"), "{e}");
 }

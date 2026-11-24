@@ -1,0 +1,5 @@
+token "Gnome Soldier" {
+  type Artifact Creature — Gnome Soldier
+  color white
+  static this: cda pt count andor artifact or creature you control
+}

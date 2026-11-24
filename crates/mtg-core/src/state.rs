@@ -540,6 +540,8 @@ pub struct SpentMana {
     pub colored: [u8; 5],
     pub colorless: u8,
     pub treasure: u8,
+    /// Mana Caves made (Bat Colony).
+    pub cave: u8,
 }
 
 impl SpentMana {
@@ -2421,6 +2423,11 @@ pub struct GameState {
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.
     pub mana_trigger_sources: u32,
+    /// Delayed triggered mana abilities lasting until end of turn ("Until
+    /// end of turn, whenever a player taps an Island for mana", High
+    /// Tide), counted in `mana_trigger_sources` too until the cleanup step
+    /// ends them.
+    pub eot_mana_triggers: u32,
     /// The mana the permanent whose triggered mana abilities are
     /// resolving was just tapped for (`Effect::AddManaProduced`: "one
     /// mana of any type that land produced").
@@ -2477,6 +2484,21 @@ pub struct GameState {
     /// player may activate (`DefFlags::FOREIGN_ACTIVATED`): priority looks
     /// at other players' permanents only when there are any.
     pub foreign_activated_sources: u32,
+    /// Battlefield permanents with a cast trigger "using mana produced by
+    /// this" (`DefFlags::MANA_FROM_WATCH`): payment records its sources
+    /// only then.
+    pub mana_from_watchers: u32,
+    /// The permanents tapped for mana (or whose mana abilities were
+    /// activated) while the last spell whose payment was recorded was
+    /// paid for, with that spell (null while it is paid for); only while
+    /// `mana_from_watchers` is nonzero. "Whenever you cast a permanent
+    /// spell using mana produced by Tecutlan".
+    pub cast_sources: Vec<(ObjId, ObjId)>,
+    /// Keywords effects gave permanent spells until end of turn ("If that
+    /// mana is spent on a creature spell, it gains haste until end of
+    /// turn."), with each effect's source and controller: the permanent
+    /// the spell becomes gets them as it enters. Cleared as the turn ends.
+    pub spell_grants: Vec<(ObjId, crate::card::KeywordSet, ObjId, PlayerId)>,
     /// Sagas with chapter abilities on the battlefield (CR 714): the
     /// precombat main phase and state-based actions look for them only
     /// when there are any.

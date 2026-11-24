@@ -909,6 +909,7 @@ impl Subtype {
     pub const ROLE: Subtype = Subtype(5 + 36);
     pub const ARCANE: Subtype = Subtype(5 + 43);
     pub const TREASURE: Subtype = Subtype(5 + 27);
+    pub const CAVE: Subtype = Subtype(5);
     pub const VEHICLE: Subtype = Subtype(5 + 28);
     pub const SPACECRAFT: Subtype = Subtype(5 + 29);
     pub const ROOM: Subtype = Subtype(5 + 37);
@@ -2407,6 +2408,9 @@ pub enum CountExpr {
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
+    /// The mana from Caves spent to cast the source ("for each mana from a
+    /// Cave spent to cast it", Bat Colony).
+    SpentCave,
     /// "the amount of mana spent to cast it" (CR 601.2h): all the mana
     /// paid to cast the source, X included.
     SpentTotal,
@@ -2754,6 +2758,7 @@ impl CountExpr {
             | CountExpr::TimesKicked
             | CountExpr::EnergyPaid
             | CountExpr::SpentTreasure
+            | CountExpr::SpentCave
             | CountExpr::SpentTotal
             | CountExpr::ThatSpellSpent
             | CountExpr::ThatSpellSpentColors
@@ -3916,6 +3921,8 @@ pub struct SpentUse {
     pub treasure: u8,
     /// Converge: as many colors as the payment can include.
     pub converge: bool,
+    /// "For each mana from a Cave spent": Caves first.
+    pub cave: bool,
     /// Anything is read, so the cast records what was spent.
     pub record: bool,
 }
@@ -4153,6 +4160,8 @@ pub enum CounterKind {
     Decayed,
     /// Zhao, the Moon Slayer.
     Conqueror,
+    /// Brass's Tunnel-Grinder.
+    Bore,
     /// Not a kind: "remove a counter from this creature" (a cost), counters
     /// of every kind. `GameObject::counters` totals them; removing them
     /// takes -1/-1 counters first, then kinds that don't change power or
@@ -4202,7 +4211,7 @@ pub struct CombatTax {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 91] = [
+    pub const NAMED: [(&'static str, CounterKind); 92] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -4294,6 +4303,7 @@ impl CounterKind {
         ("incarnation", CounterKind::Incarnation),
         ("decayed", CounterKind::Decayed),
         ("conqueror", CounterKind::Conqueror),
+        ("bore", CounterKind::Bore),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -5272,6 +5282,11 @@ pub enum Effect {
     /// permanent just made (`GameState::tapped_produced`); of several
     /// kinds, the one it made most of (the engine picks).
     AddManaProduced,
+    /// "Add one mana of any of the exiled cards' colors." (Pit of
+    /// Offerings, CR 607.2a): one mana of a color among the cards its
+    /// source exiled that are still in exile (its controller chooses);
+    /// none without a colored one.
+    AddManaExiledColors,
     /// "For each color among permanents you control, add one mana of that
     /// color" (vivid): one mana of each color among the controller's
     /// permanents matching the filter.
@@ -6992,6 +7007,7 @@ impl Effect {
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. }
             | Effect::AddManaProduced
+            | Effect::AddManaExiledColors
             | Effect::AddManaColorsAmong(_)
             | Effect::AddManaOneOfTimes { .. }
             | Effect::AddManaCommander { .. } => true,
@@ -7067,6 +7083,7 @@ impl Effect {
                 | Effect::Search { .. }
                 | Effect::AddMana(_)
                 | Effect::AddManaOneOf(_)
+                | Effect::AddManaExiledColors
                 | Effect::AddManaTimes { .. }
                 | Effect::AddManaTwoColors(_)
                 | Effect::AddManaCombination { .. }
@@ -8221,6 +8238,16 @@ pub enum Replaces {
         effect: bool,
         artifact: bool,
         you: bool,
+    },
+    /// A permanent matching `what` would produce mana as it is tapped for
+    /// mana by a mana ability with {T} in its cost (CR 106.12, 605.1a):
+    /// "If you tap a permanent for mana, it produces three times as much
+    /// of that mana instead." (Nyxbloom Ancient; `Replacement::Double`,
+    /// `Replacement::Triple`). Only the permanent's own mana is
+    /// multiplied, not what triggered mana abilities add; several multiply
+    /// together.
+    TappedForMana {
+        what: ObjFilter,
     },
 }
 
@@ -9919,10 +9946,14 @@ impl SpendWays {
     /// Wording: an alternative after the first joined with "or to" ("cast
     /// face-down spells or to turn creatures face up").
     pub const OR_TO: u32 = 1 << 16;
+    /// The spell is cast from its caster's hand ("This mana can't be spent
+    /// to cast spells from your hand.", with `SpendWording::CantCast`).
+    pub const FROM_HAND: u32 = 1 << 17;
 
     /// The spell properties: each must hold of a spell for `spells` to
     /// allow it.
     pub const SPELL_QUALIFIERS: u32 = Self::FROM_EXILE
+        | Self::FROM_HAND
         | Self::FROM_GRAVEYARD
         | Self::NOT_FROM_HAND
         | Self::FLASHBACK
@@ -10246,6 +10277,10 @@ pub enum SpellFrom {
     NotHand,
     /// "from graveyards or from exile" (Aven Interrupter).
     GraveyardOrExile,
+    /// A cast trigger's "using mana produced by Tecutlan": mana the
+    /// trigger's source was tapped for while the spell was paid for
+    /// (`GameState::cast_sources`).
+    ManaFromThis,
 }
 
 impl SpellFrom {
@@ -10253,7 +10288,9 @@ impl SpellFrom {
     pub fn allows(self, zone: Option<crate::state::Zone>) -> bool {
         use crate::state::Zone;
         match self {
-            SpellFrom::Anywhere => true,
+            // `ManaFromThis` is judged by the trigger from the payment's
+            // sources.
+            SpellFrom::Anywhere | SpellFrom::ManaFromThis => true,
             SpellFrom::Hand => zone == Some(Zone::Hand),
             SpellFrom::Graveyard => zone == Some(Zone::Graveyard),
             SpellFrom::Exile => zone == Some(Zone::Exile),
@@ -10399,6 +10436,24 @@ pub struct EntersCopy {
     pub graveyard: bool,
 }
 
+/// What else a triggered mana ability (`AbilityDef::ManaTrigger`) says
+/// about its event, and how it is worded.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct ManaTriggerForm {
+    /// "Whenever you tap a land for {C}" (`Mana::Colorless`), "Whenever a
+    /// basic land is tapped for mana of the chosen color" (`Mana::Chosen`,
+    /// the source's chosen color): it triggers only if the tapped
+    /// permanent made mana of that kind.
+    pub made: Option<Mana>,
+    /// "add an additional {B}" after "Whenever you tap ..." or "Whenever a
+    /// player taps ..." (rendering only).
+    pub additional: bool,
+    /// "Whenever a Forest is tapped for mana, its controller adds ..."
+    /// for a filter with no controller, not "Whenever a player taps ..."
+    /// (rendering only).
+    pub passive: bool,
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum AbilityDef {
     /// The effect of an instant or sorcery spell when it resolves.
@@ -10436,6 +10491,8 @@ pub enum AbilityDef {
     ManaTrigger {
         what: ObjFilter,
         effects: Vec<Effect>,
+        #[serde(default)]
+        form: ManaTriggerForm,
     },
     /// "{T}, Sacrifice this artifact: Add <mana>" (Treasure, Lotus
     /// Petal): a mana ability that sacrifices its source.
@@ -11565,6 +11622,10 @@ impl DefFlags {
     /// owns in exile (`StaticCondition::OwnInExile`): a card entering or
     /// leaving exile then bumps the characteristics cache.
     const EXILE_STATIC: u64 = 1 << 38;
+    /// A cast trigger "using mana produced by this" (`SpellFrom::
+    /// ManaFromThis`): payment then records the permanents it taps
+    /// (`GameState::cast_sources`), and casts record what was spent.
+    const MANA_FROM_WATCH: u64 = 1 << 42;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11693,6 +11754,10 @@ impl DefFlags {
 
     pub const fn has_foreign_activated(self) -> bool {
         self.has(DefFlags::FOREIGN_ACTIVATED)
+    }
+
+    pub const fn watches_mana_from(self) -> bool {
+        self.has(DefFlags::MANA_FROM_WATCH)
     }
 
     pub const fn has_top_static(self) -> bool {
@@ -11906,6 +11971,11 @@ impl DefFlags {
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::ManaTrigger { .. })
                     || matches!(a, AbilityDef::Triggered(t) if t.trigger.taps_for_mana())
+                    || matches!(
+                        a,
+                        AbilityDef::Replacement(r)
+                            if matches!(r.replaces, Replaces::TappedForMana { .. })
+                    )
             }),
         );
         flags.set(
@@ -12982,6 +13052,10 @@ impl CardPool {
                     out.record = true;
                     out.treasure = u8::MAX;
                 }
+                CountExpr::SpentCave => {
+                    out.record = true;
+                    out.cave = true;
+                }
                 CountExpr::SpentTotal => out.record = true,
                 _ => {}
             }
@@ -13413,9 +13487,16 @@ impl CardPool {
                 CountExpr::ThatSpellSpent | CountExpr::ThatSpellSpentColors
             )
         });
+        let mana_from = def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Triggered(t) if matches!(t.trigger, TriggerSpec::CastsFiltered {
+                from: SpellFrom::ManaFromThis,
+                ..
+            }))
+        });
+        flags.set(DefFlags::MANA_FROM_WATCH, mana_from);
         flags.set(
             DefFlags::SPENT_WATCH,
-            reads_that || self.watches_spent(&def.abilities),
+            reads_that || mana_from || self.watches_spent(&def.abilities),
         );
         // "Enchanted creature ... can only attack alone" (Errantry): a
         // granted attack restriction counts its source in

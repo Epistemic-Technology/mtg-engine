@@ -1,0 +1,7 @@
+card "Generator Servant" {
+  oracle_id 68ac061a-e4a3-46df-9169-62f6a8481584
+  cost {1}{R}
+  type Creature — Elemental
+  pt 2/1
+  activated {T}, sacrifice this: add {C}{C} if any spent on creature spell: it gains haste until end of turn
+}

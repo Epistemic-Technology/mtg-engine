@@ -1,0 +1,66 @@
+// "Whenever you cast a permanent spell using mana produced by Tecutlan"
+// (Brass's Tunnel-Grinder // Tecutlan, the Searing Rift; Thousand Moons
+// Smithy // Barracks of the Thousand): the permanent was tapped for mana
+// while the spell was paid for.
+
+scenario "Brass's Tunnel-Grinder: a third bore counter transforms it" {
+  battlefield A: "Brass's Tunnel-Grinder" with 2 bore, 2 "Mountain"
+  hand A: "Tormenting Voice", "Forest"
+  turn 1 A: cast "Tormenting Voice" discarding "Forest"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Tecutlan, the Searing Rift"
+  assert is "Tecutlan, the Searing Rift" land
+}
+
+scenario "Brass's Tunnel-Grinder: without descending, no bore counter" {
+  battlefield A: "Brass's Tunnel-Grinder" with 2 bore
+  run_to turn 2 upkeep
+  assert battlefield A contains "Brass's Tunnel-Grinder"
+  assert counters "Brass's Tunnel-Grinder" bore 2
+}
+
+scenario "Tecutlan: a permanent spell paid with its mana discovers" {
+  battlefield A: "Brass's Tunnel-Grinder" with 2 bore, 3 "Mountain"
+  hand A: "Tormenting Voice", "Forest", "Hill Giant"
+  library A: "Island", "Island", "Island", "Glory Seeker", "Island"
+  turn 1 A: cast "Tormenting Voice" discarding "Forest"
+  turn 3 A: cast "Hill Giant"
+  run_to turn 3 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Glory Seeker"
+}
+
+scenario "Tecutlan: instants paid with its mana don't discover" {
+  battlefield A: "Brass's Tunnel-Grinder" with 2 bore, 2 "Mountain"
+  hand A: "Tormenting Voice", "Forest", "Searing Spear", "Lightning Bolt"
+  library A: "Island", "Island", "Island", "Glory Seeker", "Island"
+  turn 1 A: cast "Tormenting Voice" discarding "Forest"
+  turn 3 A: cast "Searing Spear" targeting player B
+  turn 3 A: wait
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 end
+  assert life B 14
+  assert tapped "Tecutlan, the Searing Rift"
+  assert battlefield A lacks "Glory Seeker"
+}
+
+scenario "Thousand Moons Smithy: tapping five transforms it; Barracks makes Gnomes" {
+  battlefield A: "Thousand Moons Smithy", 4 "Ornithopter", "Plains"
+  hand A: "Glory Seeker"
+  turn 1 A: wait
+  turn 3 A: cast "Glory Seeker"
+  run_to turn 3 end
+  assert battlefield A contains "Barracks of the Thousand"
+  assert battlefield A contains "Gnome Soldier"
+  assert power "Gnome Soldier" 7
+}
+
+scenario "Thousand Moons Smithy: a Gnome Soldier as it enters" {
+  battlefield A: 4 "Plains", "Ornithopter"
+  hand A: "Thousand Moons Smithy"
+  turn 1 A: cast "Thousand Moons Smithy"
+  run_to turn 1 end
+  assert battlefield A contains "Gnome Soldier"
+  assert power "Gnome Soldier" 3
+  assert toughness "Gnome Soldier" 3
+}

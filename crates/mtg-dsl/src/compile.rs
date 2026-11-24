@@ -3014,6 +3014,7 @@ impl Compiler<'_> {
             A::TimesKicked => C::TimesKicked,
             A::EnergyPaid => C::EnergyPaid,
             A::SpentTreasure => C::SpentTreasure,
+            A::SpentCave => C::SpentCave,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
             }
@@ -4320,6 +4321,7 @@ impl Compiler<'_> {
                 any_type: *any_type,
             }),
             Effect::AddManaProduced => out.push(CoreEffect::AddManaProduced),
+            Effect::AddManaExiledColors => out.push(CoreEffect::AddManaExiledColors),
             Effect::AddManaOneOfTimes { mana, count, each } => {
                 let mut colors = mtg_core::mana::ColorSet::COLORLESS;
                 for m in mana {
@@ -5290,14 +5292,41 @@ impl Compiler<'_> {
                 self.tmap = outer;
                 let own_targets = std::mem::replace(&mut self.delayed_targets, outer_targets);
                 let effects = effects?;
-                // A delayed triggered mana ability ("whenever a land is
-                // tapped for mana this turn, add ...", CR 605.1b) has no
-                // form here.
-                if matches!(trigger, Trigger::TappedForMana(_))
-                    || matches!(trigger, Trigger::When(t) | Trigger::Next(t)
-                        if matches!(**t, Trigger::TappedForMana(_)))
+                // A delayed triggered mana ability ("Until end of turn,
+                // whenever a player taps an Island for mana, that player
+                // adds an additional {U}.", CR 605.1b, 603.7c): it adds
+                // mana only, and lasts the turn.
+                if matches!(trigger, Trigger::When(t) | Trigger::Next(t)
+                        if matches!(**t, Trigger::TappedForMana(..)))
                 {
-                    return self.err("a delayed trigger can't be a triggered mana ability");
+                    return self.err("a delayed triggered mana ability is `whenever ...`");
+                }
+                if let Trigger::TappedForMana(o, form) = trigger {
+                    let TriggerObj::Filter(f) = o else {
+                        return self.err("`is tapped for mana` needs a filter (`Island`)");
+                    };
+                    if !*this_turn
+                        || !own_targets.is_empty()
+                        || effects.is_empty()
+                        || !effects.iter().all(CoreEffect::adds_mana)
+                        || !matches!(about, Recipient::Source)
+                    {
+                        return self.err(
+                            "a delayed triggered mana ability is `until end of turn, delayed this: whenever ... is tapped for mana, add ...`",
+                        );
+                    }
+                    let what = self.filter(f);
+                    let id = self.pool.register_ability(AbilityDef::ManaTrigger {
+                        what,
+                        effects,
+                        form: *form,
+                    });
+                    out.push(CoreEffect::Delayed {
+                        ability: id,
+                        about: r(*about),
+                        this_turn: true,
+                    });
+                    return Ok(());
                 }
                 let trigger = self.trigger(trigger);
                 // A delayed ability doesn't carry the granter.
@@ -6329,7 +6358,7 @@ impl Compiler<'_> {
             Trigger::TappedForTeamwork(o) => TriggerSpec::TappedForTeamwork(self.trigger_obj(o)),
             Trigger::BecomesAttachedTo(f) => TriggerSpec::BecomesAttachedTo(self.filter(f)),
             // Compiled as `AbilityDef::ManaTrigger` by `ability`.
-            Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
+            Trigger::TappedForMana(..) => unreachable!("a triggered mana ability"),
             Trigger::TapsForMana { what, whose } => TriggerSpec::TapsForMana {
                 what: self.trigger_obj(what),
                 whose: *whose,
@@ -6623,6 +6652,9 @@ impl Compiler<'_> {
             },
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
+            },
+            Replaces::TappedForMana { what } => CoreReplaces::TappedForMana {
+                what: self.filter(what),
             },
             Replaces::AnyCounters { on, by } => CoreReplaces::AnyCounters {
                 on: self.filter(on),
@@ -7052,7 +7084,7 @@ impl Compiler<'_> {
             }),
             // CR 605.1b: a triggered mana ability, resolving at once.
             Ability::Triggered {
-                trigger: Trigger::TappedForMana(o),
+                trigger: Trigger::TappedForMana(o, form),
                 condition,
                 targets,
                 effects,
@@ -7072,6 +7104,7 @@ impl Compiler<'_> {
                 AbilityDef::ManaTrigger {
                     what: self.filter(f),
                     effects,
+                    form: *form,
                 }
             }
             // "Whenever a creature is put into a graveyard" means from
@@ -9489,6 +9522,15 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // card its abilities exile is linked to the permanent (the engine
     // records them as the abilities resolve).
     if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
+    // "Add one mana of any of the exiled cards' colors." (Pit of
+    // Offerings): what its abilities exile.
+    if def.abilities.iter().any(|a| {
+        a.all_effects()
+            .iter()
+            .any(|e| matches!(e, CoreEffect::AddManaExiledColors))
+    }) {
         def.links_exile = true;
     }
     // "As long as ..., you may cast the exiled card" (Null Summoner): a

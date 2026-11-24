@@ -954,6 +954,7 @@ impl GameState {
                 self.spent_on(ctx.source)
                     .count(crate::card::SpentKind::Treasure) as usize
             }
+            CountExpr::SpentCave => usize::from(self.spent_on(ctx.source).cave),
             CountExpr::SpentTotal => self
                 .spent_on(ctx.source)
                 .count(crate::card::SpentKind::Total) as usize,
@@ -8144,7 +8145,17 @@ impl GameState {
                     how.0 |= SpendWays::FACE_DOWN;
                 }
                 let quals = ways.0 & SpendWays::SPELL_QUALIFIERS;
-                (self.restriction_allows_spell(r, sc, id) && how.0 & quals == quals)
+                // "This mana can't be spent to cast spells from your hand.":
+                // any spell but those matching and cast that way.
+                let spell_ok = if r.wording == crate::card::SpendWording::CantCast && quals != 0 {
+                    !(r.spells
+                        .as_ref()
+                        .is_some_and(|f| f.matches_characteristics(sc))
+                        && how.0 & quals == quals)
+                } else {
+                    self.restriction_allows_spell(r, sc, id) && how.0 & quals == quals
+                };
+                spell_ok
                     || (how.has(SpendWays::COST_X)
                         && r.x_spells.as_ref().is_some_and(|f| {
                             f.matches_characteristics(sc) && self.spell_mana_value_ok(f, id)
@@ -8222,7 +8233,7 @@ impl GameState {
             Some(o.zone)
         };
         match from {
-            Some(Zone::Hand) => {}
+            Some(Zone::Hand) => w.0 |= SpendWays::FROM_HAND,
             Some(Zone::Graveyard) => {
                 w.0 |= SpendWays::FROM_GRAVEYARD | SpendWays::NOT_FROM_HAND;
                 if def.flashback.is_some() || o.cast.flashback() {
@@ -8991,6 +9002,13 @@ impl GameState {
         }
     }
 
+    /// Whether `id` is a Cave, for "mana from a Cave".
+    #[cold]
+    fn is_cave(&self, id: ObjId) -> bool {
+        self.characteristics(id)
+            .is_some_and(|c| c.has_subtype(crate::card::Subtype::CAVE))
+    }
+
     /// Whether `id` is a Treasure (CR 111.10a), for "mana from a Treasure".
     #[cold]
     fn is_treasure(&self, id: ObjId) -> bool {
@@ -9016,9 +9034,23 @@ impl GameState {
         want: crate::card::SpentUse,
     ) {
         let outer = self.spending.replace(crate::state::SpentMana::default());
+        if self.mana_from_watchers > 0 {
+            self.cast_sources.clear();
+        }
         let ps = self.player(p);
         let (pool, life) = (ps.mana_pool, ps.life);
         let mut sources = sources.clone();
+        if want.cave {
+            // Caves first, so generic mana is paid with them.
+            let mut first: Sources = sources
+                .iter()
+                .copied()
+                .filter(|(id, _)| self.is_cave(*id))
+                .collect();
+            sources.retain(|e| !first.contains(e));
+            first.extend_from_slice(&sources);
+            sources = first;
+        }
         if want.treasure > 0 {
             // Treasures first, so generic mana is paid with them.
             let mut first: Sources = sources
@@ -9059,8 +9091,31 @@ impl GameState {
             }
         }
         self.pay_from(p, &r, &sources, None);
+        if self.mana_from_watchers > 0 {
+            for e in &mut self.cast_sources {
+                if slotmap::Key::is_null(&e.0) {
+                    e.0 = spell;
+                }
+            }
+        }
         let spent = std::mem::replace(&mut self.spending, outer).unwrap_or_default();
         self.spent_mana.push((spell, spent));
+    }
+
+    /// `n` mana permanent `id` made while a spell whose payment is
+    /// recorded is paid for: "mana from a Cave", and "using mana produced
+    /// by this" (`cast_sources`).
+    #[cold]
+    #[inline(never)]
+    fn note_spent_source(&mut self, id: ObjId, n: usize) {
+        if self.mana_from_watchers > 0 && !self.cast_sources.iter().any(|e| e.1 == id) {
+            self.cast_sources.push((ObjId::default(), id));
+        }
+        if self.is_cave(id)
+            && let Some(s) = &mut self.spending
+        {
+            s.cave = s.cave.saturating_add(u8::try_from(n).unwrap_or(u8::MAX));
+        }
     }
 
     /// Tap (or, for delve, exile) the sources of a plan, adding their mana.
@@ -9095,6 +9150,9 @@ impl GameState {
             }
             self.tap(id);
             self.player_mut(p).mana_pool.add(mana);
+            if self.spending.is_some() {
+                self.note_spent_source(id, 1);
+            }
             if self.sacrifices_for_mana(id) {
                 if self.spending.is_some()
                     && self.is_treasure(id)
@@ -9185,7 +9243,7 @@ impl GameState {
                 && (sources.iter().any(|(s, _)| s == id) || self.flags_of(o).has_restricted_mana())
             {
                 all.push(*id);
-                if !self.mana_triggers_on(*id).is_empty() {
+                if self.mana_boosted(*id) {
                     out.push(*id);
                 }
             }
@@ -9293,6 +9351,9 @@ impl GameState {
             let made = !act.mana.is_empty();
             for &m in &act.mana {
                 self.player_mut(p).mana_pool.add(m);
+            }
+            if self.spending.is_some() {
+                self.note_spent_source(act.id, act.mana.len());
             }
             // CR 106.11a: "Whenever you tap this creature for mana".
             if act.tap && made && self.mana_trigger_sources > 0 {
@@ -10014,7 +10075,10 @@ impl GameState {
                     def: obj.card,
                 });
                 self.choose_copy_on_resolving(spell);
-                self.put_onto_battlefield(spell, obj.controller);
+                let new = self.put_onto_battlefield(spell, obj.controller);
+                if !self.spell_grants.is_empty() {
+                    self.apply_spell_grants(spell, new);
+                }
                 return;
             }
             if !legal {
@@ -10030,6 +10094,9 @@ impl GameState {
                 def: obj.def,
             });
             let new = self.put_onto_battlefield(spell, obj.controller);
+            if !self.spell_grants.is_empty() {
+                self.apply_spell_grants(spell, new);
+            }
             if let Some(Target::Object(t)) = target
                 && self.objects.contains_key(new)
             {
@@ -10201,6 +10268,11 @@ impl GameState {
                     );
                 } else {
                     self.put_onto_battlefield(spell, obj.controller);
+                }
+                if !self.spell_grants.is_empty()
+                    && let Some(new) = self.current_object(spell)
+                {
+                    self.apply_spell_grants(spell, new);
                 }
             } else if obj.cast.copy() {
                 // CR 707.10a: a copy ceases to exist off the stack (no
@@ -12859,6 +12931,42 @@ impl GameState {
     }
 
     /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
+    /// The keywords effects gave `spell` until end of turn while it was on
+    /// the stack, for `new`, the permanent it became.
+    #[cold]
+    #[inline(never)]
+    fn apply_spell_grants(&mut self, spell: ObjId, new: ObjId) {
+        let mut i = 0;
+        while i < self.spell_grants.len() {
+            let (s, keywords, source, controller) = self.spell_grants[i];
+            if s != spell {
+                i += 1;
+                continue;
+            }
+            self.spell_grants.remove(i);
+            if !self
+                .objects
+                .get(new)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+            {
+                continue;
+            }
+            if keywords.intersects(KeywordSet::TRIGGERED) {
+                self.eot_grants += 1;
+            }
+            let timestamp = self.tick();
+            self.effects.push(ContinuousEffect {
+                source: Some(source),
+                controller,
+                timestamp,
+                duration: Duration::UntilEndOfTurn,
+                affected: Affected::Objects(smallvec::smallvec![new]),
+                parts: smallvec::smallvec![Modification::AddKeywords(keywords)],
+            });
+            self.cbump();
+        }
+    }
+
     fn effect_until_end_of_turn(
         &mut self,
         ctx: &EffectCtx,
@@ -13482,6 +13590,23 @@ impl GameState {
                 }
                 if best.0 > 0 {
                     self.player_mut(ctx.controller).mana_pool.add(best.1);
+                    self.bump();
+                }
+            }
+            Effect::AddManaExiledColors => {
+                let p = ctx.controller;
+                let colors = self.exiled_colors(ctx.source);
+                let options: Vec<Choice> = colors.iter().map(Choice::Color).collect();
+                let m = match options.len() {
+                    0 => None,
+                    1 => Some(options[0].clone()),
+                    _ => {
+                        let k = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                        Some(options[k.min(options.len() - 1)].clone())
+                    }
+                };
+                if let Some(Choice::Color(c)) = m {
+                    self.player_mut(p).mana_pool.add(Mana::Colored(c));
                     self.bump();
                 }
             }
@@ -14128,6 +14253,14 @@ impl GameState {
                             id,
                             smallvec::smallvec![Modification::AddKeywords(*keywords)],
                         );
+                    } else if let Target::Object(id) = t
+                        && self.objects.get(id).is_some_and(|o| o.zone == Zone::Stack)
+                    {
+                        // "If that mana is spent on a creature spell, it
+                        // gains haste until end of turn." (Generator
+                        // Servant): the permanent the spell becomes has it.
+                        self.spell_grants
+                            .push((id, *keywords, ctx.source, ctx.controller));
                     }
                 }
             }
@@ -16348,6 +16481,15 @@ impl GameState {
                     Some(o) if lki_copy => smallvec::smallvec![Target::Object(o)],
                     _ => self.recipients(ctx, *about).into_iter().collect(),
                 };
+                // A delayed triggered mana ability (High Tide) is looked
+                // for as permanents are tapped for mana until the turn ends.
+                let mana = *this_turn
+                    && matches!(self.pool.ability(*ability), AbilityDef::ManaTrigger { .. });
+                if mana {
+                    let n = u32::try_from(abouts.len()).unwrap_or(0);
+                    self.eot_mana_triggers += n;
+                    self.mana_trigger_sources += n;
+                }
                 for t in abouts {
                     // "Target player draws a card at the beginning of the
                     // next turn's upkeep" (Sapphire Charm): a delayed

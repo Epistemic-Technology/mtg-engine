@@ -1,0 +1,8 @@
+card "Nyxbloom Ancient" {
+  oracle_id 8b610f8f-c8dd-4eeb-bc6e-3bc706d5f63e
+  cost {4}{G}{G}{G}
+  type Enchantment Creature — Elemental
+  pt 5/5
+  keywords trample
+  replace tapped for mana permanent you control: triple
+}

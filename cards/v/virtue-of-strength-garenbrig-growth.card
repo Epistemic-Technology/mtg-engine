@@ -1,0 +1,12 @@
+card "Virtue of Strength // Garenbrig Growth" {
+  oracle_id 31af78dd-e962-4d9a-b696-f3048be03486
+  layout adventure
+  cost {5}{G}{G}
+  type Enchantment
+  replace tapped for mana basic land you control: triple
+  face "Garenbrig Growth" {
+    cost {G}
+    type Sorcery — Adventure
+    spell: return target creature or land card from your graveyard to hand
+  }
+}
