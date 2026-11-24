@@ -329,7 +329,20 @@ impl GameState {
                 options.push(Choice::Cast(id));
             }
         }
-        for id in &ps.hand {
+        self.hand_grant_options(p, sorcery_timing, sources, changers, options);
+    }
+
+    /// `card_grant_options` for `p`'s hand: abilities activated from it,
+    /// foretell, and warp.
+    fn hand_grant_options(
+        &self,
+        p: PlayerId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+        options: &mut Vec<Choice>,
+    ) {
+        for id in &self.player(p).hand {
             let id = *id;
             let def = self.pool.get(self.objects[id].def);
             for a in self.granted_abilities(id) {

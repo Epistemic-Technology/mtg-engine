@@ -12051,9 +12051,7 @@ fn card_grant_text(
         // The permission is the card's next sentence (Ninja Teen).
         Granted::Sneak(c) => format!(
             "sneak {c}.\nYou may cast {} spells from your graveyard using their sneak abilities",
-            lowercase_first(&cards_phrase(filter, card, false))
-                .trim_end_matches(" card")
-                .to_string()
+            lowercase_first(&cards_phrase(filter, card, false)).trim_end_matches(" card")
         ),
         Granted::JumpStart => "jump-start".to_string(),
         Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
