@@ -3168,6 +3168,9 @@ impl Fmt {
                     ChooseAct::ExileWithThisSpell => {
                         format!("exile this spell and {n} {f} {cs} from your graveyard chosen")
                     }
+                    ChooseAct::GraveyardToTop if unfiltered => {
+                        format!("put {n} {cs} from your graveyard on top of library chosen")
+                    }
                     ChooseAct::GraveyardToTop => {
                         format!("put {n} {f} {cs} from your graveyard on top of library chosen")
                     }
