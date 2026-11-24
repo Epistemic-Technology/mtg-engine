@@ -1,0 +1,7 @@
+card "Tectonic Reformation" {
+  oracle_id 10da681b-50bd-4a1b-9934-f0c90e0af55c
+  cost {1}{R}
+  type Enchantment
+  static each land card in your hand: has cycling {R}
+  cycling {2}
+}

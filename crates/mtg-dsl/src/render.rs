@@ -7421,6 +7421,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        // "Creature cards in your graveyard gain \"You may cast this card
+        // from your graveyard\" until end of turn."
+        Effect::GrantGraveyardCast(f) => Clause::imperative(format!(
+            "{} in your graveyard gain \"You may cast this card from your graveyard\" until end of turn",
+            cards_phrase(f, ctx.card, true)
+        )),
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("switch {o}'s power and toughness")).until_eot()
@@ -11850,6 +11856,68 @@ fn target_predicate(f: &Filter, card: &Card) -> String {
         return or_list(&each);
     }
     with_article(&filter_phrase(f, card, false))
+}
+
+/// `Ability::CardGrant`'s text: "Each Sliver card in each player's hand
+/// has slivercycling {3}.", "During your turn, each Lesson card in your
+/// graveyard has flashback {1}."
+#[allow(clippy::too_many_arguments)]
+fn card_grant_text(
+    card: &Card,
+    filter: &Filter,
+    zone: mtg_core::state::Zone,
+    players: bool,
+    each: bool,
+    grant: &crate::ast::Granted,
+    cond: Option<&StaticCond>,
+    lookup: &dyn Lookup,
+) -> String {
+    use crate::ast::Granted;
+    let cards = |f: &Filter, plural: bool| {
+        let p = cards_phrase(f, card, plural);
+        // "instant and sorcery card": every card of either type.
+        p.replacen(" or ", " and ", 1)
+    };
+    let subject = match &filter.or {
+        // "Artifact cards and red creature cards".
+        Some(alt) if filter.alt_card => {
+            let base = Filter {
+                or: None,
+                alt_card: false,
+                ..filter.clone()
+            };
+            format!("{} and {}", cards(&base, !each), cards(alt, !each))
+        }
+        _ => cards(filter, !each),
+    };
+    let place = match (players, zone) {
+        (true, mtg_core::state::Zone::Hand) => "each player's hand",
+        (true, _) => "each player's graveyard",
+        (false, mtg_core::state::Zone::Hand) => "your hand",
+        (false, _) => "your graveyard",
+    };
+    let what = match grant {
+        Granted::Flashback(None) => {
+            "flashback. The flashback cost is equal to that card's mana cost".to_string()
+        }
+        Granted::Flashback(Some(c)) => format!("flashback {c}"),
+        Granted::Mayhem(None) => "mayhem. The mayhem cost is equal to its mana cost".to_string(),
+        Granted::Mayhem(Some(c)) => format!("mayhem {c}"),
+        Granted::Warp(c) => format!("warp {c}"),
+        Granted::Miracle(c) => format!("miracle {c}"),
+        Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
+    };
+    let s = if each {
+        format!("each {subject} in {place} has {what}.")
+    } else {
+        format!("{subject} in {place} have {what}.")
+    };
+    match cond {
+        None => capitalize(&s),
+        Some(StaticCond::DuringYourTurn) => format!("During your turn, {s}"),
+        Some(StaticCond::NotYourTurn) => format!("During turns other than yours, {s}"),
+        Some(c) => format!("As long as {}, {s}", static_cond_text(c, card)),
+    }
 }
 
 #[allow(clippy::too_many_lines)] // one list of words that keep their case
@@ -18126,6 +18194,26 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("This {} {verb} {how}.", self_noun(card))
         }
+        // "Each instant and sorcery card in your graveyard has flashback.
+        // The flashback cost is equal to that card's mana cost.", "Artifact
+        // cards and red creature cards in your hand have warp {2}{R}."
+        Ability::CardGrant {
+            filter,
+            zone,
+            players,
+            each,
+            grant,
+            cond,
+        } => card_grant_text(
+            card,
+            filter,
+            *zone,
+            *players,
+            *each,
+            grant,
+            cond.as_ref(),
+            lookup,
+        ),
         // "You may cast spells from your hand without paying their mana
         // costs." (Omniscience).
         Ability::CastFree {

@@ -2,6 +2,7 @@
 
 use smallvec::SmallVec;
 
+mod grants;
 mod ways;
 use ways::CostBasis;
 
@@ -46,68 +47,16 @@ impl GameState {
             // 702.53a).
             if self.flags_of(&self.objects[*id]).has_activated() {
                 for a in &def.ability_ids {
-                    if let AbilityDef::Activated(ab) = self.pool.ability(*a)
-                        && ab.from_hand
-                        && (!ab.sorcery_speed || sorcery_timing)
-                        && self.activation_allowed(ab, *a, p, *id)
-                        // "only once each turn" (forecast, CR 702.57b).
-                        && (ab.per_turn == 0
-                            || self
-                                .activated_once
-                                .iter()
-                                .filter(|x| **x == (*id, *a))
-                                .count()
-                                < usize::from(ab.per_turn))
-                        && (ab.cost.life == 0
-                            || ps.life >= i32::try_from(ab.cost.life).unwrap_or(i32::MAX))
-                        && self.payable_for(
+                    if let AbilityDef::Activated(ab) = self.pool.ability(*a) {
+                        self.hand_ability_options(
                             p,
+                            *id,
+                            *a,
+                            ab,
+                            sorcery_timing,
                             &sources,
-                            &ab.cost.mana.requirements(0),
-                            Spend::Ability(
-                                self.characteristics(*id).as_ref(),
-                                crate::card::SpendWays::of_ability(ab),
-                            ),
-                        )
-                        && self.targets_available(p, &ab.targets, Some(*id))
-                    {
-                        // CR 702.49a: one option per unblocked attacker
-                        // that could be returned.
-                        if ab.keyword == Some(ActivatedKeyword::Ninjutsu) {
-                            for c in self.unblocked_attackers(p) {
-                                options.push(Choice::Activate {
-                                    source: *id,
-                                    ability: *a,
-                                    sacrifice: Some(c),
-                                    discard: None,
-                                });
-                            }
-                            continue;
-                        }
-                        // "Cycling—Sacrifice a land." (Edge of Autumn): one
-                        // option per permanent that could be sacrificed,
-                        // none without one.
-                        if let Some(SacCost::Filter(f)) = &ab.cost.sacrifice {
-                            let c = self.sacrifice_candidates(p, f, *id);
-                            if c.len() < ab.cost.chosen_count() {
-                                continue;
-                            }
-                            for s in c {
-                                options.push(Choice::Activate {
-                                    source: *id,
-                                    ability: *a,
-                                    sacrifice: Some(s),
-                                    discard: None,
-                                });
-                            }
-                            continue;
-                        }
-                        options.push(Choice::Activate {
-                            source: *id,
-                            ability: *a,
-                            sacrifice: None,
-                            discard: None,
-                        });
+                            &mut options,
+                        );
                     }
                 }
             }
@@ -532,6 +481,21 @@ impl GameState {
                 options.push(Choice::Cast(*id));
             }
         }
+        // "Creature cards in your graveyard gain \"You may cast this card
+        // from your graveyard\" until end of turn.": for its costs, with its
+        // usual timing (CR 601.3).
+        for id in &self.granted_graveyard_cast {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            if o.zone != Zone::Graveyard || o.owner != p || options.contains(&Choice::Cast(*id)) {
+                continue;
+            }
+            let def = self.pool.get(o.def);
+            if !def.is_land() && self.castable(p, def, *id, sorcery_timing, &sources, &changers) {
+                options.push(Choice::Cast(*id));
+            }
+        }
         // CR 702.180a: a card given harmonize, its harmonize cost its mana
         // cost.
         for id in &self.granted_harmonize {
@@ -551,6 +515,12 @@ impl GameState {
                 );
             }
         }
+        // CR 113.6b: ways to cast and abilities a permanent gives cards in a
+        // hand or graveyard ("Each instant and sorcery card in your
+        // graveyard has flashback.").
+        if self.card_grants_live() {
+            self.card_grant_options(p, sorcery_timing, &sources, &changers, &mut options);
+        }
         // CR 702.34a: instants and sorceries with flashback may be cast
         // from the graveyard for their flashback cost.
         if ps.flashback_in_graveyard > 0 {
@@ -560,94 +530,16 @@ impl GameState {
                 // graveyard (unearth).
                 if def.graveyard_active() {
                     for a in &def.ability_ids {
-                        if let AbilityDef::Activated(ab) = self.pool.ability(*a)
-                            && ab.from_graveyard
-                            && (!ab.sorcery_speed || sorcery_timing)
-                            && self.activation_allowed(ab, *a, p, *id)
-                            && self.payable_for(
+                        if let AbilityDef::Activated(ab) = self.pool.ability(*a) {
+                            self.graveyard_ability_options(
                                 p,
+                                *id,
+                                *a,
+                                ab,
+                                sorcery_timing,
                                 &sources,
-                                &ab.cost.mana.requirements(0),
-                                Spend::Ability(
-                                    self.characteristics(*id).as_ref(),
-                                    crate::card::SpendWays::of_ability(ab),
-                                ),
-                            )
-                            && self.targets_available(p, &ab.targets, Some(*id))
-                        {
-                            // "Exile an instant or sorcery card from your
-                            // graveyard" beside it: other cards, enough.
-                            if let Some(g) = &ab.cost.exile_cards
-                                && !g.x
-                                && self.exile_candidates(p, g.filter.as_ref(), *id).len()
-                                    < g.n as usize
-                            {
-                                continue;
-                            }
-                            // "{2}{B}, Tap an untapped creature you control:
-                            // Return this card from your graveyard ...".
-                            if ab.cost.taps_chosen() {
-                                for c in self.tap_cost_options(p, ab, *id, &sources) {
-                                    options.push(Choice::Activate {
-                                        source: *id,
-                                        ability: *a,
-                                        sacrifice: c,
-                                        discard: None,
-                                    });
-                                }
-                                continue;
-                            }
-                            // "{2}, Sacrifice an artifact or creature:
-                            // Return this card from your graveyard ...":
-                            // one option per permanent that could be
-                            // sacrificed, none without enough of them.
-                            if let Some(SacCost::Filter(f)) = &ab.cost.sacrifice {
-                                let c = self.sacrifice_candidates(p, f, *id);
-                                if c.len() < ab.cost.chosen_count() {
-                                    continue;
-                                }
-                                for s in c {
-                                    options.push(Choice::Activate {
-                                        source: *id,
-                                        ability: *a,
-                                        sacrifice: Some(s),
-                                        discard: None,
-                                    });
-                                }
-                                continue;
-                            }
-                            // "{2}{U}, Discard two cards: Return this
-                            // card from your graveyard ...": one option
-                            // per card that could be discarded, none
-                            // without enough of them.
-                            if ab.cost.discard > 0 {
-                                let mut c = self.discard_candidates(
-                                    p,
-                                    ab.cost.discard_filter.as_ref(),
-                                    *id,
-                                );
-                                if c.len() < ab.cost.discard as usize {
-                                    continue;
-                                }
-                                if ab.cost.discard_random {
-                                    c.truncate(1);
-                                }
-                                for d in c {
-                                    options.push(Choice::Activate {
-                                        source: *id,
-                                        ability: *a,
-                                        sacrifice: None,
-                                        discard: Some(d),
-                                    });
-                                }
-                                continue;
-                            }
-                            options.push(Choice::Activate {
-                                source: *id,
-                                ability: *a,
-                                sacrifice: None,
-                                discard: None,
-                            });
+                                &mut options,
+                            );
                         }
                     }
                 }
@@ -4571,7 +4463,10 @@ impl GameState {
         // A cost the card doesn't have can't be paid (CR 118.6).
         let has_cost = match alt {
             AltCast::Madness => def.madness.is_some(),
-            AltCast::Miracle => def.miracle.is_some(),
+            AltCast::Miracle => {
+                def.miracle.is_some()
+                    || self.card_grants_live() && self.granted_miracle(card).is_some()
+            }
             AltCast::Foretell => def.foretell.is_some(),
             _ => true,
         };
@@ -12061,6 +11956,27 @@ impl GameState {
                         }
                     }
                 }
+            }
+            // CR 611.2c: the cards in the graveyard as it resolves.
+            Effect::GrantGraveyardCast(filter) => {
+                let p = ctx.controller;
+                let cards: Vec<ObjId> = self
+                    .player(p)
+                    .graveyard
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        let o = &self.objects[*id];
+                        filter.matches(
+                            *id,
+                            o.owner,
+                            &self.base_characteristics(o),
+                            Some(ctx.source),
+                            Some(p),
+                        )
+                    })
+                    .collect();
+                self.granted_graveyard_cast.extend(cards);
             }
             Effect::SwitchPt { to } => {
                 for t in self.recipients(ctx, *to) {

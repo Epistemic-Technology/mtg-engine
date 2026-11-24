@@ -1494,6 +1494,24 @@ pub enum ChoiceKind {
     Parity,
 }
 
+/// What `Ability::CardGrant` gives its cards (`GrantedWay`).
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum Granted {
+    /// `flashback` ("has flashback. The flashback cost is equal to that
+    /// card's mana cost."), `flashback {1}`.
+    Flashback(Option<ManaCost>),
+    /// `mayhem` ("has mayhem. The mayhem cost is equal to its mana
+    /// cost."), `mayhem {1}{R}`.
+    Mayhem(Option<ManaCost>),
+    /// `warp {2}{R}`.
+    Warp(ManaCost),
+    /// `miracle {2}`.
+    Miracle(ManaCost),
+    /// An activated keyword ability, activated from the cards' zone:
+    /// `slivercycling {3}`, `cycling {2}`, `unearth {2}`.
+    Ability(Box<Ability>),
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Ability {
     /// A keyword printed among the abilities rather than first (a bridge
@@ -1890,6 +1908,20 @@ pub enum Ability {
         from_hand: bool,
         max: Option<CountExpr>,
         limit: mtg_core::card::FreeCastLimit,
+    },
+    /// `static each instant or sorcery card in your graveyard: has
+    /// flashback`, `static artifact card or red creature card in your hand:
+    /// has warp {2}{R}`, `static each Sliver card in each player's hand:
+    /// has slivercycling {3}`, `static during your turn, each Lesson card
+    /// in your graveyard: has flashback {1}`: cards in a hand or graveyard
+    /// have a way to be cast or an ability (`CardGrant`, CR 113.6b).
+    CardGrant {
+        filter: Filter,
+        zone: mtg_core::state::Zone,
+        players: bool,
+        each: bool,
+        grant: Granted,
+        cond: Option<StaticCond>,
     },
     /// `play exiled spells`: "You may cast spells from among cards exiled
     /// with this creature."; `play exiled lands and spells` "You may play
@@ -5785,6 +5817,10 @@ pub enum Effect {
         /// harmonize cost is equal to its mana cost."
         harmonize: bool,
     },
+    /// `grant graveyard cast to creature cards`: "Creature cards in your
+    /// graveyard gain \"You may cast this card from your graveyard\" until
+    /// end of turn." (CR 611.2c: the cards there as it resolves).
+    GrantGraveyardCast(Filter),
     /// `target permanent you control gains protection from artifact or
     /// from color of choice`: "gains protection from artifacts or from the
     /// color of your choice until end of turn" (CR 702.16): the controller

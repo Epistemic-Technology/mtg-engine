@@ -4961,6 +4961,10 @@ impl Compiler<'_> {
                     harmonize: *harmonize,
                 });
             }
+            Effect::GrantGraveyardCast(f) => {
+                let f = self.filter(f);
+                out.push(CoreEffect::GrantGraveyardCast(f));
+            }
             // One or the other, chosen as it resolves (CR 608.2d).
             Effect::ProtectionOr { to, filter } => {
                 let mut list = Vec::new();
@@ -7044,6 +7048,56 @@ impl Compiler<'_> {
                 max: max.as_ref().map(|c| self.count_expr(c)),
                 limit: *limit,
             },
+            Ability::CardGrant {
+                filter,
+                zone,
+                players,
+                each,
+                grant,
+                cond,
+            } => {
+                use mtg_core::card::GrantedWay;
+                let hand = *zone == mtg_core::state::Zone::Hand;
+                let grant = match grant {
+                    crate::ast::Granted::Flashback(c) if !hand => GrantedWay::Flashback(c.clone()),
+                    crate::ast::Granted::Mayhem(c) if !hand => GrantedWay::Mayhem(c.clone()),
+                    crate::ast::Granted::Warp(c) if hand => GrantedWay::Warp(c.clone()),
+                    crate::ast::Granted::Miracle(c) if hand => GrantedWay::Miracle(c.clone()),
+                    crate::ast::Granted::Ability(a) => {
+                        let def = self.ability(a)?;
+                        match &def {
+                            AbilityDef::Activated(ab)
+                                if (hand && ab.from_hand) || (!hand && ab.from_graveyard) => {}
+                            _ => {
+                                return self.err(
+                                    "a card grant's ability must be activated from the cards' zone",
+                                );
+                            }
+                        }
+                        GrantedWay::Ability(self.pool.register_ability(def))
+                    }
+                    _ => {
+                        return self.err(
+                            "flashback and mayhem are granted in a graveyard, warp and miracle in a hand",
+                        );
+                    }
+                };
+                let condition = match cond {
+                    Some(c) => {
+                        let c = self.static_cond(c);
+                        Some(self.pool.intern_condition(c))
+                    }
+                    None => None,
+                };
+                AbilityDef::CardGrant(Box::new(mtg_core::card::CardGrant {
+                    cards: self.filter(filter),
+                    zone: *zone,
+                    players: *players,
+                    each: *each,
+                    grant,
+                    condition,
+                }))
+            }
             Ability::PlayFromTop {
                 lands,
                 spells,

@@ -1,0 +1,387 @@
+# Abilities a permanent gives cards in a hand or graveyard (CR 113.6b):
+# the cards have them only while the permanent is on the battlefield, and
+# only in the zone named. Iroh's flashback, Tannuk's warp, Homing Sliver's
+# slivercycling, Tectonic Reformation's cycling, and the unearth of
+# Dregscape Sliver and Sedris.
+
+scenario "Iroh: an instant in the graveyard has flashback for its mana cost" {
+  battlefield A: "Iroh, Grand Lotus", "Mountain"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A lacks "Lightning Bolt"
+}
+
+scenario "Iroh: the flashback cost is the card's mana cost" {
+  battlefield A: "Iroh, Grand Lotus", 2 "Island"
+  graveyard A: "Divination"
+  illegal turn 1 A: cast "Divination" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+}
+
+scenario "Iroh: a sorcery cast with flashback for its mana cost" {
+  battlefield A: "Iroh, Grand Lotus", 3 "Island"
+  graveyard A: "Divination"
+  library A: "Forest", "Island", "Swamp"
+  turn 1 A: cast "Divination" from graveyard
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Divination"
+}
+
+scenario "Iroh: only during your turn" {
+  battlefield A: "Iroh, Grand Lotus", "Mountain"
+  graveyard A: "Lightning Bolt"
+  illegal turn 2 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 2 end
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Iroh: a Lesson has flashback {1}" {
+  battlefield A: "Iroh, Grand Lotus", "Island"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Zuko's Exile"
+  turn 1 A: cast "Zuko's Exile" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile A contains "Zuko's Exile"
+  assert battlefield B contains "Clue"
+}
+
+scenario "Iroh: a creature card has no flashback" {
+  battlefield A: "Iroh, Grand Lotus", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "without Iroh no card has flashback" {
+  battlefield A: "Mountain"
+  graveyard A: "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Iroh: the opponent's graveyard is not yours" {
+  battlefield A: "Iroh, Grand Lotus"
+  battlefield B: "Mountain"
+  graveyard B: "Lightning Bolt"
+  illegal turn 1 B: cast "Lightning Bolt" from graveyard targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Tannuk: a red creature card in hand is cast for its warp cost" {
+  battlefield A: "Tannuk, Steadfast Second", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant" warped
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert has "Hill Giant" haste
+  run_to turn 2 upkeep
+  assert exile A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Tannuk: the warped card may be cast from exile on a later turn" {
+  battlefield A: "Tannuk, Steadfast Second", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant" warped
+  turn 3 A: cast "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert exile A lacks "Hill Giant"
+}
+
+scenario "Tannuk: an artifact card in hand has warp {2}{R}" {
+  battlefield A: "Tannuk, Steadfast Second", 3 "Mountain"
+  hand A: "Aeolipile"
+  turn 1 A: cast "Aeolipile" warped
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Aeolipile"
+  run_to turn 2 upkeep
+  assert exile A contains "Aeolipile"
+}
+
+scenario "Tannuk: an artifact card for {2}{R}, not its mana cost" {
+  battlefield A: "Tannuk, Steadfast Second", 2 "Mountain"
+  hand A: "Aeolipile"
+  illegal turn 1 A: cast "Aeolipile" warped
+  run_to turn 1 postcombat_main
+  assert hand A contains "Aeolipile"
+}
+
+scenario "Tannuk: the warp cost must be paid" {
+  battlefield A: "Tannuk, Steadfast Second", 2 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant" warped
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Tannuk: a green creature card has no warp" {
+  battlefield A: "Tannuk, Steadfast Second", 3 "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears" warped
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "without Tannuk a card in hand has no warp" {
+  battlefield A: 4 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant" warped
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Homing Sliver: a Sliver card in hand slivercycles" {
+  battlefield A: "Homing Sliver", 3 "Mountain"
+  hand A: "Striking Sliver"
+  library A: "Grizzly Bears", "Spitting Sliver", "Mountain"
+  turn 1 A: activate "Striking Sliver"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Striking Sliver"
+  assert hand A contains "Spitting Sliver"
+  assert hand A count 1
+}
+
+scenario "Homing Sliver: so does a Sliver card in the opponent's hand" {
+  battlefield A: "Homing Sliver"
+  battlefield B: 3 "Mountain"
+  hand B: "Striking Sliver"
+  library B: "Grizzly Bears", "Spitting Sliver"
+  turn 1 postcombat_main B: activate "Striking Sliver"
+  run_to turn 1 end
+  assert hand B contains "Spitting Sliver"
+  assert graveyard B contains "Striking Sliver"
+}
+
+scenario "Homing Sliver: slivercycling costs {3}" {
+  battlefield A: "Homing Sliver", 2 "Mountain"
+  hand A: "Striking Sliver"
+  library A: "Spitting Sliver"
+  illegal turn 1 A: activate "Striking Sliver"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Striking Sliver"
+}
+
+scenario "Homing Sliver: a non-Sliver card has no slivercycling" {
+  battlefield A: "Homing Sliver", 3 "Mountain"
+  hand A: "Grizzly Bears"
+  library A: "Spitting Sliver"
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "without Homing Sliver on the battlefield nothing slivercycles" {
+  battlefield A: 3 "Mountain"
+  hand A: "Striking Sliver"
+  library A: "Spitting Sliver"
+  illegal turn 1 A: activate "Striking Sliver"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Striking Sliver"
+}
+
+scenario "Tectonic Reformation: a land card in hand cycles for {R}" {
+  battlefield A: "Tectonic Reformation", "Mountain"
+  hand A: "Forest"
+  library A: "Island"
+  turn 1 A: activate "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+}
+
+scenario "Tectonic Reformation: a nonland card has no cycling" {
+  battlefield A: "Tectonic Reformation", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island"
+  illegal turn 1 A: activate "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Dregscape Sliver: a Sliver creature card in the graveyard unearths for {2}" {
+  battlefield A: "Dregscape Sliver", 2 "Swamp"
+  graveyard A: "Striking Sliver"
+  turn 1 A: activate "Striking Sliver"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Striking Sliver"
+  assert has "Striking Sliver" haste
+  run_to turn 2 upkeep
+  assert exile A contains "Striking Sliver"
+}
+
+scenario "Dregscape Sliver: a non-Sliver creature card has no unearth" {
+  battlefield A: "Dregscape Sliver", 2 "Swamp"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Sedris: a creature card unearths for {2}{B}, as a sorcery" {
+  battlefield A: "Sedris, the Traitor King", 3 "Swamp"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert exile A contains "Hill Giant"
+}
+
+scenario "Sedris: unearth costs {2}{B}" {
+  battlefield A: "Sedris, the Traitor King", 2 "Swamp"
+  graveyard A: "Hill Giant"
+  illegal turn 1 A: activate "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Sedris: unearth only as a sorcery" {
+  battlefield A: "Sedris, the Traitor King", 3 "Swamp"
+  graveyard A: "Hill Giant"
+  illegal turn 2 A: activate "Hill Giant"
+  run_to turn 2 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Mishra: an artifact card in the graveyard unearths for {1}{B}{R}" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Swamp", "Mountain", "Island"
+  graveyard A: "Aeolipile"
+  turn 1 A: activate "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Aeolipile"
+  run_to turn 2 upkeep
+  assert exile A contains "Aeolipile"
+}
+
+scenario "Mishra: a creature card has no unearth" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Swamp", "Mountain", "Island"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Mishra: permanents you control have ward, sacrifice a permanent (declined)" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: decline "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Murder"
+  assert battlefield B contains 3 "Swamp"
+}
+
+scenario "Mishra: permanents you control have ward, sacrifice a permanent (paid)" {
+  battlefield A: "Mishra, Tamer of Mak Fawa", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains 2 "Swamp"
+}
+
+scenario "Lorehold: an instant or sorcery drawn first has miracle {2}" {
+  battlefield A: "Lorehold, the Historian", 2 "Mountain"
+  library A: "Divination", "Island", "Forest"
+  start turn 3 A
+  turn 3 draw A: wait
+  turn 3 draw A: cast "Divination"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "without Lorehold the card has no miracle" {
+  battlefield A: 2 "Mountain"
+  library A: "Divination", "Island", "Forest"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert hand A contains "Divination"
+  assert hand A count 1
+}
+
+scenario "Lorehold: the miracle cost must be paid" {
+  battlefield A: "Lorehold, the Historian", "Mountain"
+  library A: "Divination", "Island", "Forest"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert hand A contains "Divination"
+  assert known B "Divination"
+}
+
+scenario "Lorehold: a creature card drawn first has no miracle" {
+  battlefield A: "Lorehold, the Historian", 2 "Mountain"
+  library A: "Grizzly Bears", "Island"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert hand A contains "Grizzly Bears"
+  assert unknown B "Grizzly Bears"
+}
+
+scenario "Lorehold: at each opponent's upkeep, discard a card to draw one" {
+  battlefield A: "Lorehold, the Historian"
+  hand A: "Grizzly Bears"
+  library A: "Island", "Forest"
+  run_to turn 2 draw
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Case of the Uneaten Feast: solved, creature cards in your graveyard may be cast this turn" {
+  battlefield A: "Case of the Uneaten Feast", 3 "Plains", 2 "Forest", "Mountain"
+  hand A: "Renewed Faith"
+  graveyard A: "Grizzly Bears", "Serra Angel", "Lightning Bolt"
+  turn 1 A: cast "Renewed Faith"
+  turn 3 A: activate "Case of the Uneaten Feast"
+  turn 3 A: cast "Grizzly Bears" from graveyard
+  illegal turn 3 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Case of the Uneaten Feast"
+  assert graveyard A contains "Lightning Bolt"
+  illegal turn 5 A: cast "Serra Angel" from graveyard
+  run_to turn 5 postcombat_main
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "Case of the Uneaten Feast: a card put into the graveyard later isn't affected" {
+  battlefield A: "Case of the Uneaten Feast", "Grizzly Bears", 3 "Plains", 3 "Swamp", 2 "Forest"
+  hand A: "Renewed Faith", "Murder"
+  turn 1 A: cast "Renewed Faith"
+  turn 3 A: activate "Case of the Uneaten Feast"
+  turn 3 begin_combat A: cast "Murder" targeting "Grizzly Bears"
+  illegal turn 3 postcombat_main A: cast "Grizzly Bears" from graveyard
+  run_to turn 3 end
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Case of the Uneaten Feast: not solved without 5 life gained" {
+  battlefield A: "Case of the Uneaten Feast", 3 "Plains", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  illegal turn 3 A: activate "Case of the Uneaten Feast"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Case of the Uneaten Feast"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Case of the Uneaten Feast: a creature entering gains 1 life" {
+  battlefield A: "Case of the Uneaten Feast", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}

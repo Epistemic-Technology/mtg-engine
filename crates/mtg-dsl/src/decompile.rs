@@ -2112,6 +2112,7 @@ impl Decompiler<'_> {
                 that_card: false,
                 harmonize: *harmonize,
             },
+            CoreEffect::GrantGraveyardCast(f) => Effect::GrantGraveyardCast(self.filter(f)),
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
             },
@@ -2749,6 +2750,28 @@ impl Decompiler<'_> {
                 enters: false,
                 kind: *kind,
                 n: *n,
+            },
+            AbilityDef::CardGrant(g) => Ability::CardGrant {
+                filter: self.filter(&g.cards),
+                zone: g.zone,
+                players: g.players,
+                each: g.each,
+                grant: match &g.grant {
+                    mtg_core::card::GrantedWay::Flashback(c) => {
+                        crate::ast::Granted::Flashback(c.clone())
+                    }
+                    mtg_core::card::GrantedWay::Mayhem(c) => crate::ast::Granted::Mayhem(c.clone()),
+                    mtg_core::card::GrantedWay::Warp(c) => crate::ast::Granted::Warp(c.clone()),
+                    mtg_core::card::GrantedWay::Miracle(c) => {
+                        crate::ast::Granted::Miracle(c.clone())
+                    }
+                    mtg_core::card::GrantedWay::Ability(a) => {
+                        crate::ast::Granted::Ability(Box::new(self.ability(self.pool.ability(*a))))
+                    }
+                },
+                cond: g
+                    .condition
+                    .map(|c| self.static_cond(self.pool.condition(c))),
             },
             AbilityDef::CastFree {
                 spells,

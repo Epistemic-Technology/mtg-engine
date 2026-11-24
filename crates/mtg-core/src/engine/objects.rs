@@ -1419,7 +1419,9 @@ impl GameState {
             if first
                 && let Some(o) = self.objects.get(new)
                 && o.zone == Zone::Hand
-                && self.pool.get(o.def).miracle.is_some()
+                && (self.pool.get(o.def).miracle.is_some()
+                    // A miracle cost a permanent gives cards in hand.
+                    || self.card_grants_live() && self.granted_miracle(new).is_some())
             {
                 let def = o.def;
                 self.objects[new].revealed = u8::MAX;

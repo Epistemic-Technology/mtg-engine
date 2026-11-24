@@ -548,6 +548,7 @@ impl GameState {
             enter_notes: Vec::new(),
             mayhem_discarded: Vec::new(),
             granted_flashback: Vec::new(),
+            granted_graveyard_cast: Vec::new(),
             granted_harmonize: Vec::new(),
             cast_this_turn: smallvec::SmallVec::new(),
             turn_log: crate::state::TurnLog::default(),
@@ -3329,6 +3330,7 @@ impl GameState {
             self.player_grants.retain(|g| !g.duration.ends_with_turn());
         }
         self.granted_flashback.clear();
+        self.granted_graveyard_cast.clear();
         self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {

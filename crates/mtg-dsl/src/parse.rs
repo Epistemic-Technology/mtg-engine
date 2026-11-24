@@ -1509,6 +1509,85 @@ impl P {
         }
     }
 
+    /// The rest of `static [each] <filter> card [or <filter> card] in your
+    /// graveyard: has <grant>` after the first filter (`Ability::CardGrant`).
+    fn card_grant(
+        &mut self,
+        mut filter: Filter,
+        each: bool,
+        cond: Option<StaticCond>,
+    ) -> R<Ability> {
+        filter.each = false;
+        self.expect_word("card")?;
+        if self.eat_word("or") {
+            let alt = self.filter()?;
+            self.expect_word("card")?;
+            filter.or = Some(Box::new(alt));
+            filter.alt_card = true;
+        }
+        self.expect_word("in")?;
+        let players = self.eat_words(&["each", "player's"]);
+        if !players {
+            self.expect_word("your")?;
+        }
+        let zone = if self.eat_word("graveyard") {
+            mtg_core::state::Zone::Graveyard
+        } else {
+            self.expect_word("hand")?;
+            mtg_core::state::Zone::Hand
+        };
+        self.expect(&Tok::Colon)?;
+        self.expect_word("has")?;
+        let cost = |p: &mut Self| -> R<Option<ManaCost>> {
+            if matches!(p.peek(), Some(Tok::Sym(_))) {
+                Ok(Some(p.mana_cost()?))
+            } else {
+                Ok(None)
+            }
+        };
+        let grant = match self.word_at(0).as_deref() {
+            Some("flashback") => {
+                self.pos += 1;
+                crate::ast::Granted::Flashback(cost(self)?)
+            }
+            Some("mayhem") => {
+                self.pos += 1;
+                crate::ast::Granted::Mayhem(cost(self)?)
+            }
+            Some("warp") => {
+                self.pos += 1;
+                crate::ast::Granted::Warp(self.mana_cost()?)
+            }
+            Some("miracle") => {
+                self.pos += 1;
+                crate::ast::Granted::Miracle(self.mana_cost()?)
+            }
+            _ => {
+                let a = self.ability()?;
+                if !matches!(a, Ability::Activated { .. } | Ability::Mechanic(_)) {
+                    return self.fail("a card grant gives a keyword ability");
+                }
+                return Ok(Ability::CardGrant {
+                    filter,
+                    zone,
+                    players,
+                    each,
+                    grant: crate::ast::Granted::Ability(Box::new(a)),
+                    cond,
+                });
+            }
+        };
+        self.end_stmt()?;
+        Ok(Ability::CardGrant {
+            filter,
+            zone,
+            players,
+            each,
+            grant,
+            cond,
+        })
+    }
+
     fn mana_cost(&mut self) -> R<ManaCost> {
         let mut text = String::new();
         while let Some(Tok::Sym(s)) = self.peek() {
@@ -4134,6 +4213,14 @@ impl P {
                 let each = self.at_word("each");
                 let plural = !each && self.eat_word("plural");
                 let mut filter = self.filter()?;
+                // "Each instant and sorcery card in your graveyard has
+                // flashback." (CR 113.6b).
+                if !plural
+                    && self.at_word("card")
+                    && matches!(self.word_at(1).as_deref(), Some("in" | "or"))
+                {
+                    return self.card_grant(filter, each, condition);
+                }
                 filter.each = each;
                 filter.plural = plural;
                 self.expect(&Tok::Colon)?;
@@ -4299,7 +4386,10 @@ impl P {
             return Ok(Some(Ability::HexproofFrom(self.filter()?)));
         }
         // `has ward pay 2 life`: 'have "Ward—Pay 2 life."'.
-        if self.at_words(&["ward", "pay"]) {
+        if self.at_words(&["ward", "pay"])
+            || self.at_words(&["ward", "sacrifice"])
+            || self.at_words(&["ward", "discard"])
+        {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(self.ward_cost()?)));
         }
@@ -4405,6 +4495,8 @@ impl P {
     fn granted_mechanic_ahead(&self) -> bool {
         (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
             || self.at_words(&["ward", "pay"])
+            || self.at_words(&["ward", "sacrifice"])
+            || self.at_words(&["ward", "discard"])
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || (self.at_word("firebending") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.granted_protection_ahead()
@@ -11215,6 +11307,14 @@ impl P {
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
+            // "Creature cards in your graveyard gain \"You may cast this
+            // card from your graveyard\" until end of turn."
+            "grant" if self.at_words(&["graveyard", "cast", "to"]) => {
+                self.pos += 3;
+                let f = self.filter()?;
+                self.expect_word("cards")?;
+                Ok(Effect::GrantGraveyardCast(f))
+            }
             "investigate"
                 if self.at_words(&["count", "each"]) || self.at_words(&["once", "count"]) =>
             {

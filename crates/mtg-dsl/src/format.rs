@@ -1421,6 +1421,7 @@ impl Fmt {
                 if *harmonize { "harmonize" } else { "flashback" },
                 if *that_card { " that card" } else { "" }
             ),
+            Effect::GrantGraveyardCast(f) => format!("grant graveyard cast to {} cards", filter(f)),
             Effect::ProtectionOr { to, filter: f } => format!(
                 "{} gains protection from {} or from color of choice",
                 self.recipient(*to, t),
@@ -7462,6 +7463,58 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *top { " top" } else { "" },
                 if *face_down { " face-down" } else { "" },
                 if *opponents { " opponents" } else { "" }
+            );
+        }
+        Ability::CardGrant {
+            filter: f,
+            zone,
+            players,
+            each,
+            grant,
+            cond,
+        } => {
+            let cond = match cond {
+                None => String::new(),
+                Some(StaticCond::DuringYourTurn) => "during your turn, ".to_string(),
+                Some(StaticCond::NotYourTurn) => "during turns other than yours, ".to_string(),
+                Some(c) => format!("as long as {}, ", static_cond(c)),
+            };
+            let cards = match &f.or {
+                Some(alt) if f.alt_card => {
+                    let base = Filter {
+                        or: None,
+                        alt_card: false,
+                        ..f.clone()
+                    };
+                    format!("{} card or {} card", filter(&base), filter(alt))
+                }
+                _ => format!("{} card", filter(f)),
+            };
+            let place = match (players, zone) {
+                (true, mtg_core::state::Zone::Hand) => "each player's hand",
+                (true, _) => "each player's graveyard",
+                (false, mtg_core::state::Zone::Hand) => "your hand",
+                (false, _) => "your graveyard",
+            };
+            let cost = |c: &Option<mtg_core::mana::ManaCost>| match c {
+                Some(c) => format!(" {c}"),
+                None => String::new(),
+            };
+            let what = match grant {
+                crate::ast::Granted::Flashback(c) => format!("flashback{}", cost(c)),
+                crate::ast::Granted::Mayhem(c) => format!("mayhem{}", cost(c)),
+                crate::ast::Granted::Warp(c) => format!("warp {c}"),
+                crate::ast::Granted::Miracle(c) => format!("miracle {c}"),
+                crate::ast::Granted::Ability(a) => {
+                    let mut tmp = String::new();
+                    self::ability(&mut tmp, a, "", groups);
+                    tmp.trim_end().to_string()
+                }
+            };
+            let _ = writeln!(
+                out,
+                "{indent}static {cond}{}{cards} in {place}: has {what}",
+                if *each { "each " } else { "" }
             );
         }
         Ability::CastFree {

@@ -1,0 +1,8 @@
+card "Dregscape Sliver" {
+  oracle_id d1678eed-a335-454c-9fa1-749317500a36
+  cost {1}{B}
+  type Creature — Sliver
+  pt 2/2
+  static each Sliver creature card in your graveyard: has unearth {2}
+  unearth {2}
+}

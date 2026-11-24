@@ -301,6 +301,13 @@ impl GameState {
         let (def, x, alt) = (b.def, b.x, b.alt);
         let card = || self.card_def(b);
         let reqs = |c: &crate::mana::ManaCost| c.requirements(x);
+        // CR 113.6b: a cost a permanent gives the card ("Each Lesson card
+        // in your graveyard has flashback {1}.").
+        if self.pool.card_grants
+            && let Some(c) = self.granted_way_cost(b)
+        {
+            return reqs(c);
+        }
         match (&def.flashback, b.flashback) {
             (Some(fb), true) => reqs(&fb.mana),
             // Cast without paying its mana cost: X is 0 (CR 107.3b).
