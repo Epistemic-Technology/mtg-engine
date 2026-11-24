@@ -1012,21 +1012,39 @@ fn listed(
 /// Static abilities of battlefield permanents whose ability currently exists
 /// become live effects (CR 611.3); already-live ones persist (CR 613.6).
 fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
-    for id in &work.ids {
-        let obj = &work.state.objects[*id];
-        let Some(c) = work.get(*id) else {
-            continue;
+    // `ids` and `chars` are in step; with no object listed twice (the
+    // index then has one entry per id) the working characteristics are
+    // read by position rather than looked up.
+    let in_step = work.index.len() == work.ids.len();
+    let bit = layer.bit();
+    for (i, id) in work.ids.iter().enumerate() {
+        let c = if in_step {
+            &work.chars[i]
+        } else {
+            let Some(c) = work.get(*id) else {
+                continue;
+            };
+            c
         };
-        // A copy of the (inline, `Copy`) set, not a collected vector: this
-        // runs for every object in every layer of every pass.
+        // This runs for every object in every layer of every pass: the
+        // pool's per-ability layer bits skip what has no part here.
+        if !c
+            .abilities
+            .iter()
+            .any(|a| work.state.pool.static_layers(*a) & bit != 0)
+        {
+            continue;
+        }
+        let obj = &work.state.objects[*id];
+        // A copy of the (inline, `Copy`) set, not a collected vector.
         let abilities = c.abilities;
         for ability in abilities.iter().copied() {
+            if work.state.pool.static_layers(ability) & bit == 0 {
+                continue;
+            }
             let AbilityDef::Static(sa) = work.state.pool.ability(ability) else {
                 continue;
             };
-            if !sa.parts.iter().any(|p| p.layer() == layer) {
-                continue;
-            }
             if let Some(cond) = &sa.condition {
                 // Power and toughness are final only after the last
                 // layers: an earlier layer's condition on them waits for

@@ -1111,6 +1111,12 @@ pub enum Layer {
 }
 
 impl Layer {
+    /// This layer's bit in a set of layers (`CardPool::static_layers`).
+    #[must_use]
+    pub const fn bit(self) -> u16 {
+        1 << self as u16
+    }
+
     pub const ALL: [Layer; 10] = [
         Layer::L1Copy,
         Layer::L2Control,
@@ -11938,6 +11944,9 @@ pub struct CardPool {
     /// Per ability: whether resolving it may ask its controller a
     /// question ("you may").
     asks: Vec<bool>,
+    /// Per ability: the layers a static ability has parts in, one bit per
+    /// `Layer` (`static_layers`); 0 for any other ability.
+    static_layers: Vec<u16>,
     /// Per ability: whether resolving it may put a permanent onto the
     /// battlefield whose own entering replacement could meet another.
     enters: Vec<bool>,
@@ -12070,6 +12079,7 @@ impl CardPool {
             many: Vec::new(),
             conditions: Vec::new(),
             asks: Vec::new(),
+            static_layers: Vec::new(),
             enters: Vec::new(),
             counts_owner: Vec::new(),
             names_granter: Vec::new(),
@@ -12468,6 +12478,10 @@ impl CardPool {
         let id = AbilityId(u32::try_from(self.abilities.len()).expect("too many abilities"));
         let effects = a.all_effects();
         self.asks.push(effects.iter().any(|e| e.asks()));
+        self.static_layers.push(match &a {
+            AbilityDef::Static(sa) => sa.parts.iter().fold(0, |m, p| m | p.layer().bit()),
+            _ => 0,
+        });
         // What a token is known; what returns from exile or is copied is not.
         self.enters.push(effects.iter().any(|e| {
             match e {
@@ -12536,6 +12550,14 @@ impl CardPool {
     /// in the middle of resolution ("you may").
     pub fn ability_asks(&self, id: AbilityId) -> bool {
         self.asks[id.0 as usize]
+    }
+
+    /// The layers static ability `id` has parts in (`Layer::bit`); 0 if it
+    /// is not a static ability. The layer pass reads it for every ability
+    /// of every object in every layer.
+    #[inline]
+    pub fn static_layers(&self, id: AbilityId) -> u16 {
+        self.static_layers[id.0 as usize]
     }
 
     /// Register an ability that is not printed on a card: a delayed
