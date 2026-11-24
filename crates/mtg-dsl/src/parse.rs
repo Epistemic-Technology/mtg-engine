@@ -15462,6 +15462,19 @@ impl P {
                     self.pos += 1;
                     continue;
                 }
+                // "red, white, or black creature card": one list of colors
+                // (any of them), not "red permanent or ...".
+                let color_list = f.colors.is_some()
+                    && f.types.is_empty()
+                    && f.any_types.is_empty()
+                    && f.subtypes.is_empty()
+                    && (color(&next).is_some()
+                        || next == "or" && self.word_at(2).as_deref().and_then(color).is_some());
+                if color_list {
+                    self.pos += 1;
+                    self.eat_word("or");
+                    continue;
+                }
                 // "Bear, Spider, or Wolf", "creature, Vehicle, or nonbasic
                 // land": a list of alternatives, each an `or`.
                 // "Insect, Rat, Spider, or Squirrel": any number of

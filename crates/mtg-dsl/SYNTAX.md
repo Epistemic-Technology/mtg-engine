@@ -1783,7 +1783,8 @@ exactly two colors"), `basic`, `legendary`, `snow`,
 "nontoken modified creature", and a dies trigger judges `tapped`,
 `token`/`nontoken`, counters, and `modified` as the creature last existed,
 CR 603.10a),
-colors joined with `or` (`red or green creature`, sharing a color), types
+colors joined with `or` or listed (`red or green creature`, `red,
+white, or black creature card`: sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,
 enchantment, or land`: at least one), negations listed with commas
 (`nonartifact, nonblack creature`), and `with
