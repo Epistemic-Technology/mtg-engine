@@ -15205,7 +15205,10 @@ impl P {
                         | (Some("defending" | "your"), Some("player" | "opponents"))
                         | (
                             Some("that"),
-                            Some("was" | "entered" | "dealt" | "blocked" | "player" | "share" | "opponent")
+                            Some(
+                                "was" | "entered" | "dealt" | "blocked" | "player" | "share"
+                                    | "opponent" | "doesn't"
+                            )
                         )
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
@@ -16025,6 +16028,15 @@ impl P {
                 {
                     f.status.shares_chosen = Some(true);
                     self.pos += 6;
+                }
+                // "that doesn't have the same name as a token you control".
+                "that"
+                    if f.name_unlike.is_none()
+                        && self.at_words(&["that", "doesn't", "have", "same", "name", "as"]) =>
+                {
+                    self.pos += 6;
+                    let g = self.filter()?;
+                    f.name_unlike = Some(Box::new(g));
                 }
                 // "with the greatest power among creatures they control".
                 "with"

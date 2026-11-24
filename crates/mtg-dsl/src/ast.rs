@@ -1216,6 +1216,9 @@ pub struct Filter {
     /// `other than granter`: "an artifact other than Dire Blunderbuss",
     /// not the Equipment granting the quoted ability.
     pub not_granter: bool,
+    /// `that doesn't have same name as token you control`: "that doesn't
+    /// have the same name as a token you control" (`ObjFilter::name_unlike`).
+    pub name_unlike: Option<Box<Filter>>,
     /// How `status.unchosen` is worded: `unchosen` ("all other
     /// creatures"), `not chosen this way` ("all nonland permanents not
     /// chosen this way"), `except chosen this way` ("all creatures except

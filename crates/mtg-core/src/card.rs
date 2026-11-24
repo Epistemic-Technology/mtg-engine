@@ -1227,6 +1227,13 @@ pub struct ObjFilter {
     /// Controlled by this player: `enchanted_player` filled in.
     #[serde(default)]
     pub controlled_by: Option<crate::ids::PlayerId>,
+    /// "that doesn't have the same name as a token you control", "... as
+    /// another permanent you control" (CR 201.2): no other permanent its
+    /// controller controls matching this filter has its name. Judged by
+    /// `GameState::status_ok`; a face-down permanent has no name (CR
+    /// 708.2), so it shares none.
+    #[serde(default)]
+    pub name_unlike: Option<Box<ObjFilter>>,
 }
 
 /// The player a filter's `that_player` means.
@@ -1956,6 +1963,7 @@ impl ObjFilter {
             || self.damaged
             || self.mana_value.is_some()
             || self.status.any()
+            || self.name_unlike.is_some()
     }
 }
 

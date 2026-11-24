@@ -337,6 +337,27 @@ scenario "Pawpatch Recruit: a counter on another creature, not the one targeted"
   assert graveyard A contains "Grizzly Bears"
 }
 
+scenario "The Apprentice's Folly copies only a creature no token you control shares a name with" {
+  battlefield A: 2 "Island", 2 "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "The Apprentice's Folly"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Apprentice's Folly"
+  turn 1 A: trigger "The Apprentice's Folly" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert is newest A "Grizzly Bears" Reflection
+  assert has newest A "Grizzly Bears" haste
+  illegal turn 3 A: trigger "The Apprentice's Folly" targeting oldest "Grizzly Bears"
+  turn 3 A: trigger "The Apprentice's Folly" targeting "Hill Giant"
+  run_to turn 4 upkeep
+  assert battlefield A contains 2 "Hill Giant"
+  assert battlefield A contains 2 "Grizzly Bears"
+  run_to turn 5 postcombat_main
+  # III: the Reflections are sacrificed.
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains 1 "Hill Giant"
+}
+
 scenario "Anticausal Vestige: a permanent card with mana value up to the lands you control" {
   battlefield A: 4 "Island"
   hand A: "Anticausal Vestige", "Craw Wurm", "Hill Giant"

@@ -420,6 +420,7 @@ impl Decompiler<'_> {
             enchanted_player: f.enchanted_player,
             other_than_this: false,
             not_granter: f.not_granter,
+            name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
             unchosen_wording: crate::ast::UnchosenWording::Other,
             and_or: false,
             and_list: false,

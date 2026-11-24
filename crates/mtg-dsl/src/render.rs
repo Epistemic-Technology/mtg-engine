@@ -3713,6 +3713,19 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if !f.named_first {
         s.push_str(&same_phrase(f, card, plural_form));
     }
+    // "that doesn't have the same name as a token you control".
+    if let Some(g) = &f.name_unlike {
+        let _ = write!(
+            s,
+            " that {} the same name as {}",
+            if plural_form {
+                "don't have"
+            } else {
+                "doesn't have"
+            },
+            with_article(&filter_phrase(g, card, false))
+        );
+    }
     // "target creature that's one or more colors" (Reach of Shadows).
     if f.color_count == Some(mtg_core::card::ColorCount::Colored) {
         s.push_str(if plural_form {
@@ -5069,6 +5082,13 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
         && let Some(rest) = second.strip_prefix("it's ")
     {
         *second = format!("is {rest}");
+        // "..., is a Reflection in addition to its other types, and has
+        // haste" (The Apprentice's Folly).
+        for later in parts.iter_mut().skip(2) {
+            if let Some(rest) = later.strip_prefix("it has ") {
+                *later = format!("has {rest}");
+            }
+        }
     }
     list(&parts)
 }

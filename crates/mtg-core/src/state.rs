@@ -3948,7 +3948,36 @@ impl GameState {
         {
             return false;
         }
+        // "that doesn't have the same name as a token you control".
+        if let Some(g) = &f.name_unlike
+            && !self.name_unlike_ok(g, id, o)
+        {
+            return false;
+        }
         !f.status.any() || self.status_quals_ok(f.status, id, o)
+    }
+
+    /// "that doesn't have the same name as another permanent you control"
+    /// (`ObjFilter::name_unlike`): no other permanent `id`'s controller
+    /// controls matching `g` has its name (its definition, CR 201.2).
+    fn name_unlike_ok(&self, g: &crate::card::ObjFilter, id: ObjId, o: &GameObject) -> bool {
+        let Some(c) = self.characteristics(id) else {
+            return true;
+        };
+        if self.pool.is_face_down(c.def) {
+            return true;
+        }
+        let mut g = g.clone();
+        g.relation = crate::card::Relation::Any;
+        !self.battlefield.iter().any(|&x| {
+            x != id
+                && self.objects[x].controller == o.controller
+                && self.characteristics(x).is_some_and(|cx| {
+                    cx.def == c.def
+                        && g.matches(x, o.controller, &cx, None, Some(o.controller))
+                        && self.status_ok(&g, x)
+                })
+        })
     }
 
     /// "with the greatest power among creatures they control": `id`, on

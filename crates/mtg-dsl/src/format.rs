@@ -5061,6 +5061,10 @@ fn filter_one(f: &Filter) -> String {
             num(b.n)
         ));
     }
+    // Likewise its own filter.
+    if let Some(g) = &f.name_unlike {
+        words.push(format!("that doesn't have same name as {}", filter(g)));
+    }
     words.join(" ")
 }
 
