@@ -83,6 +83,33 @@ pass. Everything here is about reaching that at less cost.
    wrong-meaning forms, and missing features the notes and reports
    name.
 
+## When a format's tail is one rule a card (thirteenth wave)
+
+The skip ranking goes flat near the end of a format (after the twelfth
+wave no reason blocked more than five Standard cards). What worked for
+Standard at 82.6%: join the uncovered cards with their latest report
+line (name, author's skip, what the card agent found missing), read
+all of it, and group the cards by the kind of rule they lack (counts,
+conditions on "it", filters that compare, dig forms, costs and mana,
+players, ...). Twenty agents from such a partition added 341 Standard
+cards where seventeen from the leftovers list had added 43. Each agent
+still leaves more than half its list, with reasons.
+
+- Give every agent the joined list and tell it the notes may be stale.
+- Assign flag bits in the prompt (`DefFlags` is a u64, `marks` a u16).
+- Name shared forms in the assignment list, not only areas: two pairs
+  of agents built the same form, and two cards were written twice.
+- A build tree is 8 to 10 GB: start as many agents as the disk holds
+  and the rest as finished ones delete `target/`.
+- Agents run `cargo test` in debug; the lead's runs must too (a debug
+  assertion failed every agent's run for a fault the release runs
+  never saw).
+- `wordmerge.sh <file>` merges a conflicted file word by word: the
+  long table lines of `SYNTAX.md` conflict in almost every merge and
+  resolve cleanly that way.
+- No perf agent ran and throughput fell (KNOWN-ISSUES section 4): run
+  one every wave, or at least bench merge by merge.
+
 ## Quick cross-pool backlog (no census inputs needed)
 
     for f in pauper standard modern; do
