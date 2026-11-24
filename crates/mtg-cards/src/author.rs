@@ -1700,6 +1700,56 @@ impl Templates {
     fn new() -> Self {
         let r = |s: &str| cached_regex(s).unwrap();
         let rules: Vec<Rule> = vec![
+            // "put a loyalty counter on Ral" (CR 306.5).
+            (r(r"^[Pp]ut an? loyalty counter on (.+)$"), |c, t| {
+                Some(format!(
+                    "put 1 loyalty counter on {}",
+                    recipient(cap(c, 1), t)?
+                ))
+            }),
+            // "This Vehicle becomes an artifact creature until end of turn."
+            (
+                r(
+                    r"^(?:This Vehicle|this Vehicle|~) becomes an artifact creature until end of turn$",
+                ),
+                |_, _| Some("this becomes artifact creature until end of turn".to_string()),
+            ),
+            // "Each player shuffles their hand and graveyard into their
+            // library, then draws seven cards."
+            (
+                r(
+                    r"^[Ee]ach player shuffles their hand and graveyard into their library, then draws (\S+) cards$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "each player shuffles hand and graveyard into library then draws {} cards",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
+            // "Target opponent exiles a card from their hand."
+            (
+                r(r"^(target opponent|each opponent) exiles a card from their hand$"),
+                |c, t| {
+                    Some(format!(
+                        "{} exiles 1 card from hand",
+                        recipient(cap(c, 1), t)?
+                    ))
+                },
+            ),
+            // "You gain life equal to the sacrificed creature's toughness."
+            (
+                r(
+                    r"^[Yy]ou gain life equal to the sacrificed (creature|artifact)'s (power|toughness|mana value)$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "you gain count equal {} of the sacrificed {} life",
+                        cap(c, 2),
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // Thirteenth-wave phrases the card language already says.
             // "Target creature must be blocked this turn if able."
             (r(r"^(.+?) must be blocked this turn if able$"), |c, t| {
@@ -5645,6 +5695,22 @@ fn trigger_text(head: &str) -> Option<String> {
                     cap(&c, 1)
                 ));
             }
+            // "Whenever a creature you control with power 4 or greater
+            // enters" (Garruk's Uprising).
+            if let Some(c) = cached_regex(
+                r"^Whenever a(nother)? creature you control with (power|toughness) (\d+) or (greater|less) enters$",
+            )
+            .unwrap()
+            .captures(head)
+            {
+                let other = if c.get(1).is_some() { "other " } else { "" };
+                return Some(format!(
+                    "whenever {other}creature you control with {} {} or {} enters",
+                    cap(&c, 2),
+                    cap(&c, 3),
+                    cap(&c, 4)
+                ));
+            }
             // "Whenever this creature blocks a creature with flying",
             // "... becomes blocked by a creature".
             let pair = cached_regex(
@@ -6326,6 +6392,10 @@ impl Builder<'_> {
         inner.line(text).ok()?;
         let made: Vec<String> = inner.statements.into_iter().skip(1).collect();
         match made.as_slice() {
+            // A granted static ability isn't applied by the engine (Giant's
+            // Amulet: "has \"This creature has hexproof as long as it's
+            // untapped.\"" gave no hexproof).
+            [one] if one.starts_with("static ") => None,
             [one] if !one.contains('\n') => Some(one.trim().to_string()),
             _ => None,
         }
@@ -6551,6 +6621,32 @@ impl Builder<'_> {
             };
             self.statements
                 .push(format!("static {class} creature you control: {mods}"));
+            return Ok(());
+        }
+        // "Creatures you control with flying get +1/+1.", "Other white
+        // creatures get +1/+1."
+        if let Some(c) = cached_regex(
+            r"^(Creatures you control with flying|Other (?:white|blue|black|red|green) creatures) ((?:get|have) .+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(mods) = static_mods(cap(&c, 2))
+        {
+            let class = singular(&lowercase_first(cap(&c, 1)));
+            self.statements.push(format!("static {class}: {mods}"));
+            return Ok(());
+        }
+        // "This creature has hexproof as long as it's untapped."
+        if let Some(c) =
+            cached_regex(r"^This creature has ([a-z ]+) as long as it's (untapped|tapped)\.$")
+                .unwrap()
+                .captures(line)
+            && let Some(ks) = keyword_list(cap(&c, 1))
+        {
+            self.statements.push(format!(
+                "static this: has {ks} as long as this is {}",
+                cap(&c, 2)
+            ));
             return Ok(());
         }
         // "This creature can't be blocked as long as it's attacking alone."
@@ -7272,6 +7368,16 @@ impl Builder<'_> {
                 "tapped creature" => "tapped creature",
                 "nonland permanent" => "nonland permanent",
                 "player" => "player",
+                // "Enchant creature an opponent controls", "Enchant
+                // creature or land", "Enchant artifact, creature, or
+                // planeswalker": any filter the DSL parses and prints so.
+                other
+                    if other
+                        .chars()
+                        .all(|ch| ch.is_ascii_alphabetic() || ch == ' ' || ch == ',') =>
+                {
+                    other
+                }
                 _ => return Err(Skip::Sentence(line.to_string())),
             };
             self.statements.push(format!("enchant {spec}"));

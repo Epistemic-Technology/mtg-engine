@@ -1,0 +1,8 @@
+card "Lion Umbra" {
+  oracle_id 95e8e6bb-d83b-46fd-bfdf-fc042d8edd4a
+  cost {G}{G}
+  type Enchantment — Aura
+  enchant modified creature
+  static enchanted: +3/+3, has reach, vigilance
+  replace destroy enchanted: umbra armor
+}

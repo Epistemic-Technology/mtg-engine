@@ -1,0 +1,13 @@
+card "Arguel's Blood Fast // Temple of Aclazotz" {
+  oracle_id be2a4bc4-8af6-48c5-9421-32d26272e71a
+  layout transform
+  cost {1}{B}
+  type Legendary Enchantment
+  activated {1}{B}, pay 2 life: draw 1 cards
+  triggered at beginning of your upkeep if your life 5 or less: you may transform this
+  face "Temple of Aclazotz" {
+    type Legendary Land
+    mana {B}
+    activated {T}, sacrifice creature: you gain count equal toughness of the sacrificed creature life
+  }
+}

@@ -1,0 +1,7 @@
+card "Garruk's Packleader" {
+  oracle_id 13279222-422d-4447-9451-2463b0c714c6
+  cost {4}{G}
+  type Creature — Beast
+  pt 4/4
+  triggered whenever other creature you control with power 3 or greater enters: you may draw 1 cards
+}

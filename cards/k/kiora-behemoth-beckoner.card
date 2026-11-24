@@ -1,0 +1,8 @@
+card "Kiora, Behemoth Beckoner" {
+  oracle_id 1efe485e-6874-4f4c-b981-e10f41670865
+  cost {2}{G/U}
+  type Legendary Planeswalker — Kiora
+  loyalty 7
+  triggered whenever creature you control with power 4 or greater enters: draw 1 cards
+  loyalty -1: untap target permanent
+}

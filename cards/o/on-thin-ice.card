@@ -1,0 +1,7 @@
+card "On Thin Ice" {
+  oracle_id 6736bb96-6718-48bb-9385-789d3349dc20
+  cost {W}
+  type Snow Enchantment — Aura
+  enchant snow land you control
+  triggered when this enters: exile target creature an opponent controls until this leaves
+}

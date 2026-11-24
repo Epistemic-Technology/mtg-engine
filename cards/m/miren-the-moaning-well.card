@@ -1,0 +1,6 @@
+card "Miren, the Moaning Well" {
+  oracle_id 03fe19bb-8e22-4030-8299-2ddd2d5a7eb2
+  type Legendary Land
+  mana {C}
+  activated {3}, {T}, sacrifice creature: you gain count equal toughness of the sacrificed creature life
+}

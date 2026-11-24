@@ -1,0 +1,6 @@
+card "Mighty Emergence" {
+  oracle_id e7f038af-977a-42ff-bebb-718b7490188a
+  cost {2}{G}
+  type Enchantment
+  triggered whenever creature you control with power 5 or greater enters: you may put 2 +1/+1 counters on it
+}

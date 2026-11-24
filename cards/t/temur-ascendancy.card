@@ -1,0 +1,7 @@
+card "Temur Ascendancy" {
+  oracle_id e68dc47c-692f-4420-9799-eee104017273
+  cost {G}{U}{R}
+  type Enchantment
+  static creature you control: has haste
+  triggered whenever creature you control with power 4 or greater enters: you may draw 1 cards
+}

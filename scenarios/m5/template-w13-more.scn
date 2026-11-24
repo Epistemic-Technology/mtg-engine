@@ -1,0 +1,318 @@
+# Thirteenth-wave template phrases, third round: any "Enchant <filter>"
+# the card language parses, "Whenever a creature you control with power N
+# or greater enters", "This creature has hexproof as long as it's
+# untapped", "This Vehicle becomes an artifact creature until end of
+# turn", "Creatures you control with flying get +1/+1", and "You gain life
+# equal to the sacrificed creature's toughness".
+
+scenario "Chained to the Rocks: enchant a Mountain, exile a creature" {
+  battlefield A: "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Chained to the Rocks"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chained to the Rocks" targeting "Mountain"
+  turn 1 A: trigger "Chained to the Rocks" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Chained to the Rocks" to "Mountain"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Chained to the Rocks: not a Plains" {
+  battlefield A: "Plains", "Mountain"
+  hand A: "Chained to the Rocks"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Chained to the Rocks" targeting "Plains"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Ossification: enchant a basic land, exile a creature" {
+  battlefield A: "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Ossification"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ossification" targeting oldest "Plains"
+  turn 1 A: trigger "Ossification" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Ossification: not an opponent's land" {
+  battlefield A: "Plains", "Plains"
+  battlefield B: "Forest"
+  hand A: "Ossification"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Ossification" targeting "Forest"
+  run_to turn 1 postcombat_main
+}
+
+scenario "On Thin Ice: not a land that isn't snow" {
+  battlefield A: "Plains", "Island"
+  hand A: "On Thin Ice"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "On Thin Ice" targeting "Island"
+  run_to turn 1 postcombat_main
+}
+
+scenario "On Thin Ice: a snow land, exile a creature" {
+  battlefield A: "Snow-Covered Plains"
+  battlefield B: "Hill Giant"
+  hand A: "On Thin Ice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "On Thin Ice" targeting "Snow-Covered Plains"
+  turn 1 A: trigger "On Thin Ice" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Encase in Ice: a red or green creature is tapped and stays tapped" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Encase in Ice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Encase in Ice" targeting "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Controlled Instincts: not a white creature" {
+  battlefield A: 2 "Island"
+  battlefield B: "Savannah Lions"
+  hand A: "Controlled Instincts"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Controlled Instincts" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Controlled Instincts: a tapped green creature doesn't untap" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears" tapped
+  hand A: "Controlled Instincts"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Controlled Instincts" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Wurmweaver Coil: a green creature gets +6/+6, then a Wurm" {
+  battlefield A: 7 "Forest", "Grizzly Bears"
+  hand A: "Wurmweaver Coil"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wurmweaver Coil" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 8
+}
+
+scenario "Wurmweaver Coil: sacrifice it for a 6/6 Wurm" {
+  battlefield A: 3 "Forest", "Grizzly Bears", "Wurmweaver Coil" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Wurmweaver Coil"
+  run_to turn 1 postcombat_main
+  assert power "Wurm" 6
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Wurmweaver Coil: not a white creature" {
+  battlefield A: 6 "Forest", "Savannah Lions"
+  hand A: "Wurmweaver Coil"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wurmweaver Coil" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Lion Umbra: enchant a modified creature only" {
+  battlefield A: 4 "Forest", "Grizzly Bears", "Savannah Lions" with 1 +1/+1
+  hand A: "Lion Umbra"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Lion Umbra" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Lion Umbra: +3/+3, reach, vigilance on a modified creature" {
+  battlefield A: 4 "Forest", "Savannah Lions" with 1 +1/+1
+  hand A: "Lion Umbra"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lion Umbra" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert power "Savannah Lions" 6
+  assert has "Savannah Lions" reach
+  assert has "Savannah Lions" vigilance
+}
+
+# "Whenever a creature you control with power N or greater enters".
+
+scenario "Elemental Bond: a creature with power 3 or greater draws a card" {
+  battlefield A: "Elemental Bond", 2 "Forest", 4 "Mountain"
+  hand A: "Hill Giant", "Grizzly Bears"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Island"
+}
+
+scenario "Kiora, Behemoth Beckoner: power 4 or greater draws; -1 untaps" {
+  battlefield A: "Kiora, Behemoth Beckoner", 6 "Forest", "Island" tapped
+  hand A: "Craw Wurm"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Craw Wurm"
+  turn 1 A: activate "Kiora, Behemoth Beckoner" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert counters "Kiora, Behemoth Beckoner" loyalty 6
+}
+
+scenario "Garruk's Packleader: another creature with power 3 or greater may draw" {
+  battlefield A: "Garruk's Packleader", 4 "Mountain"
+  hand A: "Hill Giant"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "Temur Ascendancy: haste, and power 4 may draw" {
+  battlefield A: "Temur Ascendancy", 6 "Forest"
+  hand A: "Craw Wurm"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Craw Wurm"
+  turn 1 A: attack "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert life B 14
+}
+
+scenario "Mighty Emergence: two counters on the entering creature" {
+  battlefield A: "Mighty Emergence", 6 "Mountain", "Grizzly Bears"
+  hand A: "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert counters "Shivan Dragon" +1/+1 2
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Mighty Emergence: not a smaller creature" {
+  battlefield A: "Mighty Emergence", 4 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Paleoloth: another power-5 creature returns a creature card" {
+  battlefield A: "Paleoloth", 6 "Mountain"
+  graveyard A: "Grizzly Bears"
+  hand A: "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shivan Dragon"
+  turn 1 A: trigger "Paleoloth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+# Hexproof while untapped.
+
+scenario "Paradise Druid: hexproof while untapped" {
+  battlefield A: "Paradise Druid"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting "Paradise Druid"
+  run_to turn 2 postcombat_main
+}
+
+scenario "Paradise Druid: targetable once tapped" {
+  battlefield A: "Paradise Druid" tapped
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Paradise Druid"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Paradise Druid"
+}
+
+scenario "Walking Skyscraper: cheaper per modified creature, hexproof untapped" {
+  battlefield A: 7 "Plains", "Grizzly Bears" with 1 +1/+1
+  battlefield B: "Mountain"
+  hand A: "Walking Skyscraper"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Walking Skyscraper"
+  illegal turn 1 end B: cast "Shock" targeting "Walking Skyscraper"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Walking Skyscraper"
+}
+
+# Vehicles that become creatures by their own abilities.
+
+scenario "Honeymoon Hearse: tap two creatures to animate it" {
+  battlefield A: "Honeymoon Hearse", "Grizzly Bears", "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Honeymoon Hearse"
+  turn 1 A: attack "Honeymoon Hearse"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Savannah Lions"
+  assert life B 15
+}
+
+scenario "Bespoke Battlewagon: energy, then pay four to animate" {
+  battlefield A: "Bespoke Battlewagon"
+  energy A: 4
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bespoke Battlewagon" ability 4
+  run_to turn 1 postcombat_main
+  assert is "Bespoke Battlewagon" creature
+  assert energy A 0
+}
+
+# "You gain life equal to the sacrificed creature's toughness."
+
+scenario "Disciple of Griselbrand: sacrifice a creature, gain its toughness" {
+  battlefield A: "Disciple of Griselbrand", "Plains", "Craw Wurm"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Disciple of Griselbrand" sacrificing "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "Miren, the Moaning Well: sacrifice a creature, gain its toughness" {
+  battlefield A: "Miren, the Moaning Well", 3 "Plains", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Miren, the Moaning Well" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 23
+}
+
+scenario "Arguel's Blood Fast: pay 2 life, draw a card" {
+  battlefield A: "Arguel's Blood Fast // Temple of Aclazotz", 2 "Swamp"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Arguel's Blood Fast"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert hand A contains "Island"
+}
+
+scenario "Temple of Aclazotz: transformed at 5 life, sacrifice for toughness" {
+  life A 5
+  battlefield A: "Arguel's Blood Fast // Temple of Aclazotz", "Craw Wurm"
+  start turn 1 A untap
+  turn 1 A: activate "Temple of Aclazotz" sacrificing "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert life A 9
+}
+
+scenario "Favorable Winds: creatures with flying get +1/+1" {
+  battlefield A: "Favorable Winds", "Wind Drake", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Wind Drake" 3
+  assert power "Grizzly Bears" 2
+}

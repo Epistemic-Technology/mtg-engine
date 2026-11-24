@@ -1,0 +1,7 @@
+card "Disciple of Griselbrand" {
+  oracle_id 2d92a035-dd7a-4426-a8c0-f04e0b836dad
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {1}, sacrifice creature: you gain count equal toughness of the sacrificed creature life
+}

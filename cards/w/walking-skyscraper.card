@@ -1,0 +1,9 @@
+card "Walking Skyscraper" {
+  oracle_id 90c763b9-6173-46ff-b31c-7dcafc774170
+  cost {8}
+  type Artifact Creature — Construct
+  pt 8/8
+  this spell costs {1} less count each modified creature you control
+  keyword trample
+  static this: has hexproof as long as this is untapped
+}
