@@ -1,0 +1,8 @@
+card "Ambitious Augmenter" {
+  oracle_id d87f0e52-486e-49b4-9cf1-12e238857340
+  cost {G}
+  type Creature — Turtle Wizard
+  pt 1/1
+  increment
+  triggered when this dies if it had one or more counters: create 1 "0/0 green and blue Fractal creature" then put its counters on that token
+}

@@ -1,0 +1,8 @@
+card "Mica, Reader of Ruins" {
+  oracle_id fc90f74d-11f3-4bd4-b8a1-1cf2ffcd5b73
+  cost {3}{R}
+  type Legendary Creature — Human Artificer
+  pt 4/4
+  ward pay 3 life
+  triggered whenever you cast an instant or sorcery spell: you may sacrifice 1 artifact chosen; if you do, copy that spell and new targets
+}

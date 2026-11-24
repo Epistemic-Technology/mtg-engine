@@ -1,0 +1,8 @@
+card "Serpent of the Pass" {
+  oracle_id 98e36c6e-a868-4679-a5b5-6f02097f560b
+  cost {5}{U}{U}
+  type Creature — Serpent
+  pt 6/5
+  flash first if 3 Lesson cards in your graveyard
+  this spell costs {1} less count each graveyard noncreature nonland
+}

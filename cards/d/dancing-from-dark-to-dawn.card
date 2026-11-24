@@ -1,0 +1,7 @@
+card "Dancing from Dark to Dawn" {
+  oracle_id 5ba482e9-fbb0-4d9f-a3a9-414892bcdfed
+  cost {3}{G}{G}
+  type Enchantment
+  triggered whenever you cast a creature spell: put count where mana value of that spell +1/+1 counters on target creature you control
+  label "Landfall" triggered whenever land you control enters: create 1 "2/2 green Bear creature"
+}

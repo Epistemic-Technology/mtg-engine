@@ -1,0 +1,7 @@
+card "Lord Skitter's Blessing" {
+  oracle_id d5bd40fc-6138-4752-b3ff-b1e5fa269214
+  cost {1}{B}
+  type Enchantment
+  triggered when this enters: create 1 "Wicked Role" attached to target creature you control
+  triggered at beginning of your draw step if you control creature with aura: you lose 1 life, and you draw 1 card
+}

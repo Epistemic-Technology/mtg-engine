@@ -1,0 +1,8 @@
+card "Neriv, Heart of the Storm" {
+  oracle_id 66290104-ac65-4eb5-bf00-89b944249e07
+  cost {1}{R}{W}{B}
+  type Legendary Creature — Spirit Dragon
+  pt 4/5
+  keywords flying
+  replace damage bare creature you control that entered this turn would deal: double
+}

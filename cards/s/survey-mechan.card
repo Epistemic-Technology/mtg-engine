@@ -1,0 +1,8 @@
+card "Survey Mechan" {
+  oracle_id 53745903-de8f-42cf-a949-842e5831de30
+  cost {4}
+  type Artifact Creature — Robot
+  pt 1/3
+  keywords flying, hexproof
+  activated {10}, sacrifice this, reduced {1} where differently named land you control: deal 3 damage to any target; target player draws 3 cards and gains 3 life
+}

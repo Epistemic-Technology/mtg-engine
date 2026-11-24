@@ -1,0 +1,7 @@
+card "Multiversal Passage" {
+  oracle_id 17770eeb-ecbf-4510-af2d-acececfbe146
+  type Land
+  as this enters choose land type
+  enters tapped unless pay 2 life
+  static this: set land chosen
+}

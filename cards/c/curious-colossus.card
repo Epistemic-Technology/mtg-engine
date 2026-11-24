@@ -1,0 +1,7 @@
+card "Curious Colossus" {
+  oracle_id c8de2e1b-f2fa-4b6a-a3c5-9811c7f5f051
+  cost {5}{W}{W}
+  type Creature — Giant Warrior
+  pt 7/7
+  triggered when this enters: each single creature target opponent controls loses all abilities and becomes Coward base 1/1 in addition indefinitely
+}

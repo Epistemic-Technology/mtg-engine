@@ -1,0 +1,9 @@
+card "Smaug, Wicked Worm" {
+  oracle_id 20535126-f811-4386-bdce-d73f30691724
+  cost {3}{B}{R}
+  type Legendary Creature — Dragon
+  pt 5/5
+  keywords flying
+  triggered when this enters: create count where artifact your opponents control tapped "Treasure"
+  triggered whenever you cast a spell if that spell spent treasure: you draw 1 card and lose 1 life
+}

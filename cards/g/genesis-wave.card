@@ -1,0 +1,6 @@
+card "Genesis Wave" {
+  oracle_id e2487868-f386-438e-a73f-b494f6d35fac
+  cost {X}{G}{G}{G}
+  type Sorcery
+  spell: dig X reveal take any permanent with mana value X or less card may onto battlefield rest graveyard reword
+}

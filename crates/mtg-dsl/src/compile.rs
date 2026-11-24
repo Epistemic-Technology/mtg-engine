@@ -3057,7 +3057,10 @@ impl Compiler<'_> {
             }
             Recipient::AttachedAnd(i) => CoreRecipient::AttachedAndSharing(groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
-            Recipient::Target(i) if Some(i) == many => {
+            // `that target 1` after "one or two target creatures": all of
+            // them ("double the number of +1/+1 counters on those
+            // creatures", Omnivorous Flytrap).
+            Recipient::Target(i) | Recipient::ThatTarget(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Target(i)
@@ -4648,6 +4651,7 @@ impl Compiler<'_> {
                 filter,
                 or_discard,
                 effect,
+                ..
             } => {
                 let mut effects = Vec::new();
                 self.effect(effect, &mut effects)?;
@@ -5508,9 +5512,9 @@ impl Compiler<'_> {
             }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::AttacksPlayerAlone(o) => TriggerSpec::AttacksPlayerAlone(self.trigger_obj(o)),
-            Trigger::OneOrMoreAttack(f) => TriggerSpec::AttacksWithFilter {
+            Trigger::OneOrMoreAttack(f, player) => TriggerSpec::AttacksWithFilter {
                 filter: self.filter(f),
-                player: false,
+                player: *player,
                 min: 0,
             },
             Trigger::CreaturesYouControlAttack => TriggerSpec::AttacksWith {
@@ -5621,7 +5625,17 @@ impl Compiler<'_> {
                 kind: *kind,
                 one_or_more: *one_or_more,
             },
-            Trigger::YouPutCounters { obj, kind } => TriggerSpec::YouPutCounters {
+            // "on one or more other Heroes you control": once for the
+            // permanents one instruction put counters on (CR 603.2c).
+            Trigger::YouPutCounters {
+                obj,
+                kind,
+                many: true,
+            } => TriggerSpec::Batch(Box::new(TriggerSpec::YouPutCounters {
+                what: self.trigger_obj(obj),
+                kind: *kind,
+            })),
+            Trigger::YouPutCounters { obj, kind, .. } => TriggerSpec::YouPutCounters {
                 what: self.trigger_obj(obj),
                 kind: *kind,
             },
@@ -6230,7 +6244,9 @@ impl Compiler<'_> {
                     Box::new(mtg_core::card::ActivationReduction {
                         by: by.clone(),
                         each: match how {
-                            crate::ast::ReduceBy::Each(e) => Some(self.count_expr(e)),
+                            crate::ast::ReduceBy::Each(e) | crate::ast::ReduceBy::Where(e) => {
+                                Some(self.count_expr(e))
+                            }
                             _ => None,
                         },
                         condition: match how {
@@ -8300,6 +8316,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 payer: Recipient::TriggeringController { that: false },
                 filter: ward_sacrifice(cost).cloned().unwrap_or_default(),
                 or_discard: false,
+                discard_first: false,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,

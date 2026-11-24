@@ -1,0 +1,8 @@
+card "Sheriff of Safe Passage" {
+  oracle_id ec16008f-18d6-4461-b99c-0a504f211618
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 0/0
+  enters with count each plus 1 other creature you control +1/+1 counters
+  plot {1}{W}
+}

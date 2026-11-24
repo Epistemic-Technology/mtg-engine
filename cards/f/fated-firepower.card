@@ -1,0 +1,8 @@
+card "Fated Firepower" {
+  oracle_id 13daa21c-278d-45bd-9a6e-a77d6a558453
+  cost {X}{R}{R}{R}
+  type Enchantment
+  keywords flash
+  enters with X fire counters
+  replace damage from permanent you control to opponent and permanent an opponent controls: plus count equal fire counters on this
+}
