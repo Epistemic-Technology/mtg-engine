@@ -1488,6 +1488,27 @@ pub struct DerivedCache(
     pub(crate) std::cell::Cell<u32>,
 );
 
+/// A current borrow of the characteristics cache
+/// (`GameState::battlefield_chars`).
+pub struct BattlefieldChars<'a> {
+    pool: &'a CardPool,
+    cache: std::cell::Ref<'a, Option<(u64, Derived)>>,
+}
+
+impl BattlefieldChars<'_> {
+    /// The characteristics of the battlefield object `id` (`o`), as
+    /// `GameState::characteristics` gives them.
+    #[inline]
+    pub fn get(&self, id: ObjId, o: &GameObject) -> Option<&Characteristics> {
+        debug_assert_eq!(o.zone, Zone::Battlefield);
+        match self.cache.as_ref() {
+            Some((_, Derived::Printed)) => self.pool.get(o.def).printed.as_ref(),
+            Some((_, Derived::Battlefield(map))) => map.get(&id),
+            None => None,
+        }
+    }
+}
+
 impl Clone for DerivedCache {
     fn clone(&self) -> Self {
         DerivedCache::default()
@@ -3504,6 +3525,23 @@ impl GameState {
                 "stale characteristics cache for {}: a change that affects characteristics did not cbump",
                 self.pool.get(obj.def).name
             );
+        }
+    }
+
+    /// The characteristics cache made current and borrowed, for a loop
+    /// that asks for many battlefield objects' characteristics (the
+    /// state-based pass, the mana sources): one freshness check for the
+    /// loop instead of one per object, and a reference instead of a copy.
+    /// Nothing may change the state while it is held.
+    pub fn battlefield_chars(&self) -> BattlefieldChars<'_> {
+        let fresh = matches!(&*self.cache.0.borrow(), Some((v, _)) if *v == self.cversion);
+        if !fresh {
+            let derived = crate::layers::compute_battlefield(self);
+            *self.cache.0.borrow_mut() = Some((self.cversion, derived));
+        }
+        BattlefieldChars {
+            pool: &self.pool,
+            cache: self.cache.0.borrow(),
         }
     }
 

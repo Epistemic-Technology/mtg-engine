@@ -184,6 +184,8 @@ impl GameState {
                         .is_some_and(|o| o.zone != Zone::Battlefield)
                 })
                 .collect();
+            // One current borrow of the characteristics for the walk.
+            let chars = self.battlefield_chars();
             for id in self.battlefield.iter().copied() {
                 let o = &self.objects[id];
                 debug_assert_eq!(o.zone, Zone::Battlefield);
@@ -222,8 +224,8 @@ impl GameState {
                 }
                 // 704.5z: Roles, gathered here as legally attached Auras.
                 if let (Some(_), Some(host)) = (enchant, o.attached_to)
-                    && self
-                        .characteristics(id)
+                    && chars
+                        .get(id, o)
                         .is_some_and(|c| c.has_subtype(Subtype::ROLE))
                 {
                     roles.push((host, o.controller, o.timestamp, id));
@@ -239,7 +241,7 @@ impl GameState {
                 {
                     unattach.push(id);
                 }
-                let Some(c) = self.characteristics(id) else {
+                let Some(c) = chars.get(id, o) else {
                     continue;
                 };
                 // 704.5i: a planeswalker with no loyalty goes to the graveyard.
@@ -267,6 +269,7 @@ impl GameState {
                     to_destroy.push(id);
                 }
             }
+            drop(chars);
             // 704.5z (CR 303.7a): of the Roles one player controls on one
             // permanent, all but the newest go to the graveyard.
             if roles.len() >= 2 {

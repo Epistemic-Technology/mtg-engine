@@ -6638,12 +6638,14 @@ impl GameState {
         // canonical payment plan taps plain lands first.
         let mut later = Sources::new();
         let mut any_sacrificed = false;
+        // One current borrow of the characteristics for the walk.
+        let chars = self.battlefield_chars();
         for id in self.permanents_of(p) {
             let o = &self.objects[id];
             if o.tapped {
                 continue;
             }
-            let Some(c) = self.characteristics(id) else {
+            let Some(c) = chars.get(id, o) else {
                 continue;
             };
             // CR 302.6: a creature's {T} abilities, mana abilities included,
@@ -6684,6 +6686,7 @@ impl GameState {
                 }
             }
         }
+        drop(chars);
         out.extend(later);
         if any_sacrificed {
             for id in self.permanents_of(p) {
