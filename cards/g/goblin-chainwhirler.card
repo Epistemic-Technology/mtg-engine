@@ -1,0 +1,8 @@
+card "Goblin Chainwhirler" {
+  oracle_id 0342b085-be20-475a-bc38-59b9cb6012e8
+  cost {R}{R}{R}
+  type Creature — Goblin Warrior
+  pt 3/3
+  keywords first strike
+  triggered when this enters: deal 1 damage to each opponent and each andlist creature or planeswalker they control
+}

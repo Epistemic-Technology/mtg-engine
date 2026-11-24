@@ -1,0 +1,721 @@
+# Cards the template author writes from the corpus line index once it
+# substitutes colors, card types, subtypes and counter kinds one to one,
+# reads a labeled line an accepted card prints bare, and takes a corpus
+# spell's sentence as an ability's effect.
+
+scenario "Angel of Salvation: a 5-damage shield on a creature" {
+  battlefield A: 8 "Plains", "Mountain", "Grizzly Bears"
+  hand A: "Angel of Salvation", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Angel of Salvation"
+  turn 1 A: trigger "Angel of Salvation" targeting "Grizzly Bears" dividing 5
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Angelic Captain: +1/+1 for each other attacking Ally" {
+  battlefield A: "Angelic Captain", "Zulaport Cutthroat", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Angelic Captain", "Zulaport Cutthroat", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Angelic Captain" 5
+  assert toughness "Angelic Captain" 4
+  assert life B 12
+}
+
+scenario "Dire Fleet Captain: +1/+1 for each other attacking Pirate" {
+  battlefield A: "Dire Fleet Captain", "Storm Fleet Spy", "Siren Lookout", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dire Fleet Captain", "Storm Fleet Spy", "Siren Lookout"
+  run_to turn 1 postcombat_main
+  assert power "Dire Fleet Captain" 4
+  assert life B 13
+}
+
+scenario "Rimehorn Aurochs: +1/+0 for each other attacking Aurochs" {
+  battlefield A: 2 "Rimehorn Aurochs"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Rimehorn Aurochs", "Rimehorn Aurochs"
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "Rimehorn Aurochs: a creature must block the chosen attacker" {
+  battlefield A: "Rimehorn Aurochs", "Craw Wurm", 3 "Snow-Covered Forest"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rimehorn Aurochs" targeting "Grizzly Bears", "Rimehorn Aurochs"
+  turn 1 A: attack "Rimehorn Aurochs", "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 14
+}
+
+scenario "Annex: you control the enchanted land" {
+  battlefield A: 4 "Island"
+  battlefield B: "Forest"
+  hand A: "Annex"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Annex" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert battlefield B lacks "Forest"
+}
+
+scenario "Steal Artifact: you control the enchanted artifact" {
+  battlefield A: 4 "Island"
+  battlefield B: "Darksteel Relic"
+  hand A: "Steal Artifact"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steal Artifact" targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Darksteel Relic"
+}
+
+scenario "Banshee's Blade: a charge counter for combat damage, +1/+1 for each" {
+  battlefield A: "Banshee's Blade", "Grizzly Bears", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Banshee's Blade" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Banshee's Blade" charge 1
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "Malefic Scythe: a soul counter as it enters and for each equipped creature that dies" {
+  battlefield A: 2 "Swamp", "Plains", "Mountain", "Grizzly Bears"
+  hand A: "Malefic Scythe", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Malefic Scythe"
+  turn 1 A: activate "Malefic Scythe" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert counters "Malefic Scythe" soul 1
+  assert power "Grizzly Bears" 3
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Malefic Scythe" soul 2
+}
+
+scenario "Beast Within: the destroyed permanent's controller gets the Beast" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Beast Within"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beast Within" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Beast"
+  assert battlefield A lacks "Beast"
+}
+
+scenario "Belle of the Brawl: other Knights you control get +1/+0" {
+  battlefield A: "Belle of the Brawl", "Zhalfirin Knight", "Grizzly Bears"
+  battlefield B: "Zhalfirin Knight"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Belle of the Brawl"
+  run_to turn 1 postcombat_main
+  assert power A "Zhalfirin Knight" 3
+  assert power B "Zhalfirin Knight" 2
+  assert power "Belle of the Brawl" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Bogardan Hellkite: 5 damage divided among any number of targets" {
+  battlefield A: 8 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bogardan Hellkite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bogardan Hellkite"
+  turn 1 A: trigger "Bogardan Hellkite" targeting "Grizzly Bears", player B dividing 2, 3
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Gang of Devils: 3 damage divided as it dies" {
+  battlefield A: "Gang of Devils", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Gang of Devils"
+  turn 1 A: trigger "Gang of Devils" targeting "Grizzly Bears", player B dividing 2, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "Inferno Titan: 3 damage divided as it enters and as it attacks; firebreathing" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Inferno Titan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Inferno Titan"
+  turn 1 A: trigger "Inferno Titan" targeting "Grizzly Bears", player B dividing 2, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+  turn 3 A: activate "Inferno Titan"
+  turn 3 A: attack "Inferno Titan"
+  turn 3 declare_attackers A: trigger "Inferno Titan" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 9
+}
+
+scenario "Mogg Mob: sacrificed, 3 damage divided" {
+  battlefield A: "Mogg Mob"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mogg Mob" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mogg Mob"
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Ceremonial Groundbreaker: equip Citizen {1} only onto a Citizen" {
+  battlefield A: "Ceremonial Groundbreaker", "Backup Agent", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Ceremonial Groundbreaker" ability 1 targeting "Grizzly Bears"
+  turn 1 A: activate "Ceremonial Groundbreaker" ability 1 targeting "Backup Agent"
+  run_to turn 1 postcombat_main
+  assert attached "Ceremonial Groundbreaker" to "Backup Agent"
+  assert power "Backup Agent" 3
+  assert toughness "Backup Agent" 2
+  assert has "Backup Agent" trample
+}
+
+scenario "Steelclaw Lance: equip Knight {1}, equip {3}" {
+  battlefield A: "Steelclaw Lance", "Zhalfirin Knight", "Grizzly Bears", 3 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Steelclaw Lance" ability 1 targeting "Grizzly Bears"
+  turn 1 A: activate "Steelclaw Lance" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Chandra, Flame's Fury: -2 hits the creature and its controller" {
+  battlefield A: "Chandra, Flame's Fury"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Flame's Fury" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert counters "Chandra, Flame's Fury" loyalty 2
+}
+
+scenario "Chandra, Flame's Fury: -8 hits the player and each creature that player controls" {
+  battlefield A: "Chandra, Flame's Fury" with 8 loyalty, "Craw Wurm"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Flame's Fury" ability 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 10
+  assert graveyard B contains "Serra Angel"
+  assert damage "Craw Wurm" 0
+}
+
+scenario "Dark Knight's Greatsword: job select, then equip for 3 life once each turn" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Dark Knight's Greatsword"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dark Knight's Greatsword"
+  run_to turn 1 begin_combat
+  assert power "Hero" 4
+  assert is "Hero" Knight
+  turn 1 postcombat_main A: activate "Dark Knight's Greatsword" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: wait
+  illegal turn 1 postcombat_main A: activate "Dark Knight's Greatsword" targeting "Hero"
+  run_to turn 1 end
+  assert life A 17
+  assert power "Grizzly Bears" 5
+  assert is "Grizzly Bears" Knight
+  assert power "Hero" 1
+}
+
+scenario "Death's Shadow: -X/-X where X is your life total" {
+  life A 10
+  battlefield A: "Death's Shadow", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  assert power "Death's Shadow" 3
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert power "Death's Shadow" 5
+  assert toughness "Death's Shadow" 5
+}
+
+scenario "Death's Shadow: at 13 life it dies" {
+  life A 13
+  battlefield A: "Death's Shadow"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Death's Shadow"
+}
+
+scenario "Demolition Stomper: crewed, it can't be blocked by power 2 or less" {
+  battlefield A: "Demolition Stomper", "Craw Wurm"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Demolition Stomper"
+  turn 1 A: attack "Demolition Stomper"
+  illegal turn 1 B: block "Demolition Stomper" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 10
+}
+
+scenario "Diamond Weapon: {1} less for each permanent card in your graveyard" {
+  battlefield A: 6 "Forest"
+  graveyard A: "Grizzly Bears", "Forest", "Darksteel Relic", "Shock"
+  hand A: "Diamond Weapon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diamond Weapon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Diamond Weapon"
+}
+
+scenario "Diamond Weapon: combat damage to it is prevented, other damage isn't" {
+  battlefield A: "Diamond Weapon", "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Diamond Weapon"
+  turn 1 B: block "Diamond Weapon" with "Craw Wurm"
+  turn 1 postcombat_main A: cast "Shock" targeting "Diamond Weapon"
+  run_to turn 1 end
+  assert graveyard B contains "Craw Wurm"
+  assert damage "Diamond Weapon" 2
+}
+
+scenario "Diver Skaab: exploited, the target goes on top of its owner's library" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Diver Skaab"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diver Skaab"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: trigger "Diver Skaab" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert library B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "Dragonlord Ojutai: hexproof while untapped; a dig on combat damage" {
+  battlefield A: "Dragonlord Ojutai"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  library A: "Island", "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 B: cast "Shock" targeting "Dragonlord Ojutai"
+  turn 1 A: attack "Dragonlord Ojutai"
+  turn 1 declare_blockers B: cast "Shock" targeting "Dragonlord Ojutai"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert hand A count 1
+  assert damage "Dragonlord Ojutai" 2
+}
+
+scenario "Garza Zol: a counter when a creature it damaged dies; a draw on combat damage" {
+  battlefield A: "Garza Zol, Plague Queen"
+  battlefield B: "Air Elemental"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Garza Zol, Plague Queen"
+  turn 1 B: block "Garza Zol, Plague Queen" with "Air Elemental"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Air Elemental"
+  assert counters "Garza Zol, Plague Queen" +1/+1 1
+  turn 3 A: attack "Garza Zol, Plague Queen"
+  run_to turn 3 postcombat_main
+  assert life B 14
+  assert hand A count 2
+}
+
+scenario "Zurgo Helmsmasher: indestructible on your turn; a counter for each creature it damaged that dies" {
+  battlefield A: "Zurgo Helmsmasher"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Zurgo Helmsmasher"
+  turn 1 B: block "Zurgo Helmsmasher" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zurgo Helmsmasher"
+  assert graveyard B contains "Hill Giant"
+  assert counters "Zurgo Helmsmasher" +1/+1 1
+}
+
+scenario "Zurgo Helmsmasher: not indestructible on an opponent's turn" {
+  battlefield A: "Zurgo Helmsmasher"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Zurgo Helmsmasher"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Zurgo Helmsmasher"
+}
+
+scenario "Harbinger of the Seas: nonbasic lands are Islands" {
+  battlefield A: "Harbinger of the Seas"
+  battlefield B: "Rogue's Passage", "Forest"
+  hand B: "Opt"
+  start turn 2 B precombat_main
+  assert is "Rogue's Passage" Island
+  assert is "Forest" Forest
+  assert is not "Forest" Island
+  turn 2 B: cast "Opt"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Opt"
+}
+
+scenario "Yavimaya, Cradle of Growth: each land is a Forest too" {
+  battlefield A: "Yavimaya, Cradle of Growth"
+  battlefield B: "Island"
+  hand B: "Giant Growth"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  assert is "Island" Forest
+  assert is "Island" Island
+  turn 2 B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Heir of the Wilds: +1/+1 attacking with a creature of power 4 or greater" {
+  battlefield A: "Heir of the Wilds", "Craw Wurm"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Heir of the Wilds"
+  run_to turn 1 postcombat_main
+  assert power "Heir of the Wilds" 3
+  assert life B 17
+}
+
+scenario "Heir of the Wilds: no bonus without a ferocious creature" {
+  battlefield A: "Heir of the Wilds", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Heir of the Wilds"
+  run_to turn 1 postcombat_main
+  assert power "Heir of the Wilds" 2
+  assert life B 18
+}
+
+scenario "Hero of Bladehold: two Soldiers tapped and attacking" {
+  battlefield A: "Hero of Bladehold"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hero of Bladehold"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+}
+
+scenario "Heroes of the Revel: a Satyr that can't block; a spell targeting it pumps the team" {
+  battlefield A: 5 "Mountain", "Forest"
+  hand A: "Heroes of the Revel", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heroes of the Revel"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Heroes of the Revel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Satyr"
+  assert power "Satyr" 2
+  assert power "Heroes of the Revel" 8
+  battlefield B: "Grizzly Bears"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Satyr"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Kumano: a creature it damaged this turn is exiled instead of dying" {
+  battlefield A: "Kumano, Master Yamabushi", 4 "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kumano, Master Yamabushi" targeting "Grizzly Bears"
+  turn 1 A: activate "Kumano, Master Yamabushi" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+}
+
+scenario "Liliana Vess: +1 discards, -2 tutors to the top" {
+  battlefield A: "Liliana Vess"
+  hand B: "Shock"
+  library A: "Island", "Forest", "Craw Wurm", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Liliana Vess" ability 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  turn 3 A: activate "Liliana Vess" ability 2
+  turn 3 A: choose "Craw Wurm"
+  run_to turn 5 precombat_main
+  assert hand A contains "Craw Wurm"
+}
+
+scenario "Liliana Vess: -8 takes every creature card from every graveyard" {
+  battlefield A: "Liliana Vess" with 8 loyalty
+  graveyard A: "Grizzly Bears", "Shock"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Liliana Vess" ability 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Magnivore: sorcery cards in all graveyards" {
+  battlefield A: "Magnivore"
+  graveyard A: "Divination", "Shock"
+  graveyard B: "Mind Rot", "Stone Rain"
+  start turn 1 A precombat_main
+  assert power "Magnivore" 3
+  assert toughness "Magnivore" 3
+}
+
+scenario "Slag Fiend: artifact cards in all graveyards" {
+  battlefield A: "Slag Fiend"
+  graveyard A: "Ornithopter", "Grizzly Bears"
+  graveyard B: "Darksteel Relic"
+  start turn 1 A precombat_main
+  assert power "Slag Fiend" 2
+  assert toughness "Slag Fiend" 2
+}
+
+scenario "Metallic Mastery: an artifact until end of turn, untapped and hasty" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Ornithopter" tapped
+  hand A: "Metallic Mastery"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Metallic Mastery" targeting "Ornithopter"
+  turn 1 A: attack "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Ornithopter"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "Oust: second from the top, and its controller gains 3 life" {
+  battlefield A: "Plains"
+  battlefield B: "Hill Giant"
+  library B: "Island", "Forest"
+  hand A: "Oust"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Oust" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert library B contains "Hill Giant"
+  assert life B 23
+  run_to turn 4 precombat_main
+  assert hand B contains "Hill Giant"
+  assert library B contains "Forest"
+}
+
+scenario "Palladia-Mors: hexproof until it has dealt damage" {
+  battlefield A: "Palladia-Mors, the Ruiner"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 B: cast "Shock" targeting "Palladia-Mors, the Ruiner"
+  turn 1 A: attack "Palladia-Mors, the Ruiner"
+  turn 2 B: cast "Shock" targeting "Palladia-Mors, the Ruiner"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert damage "Palladia-Mors, the Ruiner" 2
+}
+
+scenario "Pooling Venom: the land's controller loses 2 life as it taps; destroy it" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Forest", "Grizzly Bears"
+  hand A: "Pooling Venom"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pooling Venom" targeting "Forest"
+  run_to turn 1 end
+  turn 2 B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert life B 18
+  assert life A 20
+  turn 3 A: activate "Pooling Venom"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Forest"
+}
+
+scenario "Prahv: all damage from the chosen source is prevented this turn" {
+  battlefield A: "Prahv, Spires of Order", 3 "Plains", 3 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 declare_attackers A: activate "Prahv, Spires of Order"
+  turn 2 declare_attackers A: choose "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Rhonas: it attacks only with another creature of power 4 or greater" {
+  battlefield A: "Rhonas the Indomitable", "Grizzly Bears", 3 "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Rhonas the Indomitable"
+  illegal turn 1 postcombat_main A: activate "Rhonas the Indomitable" targeting "Rhonas the Indomitable"
+  turn 1 postcombat_main A: activate "Rhonas the Indomitable" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert life B 20
+  turn 3 A: activate "Rhonas the Indomitable" targeting "Grizzly Bears"
+  turn 3 A: attack "Rhonas the Indomitable"
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Scroll of Isildur: chapter II taps and stuns up to two creatures" {
+  battlefield A: "Scroll of Isildur" with 1 lore
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: trigger "Scroll of Isildur" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert counters "Grizzly Bears" stun 1
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Scroll of Isildur: chapter III draws for each tapped creature the opponent controls" {
+  battlefield A: "Scroll of Isildur" with 2 lore, "Grizzly Bears" tapped
+  battlefield B: "Grizzly Bears" tapped, "Hill Giant" tapped, "Craw Wurm"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: trigger "Scroll of Isildur" targeting player B
+  run_to turn 3 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Scroll of Isildur"
+}
+
+scenario "Scroll of Isildur: chapter I takes an artifact" {
+  battlefield A: "Scroll of Isildur"
+  battlefield B: "Darksteel Relic"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: trigger "Scroll of Isildur" targeting "Darksteel Relic"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Darksteel Relic"
+  assert tempted A 1
+}
+
+scenario "Synod Centurion: sacrificed once you control no other artifacts" {
+  battlefield A: "Synod Centurion", "Ornithopter", 2 "Forest"
+  hand A: "Naturalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Naturalize" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Synod Centurion"
+}
+
+scenario "Synod Centurion: another artifact keeps it" {
+  battlefield A: "Synod Centurion", "Ornithopter", "Darksteel Relic", 2 "Forest"
+  hand A: "Naturalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Naturalize" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Synod Centurion"
+}
+
+scenario "Terra Eternal: all lands have indestructible" {
+  battlefield A: "Terra Eternal", 3 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Stone Rain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stone Rain" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+  assert has "Forest" indestructible
+}
+
+scenario "Tolarian Kraken: pay {1} on a draw to tap a creature" {
+  battlefield A: "Tolarian Kraken", "Island"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 draw A: accept "Tolarian Kraken"
+  turn 3 draw A: trigger "Tolarian Kraken" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Island"
+}
+
+scenario "Treacherous Blessing: draw three, lose 1 life a spell, sacrificed when targeted" {
+  battlefield A: 3 "Swamp", "Mountain", 2 "Island"
+  hand A: "Treacherous Blessing", "Shock", "Boomerang"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Treacherous Blessing"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Boomerang" targeting "Treacherous Blessing"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 18
+  assert graveyard A contains "Treacherous Blessing"
+  assert hand A count 3
+}
+
+scenario "Vat of Rebirth: oil for another creature dying; four oil returns a creature card" {
+  battlefield A: "Vat of Rebirth" with 3 oil, "Grizzly Bears", 4 "Swamp", "Mountain"
+  graveyard A: "Hill Giant"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Vat of Rebirth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Vat of Rebirth" oil 0
+}
+
+scenario "Wolfwillow Haven: the enchanted land's controller adds an additional {G}" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Forest"
+  hand A: "Wolfwillow Haven"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wolfwillow Haven" targeting B "Forest"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Wolfwillow Haven: sacrificed for a Wolf, only during your turn" {
+  battlefield A: 5 "Forest", "Wolfwillow Haven" on "Forest"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Wolfwillow Haven"
+  turn 3 A: activate "Wolfwillow Haven"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Wolf"
+}
+
+scenario "Zurgo Bellstriker: it can't block power 2 or greater" {
+  battlefield A: "Zurgo Bellstriker"
+  battlefield B: "Grizzly Bears", "Memnite"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Memnite"
+  illegal turn 2 A: block "Grizzly Bears" with "Zurgo Bellstriker"
+  turn 2 A: block "Memnite" with "Zurgo Bellstriker"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Memnite"
+  assert life A 18
+}
+
+scenario "Shocker: 2 damage to a creature and 2 to its controller; first strike on your turn" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shocker, Unshakable"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shocker, Unshakable"
+  turn 1 A: trigger "Shocker, Unshakable" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert life B 18
+  assert has "Shocker, Unshakable" first_strike
+  run_to turn 2 upkeep
+  assert has not "Shocker, Unshakable" first_strike
+}

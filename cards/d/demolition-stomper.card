@@ -1,0 +1,8 @@
+card "Demolition Stomper" {
+  oracle_id 282e5e5f-365a-4e11-aeac-ead71d1cf68a
+  cost {6}
+  type Artifact — Vehicle
+  pt 10/7
+  can't be blocked by creature with power 2 or less
+  crew 5
+}

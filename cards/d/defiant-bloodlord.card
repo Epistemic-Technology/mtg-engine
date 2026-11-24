@@ -1,0 +1,8 @@
+card "Defiant Bloodlord" {
+  oracle_id 7bf5196d-a16c-418f-943c-2128e40c55da
+  cost {5}{B}{B}
+  type Creature — Vampire
+  pt 4/5
+  keywords flying
+  triggered whenever you gain life: target opponent loses that much life
+}

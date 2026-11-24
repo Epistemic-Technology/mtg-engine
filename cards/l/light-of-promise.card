@@ -1,0 +1,7 @@
+card "Light of Promise" {
+  oracle_id 64c54c9f-0550-41e2-a44a-5892a199f670
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered whenever you gain life: put that much +1/+1 counters on this }
+}

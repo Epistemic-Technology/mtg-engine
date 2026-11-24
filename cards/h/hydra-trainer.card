@@ -1,0 +1,8 @@
+card "Hydra Trainer" {
+  oracle_id c428cbe2-17fd-4bd2-9810-de2561519f14
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 1/1
+  exert: target creature gets +1/+1 count where counters on permanent you control
+  activated {2}{G}: adapt 2
+}

@@ -1,0 +1,10 @@
+card "Rhonas the Indomitable" {
+  oracle_id 5d2acd3e-4782-42e3-bcd5-80f8b439cc28
+  cost {2}{G}
+  type Legendary Creature — God
+  pt 5/5
+  short_name "Rhonas"
+  keywords deathtouch, indestructible
+  can't attack or block unless you control other creature with power 4 or greater
+  activated {2}{G}: another target creature gets +2/+0 and gains trample
+}

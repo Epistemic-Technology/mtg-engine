@@ -1,0 +1,7 @@
+card "Ageless Entity" {
+  oracle_id 2a93236d-f182-4826-8112-4048bb3cbaf9
+  cost {3}{G}{G}
+  type Creature — Elemental
+  pt 4/4
+  triggered whenever you gain life: put that much +1/+1 counters on this
+}

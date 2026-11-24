@@ -1,0 +1,8 @@
+card "Spider-Ham, Peter Porker" {
+  oracle_id 00b50215-e832-417f-9c80-2bc3050b6ebb
+  cost {1}{G}
+  type Legendary Creature — Spider Boar Hero
+  pt 2/2
+  triggered when this enters: create 1 "Food"
+  label "Animal May-Ham" static other Spider or Boar or Bat or Bear or Bird or Cat or Dog or Frog or Jackal or Lizard or Mouse or Otter or Rabbit or Raccoon or Rat or Squirrel or Turtle or Wolf you control: +1/+1
+}

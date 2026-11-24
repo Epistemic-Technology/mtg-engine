@@ -1,0 +1,9 @@
+card "Garza Zol, Plague Queen" {
+  oracle_id 5b48e926-fc0e-403c-a47b-1f1d96e2eaf7
+  cost {4}{U}{B}{R}
+  type Legendary Creature — Vampire Noble
+  pt 5/5
+  keywords flying, haste
+  triggered whenever creature dealt damage by this this turn dies: put 1 +1/+1 counter on this
+  triggered whenever this deals combat damage to a player: you may draw 1 cards
+}

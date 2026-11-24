@@ -1,0 +1,6 @@
+card "Teferi's Ageless Insight" {
+  oracle_id 1c9e1f75-73f0-4846-b53f-458a0984b1bb
+  cost {2}{U}{U}
+  type Legendary Enchantment
+  replace you draw a card except first in draw step: draw two
+}

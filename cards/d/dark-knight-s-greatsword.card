@@ -1,0 +1,8 @@
+card "Dark Knight's Greatsword" {
+  oracle_id eda09ed4-7509-4d1e-b169-2b7c1c87e936
+  cost {2}{B}
+  type Artifact — Equipment
+  job select
+  static enchanted: +3/+0, add subtype Knight
+  label "Chaosbringer" equip pay 3 life, once
+}

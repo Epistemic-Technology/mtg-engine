@@ -1,0 +1,9 @@
+card "Diamond Weapon" {
+  oracle_id 3beba02f-4d50-4a93-a13b-78d4595bfbfc
+  cost {7}{G}{G}
+  type Legendary Artifact Creature — Elemental
+  pt 8/8
+  this spell costs {1} less count each graveyard permanent card
+  keyword reach
+  label "Immune" replace combat damage to this: prevent
+}

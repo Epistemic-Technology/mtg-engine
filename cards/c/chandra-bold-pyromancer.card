@@ -1,0 +1,9 @@
+card "Chandra, Bold Pyromancer" {
+  oracle_id 1cdba3c1-19e1-43c3-a0d8-5fb2b88060d8
+  cost {4}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 5
+  loyalty +1: add {R}{R}; deal 2 damage to target player
+  loyalty -3: deal 3 damage to target creature or planeswalker
+  loyalty -7: deal 10 damage to target player and each andlist creature or planeswalker they control
+}

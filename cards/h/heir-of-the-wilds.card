@@ -1,0 +1,8 @@
+card "Heir of the Wilds" {
+  oracle_id 35cb88aa-6ed9-4a2d-9bbc-5937e1df4f4a
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords deathtouch
+  label "Ferocious" triggered whenever this attacks if you control creature with power 4 or greater: this gets +1/+1
+}

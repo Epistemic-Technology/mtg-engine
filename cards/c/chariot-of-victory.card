@@ -1,0 +1,7 @@
+card "Chariot of Victory" {
+  oracle_id 5a40339d-7821-4f37-a957-1a6ebdd993e0
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: has first strike, trample, haste
+  equip {1}
+}

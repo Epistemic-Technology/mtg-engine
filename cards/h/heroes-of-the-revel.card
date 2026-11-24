@@ -1,0 +1,8 @@
+card "Heroes of the Revel" {
+  oracle_id d4f72eac-2161-4fe8-8590-436e241c3b22
+  cost {4}{R}
+  type Creature — Satyr Soldier
+  pt 4/4
+  triggered whenever this enters: create 1 "1/1 red Satyr creature that can't block"
+  triggered whenever you cast a spell that targets this: each creature you control gets +1/+0
+}

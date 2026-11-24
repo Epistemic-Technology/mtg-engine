@@ -1,0 +1,8 @@
+card "Treacherous Blessing" {
+  oracle_id 17f573c4-3ed4-453e-bfbe-4e42d54633e5
+  cost {2}{B}
+  type Enchantment
+  triggered when this enters: draw 3 cards
+  triggered whenever you cast a spell: you loses 1 life
+  triggered when this becomes targeted: sacrifice this
+}

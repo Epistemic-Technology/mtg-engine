@@ -1,0 +1,137 @@
+# Flavor-word cards the template author now writes, and the parse
+# failures it now spells as the DSL does ("each creature and planeswalker
+# they control", "that saddled it this turn", "that crewed it this
+# turn"). "choose one or both" is a triggered ability's head too.
+
+scenario "Flash Thompson: tap one creature, untap another" {
+  battlefield A: 2 "Plains", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant"
+  hand A: "Flash Thompson, Spider-Fan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flash Thompson, Spider-Fan"
+  turn 1 A: trigger "Flash Thompson, Spider-Fan" mode 3 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Flash Thompson: one mode alone" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Flash Thompson, Spider-Fan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flash Thompson, Spider-Fan"
+  turn 1 A: trigger "Flash Thompson, Spider-Fan" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "The Unbeatable Squirrel Girl: a Squirrel as it enters and attacks, then X Squirrels" {
+  battlefield A: 8 "Forest"
+  hand A: "The Unbeatable Squirrel Girl"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Unbeatable Squirrel Girl"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Squirrel"
+  turn 3 A: attack "The Unbeatable Squirrel Girl"
+  turn 3 postcombat_main A: activate "The Unbeatable Squirrel Girl"
+  run_to turn 3 end
+  assert life B 16
+  assert battlefield A contains 5 "Squirrel"
+}
+
+scenario "Spider-Ham: other creatures of the listed types get +1/+1" {
+  battlefield A: "Spider-Ham, Peter Porker", "Grizzly Bears", "Giant Spider", "Hill Giant"
+  battlefield B: "Runeclaw Bear"
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Giant Spider" 5
+  assert power "Hill Giant" 3
+  assert power "Spider-Ham, Peter Porker" 2
+  assert power "Runeclaw Bear" 2
+}
+
+scenario "Goblin Chainwhirler: 1 damage to each opponent and their creatures and planeswalkers" {
+  battlefield A: 3 "Mountain", "Memnite"
+  battlefield B: "Memnite", "Jace Beleren"
+  hand A: "Goblin Chainwhirler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Chainwhirler"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 20
+  assert graveyard B contains "Memnite"
+  assert battlefield A contains "Memnite"
+  assert counters "Jace Beleren" loyalty 2
+}
+
+scenario "Chandra, Bold Pyromancer: +1 adds {R}{R} and hits a player; -7 hits their creatures and planeswalkers" {
+  battlefield A: "Chandra, Bold Pyromancer" with 7 loyalty, "Craw Wurm"
+  battlefield B: "Hill Giant", "Jace Beleren"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Bold Pyromancer" ability 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 10
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Jace Beleren"
+  assert damage "Craw Wurm" 0
+}
+
+scenario "Chandra, Bold Pyromancer: +1" {
+  battlefield A: "Chandra, Bold Pyromancer"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Bold Pyromancer" ability 1 targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Giant Beaver: a counter on a creature that saddled it" {
+  battlefield A: "Giant Beaver", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Giant Beaver"
+  turn 1 A: attack "Giant Beaver"
+  illegal turn 1 declare_attackers A: trigger "Giant Beaver" targeting "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Giant Beaver" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert life B 16
+}
+
+scenario "Getaway Car: a creature that crewed it returns to its owner's hand" {
+  battlefield A: "Getaway Car", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Getaway Car"
+  turn 1 A: attack "Getaway Car"
+  illegal turn 1 declare_attackers A: trigger "Getaway Car" targeting "Hill Giant"
+  turn 1 declare_attackers A: trigger "Getaway Car" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Horn of Gondor: a Soldier as it enters, then X for the Humans you control" {
+  battlefield A: 6 "Plains", "Elite Vanguard"
+  hand A: "Horn of Gondor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Horn of Gondor"
+  turn 1 A: wait
+  turn 1 A: activate "Horn of Gondor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Human Soldier"
+}
+
+scenario "Myrel: X Soldiers as it attacks; opponents can't cast spells during your turn" {
+  battlefield A: "Myrel, Shield of Argive", "Elite Vanguard"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 B: cast "Shock" targeting "Elite Vanguard"
+  turn 1 A: attack "Myrel, Shield of Argive"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert life B 17
+}

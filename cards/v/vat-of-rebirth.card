@@ -1,0 +1,7 @@
+card "Vat of Rebirth" {
+  oracle_id 10c31317-71e8-42e0-85e0-3e64bd0c3dd3
+  cost {B}
+  type Artifact
+  triggered whenever other artifact or creature you control is put into a graveyard from the battlefield: put 1 oil counter on this
+  activated {2}{B}, {T}, remove 4 oil counters from this, sorcery: return target creature card from your graveyard to battlefield
+}

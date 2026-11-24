@@ -1,0 +1,10 @@
+card "Zurgo Helmsmasher" {
+  oracle_id 6c48d888-9f5d-43f4-adbd-61dbdba09260
+  cost {2}{R}{W}{B}
+  type Legendary Creature — Orc Warrior
+  pt 7/2
+  short_name "Zurgo"
+  keywords haste, attacks each combat if able
+  static during your turn, this: has indestructible
+  triggered whenever creature dealt damage by this this turn dies: put 1 +1/+1 counter on this
+}

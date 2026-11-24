@@ -1,0 +1,9 @@
+card "Shocker, Unshakable" {
+  oracle_id 564dac59-97f7-4988-9f30-d82a891e29ef
+  cost {4}{R}{R}
+  type Legendary Creature — Human Rogue Villain
+  pt 5/5
+  pronoun he
+  static during your turn, this: has first strike
+  label "Vibro-Shock Gauntlets" triggered when this enters: deal 2 damage to target creature and deal 2 damage to controller of that target 1
+}

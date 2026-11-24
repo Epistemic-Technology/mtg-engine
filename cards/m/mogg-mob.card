@@ -1,0 +1,7 @@
+card "Mogg Mob" {
+  oracle_id fb7171f8-60a0-4309-93ff-113e1f62113c
+  cost {R}{R}{R}
+  type Creature — Goblin
+  pt 3/3
+  activated sacrifice this: deal 3 damage divided among 1 to 3 targets
+}

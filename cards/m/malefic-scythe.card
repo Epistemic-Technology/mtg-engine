@@ -1,0 +1,9 @@
+card "Malefic Scythe" {
+  oracle_id 0b4925d7-e2bb-4b74-a538-80fe759799ad
+  cost {1}{B}
+  type Artifact — Equipment
+  enters with 1 soul counter
+  static enchanted creature: +1/+1 count each soul counters on this
+  triggered whenever equipped creature dies: put 1 soul counters on this
+  equip {1}
+}

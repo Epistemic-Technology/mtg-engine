@@ -1,0 +1,7 @@
+card "Kor Duelist" {
+  oracle_id 758dd2fd-d3ec-4782-9a60-12b0d79719da
+  cost {W}
+  type Creature — Kor Soldier
+  pt 1/1
+  static as long as equipped, this: has double strike
+}

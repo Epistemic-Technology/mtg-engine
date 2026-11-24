@@ -1,0 +1,7 @@
+card "Steal Artifact" {
+  oracle_id cd8ae9f2-edac-473a-8846-c08219e617c3
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  enchant artifact
+  static enchanted: control
+}

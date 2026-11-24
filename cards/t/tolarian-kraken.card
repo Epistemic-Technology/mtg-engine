@@ -1,0 +1,7 @@
+card "Tolarian Kraken" {
+  oracle_id 846887e4-744f-44ce-9110-d09680b11e95
+  cost {4}{U}{U}
+  type Creature — Kraken
+  pt 4/6
+  triggered whenever you draw a card: you may pay {1}; when you do, you may tap or untap target creature
+}

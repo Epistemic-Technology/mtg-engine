@@ -1,0 +1,6 @@
+card "Beast Within" {
+  oracle_id 7735eeba-693b-47e2-bd51-414379cf1016
+  cost {2}{G}
+  type Instant
+  spell: destroy target permanent; its controller creates 1 "3/3 green Beast creature"
+}

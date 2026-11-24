@@ -1,0 +1,8 @@
+card "Myrel, Shield of Argive" {
+  oracle_id 503094aa-6f8f-42c1-ad5a-9305934e5f0c
+  cost {3}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/4
+  during your turn opponents can't cast spells or activate abilities of artifacts creatures enchantments
+  triggered whenever this attacks: create count where Soldier you control "1/1 colorless Soldier artifact creature"
+}

@@ -1,0 +1,8 @@
+card "Angel of Salvation" {
+  oracle_id 27b945ad-92a9-4615-87ec-790682e8c3e7
+  cost {6}{W}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flash, convoke, flying
+  triggered when this enters: prevent next 5 damage this turn to any number of targets
+}

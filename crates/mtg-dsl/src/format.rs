@@ -9709,6 +9709,7 @@ pub(crate) fn those_word(t: crate::ast::Those) -> &'static str {
 fn mode_head_dsl(head: crate::ast::ModeHead) -> String {
     match head {
         crate::ast::ModeHead::OneOrMore => "choose one or more".to_string(),
+        crate::ast::ModeHead::OneOrBoth => "choose one or both".to_string(),
         crate::ast::ModeHead::UpTo(n) => format!("choose up to {n}"),
         crate::ast::ModeHead::Unchosen { this_turn, stop } => format!(
             "choose one unchosen{}{}",

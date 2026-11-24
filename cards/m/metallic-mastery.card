@@ -1,0 +1,6 @@
+card "Metallic Mastery" {
+  oracle_id 7de034a4-a42a-4e60-9ec9-5e9bb9987cfa
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target artifact; untap that target 1; target 1 gains haste
+}

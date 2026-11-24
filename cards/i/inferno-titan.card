@@ -1,0 +1,8 @@
+card "Inferno Titan" {
+  oracle_id 0ce47c8b-1e1f-463f-94f0-35ca00be89e6
+  cost {4}{R}{R}
+  type Creature — Giant
+  pt 6/6
+  activated {R}: this gets +1/+0
+  triggered whenever this enters or attacks: deal 3 damage divided among 1 to 3 targets
+}

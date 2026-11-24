@@ -1,0 +1,6 @@
+card "Prahv, Spires of Order" {
+  oracle_id 37ff5ba6-0763-4c73-85bf-66856e67b8f3
+  type Land
+  mana {C}
+  activated {4}{W}{U}, {T}: prevent all damage chosen source would deal this turn
+}
