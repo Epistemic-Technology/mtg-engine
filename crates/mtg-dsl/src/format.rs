@@ -3314,9 +3314,14 @@ impl Fmt {
                 inner,
                 spells,
                 then,
+                wording,
             } => format!(
-                "{} spent on {} spell: {}",
+                "{} {}spent on {} spell: {}",
                 self.line(inner, t),
+                match wording {
+                    1 => "when ",
+                    _ => "",
+                },
                 filter(spells),
                 self.line(then, t)
             ),
@@ -6055,7 +6060,9 @@ fn cost_text(c: &Cost) -> String {
                     } else {
                         "this"
                     };
-                    if c.remove_x {
+                    if c.remove_any {
+                        parts.push(format!("remove any number {} from {from}", counter(k, Num::X)));
+                    } else if c.remove_x {
                         parts.push(format!("remove X {} from {from}", counter(k, Num::X)));
                     } else {
                         parts.push(format!("remove {n} {} from {from}", counter(k, Num::N(n))));

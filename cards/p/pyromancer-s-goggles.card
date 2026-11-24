@@ -1,0 +1,6 @@
+card "Pyromancer's Goggles" {
+  oracle_id f76bcbfe-483f-4e63-8425-76feca1abf3e
+  cost {5}
+  type Legendary Artifact
+  activated {T}: add {R} when spent on red instant or sorcery spell: copy that spell and new targets
+}

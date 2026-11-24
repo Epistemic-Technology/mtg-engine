@@ -571,6 +571,7 @@ impl Decompiler<'_> {
             remove_from_creature: c.remove_from_creature,
             sacrifice_any: c.sacrifice_any,
             remove_x: c.remove_x,
+            remove_any: false,
             untap: c.untap,
             chosen: c.chosen,
             count: c.count,
@@ -1674,6 +1675,7 @@ impl Decompiler<'_> {
                     inner: self.sentences(effects),
                     spells: self.filter(spells),
                     then: self.sentences(&t.effects),
+                    wording: 0,
                 }
             }
             CoreEffect::SpendOnly {

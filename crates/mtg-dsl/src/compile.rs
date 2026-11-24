@@ -4493,6 +4493,7 @@ impl Compiler<'_> {
                 inner,
                 spells,
                 then,
+                ..
             } => {
                 let effects = self.sentences(inner)?;
                 if !effects.iter().any(CoreEffect::adds_mana) {

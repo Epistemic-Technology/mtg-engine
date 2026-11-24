@@ -4389,7 +4389,13 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 if let Some((k, n)) = cost.remove_counters {
                     let what = counters(if cost.remove_x { Num::X } else { Num::N(n) }, k);
                     let src = ctx.source();
-                    parts.push(format!("Remove {what} from {src}"));
+                    if cost.remove_any {
+                        // "Remove any number of +1/+1 counters from ~".
+                        let what = what.replacen("X ", "any number of ", 1);
+                        parts.push(format!("Remove {what} from {src}"));
+                    } else {
+                        parts.push(format!("Remove {what} from {src}"));
+                    }
                 }
             }
             CostItem::PutCounters => {
@@ -12075,11 +12081,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             inner,
             spells,
             then,
+            wording,
         } => {
             let body = sentences(inner, ctx);
             let rider = sentences(then, ctx);
+            let when = match wording {
+                1 => "When that mana is spent to cast",
+                _ => "When you spend this mana to cast",
+            };
             Clause::imperative(format!(
-                "{}. When you spend this mana to cast {}, {}",
+                "{}. {when} {}, {}",
                 lowercase_first(body.trim_end_matches('.')),
                 a_spell(spells, ctx.card),
                 lowercase_first(rider.trim_end_matches('.'))
@@ -18426,7 +18437,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             let c = cost_text(cost, &mut ctx);
             ctx.cost_named = ctx.source_mentioned;
-            let mut text = format!("{c}: {}", effects_after(effects, &mut ctx, false));
+            let mut body = effects_after(effects, &mut ctx, false);
+            // "Remove any number of +1/+1 counters from ~: Create that
+            // many ..." (the ability's X).
+            if cost.remove_any {
+                body = body.replacen(" X ", " that many ", 1);
+            }
+            let mut text = format!("{c}: {body}");
             // CR 702.142, 702.177, 702.193: the keyword prints before the
             // cost and its rules are reminder text.
             if let Some(k) = cost.keyword {

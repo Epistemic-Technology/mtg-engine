@@ -2003,7 +2003,14 @@ impl P {
     fn spend_only_suffix(&mut self, e: Effect) -> R<Effect> {
         // `spent on Dragon creature spell: you gain 2 life`: "When you
         // spend this mana to cast a Dragon creature spell, ...".
-        if self.eat_words(&["spent", "on"]) {
+        let wording = if self.eat_words(&["when", "spent", "on"]) {
+            Some(1)
+        } else if self.eat_words(&["spent", "on"]) {
+            Some(0)
+        } else {
+            None
+        };
+        if let Some(wording) = wording {
             let spells = self.filter()?;
             self.expect_word("spell")?;
             self.expect(&Tok::Colon)?;
@@ -2014,6 +2021,7 @@ impl P {
                 inner: vec![Sentence::new(vec![e])],
                 spells,
                 then: vec![then],
+                wording,
             });
         }
         if self.at_words(&["only", "to"])
@@ -18137,15 +18145,20 @@ impl P {
                         cost.order.push(CostItem::Sacrifice);
                     }
                     "remove"
-                        if (1..5).any(|k| {
+                        if (1..6).any(|k| {
                             self.word_at(k).as_deref() == Some("from")
                                 && self.word_at(k + 1).as_deref() == Some("this")
                         }) =>
                     {
                         self.pos += 1;
-                        // `remove X ki counters from this` (X the ability's).
+                        // `remove X ki counters from this` (X the ability's);
+                        // `remove any number +1/+1 counters from this`.
                         let n = if self.eat_word("x") {
                             cost.remove_x = true;
+                            0
+                        } else if self.eat_words(&["any", "number"]) {
+                            cost.remove_x = true;
+                            cost.remove_any = true;
                             0
                         } else {
                             self.count()?

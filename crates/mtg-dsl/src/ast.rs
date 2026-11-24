@@ -959,6 +959,10 @@ pub struct Cost {
     /// `remove X ki counters from this`: "Remove X ki counters from this
     /// creature", X the ability's.
     pub remove_x: bool,
+    /// `remove any number +1/+1 counters from this` (with `remove_x`):
+    /// "Remove any number of +1/+1 counters from ~", the ability's X
+    /// called "that many" in its effects. Wording only.
+    pub remove_any: bool,
     /// `{Q}`: the untap symbol.
     pub untap: bool,
 }
@@ -5877,6 +5881,9 @@ pub enum Effect {
         inner: Vec<Sentence>,
         spells: Filter,
         then: Vec<Sentence>,
+        /// Wording only: 0, `spent on`; 1, `when spent on`: "When that
+        /// mana is spent to cast a red instant or sorcery spell, ...".
+        wording: u8,
     },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
