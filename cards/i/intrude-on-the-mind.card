@@ -1,0 +1,6 @@
+card "Intrude on the Mind" {
+  oracle_id eedb1527-548a-435a-a3e1-8ad7d9d6d8a9
+  cost {3}{U}{U}
+  type Instant
+  spell: piles reveal 5 chosen by opponent; create 1 "0/0 colorless Thopter artifact creature with flying" then put count each graveyarded this way +1/+1 counters on it
+}

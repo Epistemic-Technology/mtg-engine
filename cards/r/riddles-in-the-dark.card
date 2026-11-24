@@ -1,0 +1,6 @@
+card "Riddles in the Dark" {
+  oracle_id 78bed291-0ec7-466f-bc7a-9dae7d0b56ae
+  cost {2}{U}
+  type Instant
+  spell: piles look 4 face-down chosen by opponent the piles
+}

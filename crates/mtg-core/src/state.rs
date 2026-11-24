@@ -299,6 +299,8 @@ pub enum Chosen {
     Card([u8; 3]),
     /// Odd (`true`) or even, for "with mana value of the chosen quality".
     Parity(bool),
+    /// A number ("Choose a number between 0 and 10.").
+    Number(u8),
 }
 
 impl Chosen {
@@ -1609,6 +1611,7 @@ impl Moved {
             // cost ("the revealed card's mana value"); a count reads the
             // resolution's revealed cards (`CountExpr::ThisWay`).
             ThisWay::Revealed => self.from == Zone::Hand && self.to == Zone::Hand,
+            ThisWay::PutInGraveyard => self.to == Zone::Graveyard && self.from != Zone::Graveyard,
         }
     }
 }
@@ -4869,6 +4872,21 @@ impl GameState {
         {
             Self::fill_spent_colors(out.to_mut(), self.spent_on(s).colors());
         }
+        // "target card of the chosen type" (Dawn-Blessed Pennant): the
+        // source's choice as it entered, as it last existed once it has
+        // been sacrificed to pay the cost (CR 608.2h).
+        if f.chosen
+            && let Some(s) = source
+        {
+            let chosen = self
+                .objects
+                .get(s)
+                .map(|o| o.chosen)
+                .or_else(|| self.lki.get(&s).map(|l| l.object.chosen))
+                .unwrap_or_default();
+            let g = out.to_mut().with_chosen(chosen);
+            *out.to_mut() = g;
+        }
         // "target creature with power less than or equal to the number of
         // creatures you control": counted for the source's controller.
         if let Some(b) = f.status.bound
@@ -5265,6 +5283,23 @@ impl GameState {
                     {
                         filled = self.with_same_of(filter, source);
                         &filled
+                    } else {
+                        filter
+                    };
+                    // "of the chosen type": the source permanent's choice,
+                    // before the source moves on to the graveyard.
+                    let filled_chosen;
+                    let filter = if filter.chosen
+                        && let Some(s) = source
+                    {
+                        let chosen = self
+                            .objects
+                            .get(s)
+                            .map(|o| o.chosen)
+                            .or_else(|| self.lki.get(&s).map(|l| l.object.chosen))
+                            .unwrap_or_default();
+                        filled_chosen = filter.with_chosen(chosen);
+                        &filled_chosen
                     } else {
                         filter
                     };

@@ -1,0 +1,6 @@
+card "Fortune's Favor" {
+  oracle_id 9baff93e-4ef9-404d-884b-f651a11f3742
+  cost {3}{U}
+  type Instant
+  spell: piles look 4 face-down separated by target opponent
+}

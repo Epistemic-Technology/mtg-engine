@@ -428,6 +428,9 @@ pub enum CountExpr {
     },
     /// `life lost this way`: "the life lost this way".
     LifeLostThisWay,
+    /// `chosen number`: "the chosen number" (`choose number between 0
+    /// and 10`).
+    ChosenNumber,
     /// `votes for sprout`: the votes the ability's vote gave that choice
     /// ("for each sprout vote"), `index` its place among the choices.
     Votes {
@@ -1492,6 +1495,15 @@ pub enum ChoiceKind {
     /// `odd or even`: "odd or even" (Zero is even.), for `of chosen
     /// quality`.
     Parity,
+    /// `creature type among Elemental, Elf, Faerie`: "Elemental, Elf, or
+    /// Faerie" (at most eight).
+    CreatureTypeIn(Vec<String>),
+    /// `number between 0 and 10`: "a number between 0 and 10", for the
+    /// count `chosen number`.
+    Number {
+        min: u8,
+        max: u8,
+    },
 }
 
 /// What `Ability::CardGrant` gives its cards (`GrantedWay`).
@@ -4411,6 +4423,14 @@ pub enum Effect {
     ExileSameName {
         what: Recipient,
     },
+    /// `exile up to 4 with chosen name from zones of target opponent`
+    /// (`any number`, `all`): "Search target opponent's graveyard, hand,
+    /// and library for up to four cards with that name and exile them.
+    /// Then that player shuffles." after `choose card name`.
+    ExileChosenName {
+        who: Recipient,
+        limit: mtg_core::card::NameSearch,
+    },
     /// `turn face up target face-down creature opponent controls` (CR
     /// 708.8): "Turn target face-down creature an opponent controls face
     /// up."
@@ -5502,6 +5522,24 @@ pub enum Effect {
         by: Option<Recipient>,
         only: bool,
     },
+    /// `piles reveal 5 chosen by opponent` ("Reveal the top five cards of
+    /// your library and separate them into two piles. An opponent chooses
+    /// one of those piles. Put that pile into your hand and the other into
+    /// your graveyard."), `piles look 4 face-down chosen by opponent the
+    /// piles` (Riddles in the Dark), `piles reveal 5 separated by
+    /// opponent` (Fact or Fiction), `piles look 4 face-down separated by
+    /// target opponent` (Fortune's Favor).
+    Piles {
+        count: Num,
+        reveal: bool,
+        face_down: bool,
+        /// `separated by opponent` (`EachOpponent`: "an opponent") or by
+        /// a target; none, the controller.
+        separator: Option<Recipient>,
+        opponent_chooses: bool,
+        /// `the piles`: "one of the piles" rather than "of those piles".
+        the_piles: bool,
+    },
     /// `split top 3 into hand, top, bottom` ("Look at the top three cards
     /// of your library. Put one of those cards into your hand, one on top
     /// of your library, and one on the bottom of your library."), `split
@@ -5944,6 +5982,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Tapped => "tapped",
         ThisWay::Shuffled => "shuffled",
         ThisWay::Revealed => "revealed",
+        ThisWay::PutInGraveyard => "graveyarded",
     }
 }
 
@@ -5959,6 +5998,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::PutInHand,
         ThisWay::Shuffled,
         ThisWay::Revealed,
+        ThisWay::PutInGraveyard,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

@@ -998,6 +998,12 @@ impl GameState {
                     })
                     .count()
             }
+            CountExpr::ChosenNumber => {
+                return match self.resolution_chosen(ctx) {
+                    Chosen::Number(n) => u32::from(n),
+                    _ => 0,
+                };
+            }
             CountExpr::BlockingIt { beyond } => {
                 let n = u32::try_from(self.blocking_it(ctx).len()).unwrap_or(u32::MAX);
                 return n.saturating_sub(*beyond);
@@ -9145,6 +9151,12 @@ impl GameState {
                 (0..usize::from(n)).map(Choice::Mode).collect(),
             ),
             // "Choose odd or even.": `choose "1"` (odd) or `"2"` (even).
+            // "Choose a number between 0 and 10.": `choose "7"`.
+            ChoiceKind::Number { min, max } => {
+                let options: Vec<Choice> = (min..=max).map(|n| Choice::X(u32::from(n))).collect();
+                let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
+                return Chosen::Number(min.saturating_add(u8::try_from(k).unwrap_or(0)).min(max));
+            }
             ChoiceKind::Parity => {
                 let options = vec![Choice::Mode(0), Choice::Mode(1)];
                 let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
@@ -9203,6 +9215,13 @@ impl GameState {
                         .collect(),
                 )
             }
+            ChoiceKind::CreatureTypeIn { types, len } => (
+                DecisionKind::ChooseType,
+                types[..usize::from(len).min(types.len())]
+                    .iter()
+                    .map(|s| Choice::Subtype(*s))
+                    .collect(),
+            ),
             ChoiceKind::LandType(set) => (
                 DecisionKind::ChooseType,
                 set.iter()
@@ -11703,6 +11722,37 @@ impl GameState {
                     self.shuffle_library(owner_ctl);
                 }
             }
+            // CR 701.19b: the searcher may fail to find cards; the engine
+            // finds as many as it may, the hand's first.
+            Effect::ExileChosenName { who, limit } => {
+                let Some(def) = self.resolution_chosen(ctx).card_ref() else {
+                    return;
+                };
+                let name = self.pool.get(def).name.clone();
+                let cap = match limit {
+                    crate::card::NameSearch::UpTo(n) => usize::from(*n),
+                    _ => usize::MAX,
+                };
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let ps = self.player(p);
+                    let cards: Vec<ObjId> = ps
+                        .hand
+                        .iter()
+                        .chain(ps.library.iter())
+                        .chain(ps.graveyard.iter())
+                        .copied()
+                        .filter(|c| self.pool.get(self.objects[*c].def).name == name)
+                        .take(cap)
+                        .collect();
+                    for c in cards {
+                        self.move_object(c, Zone::Exile, true);
+                    }
+                    self.shuffle_library(p);
+                }
+            }
             Effect::TapOrUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -12786,7 +12836,8 @@ impl GameState {
                     | Chosen::Votes(_)
                     | Chosen::Option(_)
                     | Chosen::Card(_)
-                    | Chosen::Parity(_) => return,
+                    | Chosen::Parity(_)
+                    | Chosen::Number(_) => return,
                 };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -12880,7 +12931,8 @@ impl GameState {
                         | Chosen::Votes(_)
                         | Chosen::Option(_)
                         | Chosen::Card(_)
-                        | Chosen::Parity(_),
+                        | Chosen::Parity(_)
+                        | Chosen::Number(_),
                         _,
                     ) => {
                         return;
@@ -15548,6 +15600,20 @@ impl GameState {
                 piles,
                 rest,
             } => self.dig_split(ctx, *count, *of, *reveal, *opponent, piles, *rest),
+            Effect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+            } => self.piles(
+                ctx,
+                *count,
+                *reveal,
+                *face_down,
+                *separator,
+                *opponent_chooses,
+            ),
             // CR 702.185a: the warped permanent is exiled; its owner may
             // cast it from exile on a later turn.
             // CR 601.3: "You may cast this card for as long as it remains
@@ -16297,6 +16363,95 @@ impl GameState {
             {
                 self.move_object(id, Zone::Library, true);
             }
+        }
+    }
+
+    /// `Effect::Piles` (CR 700.3): the separator puts cards in the first
+    /// pile one at a time (`choose "X"`, then `choose done` in a scenario;
+    /// the rest make the second pile), then the chooser picks a pile
+    /// (`choose "1"` or `"2"`): it goes to the controller's hand, the
+    /// other to their graveyard.
+    fn piles(
+        &mut self,
+        ctx: &mut EffectCtx,
+        count: crate::card::Num,
+        reveal: bool,
+        face_down: bool,
+        separator: Option<crate::card::Recipient>,
+        opponent_chooses: bool,
+    ) {
+        let me = ctx.controller;
+        let separator = match separator {
+            None => me,
+            Some(r) => match self.recipients(ctx, r).first() {
+                Some(Target::Player(p)) => *p,
+                _ => return,
+            },
+        };
+        let n = self.eval_num(count, ctx) as usize;
+        let cards: Vec<ObjId> = self
+            .player(me)
+            .library
+            .iter()
+            .rev()
+            .take(n)
+            .copied()
+            .collect();
+        // The separator looks at them (CR 700.3: a pile is known to the
+        // player who made it).
+        let bits = 1u8 << separator.index().min(7);
+        for id in &cards {
+            if reveal {
+                self.reveal_in_library(*id);
+            } else {
+                self.objects[*id].revealed |= bits;
+            }
+        }
+        let mut first: Vec<ObjId> = Vec::new();
+        let mut second = cards;
+        while !second.is_empty() {
+            let mut options: Vec<Choice> = second
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            options.push(Choice::Done);
+            let k = self.choose_mid(separator, DecisionKind::ChooseCard, options.clone());
+            match options[k] {
+                Choice::Target(Target::Object(id)) => {
+                    second.retain(|c| *c != id);
+                    first.push(id);
+                }
+                _ => break,
+            }
+        }
+        // "a face-down pile and a face-up pile": the second pile is
+        // revealed to every player.
+        if face_down && !reveal {
+            for id in &second {
+                self.reveal_in_library(*id);
+            }
+        }
+        let chooser = if opponent_chooses {
+            self.opponent(me)
+        } else {
+            me
+        };
+        let def = self.source_def(ctx);
+        let k = self.choose_mid(
+            chooser,
+            DecisionKind::ChooseOption { def },
+            vec![Choice::Mode(0), Choice::Mode(1)],
+        );
+        let (hand, rest) = if k == 0 {
+            (first, second)
+        } else {
+            (second, first)
+        };
+        for id in hand {
+            self.move_object(id, Zone::Hand, false);
+        }
+        for id in rest {
+            self.move_object(id, Zone::Graveyard, false);
         }
     }
 

@@ -92,7 +92,8 @@ fn count_words(n: Num, article: &str) -> String {
         // "Mill that many cards" (a counted noun); "that much life".
         Num::ThatMuch => "that many".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
-        Num::XPlus(n) => format!("X plus {n}"),
+        // "the top X plus one cards" (Epiphany at the Drownyard).
+        Num::XPlus(n) => format!("X plus {}", number_word(n)),
         Num::XTimes(n) => times_x(n),
         Num::NMinusX(n) => format!("{} minus X", number_word(n)),
         Num::N(1) => article.to_string(),
@@ -785,6 +786,12 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
     // chosen type": the noun before the chosen type.
     rule.replace(" of the chosen type spell", " spell of the chosen type")
         .replace(" of the chosen type source", " source of the chosen type")
+        // "an ability of a source of the chosen type" (Eclipsed Realms):
+        // any source.
+        .replace(
+            "a permanent source of the chosen type",
+            "a source of the chosen type",
+        )
 }
 
 /// The phrases of a restriction's other ways (`SpendWays`), in printed
@@ -3463,6 +3470,11 @@ fn bound_words(b: mtg_core::card::StatBound, card: &Card, verb: &str) -> String 
         crate::ast::CountExpr::SourceToughness => format!("{}'s toughness", this_ref(card)),
         _ => count_phrase(&c.expr, card, false),
     };
+    if b.cmp == mtg_core::card::Cmp::AtLeast {
+        // "with power greater than or equal to the chosen number" (Expel
+        // the Interlopers).
+        return format!("{stat} greater than or equal to {phrase}");
+    }
     if b.cmp == mtg_core::card::Cmp::Exactly {
         // "with mana value equal to the number of charge counters on this
         // artifact" (Engineered Explosives).
@@ -3581,6 +3593,16 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         mv = format!(" with {}", bound_phrase(b, card));
     }
+    // "target card of the chosen type" (Dawn-Blessed Pennant), "all
+    // creature cards of the chosen type" (Bloodline Bidding): the card
+    // noun first.
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some(c) = g.chosen
+    {
+        g.chosen = None;
+        mv = of_chosen(c).to_string();
+    }
     // "a creature card with no abilities" (Fang-Druid Summoner).
     if g.or.is_none() && mv.is_empty() && g.no_abilities {
         g.no_abilities = false;
@@ -3642,6 +3664,8 @@ fn choice_noun(k: &ChoiceKind) -> String {
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
         ChoiceKind::Named(names) => or_list(names),
         ChoiceKind::Parity => "odd or even".to_string(),
+        ChoiceKind::Number { min, max } => format!("a number between {min} and {max}"),
+        ChoiceKind::CreatureTypeIn(types) => or_list(types),
         ChoiceKind::CardName { nonland: false } => "a card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "a nonland card name".to_string(),
         ChoiceKind::LandType(lands) => or_list(
@@ -4695,6 +4719,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Surveil(n)
         | Effect::LookAtTop { count: n, .. }
         | Effect::DigSplit { count: n, .. }
+        | Effect::Piles { count: n, .. }
         | Effect::ScryEach { count: n, .. } => {
             vec![*n]
         }
@@ -4950,6 +4975,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             // "the number of cards shuffled into your library this way".
             let verb = match verb {
                 mtg_core::card::ThisWay::Shuffled => "shuffled into your library",
+                // "for each card put into your graveyard this way".
+                mtg_core::card::ThisWay::PutInGraveyard => "put into your graveyard",
                 // "for each permanent returned to its owner's hand this
                 // way" (Wanderwine Farewell): permanents, any player's.
                 mtg_core::card::ThisWay::PutInHand
@@ -4973,6 +5000,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             }
         }
         CountExpr::LifeLostThisWay => return "the life lost this way".to_string(),
+        CountExpr::ChosenNumber => return "the chosen number".to_string(),
         CountExpr::Votes { word, .. } => (format!("{word} vote"), format!("{word} votes")),
         CountExpr::Party => (
             "creature in your party".to_string(),
@@ -6808,6 +6836,41 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
+        // CR 700.3: "separate them into two piles".
+        Effect::Piles {
+            count,
+            reveal,
+            face_down,
+            separator,
+            opponent_chooses: _,
+            the_piles,
+        } => {
+            let n = count_words(*count, "one");
+            let into = if *face_down {
+                "a face-down pile and a face-up pile"
+            } else {
+                "two piles"
+            };
+            let put = "Put one pile into your hand and the other into your graveyard";
+            let text = match separator {
+                None => format!(
+                    "{} the top {n} cards of your library and separate them into {into}. An opponent chooses one of {} piles. Put that pile into your hand and the other into your graveyard",
+                    if *reveal { "reveal" } else { "look at" },
+                    if *the_piles { "the" } else { "those" },
+                ),
+                Some(Recipient::EachOpponent) if *reveal => format!(
+                    "reveal the top {n} cards of your library. An opponent separates those cards into {into}. {put}"
+                ),
+                Some(o) => {
+                    let who = ctx.subj(*o);
+                    let verb = if *reveal { "reveals" } else { "looks at" };
+                    format!(
+                        "{who} {verb} the top {n} cards of your library and separates them into {into}. {put}"
+                    )
+                }
+            };
+            Clause::imperative(text)
+        }
         Effect::DigSplit {
             count,
             of,
@@ -8089,6 +8152,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!(
                 "search its controller's graveyard, hand, and library for all cards with the same name as {o} and exile them. Then that player shuffles"
+            ))
+        }
+        // "Search target opponent's graveyard, hand, and library for up to
+        // four cards with that name and exile them. Then that player
+        // shuffles."
+        Effect::ExileChosenName { who, limit } => {
+            let s = ctx.subj(*who);
+            let how = match limit {
+                mtg_core::card::NameSearch::All => "all".to_string(),
+                mtg_core::card::NameSearch::AnyNumber => "any number of".to_string(),
+                mtg_core::card::NameSearch::UpTo(n) => {
+                    format!("up to {}", number_word(u32::from(*n)))
+                }
+            };
+            Clause::imperative(format!(
+                "search {} graveyard, hand, and library for {how} cards with that name and exile them. Then that player shuffles",
+                possessive(&s)
             ))
         }
         Effect::FaceDownSpellsLess(n) => Clause::imperative(format!(
@@ -10318,6 +10398,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 ChoiceKind::Named(names) => or_list(names),
                 ChoiceKind::Parity => "odd or even".to_string(),
+                ChoiceKind::Number { .. } => "the number of your choice".to_string(),
+                ChoiceKind::CreatureTypeIn(types) => or_list(types),
                 ChoiceKind::CardName { .. } => "the card name of your choice".to_string(),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."

@@ -1,0 +1,6 @@
+card "Steam Augury" {
+  oracle_id 0aa556a6-66aa-42f1-ba41-0001e10c20a4
+  cost {2}{U}{R}
+  type Instant
+  spell: piles reveal 5 chosen by opponent
+}

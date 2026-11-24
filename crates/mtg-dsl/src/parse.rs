@@ -964,6 +964,17 @@ impl P {
             };
             return Ok(ChoiceKind::Color { except });
         }
+        if self.eat_words(&["creature", "type", "among"]) {
+            let mut types = vec![self.word()?];
+            while self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+                types.push(self.word()?);
+            }
+            if types.len() < 2 || types.len() > 8 {
+                return self.fail("`creature type among`: two to eight types");
+            }
+            return Ok(ChoiceKind::CreatureTypeIn(types));
+        }
         if self.eat_words(&["creature", "type"]) {
             suffix(self)?;
             let except = if self.eat_word("except") {
@@ -980,6 +991,16 @@ impl P {
         // "choose odd or even".
         if self.eat_words(&["odd", "or", "even"]) {
             return Ok(ChoiceKind::Parity);
+        }
+        // "choose a number between 0 and 10".
+        if self.eat_words(&["number", "between"]) {
+            let min = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            self.expect_word("and")?;
+            let max = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            if min > max {
+                return self.fail("`choose number between`: the least first");
+            }
+            return Ok(ChoiceKind::Number { min, max });
         }
         // "choose a card name", "choose a nonland card name".
         if self.eat_words(&["card", "name"]) {
@@ -6782,6 +6803,37 @@ impl P {
         })
     }
 
+    /// `piles look|reveal N [face-down] [separated by opponent|<who>]
+    /// [chosen by opponent] [the piles]` (`Effect::Piles`).
+    #[inline(never)]
+    fn piles(&mut self) -> R<Effect> {
+        let reveal = self.word()? == "reveal";
+        let count = self.num()?;
+        let face_down = self.eat_word("face-down");
+        let separator = if self.eat_words(&["separated", "by"]) {
+            if self.eat_word("opponent") {
+                Some(Recipient::EachOpponent)
+            } else {
+                Some(self.recipient()?)
+            }
+        } else {
+            None
+        };
+        let opponent_chooses = self.eat_words(&["chosen", "by", "opponent"]);
+        if separator.is_some() == opponent_chooses {
+            return self.fail("`piles`: an opponent either separates or chooses");
+        }
+        let the_piles = self.eat_words(&["the", "piles"]);
+        Ok(Effect::Piles {
+            count,
+            reveal,
+            face_down,
+            separator,
+            opponent_chooses,
+            the_piles,
+        })
+    }
+
     fn split_dest(&mut self) -> R<mtg_core::card::SplitDest> {
         use mtg_core::card::SplitDest;
         Ok(match self.word()?.as_str() {
@@ -9494,6 +9546,8 @@ impl P {
             match self.word_at(k).as_deref() {
                 // `the chosen target 1` names a target.
                 Some("chosen") if self.word_at(k - 1).as_deref() == Some("the") => {}
+                // `exile up to 4 with chosen name from zones of ...`.
+                Some("chosen") if self.word_at(k + 1).as_deref() == Some("name") => {}
                 Some("chosen") => {
                     return verb != "return" || hand || self.word_at(1).as_deref() == Some("up");
                 }
@@ -10043,6 +10097,35 @@ impl P {
         Ok((combats, main))
     }
 
+    /// Whether `exile <limit> with chosen name` follows.
+    fn chosen_name_ahead(&self) -> bool {
+        let skip = match self.word_at(0).as_deref() {
+            Some("all") => 1,
+            Some("any") => 2,
+            Some("up") => 3,
+            _ => return false,
+        };
+        (0..3).all(|i| self.word_at(skip + i).as_deref() == Some(["with", "chosen", "name"][i]))
+    }
+
+    /// `exile up to 4 with chosen name from zones of <who>`
+    /// (`Effect::ExileChosenName`).
+    #[inline(never)]
+    fn exile_chosen_name(&mut self) -> R<Effect> {
+        use mtg_core::card::NameSearch;
+        let limit = if self.eat_word("all") {
+            NameSearch::All
+        } else if self.eat_words(&["any", "number"]) {
+            NameSearch::AnyNumber
+        } else {
+            self.expect_words(&["up", "to"])?;
+            NameSearch::UpTo(u8::try_from(self.number()?).unwrap_or(u8::MAX))
+        };
+        self.expect_words(&["with", "chosen", "name", "from", "zones", "of"])?;
+        let who = self.recipient()?;
+        Ok(Effect::ExileChosenName { who, limit })
+    }
+
     /// `exile same name as target 1 from its controller zones`, out of
     /// `verb_first` (whose frame is large in a debug build).
     #[inline(never)]
@@ -10065,7 +10148,10 @@ impl P {
                 if matches!(
                     self.word_at(0).as_deref(),
                     Some("color" | "creature" | "land")
-                ) || self.at_words(&["odd", "or", "even"]) =>
+                ) || self.at_words(&["odd", "or", "even"])
+                    || self.at_words(&["card", "name"])
+                    || self.at_words(&["number", "between"])
+                    || self.at_words(&["nonland", "card", "name"]) =>
             {
                 Ok(Effect::Choose(self.choice_kind(false)?))
             }
@@ -10699,6 +10785,12 @@ impl P {
                 if self.at_words(&["same", "name", "as"]) {
                     return self.exile_same_name();
                 }
+                // `exile up to 4 with chosen name from zones of target
+                // opponent`, `exile all with chosen name ...`, `exile any
+                // number with chosen name ...`.
+                if self.chosen_name_ahead() {
+                    return self.exile_chosen_name();
+                }
                 // `exile until nonland card`.
                 if self.eat_word("until") {
                     self.revealed = true;
@@ -11146,6 +11238,9 @@ impl P {
             "split" if self.at_word("top") => {
                 self.pos += 1;
                 self.dig_split()
+            }
+            "piles" if matches!(self.word_at(0).as_deref(), Some("look" | "reveal")) => {
+                self.piles()
             }
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),
@@ -12207,6 +12302,10 @@ impl P {
         }
         if self.eat_words(&["life", "lost", "this", "way"]) {
             return Ok(Some(CountExpr::LifeLostThisWay));
+        }
+        // `chosen number`: "the chosen number".
+        if self.eat_words(&["chosen", "number"]) {
+            return Ok(Some(CountExpr::ChosenNumber));
         }
         if let Some(verb) = self
             .word_at(0)
@@ -14513,7 +14612,11 @@ impl P {
                     let (stat, len) = self.stat_bound_ahead().expect("checked");
                     self.pos += 1 + len;
                     let exactly = self.eat_words(&["equal", "to"]);
-                    let strict = if exactly || self.eat_words(&["at", "most"]) {
+                    // `with power at least count equal chosen number`:
+                    // "with power greater than or equal to the chosen
+                    // number".
+                    let at_least = !exactly && self.eat_words(&["at", "least"]);
+                    let strict = if exactly || at_least || self.eat_words(&["at", "most"]) {
                         false
                     } else {
                         self.expect_words(&["less", "than"])?;
@@ -14541,7 +14644,13 @@ impl P {
                     }
                     f.status.bound = Some(mtg_core::card::StatBound {
                         stat,
-                        cmp: if exactly { Cmp::Exactly } else { Cmp::AtMost },
+                        cmp: if exactly {
+                            Cmp::Exactly
+                        } else if at_least {
+                            Cmp::AtLeast
+                        } else {
+                            Cmp::AtMost
+                        },
                         n,
                         strict,
                     });
@@ -15248,7 +15357,9 @@ impl P {
             || (self.word_at(at).as_deref() == Some("less")
                 && self.word_at(at + 1).as_deref() == Some("than"))
             || (self.word_at(at).as_deref() == Some("equal")
-                && self.word_at(at + 1).as_deref() == Some("to"));
+                && self.word_at(at + 1).as_deref() == Some("to"))
+            || (self.word_at(at).as_deref() == Some("at")
+                && self.word_at(at + 1).as_deref() == Some("least"));
         let n_ok = self.word_at(at + 2).as_deref() == Some("count")
             || (self
                 .word_at(at + 2)

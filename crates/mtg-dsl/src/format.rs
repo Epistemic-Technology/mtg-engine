@@ -946,6 +946,37 @@ impl Fmt {
                 }
                 s
             }
+            Effect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+                the_piles,
+            } => {
+                let mut s = format!(
+                    "piles {} {}",
+                    if *reveal { "reveal" } else { "look" },
+                    num(*count)
+                );
+                if *face_down {
+                    s.push_str(" face-down");
+                }
+                match separator {
+                    Some(Recipient::EachOpponent) => s.push_str(" separated by opponent"),
+                    Some(o) => {
+                        let _ = write!(s, " separated by {}", self.recipient(*o, t));
+                    }
+                    None => {}
+                }
+                if *opponent_chooses {
+                    s.push_str(" chosen by opponent");
+                }
+                if *the_piles {
+                    s.push_str(" the piles");
+                }
+                s
+            }
             Effect::DigSplit {
                 count,
                 of,
@@ -1793,6 +1824,15 @@ impl Fmt {
             Effect::ExileSameName { what } => format!(
                 "exile same name as {} from its controller zones",
                 self.recipient(*what, t)
+            ),
+            Effect::ExileChosenName { who, limit } => format!(
+                "exile {} with chosen name from zones of {}",
+                match limit {
+                    mtg_core::card::NameSearch::All => "all".to_string(),
+                    mtg_core::card::NameSearch::AnyNumber => "any number".to_string(),
+                    mtg_core::card::NameSearch::UpTo(n) => format!("up to {n}"),
+                },
+                self.recipient(*who, t)
             ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::NextSpellFree(f) => format!("next {} spell free", filter(f)),
@@ -3719,6 +3759,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             }
         }
         CountExpr::LifeLostThisWay => "life lost this way".to_string(),
+        CountExpr::ChosenNumber => "chosen number".to_string(),
         CountExpr::Votes { word, .. } => format!("votes for {word}"),
         CountExpr::Domain => "domain".to_string(),
         CountExpr::CardsInHand => "hand".to_string(),
@@ -4067,6 +4108,14 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     }
     if g == Filter::default() {
         format!("target card{named}{mv} from {whose}")
+    } else if let Some(c) = g.chosen
+        && (Filter {
+            chosen: None,
+            ..g.clone()
+        }) == Filter::default()
+    {
+        // `target of chosen type card`: no "permanent" for a card.
+        format!("target {} card{named}{mv} from {whose}", of_chosen(c))
     } else {
         format!("target {} card{named}{mv} from {whose}", filter(&g))
     }
@@ -4501,6 +4550,7 @@ fn filter_one(f: &Filter) -> String {
             match (b.strict, b.cmp) {
                 (true, _) => "less than",
                 (false, mtg_core::card::Cmp::Exactly) => "equal to",
+                (false, mtg_core::card::Cmp::AtLeast) => "at least",
                 _ => "at most",
             },
             num(b.n)
@@ -7858,6 +7908,8 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
         ChoiceKind::CardName { nonland: false } => "card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
         ChoiceKind::Parity => "odd or even".to_string(),
+        ChoiceKind::Number { min, max } => format!("number between {min} and {max}"),
+        ChoiceKind::CreatureTypeIn(types) => format!("creature type among {}", types.join(", ")),
     }
 }
 

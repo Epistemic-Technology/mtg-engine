@@ -1,0 +1,529 @@
+# Choices a spell asks for as it resolves: "Choose a card name." then a
+# search for cards with that name (CR 201.3, 701.19b), piles (CR 700.3),
+# "choose a number", a chosen type from a listed set, and a named option
+# that labels a permission.
+
+scenario "Ancient Vendetta: up to four cards with the chosen name, from the hand and library first" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ancient Vendetta"
+  hand B: "Lightning Bolt", "Lightning Bolt", "Shock"
+  graveyard B: "Lightning Bolt", "Lightning Bolt"
+  library B: "Lightning Bolt", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ancient Vendetta" targeting player B
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand B lacks "Lightning Bolt"
+  assert hand B contains "Shock"
+  assert library B lacks "Lightning Bolt"
+  assert graveyard B contains 1 "Lightning Bolt"
+  assert exile B contains 4 "Lightning Bolt"
+  assert graveyard A contains "Ancient Vendetta"
+}
+
+scenario "Ancient Vendetta: an opponent only" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ancient Vendetta"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Ancient Vendetta" targeting player A
+  run_to turn 1 postcombat_main
+}
+
+scenario "Memoricide: a land name isn't offered" {
+  battlefield A: 4 "Swamp"
+  hand A: "Memoricide"
+  hand B: "Forest", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Memoricide" targeting player B
+  illegal turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Forest"
+}
+
+scenario "Memoricide: every card with the nonland name, any zone" {
+  battlefield A: 4 "Swamp"
+  hand A: "Memoricide"
+  hand B: "Shock", "Forest"
+  graveyard B: "Shock", "Shock"
+  library B: "Shock", "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Memoricide" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 5 "Shock"
+  assert hand B contains "Forest"
+  assert library B contains "Island"
+}
+
+scenario "Cranial Extraction: may name the caster's own cards" {
+  battlefield A: 4 "Swamp"
+  hand A: "Cranial Extraction", "Shock"
+  library A: "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cranial Extraction" targeting player A
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile A contains 2 "Shock"
+  assert library A count 1
+}
+
+scenario "Glacierwood Siege: Sultai lets its controller play lands from the graveyard" {
+  battlefield A: "Forest", "Island", "Island"
+  hand A: "Glacierwood Siege"
+  graveyard A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glacierwood Siege"
+  turn 1 A: choose "2"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 0
+  assert battlefield A contains 2 "Forest"
+}
+
+scenario "Glacierwood Siege: Temur gives no graveyard land play" {
+  battlefield A: "Forest", "Island", "Island"
+  hand A: "Glacierwood Siege"
+  graveyard A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glacierwood Siege"
+  turn 1 A: choose "1"
+  illegal turn 1 postcombat_main A: play "Forest"
+  run_to turn 1 end
+  assert graveyard A contains "Forest"
+}
+
+scenario "Glacierwood Siege: Temur mills four on an instant" {
+  battlefield A: "Forest", "Island", "Island", "Mountain"
+  hand A: "Glacierwood Siege", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glacierwood Siege"
+  turn 1 A: choose "1"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: trigger "Glacierwood Siege" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B count 4
+}
+
+scenario "Slaughter Games: an opponent's cards of the chosen name" {
+  battlefield A: "Swamp", "Swamp", "Mountain", "Mountain"
+  hand A: "Slaughter Games"
+  hand B: "Shock", "Lightning Bolt"
+  library B: "Shock", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Slaughter Games" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Shock"
+  assert library B contains "Island"
+  assert hand B contains "Lightning Bolt"
+}
+
+scenario "Stain the Mind: convoke pays, any number of the named cards" {
+  battlefield A: 3 "Swamp", "Grizzly Bears", "Hill Giant"
+  hand A: "Stain the Mind"
+  hand B: "Shock", "Lightning Bolt"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stain the Mind" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Shock"
+  assert hand B contains "Lightning Bolt"
+}
+
+# Piles (CR 700.3): the separator puts cards in the first pile with
+# `choose "X"` and ends it with `choose done`; the rest make the second
+# pile. The chooser then takes `choose "1"` or `"2"`.
+
+scenario "Riddles in the Dark: the opponent takes the face-up pile for the caster's hand" {
+  battlefield A: 3 "Island"
+  hand A: "Riddles in the Dark"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riddles in the Dark"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Giant Growth"
+  assert hand A contains "Murder"
+  assert hand A count 2
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Lightning Bolt"
+  assert library A contains "Plains"
+  assert library A count 1
+}
+
+scenario "Riddles in the Dark: the face-down pile stays unknown to the opponent in hand" {
+  battlefield A: 3 "Island"
+  hand A: "Riddles in the Dark"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riddles in the Dark"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert unknown B "Shock"
+  assert graveyard A count 4
+}
+
+scenario "Riddles in the Dark: one pile may hold all four" {
+  battlefield A: 3 "Island"
+  hand A: "Riddles in the Dark"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riddles in the Dark"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 5
+}
+
+scenario "Intrude on the Mind: a Thopter with a counter for each card put into the graveyard" {
+  battlefield A: 5 "Island"
+  hand A: "Intrude on the Mind"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intrude on the Mind"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A contains "Lightning Bolt"
+  assert hand A count 2
+  assert graveyard A contains "Murder"
+  assert counters "Thopter" +1/+1 3
+  assert power "Thopter" 3
+  assert has "Thopter" flying
+}
+
+scenario "Intrude on the Mind: no card to the graveyard, and the 0/0 Thopter dies" {
+  battlefield A: 5 "Island"
+  hand A: "Intrude on the Mind"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intrude on the Mind"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 5
+  assert battlefield A lacks "Thopter"
+}
+
+scenario "Fact or Fiction: the opponent separates, the caster chooses" {
+  battlefield A: 4 "Island"
+  hand A: "Fact or Fiction"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fact or Fiction"
+  turn 1 B: choose "Murder"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert graveyard A contains "Murder"
+  assert hand A lacks "Murder"
+}
+
+scenario "Epiphany at the Drownyard: X plus one cards" {
+  battlefield A: 3 "Island"
+  hand A: "Epiphany at the Drownyard"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Epiphany at the Drownyard" x 2
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert hand A contains "Giant Growth"
+  assert hand A count 2
+  assert graveyard A contains "Shock"
+  assert library A count 2
+}
+
+scenario "Fortune's Favor: the target opponent separates face-down and face-up" {
+  battlefield A: 4 "Island"
+  hand A: "Fortune's Favor"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fortune's Favor" targeting player B
+  turn 1 B: choose "Murder"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A count 2
+}
+
+scenario "Curator of Destinies: an enters trigger, the opponent chooses" {
+  battlefield A: 6 "Island"
+  hand A: "Curator of Destinies"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Curator of Destinies"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Curator of Destinies"
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert graveyard A count 4
+}
+
+scenario "Sphinx of Uthuun: the opponent separates on entering" {
+  battlefield A: 7 "Island"
+  hand A: "Sphinx of Uthuun"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sphinx of Uthuun"
+  turn 1 B: choose "Shock"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert graveyard A count 4
+}
+
+scenario "Atris, Oracle of Half-Truths: three cards, the target opponent separates" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  hand A: "Atris, Oracle of Half-Truths"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atris, Oracle of Half-Truths"
+  turn 1 A: trigger "Atris, Oracle of Half-Truths" targeting player B
+  turn 1 B: choose "Shock"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Shock"
+  assert library A count 1
+}
+
+scenario "Steam Augury: reveal five, the opponent chooses" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  hand A: "Steam Augury"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steam Augury"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert graveyard A contains "Shock"
+  assert hand A contains "Lightning Bolt"
+}
+
+# "Choose a number between 0 and 10." (`choose "N"`), read by "the chosen
+# number".
+
+scenario "Expel the Interlopers: power greater than or equal to the chosen number" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel", "Llanowar Elves"
+  hand A: "Expel the Interlopers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Expel the Interlopers"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Llanowar Elves"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Expel the Interlopers: zero destroys every creature" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Expel the Interlopers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Expel the Interlopers"
+  turn 1 A: choose "0"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Expel the Interlopers: ten at most" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Expel the Interlopers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Expel the Interlopers"
+  illegal turn 1 A: choose "11"
+  run_to turn 1 postcombat_main
+}
+
+# A chosen type from a listed set (CR 614.12).
+
+scenario "Dawn-Blessed Pennant: a permanent of the chosen type entering gains 1 life" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant", "Llanowar Elves", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "Dawn-Blessed Pennant: another type gains nothing" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Goblin
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Dawn-Blessed Pennant: only the listed types" {
+  battlefield A: "Forest"
+  hand A: "Dawn-Blessed Pennant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  illegal turn 1 A: choose Bear
+  run_to turn 1 postcombat_main
+}
+
+scenario "Dawn-Blessed Pennant: return a card of the chosen type" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant"
+  graveyard A: "Llanowar Elves", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 3 A: activate "Dawn-Blessed Pennant" targeting "Llanowar Elves"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Llanowar Elves"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Dawn-Blessed Pennant"
+}
+
+scenario "Dawn-Blessed Pennant: not a card of another type" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant"
+  graveyard A: "Llanowar Elves", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  illegal turn 3 A: activate "Dawn-Blessed Pennant" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Eclipsed Realms: its colored mana casts a spell of the chosen type" {
+  hand A: "Eclipsed Realms", "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: play "Eclipsed Realms"
+  turn 1 A: choose Elf
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Eclipsed Realms: nor a spell of another type" {
+  hand A: "Eclipsed Realms", "Giant Growth"
+  battlefield A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: play "Eclipsed Realms"
+  turn 1 A: choose Elf
+  illegal turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Bloodline Bidding: every creature card of the chosen type returns" {
+  battlefield A: 8 "Swamp"
+  hand A: "Bloodline Bidding"
+  graveyard A: "Llanowar Elves", "Elvish Visionary", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bloodline Bidding"
+  turn 1 A: choose Elf
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert battlefield A contains "Elvish Visionary"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# A named option labeling a "triggers an additional time" ability.
+
+scenario "Windcrag Siege: Mardu doubles an attack trigger" {
+  battlefield A: "Mountain", "Plains", "Mountain", "Sanguine Syphoner"
+  hand A: "Windcrag Siege"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Windcrag Siege"
+  turn 2 A: choose "1"
+  turn 2 A: attack "Sanguine Syphoner"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 22
+}
+
+scenario "Windcrag Siege: Jeskai doesn't double it" {
+  battlefield A: "Mountain", "Plains", "Mountain", "Sanguine Syphoner"
+  hand A: "Windcrag Siege"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Windcrag Siege"
+  turn 2 A: choose "2"
+  turn 2 A: attack "Sanguine Syphoner"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 21
+}
+
+scenario "Windcrag Siege: Jeskai makes a Goblin with lifelink and haste each upkeep" {
+  battlefield A: "Mountain", "Plains", "Mountain"
+  hand A: "Windcrag Siege"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Windcrag Siege"
+  turn 2 A: choose "2"
+  run_to turn 4 draw
+  assert battlefield A contains "Goblin"
+  assert has "Goblin" haste
+  assert has "Goblin" lifelink
+}
+
+scenario "Unesh, Criosphinx Sovereign: piles once as it enters" {
+  battlefield A: 6 "Island"
+  hand A: "Unesh, Criosphinx Sovereign"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains", "Island", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unesh, Criosphinx Sovereign"
+  turn 1 B: choose "Shock"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Shock"
+  assert library A count 5
+}
+
+scenario "Unesh, Criosphinx Sovereign: another Sphinx costs {2} less and triggers it" {
+  battlefield A: 5 "Island", "Unesh, Criosphinx Sovereign"
+  hand A: "Sphinx of Uthuun"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains", "Island", "Forest", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sphinx of Uthuun"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sphinx of Uthuun"
+  assert library A count 1
+}

@@ -636,7 +636,7 @@ scenario "Ghirapur Aether Grid: not with one artifact" {
 }
 
 scenario "Whirler Rogue: two Thopters make a creature unblockable" {
-  battlefield A: "Whirler Rogue", 2 "Thopter"
+  battlefield A: "Whirler Rogue", 2 "1/1 colorless Thopter artifact creature with flying"
   battlefield B: "Hill Giant"
   start turn 2 A precombat_main
   turn 2 A: activate "Whirler Rogue" targeting "Whirler Rogue"

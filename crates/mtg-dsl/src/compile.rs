@@ -2058,6 +2058,22 @@ impl Compiler<'_> {
             AbilityDef::Replacement(r) if r.condition.is_none() => {
                 r.condition = Some(self.pool.intern_condition(c));
             }
+            // "• Mardu — If a creature attacking causes a triggered ability
+            // ... to trigger, that ability triggers an additional time."
+            AbilityDef::TriggerAgain { condition, .. } if condition.is_none() => {
+                *condition = Some(self.pool.intern_condition(c));
+            }
+            // "• Sultai — You may play lands from your graveyard." (a
+            // player-level static, judged for its source, CR 611.3a).
+            AbilityDef::PlayerStatic { condition, .. } => {
+                let both = match condition.take() {
+                    Some(j) => {
+                        StaticCondition::And(Box::new(c), Box::new(self.pool.condition(j).clone()))
+                    }
+                    None => c,
+                };
+                *condition = Some(self.pool.intern_condition(both));
+            }
             _ => {
                 return self.err(format!(
                     "{what} applies to a static, activated, triggered, or cost ability"
@@ -2719,6 +2735,7 @@ impl Compiler<'_> {
                 C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
             }
             A::LifeLostThisWay => C::LifeLostThisWay,
+            A::ChosenNumber => C::ChosenNumber,
             A::Votes { index, .. } => C::Votes(*index),
             A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
             A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
@@ -3192,6 +3209,20 @@ impl Compiler<'_> {
             }
             ChoiceKind::CardName { nonland } => CoreChoiceKind::CardName { nonland: *nonland },
             ChoiceKind::Parity => CoreChoiceKind::Parity,
+            ChoiceKind::CreatureTypeIn(names) => {
+                let mut types = [mtg_core::card::Subtype::default(); 8];
+                for (t, n) in types.iter_mut().zip(names) {
+                    *t = self.pool.subtype(n);
+                }
+                CoreChoiceKind::CreatureTypeIn {
+                    types,
+                    len: u8::try_from(names.len().min(8)).unwrap_or(8),
+                }
+            }
+            ChoiceKind::Number { min, max } => CoreChoiceKind::Number {
+                min: *min,
+                max: *max,
+            },
         }
     }
 
@@ -3577,6 +3608,12 @@ impl Compiler<'_> {
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::ExileSameName { what } => {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
+            }
+            Effect::ExileChosenName { who, limit } => {
+                out.push(CoreEffect::ExileChosenName {
+                    who: r(*who),
+                    limit: *limit,
+                });
             }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::NextSpellFree(f) => {
@@ -4741,6 +4778,20 @@ impl Compiler<'_> {
             Effect::RevealTop { who, look, .. } => out.push(CoreEffect::RevealTop {
                 who: r(who.unwrap_or(Recipient::You)),
                 look: *look,
+            }),
+            Effect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+                ..
+            } => out.push(CoreEffect::Piles {
+                count: *count,
+                reveal: *reveal,
+                face_down: *face_down,
+                separator: separator.map(r),
+                opponent_chooses: *opponent_chooses,
             }),
             Effect::DigSplit {
                 count,
@@ -6301,6 +6352,7 @@ impl Compiler<'_> {
                 battlefield: *battlefield,
                 cause: *cause,
                 suppress: *suppress,
+                condition: None,
             },
             Ability::CantAttackYou {
                 filter,

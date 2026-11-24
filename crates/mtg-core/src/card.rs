@@ -1637,7 +1637,8 @@ impl ObjFilter {
             }
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
-            | crate::state::Chosen::Option(_) => {
+            | crate::state::Chosen::Option(_)
+            | crate::state::Chosen::Number(_) => {
                 f.colors = Some(ColorSet::default());
             }
         }
@@ -2079,6 +2080,9 @@ pub enum CountExpr {
     /// Life the resolution made players lose ("You gain life equal to the
     /// life lost this way").
     LifeLostThisWay,
+    /// "the chosen number": the number chosen earlier in the resolution
+    /// (`ChoiceKind::Number`), 0 with none.
+    ChosenNumber,
     /// The objects the most recent group of this resolution denoted ("You
     /// gain 1 life for each of those creatures"; `Recipient::ThoseObjects`).
     ThoseObjects,
@@ -2382,6 +2386,7 @@ impl CountExpr {
             | CountExpr::TargetStat { .. }
             | CountExpr::ThisWay(..)
             | CountExpr::LifeLostThisWay
+            | CountExpr::ChosenNumber
             | CountExpr::ThoseObjects
             | CountExpr::TriggerCounters(_)
             | CountExpr::Votes(_)
@@ -4713,6 +4718,18 @@ pub enum Effect {
     ExileSameName {
         what: Recipient,
     },
+    /// "Choose a card name. Search target opponent's graveyard, hand, and
+    /// library for up to four cards with that name and exile them. Then
+    /// that player shuffles." (Ancient Vendetta, Memoricide, Cranial
+    /// Extraction): the name chosen earlier in the resolution
+    /// (`Effect::Choose` of a `ChoiceKind::CardName`), in `who`'s zones.
+    /// The engine finds every card it may (CR 701.19b lets a searcher fail
+    /// to find them), up to `limit`: from the hand first, then the
+    /// library, then the graveyard. Then that library is shuffled.
+    ExileChosenName {
+        who: Recipient,
+        limit: NameSearch,
+    },
     Untap {
         to: Recipient,
     },
@@ -5334,6 +5351,27 @@ pub enum Effect {
         opponent: bool,
         piles: Vec<SplitDest>,
         rest: Option<SplitDest>,
+    },
+    /// "Reveal the top five cards of your library and separate them into
+    /// two piles. An opponent chooses one of those piles. Put that pile
+    /// into your hand and the other into your graveyard." (Steam Augury),
+    /// "An opponent separates those cards into two piles. Put one pile
+    /// into your hand ..." (Fact or Fiction), "... into a face-down pile
+    /// and a face-up pile" (Riddles in the Dark) (CR 700.3): the top
+    /// `count` cards of the controller's library, revealed with `reveal`
+    /// (else looked at by the separator). `separator` (the controller
+    /// with none) puts each card in one of two piles (CR 700.3a: a pile
+    /// may be empty); with `face_down`, the cards of the first pile stay
+    /// unknown to the other players and the second pile's are revealed.
+    /// Then the chooser (an opponent with `opponent_chooses`, else the
+    /// controller) picks a pile: it goes to the controller's hand, the
+    /// other to their graveyard.
+    Piles {
+        count: Num,
+        reveal: bool,
+        face_down: bool,
+        separator: Option<Recipient>,
+        opponent_chooses: bool,
     },
     /// "Exile the top two cards of your library. Until the end of your next
     /// turn, you may play those cards." (impulse draw): the controller may
@@ -6033,6 +6071,7 @@ impl Effect {
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::DigSplit { .. }
+                | Effect::Piles { .. }
                 | Effect::ManifestDread
                 | Effect::Champion(_)
                 | Effect::Blight(_)
@@ -6150,6 +6189,9 @@ pub enum ThisWay {
     /// each nonland card revealed this way"): the resolution's revealed
     /// cards, not a zone change, so only a count reads it.
     Revealed,
+    /// Put into a graveyard from anywhere else ("for each card put into
+    /// your graveyard this way", Intrude on the Mind's pile).
+    PutInGraveyard,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this
@@ -6284,6 +6326,23 @@ pub enum ChoiceKind {
     /// game (any zone, either player's), since naming another card has no
     /// effect on play.
     CardName { nonland: bool },
+    /// One of these creature types ("choose Elemental, Elf, Faerie, Giant,
+    /// Goblin, Kithkin, Merfolk, or Treefolk"): the first `len`.
+    CreatureTypeIn { types: [Subtype; 8], len: u8 },
+    /// "choose a number between 0 and 10" (Expel the Interlopers):
+    /// `Chosen::Number`, read by the count `CountExpr::ChosenNumber`.
+    Number { min: u8, max: u8 },
+}
+
+/// How many cards with the chosen name `Effect::ExileChosenName` finds.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum NameSearch {
+    /// "all cards with that name".
+    All,
+    /// "any number of cards with that name" (the engine finds them all).
+    AnyNumber,
+    /// "up to four cards with that name".
+    UpTo(u8),
 }
 
 /// What a chosen-name ban forbids (`PlayerStaticKind::ChosenName`).
@@ -8709,6 +8768,11 @@ pub enum AbilityDef {
         cause: TriggerCause,
         #[serde(default)]
         suppress: bool,
+        /// While this pool condition holds (judged for the source): a
+        /// named option's ability ("• Mardu — If a creature attacking
+        /// causes ...").
+        #[serde(default)]
+        condition: Option<u16>,
     },
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).

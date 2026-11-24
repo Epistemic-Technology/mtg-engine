@@ -1,0 +1,7 @@
+token "0/0 colorless Thopter artifact creature with flying" {
+  name "Thopter"
+  type Artifact Creature — Thopter
+  pt 0/0
+  color
+  keywords flying
+}

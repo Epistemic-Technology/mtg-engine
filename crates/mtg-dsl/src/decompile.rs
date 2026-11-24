@@ -1102,6 +1102,10 @@ impl Decompiler<'_> {
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::ExileSameName { what } => Effect::ExileSameName { what: r(*what) },
+            CoreEffect::ExileChosenName { who, limit } => Effect::ExileChosenName {
+                who: r(*who),
+                limit: *limit,
+            },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::NextSpellFree(f) => Effect::NextSpellFree(self.filter(f)),
             CoreEffect::NextSpellUncounterable => Effect::NextSpellUncounterable,
@@ -1902,6 +1906,20 @@ impl Decompiler<'_> {
                 look: *look,
                 of: false,
             },
+            CoreEffect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+            } => Effect::Piles {
+                count: *count,
+                reveal: *reveal,
+                face_down: *face_down,
+                separator: separator.map(r),
+                opponent_chooses: *opponent_chooses,
+                the_piles: false,
+            },
             CoreEffect::DigSplit {
                 count,
                 of,
@@ -2679,6 +2697,7 @@ impl Decompiler<'_> {
                 battlefield,
                 cause,
                 suppress,
+                ..
             } => Ability::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),
@@ -3107,6 +3126,13 @@ impl Decompiler<'_> {
             }
             CoreChoiceKind::CardName { nonland } => ChoiceKind::CardName { nonland },
             CoreChoiceKind::Parity => ChoiceKind::Parity,
+            CoreChoiceKind::CreatureTypeIn { types, len } => ChoiceKind::CreatureTypeIn(
+                types[..usize::from(len)]
+                    .iter()
+                    .map(|s| self.pool.subtype_name(*s).to_string())
+                    .collect(),
+            ),
+            CoreChoiceKind::Number { min, max } => ChoiceKind::Number { min, max },
         }
     }
 }

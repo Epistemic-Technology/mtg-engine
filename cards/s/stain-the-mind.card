@@ -1,0 +1,7 @@
+card "Stain the Mind" {
+  oracle_id 1994d563-8726-49c9-a18a-6ba2604a8cb7
+  cost {4}{B}
+  type Sorcery
+  keywords convoke
+  spell: choose nonland card name; exile any number with chosen name from zones of target player
+}

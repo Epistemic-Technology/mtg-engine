@@ -1,0 +1,6 @@
+card "Fact or Fiction" {
+  oracle_id 437b2dab-15e0-4b9a-a204-58622d37a3b3
+  cost {3}{U}
+  type Instant
+  spell: piles reveal 5 separated by opponent
+}

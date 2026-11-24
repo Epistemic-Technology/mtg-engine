@@ -1,0 +1,8 @@
+card "Dawn-Blessed Pennant" {
+  oracle_id 311eef28-21e9-44fa-96df-d281f0a9ba34
+  cost {1}
+  type Artifact
+  as this enters choose creature type among Elemental, Elf, Faerie, Giant, Goblin, Kithkin, Merfolk, Treefolk
+  triggered whenever permanent you control of chosen type enters: you gain 1 life
+  activated {2}, {T}, sacrifice this: return target of chosen type card from your graveyard to hand
+}

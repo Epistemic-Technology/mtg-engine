@@ -1,0 +1,6 @@
+card "Ancient Vendetta" {
+  oracle_id 6f053f0d-c9c7-4fcd-b218-a29d1d080104
+  cost {3}{B}
+  type Sorcery
+  spell: choose card name; exile up to 4 with chosen name from zones of target opponent
+}

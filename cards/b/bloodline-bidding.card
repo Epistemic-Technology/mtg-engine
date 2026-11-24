@@ -1,0 +1,7 @@
+card "Bloodline Bidding" {
+  oracle_id bdb9e933-f679-4930-b669-0d123db09d16
+  cost {6}{B}{B}
+  type Sorcery
+  keywords convoke
+  spell: choose creature type; return all of chosen type creature card from your graveyard to battlefield
+}
