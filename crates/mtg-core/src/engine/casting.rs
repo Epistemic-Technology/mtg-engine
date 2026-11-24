@@ -6487,15 +6487,28 @@ impl GameState {
         self.payable(o.controller, &sources, &ps.mana_pool, &req, ps.life, None)
     }
 
-    /// Whether `spell` could be paid for with `t` as its first target.
-    pub(super) fn target_payable(&self, spell: ObjId, t: Target) -> bool {
+    /// Whether `spell` could be paid for with `t` as its next target, the
+    /// specs in `later` still to be chosen: "if it targets ..." is any of
+    /// its targets, so a cheaper cost still counts when a later spec has a
+    /// fitting legal target.
+    pub(super) fn target_payable(&self, spell: ObjId, t: Target, later: &[TargetSpec]) -> bool {
         let o = &self.objects[spell];
         let def = self.pool.get(o.def);
         let Some(tc) = &def.target_cost else {
             return true;
         };
+        let fits = |t: &Target| self.target_fits(&tc.1, *t, o.controller, spell);
+        // `spell_requirements` counts the targets chosen so far.
         let mut req = self.spell_requirements(spell, self.x_of(spell));
-        if self.target_fits(&tc.1, t, o.controller, spell) {
+        if !o.targets.iter().any(fits)
+            && (fits(&t)
+                || (tc.0 < 0
+                    && later.iter().any(|s| {
+                        self.legal_targets(o.controller, *s, Some(spell))
+                            .iter()
+                            .any(fits)
+                    })))
+        {
             adjust_generic(&mut req, tc.0);
         }
         let sources = self.spell_sources(spell);
