@@ -136,3 +136,16 @@ scenario "Shared Discovery: tap four Elves and pay {U} with Birds of Paradise" {
   assert hand A count 3
   assert tapped "Birds of Paradise"
 }
+
+# A bare token name takes the first token of that name: "Spirit" is the
+# 0/0 white Spirit, which dies at once. The full token name sets up the one
+# meant.
+scenario "Shacklegeist: a Spirit token counts for its tap cost" {
+  battlefield A: "Shacklegeist", "1/1 white Spirit creature with flying"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shacklegeist" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Spirit"
+}
