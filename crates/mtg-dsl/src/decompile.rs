@@ -2262,7 +2262,9 @@ impl Decompiler<'_> {
                 opponent,
                 piles,
                 rest,
+                alternate,
             } => Effect::DigSplit {
+                alternate: *alternate,
                 count: *count,
                 of: match r(*of) {
                     Recipient::You => None,
@@ -2455,7 +2457,13 @@ impl Decompiler<'_> {
                 split,
                 until,
                 field,
+                second,
+                exile_plot,
+                rest_hand,
             } => Effect::Dig {
+                exile_plot: *exile_plot,
+                rest_hand: *rest_hand,
+                second: second.as_ref().map(|s| Box::new((self.filter(&s.0), s.1))),
                 field: field.map(|fd| {
                     Box::new(crate::ast::DigField {
                         cond: fd.cond.map(|c| self.static_cond(self.pool.condition(c))),

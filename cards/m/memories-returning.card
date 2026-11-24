@@ -1,0 +1,7 @@
+card "Memories Returning" {
+  oracle_id 6cdc6548-cb32-437f-850a-9002542ad3d5
+  cost {2}{U}{U}
+  type Sorcery
+  spell: split top 5 reveal alternate into hand, bottom, hand, bottom rest hand
+  flashback {7}{U}{U}
+}

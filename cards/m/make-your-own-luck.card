@@ -1,0 +1,6 @@
+card "Make Your Own Luck" {
+  oracle_id 41246140-4b44-40c4-b92b-501e49c50bf7
+  cost {3}{G}{U}
+  type Sorcery
+  spell: dig 3 take nonland card may exile plotted rest hand
+}

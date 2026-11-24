@@ -7,7 +7,9 @@
 # battlefield and returned at the next end step (Random Encounter),
 # "reveal that many cards" (Ojer Kaslem), and a revealed card that may go
 # onto the battlefield instead of the hand (Whiskervale Forerunner, Break
-# Out).
+# Out), a second take onto the battlefield (Choco, Seeker of Paradise),
+# picks alternating with an opponent (Memories Returning), and a card
+# exiled and plotted from a dig (Make Your Own Luck).
 
 scenario "dig take X: Stargaze for X=2 looks at four, takes two, mills two, loses 2 life" {
   battlefield A: 4 "Swamp"
@@ -215,4 +217,80 @@ scenario "dig field: Break Out puts a larger creature into the hand" {
   assert hand A contains "Hill Giant"
   assert battlefield A lacks "Hill Giant"
   assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "dig second take: Choco looks at one card per attacking Bird, a card to hand, lands onto the battlefield" {
+  battlefield A: "Choco, Seeker of Paradise", 2 "Birds of Paradise"
+  library A: "Plains", "Grizzly Bears", "Forest", "Island", "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Choco, Seeker of Paradise", "Birds of Paradise", "Birds of Paradise"
+  turn 3 declare_attackers A: choose "Grizzly Bears"
+  turn 3 declare_attackers A: choose "Forest"
+  turn 3 declare_attackers A: choose done
+  run_to turn 3 declare_blockers
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert graveyard A contains "Island"
+  assert library A count 1
+  assert power "Choco, Seeker of Paradise" 4
+}
+
+scenario "dig split alternate: Memories Returning, you and an opponent pick in turn" {
+  battlefield A: 4 "Island"
+  hand A: "Memories Returning"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Shock", "Plains"
+  turn 1 A: cast "Memories Returning"
+  turn 1 A: choose "Serra Angel"
+  turn 1 B: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 B: choose "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert hand A contains "Serra Angel"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Shock"
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Wind Drake"
+  assert library A count 3
+}
+
+scenario "dig exile plotted: Make Your Own Luck plots a nonland card, the rest to hand" {
+  battlefield A: 4 "Forest", "Island"
+  hand A: "Make Your Own Luck"
+  library A: "Grizzly Bears", "Forest", "Shock", "Plains", "Plains"
+  turn 1 A: cast "Make Your Own Luck"
+  turn 1 A: choose "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+  assert hand A contains "Shock"
+  assert hand A count 2
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "dig exile plotted: Make Your Own Luck can't plot a land" {
+  battlefield A: 4 "Forest", "Island"
+  hand A: "Make Your Own Luck"
+  library A: "Forest", "Plains", "Island", "Plains"
+  turn 1 A: cast "Make Your Own Luck"
+  run_to turn 1 end
+  assert hand A count 3
+  assert exile A count 0
+}
+
+scenario "dig that many: Doomskar Warrior reveals a land from among that many" {
+  battlefield A: "Doomskar Warrior"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Island", "Forest", "Serra Angel"
+  start turn 3 A
+  turn 3 A: attack "Doomskar Warrior"
+  turn 3 combat_damage A: choose "Forest"
+  run_to turn 3 postcombat_main
+  assert life B 16
+  assert hand A contains "Forest"
+  assert library A contains "Serra Angel"
+  assert library A count 4
 }

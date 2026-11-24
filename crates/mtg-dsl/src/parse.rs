@@ -7806,6 +7806,7 @@ impl P {
         };
         let reveal = self.eat_word("reveal");
         let opponent = self.eat_word("opponent");
+        let alternate = !opponent && self.eat_word("alternate");
         self.expect_word("into")?;
         let mut piles = vec![self.split_dest()?];
         while self.peek() == Some(&Tok::Comma) {
@@ -7826,6 +7827,7 @@ impl P {
             piles,
             rest,
             then,
+            alternate,
         })
     }
 
@@ -13345,10 +13347,21 @@ impl P {
                 };
                 // `take card may top`: back on top of the library.
                 let top = self.eat_word("top");
+                // `exile plotted`: exiled, and it becomes plotted.
+                let exile_plot = self.eat_words(&["exile", "plotted"]);
                 // `onto battlefield [tapped]`: onto the battlefield instead
                 // of into the hand.
                 let onto = if self.eat_words(&["onto", "battlefield"]) {
                     Some(self.eat_word("tapped"))
+                } else {
+                    None
+                };
+                // `then any land card onto battlefield tapped`: a second
+                // take onto the battlefield (Choco, Seeker of Paradise).
+                let second = if self.eat_words(&["then", "any"]) {
+                    let f = self.filter()?;
+                    self.expect_words(&["card", "onto", "battlefield"])?;
+                    Some(Box::new((f, self.eat_word("tapped"))))
                 } else {
                     None
                 };
@@ -13366,10 +13379,14 @@ impl P {
                 };
                 self.expect_word("rest")?;
                 let shuffle = self.eat_word("shuffle");
+                let mut rest_hand = false;
                 let rest_graveyard = if shuffle {
                     false
                 } else if self.eat_word("graveyard") {
                     true
+                } else if exile_plot && self.eat_word("hand") {
+                    rest_hand = true;
+                    false
                 } else {
                     self.expect_word("bottom")?;
                     false
@@ -13456,6 +13473,9 @@ impl P {
                     alt,
                     until,
                     field,
+                    second,
+                    exile_plot,
+                    rest_hand,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {

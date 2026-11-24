@@ -17871,6 +17871,9 @@ impl GameState {
                 split,
                 until,
                 field,
+                second,
+                exile_plot,
+                rest_hand,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -17954,10 +17957,12 @@ impl GameState {
                     // land card").
                     // "Put X cards from among them" (Stargaze): the take as
                     // a number, X the spell's.
+                    let any = take_num.is_none() && *take == u32::MAX;
                     let take = take_num.map_or(*take as usize, |k| self.eval_num(k, ctx) as usize);
+                    // "Put any number of ...": none is a number too.
                     let picks: Vec<(Option<&crate::card::ObjFilter>, bool)> =
                         std::iter::repeat_n(filter.as_ref(), take.min(top.len()))
-                            .map(|f| (f, *optional))
+                            .map(|f| (f, *optional || any))
                             .chain(also.as_ref().map(|f| (Some(f), true)))
                             .collect();
                     // "with total mana value 6 or less": only a card that
@@ -18036,6 +18041,16 @@ impl GameState {
                         );
                         ctx.created = Some(new);
                     }
+                } else if *exile_plot {
+                    // "You may exile a nonland card from among them. If you
+                    // do, it becomes plotted." (CR 702.170a).
+                    for id in &taken {
+                        let new = self.move_object(*id, Zone::Exile, false);
+                        if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                            self.mark_plotted(new);
+                            ctx.created = Some(new);
+                        }
+                    }
                 } else if let Some(fd) = field {
                     // "You may put it onto the battlefield if it's your turn.
                     // If you don't put it onto the battlefield, put it into
@@ -18085,6 +18100,44 @@ impl GameState {
                         self.move_object(*id, Zone::Hand, false);
                     }
                 }
+                // "Then put any number of land cards from among them onto the
+                // battlefield tapped": one at a time, the controller choosing
+                // (CR 110.2a: under their control).
+                if let Some(sec) = second {
+                    loop {
+                        let mut options: Vec<Choice> = top
+                            .iter()
+                            .copied()
+                            .filter(|id| {
+                                !taken.contains(id)
+                                    && self
+                                        .objects
+                                        .get(*id)
+                                        .is_some_and(|o| o.zone == Zone::Library)
+                                    && matches(self, Some(&sec.0), *id)
+                            })
+                            .map(|id| Choice::Target(Target::Object(id)))
+                            .collect();
+                        if options.is_empty() {
+                            break;
+                        }
+                        options.push(Choice::Done);
+                        let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                        let Choice::Target(Target::Object(id)) = options[k] else {
+                            break;
+                        };
+                        taken.push(id);
+                        let new = self.put_onto_battlefield_with(
+                            id,
+                            p,
+                            super::replace::Enter {
+                                tapped: sec.1,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        ctx.created = Some(new);
+                    }
+                }
                 // "Then shuffle." (CR 701.24): the rest stay; the library is
                 // shuffled.
                 let mut top = top;
@@ -18107,6 +18160,8 @@ impl GameState {
                     }
                     if *rest_graveyard {
                         self.move_object(id, Zone::Graveyard, false);
+                    } else if *rest_hand {
+                        self.move_object(id, Zone::Hand, false);
                     } else {
                         self.move_object(id, Zone::Library, false);
                     }
@@ -18119,7 +18174,10 @@ impl GameState {
                 opponent,
                 piles,
                 rest,
-            } => self.dig_split(ctx, *count, *of, *reveal, *opponent, piles, *rest),
+                alternate,
+            } => self.dig_split(
+                ctx, *count, *of, *reveal, *opponent, piles, *rest, *alternate,
+            ),
             Effect::Piles {
                 count,
                 reveal,
@@ -18841,6 +18899,7 @@ impl GameState {
         opponent: bool,
         piles: &[crate::card::SplitDest],
         rest: Option<crate::card::SplitDest>,
+        alternate: bool,
     ) {
         use crate::card::SplitDest;
         let Some(Target::Player(owner)) = self.recipients(ctx, of).first().copied() else {
@@ -18860,6 +18919,10 @@ impl GameState {
         } else {
             ctx.controller
         };
+        // "Then choose an opponent. They put one on the bottom of your
+        // library." (Memories Returning): every other pick is theirs.
+        // (Two players: the opponent is the one chosen.)
+        let other = alternate.then(|| self.opponent(ctx.controller));
         let bits = 1u8 << ctx.controller.index().min(7);
         for id in &left {
             if reveal {
@@ -18885,10 +18948,14 @@ impl GameState {
             }
             SplitDest::Top => on_top.push(id),
         };
-        for d in piles {
+        for (i, d) in piles.iter().enumerate() {
             if left.is_empty() {
                 break;
             }
+            let chooser = match other {
+                Some(q) if i % 2 == 1 => q,
+                _ => chooser,
+            };
             let k = if left.len() == 1 {
                 0
             } else {

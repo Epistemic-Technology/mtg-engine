@@ -6721,6 +6721,17 @@ pub enum Effect {
         /// `revealing field ...`: the revealed card may go onto the
         /// battlefield instead.
         field: Option<Box<DigField>>,
+        /// `then any land card onto battlefield tapped`: after the take, any
+        /// number of the cards left matching this go onto the battlefield
+        /// (tapped with `true`) before the rest go ("Then put any number of
+        /// land cards from among them onto the battlefield tapped and the
+        /// rest into your graveyard.").
+        second: Option<Box<(Filter, bool)>>,
+        /// `take nonland card may exile plotted rest hand`: "You may exile a
+        /// nonland card from among them. If you do, it becomes plotted. Put
+        /// the rest into your hand." (`rest_hand`: the rest into the hand).
+        exile_plot: bool,
+        rest_hand: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order"; `look at top 3 of target player`:
@@ -6776,6 +6787,10 @@ pub enum Effect {
         piles: Vec<mtg_core::card::SplitDest>,
         rest: Option<mtg_core::card::SplitDest>,
         then: bool,
+        /// `alternate`: you and a chosen opponent pick in turn ("Then
+        /// choose an opponent. They put one on the bottom of your library.
+        /// Then you put one into your hand. ...", Memories Returning).
+        alternate: bool,
     },
     /// `reveal top card` ("reveal the top card of your library"), `look at
     /// top card` ("look at the top card of your library"), `<who> reveals

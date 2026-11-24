@@ -1203,6 +1203,7 @@ impl Fmt {
                 piles,
                 rest,
                 then,
+                alternate,
             } => {
                 let dest = |d: &mtg_core::card::SplitDest| {
                     use mtg_core::card::SplitDest;
@@ -1223,6 +1224,9 @@ impl Fmt {
                 }
                 if *opponent {
                     s.push_str(" opponent");
+                }
+                if *alternate {
+                    s.push_str(" alternate");
                 }
                 s.push_str(" into ");
                 s.push_str(&piles.iter().map(dest).collect::<Vec<_>>().join(", "));
@@ -1683,6 +1687,9 @@ impl Fmt {
                 alt,
                 until,
                 field,
+                second,
+                exile_plot,
+                rest_hand,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *until {
@@ -1744,9 +1751,18 @@ impl Fmt {
                 if *top {
                     s.push_str(" top");
                 }
+                if *exile_plot {
+                    s.push_str(" exile plotted");
+                }
                 if let Some(tapped) = onto {
                     s.push_str(" onto battlefield");
                     if *tapped {
+                        s.push_str(" tapped");
+                    }
+                }
+                if let Some(sec) = second {
+                    let _ = write!(s, " then any {} card onto battlefield", filter(&sec.0));
+                    if sec.1 {
                         s.push_str(" tapped");
                     }
                 }
@@ -1757,6 +1773,8 @@ impl Fmt {
                     " rest shuffle"
                 } else if *rest_graveyard {
                     " rest graveyard"
+                } else if *rest_hand {
+                    " rest hand"
                 } else {
                     " rest bottom"
                 });

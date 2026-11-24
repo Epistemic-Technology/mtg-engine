@@ -5516,6 +5516,7 @@ impl Compiler<'_> {
                 opponent,
                 piles,
                 rest,
+                alternate,
                 ..
             } => out.push(CoreEffect::DigSplit {
                 count: *count,
@@ -5524,6 +5525,7 @@ impl Compiler<'_> {
                 opponent: *opponent,
                 piles: piles.clone(),
                 rest: *rest,
+                alternate: *alternate,
             }),
             Effect::Shuffle { who, .. } => out.push(CoreEffect::ShuffleLibrary { who: r(*who) }),
             Effect::MoveCounters {
@@ -5783,6 +5785,9 @@ impl Compiler<'_> {
                 alt,
                 until,
                 field,
+                second,
+                exile_plot,
+                rest_hand,
                 ..
             } => {
                 let field = field.as_ref().map(|fd| mtg_core::card::DigField {
@@ -5794,7 +5799,10 @@ impl Compiler<'_> {
                     haste: fd.haste,
                 });
                 let base = CoreEffect::Dig {
+                    exile_plot: *exile_plot,
+                    rest_hand: *rest_hand,
                     field,
+                    second: second.as_ref().map(|s| Box::new((self.filter(&s.0), s.1))),
                     count: *count,
                     filter: filter.as_ref().map(|f| self.filter(f)),
                     optional: *optional,

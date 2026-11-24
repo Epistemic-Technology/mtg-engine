@@ -8390,9 +8390,43 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             piles,
             rest,
             then,
+            alternate,
         } => {
             use mtg_core::card::SplitDest;
             let n = count_words(*count, "one");
+            // "Reveal the top five cards of your library. Put one of them
+            // into your hand. Then choose an opponent. They put one on the
+            // bottom of your library. Then you put one into your hand. Then
+            // they put one on the bottom of your library. Put the other into
+            // your hand." (Memories Returning).
+            if *alternate {
+                let place = |d: SplitDest| match d {
+                    SplitDest::Hand => "into your hand",
+                    SplitDest::Graveyard => "into your graveyard",
+                    SplitDest::Top => "on top of your library",
+                    SplitDest::Bottom => "on the bottom of your library",
+                    SplitDest::Exile => "into exile",
+                };
+                let verb = if *reveal { "reveal" } else { "look at" };
+                let mut text = format!("{verb} the top {n} cards of your library");
+                for (i, d) in piles.iter().enumerate() {
+                    let p = place(*d);
+                    let _ = match i {
+                        0 => write!(text, ". Put one of them {p}. Then choose an opponent"),
+                        1 => write!(text, ". They put one {p}"),
+                        _ if i % 2 == 1 => write!(text, ". Then they put one {p}"),
+                        _ => write!(text, ". Then you put one {p}"),
+                    };
+                }
+                if let Some(r) = rest {
+                    let left = match *count {
+                        Num::N(k) if k as usize == piles.len() + 1 => "the other",
+                        _ => "the rest",
+                    };
+                    let _ = write!(text, ". Put {left} {}", place(*r));
+                }
+                return Clause::imperative(text);
+            }
             let own = matches!(of, None | Some(Recipient::You));
             let whose = if own {
                 "your".to_string()
@@ -8524,6 +8558,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             alt,
             until,
             field,
+            second,
+            exile_plot,
+            rest_hand,
         } => {
             // "Reveal cards from the top of your library until you reveal
             // two land cards. Put those land cards onto the battlefield
@@ -8567,14 +8604,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let n = count_words(*count, "one");
             // "Look at twice X cards from the top of your library."
             // (Stargaze).
-            let from_top = matches!(count, Num::XTimes(_));
+            // "look at that many cards from the top of your library"
+            // (a count printed "that many", or the event's amount).
+            let that_many = *count == Num::ThatMuch
+                || matches!(count, Num::Count(i) if ctx
+                    .card
+                    .counts
+                    .get(usize::from(*i))
+                    .is_some_and(|c| c.style == crate::ast::CountStyle::ThatMany));
+            let from_top = matches!(count, Num::XTimes(_)) || that_many;
             let head = if from_top {
-                let verb = if *reveal_top { "reveal" } else { "look at" };
-                format!("{verb} {n} cards from the top of your library")
-            } else if *reveal_top && *count == Num::ThatMuch {
                 // "reveal that many cards from the top of your library"
                 // (Gishath, Sun's Avatar).
-                "reveal that many cards from the top of your library".to_string()
+                let verb = if *reveal_top { "reveal" } else { "look at" };
+                format!("{verb} {n} cards from the top of your library")
             } else if *reveal_top {
                 format!("reveal the top {n} cards of your library")
             } else {
@@ -8605,6 +8648,39 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     format!("{word} on the bottom of your library in any order")
                 }
             };
+            // "You may exile a nonland card from among them. If you do, it
+            // becomes plotted. Put the rest into your hand." (Make Your Own
+            // Luck).
+            if *exile_plot {
+                let f = filter.clone().unwrap_or_default();
+                let w = card_filter_a(&f, ctx.card);
+                let may = if *optional { "You may exile" } else { "Exile" };
+                let tail = if *rest_hand {
+                    "the rest into your hand".to_string()
+                } else {
+                    rest("the rest")
+                };
+                return Clause::imperative(format!(
+                    "{head}. {may} {w} from among them. If you do, it becomes plotted. Put {tail}"
+                ));
+            }
+            // "You may put one of them into your hand. Then put any number
+            // of land cards from among them onto the battlefield tapped and
+            // the rest into your graveyard." (Choco, Seeker of Paradise).
+            if let Some(sec) = second {
+                let first = if *optional {
+                    "You may put one of them into your hand"
+                } else {
+                    "Put one of them into your hand"
+                };
+                return Clause::imperative(format!(
+                    "{head}. {first}. Then put any number of {} from among them onto the \
+                     battlefield{} and {}",
+                    cards_phrase(&sec.0, ctx.card, true),
+                    if sec.1 { " tapped" } else { "" },
+                    rest("the rest")
+                ));
+            }
             // "Put X cards from among them into your hand and the rest into
             // your graveyard." (Stargaze).
             if let Some(k) = take_num {
@@ -8777,7 +8853,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // the battlefield and the rest ..." (one sentence).
                 let join = if *shuffle {
                     if *reword { ". Put" } else { " and" }
-                } else if total_mv.is_some() {
+                } else if total_mv.is_some() && *take != crate::ast::ANY_NUMBER {
+                    // "Put any number of nonland permanent cards with total
+                    // mana value 4 or less from among them onto the
+                    // battlefield. Put the rest ..." (Ao, the Dawn Sky).
                     " and"
                 } else if *optional || *at_random {
                     ". Put"

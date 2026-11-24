@@ -3503,7 +3503,22 @@ condition, judged as it would be put), `field with mana value 2 or less
 haste` "... If that card has mana value 2 or less, you may put it onto the
 battlefield and it gains haste until end of turn. If you didn't put the
 revealed card onto the battlefield this way, put it into your hand."
-(Break Out), `dig 5 reveal take
+(Break Out); `then any land card onto battlefield tapped` after the take
+is a second one: after the first take, any number of the cards left
+matching it go onto the battlefield under your control, one at a time
+(`choose done` in scenarios ends it), before the rest go: `dig count that
+many attacking Bird you control take card may then any land card onto
+battlefield tapped rest graveyard` "look at that many cards from the top
+of your library. You may put one of them into your hand. Then put any
+number of land cards from among them onto the battlefield tapped and the
+rest into your graveyard." (Choco, Seeker of Paradise; a count printed
+"that many", or `that much`, prints "that many cards from the top of your
+library"); `exile plotted` after the take exiles the cards taken and they
+become plotted (CR 702.170), and `rest hand` puts the rest into the hand:
+`dig 3 take nonland card may exile plotted rest hand` "Look at the top
+three cards of your library. You may exile a nonland card from among them.
+If you do, it becomes plotted. Put the rest into your hand." (Make Your Own
+Luck), `dig 5 reveal take
 land card onto battlefield rest graveyard` "Put a land card from among
 them onto the battlefield and the rest into your graveyard"; `permanent
 with mana value 5 or less` is a permanent card there; after a counted
@@ -3580,7 +3595,13 @@ hand` ("Reveal the top three cards of your library. An opponent chooses
 one of them. Put that card into your graveyard and the rest into your
 hand.": the opponent chooses); `split top 3 of target player into top
 rest graveyard` ("Look at the top three cards of target player's library.
-Put one back and the rest into that player's graveyard."). Destinations:
+Put one back and the rest into that player's graveyard."); `alternate`
+after `reveal` has you and an opponent pick in turn, you first: `split top
+5 reveal alternate into hand, bottom, hand, bottom rest hand` "Reveal the
+top five cards of your library. Put one of them into your hand. Then
+choose an opponent. They put one on the bottom of your library. Then you
+put one into your hand. Then they put one on the bottom of your library.
+Put the other into your hand." (Memories Returning). Destinations:
 `hand`, `graveyard`, `top`, `bottom`, `exile`,
 `piles reveal 5 chosen by opponent` ("Reveal the top five cards of your
 library and separate them into two piles. An opponent chooses one of those

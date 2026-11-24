@@ -6057,6 +6057,20 @@ pub enum Effect {
         /// card taken may go onto the battlefield instead of the hand.
         #[serde(default)]
         field: Option<DigField>,
+        /// "Then put any number of land cards from among them onto the
+        /// battlefield tapped and the rest into your graveyard.": after the
+        /// take, any number of the cards left matching this go onto the
+        /// battlefield under the controller's control (tapped with `true`).
+        #[serde(default)]
+        second: Option<Box<(ObjFilter, bool)>>,
+        /// "You may exile a nonland card from among them. If you do, it
+        /// becomes plotted. Put the rest into your hand." (Make Your Own
+        /// Luck): the cards taken are exiled and plotted (CR 702.170), and
+        /// with `rest_hand` the rest go into the hand.
+        #[serde(default)]
+        exile_plot: bool,
+        #[serde(default)]
+        rest_hand: bool,
     },
     /// "Look at the top three cards of your library. Put one of those cards
     /// into your hand, one on top of your library, and one on the bottom of
@@ -6076,6 +6090,11 @@ pub enum Effect {
         opponent: bool,
         piles: Vec<SplitDest>,
         rest: Option<SplitDest>,
+        /// "Then choose an opponent. They put one on the bottom of your
+        /// library. Then you put one into your hand. ...": the controller
+        /// and a chosen opponent pick in turn, the controller first.
+        #[serde(default)]
+        alternate: bool,
     },
     /// "Reveal the top five cards of your library and separate them into
     /// two piles. An opponent chooses one of those piles. Put that pile
