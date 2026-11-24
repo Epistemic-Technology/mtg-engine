@@ -1,0 +1,9 @@
+card "Sawblade Skinripper" {
+  oracle_id 96fd3ee0-84fb-439b-9e2d-b55afe6850a7
+  cost {1}{B}{R}
+  type Creature — Human Assassin
+  pt 3/2
+  keywords menace
+  activated {2}, sacrifice another creature or enchantment: put 1 +1/+1 counter on this
+  triggered at beginning of your end step if sacrificed 1 permanent this turn: this deals count that many permanents sacrificed this turn damage to any target
+}

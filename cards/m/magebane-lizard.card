@@ -1,0 +1,7 @@
+card "Magebane Lizard" {
+  oracle_id 0c38f159-367b-4e4b-94cd-bf1b0721c3a8
+  cost {1}{R}
+  type Creature — Lizard
+  pt 1/4
+  triggered whenever a player casts noncreature spell: this deals count equal they cast noncreature spell this turn damage to that player
+}

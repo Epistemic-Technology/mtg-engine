@@ -2501,6 +2501,29 @@ pub enum CountExpr {
     /// turn", "the amount of life you gained this turn", "for each
     /// opponent who lost life this turn"; `GameState::turn_count`).
     Happened(TurnCount),
+    /// A turn count judged for another player than the ability's
+    /// controller: the `n`th target player ("the number of cards that were
+    /// put into target player's graveyard from their library this turn"),
+    /// or with none the player the ability triggered for ("the number of
+    /// noncreature spells they've cast this turn"). Resolving effects
+    /// only.
+    HappenedTo {
+        count: TurnCount,
+        target: Option<usize>,
+    },
+    /// The count less `n`, at least 0 ("for each spell you've cast this
+    /// turn other than the first").
+    Less(u32, Box<CountExpr>),
+    /// Different mana values among the battlefield permanents matching
+    /// the filter ("for each different mana value among nonland
+    /// permanents you control"), or (`graveyard`) among the cards in your
+    /// graveyard matching it, every card with none ("the number of
+    /// different mana values among cards in your graveyard"). Resolving
+    /// effects only.
+    DifferentManaValues {
+        filter: Option<ObjFilter>,
+        graveyard: bool,
+    },
     /// A count of the player a per-player effect is acting on ("each
     /// player discards half the cards in their hand", "any number of
     /// target players each mill half their library"): that player's hand,
@@ -2601,10 +2624,11 @@ impl CountExpr {
     /// using it must be recomputed as that changes (`history_static`).
     pub fn reads_history(&self) -> bool {
         match self {
-            CountExpr::Happened(_) => true,
+            CountExpr::Happened(_) | CountExpr::HappenedTo { .. } => true,
             CountExpr::Times(_, c)
             | CountExpr::Plus(_, c)
             | CountExpr::Difference(_, c)
+            | CountExpr::Less(_, c)
             | CountExpr::AtLeast(_, c) => c.reads_history(),
             CountExpr::Divided { inner, .. } => inner.reads_history(),
             CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
@@ -2633,6 +2657,7 @@ impl CountExpr {
                             | TurnEvent::CreatureLeft,
                         _
                     ) | (TurnEvent::Attacked, TurnWho::Anyone)
+                        | (TurnEvent::Drew, TurnWho::You)
                         | (TurnEvent::LifeLost, TurnWho::Opponent)
                 ) && c.filter.is_none()
             }
@@ -2640,6 +2665,7 @@ impl CountExpr {
             CountExpr::Plus(_, c)
             | CountExpr::Times(_, c)
             | CountExpr::Difference(_, c)
+            | CountExpr::Less(_, c)
             | CountExpr::AtLeast(_, c) => c.in_static(),
             CountExpr::Divided { inner, .. } => inner.in_static(),
             CountExpr::Permanents(_)
@@ -2717,6 +2743,8 @@ impl CountExpr {
             | CountExpr::CardTypesCastThisTurn
             | CountExpr::CardTypesThisWay(_)
             | CountExpr::DifferentPowers(_)
+            | CountExpr::HappenedTo { .. }
+            | CountExpr::DifferentManaValues { .. }
             | CountExpr::TriggerPtDifference
             | CountExpr::X
             | CountExpr::DamageThisWay { .. } => false,
@@ -3205,11 +3233,15 @@ pub enum TurnEvent {
     /// ("if an opponent was dealt combat damage by a legendary creature
     /// this turn").
     LegendaryCombatDamaged,
+    /// Cards put into the player's graveyard from their library, by their
+    /// owner ("the number of cards that were put into target player's
+    /// graveyard from their library this turn"; tokens are no cards).
+    LibraryToGraveyard,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 40;
+    pub const COUNT: usize = 41;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -3238,7 +3270,8 @@ impl TurnEvent {
             | TurnEvent::CreatureCardToGraveyard
             | TurnEvent::DamageSource
             | TurnEvent::LoyaltyActivated
-            | TurnEvent::LegendaryCombatDamaged => true,
+            | TurnEvent::LegendaryCombatDamaged
+            | TurnEvent::LibraryToGraveyard => true,
             TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
@@ -8880,6 +8913,9 @@ pub enum SpellOrdinal {
     Third,
     /// "a spell other than your first spell each turn".
     NotFirst,
+    /// "a spell during your turn other than your first spell that turn"
+    /// (Geralf, the Fleshwright).
+    NotFirstOnOwnTurn,
     /// "your first spell during each opponent's turn".
     FirstOnOpponentsTurn,
     /// "a spell during an opponent's turn": any spell cast on another
@@ -8912,6 +8948,7 @@ impl SpellOrdinal {
             SpellOrdinal::Second => n == 2,
             SpellOrdinal::Third => n == 3,
             SpellOrdinal::NotFirst => n >= 2,
+            SpellOrdinal::NotFirstOnOwnTurn => n >= 2 && own_turn,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
             SpellOrdinal::FromExile | SpellOrdinal::FromGraveyard => true,

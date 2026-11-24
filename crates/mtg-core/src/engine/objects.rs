@@ -383,6 +383,9 @@ impl GameState {
             if types.contains(crate::card::CardType::Creature) {
                 self.log_event(TurnEvent::CreatureCardToGraveyard, old.owner, 1);
             }
+            if old.zone == Zone::Library {
+                self.log_event(TurnEvent::LibraryToGraveyard, old.owner, 1);
+            }
         }
         // "if one or more cards were put into exile this turn".
         if to == Zone::Exile && old.zone != Zone::Exile {
@@ -1367,9 +1370,12 @@ impl GameState {
         let (def, who) = (o.def, o.controller);
         // "If you've sacrificed an artifact this turn".
         // "the number of permanents you've sacrificed this turn".
-        let types = self
-            .characteristics(id)
-            .map_or(crate::card::TypeSet::EMPTY, |c| c.types);
+        let ch = self.characteristics(id);
+        let types = ch.as_ref().map_or(crate::card::TypeSet::EMPTY, |c| c.types);
+        // "If you've sacrificed a Food this turn": as it last existed.
+        if let Some(ch) = ch {
+            self.sacrificed_this_turn.push((id, who, ch));
+        }
         self.log_typed(TurnEvent::Sacrificed, who, types);
         self.emit(Event::Sacrificed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);

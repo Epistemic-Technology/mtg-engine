@@ -1,0 +1,8 @@
+card "Malcator, Purity Overseer" {
+  oracle_id 0d1c6a82-943a-46bd-97ed-6055226ef2ab
+  cost {1}{W}{U}
+  type Legendary Creature — Phyrexian Elephant Wizard
+  pt 1/1
+  triggered when this enters: create 1 "3/3 colorless Phyrexian Golem artifact creature"
+  triggered at beginning of your end step if entered 3 artifact this turn: create 1 "3/3 colorless Phyrexian Golem artifact creature"
+}

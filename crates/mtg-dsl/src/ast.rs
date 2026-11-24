@@ -826,6 +826,38 @@ pub enum CountExpr {
         n: usize,
         opponent: bool,
     },
+    /// `different mana values among nonland permanent you control`: "for
+    /// each different mana value among nonland permanents you control";
+    /// `different mana values among graveyard [nonland card]`: "... among
+    /// [nonland] cards in your graveyard" (`graveyard`, no filter: every
+    /// card).
+    DifferentManaValues {
+        filter: Option<Filter>,
+        graveyard: bool,
+    },
+    /// `noncreature spells they cast this turn`: "the number of noncreature
+    /// spells they've cast this turn", the player the ability triggered
+    /// for.
+    TheyCast(Filter),
+    /// `library to graveyard of target player this turn`: "the number of
+    /// cards that were put into target player's graveyard from their
+    /// library this turn", declaring the target (the `n`th).
+    TargetMilled(usize),
+    /// `spells cast this turn but first`: "for each spell you've cast this
+    /// turn other than the first".
+    SpellsCastButFirst,
+    /// `entered Goblin this turn`: "the number of Goblins that entered the
+    /// battlefield under your control this turn"; `entered other Zombie
+    /// this turn`: "for each other Zombie that entered ...", other than the
+    /// one the ability triggered for (that one less).
+    EnteredCount {
+        filter: Filter,
+        other: bool,
+    },
+    /// `power of the creature that died`: "the power of the creature that
+    /// died", the triggering creature's as it last existed (a dies
+    /// trigger).
+    DiedStat(mtg_core::card::Stat),
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -3061,11 +3093,14 @@ pub enum Tally {
     /// "an opponent was dealt combat damage by a legendary creature this
     /// turn".
     LegendaryCombatDamaged,
+    /// "cards were put into your graveyard from your library this turn".
+    LibraryToGraveyard,
 }
 
 impl Tally {
-    pub const ALL: [Tally; 10] = [
+    pub const ALL: [Tally; 11] = [
         Tally::LegendaryCombatDamaged,
+        Tally::LibraryToGraveyard,
         Tally::LeftGraveyard,
         Tally::Descended,
         Tally::LandsEntered,
@@ -3096,6 +3131,15 @@ impl Tally {
             Tally::DamageSources => &["sources", "dealt", "damage", "this", "turn"],
             Tally::LoyaltyActivated => &["loyalty", "abilities", "activated", "this", "turn"],
             Tally::CreaturesAttacked => &["creatures", "attacked", "this", "turn"],
+            Tally::LibraryToGraveyard => &[
+                "cards",
+                "from",
+                "library",
+                "to",
+                "graveyard",
+                "this",
+                "turn",
+            ],
             Tally::LegendaryCombatDamaged => &[
                 "opponent",
                 "dealt",
@@ -3127,6 +3171,7 @@ impl Tally {
             Tally::LoyaltyActivated => TurnCount::of(E::LoyaltyActivated, W::You),
             Tally::CreaturesAttacked => TurnCount::of(E::Attacked, W::Anyone),
             Tally::LegendaryCombatDamaged => TurnCount::of(E::LegendaryCombatDamaged, W::Opponent),
+            Tally::LibraryToGraveyard => TurnCount::of(E::LibraryToGraveyard, W::You),
         }
     }
 
@@ -3281,6 +3326,13 @@ pub enum StaticCond {
     },
     /// `you control no untapped land`.
     YouControlNone(Filter),
+    /// `entered 3 artifact this turn`: "three or more artifacts entered the
+    /// battlefield under your control this turn" (judged as they are or
+    /// last existed).
+    EnteredAtLeast {
+        filter: Filter,
+        n: u32,
+    },
     /// `you control 1 or more Egg`: "you control one or more Eggs" (the
     /// same condition as `you control Egg`).
     YouControlOneOrMore(Filter),
@@ -3577,6 +3629,17 @@ pub enum StaticCond {
     /// `sacrificed artifact this turn`: "you've sacrificed an artifact this
     /// turn".
     SacrificedThisTurn(Vec<mtg_core::card::CardType>),
+    /// `sacrificed Food this turn`: "you sacrificed a Food this turn" (any
+    /// filter, as the permanents last existed); `have sacrificed Food this
+    /// turn`: "you've sacrificed a Food this turn"; with a number,
+    /// `sacrificed 3 Clue this turn`: "you sacrificed three or more Clues
+    /// this turn" (`sacrificed 1 permanent this turn`: "one or more
+    /// permanents").
+    SacrificedWith {
+        filter: Filter,
+        n: Option<u32>,
+        have: bool,
+    },
     /// `more cards in hand than each opponent`.
     MoreCardsInHand,
     /// `opponent poisoned` ("an opponent is poisoned"), `opponent poison 3

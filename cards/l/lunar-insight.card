@@ -1,0 +1,6 @@
+card "Lunar Insight" {
+  oracle_id 56b4a2f7-2d35-4d05-8d26-4f9f16c5f9f5
+  cost {2}{U}
+  type Sorcery
+  spell: draw count each different mana values among nonland permanent you control cards
+}

@@ -1,0 +1,6 @@
+card "Sudden Insight" {
+  oracle_id 8e0b605f-2095-4189-8c71-9d1ac93db42e
+  cost {4}{U}{U}
+  type Instant
+  spell: draw count each different mana values among graveyard nonland cards
+}

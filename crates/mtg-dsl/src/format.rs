@@ -4920,6 +4920,33 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             "hand of target {}",
             if *opponent { "opponent" } else { "player" }
         ),
+        CountExpr::DifferentManaValues {
+            filter: f,
+            graveyard: false,
+        } => format!(
+            "different mana values among {}",
+            f.as_ref().map_or_else(String::new, filter)
+        ),
+        CountExpr::DifferentManaValues {
+            filter: None,
+            graveyard: true,
+        } => "different mana values among graveyard".to_string(),
+        CountExpr::DifferentManaValues {
+            filter: Some(f),
+            graveyard: true,
+        } => format!("different mana values among graveyard {}", card_filter(f)),
+        CountExpr::TheyCast(f) if *f == Filter::default() => {
+            "they cast spell this turn".to_string()
+        }
+        CountExpr::TheyCast(f) => format!("they cast {} spell this turn", filter(f)),
+        CountExpr::TargetMilled(_) => "library to graveyard of target player this turn".to_string(),
+        CountExpr::SpellsCastButFirst => "spells cast this turn but first".to_string(),
+        CountExpr::DiedStat(stat) => format!("{} of the creature that died", stat_word(*stat)),
+        CountExpr::EnteredCount { filter: f, other } => format!(
+            "entered {}{} this turn",
+            if *other { "other " } else { "" },
+            filter(f)
+        ),
     }
 }
 
@@ -6069,6 +6096,9 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         SpellOrdinal::Third => format!("{who} {their} third spell each turn"),
         SpellOrdinal::NotFirst => {
             format!("{who} a spell other than {their} first spell each turn")
+        }
+        SpellOrdinal::NotFirstOnOwnTurn => {
+            format!("{who} a spell during {their} turn other than {their} first spell that turn")
         }
         SpellOrdinal::FirstOnOpponentsTurn => {
             format!("{who} {their} first spell during each opponent's turn")
@@ -7450,6 +7480,9 @@ fn static_cond(c: &StaticCond) -> String {
         } => {
             format!("had {} enter this turn", filter(f))
         }
+        StaticCond::EnteredAtLeast { filter: f, n } => {
+            format!("entered {n} {} this turn", filter(f))
+        }
         StaticCond::AttackedBattleThisTurn => "attacked a battle this turn".to_string(),
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
@@ -7744,6 +7777,12 @@ fn static_cond(c: &StaticCond) -> String {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
             format!("sacrificed {} this turn", names.join(" or "))
         }
+        StaticCond::SacrificedWith { filter: f, n, have } => format!(
+            "{}sacrificed {}{} this turn",
+            if *have { "have " } else { "" },
+            n.map_or_else(String::new, |n| format!("{n} ")),
+            filter(f)
+        ),
         StaticCond::CardToGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
             format!("{} card to your graveyard this turn", names.join(" or "))

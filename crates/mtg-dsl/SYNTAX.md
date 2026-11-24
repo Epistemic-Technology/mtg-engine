@@ -536,7 +536,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `when enchanted creature becomes targeted by spell`, `whenever creature you control becomes targeted by spell`, `whenever permanent you control becomes targeted by opponent`, `... by opponent spell` | "When enchanted creature becomes the target of a spell" (a spell only, not an ability), "Whenever a permanent you control becomes the target of a spell or ability an opponent controls": any trigger subject; the targeted permanent is `that creature`, the spell's or ability's controller `that player` |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
 | `whenever you cast your first instant or sorcery spell each turn` | the first of the caster's instant and sorcery spells this turn (other spells cast before it don't count) |
-| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever a player casts a spell from a graveyard`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile, or from any graveyard) |
+| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... a spell during your turn other than your first spell that turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever a player casts a spell from a graveyard`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile, or from any graveyard) |
 | `when you cycle this` | "When you cycle this card" (CR 702.29d): triggers from the card itself as its cycling ability is activated, so it resolves before the draw; the card is "it" ("it deals 6 damage to any target") |
 | `whenever you cycle a card`, `whenever you cycle another card`, `whenever you cycle or discard a card` | cycling a card (CR 702.29); `or discard` triggers once per card discarded, cycling included |
 | `whenever this or Ally you control enters`, `whenever this or creature you control with power 4 or greater dies` | "Whenever this creature or another Ally you control enters"; the filter includes the source, and Oracle names the source again ("this creature") |
@@ -967,7 +967,14 @@ or spell an opponent controls, or a card in an opponent's graveyard),
 `card left your graveyard this turn` ("one or more cards left your
 graveyard this turn"), `sacrificed artifact this turn` ("you've
 sacrificed an artifact this turn"; `sacrificed permanent this turn`, "you
-sacrificed a permanent this turn", any permanent), and `creature card to your graveyard this turn` ("a
+sacrificed a permanent this turn", any permanent), `sacrificed Food this
+turn` (any filter, judged on the permanents as they last existed: "you
+sacrificed a Food this turn"; `have sacrificed Food this turn`, "you've
+sacrificed a Food this turn"; `sacrificed 3 Clue this turn`, "you
+sacrificed three or more Clues this turn"; `sacrificed 1 permanent this
+turn`, "you sacrificed one or more permanents this turn"), `entered 3
+artifact this turn` ("three or more artifacts entered the battlefield
+under your control this turn"), and `creature card to your graveyard this turn` ("a
 creature card was put into your graveyard from anywhere this turn").
 A number before a turn-log phrase is "N or more" of it (`Tally`; the
 same words without the number are a count, `count where times descended
@@ -991,8 +998,11 @@ activated a loyalty ability this turn"; with 2 or more, "you've
 activated two or more loyalty abilities this turn"), and `3 creatures
 attacked this turn` ("three or more creatures attacked this turn", any
 player's; only a condition, the count being `creature attacked this
-turn`), and `1 opponent dealt combat damage by legendary creature this
+turn`), `1 opponent dealt combat damage by legendary creature this
 turn` ("an opponent was dealt combat damage by a legendary creature this
+turn"), and `2 cards from library to graveyard this turn` ("two or more
+cards were put into your graveyard from your library this turn"; as a
+count, "cards that were put into your graveyard from your library this
 turn"). About the source (negated with `not` after `this`): `this plus
 counters put this turn` ("you've put one or more +1/+1 counters on Beast
 this turn"; "As long as ..., he has flying" with the source as subject),
@@ -2177,7 +2187,7 @@ the stack included), `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
 `cda pt your life`, `cda pt domain`, `cda pt 2 hand` ("... each equal to
 twice the number of cards in your hand") (a power/toughness-defining ability,
-layer 7a, counting any count a static ability can (a count only a resolving effect has, such as `drawn this turn`, `greatest power ...`, `party`, or a target's or the triggering object's, is a compile error in a static ability: it would read 0): "~'s power and
+layer 7a, counting any count a static ability can (`cda power drawn this turn`: "~'s power is equal to the number of cards you've drawn this turn", Duelist of the Mind) (a count only a resolving effect has, such as `greatest power ...`, `party`, or a target's or the triggering object's, is a compile error in a static ability: it would read 0): "~'s power and
 toughness are each equal to ..."; the count is judged from its controller
 as the layer applies), `cda power count Rat you control` ("~'s power is
 equal to the number of Rats you control"; the toughness is printed, `pt
@@ -2436,7 +2446,25 @@ costs of permanents you control, a hybrid symbol counting once;
 you control", the same count), `greatest power`
 ("the greatest power among creatures you control"), `greatest mana value`
 ("... among permanents you control"), `drawn this turn` ("cards you've
-drawn this turn"), `spells cast this turn`, `other spells cast this turn`, `other
+drawn this turn"), `spells cast this turn`, `spells cast this turn but first` ("for each
+spell you've cast this turn other than the first"), `they cast
+noncreature spell this turn` ("the number of noncreature spells they've
+cast this turn": the player the ability triggered for, Magebane Lizard;
+any spell filter, `they cast spell this turn` for every spell), `library
+to graveyard of target player this turn` ("the number of cards that were
+put into target player's graveyard from their library this turn",
+declaring the target; for your own, the tally `cards from library to
+graveyard this turn`), `entered Goblin this turn` ("the number of Goblins
+that entered the battlefield under your control this turn", judged as
+they are or last existed; `entered other Zombie this turn`, "for each
+other Zombie that entered ...", is one less, not counting the permanent
+the ability triggered for), `power of the creature that died` ("the
+power of the creature that died": the triggering creature as it last
+existed, in a dies trigger), `different mana values among nonland
+permanent you control` ("for each different mana value among nonland
+permanents you control"; `different mana values among graveyard
+[nonland]`, "... among [nonland] cards in your graveyard"; resolving
+effects only), `other
 instant and sorcery spells cast this turn` ("other instant and sorcery
 spell you've cast this turn"), `other instant and sorcery spells cast
 before it this turn` ("... you've cast before it this turn": before the
@@ -4285,7 +4313,9 @@ many cards"; `discard up to 2 cards chosen then draw count that many
 discarded this way cards`: "discard up to two cards, then draw that many
 cards", `discard any number cards chosen ...`: "discard any number of
 cards, ..."; `count that many plus 1 discarded this way`: "draw that many
-cards plus one"), `count equal damage dealt this way` ("life equal to the
+cards plus one"; with damage, `this deals count that many permanents
+sacrificed this turn damage to any target` prints "deals that much damage
+to any target"), `count equal damage dealt this way` ("life equal to the
 damage dealt this way", CR 120.3), `count equal excess damage dealt this
 way` (CR 120.4a; `count equal excess damage dealt to that creature this
 way` prints "equal to the amount of excess damage dealt to that creature

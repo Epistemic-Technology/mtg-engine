@@ -1,0 +1,275 @@
+# Amounts and this-turn records: different mana values among a group,
+# a turn count of the triggering or a target player's events, cards put
+# into a graveyard from a library, sacrifices by filter, permanents that
+# entered by filter, "other than the first", and the power of the
+# creature that died.
+
+scenario "Lunar Insight draws one card for each different mana value among nonland permanents you control" {
+  battlefield A: 3 "Island", 2 "Grizzly Bears", "Hill Giant"
+  battlefield B: "Wind Drake"
+  hand A: "Lunar Insight"
+  turn 1 A: cast "Lunar Insight"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Sudden Insight counts different mana values among nonland cards in your graveyard" {
+  battlefield A: 6 "Island"
+  graveyard A: "Grizzly Bears", "Runeclaw Bear", "Hill Giant", "Lightning Bolt", "Forest", "Island"
+  graveyard B: "Wind Drake"
+  hand A: "Sudden Insight"
+  turn 1 A: cast "Sudden Insight"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "All-Seeing Arbiter's discard shrinks an opponent's creature by the mana values in your graveyard" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  hand A: "All-Seeing Arbiter", "Wind Drake"
+  library A: "Forest", "Island"
+  turn 1 A: cast "All-Seeing Arbiter"
+  turn 1 precombat_main A: discard "Wind Drake"
+  turn 1 precombat_main A: trigger "All-Seeing Arbiter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert power "Hill Giant" 0
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 0
+  run_to turn 3 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "Magebane Lizard deals damage equal to the noncreature spells that player cast this turn" {
+  battlefield A: "Magebane Lizard"
+  battlefield B: 3 "Mountain"
+  hand B: "Shock", "Lightning Bolt", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 15
+}
+
+scenario "Magebane Lizard ignores creature spells and counts only that player's" {
+  battlefield A: "Magebane Lizard", "Mountain"
+  battlefield B: 3 "Forest"
+  hand A: "Lightning Bolt"
+  hand B: "Grizzly Bears", "Giant Growth"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 precombat_main
+  assert life A 19
+  assert life B 17
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Cruel Calculations draws for the cards put into target player's graveyard from their library this turn" {
+  battlefield A: 4 "Island"
+  hand A: "Thought Scour", "Cruel Calculations"
+  library B: "Forest", "Island", "Swamp", "Plains"
+  turn 1 A: cast "Thought Scour" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Cruel Calculations" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert hand A count 3
+}
+
+scenario "Cruel Calculations doesn't count another player's milled cards" {
+  battlefield A: 4 "Island"
+  hand A: "Thought Scour", "Cruel Calculations"
+  turn 1 A: cast "Thought Scour" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Cruel Calculations" targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Outlaw Stitcher puts two counters on its Zombie for each spell other than the first" {
+  battlefield A: 6 "Island"
+  hand A: "Opt", "Opt", "Outlaw Stitcher"
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Outlaw Stitcher"
+  run_to turn 1 postcombat_main
+  assert counters "Zombie Rogue" +1/+1 4
+}
+
+scenario "Outlaw Stitcher as the first spell puts no counters" {
+  battlefield A: 4 "Island"
+  hand A: "Outlaw Stitcher"
+  turn 1 A: cast "Outlaw Stitcher"
+  run_to turn 1 postcombat_main
+  assert counters "Zombie Rogue" +1/+1 0
+}
+
+scenario "Bonecache Overseer draws after a Food was sacrificed" {
+  battlefield A: "Bonecache Overseer", "Food", 2 "Plains"
+  turn 1 A: activate "Food"
+  turn 1 A: wait
+  turn 1 A: activate "Bonecache Overseer"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 22
+}
+
+scenario "Bonecache Overseer can't draw after sacrificing a non-Food" {
+  battlefield A: "Bonecache Overseer", "Sawblade Skinripper", "Grizzly Bears", 2 "Plains"
+  turn 1 A: activate "Sawblade Skinripper" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Bonecache Overseer"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Elanor Gardner fetches a basic land after a Food was sacrificed" {
+  battlefield A: "Elanor Gardner", "Food", 2 "Plains"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Food"
+  run_to turn 1 end
+  turn 1 end A: choose "Forest"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Forest"
+}
+
+scenario "Elanor Gardner does nothing without a Food sacrificed" {
+  battlefield A: "Elanor Gardner"
+  library A: "Forest", "Island"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Forest"
+}
+
+scenario "Sawblade Skinripper deals damage equal to the permanents sacrificed this turn" {
+  battlefield A: "Sawblade Skinripper", "Grizzly Bears", "Runeclaw Bear", "Food", 6 "Swamp"
+  turn 1 A: activate "Sawblade Skinripper" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Sawblade Skinripper" sacrificing "Runeclaw Bear"
+  turn 1 A: wait
+  turn 1 A: activate "Food"
+  run_to turn 1 end
+  turn 1 end A: trigger "Sawblade Skinripper" targeting player B
+  run_to turn 2 upkeep
+  assert life B 17
+  assert counters "Sawblade Skinripper" +1/+1 2
+}
+
+scenario "Sawblade Skinripper doesn't trigger without a sacrifice" {
+  battlefield A: "Sawblade Skinripper"
+  run_to turn 2 upkeep
+  assert life B 20
+}
+
+scenario "Duelist of the Mind's power is the cards you've drawn this turn" {
+  battlefield A: "Duelist of the Mind", 2 "Island"
+  hand A: "Opt"
+  start turn 3 A upkeep
+  assert power "Duelist of the Mind" 0
+  run_to turn 3 precombat_main
+  assert power "Duelist of the Mind" 1
+  turn 3 A: cast "Opt"
+  run_to turn 3 postcombat_main
+  assert power "Duelist of the Mind" 2
+  run_to turn 4 upkeep
+  assert power "Duelist of the Mind" 0
+}
+
+scenario "Death's Presence puts counters equal to the dead creature's power" {
+  battlefield A: "Death's Presence", "Hill Giant", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 precombat_main A: trigger "Death's Presence" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 3
+}
+
+scenario "Hobgoblin Bandit Lord deals damage for each Goblin that entered under your control this turn" {
+  battlefield A: "Hobgoblin Bandit Lord", 4 "Mountain"
+  hand A: "Goblin Piker", "Raging Goblin"
+  turn 1 A: cast "Goblin Piker"
+  turn 1 A: wait
+  turn 1 A: cast "Raging Goblin"
+  turn 1 A: wait
+  turn 1 A: activate "Hobgoblin Bandit Lord" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Malcator, Purity Overseer makes a Golem after three artifacts entered" {
+  battlefield A: "Malcator, Purity Overseer", 3 "Plains"
+  hand A: "Ornithopter", "Memnite", "Bottle Gnomes"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Memnite"
+  turn 1 A: wait
+  turn 1 A: cast "Bottle Gnomes"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Phyrexian Golem"
+}
+
+scenario "Malcator, Purity Overseer makes no Golem after two artifacts" {
+  battlefield A: "Malcator, Purity Overseer"
+  hand A: "Ornithopter", "Memnite"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Memnite"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Phyrexian Golem"
+}
+
+scenario "Geralf, the Fleshwright makes Zombies for spells after the first on your turn, and they grow" {
+  battlefield A: "Geralf, the Fleshwright", 3 "Island"
+  hand A: "Opt", "Opt", "Opt"
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Zombie Rogue"
+  assert counters oldest "Zombie Rogue" +1/+1 0
+  assert counters newest "Zombie Rogue" +1/+1 1
+}
+
+scenario "Geralf, the Fleshwright ignores spells on an opponent's turn" {
+  battlefield A: "Geralf, the Fleshwright", 2 "Island"
+  hand A: "Opt", "Opt"
+  start turn 2 B upkeep
+  turn 2 B: wait
+  turn 2 upkeep A: cast "Opt"
+  turn 2 upkeep A: wait
+  turn 2 upkeep A: cast "Opt"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Zombie Rogue"
+}
+
+scenario "Thundering Djinn deals damage equal to the cards you've drawn this turn" {
+  battlefield A: "Thundering Djinn", 1 "Island"
+  hand A: "Opt"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  turn 3 A: cast "Opt"
+  turn 3 A: wait
+  turn 3 A: attack "Thundering Djinn"
+  turn 3 declare_attackers A: trigger "Thundering Djinn" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Oath of Liliana makes a Zombie after a planeswalker entered under your control" {
+  battlefield A: "Oath of Liliana", 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Jace Beleren"
+  turn 1 A: cast "Jace Beleren"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Zombie"
+}

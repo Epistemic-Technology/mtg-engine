@@ -1,0 +1,6 @@
+card "Cruel Calculations" {
+  oracle_id 69b96fe5-9733-4b43-bd66-075742e142d9
+  cost {2}{U}
+  type Sorcery
+  spell: draw count where library to graveyard of target player this turn cards
+}

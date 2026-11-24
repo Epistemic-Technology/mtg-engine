@@ -6029,6 +6029,24 @@ impl P {
         if self.eat_words(&["sacrificed", "permanent", "this", "turn"]) {
             return Ok(StaticCond::SacrificedThisTurn(Vec::new()));
         }
+        // `sacrificed Food this turn`, `have sacrificed Food this turn`,
+        // `sacrificed 3 Clue this turn`: any filter, or a number.
+        if (self.at_word("sacrificed")
+            && (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                || self.word_at(1).is_some_and(|w| card_type(&w).is_none())))
+            || self.at_words(&["have", "sacrificed"])
+        {
+            let have = self.eat_word("have");
+            self.expect_word("sacrificed")?;
+            let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                Some(self.number()?)
+            } else {
+                None
+            };
+            let filter = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::SacrificedWith { filter, n, have });
+        }
         if self.eat_word("sacrificed") {
             let mut types = Vec::new();
             loop {
@@ -6141,6 +6159,13 @@ impl P {
             let f = self.filter()?;
             self.expect_words(&["this", "turn"])?;
             return Ok(StaticCond::AttackedWith(f));
+        }
+        if self.at_word("entered") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            let filter = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::EnteredAtLeast { filter, n });
         }
         if self.eat_word("entered") {
             let filter = self.filter()?;
@@ -15502,8 +15527,68 @@ impl P {
         if self.eat_words(&["drawn", "this", "turn"]) {
             return Ok(CountExpr::CardsDrawnThisTurn);
         }
+        if self.in_trigger
+            && let Some(stat) = ["power", "toughness"]
+                .into_iter()
+                .position(|w| self.at_words(&[w, "of", "the", "creature", "that", "died"]))
+        {
+            self.pos += 6;
+            return Ok(CountExpr::DiedStat(if stat == 0 {
+                mtg_core::card::Stat::Power
+            } else {
+                mtg_core::card::Stat::Toughness
+            }));
+        }
+        // `entered Goblin this turn`, `entered other Zombie this turn`.
+        if self.eat_word("entered") {
+            let other = self.eat_word("other");
+            let filter = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(CountExpr::EnteredCount { filter, other });
+        }
+        if self.eat_words(&["spells", "cast", "this", "turn", "but", "first"]) {
+            return Ok(CountExpr::SpellsCastButFirst);
+        }
         if self.eat_words(&["spells", "cast", "this", "turn"]) {
             return Ok(CountExpr::SpellsCastThisTurn { other: false });
+        }
+        // `they cast noncreature spell this turn`: the triggering player's.
+        if self.eat_words(&["they", "cast"]) {
+            let filter = if self.at_word("spell") {
+                Filter::default()
+            } else {
+                self.filter()?
+            };
+            self.eat_word("spell");
+            self.expect_words(&["this", "turn"])?;
+            return Ok(CountExpr::TheyCast(filter));
+        }
+        // `library to graveyard of target player this turn`: declares the
+        // target.
+        if self.eat_words(&["library", "to", "graveyard", "of", "target", "player"]) {
+            self.expect_words(&["this", "turn"])?;
+            self.targets.push(Target::Spec(TargetSpec::Player));
+            return Ok(CountExpr::TargetMilled(self.targets.len() - 1));
+        }
+        if self.eat_words(&["different", "mana", "values", "among"]) {
+            if self.eat_word("graveyard") {
+                let filter = if self.at_stmt_end()
+                    || !self.word_at(0).is_some_and(|w| {
+                        card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                    }) {
+                    None
+                } else {
+                    Some(self.filter()?)
+                };
+                return Ok(CountExpr::DifferentManaValues {
+                    filter,
+                    graveyard: true,
+                });
+            }
+            return Ok(CountExpr::DifferentManaValues {
+                filter: Some(self.filter()?),
+                graveyard: false,
+            });
         }
         if self.eat_words(&["other", "spells", "cast", "this", "turn"]) {
             return Ok(CountExpr::SpellsCastThisTurn { other: true });
@@ -18771,6 +18856,12 @@ impl P {
         }
         if self.eat_words(&["a", "spell", "from", "a", "graveyard"]) {
             return Ok(Some(SpellOrdinal::FromGraveyard));
+        }
+        if self.eat_words(&[
+            "a", "spell", "during", "your", "turn", "other", "than", "your", "first", "spell",
+            "that", "turn",
+        ]) {
+            return Ok(Some(SpellOrdinal::NotFirstOnOwnTurn));
         }
         if self.eat_words(&["a", "spell", "other", "than"]) {
             if !(self.eat_word("your") || self.eat_word("their")) {

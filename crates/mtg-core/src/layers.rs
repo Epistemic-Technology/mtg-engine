@@ -1526,6 +1526,11 @@ fn per_count(
                 .saturating_sub(per_count(work, source, controller, inner))
                 .max(0);
         }
+        CountExpr::Less(k, inner) => {
+            return per_count(work, source, controller, inner)
+                .saturating_sub(i32::try_from(*k).unwrap_or(0))
+                .max(0);
+        }
         CountExpr::Divided { by, up, inner } => {
             let n = u32::try_from(per_count(work, source, controller, inner).max(0)).unwrap_or(0);
             return i32::try_from(CountExpr::divide(n, *by, *up)).unwrap_or(i32::MAX);
@@ -1660,6 +1665,8 @@ fn per_count(
         | CountExpr::CardTypesCastThisTurn
         | CountExpr::CardTypesThisWay(_)
         | CountExpr::DifferentPowers(_)
+        | CountExpr::HappenedTo { .. }
+        | CountExpr::DifferentManaValues { .. }
         | CountExpr::TriggerPtDifference
         | CountExpr::X
         // Power and toughness are what the layers are computing.

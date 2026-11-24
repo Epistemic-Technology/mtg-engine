@@ -568,6 +568,7 @@ impl GameState {
             no_regen: Vec::new(),
             no_combat_damage: Vec::new(),
             died_this_turn: Vec::new(),
+            sacrificed_this_turn: Vec::new(),
             prowl_damage: Vec::new(),
             enter_notes: Vec::new(),
             mayhem_discarded: Vec::new(),
@@ -3857,6 +3858,7 @@ impl GameState {
             self.no_regen.clear();
             self.no_combat_damage.clear();
             self.died_this_turn.clear();
+            self.sacrificed_this_turn.clear();
             self.mayhem_discarded.clear();
             self.cast_this_turn.clear();
             self.turn_log = crate::state::TurnLog::default();
