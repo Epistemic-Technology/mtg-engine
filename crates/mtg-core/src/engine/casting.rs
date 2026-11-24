@@ -11043,11 +11043,20 @@ impl GameState {
                 self.end_together(together);
             }
             Effect::RemoveCounters { kind, count, to } => {
+                // "Remove a bait counter from this Equipment. If you do,
+                // ...": with none to remove, it isn't done (CR 608.2c).
+                let mut removed = false;
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
+                        let before = self.objects[id].counters(CounterKind::Any);
                         self.remove_counters(id, *kind, self.eval_num(*count, ctx));
+                        removed |= self
+                            .objects
+                            .get(id)
+                            .is_some_and(|o| o.counters(CounterKind::Any) < before);
                     }
                 }
+                ctx.did = removed;
             }
             Effect::RemoveCounterChosen { to, up_to } => {
                 let def = self
