@@ -5926,10 +5926,12 @@ impl Compiler<'_> {
                 power: *power,
                 toughness: *toughness,
             },
-            Mod::ModifyPt { power, toughness } => Modification::ModifyPt {
-                power: *power,
-                toughness: *toughness,
-            },
+            Mod::ModifyPt { power, toughness } | Mod::ModifyPtAdditional { power, toughness } => {
+                Modification::ModifyPt {
+                    power: *power,
+                    toughness: *toughness,
+                }
+            }
             Mod::SwitchPt => Modification::SwitchPt,
             Mod::CdaColors(c) => Modification::CdaColors(ColorSet::of(c.iter().copied())),
             Mod::ChosenColor => Modification::ChosenColor,

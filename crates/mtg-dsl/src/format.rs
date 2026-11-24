@@ -6363,6 +6363,9 @@ fn modification(m: &Mod) -> String {
         } => format!("base {p}/{t}"),
         Mod::SetPt { .. } => "base mv".to_string(),
         Mod::ModifyPt { power, toughness } => format!("{power:+}/{toughness:+}"),
+        Mod::ModifyPtAdditional { power, toughness } => {
+            format!("additional {power:+}/{toughness:+}")
+        }
         Mod::ModifyPtPer {
             power,
             toughness,

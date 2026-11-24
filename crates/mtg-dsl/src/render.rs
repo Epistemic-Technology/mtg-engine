@@ -15855,6 +15855,13 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
         } => {
             format!("{} {}", v("gets", "get"), pt_mod(*power, *toughness))
         }
+        Mod::ModifyPtAdditional { power, toughness } => {
+            format!(
+                "{} an additional {}",
+                v("gets", "get"),
+                pt_mod(*power, *toughness)
+            )
+        }
         Mod::SwitchPt => format!("{} its power and toughness switched", v("has", "have")),
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {
@@ -20442,6 +20449,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             Ability::AuraStays => true,
             Ability::XManaColor(_) => {
                 i > 0 && matches!(card.abilities[i - 1], Ability::Activated { .. })
+            }
+            // "... Elenda gets +1/+1 and has menace. Elenda gets an
+            // additional +5/+5 as long as ...": a bonus on top of the
+            // static ability before it.
+            Ability::Static { mods, .. } => {
+                i > 0
+                    && matches!(
+                        mods.first(),
+                        Some(crate::ast::Mod::ModifyPtAdditional { .. })
+                    )
+                    && matches!(card.abilities[i - 1], Ability::Static { .. })
             }
             // "This creature enters with ... counters on it. If X is 2 or
             // less, it enters tapped."

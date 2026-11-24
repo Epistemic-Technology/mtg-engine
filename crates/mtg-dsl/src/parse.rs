@@ -19242,6 +19242,17 @@ impl P {
 
     #[allow(clippy::too_many_lines)]
     fn modification(&mut self) -> R<Mod> {
+        if self.at_word("additional")
+            && let Some(Tok::Pt {
+                power,
+                toughness,
+                signed: true,
+            }) = self.peek_at(1)
+        {
+            let (power, toughness) = (*power, *toughness);
+            self.pos += 2;
+            return Ok(Mod::ModifyPtAdditional { power, toughness });
+        }
         if let Some(Tok::Pt {
             power,
             toughness,

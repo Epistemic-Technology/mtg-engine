@@ -4335,6 +4335,12 @@ pub enum Mod {
         power: i32,
         toughness: i32,
     },
+    /// `additional +5/+5`: "gets an additional +5/+5" (Elenda, Saint of
+    /// Dusk), the same modification.
+    ModifyPtAdditional {
+        power: i32,
+        toughness: i32,
+    },
     /// `+1/+1 count each creature you control`: "gets +1/+1 for each
     /// creature you control".
     ModifyPtPer {
