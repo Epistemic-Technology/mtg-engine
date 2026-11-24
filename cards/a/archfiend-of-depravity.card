@@ -1,0 +1,8 @@
+card "Archfiend of Depravity" {
+  oracle_id af247e2f-b271-4f5b-ab98-4579d2c17c21
+  cost {3}{B}{B}
+  type Creature — Demon
+  pt 5/4
+  keywords flying
+  triggered at beginning of each opponent's end step: that player chooses up to 2 creature they control then sacrifices the rest
+}

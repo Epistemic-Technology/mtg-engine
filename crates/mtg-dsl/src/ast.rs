@@ -1113,6 +1113,11 @@ pub struct Filter {
     /// each opponent, tap up to one target creature that player
     /// controls"): the game has one opponent.
     pub per_opponent: bool,
+    /// Written `that player controls` and printed so in a `for each
+    /// player,` sentence ("for each player, destroy up to one target
+    /// creature that player controls"): targets controlled by different
+    /// players, one for each player (the game has two).
+    pub per_player: bool,
     /// `who` is `Opponents`, written and printed "defending player
     /// controls" (two players: the attacker's opponent).
     pub defending: bool,
@@ -1211,6 +1216,11 @@ pub struct Filter {
     /// `other than granter`: "an artifact other than Dire Blunderbuss",
     /// not the Equipment granting the quoted ability.
     pub not_granter: bool,
+    /// How `status.unchosen` is worded: `unchosen` ("all other
+    /// creatures"), `not chosen this way` ("all nonland permanents not
+    /// chosen this way"), `except chosen this way` ("all creatures except
+    /// creatures chosen this way").
+    pub unchosen_wording: UnchosenWording,
     /// `andor Villain or artifact`: its alternatives joined "and/or" as a
     /// trigger's subject ("Whenever another Villain and/or artifact you
     /// control enters"); wording only.
@@ -3450,9 +3460,36 @@ pub struct Sentence {
     /// game has one opponent, so it happens once (its targets are written
     /// `that opponent controls`).
     pub per_opponent: bool,
+    /// `for each player, ...`: printed "For each player, ..."; its targets
+    /// written `that player controls` are one for each player.
+    pub per_player: bool,
     /// How each clause after the first joins the sentence
     /// (`joins.len() == effects.len() - 1`).
     pub joins: Vec<Join>,
+}
+
+/// How a filter's "not chosen this way" (`StatusQuals::unchosen`) is
+/// printed.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum UnchosenWording {
+    /// `unchosen`: "other".
+    #[default]
+    Other,
+    /// `not chosen this way`: "... not chosen this way".
+    NotChosen,
+    /// `except chosen this way`: "... except <noun> chosen this way".
+    Except,
+}
+
+/// Who makes an `Effect::ChooseFor` choice, as worded.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum ChooseBy {
+    /// `each player chooses ...`: each player for their own.
+    Each,
+    /// `for each player, you choose ...`.
+    You,
+    /// `for each player, choose ...`: the controller, no "you".
+    Bare,
 }
 
 /// A row of a results table (CR 706.3a): `result 1 to 9`, `result 20`,
@@ -3506,6 +3543,7 @@ impl Sentence {
             lasting: None,
             then_first: false,
             per_opponent: false,
+            per_player: false,
             joins,
         }
     }
@@ -4369,6 +4407,9 @@ pub enum Recipient {
     /// `creature dealt damage this way`: "a creature dealt damage this
     /// way" (each permanent the resolution has dealt damage to).
     DamagedThisWay,
+    /// `the rest`: after a choice, what wasn't chosen ("Destroy the
+    /// rest.", "then sacrifices the rest").
+    Rest,
     /// `each other player`: "each other player", the same players as
     /// each opponent.
     EachOtherPlayer,
@@ -5167,6 +5208,35 @@ pub enum Effect {
     PlayerChooses {
         who: Recipient,
         filter: Filter,
+    },
+    /// Permanents chosen for each player and remembered
+    /// (`mtg_core::card::ChooseFor`): `each player chooses each of
+    /// artifact, creature, enchantment, planeswalker from among nonland
+    /// permanent they control` ("Each player chooses an artifact, a
+    /// creature, an enchantment, and a planeswalker from among the
+    /// nonland permanents they control"), `each player chooses 3
+    /// permanent they control`, `that player chooses up to 2 creature
+    /// they control`, `each opponent chooses permanent they control of
+    /// each permanent type`, `for each player, you choose creature that
+    /// player controls`, `for each player, you choose from among
+    /// permanent that player controls each of artifact, ...`, `for each
+    /// player, choose creature with power 2 or less that player controls`.
+    /// Followed by `the rest` (`Recipient::Rest`) or a filter's
+    /// `unchosen`.
+    ChooseFor {
+        who: Recipient,
+        by: ChooseBy,
+        /// The one kind chosen, `count` of them (unused with `types`).
+        filter: Filter,
+        count: Num,
+        up_to: bool,
+        /// `each of artifact, creature, ...`: one of each card type.
+        types: Vec<mtg_core::card::CardType>,
+        /// `of each permanent type`: one `filter` of each permanent type
+        /// (CR 110.4).
+        each_type: bool,
+        /// `from among <filter> they control`.
+        among: Option<Filter>,
     },
     /// `target 1 can't be targeted by opponents this turn`: "Target
     /// creature can't be the target of spells or abilities your opponents

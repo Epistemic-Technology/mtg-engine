@@ -1,0 +1,10 @@
+card "Liliana, Dreadhorde General" {
+  oracle_id 5e958212-6a5b-4288-8d31-f1572619d7dc
+  cost {4}{B}{B}
+  type Legendary Planeswalker — Liliana
+  loyalty 6
+  triggered whenever creature you control dies: draw 1 card
+  loyalty +1: create 1 "2/2 black Zombie creature"
+  loyalty -4: each player sacrifices 2 creature
+  loyalty -9: each opponent chooses permanent they control of each permanent type and sacrifices the rest
+}

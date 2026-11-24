@@ -1608,6 +1608,14 @@ pub struct ThisWayLog {
     /// Of those, the players who didn't or couldn't do it ("each opponent
     /// who didn't", "each opponent who can't"; `Recipient::Declined`).
     pub declined: Vec<PlayerId>,
+    /// The permanents the last choice of the resolution chose, with the
+    /// player each was chosen for (`Effect::ChooseFor`,
+    /// `Effect::PlayerChooses`; "creatures chosen this way", "the chosen
+    /// creature they control").
+    pub chosen: Vec<(PlayerId, ObjId)>,
+    /// Those it could have chosen and didn't ("the rest",
+    /// `Recipient::Rest`).
+    pub unchosen: Vec<ObjId>,
 }
 
 /// A copy effect that ends (`GameState::temp_copies`).

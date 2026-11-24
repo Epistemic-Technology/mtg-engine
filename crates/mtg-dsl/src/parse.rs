@@ -49,6 +49,8 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         delayed_dies: false,
         in_trigger: false,
         per_opponent: false,
+        per_player: false,
+        choosing_for: false,
         it_source: false,
         no_trigger_obj: false,
         self_trigger: false,
@@ -719,6 +721,12 @@ struct P {
     in_trigger: bool,
     /// Inside a `for each opponent,` sentence: `that opponent controls`.
     per_opponent: bool,
+    /// Inside a `for each player,` sentence: `that player controls`, a
+    /// target for each player.
+    per_player: bool,
+    /// After `for each player, [you] choose`: `that player controls` ends
+    /// the filter (each player's own permanents).
+    choosing_for: bool,
     /// Inside a trigger on casting "a spell that targets this creature"
     /// (heroic): `it` is the source, as Oracle has it ("put a +1/+1
     /// counter on it").
@@ -6385,6 +6393,17 @@ impl P {
             self.pos += 4;
         }
         let was_per_opponent = std::mem::replace(&mut self.per_opponent, per_opponent);
+        // "For each player, destroy up to one target creature that player
+        // controls." (not "for each player, [you] choose", a choice).
+        let per_player = self.at_words(&["for", "each", "player"])
+            && self.peek_at(3) == Some(&Tok::Comma)
+            && self.word_at(4).as_deref() != Some("choose")
+            && !(self.word_at(4).as_deref() == Some("you")
+                && self.word_at(5).as_deref() == Some("choose"));
+        if per_player {
+            self.pos += 4;
+        }
+        let was_per_player = std::mem::replace(&mut self.per_player, per_player);
         // "until end of turn, <clauses>": the duration printed first.
         let mut lasting = None;
         let eot_first = if self.eat_words(&["until", "your", "next", "turn"]) {
@@ -6475,6 +6494,7 @@ impl P {
             *this_turn = true;
         }
         self.per_opponent = was_per_opponent;
+        self.per_player = was_per_player;
         let s = Sentence {
             effects: clauses,
             label,
@@ -6483,6 +6503,7 @@ impl P {
             lasting,
             then_first,
             per_opponent,
+            per_player,
             joins,
         };
         self.condition_suffix(s)
@@ -7747,8 +7768,115 @@ impl P {
         Ok(None)
     }
 
+    /// After `<who> chooses` or `for each player, [you] choose`: what is
+    /// chosen among each player's permanents (`Effect::ChooseFor`; one
+    /// permanent by each player is `Effect::PlayerChooses`).
+    fn choose_for(&mut self, who: Recipient, by: crate::ast::ChooseBy) -> R<Effect> {
+        let each = by == crate::ast::ChooseBy::Each;
+        let was = std::mem::replace(&mut self.choosing_for, !each);
+        let e = self.choose_for_inner(who, by);
+        self.choosing_for = was;
+        // "You gain control of those creatures.": what was chosen.
+        if e.is_ok() {
+            self.group_named = true;
+        }
+        e
+    }
+
+    fn choose_for_inner(&mut self, who: Recipient, by: crate::ast::ChooseBy) -> R<Effect> {
+        use crate::ast::ChooseBy;
+        let each = by == ChooseBy::Each;
+        // "they control" (each player chooses), "that player controls"
+        // (you choose for each player).
+        let owner = |p: &mut Self, f: &mut Filter| -> R<()> {
+            if each && f.they_control {
+                f.they_control = false;
+                f.who = None;
+                return Ok(());
+            }
+            if each {
+                p.expect_words(&["they", "control"])
+            } else {
+                p.expect_words(&["that", "player", "controls"])
+            }
+        };
+        let mut among = None;
+        // "you choose from among the permanents that player controls an
+        // artifact, ..." (Tragic Arrogance).
+        let among_first = self.eat_words(&["from", "among"]);
+        if among_first {
+            let mut f = self.filter()?;
+            owner(self, &mut f)?;
+            among = Some(f);
+        }
+        let up_to = self.eat_words(&["up", "to"]);
+        let count = if matches!(self.peek(), Some(Tok::Num(_))) {
+            self.num()?
+        } else {
+            Num::N(1)
+        };
+        let mut types = Vec::new();
+        let mut filter = Filter::default();
+        if self.eat_words(&["each", "of"]) {
+            loop {
+                let w = self.word()?;
+                let Some(t) = card_type(&w) else {
+                    return self.fail("`each of`: a list of card types");
+                };
+                types.push(t);
+                if self.peek() == Some(&Tok::Comma) {
+                    self.pos += 1;
+                } else {
+                    break;
+                }
+            }
+        } else {
+            filter = self.filter()?;
+        }
+        if !among_first {
+            if self.eat_words(&["from", "among"]) {
+                let mut f = self.filter()?;
+                owner(self, &mut f)?;
+                among = Some(f);
+            } else if types.is_empty() {
+                owner(self, &mut filter)?;
+            }
+        }
+        let each_type = self.eat_words(&["of", "each", "permanent", "type"]);
+        if each && !up_to && count == Num::N(1) && types.is_empty() && among.is_none() && !each_type
+        {
+            return Ok(Effect::PlayerChooses { who, filter });
+        }
+        Ok(Effect::ChooseFor {
+            who,
+            by,
+            filter,
+            count,
+            up_to,
+            types,
+            each_type,
+            among,
+        })
+    }
+
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        // "For each player, you choose a creature that player controls."
+        if self.at_words(&["for", "each", "player"]) && self.peek_at(3) == Some(&Tok::Comma) {
+            let by = if self.word_at(4).as_deref() == Some("you")
+                && self.word_at(5).as_deref() == Some("choose")
+            {
+                Some((crate::ast::ChooseBy::You, 6))
+            } else if self.word_at(4).as_deref() == Some("choose") {
+                Some((crate::ast::ChooseBy::Bare, 5))
+            } else {
+                None
+            };
+            if let Some((by, n)) = by {
+                self.pos += n;
+                return self.choose_for(Recipient::EachPlayer, by);
+            }
+        }
         // `noalso each Warrior creature you control gains lifelink`.
         if self.eat_word("noalso") {
             let mut e = self.clause()?;
@@ -8517,6 +8645,11 @@ impl P {
                     if subject != Recipient::You {
                         return Ok(Effect::GiveControl { of, to: subject });
                     }
+                    // "You gain control of those creatures." (Riches): for
+                    // good, the subject printed.
+                    if self.eat_word("indefinitely") {
+                        return Ok(Effect::GiveControl { of, to: subject });
+                    }
                     self.until_end_of_turn();
                     return Ok(Effect::GainControl { of, forever: false });
                 }
@@ -8703,6 +8836,22 @@ impl P {
             }
             // "sacrifices half the creatures they control of their
             // choice, rounded up".
+            // "Then sacrifices the rest.", "Then each player sacrifices all
+            // other nonland permanents they control" (each their own).
+            "sacrifices" | "sacrifice"
+                if self.at_words(&["the", "rest"])
+                    || (subject == Recipient::EachPlayer && self.at_word("all")) =>
+            {
+                let what = self.recipient()?;
+                if let Recipient::Group(g) = what
+                    && let Some(f) = self.groups.get_mut(usize::from(g))
+                    && f.they_control
+                    && f.who == Some(Who::Opponents)
+                {
+                    f.who = None;
+                }
+                Ok(Effect::SacrificeBy { who: subject, what })
+            }
             "sacrifices" | "sacrifice" if self.half_ahead() => {
                 let at = self.pos;
                 let filter = {
@@ -9307,17 +9456,7 @@ impl P {
             // a creature they control".
             // "Target opponent chooses a creature they control."
             "chooses" if !self.at_word("and") && !self.at_word("one") => {
-                let mut filter = self.filter()?;
-                if filter.they_control {
-                    filter.they_control = false;
-                    filter.who = None;
-                } else {
-                    self.expect_words(&["they", "control"])?;
-                }
-                Ok(Effect::PlayerChooses {
-                    who: subject,
-                    filter,
-                })
+                self.choose_for(subject, crate::ast::ChooseBy::Each)
             }
             "exiles" if self.at_word("until") => {
                 self.pos += 1;
@@ -14019,6 +14158,8 @@ impl P {
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             per_opponent: self.per_opponent,
+            per_player: self.per_player,
+            choosing_for: self.choosing_for,
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
             self_trigger: self.self_trigger,
@@ -14185,6 +14326,16 @@ impl P {
             if up_to {
                 spec = Target::UpTo(Box::new(spec));
             }
+            // "for each player, ... up to one target creature that player
+            // controls": one for each player.
+            let count = if matches!(spec.base(), Target::Filter(f) if f.per_player) {
+                if count != 1 || !up_to {
+                    return self.fail("for each player: `up to 1 target ... that player controls`");
+                }
+                2
+            } else {
+                count
+            };
             let mut out = Vec::new();
             for _ in 0..count {
                 out.push(Recipient::Target(self.targets.len()));
@@ -14280,6 +14431,10 @@ impl P {
         // "A creature dealt damage this way can't be regenerated this turn."
         if self.eat_words(&["creature", "dealt", "damage", "this", "way"]) {
             return Ok(Recipient::DamagedThisWay);
+        }
+        // "Destroy the rest.": what the last choice didn't choose.
+        if self.eat_words(&["the", "rest"]) {
+            return Ok(Recipient::Rest);
         }
         // "each opponent who didn't", "each player who doesn't", "each
         // opponent who can't": those who didn't do what the last
@@ -14998,6 +15153,8 @@ impl P {
                         delayed_dies: false,
                         in_trigger: false,
                         per_opponent: false,
+                        per_player: false,
+                        choosing_for: false,
                         it_source: false,
                         no_trigger_obj: false,
                         self_trigger: false,
@@ -15441,6 +15598,19 @@ impl P {
                         planeswalker,
                     });
                 }
+                // "for each player, destroy up to one target creature that
+                // player controls": one target for each player, so
+                // controlled by different players (two players).
+                "that" if self.per_player && self.at_words(&["that", "player", "controls"]) => {
+                    f.same = Some(SameRef::DifferentControllers);
+                    f.per_player = true;
+                    self.pos += 3;
+                }
+                // "for each player, you choose a creature that player
+                // controls": the choice's own player, worded after.
+                "that" if self.choosing_for && self.at_words(&["that", "player", "controls"]) => {
+                    break;
+                }
                 // "that player controls": the triggering player.
                 "that" if self.at_words(&["that", "player", "controls"]) => {
                     // A spell or an activated ability has no triggering
@@ -15770,6 +15940,39 @@ impl P {
                 "that" if self.at_words(&["that", "attacked", "this", "turn"]) => {
                     f.status.attacked_this_turn = true;
                     self.pos += 4;
+                }
+                // After a choice: "all other creatures" (`unchosen`), "not
+                // chosen this way", "except creatures chosen this way".
+                "unchosen" => {
+                    f.status.unchosen = true;
+                    f.unchosen_wording = crate::ast::UnchosenWording::Other;
+                    self.pos += 1;
+                }
+                "not" if self.at_words(&["not", "chosen", "this", "way"]) => {
+                    f.status.unchosen = true;
+                    f.unchosen_wording = crate::ast::UnchosenWording::NotChosen;
+                    self.pos += 4;
+                }
+                "except" if self.at_words(&["except", "chosen", "this", "way"]) => {
+                    f.status.unchosen = true;
+                    f.unchosen_wording = crate::ast::UnchosenWording::Except;
+                    self.pos += 4;
+                }
+                // "that don't share a creature type with the chosen
+                // creature they control" (Winnowing).
+                "that"
+                    if self.at_words(&[
+                        "that", "doesn't", "share", "creature", "type", "with", "chosen",
+                    ]) =>
+                {
+                    f.status.shares_chosen = Some(false);
+                    self.pos += 7;
+                }
+                "that"
+                    if self.at_words(&["that", "shares", "creature", "type", "with", "chosen"]) =>
+                {
+                    f.status.shares_chosen = Some(true);
+                    self.pos += 6;
                 }
                 // "with toughness greater than its power".
                 "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {

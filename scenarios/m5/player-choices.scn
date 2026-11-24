@@ -1,0 +1,277 @@
+# Choices made for or by each player and remembered for the rest of the
+# resolution (not targeted, CR 608.2d): "Each player chooses a creature
+# they control. Destroy the rest.", "Each player chooses an artifact, a
+# creature, an enchantment, and a planeswalker from among the nonland
+# permanents they control, then sacrifices the rest.", "For each player,
+# you choose a creature that player controls. Then each player sacrifices
+# all other creatures they control that don't share a creature type with
+# the chosen creature they control." Each player chooses in turn order
+# from the active player.
+
+scenario "Divine Reckoning: each player keeps the creature they chose" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel", "Wind Drake", "Forest"
+  hand A: "Divine Reckoning"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Divine Reckoning"
+  turn 3 A: choose "Hill Giant"
+  turn 3 B: choose "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Wind Drake"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Divine Reckoning: a player can't choose another player's creature" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel", "Wind Drake"
+  hand A: "Divine Reckoning"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Divine Reckoning"
+  illegal turn 3 A: choose "Serra Angel"
+  turn 3 B: choose "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert graveyard B contains "Wind Drake"
+}
+
+scenario "Divine Reckoning: a player with no creature chooses nothing; noncreatures stay" {
+  battlefield A: 4 "Plains", "Ornithopter", "Glorious Anthem"
+  battlefield B: "Serra Angel"
+  hand A: "Divine Reckoning"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Divine Reckoning"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Glorious Anthem"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Duneblast: the one creature chosen may be an opponent's; the rest are destroyed" {
+  battlefield A: 2 "Plains", 2 "Swamp", 3 "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel", "Wind Drake"
+  hand A: "Duneblast"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Duneblast"
+  turn 3 A: choose "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert graveyard B contains "Wind Drake"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Duneblast: choosing none destroys every creature" {
+  battlefield A: 2 "Plains", 2 "Swamp", 3 "Forest", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Duneblast"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Duneblast"
+  turn 3 A: choose done
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A count 7
+}
+
+scenario "Cataclysmic Gearhulk: one of each type is kept, lands are never sacrificed" {
+  battlefield A: 5 "Plains", "Ornithopter", "Glorious Anthem"
+  battlefield B: "Sol Ring", "Bonesplitter", "Grizzly Bears", "Hill Giant", "Forest"
+  hand A: "Cataclysmic Gearhulk"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Cataclysmic Gearhulk"
+  turn 3 A: choose "Ornithopter"
+  turn 3 A: choose "Cataclysmic Gearhulk"
+  turn 3 B: choose "Bonesplitter"
+  turn 3 B: choose "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Cataclysmic Gearhulk"
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Glorious Anthem"
+  assert battlefield B contains "Bonesplitter"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B contains "Forest"
+  assert graveyard B contains "Sol Ring"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Cataclysmic Gearhulk: one permanent chosen as both artifact and creature; the Gearhulk itself is sacrificed" {
+  battlefield A: 5 "Plains", "Ornithopter"
+  hand A: "Cataclysmic Gearhulk"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Cataclysmic Gearhulk"
+  turn 3 A: choose "Ornithopter"
+  turn 3 A: choose "Ornithopter"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert graveyard A contains "Cataclysmic Gearhulk"
+}
+
+scenario "Tragic Arrogance: the caster chooses for every player" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Hill Giant", "Sol Ring"
+  battlefield B: "Serra Angel", "Wind Drake", "Bonesplitter", "Glorious Anthem", "Forest"
+  hand A: "Tragic Arrogance"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Tragic Arrogance"
+  turn 3 A: choose "Hill Giant"
+  turn 3 A: choose "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Sol Ring"
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Bonesplitter"
+  assert battlefield B contains "Glorious Anthem"
+  assert battlefield B contains "Wind Drake"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Forest"
+  assert battlefield A count 7
+}
+
+scenario "Winnowing: creatures sharing a type with the chosen creature stay" {
+  battlefield A: 6 "Plains", "Grizzly Bears", "Runeclaw Bear", "Hill Giant"
+  battlefield B: "Serra Angel", "Wind Drake", "Changeling Outcast"
+  hand A: "Winnowing"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Winnowing"
+  turn 3 A: choose "Grizzly Bears"
+  turn 3 A: choose "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Runeclaw Bear"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Wind Drake"
+  assert battlefield B contains "Changeling Outcast"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Razia's Purification: each player keeps three permanents" {
+  battlefield A: 3 "Mountain", 3 "Plains", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Wind Drake", "Forest", "Island"
+  hand A: "Razia's Purification"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Razia's Purification"
+  turn 3 A: choose "Grizzly Bears"
+  turn 3 A: choose "Mountain"
+  turn 3 A: choose "Plains"
+  turn 3 B: choose "Serra Angel"
+  turn 3 B: choose "Forest"
+  turn 3 B: choose "Island"
+  run_to turn 3 postcombat_main
+  assert battlefield A count 3
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A count 5
+  assert battlefield B contains "Serra Angel"
+  assert graveyard B contains "Wind Drake"
+  assert battlefield B count 3
+}
+
+scenario "Archfiend of Depravity: at the opponent's end step they keep up to two creatures" {
+  battlefield A: "Archfiend of Depravity", "Grizzly Bears", "Hill Giant", "Runeclaw Bear"
+  battlefield B: "Serra Angel", "Wind Drake", "Grizzly Bears", "Forest"
+  start turn 2 B precombat_main
+  turn 2 end B: choose "Serra Angel"
+  turn 2 end B: choose done
+  run_to turn 3 upkeep
+  assert battlefield B contains "Serra Angel"
+  assert graveyard B contains "Wind Drake"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Forest"
+  assert battlefield A count 4
+}
+
+scenario "Archfiend of Depravity: not at its controller's own end step" {
+  battlefield A: "Archfiend of Depravity", "Grizzly Bears", "Hill Giant", "Runeclaw Bear"
+  battlefield B: "Serra Angel", "Wind Drake", "Grizzly Bears"
+  start turn 3 A precombat_main
+  run_to turn 4 upkeep
+  assert battlefield A count 4
+  assert battlefield B count 3
+}
+
+scenario "Liliana, Dreadhorde General: each opponent keeps one permanent of each type" {
+  battlefield A: "Liliana, Dreadhorde General" with 9 loyalty, "Grizzly Bears"
+  battlefield B: "Serra Angel", "Wind Drake", "Forest", "Island", "Sol Ring", "Glorious Anthem"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Liliana, Dreadhorde General" ability 3
+  turn 3 B: choose "Wind Drake"
+  turn 3 B: choose "Island"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Sol Ring"
+  assert battlefield B contains "Wind Drake"
+  assert battlefield B contains "Island"
+  assert battlefield B contains "Glorious Anthem"
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Forest"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Fall of the First Civilization: chapter III keeps three nonland permanents each" {
+  battlefield A: "Fall of the First Civilization" with 2 lore, "Grizzly Bears", "Hill Giant", "Ornithopter", "Plains"
+  battlefield B: "Serra Angel", "Wind Drake", "Sol Ring", "Glorious Anthem", "Forest"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Ornithopter"
+  turn 1 B: choose "Serra Angel"
+  turn 1 B: choose "Sol Ring"
+  turn 1 B: choose "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Plains"
+  assert graveyard A contains "Fall of the First Civilization"
+  assert graveyard B contains "Wind Drake"
+  assert battlefield B contains "Serra Angel"
+  assert battlefield B contains "Forest"
+}
+
+# "For each player, destroy up to one target creature that player
+# controls": one target for each player, so (two players) up to two
+# targets controlled by different players.
+
+scenario "Demonic Junker: one target for each player; a creature of yours destroyed gives counters" {
+  battlefield A: 7 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Demonic Junker"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Demonic Junker"
+  turn 3 A: trigger "Demonic Junker" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert counters "Demonic Junker" +1/+1 2
+}
+
+scenario "Demonic Junker: only an opponent's creature destroyed, no counters" {
+  battlefield A: 7 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Demonic Junker"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Demonic Junker"
+  turn 3 A: trigger "Demonic Junker" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert counters "Demonic Junker" +1/+1 0
+}
+
+# "Each opponent chooses a creature they control. You gain control of
+# those creatures.": the chosen permanents are "those".
+
+scenario "Riches: the opponent chooses which creature you gain control of" {
+  battlefield A: 7 "Island"
+  battlefield B: "Hill Giant", "Serra Angel"
+  graveyard A: "Rags // Riches"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Rags // Riches" from graveyard
+  turn 3 B: choose "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert exile A contains "Rags // Riches"
+}

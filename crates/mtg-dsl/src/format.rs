@@ -369,6 +369,9 @@ impl Fmt {
                     *m = true;
                 }
                 match first.strip_prefix("up to 1 ") {
+                    // "for each player, ... up to 1 target creature that
+                    // player controls": one per player.
+                    Some(_) if first.ends_with(" that player controls") => first,
                     Some(rest) => format!("up to {n} {rest}"),
                     None if first.starts_with("target ") => format!("{n} {first}"),
                     None => first,
@@ -479,6 +482,7 @@ impl Fmt {
                 format!("{first} and {group}")
             }
             Recipient::DamagedThisWay => "creature dealt damage this way".to_string(),
+            Recipient::Rest => "the rest".to_string(),
             Recipient::Declined(d) => format!(
                 "each {} who {}",
                 if d.player { "player" } else { "opponent" },
@@ -549,7 +553,30 @@ impl Fmt {
     }
 
     fn recipients(&mut self, rs: &[Recipient], targets: &[Target]) -> String {
-        rs.iter()
+        // "for each player, destroy up to 1 target creature that player
+        // controls": the second target is the first's twin, written once.
+        let twin = |k: usize| match (rs[k], k.checked_sub(1).map(|j| rs[j])) {
+            (Recipient::Target(i), Some(Recipient::Target(p))) => {
+                p + 1 == i
+                    && matches!(targets.get(i).map(Target::base),
+                        Some(Target::Filter(f)) if f.per_player)
+            }
+            _ => false,
+        };
+        let keep: Vec<Recipient> = (0..rs.len())
+            .filter(|k| {
+                if twin(*k) {
+                    if let Recipient::Target(i) = rs[*k] {
+                        self.mentioned[i] = true;
+                    }
+                    false
+                } else {
+                    true
+                }
+            })
+            .map(|k| rs[k])
+            .collect();
+        keep.iter()
             .map(|r| self.recipient(*r, targets))
             .collect::<Vec<_>>()
             .join(" and ")
@@ -799,6 +826,9 @@ impl Fmt {
         }
         if s.per_opponent {
             out.push_str("for each opponent, ");
+        }
+        if s.per_player {
+            out.push_str("for each player, ");
         }
         if s.eot_first {
             out.push_str(match s.lasting {
@@ -1895,6 +1925,13 @@ impl Fmt {
             Effect::ExchangeLife { with } => {
                 format!("exchange life totals with {}", self.recipient(*with, t))
             }
+            Effect::GiveControl {
+                of,
+                to: Recipient::You,
+            } => format!(
+                "you gain control of {} indefinitely",
+                self.recipient(*of, t)
+            ),
             Effect::GiveControl { of, to } => format!(
                 "{} gains control of {}",
                 self.recipient(*to, t),
@@ -2394,6 +2431,73 @@ impl Fmt {
                 self.recipient(*who, t),
                 filter(f)
             ),
+            Effect::ChooseFor {
+                who,
+                by,
+                filter: f,
+                count,
+                up_to,
+                types,
+                each_type,
+                among,
+            } => {
+                use crate::ast::ChooseBy;
+                let owner = if *by == ChooseBy::Each {
+                    "they control"
+                } else {
+                    "that player controls"
+                };
+                let mut what = String::new();
+                if *up_to {
+                    what.push_str("up to ");
+                }
+                if *count != Num::N(1) {
+                    what.push_str(&num(*count));
+                    what.push(' ');
+                }
+                if types.is_empty() {
+                    what.push_str(&filter(f));
+                } else {
+                    what.push_str("each of ");
+                    what.push_str(
+                        &types
+                            .iter()
+                            .map(|t| crate::render::type_noun(*t))
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                    );
+                }
+                let among = among
+                    .as_ref()
+                    .map(|a| format!("from among {} {owner}", filter(a)));
+                let mut out = match by {
+                    ChooseBy::Each => format!("{} chooses ", self.recipient(*who, t)),
+                    ChooseBy::You => "for each player, you choose ".to_string(),
+                    ChooseBy::Bare => "for each player, choose ".to_string(),
+                };
+                match among {
+                    Some(a) if *by != ChooseBy::Each => {
+                        out.push_str(&a);
+                        out.push(' ');
+                        out.push_str(&what);
+                    }
+                    Some(a) => {
+                        out.push_str(&what);
+                        out.push(' ');
+                        out.push_str(&a);
+                    }
+                    None if types.is_empty() => {
+                        out.push_str(&what);
+                        out.push(' ');
+                        out.push_str(owner);
+                    }
+                    None => out.push_str(&what),
+                }
+                if *each_type {
+                    out.push_str(" of each permanent type");
+                }
+                out
+            }
             Effect::CantBeTargeted { what, ban } => format!(
                 "{} can't be targeted by {} this turn",
                 self.recipient(*what, t),
@@ -4558,6 +4662,9 @@ fn filter_one(f: &Filter) -> String {
     if f.plural {
         words.push("plural".to_string());
     }
+    if f.status.unchosen && f.unchosen_wording == crate::ast::UnchosenWording::Other {
+        words.push("unchosen".to_string());
+    }
     match f.relation {
         Relation::Other if f.other_than_this => {}
         Relation::Other => words.push("other".to_string()),
@@ -4795,6 +4902,9 @@ fn filter_one(f: &Filter) -> String {
             words.push("defending player controls".to_string());
         }
         Some(Who::Opponents) => words.push("an opponent controls".to_string()),
+        None if f.they_control && f.that_player.is_none() => {
+            words.push("they control".to_string());
+        }
         Some(Who::Any) | None => {}
     }
     if f.control_late && f.who.is_some() {
@@ -4868,6 +4978,20 @@ fn filter_one(f: &Filter) -> String {
     if f.status.attacked_this_turn {
         words.push("that attacked this turn".to_string());
     }
+    if f.status.unchosen {
+        match f.unchosen_wording {
+            crate::ast::UnchosenWording::Other => {}
+            crate::ast::UnchosenWording::NotChosen => words.push("not chosen this way".to_string()),
+            crate::ast::UnchosenWording::Except => {
+                words.push("except chosen this way".to_string());
+            }
+        }
+    }
+    match f.status.shares_chosen {
+        Some(false) => words.push("that doesn't share creature type with chosen".to_string()),
+        Some(true) => words.push("that shares creature type with chosen".to_string()),
+        None => {}
+    }
     if f.status.damaged_by_source {
         words.push("dealt damage by this this turn".to_string());
     }
@@ -4888,7 +5012,9 @@ fn filter_one(f: &Filter) -> String {
     if let Some(c) = f.chosen {
         words.push(of_chosen(c).to_string());
     }
-    if !f.named_first
+    if f.per_player {
+        words.push("that player controls".to_string());
+    } else if !f.named_first
         && let Some(r) = f.same
     {
         words.push(same_ref(r));

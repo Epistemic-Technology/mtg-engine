@@ -1,0 +1,7 @@
+card "Divine Reckoning" {
+  oracle_id 15d8b339-7520-43c9-b2dc-4a936357042b
+  cost {2}{W}{W}
+  type Sorcery
+  spell: each player chooses creature they control; destroy the rest
+  flashback {5}{W}{W}
+}

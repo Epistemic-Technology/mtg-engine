@@ -1,0 +1,6 @@
+card "Razia's Purification" {
+  oracle_id 60e95faf-1496-4298-9588-52b50b05fc6b
+  cost {4}{R}{W}
+  type Sorcery
+  spell: each player chooses 3 permanent they control then sacrifices the rest
+}

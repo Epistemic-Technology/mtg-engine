@@ -1706,6 +1706,126 @@ impl GameState {
         (get, may)
     }
 
+    /// `Effect::ChooseFor` (CR 608.2d): for each player in turn order from
+    /// the active player, the chooser picks each slot's permanents among
+    /// that player's; what was chosen and what could have been are
+    /// remembered for "the rest" and "chosen this way".
+    fn choose_for(&mut self, ctx: &mut EffectCtx, spec: &crate::card::ChooseFor) {
+        let mut players: SmallVec<[Option<PlayerId>; 4]> = SmallVec::new();
+        match spec.who {
+            None => players.push(None),
+            Some(r) => {
+                let named: SmallVec<[PlayerId; 4]> = self
+                    .recipients(ctx, r)
+                    .into_iter()
+                    .filter_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    })
+                    .collect();
+                let mut p = self.active_player;
+                for _ in 0..self.num_players() {
+                    if named.contains(&p) {
+                        players.push(Some(p));
+                    }
+                    p = self.next_player(p);
+                }
+            }
+        }
+        let source = Some(ctx.source);
+        let mut chosen: Vec<(PlayerId, ObjId)> = Vec::new();
+        let mut unchosen: Vec<ObjId> = Vec::new();
+        for p in players {
+            let chooser = match p {
+                Some(p) if !spec.by_you => p,
+                _ => ctx.controller,
+            };
+            let fits = |s: &Self, f: &crate::card::ObjFilter, id: ObjId| {
+                let ctl = s.objects[id].controller;
+                s.characteristics(id)
+                    .is_some_and(|c| f.matches(id, ctl, &c, source, Some(chooser)))
+                    && s.status_ok(f, id)
+            };
+            let pool: Vec<ObjId> = self
+                .battlefield
+                .iter()
+                .copied()
+                .filter(|id| p.is_none_or(|p| self.objects[*id].controller == p))
+                .filter(|id| match &spec.among {
+                    Some(f) => fits(self, f, *id),
+                    None => spec.slots.iter().any(|s| fits(self, &s.filter, *id)),
+                })
+                .collect();
+            let mut picked: Vec<ObjId> = Vec::new();
+            for slot in &spec.slots {
+                let mut cands: Vec<ObjId> = pool
+                    .iter()
+                    .copied()
+                    .filter(|id| fits(self, &slot.filter, *id))
+                    .collect();
+                for _ in 0..slot.count {
+                    if cands.is_empty() {
+                        break;
+                    }
+                    let id = if !spec.up_to && cands.len() == 1 {
+                        cands[0]
+                    } else {
+                        let mut options: Vec<Choice> =
+                            cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
+                        if spec.up_to {
+                            options.push(Choice::Done);
+                        }
+                        let k = self.choose_mid(chooser, DecisionKind::ChooseCard, options.clone());
+                        match options[k] {
+                            Choice::Sacrifice(id) => id,
+                            _ => break,
+                        }
+                    };
+                    cands.retain(|c| *c != id);
+                    if !picked.contains(&id) {
+                        picked.push(id);
+                    }
+                }
+            }
+            for id in &picked {
+                chosen.push((p.unwrap_or(self.objects[*id].controller), *id));
+            }
+            unchosen.extend(pool.into_iter().filter(|id| !picked.contains(id)));
+        }
+        ctx.did = !chosen.is_empty();
+        ctx.created = chosen.last().map(|(_, id)| *id);
+        if let Some(log) = self.this_way.as_mut() {
+            log.group = chosen.iter().map(|(_, id)| *id).collect();
+            log.chosen = chosen;
+            log.unchosen = unchosen;
+        }
+    }
+
+    /// Whether `id` passes a group filter's relations to the last choice
+    /// of the resolution (`StatusQuals::unchosen`, `shares_chosen`).
+    fn chosen_ok(&self, f: &crate::card::ObjFilter, id: ObjId) -> bool {
+        if !f.status.unchosen && f.status.shares_chosen.is_none() {
+            return true;
+        }
+        let chosen: &[(PlayerId, ObjId)] = self.this_way.as_ref().map_or(&[], |l| &l.chosen);
+        if f.status.unchosen && chosen.iter().any(|(_, c)| *c == id) {
+            return false;
+        }
+        if let Some(want) = f.status.shares_chosen {
+            let ctl = self.objects[id].controller;
+            let shares = self.characteristics(id).is_some_and(|c| {
+                chosen.iter().filter(|(p, _)| *p == ctl).any(|(_, other)| {
+                    self.characteristics(*other)
+                        .is_some_and(|o| c.shares_creature_type(&o))
+                })
+            });
+            if shares != want {
+                return false;
+            }
+        }
+        true
+    }
+
     /// `Effect::ChooseAct`: the controller chooses `n` candidates (up to
     /// `n` with `up_to`) and each is acted on; returns how many were.
     /// Without `up_to`, nothing happens unless all `n` can be chosen.
@@ -1725,6 +1845,7 @@ impl GameState {
         }
         let p = ctx.controller;
         let mut done = 0;
+        let mut picked: Vec<(PlayerId, ObjId)> = Vec::new();
         while done < n && !cands.is_empty() {
             let id = if act == ChooseAct::ReturnRandomFromGraveyard {
                 // "at random": from the game's random number generator.
@@ -1753,7 +1874,10 @@ impl GameState {
             };
             cands.retain(|c| *c != id);
             match act {
-                ChooseAct::Choose => ctx.created = Some(id),
+                ChooseAct::Choose => {
+                    ctx.created = Some(id);
+                    picked.push((self.objects[id].controller, id));
+                }
                 ChooseAct::Tap => self.tap_by(id, ctx.controller),
                 ChooseAct::Enlist => {
                     self.tap(id);
@@ -1838,6 +1962,13 @@ impl GameState {
                 }
             }
             done += 1;
+        }
+        // "Choose up to one creature. Destroy the rest." (Duneblast).
+        if act == ChooseAct::Choose
+            && let Some(log) = self.this_way.as_mut()
+        {
+            log.chosen = picked;
+            log.unchosen = cands;
         }
         // "exile this spell and four cards named ~ from your graveyard":
         // the spell too, from the stack.
@@ -10050,6 +10181,23 @@ impl GameState {
                     out.extend(l.declined.iter().map(|p| Target::Player(*p)));
                 }
             }
+            // "Destroy the rest.": what the last choice could have chosen
+            // and didn't, still on the battlefield.
+            Recipient::Rest => {
+                if let Some(l) = &self.this_way {
+                    out.extend(
+                        l.unchosen
+                            .iter()
+                            .filter(|id| {
+                                self.objects
+                                    .get(**id)
+                                    .is_some_and(|o| o.zone == Zone::Battlefield)
+                            })
+                            .map(|id| Target::Object(*id)),
+                    );
+                }
+                self.note_group(&out);
+            }
             Recipient::EachCreatureYouControl => {
                 out.extend(self.creatures_of(ctx.controller).map(Target::Object));
                 self.note_group(&out);
@@ -10402,6 +10550,7 @@ impl GameState {
                         filter.matches(*id, o.controller, &c, source, Some(ctx.controller))
                     }) && self.status_ok(filter, *id)
                         && self.combat_with_ok(filter.combat_with, source, *id)
+                        && self.chosen_ok(filter, *id)
                 })
                 .map(Target::Object),
         );
@@ -12745,30 +12894,43 @@ impl GameState {
                 }
             }
             Effect::PlayerChooses { who, filter } => {
+                let mut chosen = Vec::new();
+                let mut unchosen = Vec::new();
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    let options: Vec<Choice> = self
+                    let cands: Vec<ObjId> = self
                         .permanents_of(p)
                         .filter(|id| {
                             self.characteristics(*id).is_some_and(|c| {
                                 filter.matches(*id, p, &c, Some(ctx.source), Some(p))
                             }) && self.status_ok(filter, *id)
                         })
-                        .map(Choice::Sacrifice)
                         .collect();
-                    if options.is_empty() {
+                    if cands.is_empty() {
                         ctx.created = None;
                         ctx.did = false;
                         continue;
                     }
+                    let options: Vec<Choice> =
+                        cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
                     let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
                     if let Choice::Sacrifice(id) = options[k] {
                         ctx.created = Some(id);
+                        chosen.push((p, id));
+                        unchosen.extend(cands.into_iter().filter(|c| *c != id));
                     }
                 }
+                // "Destroy the rest." (Divine Reckoning); "You gain control
+                // of those creatures." (Riches).
+                if let Some(log) = self.this_way.as_mut() {
+                    log.group = chosen.iter().map(|(_, id)| *id).collect();
+                    log.chosen = chosen;
+                    log.unchosen = unchosen;
+                }
             }
+            Effect::ChooseFor(spec) => self.choose_for(ctx, spec),
             Effect::PickTarget {
                 first,
                 by_controller,
