@@ -858,6 +858,20 @@ impl Fmt {
                     out.push_str(" all creature types");
                     continue;
                 }
+                // "Creatures target player controls get +1/+1 and gain
+                // haste": likewise for a grant after the group's pump.
+                if let Effect::Pump { to, .. } = &s.effects[i - 1] {
+                    let text = self.effect(e, targets);
+                    let subject = format!("{} gain ", self.recipient(*to, targets));
+                    match text.strip_prefix(&subject) {
+                        Some(rest) if subject.starts_with("all ") => {
+                            out.push_str("gain ");
+                            out.push_str(rest);
+                        }
+                        _ => out.push_str(&text),
+                    }
+                    continue;
+                }
             }
             out.push_str(&self.effect(e, targets));
         }
