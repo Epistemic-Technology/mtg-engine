@@ -1,0 +1,159 @@
+# Copies of cards that aren't permanents (CR 707.2): a token that's a copy
+# of a card in a graveyard or exile, a permanent becoming a copy of such a
+# card, and a permanent entering as a copy of a card in a graveyard or of
+# a land.
+
+scenario "the scarab god: a 4/4 black Zombie copy of an exiled creature card" {
+  battlefield A: "The Scarab God", 2 "Island", 2 "Swamp"
+  graveyard B: "Serra Angel"
+  turn 1 A: activate "The Scarab God" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 4
+  assert toughness A "Serra Angel" 4
+  assert is A "Serra Angel" black
+  assert is not A "Serra Angel" white
+  assert is A "Serra Angel" Zombie
+  assert is not A "Serra Angel" Angel
+  assert has A "Serra Angel" flying
+  assert has A "Serra Angel" vigilance
+}
+
+scenario "the scarab god: the card left the graveyard, no token" {
+  battlefield A: "The Scarab God", 2 "Island", 2 "Swamp"
+  battlefield B: "Swamp"
+  graveyard B: "Serra Angel"
+  hand B: "Coffin Purge"
+  turn 1 A: activate "The Scarab God" targeting "Serra Angel"
+  turn 1 B: cast "Coffin Purge" targeting "Serra Angel" in response to trigger "The Scarab God"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 5
+}
+
+scenario "the scarab god: each opponent loses life and you scry for each Zombie" {
+  battlefield A: "The Scarab God", "Gravecrawler", "Gravecrawler"
+  life B 20
+  run_to turn 1 draw
+  assert life B 18
+  run_to turn 3 draw
+  assert life B 16
+}
+
+scenario "the scarab god: returns to its owner's hand at the next end step" {
+  battlefield A: "The Scarab God"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  turn 2 B: cast "Lightning Bolt" targeting "The Scarab God"
+  turn 2 B: cast "Lightning Bolt" targeting "The Scarab God"
+  run_to turn 2 cleanup
+  assert hand A contains "The Scarab God"
+}
+
+scenario "god-pharaoh's gift: a 4/4 black Zombie copy of a creature card, with haste" {
+  battlefield A: "God-Pharaoh's Gift"
+  graveyard A: "Serra Angel", "Grizzly Bears"
+  turn 1 A: accept "God-Pharaoh's Gift"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert exile A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 4
+  assert toughness A "Serra Angel" 4
+  assert is A "Serra Angel" black
+  assert is A "Serra Angel" Zombie
+  assert has A "Serra Angel" flying
+  assert has A "Serra Angel" haste
+}
+
+scenario "god-pharaoh's gift: declined, nothing is exiled" {
+  battlefield A: "God-Pharaoh's Gift"
+  graveyard A: "Serra Angel"
+  turn 1 A: decline "God-Pharaoh's Gift"
+  run_to turn 1 declare_attackers
+  assert graveyard A contains "Serra Angel"
+  assert battlefield A lacks "Serra Angel"
+}
+
+scenario "vesuva: enters tapped as a copy of a land on the battlefield" {
+  battlefield B: "Mishra's Factory"
+  hand A: "Vesuva"
+  turn 1 A: play "Vesuva"
+  turn 1 A: copy B "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mishra's Factory"
+  assert battlefield A lacks "Vesuva"
+  assert tapped A "Mishra's Factory"
+  assert untapped B "Mishra's Factory"
+}
+
+scenario "vesuva: the copy's abilities work" {
+  battlefield B: "Mishra's Factory"
+  battlefield A: "Plains"
+  hand A: "Vesuva"
+  turn 1 A: play "Vesuva"
+  turn 1 A: copy B "Mishra's Factory"
+  turn 3 A: activate A "Mishra's Factory"
+  run_to turn 3 postcombat_main
+  assert is A "Mishra's Factory" creature
+  assert power A "Mishra's Factory" 2
+}
+
+scenario "vesuva: copying nothing, it enters untapped as itself" {
+  battlefield B: "Mishra's Factory"
+  hand A: "Vesuva"
+  turn 1 A: play "Vesuva"
+  turn 1 A: copy nothing
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vesuva"
+  assert untapped "Vesuva"
+}
+
+scenario "echoing deeps: a tapped copy of a land card in a graveyard, and a Cave" {
+  graveyard B: "Ghost Quarter"
+  hand A: "Echoing Deeps"
+  turn 1 A: play "Echoing Deeps"
+  turn 1 A: copy "Ghost Quarter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ghost Quarter"
+  assert graveyard B contains "Ghost Quarter"
+  assert tapped A "Ghost Quarter"
+  assert is A "Ghost Quarter" Cave
+}
+
+scenario "echoing deeps: a land on the battlefield can't be copied" {
+  battlefield B: "Ghost Quarter"
+  hand A: "Echoing Deeps"
+  turn 1 A: play "Echoing Deeps"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Echoing Deeps"
+  assert untapped "Echoing Deeps"
+  assert is "Echoing Deeps" Cave
+}
+
+scenario "thespian's stage: becomes a copy of a land and keeps its ability" {
+  battlefield A: "Thespian's Stage", 2 "Plains"
+  battlefield B: "Mishra's Factory", "Ghost Quarter"
+  turn 1 A: activate "Thespian's Stage" ability 2 targeting B "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mishra's Factory"
+  assert battlefield A lacks "Thespian's Stage"
+  turn 3 A: activate A "Mishra's Factory" ability 3 targeting "Ghost Quarter"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Ghost Quarter"
+  assert battlefield A lacks "Mishra's Factory"
+}
+
+scenario "clone returned from a graveyard still enters as a copy" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Serra Angel"
+  graveyard A: "Clone"
+  hand A: "Zombify"
+  turn 1 A: cast "Zombify" targeting "Clone"
+  turn 1 A: copy B "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 4
+  assert has A "Serra Angel" flying
+}

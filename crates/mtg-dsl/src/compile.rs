@@ -3100,7 +3100,8 @@ impl Compiler<'_> {
             | Recipient::CreatedObject
             | Recipient::CreatedThat
             | Recipient::CreatedThatToken
-            | Recipient::CreatedThatLand => CoreRecipient::CreatedObject,
+            | Recipient::CreatedThatLand
+            | Recipient::CreatedThatCard => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
@@ -6284,7 +6285,7 @@ impl Compiler<'_> {
                     mtg_core::card::BlockRule::BlocksAdditional(*n)
                 }
             }),
-            Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),
+            Ability::EntersAsCopy(f, way) => AbilityDef::EntersAsCopy(self.filter(f), *way),
             Ability::AsEntersChoose { kind, .. } => {
                 AbilityDef::AsEntersChoose(self.choice_kind(kind))
             }

@@ -1,0 +1,9 @@
+card "Thespian's Stage" {
+  oracle_id b01e698b-608a-4fc7-8073-b01d044743ec
+  type Land
+  activated {T}: add {C}
+  activated {2}, {T}: this becomes a copy of target land with exceptions
+  except {
+    activated {2}, {T}: this becomes a copy of target land with exceptions
+  }
+}

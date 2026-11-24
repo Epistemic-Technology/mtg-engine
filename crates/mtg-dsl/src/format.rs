@@ -435,6 +435,7 @@ impl Fmt {
             Recipient::CreatedThat => "that created creature".to_string(),
             Recipient::CreatedThatToken => "that created token".to_string(),
             Recipient::CreatedThatLand => "that created land".to_string(),
+            Recipient::CreatedThatCard => "that created card".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
@@ -7141,8 +7142,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let _ = writeln!(out, "{indent}{text}");
         }
-        Ability::EntersAsCopy(f) => {
-            let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));
+        Ability::EntersAsCopy(f, way) => {
+            let _ = writeln!(
+                out,
+                "{indent}enters {}as copy of {}{}",
+                if way.tapped { "tapped " } else { "" },
+                filter(f),
+                if way.graveyard {
+                    " card in graveyard"
+                } else {
+                    ""
+                }
+            );
         }
         Ability::BecomesChoice { forms, in_addition } => {
             let forms: Vec<String> = forms

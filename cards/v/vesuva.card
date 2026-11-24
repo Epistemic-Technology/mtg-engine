@@ -1,0 +1,5 @@
+card "Vesuva" {
+  oracle_id 4001b868-ada1-43f4-92e2-27ab0e80c913
+  type Land
+  enters tapped as copy of land
+}

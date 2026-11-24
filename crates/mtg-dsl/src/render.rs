@@ -1974,6 +1974,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::CreatedThat => "that creature".to_string(),
             Recipient::CreatedThatLand => "that land".to_string(),
+            Recipient::CreatedThatCard => "that card".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -18960,17 +18961,27 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             g.who = None;
             format!("Affinity for {}", filter_phrase(&g, card, true))
         }
-        Ability::EntersAsCopy(f) => {
+        Ability::EntersAsCopy(f, way) => {
+            // "enter tapped as a copy" (Vesuva).
+            let enter = if way.tapped { "enter tapped" } else { "enter" };
             // "... a copy of a creature you control" (Visage Bandit).
-            let mut s = if f.who == Some(mtg_core::card::Who::You) {
+            let mut s = if way.graveyard {
+                // "... a copy of any land card in a graveyard" (Echoing
+                // Deeps).
                 format!(
-                    "You may have {} enter as a copy of {}",
+                    "You may have {} {enter} as a copy of any {} card in a graveyard",
+                    this_ref(card),
+                    filter_phrase(f, card, false)
+                )
+            } else if f.who == Some(mtg_core::card::Who::You) {
+                format!(
+                    "You may have {} {enter} as a copy of {}",
                     this_ref(card),
                     with_article(&filter_phrase(f, card, false))
                 )
             } else {
                 format!(
-                    "You may have {} enter as a copy of any {} on the battlefield",
+                    "You may have {} {enter} as a copy of any {} on the battlefield",
                     this_ref(card),
                     filter_phrase(f, card, false)
                 )

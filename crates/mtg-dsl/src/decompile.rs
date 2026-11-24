@@ -3109,7 +3109,7 @@ impl Decompiler<'_> {
                 cond_if: false,
                 otherwise: Vec::new(),
             },
-            AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),
+            AbilityDef::EntersAsCopy(f, way) => Ability::EntersAsCopy(self.filter(f), *way),
             AbilityDef::AsEntersChoose(k) => Ability::AsEntersChoose {
                 kind: self.choice_kind(*k),
                 joined: false,

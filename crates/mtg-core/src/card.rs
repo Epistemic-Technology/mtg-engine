@@ -8675,6 +8675,17 @@ pub struct CopyExcept {
     pub exactly: bool,
 }
 
+/// How an "enters as a copy" ability copies (`AbilityDef::EntersAsCopy`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct EntersCopy {
+    /// "You may have this land enter tapped as a copy of ..." (Vesuva):
+    /// it enters tapped if it copies something.
+    pub tapped: bool,
+    /// "... a copy of any land card in a graveyard" (Echoing Deeps): what
+    /// it may copy is a card in any graveyard, not a permanent (CR 707.2).
+    pub graveyard: bool,
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum AbilityDef {
     /// The effect of an instant or sorcery spell when it resolves.
@@ -8686,9 +8697,11 @@ pub enum AbilityDef {
     /// the spell is cast (CR 601.2b), before targets.
     Modal(Vec<Mode>),
     /// "You may have ~ enter as a copy of any creature on the battlefield"
-    /// (CR 707.? Clone): the choice is made as the permanent spell
-    /// resolves, among battlefield objects matching the filter.
-    EntersAsCopy(ObjFilter),
+    /// (CR 707.? Clone, CR 614.1c): the choice is made as the permanent
+    /// enters, however it enters (a resolving spell, a land played, a card
+    /// put onto the battlefield), among the objects matching the filter:
+    /// permanents, or with `EntersCopy::graveyard` cards in graveyards.
+    EntersAsCopy(ObjFilter, EntersCopy),
     /// "As this land enters, choose a color" (CR 614.12): the controller
     /// chooses as the permanent enters; the object remembers the choice
     /// (`GameObject::chosen`) for the abilities that refer to it ("the
@@ -8954,7 +8967,7 @@ impl AbilityDef {
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
-            | AbilityDef::EntersAsCopy(_)
+            | AbilityDef::EntersAsCopy(..)
             | AbilityDef::AsEntersChoose(_) => &[],
         }
     }
@@ -8995,7 +9008,7 @@ impl AbilityDef {
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
-            | AbilityDef::EntersAsCopy(_)
+            | AbilityDef::EntersAsCopy(..)
             | AbilityDef::AsEntersChoose(_) => &[],
         }
     }
@@ -10053,7 +10066,7 @@ impl DefFlags {
                 || abilities.iter().any(|a| {
                     matches!(
                         a,
-                        AbilityDef::EntersAsCopy(_) | AbilityDef::AsEntersChoose(_)
+                        AbilityDef::EntersAsCopy(..) | AbilityDef::AsEntersChoose(_)
                     ) || a.enters_may()
                         || a.all_effects().iter().any(|e| e.asks())
                 }),
@@ -10082,9 +10095,12 @@ impl DefFlags {
         );
         flags.set(
             DefFlags::ENTERS_CHOICE,
-            abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::AsEntersChoose(_)) || a.enters_may()),
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::AsEntersChoose(_) | AbilityDef::EntersAsCopy(..)
+                ) || a.enters_may()
+            }),
         );
         flags.set(
             DefFlags::VALIANT,
@@ -10236,10 +10252,14 @@ impl CardDef {
         })
     }
 
-    /// The filter of an "enters as a copy" ability, if it has one.
-    pub fn enters_as_copy(&self) -> Option<&ObjFilter> {
+    /// The filter of an "enters as a copy" ability, if it has one, and
+    /// how it copies.
+    pub fn enters_as_copy(&self) -> Option<(&ObjFilter, EntersCopy)> {
+        if !self.flags.has(DefFlags::ENTERS_CHOICE) {
+            return None;
+        }
         self.abilities.iter().find_map(|a| match a {
-            AbilityDef::EntersAsCopy(f) => Some(f),
+            AbilityDef::EntersAsCopy(f, way) => Some((f, *way)),
             _ => None,
         })
     }

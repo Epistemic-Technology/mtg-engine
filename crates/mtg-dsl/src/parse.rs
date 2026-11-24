@@ -576,6 +576,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "created", "creature"], Recipient::CreatedThat),
     (&["that", "created", "token"], Recipient::CreatedThatToken),
     (&["that", "created", "land"], Recipient::CreatedThatLand),
+    (&["that", "created", "card"], Recipient::CreatedThatCard),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
@@ -4012,13 +4013,22 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::AsEntersChoose { kind, joined })
             }
-            "enters" if self.at_words(&["enters", "as"]) => {
-                self.pos += 2;
+            "enters"
+                if self.at_words(&["enters", "as"])
+                    || self.at_words(&["enters", "tapped", "as", "copy"]) =>
+            {
+                self.pos += 1;
+                let tapped = self.eat_word("tapped");
+                self.expect_word("as")?;
                 self.expect_word("copy")?;
                 self.expect_word("of")?;
                 let f = self.filter()?;
+                let graveyard = self.eat_words(&["card", "in", "graveyard"]);
                 self.end_stmt()?;
-                Ok(Ability::EntersAsCopy(f))
+                Ok(Ability::EntersAsCopy(
+                    f,
+                    mtg_core::card::EntersCopy { tapped, graveyard },
+                ))
             }
             // "As this land enters, you may pay 3 life. If you don't, it
             // enters tapped."
