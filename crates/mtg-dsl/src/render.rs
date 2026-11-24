@@ -17846,6 +17846,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             per,
             first,
             flash,
+            from,
         } => {
             // "The first creature spell you cast each turn costs {2} less to
             // cast [and can be cast as though it had flash]"; "... you cast
@@ -17960,8 +17961,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             } else {
                 generic.unsigned_abs().to_string()
             };
+            let from = spell_from_text(*from);
             let body = format!(
-                "{} {whose}{mv} cost {{{amount}}} {more} to cast{per_text}.",
+                "{} {whose}{from}{mv} cost {{{amount}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
             )
             .replace("  ", " ");
@@ -17974,21 +17976,27 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // "Instant and sorcery spells you cast have storm."
         Ability::SpellsHave {
             filter,
-            from_hand,
+            from,
+            whose,
             keywords,
             storm,
             affinity,
             uncounterable,
         } => {
             if *uncounterable {
+                let whose = if *whose == Who::Any {
+                    ""
+                } else {
+                    " you control"
+                };
                 return format!(
-                    "{} you control can't be countered.",
+                    "{}{whose} can't be countered.",
                     cost_spells_subject(filter, card)
                 );
             }
+            let from = spell_from_text(*from);
             // "You may cast noncreature spells as though they had flash."
             if keywords == &[Keyword::Flash] && !*storm && affinity.is_none() {
-                let from = if *from_hand { " from your hand" } else { "" };
                 return format!(
                     "You may cast {}{from} as though they had flash.",
                     lowercase_first(&cost_spells_subject(filter, card))
@@ -18004,7 +18012,6 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             if let Some(a) = affinity {
                 items.push(format!("affinity for {}", filter_phrase(a, card, true)));
             }
-            let from = if *from_hand { " from your hand" } else { "" };
             format!(
                 "{} you cast{from} have {}.",
                 cost_spells_subject(filter, card),
@@ -19932,5 +19939,17 @@ fn rule_players_text(ps: mtg_core::card::RulePlayers, plural: bool) -> &'static 
         mtg_core::card::RulePlayers::Opponents if plural => "your opponents",
         mtg_core::card::RulePlayers::Opponents => "each opponent",
         mtg_core::card::RulePlayers::Enchanted => "enchanted player",
+    }
+}
+
+/// `SpellFrom`'s words after "you cast": " from your graveyard".
+fn spell_from_text(from: mtg_core::card::SpellFrom) -> &'static str {
+    use mtg_core::card::SpellFrom;
+    match from {
+        SpellFrom::Anywhere => "",
+        SpellFrom::Hand => " from your hand",
+        SpellFrom::Graveyard => " from your graveyard",
+        SpellFrom::Exile => " from exile",
+        SpellFrom::NotHand => " from anywhere other than your hand",
     }
 }

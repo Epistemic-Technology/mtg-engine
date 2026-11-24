@@ -1,0 +1,8 @@
+card "Lier, Disciple of the Drowned" {
+  oracle_id f224db3d-cdd2-43f2-b625-4b861efa6449
+  cost {3}{U}{U}
+  type Legendary Creature — Human Wizard
+  pt 3/4
+  spells can't be countered
+  static each instant or sorcery card in your graveyard: has flashback
+}

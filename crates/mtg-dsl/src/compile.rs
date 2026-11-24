@@ -6296,6 +6296,7 @@ impl Compiler<'_> {
                 per,
                 first,
                 flash,
+                from,
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
@@ -6313,35 +6314,36 @@ impl Compiler<'_> {
                             keywords: KeywordSet::of([Keyword::Flash]),
                             storm: false,
                             affinity: None,
-                            from_hand: false,
                             uncounterable: false,
                         })
                     }),
                     per: *per,
                     first: *first,
+                    from: *from,
                 })
             }
             Ability::SpellsHave {
                 filter,
-                from_hand,
+                from,
+                whose,
                 keywords,
                 storm,
                 affinity,
                 uncounterable,
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
-                whose: Who::You,
+                whose: *whose,
                 generic: 0,
                 cond: None,
                 grant: Some(Box::new(mtg_core::card::SpellGrant {
                     keywords: KeywordSet::of(keywords.iter().copied()),
                     storm: *storm,
                     affinity: affinity.as_ref().map(|f| self.filter(f)),
-                    from_hand: *from_hand,
                     uncounterable: *uncounterable,
                 })),
                 per: None,
                 first: false,
+                from: *from,
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),

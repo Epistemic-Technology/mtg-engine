@@ -3385,14 +3385,15 @@ impl GameState {
             crate::card::Who::Opponents => p != o.controller,
         };
         // "Instant and sorcery spells you cast from your hand have
-        // cascade": from the hand, or cast from it.
-        let from_ok = cc.grant.as_ref().is_none_or(|g| {
-            !g.from_hand
-                || self.objects.get(id).is_some_and(|c| match c.zone {
-                    Zone::Stack => c.cast.cast_from() == Some(Zone::Hand),
-                    z => z == Zone::Hand,
-                })
-        });
+        // cascade", "Spells you cast from your graveyard cost {2} less":
+        // from there, or cast from it.
+        let from_ok = cc.from == crate::card::SpellFrom::Anywhere
+            || cc
+                .from
+                .allows(self.objects.get(id).and_then(|c| match c.zone {
+                    Zone::Stack => c.cast.cast_from(),
+                    z => Some(z),
+                }));
         // "Creature spells you cast with mana value 6 or greater": the
         // mana value isn't a characteristic `matches` sees.
         let mv_ok = cc

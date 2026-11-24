@@ -2853,7 +2853,8 @@ impl Decompiler<'_> {
                 let g = c.grant.as_deref().expect("checked");
                 Ability::SpellsHave {
                     filter: self.filter(&c.spells),
-                    from_hand: g.from_hand,
+                    from: c.from,
+                    whose: c.whose,
                     keywords: keywords(g.keywords),
                     storm: g.storm,
                     affinity: g.affinity.as_ref().map(|f| self.filter(f)),
@@ -2871,6 +2872,7 @@ impl Decompiler<'_> {
                     .grant
                     .as_ref()
                     .is_some_and(|g| g.keywords.contains(mtg_core::card::Keyword::Flash)),
+                from: c.from,
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {

@@ -1,0 +1,19 @@
+card "Norman Osborn // Green Goblin" {
+  oracle_id aa5b06a4-90c3-45e7-ab83-cb5c96ded21d
+  layout modal_dfc
+  cost {1}{U}
+  type Legendary Creature — Human Scientist Villain
+  pt 1/1
+  pronoun he
+  keywords can't be blocked
+  triggered whenever this deals combat damage to a player: this connives
+  activated {1}{U}{B}{R}, sorcery: transform this
+  face "Green Goblin" {
+    cost {1}{U}{B}{R}
+    type Legendary Creature — Goblin Human Villain
+    pt 3/3
+    keywords flying, menace
+    spells you cast from graveyard cost {2} less
+    label "Goblin Formula" static each nonland card in your graveyard: has mayhem
+  }
+}

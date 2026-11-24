@@ -1,0 +1,9 @@
+card "Hoarding Broodlord" {
+  oracle_id 18e856b5-aab7-4802-8cec-1d44dd95d9f7
+  cost {5}{B}{B}{B}
+  type Creature — Dragon
+  pt 7/6
+  keywords convoke, flying
+  triggered when this enters: search card to exile face down; may play it remains first
+  spells you cast from exile have convoke
+}

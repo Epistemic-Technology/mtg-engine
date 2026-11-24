@@ -8570,6 +8570,41 @@ pub struct CostChange {
     /// while its caster hasn't cast a matching spell this turn.
     #[serde(default)]
     pub first: bool,
+    /// "Spells you cast from your graveyard cost {2} less", "Noncreature
+    /// spells you cast from exile have convoke": only spells cast from
+    /// there (judged where the card is, or on the stack where it was cast
+    /// from).
+    #[serde(default)]
+    pub from: SpellFrom,
+}
+
+/// Where the spells a `CostChange` applies to are cast from.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum SpellFrom {
+    #[default]
+    Anywhere,
+    /// "from your hand".
+    Hand,
+    /// "from your graveyard".
+    Graveyard,
+    /// "from exile".
+    Exile,
+    /// "from anywhere other than your hand".
+    NotHand,
+}
+
+impl SpellFrom {
+    /// Whether a spell cast from `zone` qualifies.
+    pub fn allows(self, zone: Option<crate::state::Zone>) -> bool {
+        use crate::state::Zone;
+        match self {
+            SpellFrom::Anywhere => true,
+            SpellFrom::Hand => zone == Some(Zone::Hand),
+            SpellFrom::Graveyard => zone == Some(Zone::Graveyard),
+            SpellFrom::Exile => zone == Some(Zone::Exile),
+            SpellFrom::NotHand => zone.is_some_and(|z| z != Zone::Hand),
+        }
+    }
 }
 
 /// What a static ability gives the spells its controller casts (CR
@@ -8585,8 +8620,6 @@ pub struct SpellGrant {
     /// Affinity for these: {1} less for each such permanent the caster
     /// controls.
     pub affinity: Option<ObjFilter>,
-    /// Only spells cast from their caster's hand.
-    pub from_hand: bool,
     /// "Spells you control can't be countered" (CR 701.5): an effect that
     /// counters a matching spell does nothing to it.
     #[serde(default)]

@@ -4332,7 +4332,11 @@ impl P {
         // you cast that's red or green costs {1} less to cast."
         let each = self.eat_word("each");
         let first = !each && self.eat_word("first");
-        let mut filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
+        let mut filter = if self.at_word("you")
+            || self.at_word("your")
+            || self.at_word("cost")
+            || self.at_word("can't")
+        {
             Filter::default()
         } else {
             self.filter()?
@@ -4346,17 +4350,35 @@ impl P {
             Who::Any
         };
         // "Spells you control can't be countered." (the filter may have
-        // read "you control").
+        // read "you control"); "Spells can't be countered." (Lier).
+        let mine = filter.who == Some(Who::You);
         if cond.is_none()
             && (self.eat_words(&["you", "control", "can't", "be", "countered"])
-                || (filter.who == Some(Who::You) && self.eat_words(&["can't", "be", "countered"])))
+                || (mine && self.eat_words(&["can't", "be", "countered"])))
         {
             self.end_stmt()?;
             let mut filter = filter;
             filter.who = None;
             return Ok(Ability::SpellsHave {
                 filter,
-                from_hand: false,
+                from: mtg_core::card::SpellFrom::Anywhere,
+                whose: Who::You,
+                keywords: Vec::new(),
+                storm: false,
+                affinity: None,
+                uncounterable: true,
+            });
+        }
+        if cond.is_none()
+            && whose == Who::Any
+            && filter.who.is_none()
+            && self.eat_words(&["can't", "be", "countered"])
+        {
+            self.end_stmt()?;
+            return Ok(Ability::SpellsHave {
+                filter,
+                from: mtg_core::card::SpellFrom::Anywhere,
+                whose: Who::Any,
                 keywords: Vec::new(),
                 storm: false,
                 affinity: None,
@@ -4364,10 +4386,14 @@ impl P {
             });
         }
         // "Instant and sorcery spells you cast [from your hand] have
-        // storm".
-        let from_hand = whose == Who::You && self.eat_words(&["from", "hand"]);
+        // storm", "Spells you cast from your graveyard cost {2} less".
+        let from = if whose == Who::You {
+            self.spell_from()
+        } else {
+            mtg_core::card::SpellFrom::Anywhere
+        };
         if whose == Who::You && cond.is_none() && self.eat_word("have") {
-            return self.spells_have(filter, from_hand);
+            return self.spells_have(filter, from);
         }
         self.expect_word("cost")?;
         let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
@@ -4392,7 +4418,25 @@ impl P {
             per,
             first,
             flash,
+            from,
         })
+    }
+
+    /// `from hand`, `from graveyard`, `from exile`, `from other than hand`
+    /// after `spells <filter> you cast` (`SpellFrom`).
+    fn spell_from(&mut self) -> mtg_core::card::SpellFrom {
+        use mtg_core::card::SpellFrom;
+        if self.eat_words(&["from", "hand"]) {
+            SpellFrom::Hand
+        } else if self.eat_words(&["from", "graveyard"]) {
+            SpellFrom::Graveyard
+        } else if self.eat_words(&["from", "exile"]) {
+            SpellFrom::Exile
+        } else if self.eat_words(&["from", "other", "than", "hand"]) {
+            SpellFrom::NotHand
+        } else {
+            SpellFrom::Anywhere
+        }
     }
 
     /// `7 cards in your graveyard`, `4 card types in your graveyard`,
@@ -6199,7 +6243,7 @@ impl P {
 
     /// After `spells <filter> you cast [from hand] have`: convoke,
     /// improvise, delve, cascade, `storm`, `affinity for <filter>`.
-    fn spells_have(&mut self, filter: Filter, from_hand: bool) -> R<Ability> {
+    fn spells_have(&mut self, filter: Filter, from: mtg_core::card::SpellFrom) -> R<Ability> {
         let mut keywords = Vec::new();
         let mut storm = false;
         let mut affinity = None;
@@ -6233,7 +6277,8 @@ impl P {
         self.end_stmt()?;
         Ok(Ability::SpellsHave {
             filter,
-            from_hand,
+            from,
+            whose: Who::You,
             keywords,
             storm,
             affinity,

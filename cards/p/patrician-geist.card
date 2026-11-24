@@ -1,0 +1,9 @@
+card "Patrician Geist" {
+  oracle_id 1f65c853-5262-4b75-b324-1fe0c165170d
+  cost {2}{U}
+  type Creature — Spirit Knight
+  pt 2/2
+  keywords flying
+  static other Spirit you control: +1/+1
+  spells you cast from graveyard cost {1} less
+}

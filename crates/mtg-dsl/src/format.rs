@@ -7184,6 +7184,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             per,
             first,
             flash,
+            from,
         } => {
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
@@ -7207,15 +7208,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let first = if *first { " first" } else { "" };
             let per = per.map_or_else(String::new, |n| format!(" {}", num(n)));
             let flash = if *flash { " and flash" } else { "" };
+            let from = spell_from(*from);
             let _ = writeln!(
                 out,
-                "{indent}{head}spells{first}{subject}{whose} cost {{{}}} {more}{per}{flash}",
+                "{indent}{head}spells{first}{subject}{whose}{from} cost {{{}}} {more}{per}{flash}",
                 generic.unsigned_abs()
             );
         }
         Ability::SpellsHave {
             filter: f,
-            from_hand,
+            from,
+            whose,
             keywords: ks,
             storm,
             affinity,
@@ -7227,13 +7230,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 format!(" {}", filter(f))
             };
             if *uncounterable {
-                let _ = writeln!(
-                    out,
-                    "{indent}spells{subject} you control can't be countered"
-                );
+                let whose = if *whose == Who::Any {
+                    ""
+                } else {
+                    " you control"
+                };
+                let _ = writeln!(out, "{indent}spells{subject}{whose} can't be countered");
                 return;
             }
-            let from = if *from_hand { " from hand" } else { "" };
+            let from = spell_from(*from);
             let mut items: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
             if *storm {
                 items.push("storm".to_string());
@@ -8164,5 +8169,17 @@ fn search_to(to: mtg_core::card::SearchTo) -> &'static str {
         SearchTo::ExileFaceDown => "exile face down",
         SearchTo::HandOrGraveyard => "hand or graveyard",
         SearchTo::HandAndGraveyard => "hand and graveyard",
+    }
+}
+
+/// `SpellFrom`'s words after `you cast`.
+fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
+    use mtg_core::card::SpellFrom;
+    match from {
+        SpellFrom::Anywhere => "",
+        SpellFrom::Hand => " from hand",
+        SpellFrom::Graveyard => " from graveyard",
+        SpellFrom::Exile => " from exile",
+        SpellFrom::NotHand => " from other than hand",
     }
 }
