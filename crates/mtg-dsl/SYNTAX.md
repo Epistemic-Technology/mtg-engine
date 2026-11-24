@@ -3129,7 +3129,54 @@ with mana value 5 or less` is a permanent card there; after a counted
 dig, `dig count where graveyard creature reveal take green permanent with
 mana value X or less card ...`, X is the dig's count: "reveal the top X
 cards of your library, where X is .... You may put a green permanent card
-with mana value X or less from among them ...", Hatchery Spider), `look at top 3` ("look at
+with mana value X or less from among them ...", Hatchery Spider; `rest
+shuffle` leaves the rest in the library and shuffles it, "Then shuffle."
+(CR 701.24): `dig 20 then take any land card may onto battlefield tapped
+rest shuffle` "look at the top twenty cards of your library, put any
+number of land cards from among them onto the battlefield tapped, then
+shuffle", without `then` "Put any number of ... tapped, then shuffle.",
+with `reword` "You may put any number of ... onto the battlefield. Then
+shuffle."; `take creature card at random onto battlefield`: "Put a random
+creature card from among them onto the battlefield. Put the rest ...",
+picked by the game's random number generator; `dig 5 take 2 creature or
+land card may split land card creature card rest bottom random`: "You
+may reveal up to two creature and/or land cards from among them, then put
+the rest on the bottom of your library in a random order. Put all land
+cards revealed this way onto the battlefield tapped and put all creature
+cards revealed this way into your hand."; `take all enchantment card ...
+among` prints "Put all enchantment cards from among them into your hand"
+for "revealed this way"; `dig 4 then take 2 card may top rest graveyard`:
+"look at the top four cards of your library, then put up to two of them
+back on top of your library in any order and the rest into your
+graveyard"; `dig 2 until take all land card onto battlefield tapped rest
+bottom random`: "Reveal cards from the top of your library until you
+reveal two land cards. Put those land cards onto the battlefield tapped
+and the rest on the bottom of your library in a random order." (CR
+701.20: the cards down to the second matching one, or the whole library,
+are revealed; `take any ... may` "Put any number of those permanent cards
+onto the battlefield, then put the rest ...", `revealed` "the rest of the
+revealed cards"; a counted `dig count where colors among permanents until
+...` prints "until you reveal X permanent cards, where X is ...").
+A dig ending `instead [lead|after] [end] [rest] <change> if <condition>`
+is changed by a later sentence when the condition holds as it resolves
+(CR 608.2c; compiled to the dig and its changed copy, exactly one
+happening; the condition is any of the `instead` sentence's): `count 8`
+prints after the first sentence ("If this spell was bargained, look at
+the top eight cards of your library instead."), `take 2`, `take any`,
+`take all` before the sentence about the rest ("If this spell was kicked,
+put two of those cards into your hand instead. Put the rest ..."; `take
+all` without a filter "put each of those cards into your hand"; after a
+revealing take "you may instead reveal two creature and/or land cards
+from among them and put them into your hand"; after `onto battlefield`
+"put any number of creature cards from among them onto the battlefield
+instead"), or with `end` after it; `lead` prints "If ..., instead ...",
+`after` "... instead if ...", the default "If ..., ... instead."; `rest`
+adds "and the rest ..." to it (Flow State); `otherwise onto battlefield`
+after a revealing take prints "You may reveal up to two creature cards
+from among them. If this spell was bargained, put the revealed cards onto
+the battlefield. Otherwise, put the revealed cards into your hand."
+(Thunderous Debut). `dig 3 take card rest bottom reword instead after end
+take all if 3 Lesson cards in your graveyard` is Accumulate Wisdom), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order";
 `look at top count where hand` puts "where X is the number of cards in
 your hand" before ", then put them back"; `look at top 3 of target
@@ -3726,7 +3773,11 @@ do` then sees:
   permanent card from among the milled cards into your hand"; `from among
   them`; `from among milled this way cards`: "from among the cards milled
   this way"): cards this resolution milled that are still in the
-  graveyard.
+  graveyard. `put all Elf card from among them into hand chosen`: "put
+  all Elf cards from among them into your hand", every one, none chosen
+  (`all` takes any chosen act's every candidate); `put 1 creature or land
+  card from among milled cards on top of library chosen`: "put a creature
+  or land card from among the milled cards on top of your library".
 
 `permanent card` is a card that is not an instant or sorcery (CR 110.4a);
 `nonland permanent card` likewise, and not a land.

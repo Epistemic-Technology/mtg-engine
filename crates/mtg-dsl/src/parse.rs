@@ -10271,6 +10271,10 @@ impl P {
         // cards".
         let (up_to, count) = if self.eat_words(&["any", "number"]) {
             (true, Num::N(crate::ast::ANY_NUMBER))
+        } else if self.eat_word("all") {
+            // `put all Elf card from among them into hand chosen`: every
+            // one, none chosen.
+            (false, Num::N(crate::ast::ANY_NUMBER))
         } else {
             (self.eat_words(&["up", "to"]), self.num()?)
         };
@@ -10472,6 +10476,10 @@ impl P {
                 // chosen`.
                 if self.eat_words(&["onto", "battlefield"]) {
                     (ChooseAct::MilledToBattlefield, f)
+                } else if self.eat_words(&["on", "top", "of", "library"]) {
+                    // `put 1 creature or land card from among milled cards
+                    // on top of library chosen`.
+                    (ChooseAct::MilledToTop, f)
                 } else {
                     self.expect_words(&["into", "hand"])?;
                     (ChooseAct::MilledToHand, f)
@@ -11930,6 +11938,7 @@ impl P {
             }
             "dig" => {
                 let count = self.num()?;
+                let until = self.eat_word("until");
                 let then = self.eat_word("then");
                 let reveal_top = self.eat_word("reveal");
                 self.expect_word("take")?;
@@ -11958,6 +11967,8 @@ impl P {
                 } else {
                     None
                 };
+                // `take creature card at random`: "a random creature card".
+                let at_random = self.eat_words(&["at", "random"]);
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
                 let that_card = revealing && self.eat_words(&["that", "card"]);
@@ -11970,17 +11981,83 @@ impl P {
                 } else {
                     None
                 };
+                // `split land card creature card`: the land cards taken
+                // onto the battlefield tapped, the creature cards into the
+                // hand.
+                let split = if self.eat_word("split") {
+                    let field = self.filter()?;
+                    self.expect_word("card")?;
+                    let hand = self.filter()?;
+                    self.expect_word("card")?;
+                    Some((field, hand))
+                } else {
+                    None
+                };
                 self.expect_word("rest")?;
-                let rest_graveyard = if self.eat_word("graveyard") {
+                let shuffle = self.eat_word("shuffle");
+                let rest_graveyard = if shuffle {
+                    false
+                } else if self.eat_word("graveyard") {
                     true
                 } else {
                     self.expect_word("bottom")?;
                     false
                 };
-                let random = !rest_graveyard && self.eat_word("random");
+                let random = !rest_graveyard && !shuffle && self.eat_word("random");
                 let reword = self.eat_word("reword");
                 let short = self.eat_word("short");
                 let rest_revealed = self.eat_word("revealed");
+                let among = all && self.eat_word("among");
+                let alt = if self.eat_word("instead") {
+                    use crate::ast::InsteadWording;
+                    let wording = if self.eat_word("lead") {
+                        InsteadWording::Lead
+                    } else if self.eat_word("after") {
+                        InsteadWording::After
+                    } else {
+                        InsteadWording::Trail
+                    };
+                    let end = self.eat_word("end");
+                    let rest = self.eat_word("rest");
+                    let count = if self.eat_word("count") {
+                        Some(self.num()?)
+                    } else {
+                        None
+                    };
+                    let (take, all) = if self.eat_word("take") {
+                        if self.eat_word("all") {
+                            (None, true)
+                        } else if self.eat_word("any") {
+                            (Some(crate::ast::ANY_NUMBER), false)
+                        } else {
+                            (Some(self.number()?), false)
+                        }
+                    } else {
+                        (None, false)
+                    };
+                    let onto = if self.eat_words(&["otherwise", "onto", "battlefield"]) {
+                        Some(self.eat_word("tapped"))
+                    } else {
+                        None
+                    };
+                    if count.is_none() && take.is_none() && !all && onto.is_none() {
+                        return self.fail("a dig's `instead` changes `count`, `take`, or `onto`");
+                    }
+                    self.expect_word("if")?;
+                    let cond = self.instead_cond()?;
+                    Some(Box::new(crate::ast::DigAlt {
+                        cond,
+                        wording,
+                        count,
+                        take,
+                        all,
+                        onto,
+                        end,
+                        rest,
+                    }))
+                } else {
+                    None
+                };
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -11999,6 +12076,12 @@ impl P {
                     then,
                     reword,
                     rest_revealed,
+                    shuffle,
+                    at_random,
+                    split,
+                    among,
+                    alt,
+                    until,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {

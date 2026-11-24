@@ -1,0 +1,351 @@
+# Look/reveal/mill forms (CR 701.13, 701.20, 608.2c): a later sentence
+# changing a dig's count or take ("instead"), a dig ending "Then shuffle.",
+# a take at random, a take split by type, cards kept on top, "reveal cards
+# until you reveal N <type> cards", and "put all <type> cards from among
+# the milled cards".
+
+scenario "dig instead: Consult the Star Charts unkicked puts one card into the hand" {
+  battlefield A: 3 "Island"
+  hand A: "Consult the Star Charts"
+  library A: "Shock", "Grizzly Bears", "Hill Giant", "Plains", "Forest"
+  turn 1 A: cast "Consult the Star Charts"
+  run_to turn 1 end
+  assert hand A count 1
+  assert library A count 4
+}
+
+scenario "dig instead: Consult the Star Charts kicked puts two cards into the hand" {
+  battlefield A: 4 "Island"
+  hand A: "Consult the Star Charts"
+  library A: "Shock", "Grizzly Bears", "Hill Giant", "Plains", "Forest"
+  turn 1 A: cast "Consult the Star Charts" kicked
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 2
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert library A count 3
+}
+
+scenario "dig instead: Farsight Ritual looks at four cards unbargained" {
+  battlefield A: 4 "Island"
+  hand A: "Farsight Ritual"
+  library A: "Plains", "Plains", "Plains", "Plains", "Grizzly Bears", "Hill Giant", "Forest", "Forest"
+  turn 1 A: cast "Farsight Ritual"
+  run_to turn 1 end
+  assert hand A lacks "Grizzly Bears"
+  assert hand A count 2
+  assert hand A contains "Plains"
+  assert library A count 6
+}
+
+scenario "dig instead: Farsight Ritual bargained looks at eight cards" {
+  battlefield A: 4 "Island", "Ornithopter"
+  hand A: "Farsight Ritual"
+  library A: "Plains", "Plains", "Plains", "Plains", "Grizzly Bears", "Hill Giant", "Forest", "Forest", "Swamp"
+  turn 1 A: cast "Farsight Ritual" sacrificing "Ornithopter"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 2
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert library A count 7
+}
+
+scenario "dig instead: Accumulate Wisdom takes one card with fewer than three Lessons" {
+  battlefield A: 2 "Island"
+  hand A: "Accumulate Wisdom"
+  graveyard A: "Seismic Sense"
+  library A: "Shock", "Grizzly Bears", "Hill Giant", "Plains"
+  turn 1 A: cast "Accumulate Wisdom"
+  run_to turn 1 end
+  assert hand A count 1
+  assert library A count 3
+}
+
+scenario "dig instead: Accumulate Wisdom takes all three with three Lessons in the graveyard" {
+  battlefield A: 2 "Island"
+  hand A: "Accumulate Wisdom"
+  graveyard A: "Seismic Sense", "Start from Scratch", "Shared Roots"
+  library A: "Shock", "Grizzly Bears", "Hill Giant", "Plains"
+  turn 1 A: cast "Accumulate Wisdom"
+  run_to turn 1 end
+  assert hand A count 3
+  assert hand A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "dig instead: Flow State takes two with an instant and a sorcery in the graveyard" {
+  battlefield A: 2 "Island"
+  hand A: "Flow State"
+  graveyard A: "Shock", "Divination"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Flow State"
+  run_to turn 1 end
+  assert hand A count 2
+  assert library A count 2
+}
+
+scenario "dig instead: Flow State takes one with only an instant in the graveyard" {
+  battlefield A: 2 "Island"
+  hand A: "Flow State"
+  graveyard A: "Shock", "Lightning Bolt"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Flow State"
+  run_to turn 1 end
+  assert hand A count 1
+  assert library A count 3
+}
+
+scenario "dig instead: Follow the Lumarets takes one creature or land without life gained" {
+  battlefield A: 2 "Forest"
+  hand A: "Follow the Lumarets"
+  library A: "Shock", "Grizzly Bears", "Plains", "Divination"
+  turn 1 A: cast "Follow the Lumarets"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 1
+  assert hand A contains "Grizzly Bears"
+  assert library A count 3
+}
+
+scenario "dig instead: Follow the Lumarets takes two after life was gained this turn" {
+  battlefield A: 2 "Forest", 2 "Plains"
+  hand A: "Revitalize", "Follow the Lumarets"
+  library A: "Island", "Shock", "Grizzly Bears", "Plains", "Divination"
+  turn 1 A: cast "Revitalize"
+  turn 1 A: wait
+  turn 1 A: cast "Follow the Lumarets"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Plains"
+  run_to turn 1 end
+  assert life A 23
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Plains"
+  assert hand A count 3
+}
+
+scenario "dig instead: Earth's Mightiest Heroes puts one creature onto the battlefield" {
+  battlefield A: 6 "Forest"
+  hand A: "Earth's Mightiest Heroes"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Serra Angel", "Plains", "Island", "Island", "Island", "Swamp"
+  turn 1 A: cast "Earth's Mightiest Heroes"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "dig instead: Earth's Mightiest Heroes with teamwork puts every creature onto the battlefield" {
+  battlefield A: 6 "Forest", "Hill Giant", "Grizzly Bears"
+  hand A: "Earth's Mightiest Heroes"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Serra Angel", "Plains", "Island", "Island", "Island", "Swamp"
+  turn 1 A: cast "Earth's Mightiest Heroes" teamwork
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains 2 "Hill Giant"
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert graveyard A contains "Shock"
+}
+
+scenario "dig shuffle: Through the Forest Gate puts any number of lands onto the battlefield tapped" {
+  battlefield A: 8 "Forest"
+  hand A: "Through the Forest Gate"
+  library A: "Plains", "Grizzly Bears", "Island", "Shock"
+  seed 3
+  turn 1 A: cast "Through the Forest Gate"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  run_to turn 1 end
+  assert battlefield A contains "Plains"
+  assert battlefield A contains "Island"
+  assert tapped "Plains"
+  assert library A count 2
+  assert life A 28
+}
+
+scenario "dig shuffle: Thunderous Debut unbargained puts the revealed creatures into the hand" {
+  battlefield A: 8 "Forest"
+  hand A: "Thunderous Debut"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Thunderous Debut"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Serra Angel"
+  assert library A count 2
+}
+
+scenario "dig shuffle: Thunderous Debut bargained puts them onto the battlefield" {
+  battlefield A: 8 "Forest", "Ornithopter"
+  hand A: "Thunderous Debut"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Thunderous Debut" sacrificing "Ornithopter"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Serra Angel"
+  assert hand A count 0
+  assert library A count 2
+}
+
+scenario "dig shuffle: Ajani's -8 puts nonland permanents with mana value 3 or less onto the battlefield" {
+  battlefield A: "Ajani, Outland Chaperone" with 8 loyalty
+  library A: "Grizzly Bears", "Hill Giant", "Ornithopter", "Plains", "Serra Angel"
+  turn 1 A: activate "Ajani, Outland Chaperone" ability 3
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Ornithopter"
+  run_to turn 1 end
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Ornithopter"
+  assert library A count 3
+  assert library A contains "Plains"
+}
+
+scenario "dig shuffle: Famished Worldsire digs as deep as its power" {
+  battlefield A: 8 "Forest", "Swamp"
+  hand A: "Famished Worldsire"
+  library A: "Plains", "Island", "Grizzly Bears", "Mountain", "Island"
+  turn 1 A: cast "Famished Worldsire"
+  turn 1 A: choose "Swamp"
+  turn 1 A: choose done
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  run_to turn 1 end
+  assert battlefield A lacks "Mountain"
+  assert power "Famished Worldsire" 3
+  assert battlefield A contains "Plains"
+  assert battlefield A contains "Island"
+  assert library A contains "Mountain"
+  assert library A count 3
+}
+
+scenario "dig at random: Getaway Barrel puts a creature card onto the battlefield" {
+  battlefield A: "Getaway Barrel", 2 "Mountain"
+  hand A: "Shatter"
+  library A: "Plains", "Shock", "Grizzly Bears", "Island"
+  turn 1 A: cast "Shatter" targeting "Getaway Barrel"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert library A count 3
+}
+
+scenario "dig split: Zimone's Experiment puts the land onto the battlefield tapped and the creature into the hand" {
+  battlefield A: 4 "Forest"
+  hand A: "Zimone's Experiment"
+  library A: "Shock", "Plains", "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 A: cast "Zimone's Experiment"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert library A count 3
+}
+
+scenario "dig top: Rowan's Grim Search bargained keeps two on top, then draws them" {
+  battlefield A: 3 "Swamp", "Ornithopter"
+  hand A: "Rowan's Grim Search"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Island", "Forest"
+  turn 1 A: cast "Rowan's Grim Search" sacrificing "Ornithopter"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Island"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Island"
+  assert graveyard A contains "Plains"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+  assert life A 18
+}
+
+scenario "dig top: Rowan's Grim Search unbargained only draws" {
+  battlefield A: 3 "Swamp"
+  hand A: "Rowan's Grim Search"
+  library A: "Plains", "Grizzly Bears", "Hill Giant", "Island", "Forest"
+  turn 1 A: cast "Rowan's Grim Search"
+  run_to turn 1 end
+  assert hand A contains "Plains"
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A count 1
+  assert library A count 3
+}
+
+scenario "mill all: Cantankerous Keepers puts every milled Elf card into the hand" {
+  battlefield A: 6 "Forest"
+  hand A: "Cantankerous Keepers"
+  library A: "Llanowar Elves", "Plains", "Elvish Mystic", "Grizzly Bears", "Island"
+  turn 1 A: cast "Cantankerous Keepers"
+  run_to turn 1 end
+  assert hand A contains "Llanowar Elves"
+  assert hand A contains "Elvish Mystic"
+  assert hand A count 2
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "mill top: Lluwen puts a milled creature card on top of the library" {
+  battlefield A: 2 "Forest"
+  hand A: "Lluwen, Imperfect Naturalist"
+  library A: "Shock", "Grizzly Bears", "Divination", "Plains", "Island"
+  turn 1 A: cast "Lluwen, Imperfect Naturalist"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 end
+  assert library A count 2
+  assert graveyard A count 3
+  assert graveyard A contains "Plains"
+  run_to turn 3 precombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "mill top: Lluwen can't put a milled instant on top" {
+  battlefield A: 2 "Forest"
+  hand A: "Lluwen, Imperfect Naturalist"
+  library A: "Shock", "Divination", "Lightning Bolt", "Shock", "Island"
+  turn 1 A: cast "Lluwen, Imperfect Naturalist"
+  run_to turn 1 end
+  assert library A count 1
+  assert graveyard A count 4
+}
+
+scenario "reveal until: Skyserpent Seeker puts the first two land cards onto the battlefield tapped" {
+  battlefield A: "Skyserpent Seeker", 4 "Island"
+  library A: "Shock", "Plains", "Grizzly Bears", "Forest", "Mountain", "Island"
+  turn 1 A: activate "Skyserpent Seeker"
+  run_to turn 1 end
+  assert battlefield A contains "Plains"
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert counters "Skyserpent Seeker" +1/+1 1
+  assert library A count 4
+  assert library A contains "Mountain"
+}
+
+scenario "reveal until: Aurora Awakener reveals until X permanent cards and puts those chosen onto the battlefield" {
+  battlefield A: 7 "Forest", "Daring Skyjek"
+  hand A: "Aurora Awakener"
+  library A: "Shock", "Grizzly Bears", "Divination", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Aurora Awakener"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose decline
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A count 4
+  # The revealing stopped at the second permanent card: Serra Angel is
+  # still on top, drawn next turn.
+  run_to turn 3 precombat_main
+  assert hand A contains "Serra Angel"
+}

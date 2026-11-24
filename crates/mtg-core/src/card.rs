@@ -5569,7 +5569,15 @@ pub enum Effect {
     /// battlefield under the controller's control instead, tapped with
     /// `Some(true)` ("You may put a creature card from among them onto the
     /// battlefield", "Put up to two land cards ... onto the battlefield
-    /// tapped").
+    /// tapped"). With `shuffle` the cards not taken stay in the library
+    /// and it is shuffled ("Then shuffle.", CR 701.24; `rest_graveyard` and
+    /// `random` unused); with `at_random` the cards taken are picked at
+    /// random among those matching ("Put a random creature card from among
+    /// them onto the battlefield."). With `split`, the cards taken that
+    /// match it go onto the battlefield tapped and the others into the
+    /// hand ("Put all land cards revealed this way onto the battlefield
+    /// tapped and put all creature cards revealed this way into your
+    /// hand.").
     Dig {
         count: Num,
         filter: Option<ObjFilter>,
@@ -5582,6 +5590,18 @@ pub enum Effect {
         top: bool,
         #[serde(default)]
         onto: Option<bool>,
+        #[serde(default)]
+        shuffle: bool,
+        #[serde(default)]
+        at_random: bool,
+        #[serde(default)]
+        split: Option<ObjFilter>,
+        /// "Reveal cards from the top of your library until you reveal two
+        /// land cards." (CR 701.20): the cards looked at are those from the
+        /// top down to the `count`th matching `filter` (or the whole
+        /// library), revealed.
+        #[serde(default)]
+        until: bool,
     },
     /// "Look at the top three cards of your library. Put one of those cards
     /// into your hand, one on top of your library, and one on the bottom of
@@ -6613,6 +6633,10 @@ pub enum ChooseAct {
     /// this resolution milled, still in the graveyard, onto the
     /// battlefield under their owner's control.
     MilledToBattlefield,
+    /// "put a creature or land card from among the milled cards on top of
+    /// your library": cards this resolution milled, still in the
+    /// graveyard, onto the top of their owner's library.
+    MilledToTop,
     /// "return a land card from your graveyard to the battlefield
     /// [tapped]" (cards in your graveyard).
     GraveyardToBattlefield { tapped: bool },

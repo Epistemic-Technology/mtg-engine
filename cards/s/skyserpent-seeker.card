@@ -1,0 +1,8 @@
+card "Skyserpent Seeker" {
+  oracle_id 5da8b86a-a7be-4fb5-9a45-a47d5cb4b372
+  cost {G}{U}
+  type Creature — Snake
+  pt 1/1
+  keywords flying, deathtouch
+  exhaust {4}: dig 2 until take all land card onto battlefield tapped rest bottom random; put 1 +1/+1 counters on this
+}

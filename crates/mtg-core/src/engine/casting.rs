@@ -1626,7 +1626,7 @@ impl GameState {
                 })
                 .collect(),
             // "from among the milled cards": those still in the graveyard.
-            ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => {
+            ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield | ChooseAct::MilledToTop => {
                 self.this_way.as_ref().map_or_else(Vec::new, |log| {
                     log.moved
                         .iter()
@@ -1840,6 +1840,13 @@ impl GameState {
     ) -> usize {
         use crate::card::ChooseAct;
         let mut cands = self.act_candidates(ctx, act, filter);
+        // "put all Elf cards from among them into your hand": every
+        // candidate, none chosen.
+        let n = if n == u32::MAX as usize && !up_to {
+            cands.len()
+        } else {
+            n
+        };
         if n == 0 || (!up_to && cands.len() < n) {
             return 0;
         }
@@ -1912,7 +1919,7 @@ impl GameState {
                 ChooseAct::HandToBottom => {
                     self.move_object(id, Zone::Library, false);
                 }
-                ChooseAct::GraveyardToTop => {
+                ChooseAct::GraveyardToTop | ChooseAct::MilledToTop => {
                     self.move_object(id, Zone::Library, true);
                 }
                 ChooseAct::ExileToGraveyard => {
@@ -2104,6 +2111,7 @@ impl GameState {
                 up_to,
             } => {
                 *up_to
+                    || *count == crate::card::Num::N(u32::MAX)
                     || self.act_candidates(ctx, *act, filter).len()
                         >= self.eval_num(*count, ctx) as usize
             }
@@ -16444,6 +16452,10 @@ impl GameState {
                 random,
                 top: back_on_top,
                 onto,
+                shuffle,
+                at_random,
+                split,
+                until,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -16467,13 +16479,33 @@ impl GameState {
                 let filled_also = fill_x(also.as_ref()).map(Some);
                 let filter = filled.as_ref().unwrap_or(filter);
                 let also = filled_also.as_ref().unwrap_or(also);
-                let lib = &self.player(p).library;
-                let top: Vec<ObjId> = lib.iter().rev().take(n).copied().collect();
                 let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {
                     f.is_none_or(|f| {
                         let c = s.base_characteristics(&s.objects[id]);
                         f.matches(id, p, &c, Some(ctx.source), Some(p)) && s.status_ok(f, id)
                     })
+                };
+                let lib = &self.player(p).library;
+                let top: Vec<ObjId> = if *until {
+                    // CR 701.20: from the top down until the `n`th matching
+                    // card, every card revealed.
+                    let mut found = 0;
+                    let mut top = Vec::new();
+                    for id in lib.iter().rev().copied() {
+                        if found >= n {
+                            break;
+                        }
+                        top.push(id);
+                        if matches(self, filter.as_ref(), id) {
+                            found += 1;
+                        }
+                    }
+                    for id in &top {
+                        self.reveal_in_library(*id);
+                    }
+                    top
+                } else {
+                    lib.iter().rev().take(n).copied().collect()
                 };
                 let mut taken: Vec<ObjId> = Vec::new();
                 if *all {
@@ -16504,10 +16536,16 @@ impl GameState {
                             }
                             break;
                         }
-                        if may {
+                        if may && !*at_random {
                             options.push(Choice::Decline);
                         }
-                        let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                        // "Put a random creature card from among them ...":
+                        // from the game's random number generator.
+                        let k = if *at_random {
+                            rand::Rng::random_range(&mut self.rng, 0..options.len())
+                        } else {
+                            self.choose_mid(p, DecisionKind::SearchLibrary, options.clone())
+                        };
                         match options[k] {
                             Choice::Target(Target::Object(id)) => taken.push(id),
                             _ if also.is_some() => {}
@@ -16515,9 +16553,29 @@ impl GameState {
                         }
                     }
                 }
-                // "back on top of your library": the taken cards stay where
-                // they are, on top once the rest have gone.
-                if let Some(tapped) = *onto {
+                // "Put all land cards revealed this way onto the battlefield
+                // tapped and put all creature cards revealed this way into
+                // your hand." (Zimone's Experiment): the lands first.
+                if let Some(f) = split {
+                    let (field, hand): (Vec<ObjId>, Vec<ObjId>) = taken
+                        .iter()
+                        .copied()
+                        .partition(|id| matches(self, Some(f), *id));
+                    for id in field {
+                        let new = self.put_onto_battlefield_with(
+                            id,
+                            p,
+                            super::replace::Enter {
+                                tapped: true,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        ctx.created = Some(new);
+                    }
+                    for id in hand {
+                        self.move_object(id, Zone::Hand, false);
+                    }
+                } else if let Some(tapped) = *onto {
                     // CR 110.2a: under the controller's control.
                     for id in &taken {
                         let new = self.put_onto_battlefield_with(
@@ -16536,7 +16594,13 @@ impl GameState {
                         self.move_object(*id, Zone::Hand, false);
                     }
                 }
+                // "Then shuffle." (CR 701.24): the rest stay; the library is
+                // shuffled.
                 let mut top = top;
+                if *shuffle {
+                    self.shuffle_library(p);
+                    top.clear();
+                }
                 if *random && !*rest_graveyard {
                     use rand::seq::SliceRandom;
                     top.shuffle(&mut self.rng);

@@ -3417,6 +3417,28 @@ pub enum InsteadCond {
     ThisWay(ThisWayCond),
 }
 
+/// What a dig's `instead ... if <cond>` changes (CR 608.2c: the later text
+/// modifies the earlier instruction): `count 8` ("If this spell was
+/// bargained, look at the top eight cards of your library instead."),
+/// `take 2`, `take any`, `take all` ("Put each of those cards into your
+/// hand instead if ..."), `otherwise onto battlefield` ("If this spell was
+/// bargained, put the revealed cards onto the battlefield. Otherwise, put
+/// the revealed cards into your hand."). `end` prints the sentence after
+/// the one about the rest, `rest` repeats "and the rest ..." in it.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct DigAlt {
+    pub cond: InsteadCond,
+    /// `Lead`, `Trail`, or `After` (written `lead`, nothing, `after`).
+    pub wording: InsteadWording,
+    pub count: Option<Num>,
+    pub take: Option<u32>,
+    pub all: bool,
+    /// `otherwise onto battlefield [tapped]`.
+    pub onto: Option<bool>,
+    pub end: bool,
+    pub rest: bool,
+}
+
 /// Where "instead" and the condition print.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum InsteadWording {
@@ -6018,6 +6040,28 @@ pub enum Effect {
         /// `revealed`, wording only: "and the rest of the revealed cards
         /// into your graveyard" (Kruphix's Insight).
         rest_revealed: bool,
+        /// `rest shuffle`: "Then shuffle." (the rest stay in the library).
+        shuffle: bool,
+        /// `take creature card at random`: "Put a random creature card
+        /// from among them ...".
+        at_random: bool,
+        /// `split land card creature card`: the cards taken that are land
+        /// cards go onto the battlefield tapped, the others into the hand
+        /// ("Put all land cards revealed this way onto the battlefield
+        /// tapped and put all creature cards revealed this way into your
+        /// hand."); the second filter names the others.
+        split: Option<(Filter, Filter)>,
+        /// `among`, wording only, with `take all`: "Put all enchantment
+        /// cards from among them into your hand" for "... revealed this
+        /// way ...".
+        among: bool,
+        /// `instead ... if <cond>`: a later sentence changes the dig when
+        /// the condition holds (CR 608.2c).
+        alt: Option<Box<DigAlt>>,
+        /// `dig 2 until take all land card ...`: "Reveal cards from the top
+        /// of your library until you reveal two land cards." (the count is
+        /// of cards matching the filter).
+        until: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order"; `look at top 3 of target player`:

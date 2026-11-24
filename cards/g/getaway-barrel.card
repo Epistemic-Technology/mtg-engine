@@ -1,0 +1,6 @@
+card "Getaway Barrel" {
+  oracle_id 7ddbf891-7f80-44e9-b94c-70c1da0b91ed
+  cost {3}{R}
+  type Artifact
+  triggered when this is put into a graveyard from the battlefield: dig 13 reveal take creature card at random onto battlefield rest bottom random
+}
