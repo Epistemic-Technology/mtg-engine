@@ -1061,6 +1061,12 @@ impl GameState {
             CountExpr::LifeLostThisWay => {
                 return self.this_way.as_ref().map_or(0, |log| log.life_lost);
             }
+            CountExpr::ChosenNumber => {
+                return match self.resolution_chosen(ctx) {
+                    Chosen::Number(n) => u32::from(n),
+                    _ => 0,
+                };
+            }
             CountExpr::BlockingIt { beyond } => {
                 let n = u32::try_from(self.blocking_it(ctx).len()).unwrap_or(u32::MAX);
                 return n.saturating_sub(*beyond);
@@ -9163,6 +9169,12 @@ impl GameState {
                 (0..usize::from(n)).map(Choice::Mode).collect(),
             ),
             // "Choose odd or even.": `choose "1"` (odd) or `"2"` (even).
+            // "Choose a number between 0 and 10.": `choose "7"`.
+            ChoiceKind::Number { min, max } => {
+                let options: Vec<Choice> = (min..=max).map(|n| Choice::X(u32::from(n))).collect();
+                let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
+                return Chosen::Number(min.saturating_add(u8::try_from(k).unwrap_or(0)).min(max));
+            }
             ChoiceKind::Parity => {
                 let options = vec![Choice::Mode(0), Choice::Mode(1)];
                 let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
@@ -9221,6 +9233,13 @@ impl GameState {
                         .collect(),
                 )
             }
+            ChoiceKind::CreatureTypeIn { types, len } => (
+                DecisionKind::ChooseType,
+                types[..usize::from(len).min(types.len())]
+                    .iter()
+                    .map(|s| Choice::Subtype(*s))
+                    .collect(),
+            ),
             ChoiceKind::LandType(set) => (
                 DecisionKind::ChooseType,
                 set.iter()
@@ -12611,7 +12630,8 @@ impl GameState {
                     | Chosen::Votes(_)
                     | Chosen::Option(_)
                     | Chosen::Card(_)
-                    | Chosen::Parity(_) => return,
+                    | Chosen::Parity(_)
+                    | Chosen::Number(_) => return,
                 };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -12705,7 +12725,8 @@ impl GameState {
                         | Chosen::Votes(_)
                         | Chosen::Option(_)
                         | Chosen::Card(_)
-                        | Chosen::Parity(_),
+                        | Chosen::Parity(_)
+                        | Chosen::Number(_),
                         _,
                     ) => {
                         return;

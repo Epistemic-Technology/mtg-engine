@@ -786,6 +786,9 @@ fn spend_rule(card: &Card, r: &crate::ast::ManaRestriction) -> String {
     // chosen type": the noun before the chosen type.
     rule.replace(" of the chosen type spell", " spell of the chosen type")
         .replace(" of the chosen type source", " source of the chosen type")
+        // "an ability of a source of the chosen type" (Eclipsed Realms):
+        // any source.
+        .replace("a permanent source of the chosen type", "a source of the chosen type")
 }
 
 /// The phrases of a restriction's other ways (`SpendWays`), in printed
@@ -3351,6 +3354,11 @@ fn bound_words(b: mtg_core::card::StatBound, card: &Card, verb: &str) -> String 
         crate::ast::CountExpr::SourceToughness => format!("{}'s toughness", this_ref(card)),
         _ => count_phrase(&c.expr, card, false),
     };
+    if b.cmp == mtg_core::card::Cmp::AtLeast {
+        // "with power greater than or equal to the chosen number" (Expel
+        // the Interlopers).
+        return format!("{stat} greater than or equal to {phrase}");
+    }
     if b.cmp == mtg_core::card::Cmp::Exactly {
         // "with mana value equal to the number of charge counters on this
         // artifact" (Engineered Explosives).
@@ -3469,6 +3477,16 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         mv = format!(" with {}", bound_phrase(b, card));
     }
+    // "target card of the chosen type" (Dawn-Blessed Pennant), "all
+    // creature cards of the chosen type" (Bloodline Bidding): the card
+    // noun first.
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some(c) = g.chosen
+    {
+        g.chosen = None;
+        mv = of_chosen(c).to_string();
+    }
     // "a creature card with no abilities" (Fang-Druid Summoner).
     if g.or.is_none() && mv.is_empty() && g.no_abilities {
         g.no_abilities = false;
@@ -3530,6 +3548,8 @@ fn choice_noun(k: &ChoiceKind) -> String {
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
         ChoiceKind::Named(names) => or_list(names),
         ChoiceKind::Parity => "odd or even".to_string(),
+        ChoiceKind::Number { min, max } => format!("a number between {min} and {max}"),
+        ChoiceKind::CreatureTypeIn(types) => or_list(types),
         ChoiceKind::CardName { nonland: false } => "a card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "a nonland card name".to_string(),
         ChoiceKind::LandType(lands) => or_list(
@@ -4836,6 +4856,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             }
         }
         CountExpr::LifeLostThisWay => return "the life lost this way".to_string(),
+        CountExpr::ChosenNumber => return "the chosen number".to_string(),
         CountExpr::Votes { word, .. } => (format!("{word} vote"), format!("{word} votes")),
         CountExpr::Party => (
             "creature in your party".to_string(),
@@ -9955,6 +9976,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 ChoiceKind::Named(names) => or_list(names),
                 ChoiceKind::Parity => "odd or even".to_string(),
+                ChoiceKind::Number { .. } => "the number of your choice".to_string(),
+                ChoiceKind::CreatureTypeIn(types) => or_list(types),
                 ChoiceKind::CardName { .. } => "the card name of your choice".to_string(),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."

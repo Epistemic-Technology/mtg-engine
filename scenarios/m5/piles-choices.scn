@@ -327,3 +327,139 @@ scenario "Steam Augury: reveal five, the opponent chooses" {
   assert graveyard A contains "Shock"
   assert hand A contains "Lightning Bolt"
 }
+
+# "Choose a number between 0 and 10." (`choose "N"`), read by "the chosen
+# number".
+
+scenario "Expel the Interlopers: power greater than or equal to the chosen number" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel", "Llanowar Elves"
+  hand A: "Expel the Interlopers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Expel the Interlopers"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Llanowar Elves"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Expel the Interlopers: zero destroys every creature" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Expel the Interlopers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Expel the Interlopers"
+  turn 1 A: choose "0"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Expel the Interlopers: ten at most" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Expel the Interlopers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Expel the Interlopers"
+  illegal turn 1 A: choose "11"
+  run_to turn 1 postcombat_main
+}
+
+# A chosen type from a listed set (CR 614.12).
+
+scenario "Dawn-Blessed Pennant: a permanent of the chosen type entering gains 1 life" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant", "Llanowar Elves", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "Dawn-Blessed Pennant: another type gains nothing" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Goblin
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Dawn-Blessed Pennant: only the listed types" {
+  battlefield A: "Forest"
+  hand A: "Dawn-Blessed Pennant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  illegal turn 1 A: choose Bear
+  run_to turn 1 postcombat_main
+}
+
+scenario "Dawn-Blessed Pennant: return a card of the chosen type" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant"
+  graveyard A: "Llanowar Elves", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  turn 3 A: activate "Dawn-Blessed Pennant" targeting "Llanowar Elves"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Llanowar Elves"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Dawn-Blessed Pennant"
+}
+
+scenario "Dawn-Blessed Pennant: not a card of another type" {
+  battlefield A: 3 "Forest"
+  hand A: "Dawn-Blessed Pennant"
+  graveyard A: "Llanowar Elves", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dawn-Blessed Pennant"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  illegal turn 3 A: activate "Dawn-Blessed Pennant" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Eclipsed Realms: its colored mana casts a spell of the chosen type" {
+  hand A: "Eclipsed Realms", "Llanowar Elves"
+  start turn 1 A precombat_main
+  turn 1 A: play "Eclipsed Realms"
+  turn 1 A: choose Elf
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Eclipsed Realms: nor a spell of another type" {
+  hand A: "Eclipsed Realms", "Giant Growth"
+  battlefield A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: play "Eclipsed Realms"
+  turn 1 A: choose Elf
+  illegal turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Bloodline Bidding: every creature card of the chosen type returns" {
+  battlefield A: 8 "Swamp"
+  hand A: "Bloodline Bidding"
+  graveyard A: "Llanowar Elves", "Elvish Visionary", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bloodline Bidding"
+  turn 1 A: choose Elf
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert battlefield A contains "Elvish Visionary"
+  assert graveyard A contains "Grizzly Bears"
+}

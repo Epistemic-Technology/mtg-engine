@@ -1625,7 +1625,8 @@ impl ObjFilter {
             }
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
-            | crate::state::Chosen::Option(_) => {
+            | crate::state::Chosen::Option(_)
+            | crate::state::Chosen::Number(_) => {
                 f.colors = Some(ColorSet::default());
             }
         }
@@ -2057,6 +2058,9 @@ pub enum CountExpr {
     /// Life the resolution made players lose ("You gain life equal to the
     /// life lost this way").
     LifeLostThisWay,
+    /// "the chosen number": the number chosen earlier in the resolution
+    /// (`ChoiceKind::Number`), 0 with none.
+    ChosenNumber,
     /// The objects the most recent group of this resolution denoted ("You
     /// gain 1 life for each of those creatures"; `Recipient::ThoseObjects`).
     ThoseObjects,
@@ -2337,6 +2341,7 @@ impl CountExpr {
             | CountExpr::TargetStat { .. }
             | CountExpr::ThisWay(..)
             | CountExpr::LifeLostThisWay
+            | CountExpr::ChosenNumber
             | CountExpr::ThoseObjects
             | CountExpr::TriggerCounters(_)
             | CountExpr::Votes(_)
@@ -6127,6 +6132,12 @@ pub enum ChoiceKind {
     /// game (any zone, either player's), since naming another card has no
     /// effect on play.
     CardName { nonland: bool },
+    /// One of these creature types ("choose Elemental, Elf, Faerie, Giant,
+    /// Goblin, Kithkin, Merfolk, or Treefolk"): the first `len`.
+    CreatureTypeIn { types: [Subtype; 8], len: u8 },
+    /// "choose a number between 0 and 10" (Expel the Interlopers):
+    /// `Chosen::Number`, read by the count `CountExpr::ChosenNumber`.
+    Number { min: u8, max: u8 },
 }
 
 /// How many cards with the chosen name `Effect::ExileChosenName` finds.

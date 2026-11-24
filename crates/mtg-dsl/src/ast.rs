@@ -419,6 +419,9 @@ pub enum CountExpr {
     },
     /// `life lost this way`: "the life lost this way".
     LifeLostThisWay,
+    /// `chosen number`: "the chosen number" (`choose number between 0
+    /// and 10`).
+    ChosenNumber,
     /// `votes for sprout`: the votes the ability's vote gave that choice
     /// ("for each sprout vote"), `index` its place among the choices.
     Votes {
@@ -1384,6 +1387,12 @@ pub enum ChoiceKind {
     /// `odd or even`: "odd or even" (Zero is even.), for `of chosen
     /// quality`.
     Parity,
+    /// `creature type among Elemental, Elf, Faerie`: "Elemental, Elf, or
+    /// Faerie" (at most eight).
+    CreatureTypeIn(Vec<String>),
+    /// `number between 0 and 10`: "a number between 0 and 10", for the
+    /// count `chosen number`.
+    Number { min: u8, max: u8 },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

@@ -1448,6 +1448,7 @@ fn per_count(
         | CountExpr::TargetStat { .. }
         | CountExpr::ThisWay(..)
         | CountExpr::LifeLostThisWay
+        | CountExpr::ChosenNumber
         | CountExpr::ThoseObjects
         | CountExpr::TriggerCounters(_)
         | CountExpr::Votes(_)

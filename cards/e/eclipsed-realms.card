@@ -1,0 +1,7 @@
+card "Eclipsed Realms" {
+  oracle_id 5715ed43-395c-4877-99a7-8e28e7bf9dce
+  type Land
+  as this enters choose creature type among Elemental, Elf, Faerie, Giant, Goblin, Kithkin, Merfolk, Treefolk
+  activated {T}: add {C}
+  mana any only to cast of chosen type spell or activate of of chosen type
+}

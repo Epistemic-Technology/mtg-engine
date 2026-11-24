@@ -2711,6 +2711,7 @@ impl Compiler<'_> {
                 C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
             }
             A::LifeLostThisWay => C::LifeLostThisWay,
+            A::ChosenNumber => C::ChosenNumber,
             A::Votes { index, .. } => C::Votes(*index),
             A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
             A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
@@ -3175,6 +3176,20 @@ impl Compiler<'_> {
             }
             ChoiceKind::CardName { nonland } => CoreChoiceKind::CardName { nonland: *nonland },
             ChoiceKind::Parity => CoreChoiceKind::Parity,
+            ChoiceKind::CreatureTypeIn(names) => {
+                let mut types = [mtg_core::card::Subtype::default(); 8];
+                for (t, n) in types.iter_mut().zip(names) {
+                    *t = self.pool.subtype(n);
+                }
+                CoreChoiceKind::CreatureTypeIn {
+                    types,
+                    len: u8::try_from(names.len().min(8)).unwrap_or(8),
+                }
+            }
+            ChoiceKind::Number { min, max } => CoreChoiceKind::Number {
+                min: *min,
+                max: *max,
+            },
         }
     }
 

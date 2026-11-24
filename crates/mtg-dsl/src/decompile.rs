@@ -2994,6 +2994,13 @@ impl Decompiler<'_> {
             }
             CoreChoiceKind::CardName { nonland } => ChoiceKind::CardName { nonland },
             CoreChoiceKind::Parity => ChoiceKind::Parity,
+            CoreChoiceKind::CreatureTypeIn { types, len } => ChoiceKind::CreatureTypeIn(
+                types[..usize::from(len)]
+                    .iter()
+                    .map(|s| self.pool.subtype_name(*s).to_string())
+                    .collect(),
+            ),
+            CoreChoiceKind::Number { min, max } => ChoiceKind::Number { min, max },
         }
     }
 }

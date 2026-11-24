@@ -963,6 +963,17 @@ impl P {
             };
             return Ok(ChoiceKind::Color { except });
         }
+        if self.eat_words(&["creature", "type", "among"]) {
+            let mut types = vec![self.word()?];
+            while self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+                types.push(self.word()?);
+            }
+            if types.len() < 2 || types.len() > 8 {
+                return self.fail("`creature type among`: two to eight types");
+            }
+            return Ok(ChoiceKind::CreatureTypeIn(types));
+        }
         if self.eat_words(&["creature", "type"]) {
             suffix(self)?;
             let except = if self.eat_word("except") {
@@ -979,6 +990,16 @@ impl P {
         // "choose odd or even".
         if self.eat_words(&["odd", "or", "even"]) {
             return Ok(ChoiceKind::Parity);
+        }
+        // "choose a number between 0 and 10".
+        if self.eat_words(&["number", "between"]) {
+            let min = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            self.expect_word("and")?;
+            let max = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            if min > max {
+                return self.fail("`choose number between`: the least first");
+            }
+            return Ok(ChoiceKind::Number { min, max });
         }
         // "choose a card name", "choose a nonland card name".
         if self.eat_words(&["card", "name"]) {
@@ -9558,6 +9579,7 @@ impl P {
                     Some("color" | "creature" | "land")
                 ) || self.at_words(&["odd", "or", "even"])
                     || self.at_words(&["card", "name"])
+                    || self.at_words(&["number", "between"])
                     || self.at_words(&["nonland", "card", "name"]) =>
             {
                 Ok(Effect::Choose(self.choice_kind(false)?))
@@ -11500,6 +11522,10 @@ impl P {
         }
         if self.eat_words(&["life", "lost", "this", "way"]) {
             return Ok(Some(CountExpr::LifeLostThisWay));
+        }
+        // `chosen number`: "the chosen number".
+        if self.eat_words(&["chosen", "number"]) {
+            return Ok(Some(CountExpr::ChosenNumber));
         }
         if let Some(verb) = self
             .word_at(0)
@@ -13719,7 +13745,11 @@ impl P {
                     let (stat, len) = self.stat_bound_ahead().expect("checked");
                     self.pos += 1 + len;
                     let exactly = self.eat_words(&["equal", "to"]);
-                    let strict = if exactly || self.eat_words(&["at", "most"]) {
+                    // `with power at least count equal chosen number`:
+                    // "with power greater than or equal to the chosen
+                    // number".
+                    let at_least = !exactly && self.eat_words(&["at", "least"]);
+                    let strict = if exactly || at_least || self.eat_words(&["at", "most"]) {
                         false
                     } else {
                         self.expect_words(&["less", "than"])?;
@@ -13747,7 +13777,13 @@ impl P {
                     }
                     f.status.bound = Some(mtg_core::card::StatBound {
                         stat,
-                        cmp: if exactly { Cmp::Exactly } else { Cmp::AtMost },
+                        cmp: if exactly {
+                            Cmp::Exactly
+                        } else if at_least {
+                            Cmp::AtLeast
+                        } else {
+                            Cmp::AtMost
+                        },
                         n,
                         strict,
                     });
@@ -14454,7 +14490,9 @@ impl P {
             || (self.word_at(at).as_deref() == Some("less")
                 && self.word_at(at + 1).as_deref() == Some("than"))
             || (self.word_at(at).as_deref() == Some("equal")
-                && self.word_at(at + 1).as_deref() == Some("to"));
+                && self.word_at(at + 1).as_deref() == Some("to"))
+            || (self.word_at(at).as_deref() == Some("at")
+                && self.word_at(at + 1).as_deref() == Some("least"));
         let n_ok = self.word_at(at + 2).as_deref() == Some("count")
             || (self
                 .word_at(at + 2)

@@ -3527,6 +3527,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             }
         }
         CountExpr::LifeLostThisWay => "life lost this way".to_string(),
+        CountExpr::ChosenNumber => "chosen number".to_string(),
         CountExpr::Votes { word, .. } => format!("votes for {word}"),
         CountExpr::Domain => "domain".to_string(),
         CountExpr::CardsInHand => "hand".to_string(),
@@ -4292,6 +4293,7 @@ fn filter_one(f: &Filter) -> String {
             match (b.strict, b.cmp) {
                 (true, _) => "less than",
                 (false, mtg_core::card::Cmp::Exactly) => "equal to",
+                (false, mtg_core::card::Cmp::AtLeast) => "at least",
                 _ => "at most",
             },
             num(b.n)
@@ -7497,6 +7499,8 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
         ChoiceKind::CardName { nonland: false } => "card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
         ChoiceKind::Parity => "odd or even".to_string(),
+        ChoiceKind::Number { min, max } => format!("number between {min} and {max}"),
+        ChoiceKind::CreatureTypeIn(types) => format!("creature type among {}", types.join(", ")),
     }
 }
 
