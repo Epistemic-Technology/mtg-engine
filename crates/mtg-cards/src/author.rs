@@ -9204,9 +9204,10 @@ impl Builder<'_> {
         }
         // "All lands have indestructible." (Terra Eternal): a card type's
         // every permanent.
-        if let Some(c) = cached_regex(r"^All (lands|artifacts|enchantments|permanents) have (.+)\.$")
-            .unwrap()
-            .captures(line)
+        if let Some(c) =
+            cached_regex(r"^All (lands|artifacts|enchantments|permanents) have (.+)\.$")
+                .unwrap()
+                .captures(line)
             && let Some(ks) = keyword_list(cap(&c, 2))
         {
             self.statements.push(format!(
@@ -9778,10 +9779,11 @@ fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
             "Vehicle",
             "Aura",
         ] {
-            variants.push(
-                line.replace("~", &format!("this {noun}"))
-                    .replacen("this", "This", usize::from(line.starts_with('~'))),
-            );
+            variants.push(line.replace('~', &format!("this {noun}")).replacen(
+                "this",
+                "This",
+                usize::from(line.starts_with('~')),
+            ));
         }
     }
     for noun in [
@@ -9803,7 +9805,11 @@ fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
     variants
         .iter()
         .find_map(|l| corpus_statement_numbers(corpus, l))
-        .or_else(|| variants.iter().find_map(|l| corpus_statement_words(corpus, l)))
+        .or_else(|| {
+            variants
+                .iter()
+                .find_map(|l| corpus_statement_words(corpus, l))
+        })
 }
 
 /// The classes of word a line's shape abstracts besides amounts and mana
@@ -9820,7 +9826,7 @@ fn shape_word_regex(corpus: &[Card]) -> &'static Regex {
                     .iter()
                     .chain(c.faces.iter().flat_map(|f| f.subtypes.iter()))
             })
-            .filter(|t| t.len() > 2 && t.chars().all(|ch| ch.is_alphabetic()))
+            .filter(|t| t.len() > 2 && t.chars().all(char::is_alphabetic))
             .cloned()
             .collect();
         subtypes.sort();
