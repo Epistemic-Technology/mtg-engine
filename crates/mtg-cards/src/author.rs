@@ -88,6 +88,8 @@ const KEYWORDS: &[&str] = &[
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
     "Read ahead",
+    // CR 702.183: the "Tiered" line and its modes.
+    "Tiered",
     "Read Ahead",
     "Champion",
     "Cleave",
@@ -9484,6 +9486,20 @@ impl Builder<'_> {
         Ok(format!("{head}: {effects}"))
     }
 
+    /// "Tiered" with its named modes and their costs (CR 702.183).
+    fn tiered(&mut self, modes: &[(String, String, String)]) -> Result<(), Skip> {
+        few_modes(modes.len())?;
+        let mut lines = vec!["tiered {".to_string()];
+        for (name, cost, m) in modes {
+            let mut targets = 0;
+            let effects = self.templates.effects(m, &mut targets)?;
+            lines.push(format!("  mode \"{name}\" {cost}: {effects}"));
+        }
+        lines.push("}".to_string());
+        self.statements.push(lines.join("\n  "));
+        Ok(())
+    }
+
     /// "Spree" with its modes and their costs (CR 702.172).
     fn spree(&mut self, modes: &[(String, String)]) -> Result<(), Skip> {
         few_modes(modes.len())?;
@@ -9513,7 +9529,14 @@ impl Builder<'_> {
 
 /// Keyword abilities (CR 702) printed before an em dash like a flavor
 /// word, with rules meaning: never a bare label.
-const DASH_KEYWORDS: &[&str] = &["Exhaust", "Power-up", "Boast", "Solved", "Companion", "Forecast"];
+const DASH_KEYWORDS: &[&str] = &[
+    "Exhaust",
+    "Power-up",
+    "Boast",
+    "Solved",
+    "Companion",
+    "Forecast",
+];
 
 /// Lines of the corpus's cards and the statement that prints each: a line
 /// no template covers but an accepted card already says is written as
@@ -9626,8 +9649,10 @@ fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, S
 /// "~ deals 2 damage to any target." and "~ deals 3 damage to any
 /// target." share the shape.
 fn line_shape(line: &str) -> (String, Vec<String>) {
-    let token = cached_regex(r"(?:\{[^}]+\})+|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b")
-        .expect("a token pattern");
+    let token = cached_regex(
+        r"(?:\{[^}]+\})+|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+    )
+    .expect("a token pattern");
     let mut values = Vec::new();
     let shape = token
         .replace_all(line, |c: &regex::Captures| {
@@ -9651,13 +9676,15 @@ fn line_shape(line: &str) -> (String, Vec<String>) {
 fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
     use std::collections::HashMap;
     use std::sync::OnceLock;
+    /// Statements by line shape, each with its corpus line's values.
+    type Shapes = HashMap<String, Vec<(Vec<String>, String)>>;
+    static SHAPES: OnceLock<Shapes> = OnceLock::new();
     let exact = corpus_lines(corpus);
     if let Some(st) = exact.get(line) {
         return Some(st.clone());
     }
-    static SHAPES: OnceLock<HashMap<String, Vec<(Vec<String>, String)>>> = OnceLock::new();
     let shapes = SHAPES.get_or_init(|| {
-        let mut out: HashMap<String, Vec<(Vec<String>, String)>> = HashMap::new();
+        let mut out = Shapes::new();
         for (l, st) in exact {
             let (shape, values) = line_shape(l);
             if !values.is_empty() {
@@ -9680,7 +9707,8 @@ fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
             continue;
         }
         let out = token.replace_all(st, |c: &regex::Captures| {
-            map.get(&c[0]).map_or_else(|| c[0].to_string(), |b| (*b).to_string())
+            map.get(&c[0])
+                .map_or_else(|| c[0].to_string(), |b| (*b).to_string())
         });
         return Some(out.into_owned());
     }
@@ -9744,10 +9772,16 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         let mut rec = f.clone();
         rec.layout = "normal".to_string();
         // A flavor word printed on the other face is not this face's.
-        let all = s.card_faces.iter().filter_map(|f| f.oracle_text.as_deref()).collect::<Vec<_>>().join("\n");
+        let all = s
+            .card_faces
+            .iter()
+            .filter_map(|f| f.oracle_text.as_deref())
+            .collect::<Vec<_>>()
+            .join("\n");
         let elsewhere = flavor_in(s, &all);
         let here = flavor_words(&rec);
-        rec.keywords.retain(|k| !elsewhere.contains(k) || here.contains(k));
+        rec.keywords
+            .retain(|k| !elsewhere.contains(k) || here.contains(k));
         let a = author_card(&rec, corpus)?;
         // The block's lines between its braces, without the oracle_id.
         let body: Vec<String> = a
@@ -10716,6 +10750,23 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
                 i += 1;
             }
             b.spree(&modes)?;
+            continue;
+        }
+        // CR 702.183: "Tiered" and its "• Fire — {0} — ..." modes.
+        if line == "Tiered" {
+            let mut modes = Vec::new();
+            i += 1;
+            while i < lines.len() && lines[i].starts_with("• ") {
+                let Some((name, rest)) = lines[i]["• ".len()..].split_once(" — ") else {
+                    return Err(Skip::Sentence(lines[i].to_string()));
+                };
+                let Some((cost, text)) = rest.split_once(" — ") else {
+                    return Err(Skip::Sentence(lines[i].to_string()));
+                };
+                modes.push((name.to_string(), cost.to_string(), text.to_string()));
+                i += 1;
+            }
+            b.tiered(&modes)?;
             continue;
         }
         // Strive: "This spell costs {2}{B} more to cast for each target

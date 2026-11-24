@@ -1100,11 +1100,15 @@ impl Compiler<'_> {
         if let Some(c) = &card.cast_only {
             let c = self.static_cond(c);
             b = b.cast_only(self.pool.intern_condition(c));
-        } else if card.supertypes.contains(&mtg_core::card::Supertype::Legendary)
-            && card
-                .types
-                .iter()
-                .any(|t| matches!(t, mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery))
+        } else if card
+            .supertypes
+            .contains(&mtg_core::card::Supertype::Legendary)
+            && card.types.iter().any(|t| {
+                matches!(
+                    t,
+                    mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+                )
+            })
         {
             // CR 205.4e: a legendary instant or sorcery can be cast only
             // while its caster controls a legendary creature or a

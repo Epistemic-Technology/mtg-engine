@@ -436,3 +436,52 @@ scenario "Untamed Pup: other Wolves and Werewolves have trample" {
   assert has "Ambush Wolf" trample
   assert has not "Grizzly Bears" trample
 }
+
+# Tiered (CR 702.183): the author's `tiered { mode "Fire" {0}: ... }`.
+
+scenario "Fire Magic: Fira deals 2 damage to each creature for {2} more" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Raging Goblin"
+  hand A: "Fire Magic"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fire Magic" mode 2
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Raging Goblin"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Fire Magic: with one land, cast for Fire" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Raging Goblin"
+  hand A: "Fire Magic"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fire Magic"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert damage "Hill Giant" 1
+}
+
+scenario "Restoration Magic: Cura, hexproof and indestructible and 3 life" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand A: "Restoration Magic"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Restoration Magic" mode 2 targeting "Grizzly Bears"
+  illegal turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 23
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "Restoration Magic: Curaga, every permanent you control and 6 life" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Raging Goblin"
+  hand A: "Restoration Magic"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Restoration Magic" mode 3
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert has "Raging Goblin" hexproof
+  assert has "Grizzly Bears" indestructible
+}
