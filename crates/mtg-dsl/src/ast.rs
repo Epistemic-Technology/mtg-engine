@@ -1587,6 +1587,17 @@ pub enum Granted {
     Mayhem(Option<ManaCost>),
     /// `warp {2}{R}`.
     Warp(ManaCost),
+    /// `retrace` ("have retrace", in a graveyard).
+    Retrace,
+    /// `jump start` ("has jump-start", in a graveyard).
+    JumpStart,
+    /// `foretell`, in a hand: "Each nonland card in your hand without
+    /// foretell has foretell. Its foretell cost is equal to its mana cost
+    /// reduced by {2}."
+    Foretell,
+    /// `sneak {3}{B}`, in a graveyard: "have sneak {3}{B}. You may cast
+    /// creature spells from your graveyard using their sneak abilities."
+    Sneak(ManaCost),
     /// `miracle {2}`.
     Miracle(ManaCost),
     /// An activated keyword ability, activated from the cards' zone:
@@ -1766,6 +1777,11 @@ pub enum Ability {
         /// `... cost {2} less and flash`: "... and can be cast as though it
         /// had flash" (with `first`).
         flash: bool,
+        /// `spells you cast from graveyard cost {2} less`: "Spells you cast
+        /// from your graveyard cost {2} less to cast." (`from hand`, `from
+        /// exile`, `from other than hand`: "from anywhere other than your
+        /// hand").
+        from: mtg_core::card::SpellFrom,
     },
     /// `spells instant or sorcery you cast have storm`, `spells you cast
     /// have delve`, `spells instant or sorcery you cast from hand have
@@ -1774,7 +1790,12 @@ pub enum Ability {
     /// cascade, storm, affinity).
     SpellsHave {
         filter: Filter,
-        from_hand: bool,
+        /// `from hand`, `from exile`, ... (`SpellFrom`): "... you cast from
+        /// exile have convoke."
+        from: mtg_core::card::SpellFrom,
+        /// `spells can't be countered`: everyone's spells ("Spells can't be
+        /// countered."), with `uncounterable`; otherwise `You`.
+        whose: Who,
         keywords: Vec<Keyword>,
         storm: bool,
         affinity: Option<Filter>,
@@ -3818,6 +3839,8 @@ pub enum Trigger {
     /// `when this becomes plotted` (CR 702.170): "When this card becomes
     /// plotted".
     BecomesPlotted,
+    /// `whenever you foretell a card` (CR 702.143a).
+    Foretells,
     /// `whenever you draw your second card each turn`; `... card in a
     /// turn` prints that way ("When you draw your third card in a turn").
     DrawsNth {

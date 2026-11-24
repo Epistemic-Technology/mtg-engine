@@ -1,0 +1,10 @@
+card "Ninja Teen" {
+  oracle_id 2c5044ff-a303-4276-8e23-7caac30a275b
+  cost {2}{B}
+  type Enchantment — Class
+  triggered whenever creature you control leaves the battlefield: each opponent loses 1 life
+  level 2 {1}{B}
+  static creature you control: +1/+0, has menace
+  level 3 {B}
+  static creature card in your graveyard: has sneak {3}{B}
+}

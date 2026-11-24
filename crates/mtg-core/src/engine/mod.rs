@@ -2149,6 +2149,7 @@ impl GameState {
                     .get_or_insert_with(Box::default)
                     .foretold_this_turn
                     .push(new);
+                self.queue_foretell_triggers(player);
                 self.give_priority(player);
             }
             (Flow::Priority, Choice::Plot(id)) => {
@@ -2889,6 +2890,31 @@ impl GameState {
                 next_target: 0,
                 sacrifice: None,
                 discard: None,
+            }
+        }
+    }
+
+    /// "Whenever you foretell a card" (CR 702.143a): the triggers of
+    /// `p`'s permanents, as `p` foretells a card.
+    fn queue_foretell_triggers(&mut self, p: PlayerId) {
+        if self.trigger_sources == 0 {
+            return;
+        }
+        let pool = std::sync::Arc::clone(&self.pool);
+        let sources: Vec<(ObjId, crate::card::CardRef)> = self
+            .battlefield
+            .iter()
+            .map(|id| (*id, &self.objects[*id]))
+            .filter(|(_, o)| o.controller == p && self.flags_of(o).has_triggers())
+            .map(|(id, o)| (id, o.def))
+            .collect();
+        for (src, def) in sources {
+            for a in &pool.get(def).ability_ids {
+                if let crate::card::AbilityDef::Triggered(t) = pool.ability(*a)
+                    && t.trigger == crate::card::TriggerSpec::Foretells
+                {
+                    self.queue_builtin(p, *a, src, def);
+                }
             }
         }
     }

@@ -4514,6 +4514,8 @@ fn filter_one(f: &Filter) -> String {
     if let Some(cc) = f.color_count {
         words.push(if cc == mtg_core::card::ColorCount::Colored {
             "colored".to_string()
+        } else if cc == mtg_core::card::ColorCount::TwoColors {
+            "two-colored".to_string()
         } else {
             format!("{cc:?}").to_lowercase()
         });
@@ -5105,6 +5107,7 @@ pub fn activates_words(whose: Who, kind: mtg_core::card::ActivationKind) -> Stri
         K::OfCreature => "an ability of a creature",
         K::Exhaust => "an exhaust ability",
         K::Loyalty => "a loyalty ability",
+        K::Ninjutsu => "a ninjutsu ability",
     };
     format!("{who} {what}")
 }
@@ -5435,6 +5438,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::Exploits => "when this exploits a creature".to_string(),
         Trigger::HauntedDies => "when haunted dies".to_string(),
         Trigger::BecomesPlotted => "when this becomes plotted".to_string(),
+        Trigger::Foretells => "whenever you foretell a card".to_string(),
         Trigger::DrawsNth {
             whose,
             n,
@@ -7391,6 +7395,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             per,
             first,
             flash,
+            from,
         } => {
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
@@ -7414,15 +7419,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let first = if *first { " first" } else { "" };
             let per = per.map_or_else(String::new, |n| format!(" {}", num(n)));
             let flash = if *flash { " and flash" } else { "" };
+            let from = spell_from(*from);
             let _ = writeln!(
                 out,
-                "{indent}{head}spells{first}{subject}{whose} cost {{{}}} {more}{per}{flash}",
+                "{indent}{head}spells{first}{subject}{whose}{from} cost {{{}}} {more}{per}{flash}",
                 generic.unsigned_abs()
             );
         }
         Ability::SpellsHave {
             filter: f,
-            from_hand,
+            from,
+            whose,
             keywords: ks,
             storm,
             affinity,
@@ -7434,13 +7441,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 format!(" {}", filter(f))
             };
             if *uncounterable {
-                let _ = writeln!(
-                    out,
-                    "{indent}spells{subject} you control can't be countered"
-                );
+                let whose = if *whose == Who::Any {
+                    ""
+                } else {
+                    " you control"
+                };
+                let _ = writeln!(out, "{indent}spells{subject}{whose} can't be countered");
                 return;
             }
-            let from = if *from_hand { " from hand" } else { "" };
+            let from = spell_from(*from);
             let mut items: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
             if *storm {
                 items.push("storm".to_string());
@@ -7847,6 +7856,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Granted::Mayhem(c) => format!("mayhem{}", cost(c)),
                 crate::ast::Granted::Warp(c) => format!("warp {c}"),
                 crate::ast::Granted::Miracle(c) => format!("miracle {c}"),
+                crate::ast::Granted::Retrace => "retrace".to_string(),
+                crate::ast::Granted::Foretell => "foretell".to_string(),
+                crate::ast::Granted::Sneak(c) => format!("sneak {c}"),
+                crate::ast::Granted::JumpStart => "jump start".to_string(),
                 crate::ast::Granted::Ability(a) => {
                     let mut tmp = String::new();
                     self::ability(&mut tmp, a, "", groups);
@@ -8428,5 +8441,17 @@ fn search_to(to: mtg_core::card::SearchTo) -> &'static str {
         SearchTo::HandOrGraveyard => "hand or graveyard",
         SearchTo::HandOrBattlefield => "hand or battlefield",
         SearchTo::HandAndGraveyard => "hand and graveyard",
+    }
+}
+
+/// `SpellFrom`'s words after `you cast`.
+fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
+    use mtg_core::card::SpellFrom;
+    match from {
+        SpellFrom::Anywhere => "",
+        SpellFrom::Hand => " from hand",
+        SpellFrom::Graveyard => " from graveyard",
+        SpellFrom::Exile => " from exile",
+        SpellFrom::NotHand => " from other than hand",
     }
 }

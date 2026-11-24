@@ -3402,14 +3402,15 @@ impl GameState {
             crate::card::Who::Opponents => p != o.controller,
         };
         // "Instant and sorcery spells you cast from your hand have
-        // cascade": from the hand, or cast from it.
-        let from_ok = cc.grant.as_ref().is_none_or(|g| {
-            !g.from_hand
-                || self.objects.get(id).is_some_and(|c| match c.zone {
-                    Zone::Stack => c.cast.cast_from() == Some(Zone::Hand),
-                    z => z == Zone::Hand,
-                })
-        });
+        // cascade", "Spells you cast from your graveyard cost {2} less":
+        // from there, or cast from it.
+        let from_ok = cc.from == crate::card::SpellFrom::Anywhere
+            || cc
+                .from
+                .allows(self.objects.get(id).and_then(|c| match c.zone {
+                    Zone::Stack => c.cast.cast_from(),
+                    z => Some(z),
+                }));
         // "Creature spells you cast with mana value 6 or greater": the
         // mana value isn't a characteristic `matches` sees.
         let mv_ok = cc
@@ -3652,14 +3653,15 @@ impl GameState {
     /// with an unblocked attacker to return.
     #[cold]
     #[inline(never)]
-    fn sneak_castable(
+    pub(super) fn sneak_castable(
         &self,
         p: PlayerId,
         def: &crate::card::CardDef,
         id: ObjId,
         sources: &Sources,
     ) -> bool {
-        if def.sneak.is_none() {
+        // Its own sneak, or one a permanent gives it (Ninja Teen).
+        if def.sneak.is_none() && !(self.card_grants_live() && self.granted_sneak(id).is_some()) {
             return false;
         }
         if self.step != crate::turn::Step::DeclareBlockers
@@ -3946,6 +3948,10 @@ impl GameState {
     /// that was chosen (CR 601.2b).
     pub(super) fn additional_of(&self, spell: ObjId) -> &Cost {
         let o = &self.objects[spell];
+        // Jump-start or retrace a permanent gave it: its discard.
+        if let Some(c) = grants::granted_way_additional(o.alt) {
+            return c;
+        }
         let def = self.pool.get(o.def);
         // "Flashback—Sacrifice three creatures.": the flashback cost's
         // chosen permanents are settled like an additional cost's (CR
@@ -4490,7 +4496,11 @@ impl GameState {
                 def.miracle.is_some()
                     || self.card_grants_live() && self.granted_miracle(card).is_some()
             }
-            AltCast::Foretell => def.foretell.is_some(),
+            // A card foretold by a grant keeps its foretell cost (Dream
+            // Devourer).
+            AltCast::Foretell => {
+                def.foretell.is_some() || self.objects[card].alt == AltCast::Foretold
+            }
             _ => true,
         };
         // CR 601.2f-h: what payment charges, without paying its mana cost
@@ -8170,6 +8180,11 @@ impl GameState {
             };
             let card = if fb.discard > 0 { discard.take() } else { None };
             self.pay_other_costs(caster, fb, spell, pick, card);
+        }
+        // The card discarded for granted jump-start or retrace.
+        if let Some(c) = grants::granted_way_additional(self.objects[spell].alt) {
+            let card = discard.take();
+            self.pay_other_costs(caster, c, spell, None, card);
         }
         // CR 702.33a: a kicker cost other than mana, its permanent chosen
         // after targets (`additional_of`).

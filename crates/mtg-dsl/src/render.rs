@@ -3128,6 +3128,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if let Some(cc) = f.color_count
         && cc != mtg_core::card::ColorCount::Colored
+        && cc != mtg_core::card::ColorCount::TwoColors
     {
         words.push(format!("{cc:?}").to_lowercase());
     }
@@ -3461,6 +3462,13 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that are one or more colors"
         } else {
             " that's one or more colors"
+        });
+    }
+    if f.color_count == Some(mtg_core::card::ColorCount::TwoColors) {
+        s.push_str(if plural_form {
+            " that are exactly two colors"
+        } else {
+            " that's exactly two colors"
         });
     }
     s
@@ -12162,6 +12170,24 @@ fn card_grant_text(
     lookup: &dyn Lookup,
 ) -> String {
     use crate::ast::Granted;
+    // "Each instant and sorcery card in your graveyard that's exactly two
+    // colors has jump-start.": the color count after the zone.
+    let two = filter.color_count == Some(mtg_core::card::ColorCount::TwoColors);
+    let colors = match (two, each) {
+        (false, _) => "",
+        (true, true) => " that's exactly two colors",
+        (true, false) => " that are exactly two colors",
+    };
+    let stripped;
+    let filter = if two {
+        stripped = Filter {
+            color_count: None,
+            ..filter.clone()
+        };
+        &stripped
+    } else {
+        filter
+    };
     let cards = |f: &Filter, plural: bool| {
         let p = cards_phrase(f, card, plural);
         // "instant and sorcery card": every card of either type.
@@ -12194,12 +12220,29 @@ fn card_grant_text(
         Granted::Mayhem(Some(c)) => format!("mayhem {c}"),
         Granted::Warp(c) => format!("warp {c}"),
         Granted::Miracle(c) => format!("miracle {c}"),
+        Granted::Retrace => "retrace".to_string(),
+        Granted::Foretell => {
+            "foretell. Its foretell cost is equal to its mana cost reduced by {2}".to_string()
+        }
+        // The permission is the card's next sentence (Ninja Teen).
+        Granted::Sneak(c) => format!(
+            "sneak {c}.\nYou may cast {} spells from your graveyard using their sneak abilities",
+            lowercase_first(&cards_phrase(filter, card, false)).trim_end_matches(" card")
+        ),
+        Granted::JumpStart => "jump-start".to_string(),
         Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
     };
-    let s = if each {
-        format!("each {subject} in {place} has {what}.")
+    // "Each nonland card in your hand without foretell has foretell." (a
+    // card with foretell of its own uses its own).
+    let colors = if matches!(grant, Granted::Foretell) {
+        " without foretell"
     } else {
-        format!("{subject} in {place} have {what}.")
+        colors
+    };
+    let s = if each {
+        format!("each {subject} in {place}{colors} has {what}.")
+    } else {
+        format!("{subject} in {place}{colors} have {what}.")
     };
     match cond {
         None => capitalize(&s),
@@ -13678,6 +13721,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             ctx.source_mentioned = true;
             "when this card becomes plotted".to_string()
         }
+        Trigger::Foretells => "whenever you foretell a card".to_string(),
         Trigger::DrawsNth {
             whose,
             n,
@@ -16017,6 +16061,7 @@ fn protection_text(f: &Filter, card: &Card) -> String {
                 mtg_core::card::ColorCount::Monocolored => "monocolored",
                 mtg_core::card::ColorCount::Colorless => "colorless",
                 mtg_core::card::ColorCount::Colored => "one or more colors",
+                mtg_core::card::ColorCount::TwoColors => "exactly two colors",
             }
         )
     } else if *f
@@ -18124,6 +18169,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             per,
             first,
             flash,
+            from,
         } => {
             // "The first creature spell you cast each turn costs {2} less to
             // cast [and can be cast as though it had flash]"; "... you cast
@@ -18238,8 +18284,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             } else {
                 generic.unsigned_abs().to_string()
             };
+            let from = spell_from_text(*from);
             let body = format!(
-                "{} {whose}{mv} cost {{{amount}}} {more} to cast{per_text}.",
+                "{} {whose}{from}{mv} cost {{{amount}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
             )
             .replace("  ", " ");
@@ -18252,21 +18299,27 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // "Instant and sorcery spells you cast have storm."
         Ability::SpellsHave {
             filter,
-            from_hand,
+            from,
+            whose,
             keywords,
             storm,
             affinity,
             uncounterable,
         } => {
             if *uncounterable {
+                let whose = if *whose == Who::Any {
+                    ""
+                } else {
+                    " you control"
+                };
                 return format!(
-                    "{} you control can't be countered.",
+                    "{}{whose} can't be countered.",
                     cost_spells_subject(filter, card)
                 );
             }
+            let from = spell_from_text(*from);
             // "You may cast noncreature spells as though they had flash."
             if keywords == &[Keyword::Flash] && !*storm && affinity.is_none() {
-                let from = if *from_hand { " from your hand" } else { "" };
                 return format!(
                     "You may cast {}{from} as though they had flash.",
                     lowercase_first(&cost_spells_subject(filter, card))
@@ -18282,7 +18335,6 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             if let Some(a) = affinity {
                 items.push(format!("affinity for {}", filter_phrase(a, card, true)));
             }
-            let from = if *from_hand { " from your hand" } else { "" };
             format!(
                 "{} you cast{from} have {}.",
                 cost_spells_subject(filter, card),
@@ -20440,5 +20492,17 @@ fn hand_player_text(w: mtg_core::card::HandPlayer) -> &'static str {
         mtg_core::card::HandPlayer::Defending => "defending player",
         mtg_core::card::HandPlayer::Opponent => "an opponent",
         mtg_core::card::HandPlayer::Anyone => "a player",
+    }
+}
+
+/// `SpellFrom`'s words after "you cast": " from your graveyard".
+fn spell_from_text(from: mtg_core::card::SpellFrom) -> &'static str {
+    use mtg_core::card::SpellFrom;
+    match from {
+        SpellFrom::Anywhere => "",
+        SpellFrom::Hand => " from your hand",
+        SpellFrom::Graveyard => " from your graveyard",
+        SpellFrom::Exile => " from exile",
+        SpellFrom::NotHand => " from anywhere other than your hand",
     }
 }

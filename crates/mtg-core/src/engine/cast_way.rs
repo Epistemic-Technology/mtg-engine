@@ -154,6 +154,17 @@ impl GameState {
         let escape = gdef.flashback.is_none()
             && !self.granted_flashback.contains(&id)
             && !(live && self.granted_flashback(id).is_some());
+        // Jump-start or retrace a permanent gives it (CR 702.133a,
+        // 702.81a): for its mana cost and a card discarded.
+        if escape
+            && live
+            && let Some(alt) = self.granted_discard_way(id)
+        {
+            return CastWay {
+                flashback: alt == AltCast::JumpStart,
+                ..CastWay::new(id, alt)
+            };
+        }
         // Mayhem: a card discarded this turn, cast for its mayhem cost (a
         // card with escape too uses escape only when it wasn't discarded
         // this turn).

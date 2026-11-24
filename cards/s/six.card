@@ -1,0 +1,9 @@
+card "Six" {
+  oracle_id dbcbdf37-c40f-4068-b4a7-a849cab1056c
+  cost {2}{G}
+  type Legendary Creature — Treefolk
+  pt 2/4
+  keywords reach
+  triggered whenever this attacks: mill 3 cards; you may put 1 land card from among them into hand chosen
+  static during your turn, nonland permanent card in your graveyard: has retrace
+}

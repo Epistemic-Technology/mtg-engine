@@ -6,7 +6,8 @@
 
 use super::{CostBasis, Sources, Spend};
 use crate::card::{
-    AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, CardGrant, GrantedWay, SacCost,
+    AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, CardGrant, CardType, Cost,
+    GrantedWay, ObjFilter, SacCost, TypeSet,
 };
 use crate::decision::Choice;
 use crate::ids::{ObjId, PlayerId};
@@ -32,6 +33,32 @@ impl<'a> GrantCost<'a> {
             GrantCost::Mana => None,
             GrantCost::Fixed(c) => Some(c),
         }
+    }
+}
+
+/// Retrace's additional cost: a land card discarded (CR 702.81a).
+static RETRACE_COST: std::sync::LazyLock<Cost> = std::sync::LazyLock::new(|| Cost {
+    discard: 1,
+    discard_filter: Some(ObjFilter {
+        types: TypeSet::of([CardType::Land]),
+        ..ObjFilter::default()
+    }),
+    ..Cost::default()
+});
+
+/// Jump-start's additional cost: a card discarded (CR 702.133a).
+static JUMP_START_COST: std::sync::LazyLock<Cost> = std::sync::LazyLock::new(|| Cost {
+    discard: 1,
+    ..Cost::default()
+});
+
+/// The additional cost of a way a grant gives (`AltCast::Retrace`,
+/// `AltCast::JumpStart`), `None` for any other way.
+pub(in crate::engine) fn granted_way_additional(alt: AltCast) -> Option<&'static Cost> {
+    match alt {
+        AltCast::Retrace => Some(&RETRACE_COST),
+        AltCast::JumpStart => Some(&JUMP_START_COST),
+        _ => None,
     }
 }
 
@@ -120,6 +147,21 @@ impl GameState {
         .and_then(GrantCost::fixed)
     }
 
+    /// Whether a grant gives `card` foretell (CR 702.143a; Dream Devourer).
+    fn granted_foretell(&self, card: ObjId) -> bool {
+        self.grants_of(card)
+            .any(|g| matches!(g, GrantedWay::Foretell))
+    }
+
+    /// The sneak cost a grant gives `card` (CR 702.190a).
+    pub(in crate::engine) fn granted_sneak(&self, card: ObjId) -> Option<&ManaCost> {
+        self.granted_cost(card, |g| match g {
+            GrantedWay::Sneak(c) => Some(GrantCost::Fixed(c)),
+            _ => None,
+        })
+        .and_then(GrantCost::fixed)
+    }
+
     /// The miracle cost a grant gives `card` (CR 702.94a).
     pub(in crate::engine) fn granted_miracle(&self, card: ObjId) -> Option<&ManaCost> {
         self.granted_cost(card, |g| match g {
@@ -127,6 +169,21 @@ impl GameState {
             _ => None,
         })
         .and_then(GrantCost::fixed)
+    }
+
+    /// The way to cast from a graveyard by discarding a card a grant gives
+    /// `card`: `AltCast::JumpStart` or `AltCast::Retrace` (jump-start
+    /// first, with both).
+    pub(in crate::engine) fn granted_discard_way(&self, card: ObjId) -> Option<AltCast> {
+        let mut way = None;
+        for g in self.grants_of(card) {
+            match g {
+                GrantedWay::JumpStart => return Some(AltCast::JumpStart),
+                GrantedWay::Retrace => way = Some(AltCast::Retrace),
+                _ => {}
+            }
+        }
+        way
     }
 
     fn granted_cost<'a>(
@@ -162,6 +219,7 @@ impl GameState {
             }
             AltCast::Warp if def.warp.is_none() => self.granted_warp(b.id),
             AltCast::Miracle if def.miracle.is_none() => self.granted_miracle(b.id),
+            AltCast::Sneak if def.sneak.is_none() => self.granted_sneak(b.id),
             _ => None,
         }
     }
@@ -201,6 +259,14 @@ impl GameState {
             if def.is_land() || options.contains(&Choice::Cast(id)) {
                 continue;
             }
+            // CR 702.190a: "You may cast creature spells from your
+            // graveyard using their sneak abilities." (Ninja Teen).
+            if self.step == crate::turn::Step::DeclareBlockers
+                && self.granted_sneak(id).is_some()
+                && self.sneak_castable(p, def, id, sources)
+            {
+                options.push(Choice::CastSneak(id));
+            }
             // CR 702.34a: cast with flashback, for the granted cost.
             if def.flashback.is_none()
                 && let Some(cost) = self.granted_flashback(id)
@@ -219,6 +285,34 @@ impl GameState {
                 options.push(Choice::Cast(id));
                 continue;
             }
+            // CR 702.133a, 702.81a: jump-start or retrace, for its mana
+            // cost and a card (a land card) discarded besides.
+            if def.flashback.is_none()
+                && !def.no_mana_cost
+                && self.granted_flashback(id).is_none()
+                && let Some(alt) = self.granted_discard_way(id)
+            {
+                let add = granted_way_additional(alt).expect("a discard way");
+                if self
+                    .discard_candidates(p, add.discard_filter.as_ref(), id)
+                    .is_empty()
+                {
+                    continue;
+                }
+                if self.granted_castable(
+                    p,
+                    &CostBasis {
+                        flashback: alt == AltCast::JumpStart,
+                        ..self.offer_basis(p, id, def, alt)
+                    },
+                    sorcery_timing,
+                    sources,
+                    changers,
+                ) {
+                    options.push(Choice::Cast(id));
+                }
+                continue;
+            }
             // Mayhem: a card its owner discarded this turn.
             if def.mayhem.is_none()
                 && self.mayhem_discarded.contains(&id)
@@ -235,7 +329,20 @@ impl GameState {
                 options.push(Choice::Cast(id));
             }
         }
-        for id in &ps.hand {
+        self.hand_grant_options(p, sorcery_timing, sources, changers, options);
+    }
+
+    /// `card_grant_options` for `p`'s hand: abilities activated from it,
+    /// foretell, and warp.
+    fn hand_grant_options(
+        &self,
+        p: PlayerId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+        options: &mut Vec<Choice>,
+    ) {
+        for id in &self.player(p).hand {
             let id = *id;
             let def = self.pool.get(self.objects[id].def);
             for a in self.granted_abilities(id) {
@@ -244,6 +351,22 @@ impl GameState {
                 {
                     self.hand_ability_options(p, id, a, ab, sorcery_timing, sources, options);
                 }
+            }
+            // CR 702.143a: foretell, any time during its owner's turn, for
+            // {2} (mana restricted to foretelling may pay it).
+            if def.foretell.is_none()
+                && !def.is_land()
+                && p == self.active_player
+                && self.granted_foretell(id)
+                && !options.contains(&Choice::Foretell(id))
+                && self.payable_for(
+                    p,
+                    sources,
+                    &ManaCost::parse("{2}").expect("a mana cost").requirements(0),
+                    Spend::Foretell,
+                )
+            {
+                options.push(Choice::Foretell(id));
             }
             // CR 702.185a: cast for the warp cost instead, with a
             // permanent spell's timing.

@@ -2036,7 +2036,11 @@ impl GameState {
             }
             return;
         }
-        let mayhem = self.pool.get(self.objects[card].def).mayhem.is_some();
+        // Mayhem a permanent may give it later this turn (Green Goblin's
+        // "Each nonland card in your graveyard has mayhem."): remembered
+        // in a game with such a grant.
+        let mayhem =
+            self.pool.get(self.objects[card].def).mayhem.is_some() || self.pool.card_grants;
         let new = self.move_object(card, Zone::Graveyard, true);
         if mayhem
             && self

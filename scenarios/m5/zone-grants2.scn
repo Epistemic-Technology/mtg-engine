@@ -1,0 +1,404 @@
+# More abilities given to spells and cards outside the battlefield (CR
+# 113.6b, 601.2f): cost changes and keywords for spells cast from a
+# zone ("Spells you cast from your graveyard cost {1} less", "Spells you
+# cast from exile have convoke"), "Spells can't be countered.", and
+# retrace, jump-start, sneak, foretell, and ninjutsu given to cards in a
+# graveyard or hand.
+
+scenario "Patrician Geist: a spell cast from the graveyard costs {1} less" {
+  battlefield A: "Patrician Geist", 2 "Island"
+  graveyard A: "Think Twice"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Think Twice" from graveyard
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert exile A contains "Think Twice"
+}
+
+scenario "Patrician Geist: flashback {2}{U} costs {1}{U}, not {U}" {
+  battlefield A: "Patrician Geist", "Island"
+  graveyard A: "Think Twice"
+  illegal turn 1 A: cast "Think Twice" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Think Twice"
+}
+
+scenario "Patrician Geist: a spell cast from the hand costs its full cost" {
+  battlefield A: "Patrician Geist", "Island"
+  hand A: "Think Twice"
+  illegal turn 1 A: cast "Think Twice"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Think Twice"
+}
+
+scenario "Gravebreaker Lamia: the searched card goes to the graveyard; graveyard spells cost {1} less" {
+  battlefield A: 5 "Swamp", 2 "Island"
+  hand A: "Gravebreaker Lamia"
+  library A: "Forest", "Think Twice", "Island", "Island"
+  turn 1 A: cast "Gravebreaker Lamia"
+  turn 1 A: choose "Think Twice"
+  turn 1 postcombat_main A: cast "Think Twice" from graveyard
+  run_to turn 1 end
+  assert battlefield A contains "Gravebreaker Lamia"
+  assert exile A contains "Think Twice"
+  assert hand A count 1
+}
+
+scenario "Lier: an opponent's spell can't be countered" {
+  battlefield A: "Lier, Disciple of the Drowned", 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Counterspell"
+  hand B: "Lightning Bolt"
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Counterspell" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 end
+  assert life A 17
+  assert graveyard A contains "Counterspell"
+}
+
+scenario "Lier: your own spell can't be countered" {
+  battlefield A: "Lier, Disciple of the Drowned", "Mountain"
+  battlefield B: 2 "Island"
+  hand A: "Lightning Bolt"
+  hand B: "Counterspell"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Lier: an instant in the graveyard has flashback for its mana cost" {
+  battlefield A: "Lier, Disciple of the Drowned", "Mountain"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "Hoarding Broodlord: the searched card is exiled and may be cast with convoke" {
+  battlefield A: 8 "Swamp", 2 "Grizzly Bears"
+  hand A: "Hoarding Broodlord"
+  library A: "Forest", "Mind Stone", "Island"
+  turn 1 A: cast "Hoarding Broodlord"
+  turn 1 A: choose "Mind Stone"
+  turn 1 postcombat_main A: cast "Mind Stone"
+  run_to turn 1 end
+  assert battlefield A contains "Mind Stone"
+  assert exile A lacks "Mind Stone"
+}
+
+scenario "Hoarding Broodlord: a spell cast from exile has convoke" {
+  battlefield A: "Hoarding Broodlord", 4 "Mountain", 3 "Grizzly Bears"
+  hand A: "Bellowing Bruiser // Beat a Path"
+  turn 1 A: cast "Beat a Path"
+  turn 1 postcombat_main A: cast "Bellowing Bruiser"
+  run_to turn 1 end
+  assert battlefield A contains "Bellowing Bruiser"
+}
+
+scenario "without Hoarding Broodlord a spell cast from exile has no convoke" {
+  battlefield A: 4 "Mountain", 4 "Grizzly Bears"
+  hand A: "Bellowing Bruiser // Beat a Path"
+  turn 1 A: cast "Beat a Path"
+  illegal turn 1 postcombat_main A: cast "Bellowing Bruiser"
+  run_to turn 1 end
+  assert exile A contains "Bellowing Bruiser"
+}
+
+scenario "Hoarding Broodlord: a spell cast from the hand has no convoke" {
+  battlefield A: "Hoarding Broodlord", 2 "Grizzly Bears"
+  hand A: "Mind Stone"
+  illegal turn 1 A: cast "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Mind Stone"
+}
+
+scenario "Green Goblin: a card discarded this turn is cast for its mayhem cost, {2} less" {
+  battlefield A: "Norman Osborn // Green Goblin", 2 "Island", "Swamp", "Mountain"
+  hand A: "Tormenting Voice", "Divination"
+  library A: "Forest", "Forest", "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: activate "Norman Osborn"
+  turn 3 A: cast "Tormenting Voice" discarding "Divination"
+  turn 3 postcombat_main A: cast "Divination" from graveyard
+  run_to turn 3 end
+  assert battlefield A contains "Green Goblin"
+  assert graveyard A contains "Divination"
+  assert library A count 1
+}
+
+scenario "Norman Osborn: no mayhem before he transforms" {
+  battlefield A: "Norman Osborn // Green Goblin", 3 "Island", 3 "Mountain"
+  hand A: "Tormenting Voice", "Divination"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Tormenting Voice" discarding "Divination"
+  illegal turn 1 postcombat_main A: cast "Divination" from graveyard
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+}
+
+scenario "Norman Osborn: unblockable, he connives on combat damage" {
+  battlefield A: "Norman Osborn // Green Goblin"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  library A: "Forest"
+  turn 1 A: attack "Norman Osborn"
+  illegal turn 1 B: block "Norman Osborn" with "Grizzly Bears"
+  turn 1 combat_damage A: discard "Lightning Bolt"
+  run_to turn 1 end
+  assert life B 19
+  assert graveyard A contains "Lightning Bolt"
+  assert hand A contains "Forest"
+  assert counters "Norman Osborn" +1/+1 1
+}
+
+scenario "Six: a creature card in the graveyard is cast with retrace, discarding a land card" {
+  battlefield A: "Six", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Mountain", "Lightning Bolt"
+  turn 1 A: cast "Grizzly Bears" from graveyard discarding "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Mountain"
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "Six: retrace needs a land card to discard" {
+  battlefield A: "Six", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Six: retrace pays the mana cost too" {
+  battlefield A: "Six", "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Mountain"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard discarding "Mountain"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Six: no retrace for an instant card" {
+  battlefield A: "Six", "Mountain"
+  graveyard A: "Lightning Bolt"
+  hand A: "Forest"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard discarding "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Six: only during your turn" {
+  battlefield A: "Six", 2 "Forest"
+  graveyard A: "Ambush Viper"
+  hand A: "Mountain"
+  illegal turn 2 A: cast "Ambush Viper" from graveyard discarding "Mountain"
+  run_to turn 2 end
+  assert graveyard A contains "Ambush Viper"
+}
+
+scenario "Six: a retraced spell countered goes back to the graveyard" {
+  battlefield A: "Six", 2 "Forest"
+  battlefield B: 2 "Island"
+  graveyard A: "Grizzly Bears"
+  hand A: "Mountain"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears" from graveyard discarding "Mountain"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert exile A lacks "Grizzly Bears"
+}
+
+scenario "Six: attacking mills three; a land card from among them goes to the hand" {
+  battlefield A: "Six"
+  library A: "Grizzly Bears", "Forest", "Lightning Bolt", "Island"
+  turn 1 A: attack "Six"
+  run_to turn 1 end
+  assert hand A contains "Forest"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert library A count 1
+  assert life B 18
+}
+
+scenario "Niv-Mizzet, Supreme: a two-colored instant is cast with jump-start, then exiled" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain", "Plains"
+  graveyard A: "Lightning Helix"
+  hand A: "Forest"
+  turn 1 A: cast "Lightning Helix" from graveyard discarding "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert exile A contains "Lightning Helix"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Niv-Mizzet, Supreme: a monocolored instant has no jump-start" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain"
+  graveyard A: "Lightning Bolt"
+  hand A: "Forest"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard discarding "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Niv-Mizzet, Supreme: jump-start needs a card to discard" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain", "Plains"
+  graveyard A: "Lightning Helix"
+  illegal turn 1 A: cast "Lightning Helix" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Niv-Mizzet, Supreme: a jump-started spell countered is exiled" {
+  battlefield A: "Niv-Mizzet, Supreme", "Mountain", "Plains"
+  battlefield B: 2 "Island"
+  graveyard A: "Lightning Helix"
+  hand A: "Forest"
+  hand B: "Counterspell"
+  turn 1 A: cast "Lightning Helix" from graveyard discarding "Forest" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Lightning Helix" in response to "Lightning Helix"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert exile A contains "Lightning Helix"
+}
+
+scenario "Ninja Teen level 3: a creature card in the graveyard is cast for sneak {3}{B}" {
+  battlefield A: "Ninja Teen", 7 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: wait
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Hill Giant" from graveyard sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  # The Bears left the battlefield (1), and the Giant dealt 3 +1 damage.
+  assert life B 15
+}
+
+scenario "Ninja Teen level 2: no sneak from the graveyard yet" {
+  battlefield A: "Ninja Teen", 6 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers A: cast "Hill Giant" from graveyard sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  # Level 2: the Bears are 3/2 with menace.
+  assert life B 17
+}
+
+scenario "Ninja Teen level 3: sneak only in the declare blockers step" {
+  battlefield A: "Ninja Teen", 7 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Ninja Teen"
+  turn 1 A: wait
+  turn 1 A: activate "Ninja Teen"
+  illegal turn 1 postcombat_main A: cast "Hill Giant" from graveyard
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Ninja Teen: a creature leaving the battlefield costs each opponent 1 life" {
+  battlefield A: "Ninja Teen", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Satoru Umezawa: a creature card in hand has ninjutsu; activating it digs three" {
+  battlefield A: "Satoru Umezawa", "Grizzly Bears", 2 "Island", 2 "Swamp"
+  hand A: "Hill Giant"
+  library A: "Forest", "Mountain", "Plains", "Island"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Hill Giant" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+  assert library A count 3
+  assert life B 17
+}
+
+scenario "Satoru Umezawa: the dig triggers only once each turn" {
+  battlefield A: "Satoru Umezawa", 2 "Grizzly Bears", 4 "Island", 4 "Swamp"
+  hand A: "Hill Giant", "Gray Ogre"
+  library A: "Forest", "Mountain", "Plains", "Island", "Swamp"
+  turn 1 A: attack "Grizzly Bears", "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Hill Giant" sacrificing "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Gray Ogre" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Gray Ogre"
+  assert hand A count 3
+  assert library A count 4
+  assert life B 15
+}
+
+scenario "without Satoru Umezawa a creature card has no ninjutsu" {
+  battlefield A: "Grizzly Bears", 2 "Island", 2 "Swamp"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers A: activate "Hill Giant" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Dream Devourer: a card in hand is foretold for {2}; the Devourer gets +2/+0" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: foretell "Hill Giant"
+  run_to turn 1 begin_combat
+  assert exile A contains "Hill Giant"
+  assert power "Dream Devourer" 2
+  run_to turn 2 upkeep
+  assert power "Dream Devourer" 0
+}
+
+scenario "Dream Devourer: the foretold card is cast on a later turn for its mana cost reduced by {2}" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant"
+  library A: "Forest", "Forest"
+  turn 1 A: foretell "Hill Giant"
+  illegal turn 1 postcombat_main A: cast "Hill Giant"
+  turn 3 A: cast "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Mountain"
+}
+
+scenario "Dream Devourer: the foretold card keeps its cost after the Devourer leaves" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant", "Lightning Bolt"
+  library A: "Forest", "Forest"
+  turn 1 A: foretell "Hill Giant"
+  turn 3 A: cast "Lightning Bolt" targeting "Dream Devourer"
+  run_to turn 3 end
+  assert graveyard A contains "Dream Devourer"
+  turn 5 A: cast "Hill Giant"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Dream Devourer: a land card can't be foretold" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Forest"
+  illegal turn 1 A: foretell "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+}
+
+scenario "Dream Devourer: foretell only during your turn" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 2 A: foretell "Hill Giant"
+  run_to turn 2 end
+  assert hand A contains "Hill Giant"
+}

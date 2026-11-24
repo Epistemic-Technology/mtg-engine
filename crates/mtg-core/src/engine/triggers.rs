@@ -2116,6 +2116,9 @@ impl GameState {
                         ab.keyword == Some(crate::card::ActivatedKeyword::Exhaust)
                     }
                     crate::card::ActivationKind::Loyalty => ab.cost.loyalty != 0,
+                    crate::card::ActivationKind::Ninjutsu => {
+                        ab.keyword == Some(crate::card::ActivatedKeyword::Ninjutsu)
+                    }
                     // The source as it is, or as it last existed (a
                     // creature sacrificed to pay the cost).
                     crate::card::ActivationKind::OfCreature => self

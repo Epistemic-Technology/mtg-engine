@@ -1,0 +1,9 @@
+card "Gravebreaker Lamia" {
+  oracle_id 2c1d288a-22ea-482c-947e-f3ab04172da0
+  cost {4}{B}
+  type Enchantment Creature — Snake Lamia
+  pt 4/4
+  keywords lifelink
+  triggered whenever this enters: search card to graveyard
+  spells you cast from graveyard cost {1} less
+}

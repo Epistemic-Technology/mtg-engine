@@ -1,0 +1,8 @@
+card "Dream Devourer" {
+  oracle_id 0ff7440b-b831-40a9-81c4-99d77bf93b8d
+  cost {1}{B}
+  type Creature — Demon Cleric
+  pt 0/3
+  static each nonland card in your hand: has foretell
+  triggered whenever you foretell a card: this gets +2/+0 until end of turn
+}

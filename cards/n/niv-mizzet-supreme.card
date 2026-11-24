@@ -1,0 +1,9 @@
+card "Niv-Mizzet, Supreme" {
+  oracle_id 4c3a865a-88b1-43e0-b326-17c45670da54
+  cost {W}{U}{B}{R}{G}
+  type Legendary Creature — Dragon Avatar
+  pt 5/5
+  keywords flying
+  hexproof from monocolored
+  static each two-colored instant or sorcery card in your graveyard: has jump start
+}

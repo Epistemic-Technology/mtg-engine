@@ -1561,6 +1561,8 @@ pub enum ColorCount {
     Multicolored,
     /// "that's one or more colors": not colorless (CR 105.2).
     Colored,
+    /// "that's exactly two colors".
+    TwoColors,
 }
 
 impl ObjFilter {
@@ -1832,6 +1834,7 @@ impl ObjFilter {
                 ColorCount::Monocolored => n == 1,
                 ColorCount::Multicolored => n >= 2,
                 ColorCount::Colored => n >= 1,
+                ColorCount::TwoColors => n == 2,
             };
             if !ok {
                 return false;
@@ -6732,6 +6735,23 @@ pub enum GrantedWay {
     /// Miracle (CR 702.94a) for this cost, in a hand: the card is revealed
     /// as it is drawn, if it is the first card its owner drew this turn.
     Miracle(crate::mana::ManaCost),
+    /// Retrace (CR 702.81a), in a graveyard: cast for its mana cost and a
+    /// land card discarded; it isn't exiled (`AltCast::Retrace`).
+    Retrace,
+    /// Jump-start (CR 702.133a), in a graveyard: cast for its mana cost
+    /// and a card discarded, then exiled (`AltCast::JumpStart`).
+    JumpStart,
+    /// Foretell (CR 702.143a), in a hand, for a card without foretell of
+    /// its own: "Its foretell cost is equal to its mana cost reduced by
+    /// {2}." (Dream Devourer). A card foretold so keeps that cost in exile
+    /// without the grant.
+    Foretell,
+    /// Sneak (CR 702.190a) for this cost, in a graveyard, with "You may
+    /// cast creature spells from your graveyard using their sneak
+    /// abilities." (Ninja Teen): cast from there for its sneak cost during
+    /// its controller's declare blockers step (a card's own sneak cost
+    /// first).
+    Sneak(crate::mana::ManaCost),
     /// An activated ability of the card, activated from the zone the card
     /// is in (cycling and typecycling from a hand, unearth from a
     /// graveyard): a registered `AbilityDef::Activated`.
@@ -7401,6 +7421,9 @@ pub enum TriggerSpec {
     /// "When this card becomes plotted" (CR 702.170): queued as the card
     /// is plotted, from exile, never by an event.
     BecomesPlotted,
+    /// "Whenever you foretell a card" (CR 702.143a): queued as its
+    /// controller foretells a card, never by an event.
+    Foretells,
     /// "When you cycle this card" (`this`; CR 702.29d: it triggers from
     /// the graveyard the card was discarded to), "Whenever you cycle a
     /// card", "Whenever you cycle or discard a card" (`or_discard`: once
@@ -7650,6 +7673,9 @@ pub enum ActivationKind {
     Exhaust,
     /// "a loyalty ability" (CR 606.3).
     Loyalty,
+    /// "a ninjutsu ability" (CR 702.49), the card's own or one a
+    /// permanent gives it (Satoru Umezawa).
+    Ninjutsu,
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -7833,6 +7859,7 @@ impl TriggerSpec {
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits
             | TriggerSpec::BecomesPlotted
+            | TriggerSpec::Foretells
             | TriggerSpec::Reflexive
             | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. }
@@ -8782,6 +8809,41 @@ pub struct CostChange {
     /// while its caster hasn't cast a matching spell this turn.
     #[serde(default)]
     pub first: bool,
+    /// "Spells you cast from your graveyard cost {2} less", "Noncreature
+    /// spells you cast from exile have convoke": only spells cast from
+    /// there (judged where the card is, or on the stack where it was cast
+    /// from).
+    #[serde(default)]
+    pub from: SpellFrom,
+}
+
+/// Where the spells a `CostChange` applies to are cast from.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum SpellFrom {
+    #[default]
+    Anywhere,
+    /// "from your hand".
+    Hand,
+    /// "from your graveyard".
+    Graveyard,
+    /// "from exile".
+    Exile,
+    /// "from anywhere other than your hand".
+    NotHand,
+}
+
+impl SpellFrom {
+    /// Whether a spell cast from `zone` qualifies.
+    pub fn allows(self, zone: Option<crate::state::Zone>) -> bool {
+        use crate::state::Zone;
+        match self {
+            SpellFrom::Anywhere => true,
+            SpellFrom::Hand => zone == Some(Zone::Hand),
+            SpellFrom::Graveyard => zone == Some(Zone::Graveyard),
+            SpellFrom::Exile => zone == Some(Zone::Exile),
+            SpellFrom::NotHand => zone.is_some_and(|z| z != Zone::Hand),
+        }
+    }
 }
 
 /// What a static ability gives the spells its controller casts (CR
@@ -8797,8 +8859,6 @@ pub struct SpellGrant {
     /// Affinity for these: {1} less for each such permanent the caster
     /// controls.
     pub affinity: Option<ObjFilter>,
-    /// Only spells cast from their caster's hand.
-    pub from_hand: bool,
     /// "Spells you control can't be countered" (CR 701.5): an effect that
     /// counters a matching spell does nothing to it.
     #[serde(default)]
