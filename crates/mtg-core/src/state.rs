@@ -2479,6 +2479,11 @@ pub struct GameState {
     /// `mana_from_watchers` is nonzero. "Whenever you cast a permanent
     /// spell using mana produced by Tecutlan".
     pub cast_sources: Vec<(ObjId, ObjId)>,
+    /// Keywords effects gave permanent spells until end of turn ("If that
+    /// mana is spent on a creature spell, it gains haste until end of
+    /// turn."), with each effect's source and controller: the permanent
+    /// the spell becomes gets them as it enters. Cleared as the turn ends.
+    pub spell_grants: Vec<(ObjId, crate::card::KeywordSet, ObjId, PlayerId)>,
     /// Sagas with chapter abilities on the battlefield (CR 714): the
     /// precombat main phase and state-based actions look for them only
     /// when there are any.

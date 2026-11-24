@@ -2109,6 +2109,13 @@ impl P {
         // spend this mana to cast a Dragon creature spell, ...".
         let wording = if self.eat_words(&["when", "spent", "on"]) {
             Some(1)
+        } else if self.eat_words(&["if", "any", "spent", "on"]) {
+            // "If any of that mana is spent on a creature spell, ..."
+            Some(3)
+        } else if self.eat_words(&["if", "spent", "on"]) {
+            // "If that mana is spent on a creature spell, it gains haste
+            // until end of turn." (Generator Servant).
+            Some(2)
         } else if self.eat_words(&["spent", "on"]) {
             Some(0)
         } else {
@@ -2119,7 +2126,12 @@ impl P {
             self.expect_word("spell")?;
             self.expect(&Tok::Colon)?;
             let saved = self.subject.take();
-            let then = self.sentence()?;
+            // "it gains haste until end of turn": `it` is the spell the
+            // mana was spent on, the rider's triggering object.
+            let was = std::mem::replace(&mut self.in_trigger, true);
+            let then = self.sentence();
+            self.in_trigger = was;
+            let then = then?;
             self.subject = saved;
             return Ok(Effect::SpendRider {
                 inner: vec![Sentence::new(vec![e])],

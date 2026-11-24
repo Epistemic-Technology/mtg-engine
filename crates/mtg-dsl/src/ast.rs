@@ -6482,7 +6482,10 @@ pub enum Effect {
         spells: Filter,
         then: Vec<Sentence>,
         /// Wording only: 0, `spent on`; 1, `when spent on`: "When that
-        /// mana is spent to cast a red instant or sorcery spell, ...".
+        /// mana is spent to cast a red instant or sorcery spell, ...";
+        /// 2, `if spent on`: "If that mana is spent on a creature spell,
+        /// ..."; 3, `if any spent on`: "If any of that mana is spent on
+        /// ...".
         wording: u8,
     },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay

@@ -9893,7 +9893,10 @@ impl GameState {
                     def: obj.card,
                 });
                 self.choose_copy_on_resolving(spell);
-                self.put_onto_battlefield(spell, obj.controller);
+                let new = self.put_onto_battlefield(spell, obj.controller);
+                if !self.spell_grants.is_empty() {
+                    self.apply_spell_grants(spell, new);
+                }
                 return;
             }
             if !legal {
@@ -9909,6 +9912,9 @@ impl GameState {
                 def: obj.def,
             });
             let new = self.put_onto_battlefield(spell, obj.controller);
+            if !self.spell_grants.is_empty() {
+                self.apply_spell_grants(spell, new);
+            }
             if let Some(Target::Object(t)) = target
                 && self.objects.contains_key(new)
             {
@@ -10080,6 +10086,11 @@ impl GameState {
                     );
                 } else {
                     self.put_onto_battlefield(spell, obj.controller);
+                }
+                if !self.spell_grants.is_empty()
+                    && let Some(new) = self.current_object(spell)
+                {
+                    self.apply_spell_grants(spell, new);
                 }
             } else if obj.cast.copy() {
                 // CR 707.10a: a copy ceases to exist off the stack (no
@@ -12664,6 +12675,42 @@ impl GameState {
     }
 
     /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
+    /// The keywords effects gave `spell` until end of turn while it was on
+    /// the stack, for `new`, the permanent it became.
+    #[cold]
+    #[inline(never)]
+    fn apply_spell_grants(&mut self, spell: ObjId, new: ObjId) {
+        let mut i = 0;
+        while i < self.spell_grants.len() {
+            let (s, keywords, source, controller) = self.spell_grants[i];
+            if s != spell {
+                i += 1;
+                continue;
+            }
+            self.spell_grants.remove(i);
+            if !self
+                .objects
+                .get(new)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+            {
+                continue;
+            }
+            if keywords.intersects(KeywordSet::TRIGGERED) {
+                self.eot_grants += 1;
+            }
+            let timestamp = self.tick();
+            self.effects.push(ContinuousEffect {
+                source: Some(source),
+                controller,
+                timestamp,
+                duration: Duration::UntilEndOfTurn,
+                affected: Affected::Objects(smallvec::smallvec![new]),
+                parts: smallvec::smallvec![Modification::AddKeywords(keywords)],
+            });
+            self.cbump();
+        }
+    }
+
     fn effect_until_end_of_turn(
         &mut self,
         ctx: &EffectCtx,
@@ -13950,6 +13997,14 @@ impl GameState {
                             id,
                             smallvec::smallvec![Modification::AddKeywords(*keywords)],
                         );
+                    } else if let Target::Object(id) = t
+                        && self.objects.get(id).is_some_and(|o| o.zone == Zone::Stack)
+                    {
+                        // "If that mana is spent on a creature spell, it
+                        // gains haste until end of turn." (Generator
+                        // Servant): the permanent the spell becomes has it.
+                        self.spell_grants
+                            .push((id, *keywords, ctx.source, ctx.controller));
                     }
                 }
             }

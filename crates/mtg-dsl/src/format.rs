@@ -3672,6 +3672,8 @@ impl Fmt {
                 self.line(inner, t),
                 match wording {
                     1 => "when ",
+                    2 => "if ",
+                    3 => "if any ",
                     _ => "",
                 },
                 filter(spells),

@@ -673,6 +673,7 @@ impl GameState {
             foreign_activated_sources: 0,
             mana_from_watchers: 0,
             cast_sources: Vec::new(),
+            spell_grants: Vec::new(),
             saga_count: 0,
             player_static_sources: 0,
             mid: crate::state::MidDecision::default(),
@@ -3545,6 +3546,9 @@ impl GameState {
         // "Until end of turn, whenever a player taps an Island for mana"
         // (High Tide) ended with them.
         self.mana_trigger_sources -= std::mem::take(&mut self.eot_mana_triggers);
+        if !self.spell_grants.is_empty() {
+            self.spell_grants.clear();
+        }
         // What an effect gave may have kept an Aura or Equipment legally
         // attached, or a creature alive (CR 704.5).
         if !ended.is_empty() {

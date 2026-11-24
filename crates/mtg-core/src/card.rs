@@ -10050,14 +10050,14 @@ impl SpellFrom {
     pub fn allows(self, zone: Option<crate::state::Zone>) -> bool {
         use crate::state::Zone;
         match self {
-            SpellFrom::Anywhere => true,
+            // `ManaFromThis` is judged by the trigger from the payment's
+            // sources.
+            SpellFrom::Anywhere | SpellFrom::ManaFromThis => true,
             SpellFrom::Hand => zone == Some(Zone::Hand),
             SpellFrom::Graveyard => zone == Some(Zone::Graveyard),
             SpellFrom::Exile => zone == Some(Zone::Exile),
             SpellFrom::NotHand => zone.is_some_and(|z| z != Zone::Hand),
             SpellFrom::GraveyardOrExile => matches!(zone, Some(Zone::Graveyard | Zone::Exile)),
-            // Judged by the trigger from the payment's sources.
-            SpellFrom::ManaFromThis => true,
         }
     }
 }

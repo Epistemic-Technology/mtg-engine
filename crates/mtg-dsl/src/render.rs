@@ -13732,6 +13732,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let rider = sentences(then, ctx);
             let when = match wording {
                 1 => "When that mana is spent to cast",
+                2 => "If that mana is spent on",
+                3 => "If any of that mana is spent on",
                 _ => "When you spend this mana to cast",
             };
             Clause::imperative(format!(
