@@ -16,3 +16,41 @@ scenario "an indestructible creature's regeneration shield is not used" {
   assert damage "Drudge Skeletons" 3
   assert untapped "Drudge Skeletons"
 }
+
+# CR 606.3: a "0:" ability is a loyalty ability. It counts for "whenever
+# you activate a loyalty ability", takes the planeswalker's one loyalty
+# activation for the turn, and pays Eidolon of Obstruction's tax.
+scenario "a 0: ability triggers whenever you activate a loyalty ability" {
+  battlefield A: "Jace, Memory Adept", "Way of the Paradox"
+  library B: 12 "Island"
+  turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  run_to turn 1 end
+  assert life A 21
+  assert graveyard B count 10
+}
+
+scenario "a 0: ability is the planeswalker's loyalty ability for the turn" {
+  battlefield A: "Jace, Memory Adept"
+  library B: 12 "Island"
+  turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  illegal turn 1 postcombat_main A: activate "Jace, Memory Adept" ability 1 targeting player B
+  run_to turn 1 end
+}
+
+scenario "Eidolon of Obstruction taxes a 0: ability" {
+  battlefield A: "Jace, Memory Adept"
+  battlefield B: "Eidolon of Obstruction"
+  library B: 12 "Island"
+  illegal turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  run_to turn 1 end
+}
+
+scenario "Eidolon of Obstruction's tax on a 0: ability is paid with mana" {
+  battlefield A: "Jace, Memory Adept", "Island"
+  battlefield B: "Eidolon of Obstruction"
+  library B: 12 "Island"
+  turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  run_to turn 1 end
+  assert tapped "Island"
+  assert graveyard B count 10
+}

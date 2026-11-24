@@ -5252,7 +5252,7 @@ impl GameState {
                 }
                 // CR 606.3: one loyalty ability per planeswalker per turn, at
                 // sorcery speed; CR 606.5: a −N cost needs N loyalty.
-                if ab.cost.loyalty != 0 {
+                if ab.is_loyalty() {
                     if !sorcery_timing || self.loyalty_activated.contains(&id) {
                         continue;
                     }
@@ -5851,7 +5851,7 @@ impl GameState {
         self.consecutive_passes = 0;
         let def = self.objects[source].def;
         if let AbilityDef::Activated(a) = self.pool.ability(ability) {
-            if a.cost.loyalty != 0 {
+            if a.is_loyalty() {
                 self.loyalty_activated.push(source);
             }
             if a.per_turn > 0 || a.keyword == Some(ActivatedKeyword::Boast) || a.counted {

@@ -542,7 +542,7 @@ impl Decompiler<'_> {
             discard_random: c.discard_random,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             discard_exile: c.discard_exile,
-            loyalty: (c.loyalty != 0).then_some(c.loyalty),
+            loyalty: (c.loyalty != 0 || c.loyalty_ability).then_some(c.loyalty),
             sacrifice: c.sacrifice.as_ref().map(|s| match s {
                 CoreSacCost::This => SacCost::This,
                 CoreSacCost::Granter => SacCost::Granter,
