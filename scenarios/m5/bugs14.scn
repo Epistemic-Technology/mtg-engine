@@ -37,6 +37,20 @@ scenario "Abyssal Harvester can't target a creature card put into a graveyard la
   run_to turn 1 end
 }
 
+# ----- Scenario runner: `activate "X"` without `ability N` takes an ability
+# that isn't a mana ability first (Restless Spire's "{T}: Add {U} or {R}."
+# was taken before). -----
+
+scenario "activate on a land with a mana ability takes its other ability" {
+  battlefield A: "Restless Spire", "Island", "Mountain"
+  library A: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Restless Spire"
+  run_to turn 2 declare_attackers
+  assert is "Restless Spire" creature
+  assert power "Restless Spire" 2
+}
+
 # ----- "Return target Aura or Equipment card from your graveyard to the
 # battlefield attached to a creature you control." with no creature: an
 # Equipment enters unattached (CR 301.5c), an Aura stays (CR 303.4g). -----

@@ -1827,7 +1827,7 @@ impl Runner {
                         == Some(ability)
                 }),
             };
-            d.options.iter().position(|c| match c {
+            let fits = |c: &Choice| match c {
                 Choice::Activate {
                     source: s,
                     ability,
@@ -1841,7 +1841,19 @@ impl Runner {
                         && names_match(discard, dis)
                 }
                 _ => false,
-            })
+            };
+            // Without `ability N`, an ability that isn't a mana ability
+            // first (a land's "{T}: Add {R}" offered beside its other
+            // abilities, Restless Spire), then any.
+            let mana = |c: &Choice| {
+                matches!(c, Choice::Activate { ability, .. }
+                    if matches!(st.pool.ability(*ability),
+                        AbilityDef::Activated(a) if a.is_mana_ability()))
+            };
+            nth.is_none()
+                .then(|| d.options.iter().position(|c| fits(c) && !mana(c)))
+                .flatten()
+                .or_else(|| d.options.iter().position(fits))
         };
         let stack_empty = self.state().stack.is_empty();
         let step = self.state().step;
