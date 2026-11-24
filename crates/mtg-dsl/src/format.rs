@@ -5697,23 +5697,38 @@ fn spell_target(f: &Filter) -> String {
     let mut g = f.clone();
     let t = g.targeting.take();
     // "target instant or sorcery spell you control".
-    let yours = g.who == Some(Who::You) && !g.dont_control;
-    if yours {
-        g.who = None;
-    }
+    let who = spell_controller(&mut g);
     let base = filter(&g);
     let mut s = if base.is_empty() {
         "target spell".to_string()
     } else {
         format!("target {base} spell")
     };
-    if yours {
-        s.push_str(" you control");
-    }
+    s.push_str(who);
     if let Some(t) = t {
         s.push_str(&targeting_suffix(&t, filter));
     }
     s
+}
+
+/// Who controls a target spell, printed after "spell" (" you control",
+/// " you don't control", " an opponent controls"; DSL text and Oracle text
+/// alike), taken out of `f`; empty for any player's, or a controller
+/// worded otherwise, which stays in the filter.
+pub fn spell_controller(f: &mut Filter) -> &'static str {
+    let who = match (f.who, f.dont_control) {
+        (Some(Who::You), false) => " you control",
+        (Some(Who::Opponents), true) => " you don't control",
+        (Some(Who::Opponents), false)
+            if !f.your_opponents && !f.they_control && !f.defending && !f.per_opponent =>
+        {
+            " an opponent controls"
+        }
+        _ => return "",
+    };
+    f.who = None;
+    f.dont_control = false;
+    who
 }
 
 /// " that targets you or a creature you control", " with a single target",

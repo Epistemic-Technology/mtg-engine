@@ -17028,15 +17028,28 @@ impl P {
         // "card named ~ from your graveyard".
         // "Copy target spell you control." (Slick Imitator): a spell of
         // any kind with only its controller named.
-        let mut f = if self.at_word("card") || self.at_words(&["spell", "you", "control"]) {
+        let mut f = if self.at_word("card")
+            || self.at_words(&["spell", "you", "control"])
+            || self.at_words(&["spell", "you", "don't", "control"])
+            || self.at_words(&["spell", "an", "opponent", "controls"])
+        {
             Filter::default()
         } else {
             self.filter()?
         };
         if self.eat_word("spell") || self.eat_word("spells") {
-            // "target instant or sorcery spell you control".
-            if f.who.is_none() && self.eat_words(&["you", "control"]) {
-                f.who = Some(Who::You);
+            // "target instant or sorcery spell you control"; "target
+            // spell you don't control" (Counterflux), "target spell an
+            // opponent controls" (Hope-Ender Coatl).
+            if f.who.is_none() {
+                if self.eat_words(&["you", "control"]) {
+                    f.who = Some(Who::You);
+                } else if self.eat_words(&["you", "don't", "control"]) {
+                    f.who = Some(Who::Opponents);
+                    f.dont_control = true;
+                } else if self.eat_words(&["an", "opponent", "controls"]) {
+                    f.who = Some(Who::Opponents);
+                }
             }
             f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));

@@ -1997,15 +1997,12 @@ impl<'a> Ctx<'a> {
         let mut base_filter = spell.clone();
         let targeting = base_filter.targeting.take();
         // "target instant or sorcery spell you control".
-        let yours = base_filter.who == Some(Who::You) && !base_filter.dont_control;
-        if yours {
-            base_filter.who = None;
-        }
+        // "target spell you don't control", "target spell an opponent
+        // controls".
+        let who = crate::format::spell_controller(&mut base_filter);
         let base = card_filter_phrase(&base_filter, self.card);
         let mut out = format!("target {}", spell_noun(&base));
-        if yours {
-            out.push_str(" you control");
-        }
+        out.push_str(who);
         if let Some(what) = targeting {
             // "that targets this creature".
             out.push_str(&crate::format::targeting_suffix(&what, |g| {
@@ -10714,8 +10711,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;
+            // "counter target spell an opponent controls unless they pay
+            // {1}" (Hope-Ender Coatl): the controller already named.
+            let named = match to {
+                Recipient::Target(i) => matches!(
+                    ctx.targets.get(*i),
+                    Some(Target::Spell(f))
+                        if f.who == Some(Who::Opponents) && !f.dont_control && !f.your_opponents
+                ),
+                _ => false,
+            };
             let o = ctx.obj(*to);
-            Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
+            let who = if named { "they pay" } else { "its controller pays" };
+            Clause::imperative(format!("counter {o} unless {who} {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
         Effect::ScryEach { who, count, may } => {

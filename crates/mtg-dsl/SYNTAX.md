@@ -3961,7 +3961,12 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `artifact or enchantment`, `artifact, creature, or land`, `permanent`,
 `another creature`, `another permanent`, `creature card from your graveyard`,
 `spell`, `creature spell`, `noncreature spell`, `<filter> spell`
-("target instant or sorcery spell"), `card from a graveyard`, `<filter>
+("target instant or sorcery spell"), `spell you don't control` and
+`spell an opponent controls` ("Counter target spell you don't control.",
+Counterflux; after "an opponent controls", `counter target spell an
+opponent controls unless its controller pays {1}` prints "unless they pay
+{1}", Hope-Ender Coatl; overloaded, `counter target spell you don't
+control` counters each such spell on the stack, CR 702.96a), `card from a graveyard`, `<filter>
 card from your graveyard` / `from an opponent's graveyard` / `from that
 player's graveyard` (the triggering player's), `opponent`,
 `artifact or creature`, `attacking or blocking creature`, `attacking or
