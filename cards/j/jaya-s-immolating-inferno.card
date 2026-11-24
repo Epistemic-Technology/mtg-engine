@@ -2,5 +2,5 @@ card "Jaya's Immolating Inferno" {
   oracle_id f5f0deb0-070a-45b6-9b81-0bc8143f3040
   cost {X}{R}{R}
   type Legendary Sorcery
-  spell: deal X damage to up to 3 target any
+  spell: deal X damage to 0 to 3 targets
 }

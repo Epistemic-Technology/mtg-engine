@@ -9961,10 +9961,10 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n");
-    // "deals X damage to each of up to two [other] targets": separate
-    // targets, any target each (CR 115.4).
-    s = re(r"\bup to (\d) (another )?targets\b")
-        .replace_all(&s, "up to $1 ${2}target any")
+    // "deals X damage to each of up to two targets": a group of up to
+    // two, any target each (CR 115.4, 601.2c).
+    s = re(r"\bup to (\d) targets\b")
+        .replace_all(&s, "0 to $1 targets")
         .into_owned();
     s = re(r"\bdamage to (\d) targets\b")
         .replace_all(&s, "damage to $1 target any")

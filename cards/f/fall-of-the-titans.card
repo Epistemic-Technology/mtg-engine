@@ -3,5 +3,5 @@ card "Fall of the Titans" {
   cost {X}{X}{R}
   type Instant
   surge {X}{R}
-  spell: deal X damage to up to 2 target any
+  spell: deal X damage to 0 to 2 targets
 }
