@@ -3365,6 +3365,31 @@ impl GameState {
             })
     }
 
+    /// Whether a card exiled "until this leaves the battlefield" (CR
+    /// 610.3) could ask a question as it returns with nothing on the
+    /// stack: a replacement could meet it, or the card chooses as it
+    /// enters ("as this enters, choose", read ahead, entering as a copy),
+    /// or it is legendary (CR 704.5j, against a legend in play or another
+    /// returning with it).
+    #[cold]
+    #[inline(never)]
+    fn linked_return_may_ask(&self, replacers: usize) -> bool {
+        self.linked_exiles.iter().any(|le| {
+            le.until
+                && (replacers >= 1
+                    || !le.to_hand
+                        && self.objects.get(le.card).is_some_and(|o| {
+                            [o.def, o.card].into_iter().any(|r| {
+                                let d = self.pool.get(r);
+                                d.flags().has_enters_choice()
+                                    || d.read_ahead
+                                    || d.has_mid_choice()
+                                    || d.is_legendary()
+                            })
+                        }))
+        })
+    }
+
     /// Whether applying an action could ask a player a question in the
     /// middle of an event: which of several replacement effects applies
     /// first (CR 616.1; two or more effects must exist), or which legendary
@@ -3413,8 +3438,11 @@ impl GameState {
             // removes its exiler (combat damage, a sacrifice): if a card
             // in the game chooses as it enters, or a replacement or a
             // legend could meet it, any action may ask.
-            || (!self.linked_exiles.is_empty()
-                && (self.enters_choice_cards > 0 || replacers >= 1 || self.legendary_count >= 1))
+            // Only a card exiled "until" comes back by itself, and only
+            // what that card is decides whether its entering asks (most
+            // linked exiles in random games are other cards: checking
+            // the whole game's counts snapshotted every action).
+            || (!self.linked_exiles.is_empty() && self.linked_return_may_ask(replacers))
             || replacers >= 2
             || self.legendary_count >= 2
             || self.stack.iter().any(|id| {
