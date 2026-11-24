@@ -1,0 +1,6 @@
+card "Beacon of Creation" {
+  oracle_id 55f31c9c-a015-4965-a0c4-788b861dba21
+  cost {3}{G}
+  type Sorcery
+  spell: create count each Forest you control "1/1 green Insect creature"; shuffle this into library
+}

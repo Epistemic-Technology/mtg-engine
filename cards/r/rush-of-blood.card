@@ -1,0 +1,6 @@
+card "Rush of Blood" {
+  oracle_id f0bacbf1-3c35-436e-b0bf-10613b60b726
+  cost {2}{R}
+  type Instant
+  spell: target creature gets +1/+0 count where power of target 1
+}

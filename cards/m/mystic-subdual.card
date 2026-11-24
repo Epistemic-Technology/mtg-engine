@@ -1,0 +1,8 @@
+card "Mystic Subdual" {
+  oracle_id fdd423d5-f19b-4bb2-98ca-75cc3c058d32
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: -2/+0, loses all abilities
+}

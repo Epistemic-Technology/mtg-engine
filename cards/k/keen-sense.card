@@ -1,0 +1,7 @@
+card "Keen Sense" {
+  oracle_id 8d47b78b-11cc-4351-91d6-c891eb63dd98
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature deals damage to opponent: you may draw 1 card
+}

@@ -1,0 +1,10 @@
+card "Thalia and The Gitrog Monster" {
+  oracle_id 422a76e1-97a2-4a90-b07d-f487a2d8c236
+  cost {1}{W}{B}{G}
+  type Legendary Creature — Human Frog Horror
+  pt 4/4
+  keywords first strike, deathtouch
+  additional land
+  replace andlist creature or nonbasic land your opponents control enter: tapped
+  triggered whenever this attacks: sacrifice 1 creature or land chosen then draw 1 cards
+}

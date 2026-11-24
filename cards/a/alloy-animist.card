@@ -1,0 +1,7 @@
+card "Alloy Animist" {
+  oracle_id 4acacdd2-a736-43a2-ad67-891b9bd124f8
+  cost {G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {2}{G}: until end of turn, target noncreature artifact you control becomes 4/4 artifact creature
+}

@@ -1,0 +1,6 @@
+card "Elvish Promenade" {
+  oracle_id 7df3e379-c217-416e-a1c8-46338608c49e
+  cost {3}{G}
+  type Kindred Sorcery — Elf
+  spell: create count each Elf you control "1/1 green Elf Warrior creature"
+}

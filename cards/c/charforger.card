@@ -1,0 +1,9 @@
+card "Charforger" {
+  oracle_id d6ded5b0-1309-4f1e-be10-d84ca0a5dd20
+  cost {1}{B}{R}
+  type Creature — Phyrexian Beast
+  pt 2/3
+  triggered when this enters: create 1 "1/1 red Phyrexian Goblin creature"
+  triggered whenever other creature or artifact you control is put into a graveyard from the battlefield: put 1 oil counter on this
+  activated remove 3 oil counters from this: impulse 1 this turn
+}

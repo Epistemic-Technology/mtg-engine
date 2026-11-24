@@ -1,0 +1,9 @@
+card "Garruk, Primal Hunter" {
+  oracle_id 298a7e1a-b254-442e-bc1d-2a3e5296d849
+  cost {2}{G}{G}{G}
+  type Legendary Planeswalker — Garruk
+  loyalty 3
+  loyalty +1: create 1 "3/3 green Beast creature"
+  loyalty -3: draw count equal greatest power cards
+  loyalty -6: create count each land you control "6/6 green Wurm creature"
+}

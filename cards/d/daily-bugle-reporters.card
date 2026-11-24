@@ -1,0 +1,10 @@
+card "Daily Bugle Reporters" {
+  oracle_id 2e677ded-7af3-4af0-81df-b70d6ee616ec
+  cost {3}{W}
+  type Creature — Human Citizen
+  pt 2/3
+  triggered when this enters: choose one {
+    mode "Puff Piece": put 1 +1/+1 counters on up to 2 target creature
+    mode "Investigative Journalism": return target creature card with mana value 2 or less from your graveyard to hand
+  }
+}

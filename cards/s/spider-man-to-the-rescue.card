@@ -4,7 +4,6 @@ card "Spider-Man, To the Rescue" {
   type Legendary Creature — Spider Human Hero
   pt 3/2
   pronoun he
-  keywords flash
-  keywords reach, vigilance
+  keywords flash, reach, vigilance
   label "No One Dies!" triggered when this enters: you may tap this; when you do, another target nonattacking creature you control gains indestructible
 }

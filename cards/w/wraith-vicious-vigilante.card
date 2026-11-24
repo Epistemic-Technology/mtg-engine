@@ -1,0 +1,8 @@
+card "Wraith, Vicious Vigilante" {
+  oracle_id 38684c31-e8c6-4825-8740-1a3d34b58b39
+  cost {1}{W}{U}
+  type Legendary Creature — Human Detective Hero
+  pt 1/1
+  keywords double strike
+  label "Fear Gas" static this: has can't be blocked
+}

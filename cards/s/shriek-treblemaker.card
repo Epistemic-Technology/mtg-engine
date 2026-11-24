@@ -1,0 +1,8 @@
+card "Shriek, Treblemaker" {
+  oracle_id 5773ae05-44bc-423c-846c-f323dd8a5079
+  cost {2}{B/R}
+  type Legendary Creature — Mutant Villain
+  pt 2/3
+  triggered at beginning of your first main: you may discard 1 cards; when you do, target creature can't block
+  label "Sonic Blast" triggered whenever a creature an opponent controls dies: deal 1 damage to that player
+}

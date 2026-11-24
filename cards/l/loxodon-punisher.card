@@ -1,0 +1,7 @@
+card "Loxodon Punisher" {
+  oracle_id fc3869fd-1441-4d5e-9af5-f02857ed634a
+  cost {3}{W}
+  type Creature — Elephant Soldier
+  pt 2/2
+  static this: +2/+2 count each Equipment attached to this on battlefield
+}

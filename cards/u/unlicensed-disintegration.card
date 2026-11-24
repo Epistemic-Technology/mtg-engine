@@ -1,0 +1,6 @@
+card "Unlicensed Disintegration" {
+  oracle_id eaa2ff39-c3cf-428b-a2f1-a6a99a2c806b
+  cost {1}{B}{R}
+  type Instant
+  spell: destroy target creature; if you control artifact, deal 3 damage to controller of that target 1
+}

@@ -1,0 +1,9 @@
+card "Fleetwheel Cruiser" {
+  oracle_id 7b6b9c5a-d2ba-48b9-8efc-a3003c610130
+  cost {4}
+  type Artifact — Vehicle
+  pt 5/3
+  keywords trample, haste
+  triggered whenever this enters: this becomes artifact creature
+  crew 2
+}

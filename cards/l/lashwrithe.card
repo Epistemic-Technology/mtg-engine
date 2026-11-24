@@ -1,0 +1,8 @@
+card "Lashwrithe" {
+  oracle_id 066ba81e-b32d-4808-97ab-0b5f52d557e4
+  cost {4}
+  type Artifact — Equipment
+  living weapon
+  static enchanted: +1/+1 count each Swamp you control
+  equip {B/P}{B/P}
+}

@@ -1,0 +1,7 @@
+card "Spider Spawning" {
+  oracle_id da113cc9-bb2b-4af4-9c43-32c165b87363
+  cost {4}{G}
+  type Sorcery
+  spell: create count each graveyard creature "1/2 green Spider creature with reach"
+  flashback {6}{B}
+}

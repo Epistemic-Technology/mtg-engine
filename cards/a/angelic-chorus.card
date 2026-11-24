@@ -1,0 +1,6 @@
+card "Angelic Chorus" {
+  oracle_id e66b12ff-45da-46dc-9148-bd8ea9b7fde0
+  cost {3}{W}{W}
+  type Enchantment
+  triggered whenever creature you control enters: you gain count equal toughness of it life
+}

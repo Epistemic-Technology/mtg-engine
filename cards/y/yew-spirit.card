@@ -1,0 +1,7 @@
+card "Yew Spirit" {
+  oracle_id 0333cb81-5f44-4f31-9ee7-725e4f6af7b3
+  cost {4}{G}
+  type Creature — Spirit Treefolk
+  pt 3/3
+  activated {2}{G}{G}: this gets +1/+1 count where power
+}

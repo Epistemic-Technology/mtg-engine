@@ -219,7 +219,8 @@ scenario "Misery's Shadow: an opponent's creature that would die is exiled" {
 }
 
 scenario "Primevals' Glorious Rebirth: legendary permanent cards only" {
-  battlefield A: 3 "Plains", 4 "Swamp"
+  # A legendary sorcery needs a legendary creature or planeswalker (CR 205.4e).
+  battlefield A: 3 "Plains", 4 "Swamp", "Exava, Rakdos Blood Witch"
   graveyard A: "Isamaru, Hound of Konda", "Grizzly Bears"
   hand A: "Primevals' Glorious Rebirth", "Isamaru, Hound of Konda"
   start turn 1 A precombat_main

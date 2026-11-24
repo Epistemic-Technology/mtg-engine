@@ -1,0 +1,7 @@
+card "Sindbad" {
+  oracle_id dc81069b-b2cf-44b3-98fc-45bb24b815cb
+  cost {1}{U}
+  type Creature — Human
+  pt 1/1
+  activated {T}: draw 1 card and reveal it; if it isnt land card, discard it
+}

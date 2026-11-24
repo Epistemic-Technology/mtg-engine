@@ -1,0 +1,8 @@
+card "Wall of Essence" {
+  oracle_id 1374ac18-01bd-452f-af72-a5f96285ed69
+  cost {1}{W}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  triggered whenever this is dealt combat damage: you gain that much life
+}

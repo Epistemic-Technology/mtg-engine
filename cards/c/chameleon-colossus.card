@@ -1,0 +1,8 @@
+card "Chameleon Colossus" {
+  oracle_id 7b8f1458-c638-4907-9363-f7cc22d04605
+  cost {2}{G}{G}
+  type Creature — Shapeshifter
+  pt 4/4
+  keywords changeling, protection from black
+  activated {2}{G}{G}: this gets +1/+1 count where power
+}

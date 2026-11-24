@@ -1,0 +1,8 @@
+card "The Great Henge" {
+  oracle_id 78427103-9543-41fb-b6d4-72963fe87275
+  cost {7}{G}{G}
+  type Legendary Artifact
+  this spell costs {1} less count where greatest power creature you control
+  activated {T}: add {G}{G}; you gains 2 life
+  triggered whenever nontoken creature you control enters: put 1 +1/+1 counters on it and draw 1 cards
+}

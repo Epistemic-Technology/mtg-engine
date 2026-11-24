@@ -1,0 +1,8 @@
+card "Kashi-Tribe Reaver" {
+  oracle_id e602f06e-64ff-4d1b-813c-6612ee514ea6
+  cost {3}{G}
+  type Creature — Snake Warrior
+  pt 3/2
+  triggered whenever this deals combat damage to creature: tap that creature, and triggering it doesn't untap next untap step
+  activated {1}{G}: regenerate this
+}

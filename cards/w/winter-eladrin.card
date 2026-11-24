@@ -1,0 +1,7 @@
+card "Winter Eladrin" {
+  oracle_id 48ae84e7-125d-4018-afc1-cd78448d1a13
+  cost {2}{U}
+  type Creature — Faerie Elf Wizard
+  pt 2/2
+  label "Gust of Wind" triggered when this enters: return up to 1 another target creature to hand
+}

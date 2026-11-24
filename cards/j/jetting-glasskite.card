@@ -1,0 +1,8 @@
+card "Jetting Glasskite" {
+  oracle_id 65b61373-835a-4b22-90d1-d019446e98f7
+  cost {4}{U}{U}
+  type Creature — Spirit
+  pt 4/4
+  keywords flying
+  triggered whenever this becomes targeted first time each turn: counter that creature
+}

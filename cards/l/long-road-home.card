@@ -1,0 +1,6 @@
+card "Long Road Home" {
+  oracle_id a8f53018-c496-41f3-bc3f-3c4703b9e4e1
+  cost {1}{W}
+  type Instant
+  spell: exile target creature; delayed target 1: at beginning of the next end step, return that card to battlefield with 1 +1/+1 counter
+}

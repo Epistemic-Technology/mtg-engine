@@ -1,0 +1,7 @@
+card "Prism Ring" {
+  oracle_id 129ee7d6-e3df-40ef-9502-7aad10183031
+  cost {1}
+  type Artifact
+  as this enters choose color
+  triggered whenever you cast permanent of chosen color spell: you gain 1 life
+}

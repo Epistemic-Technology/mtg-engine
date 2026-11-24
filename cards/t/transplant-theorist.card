@@ -1,0 +1,8 @@
+card "Transplant Theorist" {
+  oracle_id 4a60db66-0347-4efc-8507-ab7ed8d984fe
+  cost {3}{U}
+  type Artifact Creature — Phyrexian Artificer
+  pt 2/4
+  triggered whenever this or artifact you control enters: you may draw 1 cards; if you do, discard 1 cards
+  activated {2}: put target card from your graveyard on bottom of library
+}

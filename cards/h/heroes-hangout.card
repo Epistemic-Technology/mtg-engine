@@ -1,0 +1,9 @@
+card "Heroes' Hangout" {
+  oracle_id 43306a78-85b5-4df4-a018-75dd75aa8997
+  cost {R}
+  type Sorcery
+  choose one {
+    mode "Date Night": impulse 2 next turn first choose
+    mode "Patrol Night": 1 to 2 target creatures each gets +1/+0 and gains first strike
+  }
+}

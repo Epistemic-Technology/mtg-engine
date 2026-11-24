@@ -1,0 +1,202 @@
+# "Create a <token> for each <count>": one token for each, counted as the
+# effect resolves; and an ability word over a spell's only paragraph
+# ("Domain — Create ...").
+
+scenario "Elvish Promenade: an Elf Warrior for each Elf you control" {
+  battlefield A: 4 "Forest", "Llanowar Elves", "Elvish Mystic", "Grizzly Bears"
+  hand A: "Elvish Promenade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elvish Promenade"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elf Warrior"
+}
+
+scenario "Elven Ambush: an Elf Warrior for each Elf you control, at instant speed" {
+  battlefield A: 4 "Forest", "Llanowar Elves"
+  hand A: "Elven Ambush"
+  start turn 2 B
+  turn 2 A: cast "Elven Ambush"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Elf Warrior"
+}
+
+scenario "Beacon of Creation: an Insect for each Forest, then into the library" {
+  battlefield A: 4 "Forest", "Plains"
+  hand A: "Beacon of Creation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beacon of Creation"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Insect"
+  assert library A contains "Beacon of Creation"
+}
+
+scenario "Howl of the Night Pack: a Wolf for each Forest" {
+  battlefield A: 7 "Forest"
+  hand A: "Howl of the Night Pack"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Howl of the Night Pack"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 7 "Wolf"
+}
+
+scenario "Nomads' Assembly: a Kor Soldier for each creature you control" {
+  battlefield A: 6 "Plains", "Grizzly Bears", "Raging Goblin"
+  hand A: "Nomads' Assembly"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nomads' Assembly"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Kor Soldier"
+  assert exile A contains "Nomads' Assembly"
+}
+
+scenario "Worm Harvest: a Worm for each land card in your graveyard" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Forest", "Island", "Grizzly Bears"
+  graveyard B: "Plains"
+  hand A: "Worm Harvest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Worm Harvest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Worm"
+}
+
+scenario "Spider Spawning: a Spider for each creature card in your graveyard" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  graveyard B: "Craw Wurm"
+  hand A: "Spider Spawning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spider Spawning"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Spider"
+  assert has newest A "Spider" reach
+}
+
+scenario "Vilespawn Spider: an Insect for each creature card in your graveyard" {
+  battlefield A: "Vilespawn Spider", 2 "Forest", 2 "Island"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vilespawn Spider"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Insect"
+}
+
+scenario "Izoni, Thousand-Eyed: an Insect for each creature card in your graveyard" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Izoni, Thousand-Eyed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Izoni, Thousand-Eyed"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Insect"
+}
+
+scenario "Avenger of Zendikar: a Plant for each land, and counters on landfall" {
+  battlefield A: 7 "Forest"
+  hand A: "Avenger of Zendikar", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Avenger of Zendikar"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 7 "Plant"
+  assert power newest A "Plant" 1
+  assert power oldest A "Plant" 1
+}
+
+scenario "Phylath, World Sculptor: a Plant for each basic land you control" {
+  battlefield A: 3 "Mountain", 3 "Forest", "Evolving Wilds"
+  hand A: "Phylath, World Sculptor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phylath, World Sculptor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Plant"
+}
+
+scenario "Garruk, Primal Hunter: a Wurm for each land you control" {
+  battlefield A: "Garruk, Primal Hunter" with 6 loyalty, 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Garruk, Primal Hunter" ability 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Wurm"
+  assert counters "Garruk, Primal Hunter" loyalty 0
+}
+
+scenario "Dune-Brood Nephilim: a Sand for each land you control on combat damage" {
+  battlefield A: "Dune-Brood Nephilim", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dune-Brood Nephilim"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Sand"
+}
+
+scenario "Go-Shintai of Shared Purpose: a Spirit for each Shrine, for {1}" {
+  battlefield A: "Go-Shintai of Shared Purpose", "Honden of Life's Web", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: accept "Go-Shintai of Shared Purpose"
+  run_to turn 1 cleanup
+  assert battlefield A contains 2 "Spirit"
+}
+
+scenario "Honden of Life's Web: a Spirit for each Shrine at upkeep" {
+  battlefield A: "Honden of Life's Web", "Go-Shintai of Shared Purpose"
+  start turn 1 A upkeep
+  run_to turn 1 precombat_main
+  assert battlefield A contains 2 "Spirit"
+}
+
+scenario "Spore Burst: Domain, a Saproling for each basic land type" {
+  battlefield A: 2 "Forest", "Island", "Plains"
+  hand A: "Spore Burst"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spore Burst"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Saproling"
+}
+
+scenario "Herd Migration: Domain, a Beast for each basic land type" {
+  battlefield A: 6 "Forest", "Swamp"
+  hand A: "Herd Migration"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Herd Migration"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Beast"
+}
+
+scenario "Cleansing Beam: 2 damage to the target and each creature that shares a color" {
+  battlefield A: 5 "Mountain", "Raging Goblin"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Cleansing Beam"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cleansing Beam" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Raging Goblin"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Bathe in Light: protection for the target and each creature that shares a color" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Llanowar Elves", "Raging Goblin"
+  battlefield B: 2 "Mountain"
+  hand A: "Bathe in Light"
+  hand B: "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bathe in Light" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 postcombat_main B: cast "Shock" targeting "Llanowar Elves"
+  turn 1 end B: cast "Shock" targeting "Raging Goblin"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Raging Goblin"
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Necrotic Wound: -X/-X for creature cards in your graveyard; exiled if it dies" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant", "Craw Wurm"
+  hand A: "Necrotic Wound"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Necrotic Wound" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}

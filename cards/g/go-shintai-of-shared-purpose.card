@@ -1,0 +1,8 @@
+card "Go-Shintai of Shared Purpose" {
+  oracle_id 4cab6ea8-4a80-4b34-b758-7f2aa4d540e4
+  cost {3}{W}
+  type Legendary Enchantment Creature — Shrine
+  pt 1/3
+  keywords vigilance
+  triggered at beginning of your end step: you may pay {1}; if you do, create count each Shrine you control "1/1 colorless Spirit creature"
+}

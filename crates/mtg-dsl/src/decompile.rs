@@ -468,6 +468,7 @@ impl Decompiler<'_> {
             all_word: false,
             article: false,
             control_late: false,
+            pt_word: false,
             subtype_neg_first: false,
             neg_before_color: false,
             plural: false,

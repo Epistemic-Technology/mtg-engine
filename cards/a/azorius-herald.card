@@ -1,0 +1,9 @@
+card "Azorius Herald" {
+  oracle_id a0476da9-51b1-4cd3-90c4-ad01d0e4c3d6
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  keywords can't be blocked
+  triggered when this enters: you gains 4 life
+  triggered whenever this enters: sacrifice this unless spent {U}
+}

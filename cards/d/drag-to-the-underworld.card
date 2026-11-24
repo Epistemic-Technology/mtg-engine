@@ -1,0 +1,7 @@
+card "Drag to the Underworld" {
+  oracle_id 746dc1d8-f245-47be-abd5-50ca6ac0d1af
+  cost {2}{B}{B}
+  type Instant
+  this spell costs {1} less count where devotion black
+  spell: destroy target creature
+}

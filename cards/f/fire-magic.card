@@ -1,0 +1,10 @@
+card "Fire Magic" {
+  oracle_id c87db803-3490-41bc-af7a-78f99bcd77c8
+  cost {R}
+  type Instant
+  tiered {
+    mode "Fire" {0}: deal 1 damage to each creature
+    mode "Fira" {2}: deal 2 damage to each creature
+    mode "Firaga" {5}: deal 3 damage to each creature
+  }
+}

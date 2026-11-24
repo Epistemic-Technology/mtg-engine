@@ -1,0 +1,6 @@
+card "Unravel the Aether" {
+  oracle_id 128e0bd1-ed1d-4f53-8dae-83ee95f6fa2a
+  cost {1}{G}
+  type Instant
+  spell: choose target artifact or enchantment; owner shuffles target 1 into library
+}

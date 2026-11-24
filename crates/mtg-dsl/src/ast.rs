@@ -1362,6 +1362,10 @@ pub struct Filter {
     /// opponent controls") rather than before them ("target creature an
     /// opponent controls with flying"). Wording only.
     pub control_late: bool,
+    /// `1/1 creature`: exactly that power and toughness (`power` and
+    /// `toughness` both `Exactly`), printed before the noun ("Target 1/1
+    /// creature gets +1/+2"). Wording only.
+    pub pt_word: bool,
     /// `non-Faerie, nonland permanent`: a negated subtype written before a
     /// negated type prints first ("non-Faerie, nonland permanent",
     /// Nurturing Pixie) rather than after it. Wording only.

@@ -1,0 +1,8 @@
+card "Rydia, Summoner of Mist" {
+  oracle_id a08f79b7-d66f-47da-9670-afd7409c0c5c
+  cost {R}{G}
+  type Legendary Creature — Human Shaman
+  pt 1/2
+  label "Landfall" triggered whenever land you control enters: you may discard 1 cards; if you do, draw 1 cards
+  label "Summon" activated {X}, {T}, sorcery: return target Saga card with mana value X from your graveyard to battlefield with 1 finality counter; target 1 gains haste
+}

@@ -1,0 +1,8 @@
+card "Sharpened Pitchfork" {
+  oracle_id 409b44fc-fae2-4804-83a7-78cf95038f58
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has first strike
+  static as long as attached is Human, enchanted creature: +1/+1
+  equip {1}
+}
