@@ -4509,6 +4509,7 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let named = match f.same {
         _ if shares => "",
         Some(crate::ast::SameRef::ManaValueAtMostPower) => " with mana value at most this power",
+        Some(crate::ast::SameRef::LesserManaValue) => " with lesser mana value",
         Some(_) => " named this",
         None => "",
     };

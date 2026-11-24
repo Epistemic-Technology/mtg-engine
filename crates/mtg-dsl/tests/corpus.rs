@@ -246,10 +246,18 @@ fn a_filter_with_three_alternatives_is_an_error() {
 }
 
 #[test]
-fn a_mana_value_range_is_an_error() {
-    // "with mana value 4 or 5" would otherwise be read as mana value 4.
-    let e = spell_error("destroy target creature with mana value 4 or 5");
+fn a_power_range_is_an_error() {
+    // "with power 4 or 5" would otherwise be read as power 4; a mana
+    // value range is a filter of its own (`StatusQuals::mana_value_range`).
+    let e = spell_error("destroy target creature with power 4 or 5");
     assert!(e.contains("range"), "{e}");
+    assert!(
+        load_card(
+            "Sorcery",
+            "spell: destroy target creature with mana value 4 or 5"
+        )
+        .is_ok()
+    );
 }
 
 #[test]
