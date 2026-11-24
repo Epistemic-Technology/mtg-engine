@@ -644,3 +644,36 @@ scenario "Ancient Adamantoise: when it dies, it is exiled and ten tapped Treasur
   assert battlefield A contains 10 "Treasure"
   assert tapped A "Treasure"
 }
+
+# ---- "Prevent all combat damage ... except combat damage that would be dealt by ..." ----
+
+scenario "Inspire Awe: an enchanted creature still deals combat damage" {
+  battlefield A: "Grizzly Bears", "Holy Strength" on "Grizzly Bears", "Hill Giant"
+  battlefield B: 4 "Forest"
+  hand B: "Inspire Awe"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 declare_blockers B: cast "Inspire Awe"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Inspire Awe: an enchantment creature still deals combat damage" {
+  battlefield A: "Aegis of the Gods", "Hill Giant"
+  battlefield B: 4 "Forest"
+  hand B: "Inspire Awe"
+  turn 1 A: attack "Aegis of the Gods", "Hill Giant"
+  turn 1 declare_blockers B: cast "Inspire Awe"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Inspire Awe: noncombat damage is not prevented" {
+  battlefield A: "Mountain"
+  battlefield B: 4 "Forest"
+  hand A: "Shock"
+  hand B: "Inspire Awe"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Inspire Awe" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

@@ -6295,6 +6295,11 @@ pub enum Affects {
     /// resolution has dealt damage to so far, one effect locked to each
     /// as it is created (stored effects only).
     DamagedThisWay,
+    /// Anything but objects matching the filter: as a damage source,
+    /// "Prevent all combat damage that would be dealt this turn except
+    /// combat damage that would be dealt by enchanted creatures and
+    /// enchantment creatures." (Inspire Awe).
+    Except(ObjFilter),
 }
 
 /// Where a redirection effect sends the damage (CR 614.9).
@@ -6410,6 +6415,7 @@ impl Affects {
             | Affects::OpponentsAnd(f)
             | Affects::OtherThanTarget(f, _)
             | Affects::Chosen(f)
+            | Affects::Except(f)
                 if f.chosen =>
             {
                 *f = f.with_chosen(chosen);

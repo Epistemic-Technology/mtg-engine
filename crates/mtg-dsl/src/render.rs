@@ -12955,6 +12955,7 @@ fn affects_to(a: &Affects, ctx: &mut Ctx) -> String {
         ),
         Affects::Chosen(f) => chosen_source(f, ctx.card),
         Affects::DamagedThisWay => "a creature dealt damage this way".to_string(),
+        Affects::Except(f) => format!("sources other than {}", filter_phrase(f, ctx.card, true)),
     }
 }
 
@@ -13047,6 +13048,16 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                 a => format!(" to {}", affects_all(a, ctx)),
             };
             match (from, wording) {
+                // "Prevent all combat damage that would be dealt this turn
+                // except combat damage that would be dealt by enchanted
+                // creatures and enchantment creatures." (Inspire Awe).
+                (Some(Affects::Except(f)), _) => {
+                    let to = to_text(ctx);
+                    let by = damage_source(&Affects::Objects(f.clone()), ctx);
+                    format!(
+                        "Prevent all {kind} that would be dealt{to}{turn} except {kind} that would be dealt by {by}."
+                    )
+                }
                 (_, DamageWording::TurnFirst) => {
                     let to = match to {
                         Affects::Any => String::new(),

@@ -841,6 +841,9 @@ impl GameState {
             }
             // A chosen source is never a recipient.
             Affects::Chosen(_) => false,
+            Affects::Except(f) => {
+                !matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
+            }
         }
     }
 
@@ -871,6 +874,7 @@ impl GameState {
             }
             // CR 609.7a: the source chosen as the effect was created.
             Affects::Chosen(_) => lock.chosen == Some(src),
+            Affects::Except(f) => !self.source_matches(f, src, source, controller),
         }
     }
 

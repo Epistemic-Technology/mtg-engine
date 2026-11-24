@@ -11201,6 +11201,19 @@ impl P {
                             combat,
                             wording: DamageWording::DealtLate,
                         },
+                        // `... this turn except from <filter>` (Inspire
+                        // Awe).
+                        Replaces::Damage {
+                            from: None,
+                            to,
+                            combat,
+                            ..
+                        } if self.eat_words(&["except", "from"]) => Replaces::Damage {
+                            from: Some(Affects::Except(self.filter()?)),
+                            to,
+                            combat,
+                            wording: DamageWording::Dealt,
+                        },
                         e => e,
                     }
                 } else {

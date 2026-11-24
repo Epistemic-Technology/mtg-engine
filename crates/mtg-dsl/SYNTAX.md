@@ -2756,7 +2756,11 @@ color of your choice would deal this turn.": the color is chosen as the
 effect is created, CR 608.2d, and any source of it, a spell too, is
 prevented), `prevent all combat
 damage to and from target 1 this turn` ("dealt to and dealt by it"),
-`prevent all damage this turn to <affects> [from <source>]` ("Prevent
+`prevent all combat damage this turn except from andlist creature with
+aura or enchantment creature` ("Prevent all combat damage that would be
+dealt this turn except combat damage that would be dealt by enchanted
+creatures and enchantment creatures.", Inspire Awe: every source but
+those), `prevent all damage this turn to <affects> [from <source>]` ("Prevent
 all damage that would be dealt this turn to creatures you control"),
 `prevent next 4 damage to <affects> this turn [from <source>]` ("... to
 any target this turn by a source of your choice"), `prevent next 4 damage

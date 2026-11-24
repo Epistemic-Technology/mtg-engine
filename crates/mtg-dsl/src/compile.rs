@@ -5320,6 +5320,7 @@ impl Compiler<'_> {
             }
             Affects::Chosen(f) => CoreAffects::Chosen(self.filter(f)),
             Affects::DamagedThisWay => CoreAffects::DamagedThisWay,
+            Affects::Except(f) => CoreAffects::Except(self.filter(f)),
         }
     }
 

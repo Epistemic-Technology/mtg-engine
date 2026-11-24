@@ -542,6 +542,7 @@ impl Fmt {
                 }
             }
             Affects::DamagedThisWay => "creature dealt damage this way".to_string(),
+            Affects::Except(f) => format!("except from {}", filter(f)),
         }
     }
 
@@ -570,6 +571,14 @@ impl Fmt {
                             let _ = write!(s, " to {}", self.affects(to, targets));
                         }
                         s.push_str(turn);
+                    }
+                    // `prevent all combat damage this turn except from
+                    // <filter>` (Inspire Awe).
+                    (Some(f @ Affects::Except(_)), _) if !turn.is_empty() => {
+                        if *to != Affects::Any {
+                            let _ = write!(s, " to {}", self.affects(to, targets));
+                        }
+                        let _ = write!(s, "{turn} {}", self.affects(f, targets));
                     }
                     (_, DamageWording::TurnFirst) if !turn.is_empty() => {
                         let _ = write!(s, "{turn} to {}", self.affects(to, targets));

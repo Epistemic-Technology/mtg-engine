@@ -3230,6 +3230,11 @@ pub enum DamageWording {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Affects {
+    /// `except from <filter>` after an effect's `prevent all ... this turn`
+    /// (a damage source only): any source but those ("Prevent all combat
+    /// damage that would be dealt this turn except combat damage that
+    /// would be dealt by enchanted creatures and enchantment creatures.").
+    Except(Filter),
     Any,
     This,
     You,
