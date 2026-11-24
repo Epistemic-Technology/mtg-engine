@@ -5893,9 +5893,14 @@ impl GameState {
             picks.push(source);
         }
         *req == ManaRequirement::default()
-            || !picks
-                .iter()
-                .any(|x| *x != source && sources.iter().any(|(s, _)| s == x))
+            || !picks.iter().any(|x| {
+                // A pick that makes mana by an activated ability (Ring
+                // of the Lucii) is no plain source, but payment would
+                // have used it.
+                *x != source
+                    && (sources.iter().any(|(s, _)| s == x)
+                        || self.flags_of(&self.objects[*x]).has_mana_ability())
+            })
             || self.payable_tapping(p, &without(sources, &picks), req, Some(source), &picks)
     }
 

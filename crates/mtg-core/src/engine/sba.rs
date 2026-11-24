@@ -285,7 +285,10 @@ impl GameState {
                 }
             }
             // 704.5j: the legend rule.
-            let legends_gone = self.legend_rule_victims();
+            // One it removes that another action here also puts into the
+            // graveyard moves once (CR 704.3: they happen at once).
+            let mut legends_gone = self.legend_rule_victims();
+            legends_gone.retain(|(id, _)| !to_graveyard.contains(id));
             for id in tokens_gone {
                 self.remove_from_zone_list(id);
                 self.objects.remove(id);
@@ -348,6 +351,10 @@ impl GameState {
                 acted = true;
             }
             for id in to_destroy {
+                // Already gone by the legend rule above.
+                if !self.objects.contains_key(id) {
+                    continue;
+                }
                 let damage = self.objects[id].damage;
                 self.destroy(id);
                 if self.objects.get(id).is_some_and(|o| o.damage < damage) {

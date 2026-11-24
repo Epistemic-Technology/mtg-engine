@@ -4897,6 +4897,7 @@ impl P {
 
     /// `spells artifact you cast cost {1} less` (at `spells`), with the
     /// static condition written before it, if any.
+    #[allow(clippy::too_many_lines)] // one branch per wording
     fn cost_change(&mut self, cond: Option<StaticCond>) -> R<Ability> {
         self.pos += 1;
         // `spells each red or green you cast cost {1} less`: "Each spell
@@ -14674,6 +14675,7 @@ impl P {
         Ok(place)
     }
 
+    #[allow(clippy::too_many_lines)] // one branch per wording
     fn num(&mut self) -> R<Num> {
         if self.at_words(&["that", "much"]) {
             // The triggering event's amount: none for a step or life

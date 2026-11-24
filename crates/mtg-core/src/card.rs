@@ -8264,6 +8264,7 @@ impl ReplacementAbility {
 /// What a triggered ability watches: its own source, or any object matching
 /// a filter (judged relative to the source and its controller).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)] // filters grew; boxed nowhere else
 pub enum TriggerObj {
     This,
     Filter(ObjFilter),
@@ -9217,6 +9218,7 @@ pub enum ChosenCost {
 
 /// What an activated ability's cost sacrifices (CR 602.2b, 701.21).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)] // as `TriggerObj`
 pub enum SacCost {
     /// "Sacrifice ~".
     This,

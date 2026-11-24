@@ -5330,6 +5330,7 @@ fn token_description_plain(
     s
 }
 
+#[allow(clippy::too_many_lines)] // one clause per exception
 fn except_text(card: &Card, current: Option<&Ability>) -> String {
     let Some(x) = &card.except else {
         return String::new();

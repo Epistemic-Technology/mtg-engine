@@ -1,0 +1,36 @@
+# Faults the thirteenth wave's fuzz and sweep found.
+
+scenario "a legend put into the graveyard by two state-based actions at once moves once" {
+  # The new Isamaru is 0/0 under Elesh Norn (CR 704.5f) and is also the
+  # one the legend rule removes (CR 704.5j): both apply at once (CR 704.3).
+  battlefield A: "Isamaru, Hound of Konda" with 2 +1/+1, "Plains"
+  battlefield B: "Elesh Norn, Grand Cenobite"
+  hand A: "Isamaru, Hound of Konda"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Isamaru, Hound of Konda"
+  turn 1 A: keep oldest "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert graveyard A contains 1 "Isamaru, Hound of Konda"
+}
+
+scenario "a tap-another-artifact cost is not offered with the artifact its mana needs" {
+  # Network Terminal: {1}, {T}, tap another untapped artifact you control.
+  # Ring of the Lucii's "{T}: Add {C}{C}" is the only other mana.
+  battlefield A: "Network Terminal", "Ring of the Lucii"
+  library A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Network Terminal"
+  run_to turn 1 begin_combat
+}
+
+scenario "with other mana the artifact can be tapped for the cost" {
+  battlefield A: "Network Terminal", "Ring of the Lucii", "Forest"
+  hand A: "Grizzly Bears"
+  library A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Network Terminal"
+  run_to turn 1 begin_combat
+  assert tapped "Ring of the Lucii"
+  assert graveyard A count 1
+}
