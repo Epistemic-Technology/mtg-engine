@@ -1,0 +1,7 @@
+card "Leyline of Mutation" {
+  oracle_id caab67eb-65e7-4755-b116-6977e97f0844
+  cost {2}{G}{G}
+  type Enchantment
+  opening hand
+  spells you cast have alternative cost {W}{U}{B}{R}{G}
+}

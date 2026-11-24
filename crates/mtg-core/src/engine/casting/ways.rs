@@ -438,6 +438,13 @@ impl GameState {
         {
             return reqs(c);
         }
+        // CR 118.9: an alternative cost a permanent gives the spell; X is
+        // 0 (CR 107.3b).
+        if alt == AltCast::Granted {
+            return self
+                .granted_alt(b.p, def, b.id, &self.cost_changers(), b.stack)
+                .map_or_else(|| reqs(&def.mana_cost), |g| g.2.mana.requirements(0));
+        }
         match (&def.flashback, b.flashback) {
             (Some(fb), true) => reqs(&fb.mana),
             // Cast without paying its mana cost: X is 0 (CR 107.3b).

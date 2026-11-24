@@ -1,0 +1,9 @@
+card "Iron Spider, Stark Upgrade" {
+  oracle_id e123fd7d-ace9-48a4-9510-eedcc837d8e8
+  cost {3}
+  type Legendary Artifact Creature — Spider Hero
+  pt 2/3
+  keywords vigilance
+  activated {T}: put 1 +1/+1 counter on each andor artifact creature or Vehicle you control
+  activated {2}, remove 2 +1/+1 counters from among artifact you control: draw 1 card
+}

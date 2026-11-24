@@ -2722,6 +2722,14 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::OpeningHand)
             }
+            // `plotting costs {2} less` (CR 702.170a).
+            "plotting" if self.at_words(&["plotting", "costs"]) => {
+                self.pos += 2;
+                let n = self.mana_cost()?.mana_value();
+                self.expect_word("less")?;
+                self.end_stmt()?;
+                Ok(Ability::PlotLess(n))
+            }
             // CR 603.2d: `trigger again Ninja creature you control`,
             // `trigger again entering permanent you control`.
             "trigger"
@@ -4321,6 +4329,24 @@ impl P {
                     "power-up" => Some(mtg_core::card::ActivatedKeyword::PowerUp),
                     _ => None,
                 };
+                // `sacrifice artifact or discard 1 nonland card`: a choice of
+                // the last part (CR 602.1).
+                if w == "activated" && self.eat_word("or") {
+                    let other = Box::new(self.cost()?);
+                    if crate::ast::or_cost_second(&cost, &other).is_none() {
+                        return self.fail(
+                            "`or` joins a last cost part and another, each a sacrifice, \
+                             a discard, or life",
+                        );
+                    }
+                    let effects = self.effects_body()?;
+                    return Ok(Ability::ActivatedOr {
+                        cost,
+                        other,
+                        targets: std::mem::take(&mut self.targets),
+                        effects,
+                    });
+                }
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {
                     cost,
@@ -5011,6 +5037,18 @@ impl P {
         } else {
             Who::Any
         };
+        // "Spells your opponents cast that target this creature cost an
+        // additional 3 life to cast." (CR 601.2f, 119.4).
+        if whose == Who::Opponents
+            && cond.is_none()
+            && filter == Filter::default()
+            && self.eat_words(&["that", "target", "this", "cost"])
+        {
+            let n = self.number()?;
+            self.expect_words(&["life", "more"])?;
+            self.end_stmt()?;
+            return Ok(Ability::TargetedLife(n));
+        }
         // "Spells you control can't be countered." (the filter may have
         // read "you control"); "Spells can't be countered." (Lier).
         let mine = filter.who == Some(Who::You);
@@ -7290,6 +7328,34 @@ impl P {
         })
     }
 
+    /// After `spells <filter> you cast [from exile] have [once]
+    /// alternative cost`: mana or `collect evidence N` (`Ability::SpellsAlt`).
+    fn spells_alt(
+        &mut self,
+        filter: Filter,
+        from: mtg_core::card::SpellFrom,
+        once: bool,
+    ) -> R<Ability> {
+        let cost = self.cost()?;
+        if cost
+            != (Cost {
+                mana: cost.mana.clone(),
+                evidence: cost.evidence,
+                order: cost.order.clone(),
+                ..Cost::default()
+            })
+        {
+            return self.fail("a granted alternative cost is mana or collect evidence");
+        }
+        self.end_stmt()?;
+        Ok(Ability::SpellsAlt {
+            filter,
+            from,
+            cost: Box::new(cost),
+            once,
+        })
+    }
+
     /// After `spells <filter> you cast [from hand] have`: convoke,
     /// improvise, delve, cascade, `storm`, `affinity for <filter>`,
     /// `conspire`, `casualty N`; after `spells <filter> you control have`
@@ -7300,6 +7366,15 @@ impl P {
         from: mtg_core::card::SpellFrom,
         control: bool,
     ) -> R<Ability> {
+        // CR 118.9: "You may pay {W}{U}{B}{R}{G} rather than pay the mana
+        // cost for spells you cast."
+        let once = !control && self.eat_word("once");
+        if !control && self.eat_words(&["alternative", "cost"]) {
+            return self.spells_alt(filter, from, once);
+        }
+        if once {
+            return self.unexpected("`alternative cost`");
+        }
         // CR 609.4b: "You may spend mana as though it were mana of any
         // color to cast planeswalker spells."
         if self.eat_word("spend") {
@@ -20940,6 +21015,27 @@ impl P {
                         };
                         self.expect_words(&["from", "this"])?;
                         cost.remove_counters = Some((k, n));
+                        cost.order.push(CostItem::RemoveCounters);
+                    }
+                    // `remove 2 +1/+1 counters from among artifact you
+                    // control`, `remove 6 counters from among creature you
+                    // control` (CR 118.3).
+                    "remove"
+                        if (2..5).any(|k| {
+                            self.word_at(k).as_deref() == Some("from")
+                                && self.word_at(k + 1).as_deref() == Some("among")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        let k = if self.eat_word("counter") || self.eat_word("counters") {
+                            CounterKind::Any
+                        } else {
+                            self.counter_kind()?
+                        };
+                        self.expect_words(&["from", "among"])?;
+                        cost.remove_counters = Some((k, n));
+                        cost.remove_among = Some(self.filter()?);
                         cost.order.push(CostItem::RemoveCounters);
                     }
                     // `remove 1 +1/+1 counter from creature you control`.

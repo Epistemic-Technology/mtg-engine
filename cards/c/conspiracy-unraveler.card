@@ -1,0 +1,8 @@
+card "Conspiracy Unraveler" {
+  oracle_id e4541d02-2860-46ef-b630-1d6307b60766
+  cost {5}{U}{U}
+  type Creature — Sphinx Detective
+  pt 6/6
+  keywords flying
+  spells you cast have alternative cost collect evidence 10
+}

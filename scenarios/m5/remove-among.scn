@@ -1,0 +1,47 @@
+# Removing counters from among several permanents as a cost (CR 118.3):
+# "Remove two +1/+1 counters from among artifacts you control" (Iron
+# Spider, Stark Upgrade).
+# The counters may come from any of the matching permanents, the source
+# among them; the engine takes them from the one with the most first.
+
+scenario "Iron Spider: two +1/+1 counters from two artifacts" {
+  battlefield A: "Iron Spider, Stark Upgrade" with 1 +1/+1, "Ornithopter" with 1 +1/+1, 2 "Plains"
+  library A: "Plains", "Island"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Iron Spider, Stark Upgrade" ability 2
+  run_to turn 3 postcombat_main
+  assert counters "Iron Spider, Stark Upgrade" +1/+1 0
+  assert counters "Ornithopter" +1/+1 0
+  assert hand A count 1
+}
+
+scenario "Iron Spider: both from the artifact with the most" {
+  battlefield A: "Iron Spider, Stark Upgrade" with 1 +1/+1, "Ornithopter" with 3 +1/+1, 2 "Plains"
+  library A: "Plains", "Island"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Iron Spider, Stark Upgrade" ability 2
+  run_to turn 3 postcombat_main
+  assert counters "Iron Spider, Stark Upgrade" +1/+1 1
+  assert counters "Ornithopter" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "Iron Spider: its {T} ability counters artifact creatures and Vehicles" {
+  battlefield A: "Iron Spider, Stark Upgrade", "Ornithopter", "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Iron Spider, Stark Upgrade" ability 1
+  run_to turn 3 postcombat_main
+  assert counters "Iron Spider, Stark Upgrade" +1/+1 1
+  assert counters "Ornithopter" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Iron Spider: counters on a nonartifact creature don't count" {
+  battlefield A: "Iron Spider, Stark Upgrade" with 1 +1/+1, "Grizzly Bears" with 3 +1/+1, 2 "Plains"
+  library A: "Plains", "Island"
+  start turn 3 A precombat_main
+  illegal turn 3 A: activate "Iron Spider, Stark Upgrade" ability 2
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 3
+  assert hand A count 0
+}

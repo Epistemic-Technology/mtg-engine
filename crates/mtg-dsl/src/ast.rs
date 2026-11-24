@@ -1106,6 +1106,10 @@ pub struct Cost {
     /// `remove 1 +1/+1 counter from creature you control`: the
     /// `remove_counters` from a creature the payer controls.
     pub remove_from_creature: bool,
+    /// `remove 2 +1/+1 counters from among artifact you control`,
+    /// `remove 6 counters from among creature you control`: the
+    /// `remove_counters` from among the payer's matching permanents.
+    pub remove_among: Option<Filter>,
     /// `sacrifice any number creature` (1): "sacrifice any number of
     /// creatures"; `may sacrifice any number Spirit` (2): "you may
     /// sacrifice any number of Spirits".
@@ -2007,6 +2011,18 @@ pub enum Ability {
         other: Box<Cost>,
         targets: Vec<Target>,
     },
+    /// `activated {3}, {T}, sacrifice artifact or discard nonland card:
+    /// <effects>`: "{3}, {T}, Sacrifice an artifact or discard a nonland
+    /// card: ..." (CR 602.1): an activated ability for each alternative of
+    /// the cost's last part (`cost`, then `cost` with `other` in place of
+    /// that part), the player choosing which to activate. The last part
+    /// and `other` are each a sacrifice, a discard, or life.
+    ActivatedOr {
+        cost: Cost,
+        other: Box<Cost>,
+        targets: Vec<Target>,
+        effects: Vec<Sentence>,
+    },
     Activated {
         cost: Cost,
         targets: Vec<Target>,
@@ -2142,6 +2158,18 @@ pub enum Ability {
         /// `... have casualty 1` (CR 702.153); 0 for none.
         casualty: u8,
     },
+    /// `spells you cast have alternative cost {W}{U}{B}{R}{G}`: "You may
+    /// pay {W}{U}{B}{R}{G} rather than pay the mana cost for spells you
+    /// cast." (CR 118.9; `collect evidence 10`: "You may collect evidence
+    /// 10 ..."); `spells you cast from exile have once alternative cost
+    /// {0}`: "Once each turn, you may pay {0} rather than pay the mana cost
+    /// for a spell you cast from exile." Mana and collect evidence only.
+    SpellsAlt {
+        filter: Filter,
+        from: mtg_core::card::SpellFrom,
+        cost: Box<Cost>,
+        once: bool,
+    },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
     SelfCost {
@@ -2226,6 +2254,13 @@ pub enum Ability {
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
+    /// `plotting costs {2} less`: "Plotting cards from your hand costs {2}
+    /// less." (CR 702.170a).
+    PlotLess(u32),
+    /// `spells your opponents cast that target this cost 3 life more`:
+    /// "Spells your opponents cast that target this creature cost an
+    /// additional 3 life to cast." (CR 601.2f, 119.4).
+    TargetedLife(u32),
     /// `opening hand reveal first upkeep: ...`: "You may reveal this card
     /// from your opening hand. If you do, at the beginning of the first
     /// upkeep, ..." (the Chancellors); `your first upkeep` ("at the
@@ -7651,4 +7686,63 @@ impl Effect {
             _ => None,
         }
     }
+}
+
+/// `Ability::ActivatedOr`'s second cost: `cost` with its last part (a
+/// sacrifice, a discard, or life) replaced by `other` (one such part).
+/// `None` when either isn't of that shape.
+pub fn or_cost_second(cost: &Cost, other: &Cost) -> Option<Cost> {
+    fn part_only(c: &Cost) -> Option<CostItem> {
+        let [item] = c.order.as_slice() else {
+            return None;
+        };
+        let bare = Cost {
+            order: c.order.clone(),
+            sacrifice: c.sacrifice.clone(),
+            chosen: c.chosen,
+            discard: c.discard,
+            discard_filter: c.discard_filter.clone(),
+            discard_random: c.discard_random,
+            life: c.life,
+            ..Cost::default()
+        };
+        (matches!(
+            item,
+            CostItem::Sacrifice | CostItem::Discard | CostItem::Life
+        ) && bare == *c)
+            .then_some(*item)
+    }
+    part_only(other)?;
+    let mut out = cost.clone();
+    match out.order.pop()? {
+        CostItem::Sacrifice => {
+            out.sacrifice = None;
+            out.chosen = mtg_core::card::ChosenCost::default();
+        }
+        CostItem::Discard => {
+            out.discard = 0;
+            out.discard_filter = None;
+            out.discard_random = false;
+        }
+        CostItem::Life => out.life = 0,
+        _ => return None,
+    }
+    if other.sacrifice.is_some() {
+        if out.sacrifice.is_some() {
+            return None;
+        }
+        out.sacrifice.clone_from(&other.sacrifice);
+        out.chosen = other.chosen;
+    }
+    if other.discard > 0 {
+        if out.discard > 0 {
+            return None;
+        }
+        out.discard = other.discard;
+        out.discard_filter.clone_from(&other.discard_filter);
+        out.discard_random = other.discard_random;
+    }
+    out.life += other.life;
+    out.order.extend(other.order.iter().copied());
+    Some(out)
 }

@@ -1,0 +1,55 @@
+# "{3}, {T}, Sacrifice an artifact or discard a nonland card: ..."
+# (Bullseye, Death Dealer; CR 602.1): an activated ability for each
+# alternative of the cost's last part (`ability 1` sacrifices, `ability 2`
+# discards); each is offered only when its part can be paid.
+
+scenario "Bullseye: the sacrifice alternative" {
+  battlefield A: "Bullseye, Death Dealer", "Ornithopter", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Bullseye, Death Dealer" ability 1 sacrificing "Ornithopter" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Bullseye: the discard alternative" {
+  battlefield A: "Bullseye, Death Dealer", "Ornithopter", 3 "Swamp"
+  hand A: "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Bullseye, Death Dealer" ability 2 discarding "Hill Giant" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "Bullseye: a land can't be discarded for it" {
+  battlefield A: "Bullseye, Death Dealer", 3 "Swamp"
+  hand A: "Forest"
+  start turn 3 A precombat_main
+  illegal turn 3 A: activate "Bullseye, Death Dealer" ability 2 discarding "Forest" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 20
+}
+
+scenario "Bullseye: no artifact, no sacrifice alternative" {
+  battlefield A: "Bullseye, Death Dealer", 3 "Swamp"
+  start turn 3 A precombat_main
+  illegal turn 3 A: activate "Bullseye, Death Dealer" ability 1 targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 20
+}
+
+scenario "Bullseye: entering, a nonland card discarded for 2 damage" {
+  battlefield A: 3 "Swamp"
+  hand A: "Bullseye, Death Dealer", "Hill Giant"
+  turn 1 A: cast "Bullseye, Death Dealer"
+  turn 1 A: wait
+  turn 1 A: trigger "Bullseye, Death Dealer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hill Giant"
+}

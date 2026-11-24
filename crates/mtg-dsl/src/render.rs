@@ -3478,8 +3478,9 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // you control", "Bears, Spiders, and Wolves"; `andor` prints
     // "and/or" ("up to two target Mounts and/or Vehicles").
     // `andlist`: "each Pest, Bat, Insect, Snake, and Spider".
+    // "each artifact creature and/or Vehicle you control" (Iron Spider).
     let conj = match (plural_form, f.and_or) {
-        (true, true) => "and/or",
+        (_, true) => "and/or",
         (true, false) => "and",
         (false, _) if f.and_list => "and",
         (false, _) => "or",
@@ -4792,6 +4793,15 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
                 None => {}
             },
+            CostItem::RemoveCounters if cost.remove_among.is_some() => {
+                if let (Some((k, n)), Some(f)) = (cost.remove_counters, &cost.remove_among) {
+                    let what = counters(Num::N(n), k);
+                    parts.push(format!(
+                        "Remove {what} from among {}",
+                        filter_phrase(f, ctx.card, true)
+                    ));
+                }
+            }
             CostItem::RemoveCounters if cost.remove_from_creature => {
                 if let Some((k, n)) = cost.remove_counters {
                     let what = counters(Num::N(n), k);
@@ -21409,6 +21419,28 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let other = lowercase_first(&cost_text(other, &mut ctx));
             format!("Equip {sub}\u{2014}Pay {mana} or {other}.").replace(" \u{2014}", "\u{2014}")
         }
+        // "{3}, {T}, Sacrifice an artifact or discard a nonland card: ..."
+        Ability::ActivatedOr {
+            cost,
+            other,
+            targets,
+            effects,
+        } => {
+            let text = ability_text(
+                card,
+                &Ability::Activated {
+                    cost: cost.clone(),
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    equip: false,
+                    cycling: false,
+                },
+                lookup,
+            );
+            let mut ctx = Ctx::new(card, lookup, targets);
+            let other = lowercase_first(&cost_text(other, &mut ctx));
+            text.replacen(": ", &format!(" or {other}: "), 1)
+        }
         Ability::Pawprint { limit, modes } => {
             let mut out = format!(
                 "Choose up to {} {{P}} worth of modes. You may choose the same mode more than once.",
@@ -22182,7 +22214,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             } else {
                 generic.unsigned_abs().to_string()
             };
-            let from = spell_from_text(*from);
+            // "Spells you cast from your graveyard or from exile cost {2}
+            // less to cast." (Doc Aurlock).
+            let from =
+                if *from == mtg_core::card::SpellFrom::GraveyardOrExile && whose == " you cast" {
+                    " from your graveyard or from exile"
+                } else {
+                    spell_from_text(*from)
+                };
             let body = format!(
                 "{} {whose}{from}{mv} cost {{{amount}}} {more} to cast{per_text}.",
                 cost_spells_subject(&f, card),
@@ -22287,6 +22326,43 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "{} {whose}{from} have {}.",
                 cost_spells_subject(filter, card),
                 list(&items)
+            )
+        }
+        // "You may pay {W}{U}{B}{R}{G} rather than pay the mana cost for
+        // spells you cast." (CR 118.9); "Once each turn, you may pay {0}
+        // rather than pay the mana cost for a spell you cast from exile."
+        Ability::SpellsAlt {
+            filter,
+            from,
+            cost,
+            once,
+        } => {
+            let mut parts = Vec::new();
+            let mana = cost.mana.to_string();
+            if !mana.is_empty() {
+                parts.push(format!("pay {mana}"));
+            }
+            if cost.evidence > 0 {
+                parts.push(format!("collect evidence {}", cost.evidence));
+            }
+            if parts.is_empty() {
+                parts.push("pay {0}".to_string());
+            }
+            let from = spell_from_text(*from);
+            let subject = lowercase_first(&cost_spells_subject(filter, card));
+            let spells = if *once {
+                with_article(subject.strip_suffix('s').unwrap_or(&subject))
+            } else {
+                subject
+            };
+            let head = if *once {
+                "Once each turn, you may"
+            } else {
+                "You may"
+            };
+            format!(
+                "{head} {} rather than pay the mana cost for {spells} you cast{from}.",
+                parts.join(" and ")
             )
         }
         // "This spell costs {1} less to cast during your turn." (Mental
@@ -23122,6 +23198,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // "If Quicksilver, Brash Blur is in your opening hand, you may
         // begin the game with him on the battlefield.": a legend's full
         // name (the card in a hand), its pronoun.
+        // "Plotting cards from your hand costs {2} less." (CR 702.170a).
+        Ability::PlotLess(n) => format!("Plotting cards from your hand costs {{{n}}} less."),
+        // "Spells your opponents cast that target this creature cost an
+        // additional 3 life to cast." (Terror of the Peaks).
+        Ability::TargetedLife(n) => format!(
+            "Spells your opponents cast that target {} cost an additional {n} life to cast.",
+            this_ref(card)
+        ),
         Ability::OpeningHand => format!(
             "If {} is in your opening hand, you may begin the game with {} on the battlefield.",
             if card.supertypes.contains(&Supertype::Legendary) {
@@ -23490,6 +23574,14 @@ fn graveyard_cast_text(card: &Card, g: &crate::ast::GraveyardCast) -> String {
         }
         if let Some(SacCost::Filter(f)) = &c.sacrifice {
             parts.push(format!("sacrificing {}", filter_a(f, card)));
+        }
+        // "removing six counters from among creatures you control".
+        if let (Some((k, n)), Some(f)) = (c.remove_counters, &c.remove_among) {
+            parts.push(format!(
+                "removing {} from among {}",
+                counters(Num::N(n), k),
+                filter_phrase(f, card, true)
+            ));
         }
         if c.discard > 0 {
             parts.push(if c.discard == 1 {

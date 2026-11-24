@@ -9646,6 +9646,13 @@ pub struct Cost {
     /// than the source (the engine picks the one with the most of them).
     #[serde(default)]
     pub remove_from_creature: bool,
+    /// "Remove two +1/+1 counters from among artifacts you control",
+    /// "removing six counters from among creatures you control" (CR
+    /// 118.3): the `remove_counters` come off any permanents the payer
+    /// controls matching this, the source among them, together (the engine
+    /// takes them from the one with the most first).
+    #[serde(default)]
+    pub remove_among: Option<Box<ObjFilter>>,
     /// "As an additional cost to cast this spell, sacrifice any number of
     /// creatures" (1; "you may sacrifice any number of Spirits", 2): X
     /// announced as the spell is cast (CR 601.2b, 107.3), at most the
@@ -9792,6 +9799,7 @@ impl Cost {
             blight_put: false,
             process: 0,
             remove_from_creature: false,
+            remove_among: None,
             sacrifice_any: 0,
             remove_x: false,
             untap: false,
@@ -10336,6 +10344,18 @@ pub struct SpellGrant {
     /// 702.153): N, 0 for none.
     #[serde(default)]
     pub casualty: u8,
+    /// "You may pay {W}{U}{B}{R}{G} rather than pay the mana cost for
+    /// spells you cast." (Leyline of Mutation; "collect evidence 10",
+    /// Conspiracy Unraveler; CR 118.9): an alternative cost the matching
+    /// spells may be cast for (`AltCast::Granted`): its mana, and the
+    /// rest paid as an alternative cost's is. X is 0.
+    #[serde(default)]
+    pub alt: Option<Box<Cost>>,
+    /// With `alt`: "Once each turn, you may pay {0} rather than pay the
+    /// mana cost for a spell you cast from exile." (Warped Space): one
+    /// spell a turn by each source's grant (`GameState::activated_once`).
+    #[serde(default)]
+    pub alt_once: bool,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -10587,6 +10607,15 @@ pub enum AbilityDef {
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).
     OpeningHand,
+    /// "Plotting cards from your hand costs {2} less." (Doc Aurlock, CR
+    /// 702.170a): the controller's plot costs have this much less generic
+    /// mana.
+    PlotLess(u32),
+    /// "Spells your opponents cast that target this creature cost an
+    /// additional 3 life to cast." (Terror of the Peaks; CR 601.2f,
+    /// 119.4): an opponent's spell pays this much life for targeting the
+    /// permanent, and can target it only with that much life to pay.
+    TargetedLife(u32),
     /// "You may reveal this card from your opening hand. If you do, at
     /// the beginning of the first upkeep, ..." (the Chancellors; CR
     /// 103.6a's moment): revealed, the card creates the delayed
@@ -10749,6 +10778,8 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::PlotLess(_)
+            | AbilityDef::TargetedLife(_)
             | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
@@ -10791,6 +10822,8 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::PlotLess(_)
+            | AbilityDef::TargetedLife(_)
             | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
@@ -12294,6 +12327,15 @@ pub struct CardPool {
     /// Whether some card lets mana be spent as though it were of any color
     /// for a class of spells (`SpellGrant::spend`).
     pub spend_grants: bool,
+    /// Whether some card gives spells an alternative cost
+    /// (`SpellGrant::alt`): until one is added, no cast offer looks for
+    /// one.
+    pub alt_grants: bool,
+    /// Whether some card makes plotting cheaper (`AbilityDef::PlotLess`).
+    pub plot_discounts: bool,
+    /// Whether some card makes spells that target it cost life
+    /// (`AbilityDef::TargetedLife`).
+    pub targeted_life: bool,
     /// Whether some card gives spells on the stack a keyword that acts
     /// there ("Instant and sorcery spells you control have lifelink",
     /// "... split second"; `SpellGrant::keywords`).
@@ -12406,6 +12448,9 @@ impl CardPool {
             equip_discounts: false,
             card_grants: false,
             spend_grants: false,
+            alt_grants: false,
+            plot_discounts: false,
+            targeted_life: false,
             stack_grants: false,
             powerup_again: false,
             prowess: AbilityId(0),
@@ -13211,6 +13256,18 @@ impl CardPool {
         self.spend_grants |= def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
+        });
+        self.targeted_life |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::TargetedLife(_)));
+        self.plot_discounts |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::PlotLess(_)));
+        self.alt_grants |= def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::CostChange(cc)
+                if cc.grant.as_ref().is_some_and(|g| g.alt.is_some()))
         });
         self.stack_grants |= def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::CostChange(cc)

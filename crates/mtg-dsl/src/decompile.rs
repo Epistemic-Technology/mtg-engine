@@ -626,6 +626,7 @@ impl Decompiler<'_> {
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
+            remove_among: c.remove_among.as_deref().map(|f| self.filter(f)),
             sacrifice_any: c.sacrifice_any,
             remove_x: c.remove_x,
             remove_any: false,
@@ -3270,6 +3271,8 @@ impl Decompiler<'_> {
             AbilityDef::Landwalk(f) => Ability::Landwalk(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
+            AbilityDef::PlotLess(n) => Ability::PlotLess(*n),
+            AbilityDef::TargetedLife(n) => Ability::TargetedLife(*n),
             AbilityDef::OpeningHandReveal(id) => match self.ability(self.pool.ability(*id)) {
                 Ability::Triggered {
                     trigger: crate::ast::Trigger::BeginningOfStep { step, whose },
@@ -3488,6 +3491,15 @@ impl Decompiler<'_> {
                 toughness: *toughness,
                 plus: *plus,
             },
+            AbilityDef::CostChange(c) if c.grant.as_ref().is_some_and(|g| g.alt.is_some()) => {
+                let g = c.grant.as_deref().expect("checked");
+                Ability::SpellsAlt {
+                    filter: self.filter(&c.spells),
+                    from: c.from,
+                    cost: Box::new(self.cost(g.alt.as_deref().expect("checked"))),
+                    once: g.alt_once,
+                }
+            }
             AbilityDef::CostChange(c) if c.grant.is_some() && c.generic == 0 => {
                 let g = c.grant.as_deref().expect("checked");
                 Ability::SpellsHave {

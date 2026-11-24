@@ -495,6 +495,11 @@ pub enum AltCast {
     /// paying its mana cost" (The Infamous Cruelclaw; CR 118.9): X is 0,
     /// and a card is discarded as a cost.
     DiscardCost,
+    /// Cast for an alternative cost a static ability gives the spells its
+    /// controller casts (`SpellGrant::alt`, CR 118.9: "You may pay
+    /// {W}{U}{B}{R}{G} rather than pay the mana cost for spells you
+    /// cast."): X is 0.
+    Granted,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -4972,6 +4977,50 @@ impl GameState {
             && c.craft
                 .as_deref()
                 .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())
+            && match (&c.remove_among, c.remove_counters) {
+                (Some(among), Some((kind, n))) => {
+                    self.counters_among(p, among, kind, n, except).is_some()
+                }
+                _ => true,
+            }
+    }
+
+    /// The permanents `p` controls matching `f` (judged for the source
+    /// `except`: "other artifacts") a
+    /// "Remove two +1/+1 counters from among artifacts you control" cost
+    /// takes counters of `k` from, and how many each: `n` in all, from the
+    /// one with the most first; `None` if they have fewer than `n`.
+    pub fn counters_among(
+        &self,
+        p: PlayerId,
+        among: &crate::card::ObjFilter,
+        kind: CounterKind,
+        n: u32,
+        except: ObjId,
+    ) -> Option<Vec<(ObjId, u32)>> {
+        let mut have: Vec<(ObjId, u32)> = self
+            .permanents_of(p)
+            .filter_map(|id| {
+                let have = self.objects[id].counters(kind);
+                (have > 0
+                    && self
+                        .characteristics(id)
+                        .is_some_and(|ch| among.matches(id, p, &ch, Some(except), Some(p))))
+                .then_some((id, have))
+            })
+            .collect();
+        have.sort_by_key(|(_, c)| std::cmp::Reverse(*c));
+        let mut left = n;
+        let mut out = Vec::new();
+        for (id, c) in have {
+            if left == 0 {
+                break;
+            }
+            let take = c.min(left);
+            out.push((id, take));
+            left -= take;
+        }
+        (left == 0).then_some(out)
     }
 
     /// The creature `p` controls a "Remove a +1/+1 counter from a creature

@@ -1475,7 +1475,18 @@ impl Runner {
                     } else if *disturbed {
                         Choice::CastDisturb(self.in_graveyard(a.line, d.player, name)?)
                     } else if *alternative {
-                        Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
+                        // A card exiled with a permission to play it, cast
+                        // for an alternative cost a permanent gives it
+                        // ("... for a spell you cast from exile").
+                        match self.in_hand(a.line, d.player, name) {
+                            Err(_) if self.playable_in_exile(d.player, name, false).is_some() => {
+                                Choice::CastAlt(
+                                    self.playable_in_exile(d.player, name, false)
+                                        .expect("checked"),
+                                )
+                            }
+                            r => Choice::CastAlt(r?),
+                        }
                     } else if *from_graveyard {
                         // An Adventure half named from the graveyard ("you
                         // may cast it from your graveyard as an Adventure").

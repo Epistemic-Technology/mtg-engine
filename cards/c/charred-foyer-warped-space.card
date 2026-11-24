@@ -1,0 +1,14 @@
+card "Charred Foyer // Warped Space" {
+  oracle_id 9f50ec9f-78e6-403f-8f41-84d603fee0eb
+  layout split
+  face "Charred Foyer" {
+    cost {3}{R}
+    type Enchantment — Room
+    triggered at beginning of your upkeep: impulse 1 this turn it
+  }
+  face "Warped Space" {
+    cost {4}{R}{R}
+    type Enchantment — Room
+    spells you cast from exile have once alternative cost {0}
+  }
+}

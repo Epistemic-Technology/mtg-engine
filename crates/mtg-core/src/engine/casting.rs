@@ -146,6 +146,14 @@ impl GameState {
             {
                 options.push(Choice::CastFree(*id));
             }
+            // CR 118.9: an alternative cost a permanent gives the spells
+            // its controller casts (Leyline of Mutation).
+            if self.pool.alt_grants
+                && !changers.is_empty()
+                && self.granted_alt_castable(p, def, *id, sorcery_timing, &sources, &changers)
+            {
+                options.push(Choice::CastAlt(*id));
+            }
             // Most cards have no other way to be cast from the hand.
             if !def.other_casts {
                 continue;
@@ -419,6 +427,25 @@ impl GameState {
                     && !options.contains(&Choice::Cast(pe.card))
                 {
                     options.push(Choice::Cast(pe.card));
+                }
+                // CR 118.9: for an alternative cost a permanent gives it
+                // ("Once each turn, you may pay {0} rather than pay the
+                // mana cost for a spell you cast from exile.").
+                if self.pool.alt_grants
+                    && !changers.is_empty()
+                    && !pe.adventure
+                    && o.zone == Zone::Exile
+                    && !options.contains(&Choice::CastAlt(pe.card))
+                    && self.granted_alt_castable(
+                        p,
+                        def,
+                        pe.card,
+                        sorcery_timing,
+                        &sources,
+                        &changers,
+                    )
+                {
+                    options.push(Choice::CastAlt(pe.card));
                 }
             }
         }
@@ -3380,13 +3407,77 @@ impl GameState {
                 p,
                 sources,
                 &ps.mana_pool,
-                &cost.requirements(0),
+                &self.plot_requirements(p, cost),
                 ps.life,
                 None,
             )
         {
             options.push(Choice::Plot(id));
         }
+    }
+
+    /// The life `caster`'s spell pays for targeting `t` (CR 601.2f, 119.4):
+    /// "Spells your opponents cast that target this creature cost an
+    /// additional 3 life to cast." of a permanent an opponent controls.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn targeted_life(&self, caster: PlayerId, t: Target) -> u32 {
+        let Target::Object(id) = t else {
+            return 0;
+        };
+        let Some(o) = self.objects.get(id) else {
+            return 0;
+        };
+        if o.zone != Zone::Battlefield || o.controller == caster {
+            return 0;
+        }
+        self.pool
+            .get(o.def)
+            .ability_ids
+            .iter()
+            .map(|a| match self.pool.ability(*a) {
+                AbilityDef::TargetedLife(n) => *n,
+                _ => 0,
+            })
+            .sum()
+    }
+
+    /// The life `spell`'s targets make it pay (`targeted_life`), each
+    /// permanent once, with `extra` among them.
+    pub(super) fn targets_life(&self, spell: ObjId, extra: Option<Target>) -> u32 {
+        let o = &self.objects[spell];
+        let mut seen: Vec<Target> = Vec::new();
+        for t in o.targets.iter().copied().chain(extra) {
+            if !seen.contains(&t) {
+                seen.push(t);
+            }
+        }
+        seen.into_iter()
+            .map(|t| self.targeted_life(o.controller, t))
+            .sum()
+    }
+
+    /// What plotting for `cost` costs `p` (CR 702.170a): less generic mana
+    /// by the permanents they control that make plotting cheaper ("Plotting
+    /// cards from your hand costs {2} less.").
+    pub(super) fn plot_requirements(
+        &self,
+        p: PlayerId,
+        cost: &crate::mana::ManaCost,
+    ) -> ManaRequirement {
+        let mut req = cost.requirements(0);
+        if self.pool.plot_discounts {
+            let less: u32 = self
+                .permanents_of(p)
+                .flat_map(|id| self.pool.get(self.objects[id].def).ability_ids.iter())
+                .map(|a| match self.pool.ability(*a) {
+                    AbilityDef::PlotLess(n) => *n,
+                    _ => 0,
+                })
+                .sum();
+            adjust_generic(&mut req, -i32::try_from(less).unwrap_or(i32::MAX));
+        }
+        req
     }
 
     /// Collect evidence `n` (CR 701.59a): exile cards from `p`'s graveyard
@@ -5864,6 +5955,7 @@ impl GameState {
                     continue;
                 }
                 if let Some((k, n)) = ab.cost.remove_counters
+                    && ab.cost.remove_among.is_none()
                     && if ab.cost.remove_from_creature {
                         self.counter_cost_creature(p, k, n).is_none()
                     } else {
@@ -6694,6 +6786,7 @@ impl GameState {
                 | AltCast::FreeExile
                 | AltCast::PayLife
                 | AltCast::DiscardCost
+                | AltCast::Granted
         ) {
             return vec![Choice::X(0)];
         }
@@ -8623,12 +8716,17 @@ impl GameState {
         }
         if let Some((k, n)) = cost.remove_counters {
             // "Remove a +1/+1 counter from a creature you control".
-            let from = if cost.remove_from_creature {
+            // "Remove two +1/+1 counters from among artifacts you
+            // control".
+            if let Some(f) = &cost.remove_among {
+                for (from, m) in self.counters_among(p, f, k, n, this).unwrap_or_default() {
+                    self.remove_counters(from, k, m);
+                }
+            } else if let Some(from) = if cost.remove_from_creature {
                 self.counter_cost_creature(p, k, n)
             } else {
                 Some(this)
-            };
-            if let Some(from) = from {
+            } {
                 self.remove_counters(from, k, n);
             }
         }
@@ -9600,6 +9698,13 @@ impl GameState {
         {
             self.pay_other_costs(caster, &c, spell, None, None);
         }
+        // CR 118.9: a granted alternative cost's other parts ("collect
+        // evidence 10").
+        if self.objects[spell].alt == AltCast::Granted
+            && let Some(c) = self.granted_alt_rest(spell)
+        {
+            self.pay_other_costs(caster, &c, spell, None, None);
+        }
         // CR 702.33a: a kicker cost other than mana, its permanent chosen
         // after targets (`additional_of`).
         if let (Some(k), true) = (&def.kicker_cost, self.objects[spell].cast.kicked()) {
@@ -9671,11 +9776,15 @@ impl GameState {
         let other = self.objects[spell].cast.other_cost();
         // CR 118.9, 119.4: "pay life equal to its mana value rather than pay
         // its mana cost" (X is 0).
-        let life_cost = if self.objects[spell].alt == AltCast::PayLife {
+        let mut life_cost = if self.objects[spell].alt == AltCast::PayLife {
             def.mana_cost.mana_value()
         } else {
             0
         };
+        // "cost an additional 3 life to cast" for its targets.
+        if self.pool.targeted_life {
+            life_cost += self.targets_life(spell, None);
+        }
         self.pay_costs_recorded(spell, |s| {
             if life_cost > 0 {
                 s.change_life(caster, -i32::try_from(life_cost).unwrap_or(i32::MAX));

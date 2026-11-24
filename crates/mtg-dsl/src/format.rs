@@ -7015,6 +7015,12 @@ fn cost_text(c: &Cost) -> String {
                 )),
                 None => {}
             },
+            CostItem::RemoveCounters if c.remove_among.is_some() => {
+                if let (Some((k, n)), Some(f)) = (c.remove_counters, &c.remove_among) {
+                    let what = counter(k, Num::N(n));
+                    parts.push(format!("remove {n} {what} from among {}", filter(f)));
+                }
+            }
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = c.remove_counters {
                     let from = if c.remove_from_creature {
@@ -8293,6 +8299,27 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 .unwrap_or_default();
             let _ = writeln!(out, "{indent}equip {sub}{mana} or {}", cost_text(other));
         }
+        Ability::ActivatedOr {
+            cost,
+            other,
+            targets,
+            effects,
+        } => {
+            let mut line = String::new();
+            self::ability(
+                &mut line,
+                &Ability::Activated {
+                    cost: cost.clone(),
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    equip: false,
+                    cycling: false,
+                },
+                indent,
+                groups,
+            );
+            out.push_str(&line.replacen(": ", &format!(" or {}: ", cost_text(other)), 1));
+        }
         Ability::Pawprint { limit, modes } => {
             let _ = writeln!(out, "{indent}pawprint {limit} {{");
             for (w, m) in modes {
@@ -8912,6 +8939,28 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 items.join(" and ")
             );
         }
+        Ability::SpellsAlt {
+            filter: f,
+            from,
+            cost,
+            once,
+        } => {
+            let subject = if *f == Filter::default() {
+                String::new()
+            } else {
+                format!(" {}", filter(f))
+            };
+            let from = spell_from(*from);
+            let once = if *once { " once" } else { "" };
+            let mut text = cost_text(cost);
+            if text.is_empty() {
+                text = "{0}".to_string();
+            }
+            let _ = writeln!(
+                out,
+                "{indent}spells{subject} you cast{from} have{once} alternative cost {text}"
+            );
+        }
         Ability::CondCost {
             delta,
             cond,
@@ -9505,6 +9554,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::OpeningHand => {
             let _ = writeln!(out, "{indent}opening hand");
+        }
+        Ability::PlotLess(n) => {
+            let _ = writeln!(out, "{indent}plotting costs {{{n}}} less");
+        }
+        Ability::TargetedLife(n) => {
+            let _ = writeln!(
+                out,
+                "{indent}spells your opponents cast that target this cost {n} life more"
+            );
         }
         Ability::OpeningHandReveal {
             step,
