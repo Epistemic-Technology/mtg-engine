@@ -257,3 +257,13 @@ scenario "Emet-Selch: no transformation with thirteen cards in the graveyard" {
   run_to turn 3 precombat_main
   assert battlefield A contains "Emet-Selch, Unsundered"
 }
+
+scenario "Hades: an instant from the graveyard too, then exiled" {
+  battlefield A: "Emet-Selch, Unsundered", "Mountain"
+  graveyard A: "Lightning Bolt", 13 "Island"
+  start turn 3 A upkeep
+  turn 3 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+}

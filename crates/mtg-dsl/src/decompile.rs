@@ -2947,7 +2947,12 @@ impl Decompiler<'_> {
                 n: *n,
             },
             AbilityDef::CardGrant(g) => Ability::CardGrant {
-                filter: self.filter(&g.cards),
+                // "you may play cards from your graveyard": any card.
+                filter: if g.cards == mtg_core::card::ObjFilter::default() {
+                    crate::ast::Filter::default()
+                } else {
+                    self.filter(&g.cards)
+                },
                 zone: g.zone,
                 players: g.players,
                 each: g.each,
