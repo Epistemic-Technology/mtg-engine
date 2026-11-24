@@ -327,3 +327,51 @@ scenario "deepfathom echo: an opponent's creature can't be chosen" {
   assert battlefield A contains "Deepfathom Echo"
   assert battlefield A lacks "Serra Angel"
 }
+
+# A planeswalker becoming a copy "except he has hexproof" until end of
+# turn; "For each other nonland permanent you control, create a token
+# that's a copy of that permanent."
+
+scenario "oko, the ringleader: a hexproof copy of a creature until end of turn" {
+  battlefield A: "Oko, the Ringleader" with 3 loyalty, "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Oko, the Ringleader" targeting "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Serra Angel"
+  assert has oldest A "Serra Angel" hexproof
+  assert has not newest A "Serra Angel" hexproof
+  assert is not oldest A "Serra Angel" planeswalker
+  run_to turn 2 upkeep
+  assert battlefield A contains "Oko, the Ringleader"
+  assert counters "Oko, the Ringleader" loyalty 3
+}
+
+scenario "oko, the ringleader: no target, no copy" {
+  battlefield A: "Oko, the Ringleader" with 3 loyalty
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Oko, the Ringleader"
+  assert is "Oko, the Ringleader" planeswalker
+}
+
+scenario "oko, the ringleader: -5 copies each other nonland permanent" {
+  battlefield A: "Oko, the Ringleader" with 6 loyalty, "Grizzly Bears", "Darksteel Relic", "Forest"
+  turn 1 A: activate "Oko, the Ringleader" ability 3
+  turn 1 begin_combat A: trigger "Oko, the Ringleader" targeting none
+  run_to turn 1 end
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert battlefield A contains 2 "Darksteel Relic"
+  assert battlefield A contains 1 "Forest"
+  assert battlefield A contains 1 "Oko, the Ringleader"
+}
+
+scenario "oko, the ringleader: +1 draws two and discards two without a crime" {
+  battlefield A: "Oko, the Ringleader" with 3 loyalty
+  hand A: "Shock"
+  library A: "Island", "Forest", "Plains"
+  turn 1 A: activate "Oko, the Ringleader" ability 1
+  run_to turn 1 end
+  assert hand A count 1
+  assert graveyard A count 2
+  assert counters "Oko, the Ringleader" loyalty 4
+}

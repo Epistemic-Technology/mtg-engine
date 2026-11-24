@@ -8257,7 +8257,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::CopyUntil::YourNextTurn => text.push_str(" until your next turn"),
             }
             if *except {
-                let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
+                let mut x = except_text(ctx.card, ctx.current);
+                // "Oko becomes a copy of ..., except he has hexproof": a
+                // character copying keeps its pronoun.
+                if source
+                    && matches!(
+                        ctx.card.pronoun,
+                        Some(crate::ast::Pronoun::He | crate::ast::Pronoun::She)
+                    )
+                {
+                    let he = it_subj(ctx.card);
+                    x = x
+                        .replace("it has ", &format!("{he} has "))
+                        .replace("it isn't ", &format!("{he} isn't "))
+                        .replace("it's ", &format!("{} ", its_is(ctx.card)));
+                }
+                let _ = write!(text, ", except {x}");
             }
             Clause::with_subject(if source { Recipient::Source } else { *who }, s, text)
         }
