@@ -311,3 +311,62 @@ scenario "Siege: Ephara needs three other enchantments, and draws as one enters"
   assert has "Ephara, Ever-Sheltering" lifelink
   assert has "Ephara, Ever-Sheltering" indestructible
 }
+
+scenario "Siege: Invasion of Vryn draws three, then discards one" {
+  battlefield A: 4 "Island"
+  hand A: "Invasion of Vryn"
+  library A: 10 "Plains"
+  turn 1 A: cast "Invasion of Vryn"
+  run_to turn 1 end
+  assert hand A count 2
+  assert graveyard A count 1
+}
+
+scenario "Siege: Overloaded Mage-Ring copies a spell you control" {
+  battlefield A: "Invasion of Vryn" with 2 defense, "Hill Giant", 3 "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Vryn"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Overloaded Mage-Ring"
+  turn 3 postcombat_main A: cast "Lightning Bolt" targeting player B
+  turn 3 postcombat_main A: activate "Overloaded Mage-Ring" targeting "Lightning Bolt"
+  run_to turn 3 end
+  assert life B 14
+  # The card goes to the graveyard front face up (CR 712.8a).
+  assert battlefield A lacks "Overloaded Mage-Ring"
+  assert graveyard A contains "Invasion of Vryn"
+}
+
+scenario "Slick Imitator: at max speed, copies a creature spell as a token" {
+  speed A: 4
+  battlefield A: "Slick Imitator", 3 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "Slick Imitator" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert graveyard A contains "Slick Imitator"
+}
+
+scenario "Slick Imitator: not an opponent's spell" {
+  speed A: 4
+  battlefield A: "Slick Imitator", "Island"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  illegal turn 2 A: activate "Slick Imitator" targeting "Lightning Bolt"
+  run_to turn 2 end
+  assert life A 17
+}
+
+scenario "Slick Imitator: needs max speed" {
+  speed A: 3
+  battlefield A: "Slick Imitator", 3 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 A: activate "Slick Imitator" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+}

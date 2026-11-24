@@ -2329,6 +2329,8 @@ haste until end of turn." where `those tokens` prints "They"), `copy <what> [tim
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or
 sorcery spell you control. You may choose new targets for the copy.";
+`copy target spell you control new targets`, any spell of yours, a
+permanent spell's copy becoming a token (Slick Imitator);
 `copy that spell` in a cast trigger, `copy it` for "it" there or in
 `when you cast this`, `copy this` "copy this spell"; `times 2` prints
 "twice", `times x` "X times" (the copied spell's X), `times count each

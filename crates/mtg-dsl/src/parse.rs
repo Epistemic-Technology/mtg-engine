@@ -13211,7 +13211,9 @@ impl P {
         }
         // "card from a graveyard" / "instant card from your graveyard";
         // "card named ~ from your graveyard".
-        let mut f = if self.at_word("card") {
+        // "Copy target spell you control." (Slick Imitator): a spell of
+        // any kind with only its controller named.
+        let mut f = if self.at_word("card") || self.at_words(&["spell", "you", "control"]) {
             Filter::default()
         } else {
             self.filter()?
