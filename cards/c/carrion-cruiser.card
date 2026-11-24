@@ -1,0 +1,8 @@
+card "Carrion Cruiser" {
+  oracle_id 98a61659-9882-417c-9c16-16ebb26f9037
+  cost {2}{B}
+  type Artifact — Vehicle
+  pt 3/2
+  triggered when this enters: mill 2 cards; then return 1 creature or Vehicle card from your graveyard to hand chosen
+  crew 1
+}

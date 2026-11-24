@@ -1,0 +1,8 @@
+card "Coalstoke Gearhulk" {
+  oracle_id 2cdbaa4e-8907-49dc-9fa9-0df70db3bf23
+  cost {1}{B}{B}{R}{R}
+  type Artifact Creature — Construct
+  pt 5/4
+  keywords menace, deathtouch
+  triggered when this enters: put target creature card with mana value 4 or less from a graveyard onto battlefield under your control with 1 finality counter; that creature gains menace, deathtouch, and haste indefinitely; delayed target 1: at beginning of your next end step, exile that creature
+}

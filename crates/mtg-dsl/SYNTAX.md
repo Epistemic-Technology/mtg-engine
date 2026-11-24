@@ -52,7 +52,9 @@ abilities call it by name: "Create Galactus, a legendary 16/16 black
 Elder Alien creature token with flying, trample, and \"Whenever Galactus
 attacks, destroy target land.\"" A token with a characteristic-defining
 ability prints its abilities after the sentence ("... token. It has
-\"...\"").
+\"...\""), except a legendary one named first ("Create Beau, a legendary
+blue Ox creature token with \"Beau's power and toughness are each equal
+to the number of lands you control.\"", Bonny Pall, Clearcutter).
 
 ## Multi-face cards
 
@@ -1555,7 +1557,20 @@ in the controller's graveyard matching the filter enters under its owner's
 control; `... to battlefield tapped` ("Return all land cards from your
 graveyard to the battlefield tapped."), and `return all andlist artifact
 or enchantment card ...` ("all artifact and enchantment cards"). A
-mana value X is the spell's (CR 107.3).
+mana value X is the spell's (CR 107.3). `put all creature card from all
+graveyards onto battlefield under your control` ("Put all creature cards
+from all graveyards onto the battlefield under your control.", Rise of
+the Dark Realms): every graveyard's, under the controller's control.
+After either, `them` is the permanents that entered (`delayed them:
+sacrifice them at beginning of the next end step`: "Sacrifice them at the
+beginning of the next end step.", one delayed trigger about each, Push
+the Limit). After `return up to 2 target creature card ... to
+battlefield`, `those targets` prints "those creatures" ("Put a +1/+1
+counter on each of those creatures.", Smile at Death) and `targets 1 to 2`
+as a subject "they" ("They gain haste until end of turn.", Pull). A group
+that becomes a type without power and toughness prints in the plural:
+`each Vehicle you control becomes artifact creature until end of turn`
+("Vehicles you control become artifact creatures until end of turn.").
 `put count where power of that target 1 +1/+1 counters on target
 creature` ("Put X +1/+1 counters on target creature, where X is that
 creature's power", also `mana value of that target 1`): the count may
@@ -4119,12 +4134,59 @@ do` then sees:
 - `return 1 creature card from your graveyard to battlefield chosen`
   ("return a creature card from your graveyard to the battlefield"; `to
   battlefield tapped`: "... to the battlefield tapped"), under its owner's
-  control
+  control; `... to battlefield with 1 finality counter chosen` ("... with
+  a finality counter on it", one counter of the kind as it enters;
+  Scavenger's Talent)
+- `put any number creature card from hand onto battlefield chosen` ("put
+  any number of creature cards from your hand onto the battlefield",
+  Ghalta, Stampede Tyrant; `up to 2`: "up to two creature cards"); `from
+  hand or graveyard` ("put a land card from your hand or graveyard onto
+  the battlefield"; with more than one, "up to X land cards from your hand
+  and/or graveyard", Worldsoul's Rage), `tapped` and `with 1 finality
+  counter` after `onto battlefield` as above (Kastral, the Windcrested):
+  each card the controller chooses enters under their control, one at a
+  time; `them` after it is the cards put (`they gain haste`); a mana value
+  after the noun, `put 1 permanent card with mana value X or less from
+  hand onto battlefield tapped chosen` ("a permanent card with mana value
+  X or less from your hand", Mind into Matter; X is the spell's)
+- `return 1 creature card put into your graveyard this way to battlefield
+  under your control chosen` ("return a creature card put into your
+  graveyard this way to the battlefield under your control", Starfall
+  Invocation; `put into a graveyard this way`: any graveyard, Zero Point
+  Ballad): the cards this resolution put into a graveyard (CR 608.2c),
+  still there, enter under the controller's control
 - `put 1 creature card from among them onto battlefield chosen` ("put a
   creature card from among them onto the battlefield"; `from among milled
   cards`: "from among the milled cards"), as `into hand` below
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
-  you control to it": permanents you control, attached to that target)
+  you control to it": permanents you control, attached to that target);
+  `attach 1 Equipment you control to it chosen` (after `return this to
+  battlefield ...`: "Then you may attach an Equipment you control to
+  him", by the card's pronoun; what the resolution last returned, Winter
+  Soldier)
+- `destroy up to 1 Equipment attached to that target 1 chosen` ("Destroy
+  up to one Equipment attached to that creature.", Light of Judgment):
+  permanents of any controller unless the filter names one, not targeted
+- `exile 1 card from your graveyard at random` ("exile a card at random
+  from your graveyard"; `that card` after it is the card exiled: `may play
+  that card this turn`, Tersa Lightshatter)
+- `return target Aura or Equipment card from your graveyard to battlefield
+  attached to chosen creature you control` ("... attached to a creature
+  you control", One Last Job): the host is chosen as the card returns (CR
+  303.4f), not targeted; with none, the card stays where it is
+- `return this and target land card from your graveyard to battlefield
+  tapped` in an ability that works from the graveyard ("Return this card
+  and target land card from your graveyard to the battlefield tapped.",
+  Sandman, Shifting Scoundrel): the source, then the target
+- `put up to 1 target creature card from that player's graveyard onto
+  battlefield under your control; it enters tapped and attacking that
+  player` ("... under your control. It enters tapped and attacking that
+  player.", Shark Shredder): the same as `... under your control tapped
+  and attacking`, printed as a sentence of its own
+- `reveal until creature card; put that card onto battlefield tapped and
+  attacking and the rest on bottom of library random` ("Put that card onto
+  the battlefield tapped and attacking and the rest ...", CR 508.4; Raph &
+  Mikey, Troublemakers)
 - `return 1 creature or land card from your graveyard to hand chosen`
   ("return a creature or land card from your graveyard to your hand"),
   `return up to 2 creature card from your graveyard to hand chosen`

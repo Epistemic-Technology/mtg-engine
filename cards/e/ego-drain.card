@@ -1,0 +1,6 @@
+card "Ego Drain" {
+  oracle_id b4fc198f-3595-4880-ad12-96c18fbf9c33
+  cost {B}
+  type Sorcery
+  spell: target opponent reveals hand discarding nonland card; if you don't control Faerie, exile 1 card from your hand chosen
+}

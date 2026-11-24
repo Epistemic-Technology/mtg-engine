@@ -1,0 +1,10 @@
+card "Winter Soldier, Icy Assassin" {
+  oracle_id 6f4c94b6-f829-4646-a574-083997b78dfb
+  cost {W}{B}
+  type Legendary Creature — Human Assassin Villain
+  pt 2/2
+  pronoun he
+  keywords vigilance, menace
+  static this: +2/+0 count each Equipment attached to this
+  activated {3}{W}{B}, from graveyard: return this to battlefield with 1 finality counter; then you may attach 1 Equipment you control to it chosen
+}

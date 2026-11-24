@@ -1,0 +1,6 @@
+card "Zero Point Ballad" {
+  oracle_id 835abd35-27ea-45fe-b55d-25081c57bd4a
+  cost {X}{B}
+  type Sorcery
+  spell: destroy all creatures with toughness at most X; you lose X life; if x 6 or more, return 1 creature card put into a graveyard this way to battlefield under your control chosen
+}

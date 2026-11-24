@@ -5271,6 +5271,10 @@ pub enum Effect {
         /// put onto the battlefield is front face up unless told
         /// otherwise, CR 712.14).
         front_up: bool,
+        /// `...; it enters tapped and attacking that player`: "It enters
+        /// tapped and attacking that player." as a sentence of its own
+        /// (Shark Shredder; with `tapped` and `attacking`, wording only).
+        enters_attacking: bool,
     },
     Regenerate {
         to: Recipient,
@@ -6498,6 +6502,11 @@ pub enum Effect {
         filter: Filter,
         /// `... to battlefield tapped`: "... to the battlefield tapped".
         tapped: bool,
+        /// `put all creature card from all graveyards onto battlefield
+        /// under your control`: "Put all creature cards from all
+        /// graveyards onto the battlefield under your control." (every
+        /// graveyard, under the controller's control).
+        all_graveyards: bool,
     },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).
@@ -6924,6 +6933,9 @@ pub enum Effect {
         /// bottom of your library in a random order." (the other revealed
         /// cards still in the library; `true`: in a random order).
         rest: Option<(mtg_core::card::CardDest, bool)>,
+        /// `onto battlefield tapped and attacking`: "... onto the
+        /// battlefield tapped and attacking" (CR 508.4; Raph & Mikey).
+        attacking: bool,
     },
     /// `impulse 2 next turn first`: "Exile the top two cards of your
     /// library. Until the end of your next turn, you may play those

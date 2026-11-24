@@ -1239,6 +1239,7 @@ impl Decompiler<'_> {
                 if_creature: *if_creature,
                 transformed: *transformed,
                 front_up: false,
+                enters_attacking: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
@@ -2133,12 +2134,15 @@ impl Decompiler<'_> {
             CoreEffect::Harness => Effect::Harness,
             CoreEffect::EndTurn => Effect::EndTurn,
             CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
-            CoreEffect::GraveyardToBattlefield { filter, tapped } => {
-                Effect::GraveyardToBattlefield {
-                    filter: self.filter(filter),
-                    tapped: *tapped,
-                }
-            }
+            CoreEffect::GraveyardToBattlefield {
+                filter,
+                tapped,
+                all_graveyards,
+            } => Effect::GraveyardToBattlefield {
+                filter: self.filter(filter),
+                tapped: *tapped,
+                all_graveyards: *all_graveyards,
+            },
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
             CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
                 what: std::iter::once(*a).chain(*b).map(r).collect(),
@@ -2378,6 +2382,7 @@ impl Decompiler<'_> {
             CoreEffect::PutCard { what, to, random } => Effect::PutCard {
                 random: *random,
                 rest: None,
+                attacking: false,
                 what: match what {
                     mtg_core::card::CardSet::It => crate::ast::CardWords::It,
                     mtg_core::card::CardSet::Revealed => crate::ast::CardWords::AllRevealed,

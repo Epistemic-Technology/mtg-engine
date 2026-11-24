@@ -2516,6 +2516,11 @@ impl<'a> Ctx<'a> {
             return "permanent".to_string();
         };
         let phrase = filter_phrase(f, self.card, plural_form);
+        self.attached_phrase(f, phrase)
+    }
+
+    /// `phrase` and the filter's "attached to ..." relation.
+    fn attached_phrase(&mut self, f: &Filter, phrase: String) -> String {
         // "all Auras attached to it", "all Equipment attached to that
         // creature", "all Auras and Equipment attached to target creature".
         match f.attached_to {
@@ -2857,7 +2862,17 @@ impl<'a> Ctx<'a> {
         let related = matches!(self.targets.get(a).map(Target::base),
             Some(Target::Filter(f)) if matches!(f.same, Some(SameRef::DifferentControllers
                 | SameRef::SameController | SameRef::SameOpponent)));
-        if alike && !per_opponent && !related {
+        // Graveyard cards returned to the battlefield: "those creatures".
+        let returned = matches!(
+            self.targets.get(a).map(Target::base),
+            Some(
+                Target::GraveyardCard { .. }
+                    | Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
+            )
+        ) && matches!(self.target_noun[a].as_str(), "creature" | "permanent");
+        if alike && returned {
+            pluralize(&self.target_noun[a])
+        } else if alike && !per_opponent && !related {
             self.plural_target_noun(a)
         } else {
             pluralize(&self.target_noun[a])
@@ -4245,6 +4260,9 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // `andor`: "up to two target instant and/or sorcery cards".
     let p = if plural_form && f.and_or {
         p.replacen(" or ", " and/or ", 1)
+    } else if plural_form && f.and_list {
+        // `andlist`: "all Mount and Vehicle cards" (Push the Limit).
+        p.replacen(" or ", " and ", 1)
     } else {
         p
     };
@@ -4974,6 +4992,22 @@ fn possessive(s: &str) -> String {
     }
 }
 
+/// " with a finality counter on it" ("on each of them" for several).
+fn with_one_counter(k: Option<CounterKind>, one: bool) -> String {
+    k.map_or_else(String::new, |k| {
+        format!(
+            " with {} {} counter on {}",
+            if k.name().starts_with(['a', 'e', 'i', 'o', 'u']) {
+                "an"
+            } else {
+                "a"
+            },
+            k.name(),
+            if one { "it" } else { "each of them" }
+        )
+    })
+}
+
 fn counter_name(k: CounterKind) -> &'static str {
     k.name()
 }
@@ -5077,6 +5111,10 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
         .unwrap_or(&rest)
         .replace("this token", shown)
         .replace("This token", shown);
+    // "create Beau, a legendary blue Ox creature token with \"Beau's power
+    // and toughness are each equal to ...\"" (Bonny Pall): named first,
+    // its characteristic-defining ability follows "with".
+    let rest = rest.replacen(". It has \"", " with \"", 1);
     format!("{shown}, a legendary {rest}")
 }
 
@@ -7323,7 +7361,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::EndTurn => Clause::imperative("end the turn".to_string()),
         Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
         Effect::CloakTop => Clause::imperative("cloak the top card of your library".to_string()),
-        Effect::GraveyardToBattlefield { filter, tapped } => Clause::imperative(format!(
+        Effect::GraveyardToBattlefield {
+            filter,
+            tapped,
+            all_graveyards: true,
+        } => Clause::imperative(format!(
+            "put all {} from all graveyards onto the battlefield{} under your control",
+            cards_phrase(filter, ctx.card, true),
+            if *tapped { " tapped" } else { "" }
+        )),
+        Effect::GraveyardToBattlefield { filter, tapped, .. } => Clause::imperative(format!(
             "return all {} from your graveyard to the battlefield{}",
             cards_phrase(filter, ctx.card, true),
             if *tapped { " tapped" } else { "" }
@@ -8094,6 +8141,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             that_player,
             random,
             rest,
+            attacking,
         } => {
             use crate::ast::CardWords;
             use mtg_core::card::CardDest;
@@ -8133,6 +8181,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardDest::Graveyard if *that_player => "into that player's graveyard".to_string(),
                 CardDest::Graveyard => format!("into {whose} graveyard"),
                 CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
+                CardDest::Battlefield { tapped: true } if *attacking => {
+                    "onto the battlefield tapped and attacking".to_string()
+                }
                 CardDest::Battlefield { tapped: true } => "onto the battlefield tapped".to_string(),
                 CardDest::LibraryBottom if *random => {
                     format!("on the bottom of {whose} library in a random order")
@@ -9392,6 +9443,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if_creature,
             transformed,
             front_up,
+            enters_attacking,
         } => {
             let what_ref = what;
             // `that card` prints "that card", `it` (inside a delayed
@@ -9441,8 +9493,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Target::GraveyardCard { filter, .. } if filter.that_player.is_some()
                 ));
             // On the battlefield the returned creature card is "that
-            // creature" ("That creature explores, then it explores again").
-            if let Recipient::Target(i) = what {
+            // creature" ("That creature explores, then it explores again");
+            // a group of them is "those creatures" (Smile at Death).
+            let moved = match what {
+                Recipient::Target(i) => *i..*i + 1,
+                Recipient::Targets(first, len) => *first..*first + *len,
+                _ => 0..0,
+            };
+            for i in moved {
+                let i = &i;
                 let creature = match ctx.targets[*i].base() {
                     Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => true,
                     Target::GraveyardCard { filter, .. } => filter.types == [CardType::Creature],
@@ -9466,6 +9525,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
             let tapped = match (*tapped, *attacking, *transformed) {
+                // "It enters tapped and attacking that player." follows.
+                (true, true, _) if *enters_attacking => "",
                 (true, true, _) => " tapped and attacking",
                 // CR 712.14a: "return it to the battlefield tapped and
                 // transformed under its owner's control".
@@ -9488,6 +9549,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("put {o} onto the battlefield under your control{tapped}")
             } else if from_graveyard {
                 format!("return this card from your graveyard to the battlefield{tapped}")
+            } else if let Recipient::SourceAndTarget(_) = what
+                && works_from_graveyard(ctx.current)
+            {
+                // "Return this card and target land card from your
+                // graveyard to the battlefield tapped." (Sandman): `o` is
+                // "<source> and <target>".
+                let t = o.rsplit_once(" and ").map_or(o.as_str(), |(_, t)| t);
+                format!("return this card and {t} to the battlefield{tapped}")
             } else if others || (*put && *under_you) {
                 format!("put {o} onto the battlefield{tapped} under your control")
             } else if *put && yours {
@@ -9588,6 +9657,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             if let Some(a) = attached {
                 let _ = write!(text, " attached to {}", ctx.obj(*a));
+            }
+            if *enters_attacking {
+                text.push_str(". It enters tapped and attacking that player");
             }
             Clause::imperative(text)
         }
@@ -11452,9 +11524,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
                 }
+                // "destroy up to one Equipment attached to that creature".
+                ChooseAct::Destroy => {
+                    let p = permanents();
+                    let p = ctx.attached_phrase(filter, p);
+                    format!("destroy {p}")
+                }
+                // "Then you may attach an Equipment you control to him."
+                ChooseAct::AttachToCreated => {
+                    let it = match ctx.card.pronoun {
+                        Some(crate::ast::Pronoun::He) => "him",
+                        Some(crate::ast::Pronoun::She) => "her",
+                        Some(crate::ast::Pronoun::They) => "them",
+                        _ => "it",
+                    };
+                    format!("attach {} to {it}", permanents())
+                }
                 ChooseAct::AttachToTarget(i) => {
                     let host = ctx.obj(Recipient::Target(usize::from(*i)));
                     format!("attach {} to {host}", permanents())
+                }
+                ChooseAct::ExileRandomFromGraveyard => {
+                    format!("exile {} at random from your graveyard", cards())
                 }
                 ChooseAct::ReturnRandomFromGraveyard => {
                     format!(
@@ -11469,10 +11560,33 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "put {} discarded this way onto the battlefield tapped under your control",
                     cards()
                 ),
-                ChooseAct::GraveyardToBattlefield { tapped } => format!(
-                    "return {} from your graveyard to the battlefield{}",
+                ChooseAct::GraveyardToBattlefield { tapped, counter } => format!(
+                    "return {} from your graveyard to the battlefield{}{}",
                     cards(),
-                    if *tapped { " tapped" } else { "" }
+                    if *tapped { " tapped" } else { "" },
+                    with_one_counter(*counter, one)
+                ),
+                // "put up to X land cards from your hand and/or graveyard
+                // onto the battlefield tapped".
+                ChooseAct::HandToBattlefield {
+                    tapped,
+                    graveyard,
+                    counter,
+                } => format!(
+                    "put {} from your hand{} onto the battlefield{}{}",
+                    cards(),
+                    match (*graveyard, one) {
+                        (false, _) => "",
+                        (true, true) => " or graveyard",
+                        (true, false) => " and/or graveyard",
+                    },
+                    if *tapped { " tapped" } else { "" },
+                    with_one_counter(*counter, one)
+                ),
+                ChooseAct::ThisWayToBattlefield { any } => format!(
+                    "return {} put into {} graveyard this way to the battlefield under your control",
+                    cards(),
+                    if *any { "a" } else { "your" }
                 ),
                 ChooseAct::MilledToHand
                 | ChooseAct::MilledToBattlefield
@@ -12219,7 +12333,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .cloned(),
             );
             words.extend(types.iter().map(|t| type_noun(*t).to_string()));
-            let mut text = if plural && *in_addition {
+            // "Vehicles you control become artifact creatures until end of
+            // turn" (Push the Limit): a group, plural, without an article.
+            let group = matches!(to, Recipient::Group(_)) && pt.is_none();
+            let mut text = if plural && (*in_addition || group) {
                 if let Some(last) = words.pop() {
                     words.push(pluralize(&last));
                 }

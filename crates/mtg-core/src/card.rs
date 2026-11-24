@@ -6324,6 +6324,11 @@ pub enum Effect {
         /// "... to the battlefield tapped" (Splendid Reclamation).
         #[serde(default)]
         tapped: bool,
+        /// "Put all creature cards from all graveyards onto the
+        /// battlefield under your control": every graveyard's matching
+        /// cards, under the controller's control.
+        #[serde(default)]
+        all_graveyards: bool,
     },
     /// Cloak (CR 701.58a): the top card of `of`'s library is put onto the
     /// battlefield face down under the controller's control as a 2/2
@@ -7158,6 +7163,9 @@ pub enum ChooseAct {
     /// "return a Zombie card at random from your graveyard to your hand":
     /// the cards are picked at random, not by the controller.
     ReturnRandomFromGraveyard,
+    /// "exile a card at random from your graveyard" (Tersa Lightshatter):
+    /// picked at random; the card exiled is "that card" after it.
+    ExileRandomFromGraveyard,
     /// "put a permanent card from among the milled cards into your hand":
     /// cards this resolution milled, still in the graveyard.
     MilledToHand,
@@ -7175,11 +7183,39 @@ pub enum ChooseAct {
     /// control (CR 110.2a).
     DiscardedToBattlefield,
     /// "return a land card from your graveyard to the battlefield
-    /// [tapped]" (cards in your graveyard).
-    GraveyardToBattlefield { tapped: bool },
+    /// [tapped]" (cards in your graveyard); with `counter`, "... with a
+    /// finality counter on it" (one such counter, CR 122.6).
+    GraveyardToBattlefield {
+        tapped: bool,
+        #[serde(default)]
+        counter: Option<CounterKind>,
+    },
+    /// "put any number of creature cards from your hand onto the
+    /// battlefield", "put a land card from your hand or graveyard onto the
+    /// battlefield" (`graveyard`: cards in your graveyard too), "... with
+    /// a finality counter on it" (`counter`). Each chosen card enters
+    /// under your control.
+    HandToBattlefield {
+        tapped: bool,
+        graveyard: bool,
+        counter: Option<CounterKind>,
+    },
+    /// "return a creature card put into your graveyard this way to the
+    /// battlefield under your control" (`any`: "put into a graveyard this
+    /// way"): cards this resolution put into a graveyard (CR 608.2c),
+    /// still there, onto the battlefield under the controller's control.
+    ThisWayToBattlefield { any: bool },
     /// "you may attach an Equipment you control to it" (permanents you
     /// control): attached to the `n`th target (CR 701.3).
     AttachToTarget(u8),
+    /// "Then you may attach an Equipment you control to him" (Winter
+    /// Soldier): attached to what the resolution last created or moved
+    /// (`Recipient::CreatedObject`), if it is on the battlefield.
+    AttachToCreated,
+    /// "Destroy up to one Equipment attached to that creature" (Light of
+    /// Judgment): permanents of any controller unless the filter names
+    /// one, not targeted (CR 701.7).
+    Destroy,
     /// "put a card from your hand on the bottom of your library" (cards in
     /// your hand).
     HandToBottom,

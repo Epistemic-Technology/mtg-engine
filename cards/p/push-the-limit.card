@@ -1,0 +1,9 @@
+card "Push the Limit" {
+  oracle_id 62e54c6d-d775-4597-bd4d-dc38460b33ec
+  cost {5}{R}{R}
+  type Sorcery
+  spell {
+    return all andlist Mount or Vehicle card from your graveyard to battlefield; delayed them: sacrifice them at beginning of the next end step
+    each Vehicle you control becomes artifact creature until end of turn; creatures you control gain haste until end of turn
+  }
+}

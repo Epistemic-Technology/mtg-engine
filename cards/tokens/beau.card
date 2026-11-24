@@ -1,0 +1,5 @@
+token "Beau" {
+  type Legendary Creature — Ox
+  color blue
+  static this: cda pt count land you control
+}

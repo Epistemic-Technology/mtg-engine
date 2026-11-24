@@ -7669,15 +7669,16 @@ impl P {
             CardWords::TheRevealed
         };
         let mut that_player = false;
+        let mut attacking = false;
         let to = if self.eat_words(&["into", "hand"]) {
             CardDest::Hand
         } else if self.eat_words(&["into", "graveyard"]) {
             that_player = self.eat_words(&["of", "that", "player"]);
             CardDest::Graveyard
         } else if self.eat_words(&["onto", "battlefield"]) {
-            CardDest::Battlefield {
-                tapped: self.eat_word("tapped"),
-            }
+            let tapped = self.eat_word("tapped");
+            attacking = tapped && self.eat_words(&["and", "attacking"]);
+            CardDest::Battlefield { tapped }
         } else {
             self.expect_words(&["on", "bottom", "of", "library"])?;
             CardDest::LibraryBottom
@@ -7707,6 +7708,7 @@ impl P {
             that_player,
             random,
             rest,
+            attacking,
         })
     }
 
@@ -8658,6 +8660,7 @@ impl P {
                     that_player: false,
                     random: false,
                     rest: None,
+                    attacking: false,
                 });
             }
             return Ok(Effect::ReturnToHand {
@@ -11146,7 +11149,11 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..11].contains(&verb.as_str()) {
+        // `destroy up to 1 Equipment attached to target 1 chosen`.
+        let destroy = verb == "destroy"
+            && (self.word_at(1).as_deref() == Some("up")
+                || matches!(self.peek_at(1), Some(Tok::Num(_))));
+        if !VERBS[..11].contains(&verb.as_str()) && !destroy {
             return false;
         }
         let mut hand = false;
@@ -11159,6 +11166,8 @@ impl P {
             match self.word_at(k).as_deref() {
                 // `the chosen target 1` names a target.
                 Some("chosen") if self.word_at(k - 1).as_deref() == Some("the") => {}
+                // `... attached to chosen creature you control`.
+                Some("chosen") if self.word_at(k - 1).as_deref() == Some("to") => {}
                 // `exile up to 4 with chosen name from zones of ...`.
                 Some("chosen") if self.word_at(k + 1).as_deref() == Some("name") => {}
                 Some("chosen") => {
@@ -11167,11 +11176,21 @@ impl P {
                 // `return 1 Zombie card from your graveyard to hand at
                 // random`.
                 Some("random") if verb == "return" && hand => return true,
+                // `exile 1 card from your graveyard at random`.
+                Some("random")
+                    if verb == "exile" && self.word_at(k - 2).as_deref() == Some("graveyard") =>
+                {
+                    return true;
+                }
                 Some("hand" | "battlefield") => hand = true,
                 // `put 1 card an opponent owns from exile into graveyard
                 // chosen`: a zone, not a verb.
                 Some("exile") if self.word_at(k - 1).as_deref() == Some("from") => {}
-                Some(w) if VERBS.contains(&w) => return false,
+                // `return 1 creature card put into your graveyard this way
+                // ...`: a description, not a verb.
+                Some("put")
+                    if verb == "return" && self.word_at(k + 1).as_deref() == Some("into") => {}
+                Some(w) if VERBS.contains(&w) && !(destroy && k == 0) => return false,
                 _ => {}
             }
             k += 1;
@@ -11206,11 +11225,24 @@ impl P {
             (self.eat_words(&["up", "to"]), self.num()?)
         };
         let card_filter = |p: &mut Self| -> R<Filter> {
-            let f = if p.at_word("card") || p.at_word("cards") {
+            let mut f = if p.at_word("card") || p.at_word("cards") {
                 Filter::default()
             } else {
                 p.filter()?
             };
+            // "a permanent card with mana value X or less from your hand":
+            // the mana value after the noun.
+            if f.mana_value.is_none()
+                && (p.at_words(&["card", "with", "mana", "value"])
+                    || p.at_words(&["cards", "with", "mana", "value"]))
+            {
+                p.pos += 1;
+                let g = p.filter()?;
+                f.mana_value = g.mana_value;
+                f.status.mana_value_x = g.status.mana_value_x;
+                f.status.bound = g.status.bound;
+                return Ok(f);
+            }
             p.cards_word()?;
             Ok(f)
         };
@@ -11230,6 +11262,7 @@ impl P {
             "untap" => (ChooseAct::Untap, self.filter()?),
             "transform" => (ChooseAct::Transform, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
+            "destroy" => (ChooseAct::Destroy, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
             // `reveal any number green card in hand chosen`: "Reveal any
             // number of green cards in your hand".
@@ -11241,6 +11274,22 @@ impl P {
             // `attach 1 Equipment you control to target 1 chosen`.
             "attach" => {
                 let f = self.filter()?;
+                // `attach 1 Equipment you control to it chosen`: to what
+                // the resolution just returned (Winter Soldier).
+                if self.eat_words(&["to", "it"]) {
+                    self.expect_word("chosen")?;
+                    return Ok(Effect::ChooseAct {
+                        act: ChooseAct::AttachToCreated,
+                        count,
+                        up_to,
+                        filter: f,
+                        among_them,
+                        among_those,
+                        this_way,
+                        returns,
+                        by: None,
+                    });
+                }
                 self.expect_words(&["to", "target"])?;
                 let Some(Tok::Num(n)) = self.next() else {
                     return self.fail("expected a target number after `to target`");
@@ -11314,9 +11363,31 @@ impl P {
                         (ChooseAct::MilledToHand, f)
                     } else if self.eat_words(&["from", "your", "graveyard", "to", "battlefield"]) {
                         // `return 1 land card from your graveyard to
-                        // battlefield tapped chosen`.
+                        // battlefield tapped chosen`; `... with 1 finality
+                        // counter chosen`.
                         let tapped = self.eat_word("tapped");
-                        (ChooseAct::GraveyardToBattlefield { tapped }, f)
+                        let counter = self.one_counter()?;
+                        (ChooseAct::GraveyardToBattlefield { tapped, counter }, f)
+                    } else if self.eat_words(&["put", "into"]) {
+                        // `return 1 creature card put into your graveyard
+                        // this way to battlefield under your control chosen`.
+                        let any = if self.eat_word("a") {
+                            true
+                        } else {
+                            self.expect_word("your")?;
+                            false
+                        };
+                        self.expect_words(&[
+                            "graveyard",
+                            "this",
+                            "way",
+                            "to",
+                            "battlefield",
+                            "under",
+                            "your",
+                            "control",
+                        ])?;
+                        (ChooseAct::ThisWayToBattlefield { any }, f)
                     } else {
                         self.expect_words(&["from", "your", "graveyard", "to", "hand"])?;
                         (ChooseAct::ReturnFromGraveyard, f)
@@ -11362,6 +11433,32 @@ impl P {
                 let f = card_filter(self)?;
                 self.pos += 7;
                 (ChooseAct::GraveyardToTop, f)
+            }
+            // `put any number creature card from hand onto battlefield
+            // chosen`, `put 1 land card from hand or graveyard onto
+            // battlefield tapped chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let hand = card_filter(self).is_ok() && self.at_words(&["from", "hand"]);
+                    self.pos = at;
+                    hand
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.pos += 2;
+                let graveyard = self.eat_words(&["or", "graveyard"]);
+                self.expect_words(&["onto", "battlefield"])?;
+                let tapped = self.eat_word("tapped");
+                let counter = self.one_counter()?;
+                (
+                    ChooseAct::HandToBattlefield {
+                        tapped,
+                        graveyard,
+                        counter,
+                    },
+                    f,
+                )
             }
             // `put 1 card an opponent owns from exile into graveyard
             // chosen` (a processor).
@@ -11430,6 +11527,9 @@ impl P {
         };
         let act = if act == ChooseAct::ReturnFromGraveyard && self.eat_words(&["at", "random"]) {
             ChooseAct::ReturnRandomFromGraveyard
+        } else if act == ChooseAct::ExileFromGraveyard && self.eat_words(&["at", "random"]) {
+            // `exile 1 card from your graveyard at random`.
+            ChooseAct::ExileRandomFromGraveyard
         } else {
             self.expect_word("chosen")?;
             act
@@ -11445,6 +11545,16 @@ impl P {
             returns,
             by: None,
         })
+    }
+
+    /// `with 1 finality counter` after a chosen card's destination: one
+    /// counter of that kind.
+    fn one_counter(&mut self) -> R<Option<mtg_core::card::CounterKind>> {
+        if !(self.at_word("with") && matches!(self.peek_at(1), Some(Tok::Num(1)))) {
+            return Ok(None);
+        }
+        self.pos += 2;
+        Ok(Some(self.counter_kind()?))
     }
 
     /// How long an impulse permission lasts: `this turn`, `next turn`,
@@ -11718,7 +11828,44 @@ impl P {
         } else {
             None
         };
-        let attached = if self.eat_words(&["attached", "to"]) {
+        // "... under your control. It enters tapped and attacking that
+        // player." (Shark Shredder).
+        let enters_attacking = !tapped && self.peek() == Some(&Tok::Semi) && {
+            self.pos += 1;
+            let ok = self.at_words(&[
+                "it",
+                "enters",
+                "tapped",
+                "and",
+                "attacking",
+                "that",
+                "player",
+            ]);
+            self.pos -= 1;
+            ok
+        };
+        if enters_attacking {
+            self.pos += 8;
+            tapped = true;
+            attacking = true;
+        }
+        let attached = if self.eat_words(&["attached", "to", "chosen"]) {
+            // `attached to chosen creature you control`: "attached to a
+            // creature you control", chosen as it returns (One Last Job).
+            let f = self.filter()?;
+            let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+                i
+            } else {
+                self.groups.push(f);
+                self.groups.len() - 1
+            };
+            Some(Recipient::ChosenOf(u16::try_from(i).map_err(|_| {
+                ParseError {
+                    line: self.line(),
+                    message: "too many groups".to_string(),
+                }
+            })?))
+        } else if self.eat_words(&["attached", "to"]) {
             Some(self.recipient()?)
         } else {
             None
@@ -11736,6 +11883,7 @@ impl P {
             if_creature,
             transformed,
             front_up,
+            enters_attacking,
         })
     }
 
@@ -12323,18 +12471,52 @@ impl P {
                 })
             }
             "shuffle" if self.shuffle_zone_ahead() => self.shuffle_zone(None),
+            // `put all creature card from all graveyards onto battlefield
+            // under your control`.
+            "put"
+                if self.at_word("all")
+                    && (1..24).any(|k| {
+                        self.word_at(k).as_deref() == Some("card")
+                            && self.word_at(k + 1).as_deref() == Some("from")
+                            && self.word_at(k + 2).as_deref() == Some("all")
+                            && self.word_at(k + 3).as_deref() == Some("graveyards")
+                    }) =>
+            {
+                self.pos += 1;
+                let filter = self.filter()?;
+                self.expect_words(&["card", "from", "all", "graveyards", "onto", "battlefield"])?;
+                let tapped = self.eat_word("tapped");
+                self.expect_words(&["under", "your", "control"])?;
+                self.group_named = true;
+                Ok(Effect::GraveyardToBattlefield {
+                    filter,
+                    tapped,
+                    all_graveyards: true,
+                })
+            }
             // `put that target 1 onto battlefield tapped`: "put that card
             // onto the battlefield tapped" (`return ... to battlefield`
             // otherwise).
             "put"
-                if (0..10).any(|k| {
-                    self.word_at(k).as_deref() == Some("onto")
-                        && self.word_at(k + 1).as_deref() == Some("battlefield")
-                }) && !(0..16).any(|k| {
-                    self.word_at(k).as_deref() == Some("from")
-                        && self.word_at(k + 1).as_deref() == Some("hand")
-                        && self.word_at(k + 2).as_deref() == Some("onto")
-                }) =>
+                if (0..10)
+                    .chain((10..18).take_while(|k| {
+                        // A long target filter ("target creature card with
+                        // mana value 4 or less from a graveyard"), within the
+                        // sentence.
+                        matches!(self.word_at(0).as_deref(), Some("target" | "up"))
+                            && !(0..*k).any(|j| {
+                                matches!(self.peek_at(j), None | Some(Tok::Semi | Tok::Newline))
+                            })
+                    }))
+                    .any(|k| {
+                        self.word_at(k).as_deref() == Some("onto")
+                            && self.word_at(k + 1).as_deref() == Some("battlefield")
+                    })
+                    && !(0..16).any(|k| {
+                        self.word_at(k).as_deref() == Some("from")
+                            && self.word_at(k + 1).as_deref() == Some("hand")
+                            && self.word_at(k + 2).as_deref() == Some("onto")
+                    }) =>
             {
                 let what = self.recipient()?;
                 self.expect_word("onto")?;
@@ -12608,7 +12790,13 @@ impl P {
                 let filter = self.filter()?;
                 self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
-                Ok(Effect::GraveyardToBattlefield { filter, tapped })
+                // "Sacrifice them at the beginning of the next end step."
+                self.group_named = true;
+                Ok(Effect::GraveyardToBattlefield {
+                    filter,
+                    tapped,
+                    all_graveyards: false,
+                })
             }
             "return" if self.at_words(&["those", "exiled", "cards", "to", "hand"]) => {
                 self.pos += 5;
@@ -12648,6 +12836,9 @@ impl P {
                         Recipient::Targets(*a, all.len())
                     }
                     [_] => what,
+                    // "Return this card and target land card from your
+                    // graveyard to the battlefield tapped." (Sandman).
+                    [Recipient::Source, Recipient::Target(a)] => Recipient::SourceAndTarget(*a),
                     _ => return self.fail("only one recipient returns to the battlefield"),
                 };
                 self.battlefield_tail(what, false)
@@ -15764,8 +15955,11 @@ impl P {
             }
         }
         // `them`, `those creatures`: the objects a group named earlier in
-        // the ability denoted (CR 608.2c).
-        if let Some((t, n)) = self.at_those() {
+        // the ability denoted (CR 608.2c). Inside a delayed trigger about
+        // them, `them` is what it is about (`SameThem`).
+        if let Some((t, n)) = self.at_those()
+            && !(self.in_delayed && t == crate::ast::Those::Them)
+        {
             if self.group_named {
                 self.pos += n;
                 return Ok(Recipient::Those(t));

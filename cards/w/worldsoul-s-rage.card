@@ -1,0 +1,6 @@
+card "Worldsoul's Rage" {
+  oracle_id 3b6ef144-bb98-4686-9718-204f1c3cf020
+  cost {X}{R}{G}
+  type Sorcery
+  spell: deal X damage to any target; put up to X land card from hand or graveyard onto battlefield tapped chosen
+}

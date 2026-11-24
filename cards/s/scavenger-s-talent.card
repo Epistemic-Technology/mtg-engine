@@ -1,0 +1,10 @@
+card "Scavenger's Talent" {
+  oracle_id aefea339-8a0d-4531-8a62-afaecc88d078
+  cost {B}
+  type Enchantment — Class
+  triggered once each turn whenever one or more creature you control die: create 1 "Food"
+  level 2 {1}{B}
+  triggered whenever you sacrifice permanent: target player mills 2 cards
+  level 3 {2}{B}
+  triggered at the beginning of your end step: you may sacrifice 3 other nonland permanent chosen; if you do, return 1 creature card from your graveyard to battlefield with 1 finality counter chosen
+}

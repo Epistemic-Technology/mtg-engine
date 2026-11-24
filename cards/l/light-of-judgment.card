@@ -1,0 +1,6 @@
+card "Light of Judgment" {
+  oracle_id 932177b8-70f8-4908-a48f-fe03204daddc
+  cost {4}{R}
+  type Instant
+  spell: deal 6 damage to target creature; destroy up to 1 Equipment attached to that target 1 chosen
+}

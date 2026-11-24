@@ -1506,6 +1506,7 @@ impl Fmt {
                 that_player,
                 random,
                 rest,
+                attacking,
             } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardDest;
@@ -1544,6 +1545,9 @@ impl Fmt {
                     CardDest::LibraryBottom => "on bottom of library",
                 };
                 let mut d = d.to_string();
+                if *attacking {
+                    d.push_str(" and attacking");
+                }
                 if *random {
                     d.push_str(" random");
                 }
@@ -2128,16 +2132,17 @@ impl Fmt {
                 if_creature,
                 transformed,
                 front_up,
+                enters_attacking,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
                 } else {
                     format!("return {} to battlefield", self.recipient(*what, t))
                 };
-                if *tapped {
+                if *tapped && !*enters_attacking {
                     s.push_str(" tapped");
                 }
-                if *attacking {
+                if *attacking && !*enters_attacking {
                     s.push_str(" and attacking");
                 }
                 if *transformed {
@@ -2166,6 +2171,9 @@ impl Fmt {
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
                 }
+                if *enters_attacking {
+                    s.push_str("; it enters tapped and attacking that player");
+                }
                 s
             }
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
@@ -2189,7 +2197,18 @@ impl Fmt {
                 self.recipient(*to, t),
                 self.recipient(*of, t)
             ),
-            Effect::GraveyardToBattlefield { filter: f, tapped } => format!(
+            Effect::GraveyardToBattlefield {
+                filter: f,
+                tapped,
+                all_graveyards: true,
+            } => format!(
+                "put all {} card from all graveyards onto battlefield{} under your control",
+                filter(f),
+                if *tapped { " tapped" } else { "" }
+            ),
+            Effect::GraveyardToBattlefield {
+                filter: f, tapped, ..
+            } => format!(
                 "return all {} card from your graveyard to battlefield{}",
                 filter(f),
                 if *tapped { " tapped" } else { "" }
@@ -3933,6 +3952,12 @@ impl Fmt {
                     ChooseAct::ReturnRandomFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand at random")
                     }
+                    ChooseAct::ExileRandomFromGraveyard if unfiltered => {
+                        format!("exile {n} {cs} from your graveyard at random")
+                    }
+                    ChooseAct::ExileRandomFromGraveyard => {
+                        format!("exile {n} {f} {cs} from your graveyard at random")
+                    }
                     ChooseAct::MilledToHand if *returns => {
                         format!("return {n} {f} {cs} from among them to hand chosen")
                     }
@@ -3958,10 +3983,33 @@ impl Fmt {
                     ChooseAct::DiscardedToBattlefield => format!(
                         "put {n} {f} {cs} discarded this way onto battlefield tapped chosen"
                     ),
-                    ChooseAct::GraveyardToBattlefield { tapped } => format!(
-                        "return {n} {f} {cs} from your graveyard to battlefield{} chosen",
-                        if *tapped { " tapped" } else { "" }
+                    ChooseAct::GraveyardToBattlefield { tapped, counter: c } => format!(
+                        "return {n} {f} {cs} from your graveyard to battlefield{}{} chosen",
+                        if *tapped { " tapped" } else { "" },
+                        c.map_or_else(String::new, |k| format!(
+                            " with 1 {}",
+                            counter(k, Num::N(1))
+                        ))
                     ),
+                    ChooseAct::HandToBattlefield {
+                        tapped,
+                        graveyard,
+                        counter: c,
+                    } => format!(
+                        "put {n} {f} {cs} from hand{} onto battlefield{}{} chosen",
+                        if *graveyard { " or graveyard" } else { "" },
+                        if *tapped { " tapped" } else { "" },
+                        c.map_or_else(String::new, |k| format!(
+                            " with 1 {}",
+                            counter(k, Num::N(1))
+                        ))
+                    ),
+                    ChooseAct::ThisWayToBattlefield { any } => format!(
+                        "return {n} {f} {cs} put into {} graveyard this way to battlefield under your control chosen",
+                        if *any { "a" } else { "your" }
+                    ),
+                    ChooseAct::Destroy => format!("destroy {n} {f} chosen"),
+                    ChooseAct::AttachToCreated => format!("attach {n} {f} to it chosen"),
                     ChooseAct::AttachToTarget(i) => {
                         format!("attach {n} {f} to target {} chosen", i + 1)
                     }
