@@ -3337,6 +3337,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.other_than_this {
         let _ = write!(s, " other than {}", this_ref(card));
     }
+    if f.not_granter {
+        let _ = write!(s, " other than {}", card.name);
+    }
     if f.not_attached {
         let mut host = Filter::enchanted();
         host.types.clone_from(&f.types);

@@ -1211,6 +1211,12 @@ pub struct ObjFilter {
     /// "target creature other than enchanted creature": not what the source
     /// is attached to. Judged for targets of an ability of the source.
     pub not_attached: bool,
+    /// "an artifact other than Dire Blunderbuss" in a quoted ability an
+    /// Equipment grants: not that ability's granter (`Recipient::Granter`).
+    /// Judged where a resolving ability chooses permanents
+    /// (`Effect::ChooseAct`).
+    #[serde(default)]
+    pub not_granter: bool,
     /// "creatures enchanted player controls" (CR 303.4): controlled by the
     /// player the source, a Curse, is attached to. A placeholder the engine
     /// fills in (`with_enchanted_player`) where the source is known: a
@@ -6017,6 +6023,7 @@ impl Effect {
                 *what == g && matches!(who, Recipient::GranterController)
             }
             Effect::DrawCards { who, .. } => *who == Recipient::GranterController,
+            Effect::ChooseAct { filter, .. } => filter.not_granter,
             _ => false,
         }
     }
@@ -10869,7 +10876,14 @@ impl CardPool {
                 _ => false,
             }
         }));
-        let granter = a.names_granter();
+        // "When you do, Hankyu deals ...": a reflexive ability naming the
+        // granter makes the ability that creates it name it too, so each
+        // grant carries its granter to it.
+        let granter = a.names_granter()
+            || effects.iter().any(|e| {
+                matches!(e, Effect::Reflexive(r)
+                    if self.names_granter.get(r.0 as usize).copied().unwrap_or(false))
+            });
         self.granter_abilities |= granter;
         self.names_granter.push(granter);
         self.abilities.push(a);

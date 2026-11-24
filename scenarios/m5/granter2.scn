@@ -166,6 +166,74 @@ scenario "Blinding Powder: unattached during combat, the blocked creature takes 
   assert battlefield A contains "Blinding Powder"
 }
 
+scenario "Fishing Pole: the Pole is tapped for a bait counter; the untap makes a Fish" {
+  battlefield A: "Grizzly Bears", "Fishing Pole" on "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Fishing Pole"
+  assert tapped "Grizzly Bears"
+  assert counters "Fishing Pole" bait 1
+  assert battlefield A lacks "Fish"
+  run_to turn 3 precombat_main
+  assert battlefield A contains 1 "Fish"
+  assert counters "Fishing Pole" bait 0
+  assert untapped "Fishing Pole"
+}
+
+scenario "Fishing Pole: a tapped Pole can't be tapped again" {
+  battlefield A: "Grizzly Bears", "Fishing Pole" tapped on "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Fishing Pole" bait 0
+}
+
+scenario "Fishing Pole: no bait counter, no Fish" {
+  battlefield A: "Grizzly Bears" tapped, "Fishing Pole" on "Grizzly Bears"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert untapped "Grizzly Bears"
+  assert battlefield A lacks "Fish"
+}
+
+scenario "Dire Flail: +2/+0; crafted with an artifact into Dire Blunderbuss" {
+  battlefield A: "Grizzly Bears", "Dire Flail" on "Grizzly Bears", 5 "Mountain"
+  graveyard A: "Ornithopter"
+  start turn 1 A precombat_main
+  assert power "Grizzly Bears" 4
+  turn 1 A: activate "Dire Flail" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dire Blunderbuss"
+  assert exile A contains "Ornithopter"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Dire Blunderbuss: sacrifice another artifact as the creature attacks; it deals damage equal to its power" {
+  battlefield A: "Grizzly Bears", "Dire Blunderbuss" on "Grizzly Bears", "Ornithopter"
+  battlefield B: "Colossal Dreadmaw"
+  start turn 2 A precombat_main
+  assert power "Grizzly Bears" 5
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: accept "Grizzly Bears"
+  turn 2 declare_attackers A: trigger "Grizzly Bears" targeting "Colossal Dreadmaw"
+  run_to turn 2 declare_blockers
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains "Dire Blunderbuss"
+  assert damage "Colossal Dreadmaw" 5
+}
+
+scenario "Dire Blunderbuss: the Blunderbuss itself can't be the artifact sacrificed" {
+  battlefield A: "Grizzly Bears", "Dire Blunderbuss" on "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Dire Blunderbuss"
+  assert battlefield B contains "Serra Angel"
+  assert life B 15
+}
+
 scenario "Blinding Powder kept on: the blocked creature dies" {
   battlefield A: "Grizzly Bears", "Blinding Powder" on "Grizzly Bears"
   battlefield B: "Hill Giant"

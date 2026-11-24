@@ -1151,6 +1151,9 @@ pub struct Filter {
     /// `other than this`: "other than this creature", the relation
     /// `Other` worded after the noun (Weed-Pruner Poplar).
     pub other_than_this: bool,
+    /// `other than granter`: "an artifact other than Dire Blunderbuss",
+    /// not the Equipment granting the quoted ability.
+    pub not_granter: bool,
     /// `andor Villain or artifact`: its alternatives joined "and/or" as a
     /// trigger's subject ("Whenever another Villain and/or artifact you
     /// control enters"); wording only.

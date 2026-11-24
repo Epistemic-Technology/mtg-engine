@@ -1536,6 +1536,12 @@ impl GameState {
                 .iter()
                 .copied()
                 .filter(|id| any_controller || self.objects[*id].controller == p)
+                // "an artifact other than Dire Blunderbuss": not the
+                // granter of the resolving ability.
+                .filter(|id| {
+                    !filter.not_granter
+                        || self.this_way.as_ref().and_then(|l| l.granter) != Some(*id)
+                })
                 .filter(|id| {
                     (act != ChooseAct::Tap || !self.objects[*id].tapped)
                         && (act != ChooseAct::Untap || self.objects[*id].tapped)
@@ -13585,6 +13591,11 @@ impl GameState {
                     {
                         let moved = log.moved.clone();
                         self.reflexive_moved.push((timestamp, moved));
+                    }
+                    // "You may pay {1}. When you do, Hankyu deals ...": the
+                    // reflexive ability names the same granter (CR 113.2c).
+                    if let Some(g) = self.this_way.as_ref().and_then(|l| l.granter) {
+                        self.pending_granters.push((timestamp, g));
                     }
                     self.pending_triggers.push(crate::state::PendingTrigger {
                         controller: ctx.controller,

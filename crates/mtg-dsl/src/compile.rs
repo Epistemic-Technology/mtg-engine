@@ -1939,6 +1939,7 @@ impl Compiler<'_> {
             }),
             that_player: f.that_player,
             not_attached: f.not_attached,
+            not_granter: f.not_granter,
             enchanted_player: f.enchanted_player,
             controlled_by: None,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
@@ -4426,6 +4427,12 @@ impl Compiler<'_> {
                     _ => effects,
                 };
                 let effects = self.sentences(effects)?;
+                // "When you do, Hankyu deals ...": the granter carries over
+                // to the reflexive ability (`CardPool::register`).
+                if !self.granting && effects.iter().any(CoreEffect::names_granter) {
+                    return self
+                        .err("`granter` only in a quoted ability of `static enchanted: ...`");
+                }
                 let targets = self.targets(targets);
                 let id = self
                     .pool
@@ -4615,6 +4622,10 @@ impl Compiler<'_> {
                     return self.err("a delayed trigger can't be a triggered mana ability");
                 }
                 let trigger = self.trigger(trigger);
+                // A delayed ability doesn't carry the granter.
+                if format!("{effects:?}").contains("Granter") {
+                    return self.err("`granter` isn't supported in a delayed ability");
+                }
                 let id = self
                     .pool
                     .register_ability(AbilityDef::Triggered(TriggeredAbility {

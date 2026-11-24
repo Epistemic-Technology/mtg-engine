@@ -4539,6 +4539,9 @@ fn filter_one(f: &Filter) -> String {
     if f.other_than_this {
         words.push("other than this".to_string());
     }
+    if f.not_granter {
+        words.push("other than granter".to_string());
+    }
     if f.no_abilities {
         words.push("with no abilities".to_string());
     }

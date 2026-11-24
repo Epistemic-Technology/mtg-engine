@@ -14500,6 +14500,12 @@ impl P {
                     f.not_attached = true;
                     self.pos += 3;
                 }
+                // "an artifact other than Dire Blunderbuss": not the
+                // granter.
+                "other" if self.at_words(&["other", "than", "granter"]) => {
+                    f.not_granter = true;
+                    self.pos += 3;
+                }
                 // "creature other than this creature".
                 "other" if self.at_words(&["other", "than", "this"]) => {
                     f.relation = Relation::Other;

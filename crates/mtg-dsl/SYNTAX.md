@@ -1940,7 +1940,15 @@ to any target"); `controller of granter` its controller, as it last
 existed once gone ("{7}: Hold for Ransom's controller sacrifices it and
 draws a card": `controller of granter sacrifices granter as it and draws
 1 card`, the Aura's controller sacrificing it and drawing, though the
-creature's controller activates the ability).
+creature's controller activates the ability). `put 1 bait counter on
+granter` and `remove 1 aim counter from granter` act on it ("{1}, {T},
+Tap Fishing Pole: Put a bait counter on Fishing Pole"). The filter word
+`other than granter` excludes it from what a resolving ability chooses
+(`you may sacrifice 1 artifact other than granter chosen`: "you may
+sacrifice an artifact other than Dire Blunderbuss"). A reflexive ability
+(`when you do, granter deals 1 damage to any target`) names the same
+granter as the ability that creates it; a delayed one can't name it (an
+error).
 `granter` is an error elsewhere, beside a cost that chooses a permanent
 or card, and in other effects.
 A token a quoted ability creates prints its full description. A replacement or

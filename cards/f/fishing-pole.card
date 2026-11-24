@@ -1,0 +1,8 @@
+card "Fishing Pole" {
+  oracle_id 2c1d3e9e-213e-492a-ad5a-91139d70bc0f
+  cost {1}
+  type Artifact — Equipment
+  static equipped: has ability { activated {1}, {T}, tap granter: put 1 bait counter on granter }
+  triggered whenever equipped creature becomes untapped: remove 1 bait counter from this; if you do, create 1 "1/1 blue Fish creature"
+  equip {2}
+}

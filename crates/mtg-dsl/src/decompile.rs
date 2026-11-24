@@ -414,6 +414,7 @@ impl Decompiler<'_> {
             not_attached: f.not_attached,
             enchanted_player: f.enchanted_player,
             other_than_this: false,
+            not_granter: f.not_granter,
             and_or: false,
             and_list: false,
             that_are: false,
