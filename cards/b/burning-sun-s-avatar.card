@@ -1,0 +1,7 @@
+card "Burning Sun's Avatar" {
+  oracle_id 248d7759-aa73-4430-aa86-d45dc607944b
+  cost {3}{R}{R}{R}
+  type Creature — Dinosaur Avatar
+  pt 6/6
+  triggered when this enters: deal 3 damage to target opponent or planeswalker and deal 3 damage to up to 1 target creature
+}

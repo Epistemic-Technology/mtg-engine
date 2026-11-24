@@ -1,0 +1,9 @@
+card "Metropolis Reformer" {
+  oracle_id baec04a1-3bc9-4618-afab-e42013e36648
+  cost {2}{W}
+  type Creature — Angel Cleric
+  pt 2/3
+  keywords flying, vigilance
+  you have hexproof
+  triggered whenever this is dealt damage: you gain that much life
+}

@@ -1,0 +1,9 @@
+card "Encase in Ice" {
+  oracle_id a61277d6-a27d-45d1-ba2a-7afe1b8f5ce1
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant red or green creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

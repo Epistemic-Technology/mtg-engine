@@ -1,0 +1,8 @@
+card "Spirit Loop" {
+  oracle_id 6edf5767-10d3-40b0-bfce-daa8633888f6
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered whenever enchanted creature deals damage: you gain that much life
+  triggered when this dies: return this to hand
+}

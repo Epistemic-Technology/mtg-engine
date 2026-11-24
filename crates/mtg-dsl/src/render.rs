@@ -913,6 +913,22 @@ fn spent_at_most(card: &Card) -> String {
     format!("less than or equal to the number of colors of mana spent to cast {it}")
 }
 
+/// A chain of three or more alternatives as a list: "Bat or Lizard or Rat
+/// or Squirrel" → "Bat, Lizard, Rat, or Squirrel" (likewise "and/or").
+fn serial_list(p: &str) -> String {
+    if p.contains(',') {
+        return p.to_string();
+    }
+    for sep in [" and/or ", " or "] {
+        if p.matches(sep).count() >= 3 {
+            let parts: Vec<&str> = p.split(sep).collect();
+            let (last, rest) = parts.split_last().expect("split");
+            return format!("{},{sep}{last}", rest.join(", "));
+        }
+    }
+    p.to_string()
+}
+
 fn cmp_words(c: mtg_core::card::Cmp) -> &'static str {
     match c {
         mtg_core::card::Cmp::AtMost => " or less",
@@ -3106,6 +3122,23 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         words.push(format!("{cc:?}").to_lowercase());
     }
+    let not_supertype_word = |s: &Supertype| {
+        match s {
+            Supertype::Basic => "nonbasic",
+            Supertype::Legendary => "nonlegendary",
+            Supertype::Snow => "nonsnow",
+            Supertype::World => "nonworld",
+        }
+        .to_string()
+    };
+    // `nontoken green creature`: "a nontoken green creature".
+    let neg_first = f.neg_before_color && f.colors.is_some() && !nontoken_first;
+    if neg_first {
+        words.extend(f.not_supertypes.iter().map(not_supertype_word));
+        if f.status.token == Some(false) {
+            words.push("nontoken".to_string());
+        }
+    }
     if let Some(colors) = &f.colors {
         let list = or_list(
             &colors
@@ -3130,25 +3163,17 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     // several negations are listed, supertypes first ("nonlegendary,
     // nonland card"), types before colors; "nontoken" after the types
     // ("nonland, nontoken permanent", "nontoken, non-Angel creature").
-    let mut negs: Vec<String> = f
-        .not_supertypes
-        .iter()
-        .map(|s| {
-            match s {
-                Supertype::Basic => "nonbasic",
-                Supertype::Legendary => "nonlegendary",
-                Supertype::Snow => "nonsnow",
-                Supertype::World => "nonworld",
-            }
-            .to_string()
-        })
-        .collect();
+    let mut negs: Vec<String> = if neg_first {
+        Vec::new()
+    } else {
+        f.not_supertypes.iter().map(not_supertype_word).collect()
+    };
     // "non-Faerie, nonland permanent" (Nurturing Pixie).
     if f.subtype_neg_first {
         negs.extend(f.not_subtypes.iter().map(|s| format!("non-{s}")));
     }
     negs.extend(f.not_types.iter().map(|t| format!("non{}", type_noun(*t))));
-    if f.status.token == Some(false) && !nontoken_first {
+    if f.status.token == Some(false) && !nontoken_first && !neg_first {
         negs.push("nontoken".to_string());
     }
     negs.extend(
@@ -3621,12 +3646,15 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     };
     // "an instant, sorcery, or Faerie card" (Free the Fae): three
     // alternatives as a list.
-    let p = if p.matches(" or ").count() == 2 && !p.contains(',') {
+    let p = if p.matches(" or ").count() == 2 && !p.contains(',') && !p.contains("and/or") {
         let i = p.find(" or ").expect("counted");
         format!("{},{}", &p[..i], &p[i + 3..]).replacen(" or ", ", or ", 1)
     } else {
         p
     };
+    // "a Bat, Lizard, Rat, or Squirrel card", "Cleric, Rogue, Warrior,
+    // Wizard, and/or Ally cards": four or more alternatives.
+    let p = serial_list(&p);
     let noun = if plural_form { "cards" } else { "card" };
     // "a card with flash": only qualities after the noun.
     if let Some(after) = p.trim().strip_prefix("with ") {

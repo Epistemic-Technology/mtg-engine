@@ -1,0 +1,7 @@
+card "Sky Tether" {
+  oracle_id 06548af1-4fda-435c-ac32-bbf7afafb34e
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has defender, loses flying
+}

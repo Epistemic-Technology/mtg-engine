@@ -1,0 +1,7 @@
+card "Tormentor's Trident" {
+  oracle_id b74992b8-2857-403b-88cf-f2718873571a
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +3/+0, has attacks each combat if able
+  equip {3}
+}

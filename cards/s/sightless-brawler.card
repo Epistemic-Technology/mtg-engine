@@ -1,0 +1,9 @@
+card "Sightless Brawler" {
+  oracle_id 0f7d76a9-3f47-4cfa-882b-1790256d15b2
+  cost {1}{W}
+  type Enchantment Creature — Human Warrior
+  pt 3/2
+  bestow {4}{W}
+  keyword can't attack alone
+  static enchanted: +3/+2, has can't attack alone
+}

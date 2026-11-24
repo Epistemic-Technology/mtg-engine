@@ -1,0 +1,8 @@
+card "Wurmweaver Coil" {
+  oracle_id 83419229-c266-4022-8297-d1b05ec5ee20
+  cost {4}{G}{G}
+  type Enchantment — Aura
+  enchant green creature
+  static enchanted: +6/+6
+  activated {G}{G}{G}, sacrifice this: create 1 "6/6 green Wurm creature"
+}

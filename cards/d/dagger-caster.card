@@ -1,0 +1,7 @@
+card "Dagger Caster" {
+  oracle_id f1352a81-6fd5-4c4d-ada4-b81d3a9f74c0
+  cost {3}{R}
+  type Creature — Lizard Rogue
+  pt 2/3
+  triggered when this enters: deal 1 damage to each opponent and deal 1 damage to each creature your opponents control
+}

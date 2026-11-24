@@ -1,0 +1,8 @@
+card "Ioreth of the Healing House" {
+  oracle_id af6e4c3e-0276-4f72-9a70-25868fe8bba5
+  cost {2}{U}
+  type Legendary Creature — Human Cleric
+  pt 1/4
+  activated {T}: untap another target permanent
+  activated {T}: untap 2 another target legendary creature
+}

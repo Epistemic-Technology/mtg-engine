@@ -1,0 +1,9 @@
+card "Spirespine" {
+  oracle_id de0edcc8-1595-4dbb-ac8a-46dcd96299cb
+  cost {2}{G}
+  type Enchantment Creature — Beast
+  pt 4/1
+  bestow {4}{G}
+  keyword blocks each combat if able
+  static enchanted: +4/+1, has blocks each combat if able
+}

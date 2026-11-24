@@ -14375,11 +14375,14 @@ impl P {
                 }
                 // "Bear, Spider, or Wolf", "creature, Vehicle, or nonbasic
                 // land": a list of alternatives, each an `or`.
-                let alternatives = !listed_type
-                    && f != Filter::default()
-                    && (next == "or"
-                        || (self.peek_at(2) == Some(&Tok::Comma)
-                            && self.word_at(3).as_deref() == Some("or")));
+                // "Insect, Rat, Spider, or Squirrel": any number of
+                // one-word items before the `or`.
+                let list_to_or = (1..8).any(|k| {
+                    (1..=k).all(|j| self.peek_at(2 * j) == Some(&Tok::Comma))
+                        && self.word_at(2 * k + 1).as_deref() == Some("or")
+                });
+                let alternatives =
+                    !listed_type && f != Filter::default() && (next == "or" || list_to_or);
                 if alternatives {
                     self.pos += 1;
                     if next != "or" {
@@ -15316,6 +15319,8 @@ impl P {
                         }
                         self.pos += 1;
                     } else if let Some(c) = color(&w) {
+                        f.neg_before_color |= f.colors.is_none()
+                            && (f.status.token == Some(false) || !f.not_supertypes.is_empty());
                         f.colors.get_or_insert_with(Vec::new).push(c);
                         self.pos += 1;
                     } else if let Some(t) = card_type(&w) {

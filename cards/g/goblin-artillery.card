@@ -1,0 +1,7 @@
+card "Goblin Artillery" {
+  oracle_id 06db7444-0225-48c8-ab04-d69ff06e97b6
+  cost {1}{R}{R}
+  type Creature — Goblin Warrior
+  pt 1/3
+  activated {T}: deal 2 damage to any target and deal 3 damage to you
+}

@@ -1,0 +1,7 @@
+card "Flare of Denial" {
+  oracle_id 437cfd16-94bc-43ba-afd8-e9e9d028a4ca
+  cost {1}{U}{U}
+  type Instant
+  alternative cost sacrifice nontoken blue creature
+  spell: counter target spell
+}

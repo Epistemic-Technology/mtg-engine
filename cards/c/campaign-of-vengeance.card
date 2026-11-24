@@ -1,0 +1,6 @@
+card "Campaign of Vengeance" {
+  oracle_id 627e9668-5e1c-4ab6-83f4-612a42d0afce
+  cost {3}{W}{B}
+  type Enchantment
+  triggered whenever creature you control attacks: defending player loses 1 life and you gains 1 life
+}

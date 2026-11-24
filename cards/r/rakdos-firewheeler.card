@@ -1,0 +1,7 @@
+card "Rakdos Firewheeler" {
+  oracle_id f81327c2-a0e4-475d-bb89-8a42b1ddc93c
+  cost {B}{B}{R}{R}
+  type Creature — Human Rogue
+  pt 4/3
+  triggered when this enters: deal 2 damage to target opponent and deal 2 damage to up to 1 target creature or planeswalker
+}

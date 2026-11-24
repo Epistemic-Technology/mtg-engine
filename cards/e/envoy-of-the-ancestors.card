@@ -1,0 +1,8 @@
+card "Envoy of the Ancestors" {
+  oracle_id 678ef5e4-800d-4d3a-8761-2abaad70e0c9
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/3
+  outlast {W}
+  static modified creature you control: has lifelink
+}

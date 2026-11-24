@@ -1,0 +1,10 @@
+card "Embercleave" {
+  oracle_id 4d6120d6-fcce-40bc-9fc6-e1f5beb6c728
+  cost {4}{R}{R}
+  type Legendary Artifact — Equipment
+  keywords flash
+  this spell costs {1} less count each attacking creature you control
+  triggered when this enters: attach it to target creature you control
+  static enchanted: +1/+1, has double strike, trample
+  equip {3}
+}

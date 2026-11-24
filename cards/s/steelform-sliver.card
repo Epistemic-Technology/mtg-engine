@@ -1,0 +1,7 @@
+card "Steelform Sliver" {
+  oracle_id ae58e71c-b617-404f-a5dc-5e6a487f2675
+  cost {2}{W}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: +0/+1
+}

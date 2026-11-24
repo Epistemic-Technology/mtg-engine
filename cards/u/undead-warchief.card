@@ -1,0 +1,8 @@
+card "Undead Warchief" {
+  oracle_id e6af56bf-bd78-4801-8f6e-033cdd68de3d
+  cost {2}{B}{B}
+  type Creature — Zombie
+  pt 1/1
+  spells Zombie you cast cost {1} less
+  static Zombie creature you control: +2/+1
+}

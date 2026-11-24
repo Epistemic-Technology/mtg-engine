@@ -1,0 +1,8 @@
+card "Paradise Druid" {
+  oracle_id e119869d-1f66-402b-8251-d351965cf0d3
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  static this: has hexproof as long as this is untapped
+  mana any
+}

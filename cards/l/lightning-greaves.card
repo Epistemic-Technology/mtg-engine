@@ -1,0 +1,7 @@
+card "Lightning Greaves" {
+  oracle_id ca204b66-8d0c-431a-8d34-282f7c2d17da
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has haste, shroud
+  equip {0}
+}

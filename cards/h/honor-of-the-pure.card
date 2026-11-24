@@ -1,0 +1,6 @@
+card "Honor of the Pure" {
+  oracle_id eb4188bb-62df-4309-bde1-f66318fe2f05
+  cost {1}{W}
+  type Enchantment
+  static white creature you control: +1/+1
+}

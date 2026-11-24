@@ -1,0 +1,7 @@
+card "Leeching Sliver" {
+  oracle_id f104b361-8000-4eda-b530-1502528e09f9
+  cost {1}{B}
+  type Creature — Sliver
+  pt 1/1
+  triggered whenever Sliver you control attacks: defending player loses 1 life
+}

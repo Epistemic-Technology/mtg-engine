@@ -1,0 +1,8 @@
+card "Batterbone" {
+  oracle_id 389d459d-446a-4b84-82b2-a30fe6ced11f
+  cost {2}
+  type Artifact — Equipment
+  living weapon
+  static enchanted: +1/+1, has vigilance, lifelink
+  equip {5}
+}

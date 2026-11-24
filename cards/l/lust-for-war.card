@@ -1,0 +1,8 @@
+card "Lust for War" {
+  oracle_id 0ba206f3-c3f3-4e53-b072-e5e70feaa00d
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature becomes tapped: deal 3 damage to controller of that creature
+  static enchanted: has attacks each combat if able
+}

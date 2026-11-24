@@ -1,0 +1,7 @@
+card "Lord of the Unreal" {
+  oracle_id cc60181a-5eeb-4d66-9876-3194bac1e7a7
+  cost {U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  static Illusion creature you control: +1/+1, has hexproof
+}

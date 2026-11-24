@@ -1,0 +1,9 @@
+card "Gnarled Scarhide" {
+  oracle_id 1ef73cc0-fe72-4040-a932-bcd4b1a704a3
+  cost {B}
+  type Enchantment Creature — Minotaur
+  pt 2/1
+  bestow {3}{B}
+  keyword can't block
+  static enchanted: +2/+1, has can't block
+}

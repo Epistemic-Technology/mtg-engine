@@ -1567,7 +1567,13 @@ control of target creature." (no duration).
 
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or
-Wolf you control`. A spell target may say what the spell targets:
+Wolf you control`, and longer lists (`target Insect, Rat, Spider, or
+Squirrel`; a card filter prints them so too: "a Bat, Lizard, Rat, or
+Squirrel card", "up to two Cleric, Rogue, Warrior, Wizard, and/or Ally
+cards"). `nontoken green creature` and `nonlegendary green creature card`
+print in that order ("a nontoken green creature", Flare of Cultivation);
+`green nontoken creature` prints "a green nontoken creature" (wording
+only). A spell target may say what the spell targets:
 `target spell that targets you or a permanent you control`. One target
 may be a spell or a permanent (CR 115.1): `target spell or creature`,
 `target spell or permanent with mana value 1 or greater` (the filter's

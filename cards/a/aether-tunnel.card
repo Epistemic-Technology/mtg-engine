@@ -1,0 +1,7 @@
+card "Aether Tunnel" {
+  oracle_id 0a90d1fb-7a76-4b62-b001-4a539a8e5df1
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0, has can't be blocked
+}

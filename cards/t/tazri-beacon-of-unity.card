@@ -1,0 +1,8 @@
+card "Tazri, Beacon of Unity" {
+  oracle_id ce703e1d-b7b2-4b8b-a12c-714fc152d0a5
+  cost {4}{W}
+  type Legendary Creature — Human Warrior
+  pt 4/6
+  this spell costs {1} less count each party
+  activated {2/U}{2/B}{2/R}{2/G}: dig 6 take 2 Cleric, Rogue, Warrior, Wizard, or Ally card may revealing that card rest bottom random
+}

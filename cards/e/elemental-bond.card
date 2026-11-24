@@ -1,0 +1,6 @@
+card "Elemental Bond" {
+  oracle_id d9a7e5a6-3e41-4fc6-987a-18fe1b9d67dd
+  cost {2}{G}
+  type Enchantment
+  triggered whenever creature you control with power 3 or greater enters: draw 1 cards
+}

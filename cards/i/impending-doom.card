@@ -1,0 +1,8 @@
+card "Impending Doom" {
+  oracle_id 94366283-3b28-4d6a-96e7-c04e5aead5a6
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3, has attacks each combat if able
+  triggered when enchanted creature dies: deal 3 damage to controller of that creature
+}

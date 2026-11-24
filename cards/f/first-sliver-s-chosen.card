@@ -1,0 +1,7 @@
+card "First Sliver's Chosen" {
+  oracle_id f664596a-9ad1-4db3-95b0-457698ad2f66
+  cost {4}{W}
+  type Creature — Sliver
+  pt 3/3
+  static Sliver creature you control: has exalted
+}

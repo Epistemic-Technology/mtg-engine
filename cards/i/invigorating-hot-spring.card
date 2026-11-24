@@ -1,0 +1,8 @@
+card "Invigorating Hot Spring" {
+  oracle_id a972630e-651e-439d-9412-5be50da9b934
+  cost {1}{R}{G}
+  type Enchantment
+  enters with 4 +1/+1 counters
+  static modified creature you control: has haste
+  activated remove 1 +1/+1 counters from this, sorcery, once: put 1 +1/+1 counters on target creature you control
+}

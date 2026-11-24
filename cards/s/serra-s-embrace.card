@@ -1,0 +1,7 @@
+card "Serra's Embrace" {
+  oracle_id 6d6ba936-4a15-4c40-aaa6-71605fb732d1
+  cost {2}{W}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has flying, vigilance
+}

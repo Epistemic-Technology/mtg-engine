@@ -1,0 +1,7 @@
+card "Ossification" {
+  oracle_id e29bfd62-286f-4982-813f-7086573c333b
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant basic land you control
+  triggered when this enters: exile target creature or planeswalker an opponent controls until this leaves
+}

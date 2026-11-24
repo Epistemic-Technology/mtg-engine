@@ -1,0 +1,7 @@
+card "Manifestation Sage" {
+  oracle_id d8bcd896-cae9-4733-a437-165644b8b0e8
+  cost {G/U}{G/U}{G/U}{G/U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: create 1 "0/0 green and blue Fractal creature"; put count where hand +1/+1 counters on that token
+}

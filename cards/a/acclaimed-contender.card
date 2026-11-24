@@ -1,0 +1,7 @@
+card "Acclaimed Contender" {
+  oracle_id 35df179a-c0e6-4ac1-a861-e6e9b4d1614d
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 3/3
+  triggered when this enters if you control other Knight: dig 5 take Knight, Aura, Equipment, or legendary artifact card may revealing rest bottom random
+}

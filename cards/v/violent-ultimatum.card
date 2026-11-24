@@ -1,0 +1,6 @@
+card "Violent Ultimatum" {
+  oracle_id a04cfcc5-7bb4-4352-ad8d-9d625585e656
+  cost {B}{B}{R}{R}{R}{G}{G}
+  type Sorcery
+  spell: destroy 3 target permanent
+}

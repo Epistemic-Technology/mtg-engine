@@ -1,0 +1,7 @@
+card "Colossus Hammer" {
+  oracle_id 8ec03b88-8d3a-4a32-8b7c-7da59b0c03d0
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +10/+10, loses flying
+  equip {8}
+}

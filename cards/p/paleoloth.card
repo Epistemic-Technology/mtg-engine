@@ -1,0 +1,7 @@
+card "Paleoloth" {
+  oracle_id 627de3d8-ad5e-4f9b-b83c-476cc98fea9b
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 5/5
+  triggered whenever other creature you control with power 5 or greater enters: you may return target creature card from your graveyard to hand
+}

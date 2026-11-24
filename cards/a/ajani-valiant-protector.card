@@ -1,0 +1,9 @@
+card "Ajani, Valiant Protector" {
+  oracle_id 542423cb-fbfb-4a2f-9f6d-87b273a95e96
+  cost {4}{G}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 4
+  loyalty +2: put 2 +1/+1 counters on up to 1 target creature
+  loyalty +1: reveal until creature card; put that card into hand and the rest on bottom of library random
+  loyalty -11: put count where life +1/+1 counters on target creature; that creature gains trample
+}

@@ -1,0 +1,10 @@
+card "Dread Presence" {
+  oracle_id 1690a782-9e54-4231-9a72-abae5ed7050c
+  cost {3}{B}
+  type Creature — Nightmare
+  pt 3/3
+  triggered whenever Swamp you control enters: choose one {
+    mode: you draws 1 cards, and you loses 1 life
+    mode: deal 2 damage to any target and you gains 2 life
+  }
+}

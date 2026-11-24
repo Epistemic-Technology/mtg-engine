@@ -1,0 +1,7 @@
+card "Sylvan Anthem" {
+  oracle_id 5ab5eefd-47bf-4cdf-bc29-b517e4f6adc0
+  cost {G}{G}
+  type Enchantment
+  static green creature you control: +1/+1
+  triggered whenever green creature you control enters: scry 1
+}

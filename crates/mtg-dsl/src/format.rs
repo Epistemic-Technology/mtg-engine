@@ -4282,6 +4282,17 @@ fn filter_one(f: &Filter) -> String {
     for s in &f.supertypes {
         words.push(format!("{s:?}").to_lowercase());
     }
+    // "green nontoken creature": a color before the negations unless
+    // `neg_before_color` says otherwise.
+    let color_first = !f.neg_before_color
+        && f.colors.is_some()
+        && !f.status.all_colors
+        && f.color_count.is_none()
+        && (f.status.token == Some(false) || !f.not_supertypes.is_empty());
+    if color_first && let Some(colors) = &f.colors {
+        let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
+        words.push(names.join(" or "));
+    }
     for s in &f.not_supertypes {
         words.push(
             match s {
@@ -4354,7 +4365,9 @@ fn filter_one(f: &Filter) -> String {
             format!("{cc:?}").to_lowercase()
         });
     }
-    if let Some(colors) = &f.colors {
+    if let Some(colors) = &f.colors
+        && !color_first
+    {
         let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
         if f.status.all_colors {
             words.push("both".to_string());

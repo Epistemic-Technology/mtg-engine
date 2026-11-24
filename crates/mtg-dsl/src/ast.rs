@@ -1181,6 +1181,11 @@ pub struct Filter {
     /// negated type prints first ("non-Faerie, nonland permanent",
     /// Nurturing Pixie) rather than after it. Wording only.
     pub subtype_neg_first: bool,
+    /// `nontoken green creature`: "nontoken" or a negated supertype
+    /// written before a color prints before it ("a nontoken green
+    /// creature", "a nonlegendary green creature card") rather than after
+    /// it ("a green nontoken creature"). Wording only.
+    pub neg_before_color: bool,
     /// `static plural artifact you control: add subtype Food`: a static
     /// ability's subject printed plural even with a type it adds
     /// ("Artifacts you control are Foods in addition to their other

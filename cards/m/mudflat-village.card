@@ -1,0 +1,7 @@
+card "Mudflat Village" {
+  oracle_id aeeab1df-0b8b-4bc4-a5f9-aac413449bec
+  type Land
+  mana {C}
+  mana {B} only to cast creature spell
+  activated {1}{B}, {T}, sacrifice this: return target Bat, Lizard, Rat, or Squirrel card from your graveyard to hand
+}

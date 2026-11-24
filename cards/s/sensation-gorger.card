@@ -1,0 +1,7 @@
+card "Sensation Gorger" {
+  oracle_id 42a7daf1-59a9-4e85-a664-47061758e748
+  cost {1}{R}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  label "Kinship" triggered at beginning of your upkeep: you may look at top card; if it shares creature type with this, you may reveal it; if you do, each player discards hand then draws 4 cards
+}

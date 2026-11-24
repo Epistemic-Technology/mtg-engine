@@ -1,0 +1,7 @@
+card "Behemoth Sledge" {
+  oracle_id 00573e77-8ff6-4acb-8683-8827d965288f
+  cost {1}{G}{W}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has trample, lifelink
+  equip {3}
+}

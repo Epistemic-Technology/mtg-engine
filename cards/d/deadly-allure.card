@@ -1,0 +1,7 @@
+card "Deadly Allure" {
+  oracle_id f9cdaecd-9621-4a9a-888e-748ecfe551fd
+  cost {B}
+  type Sorcery
+  spell: target creature gains deathtouch until end of turn and must be blocked if able
+  flashback {G}
+}

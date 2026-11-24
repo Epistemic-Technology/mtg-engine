@@ -1,0 +1,9 @@
+card "Celestial Archon" {
+  oracle_id d2b29bb0-9fb5-46cd-a546-fa6c4ff6113c
+  cost {3}{W}{W}
+  type Enchantment Creature — Archon
+  pt 4/4
+  bestow {5}{W}{W}
+  keyword flying, first strike
+  static enchanted: +4/+4, has flying, first strike
+}

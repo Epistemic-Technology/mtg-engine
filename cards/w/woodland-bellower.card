@@ -1,0 +1,7 @@
+card "Woodland Bellower" {
+  oracle_id 5859fd59-8732-414a-8932-007980af495d
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 6/5
+  triggered when this enters: you may search nonlegendary green creature card with mana value 3 or less to battlefield
+}

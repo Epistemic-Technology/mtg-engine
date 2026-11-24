@@ -1,0 +1,9 @@
+card "Gallia of the Endless Dance" {
+  oracle_id 43f135b5-d33e-4873-bc5a-8c939582d624
+  cost {R}{G}
+  type Legendary Creature — Satyr
+  pt 2/2
+  keywords haste
+  static other Satyr you control: +1/+1, has haste
+  triggered whenever you attack with 3 or more creatures: you may discard 1 card at random; if you do, draw 2 cards
+}

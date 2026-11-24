@@ -1,0 +1,8 @@
+card "Gimli, Counter of Kills" {
+  oracle_id 96ebcd8b-ae3c-47b0-b895-bfc9848713e5
+  cost {3}{R}
+  type Legendary Creature — Dwarf Warrior
+  pt 4/3
+  keywords trample
+  triggered whenever a creature an opponent controls dies: deal 1 damage to controller of that creature
+}

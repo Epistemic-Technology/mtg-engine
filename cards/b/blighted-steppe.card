@@ -1,0 +1,6 @@
+card "Blighted Steppe" {
+  oracle_id db16a2fb-dc42-4086-9928-52076043097f
+  type Land
+  mana {C}
+  activated {3}{W}, {T}, sacrifice this: you gain count each 2 creature you control life
+}
