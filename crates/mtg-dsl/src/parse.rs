@@ -8344,41 +8344,8 @@ impl P {
                 wording: ThisWayWording::You,
             });
         }
-        // `you discard land card this way`: "If you discard a land card
-        // this way".
-        if self.eat_words(&["you", "discard"]) {
-            let (filter, card) = self.this_way_what()?;
-            self.expect_words(&["this", "way"])?;
-            return Ok(ThisWayCond {
-                verb: mtg_core::card::ThisWay::Discarded,
-                filter,
-                card,
-                negated: false,
-                wording: ThisWayWording::YouNow,
-            });
-        }
-        // `you drew cards this way`: "If you draw one or more cards this
-        // way".
-        if self.eat_words(&["you", "drew", "cards", "this", "way"]) {
-            return Ok(ThisWayCond {
-                verb: mtg_core::card::ThisWay::PutInHand,
-                filter: None,
-                card: true,
-                negated: false,
-                wording: ThisWayWording::Drew,
-            });
-        }
-        // `you returned Squirrel card to hand this way`.
-        if self.eat_words(&["you", "returned"]) {
-            let (filter, card) = self.this_way_what()?;
-            self.expect_words(&["to", "hand", "this", "way"])?;
-            return Ok(ThisWayCond {
-                verb: mtg_core::card::ThisWay::PutInHand,
-                filter,
-                card,
-                negated: false,
-                wording: ThisWayWording::Returned,
-            });
+        if let Some(c) = self.this_way_you_wordings()? {
+            return Ok(c);
         }
         if self.eat_word("you") {
             let verb = if self.eat_word("put") {
@@ -8436,6 +8403,51 @@ impl P {
             negated: false,
             wording,
         })
+    }
+
+    /// `you discard land card this way`, `you drew cards this way`, `you
+    /// returned Squirrel card to hand this way`: the "this way" checks
+    /// worded other than `you <verb>ed`; `None` (nothing consumed)
+    /// otherwise.
+    fn this_way_you_wordings(&mut self) -> R<Option<crate::ast::ThisWayCond>> {
+        use crate::ast::{ThisWayCond, ThisWayWording};
+        // `you discard land card this way`: "If you discard a land card
+        // this way".
+        if self.eat_words(&["you", "discard"]) {
+            let (filter, card) = self.this_way_what()?;
+            self.expect_words(&["this", "way"])?;
+            return Ok(Some(ThisWayCond {
+                verb: mtg_core::card::ThisWay::Discarded,
+                filter,
+                card,
+                negated: false,
+                wording: ThisWayWording::YouNow,
+            }));
+        }
+        // `you drew cards this way`: "If you draw one or more cards this
+        // way".
+        if self.eat_words(&["you", "drew", "cards", "this", "way"]) {
+            return Ok(Some(ThisWayCond {
+                verb: mtg_core::card::ThisWay::PutInHand,
+                filter: None,
+                card: true,
+                negated: false,
+                wording: ThisWayWording::Drew,
+            }));
+        }
+        // `you returned Squirrel card to hand this way`.
+        if self.eat_words(&["you", "returned"]) {
+            let (filter, card) = self.this_way_what()?;
+            self.expect_words(&["to", "hand", "this", "way"])?;
+            return Ok(Some(ThisWayCond {
+                verb: mtg_core::card::ThisWay::PutInHand,
+                filter,
+                card,
+                negated: false,
+                wording: ThisWayWording::Returned,
+            }));
+        }
+        Ok(None)
     }
 
     /// `card`, `<filter> card`, or `<filter>`.
