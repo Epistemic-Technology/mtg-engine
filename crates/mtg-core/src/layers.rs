@@ -133,6 +133,10 @@ impl Work<'_> {
                 let c = &self.chars[self.index[id]];
                 affectable
                     && filter.matches(*id, self.controller_of(*id), c, source, controller)
+                    // "Commander creatures you own" (Flaming Fist): the
+                    // effect's controller owns it.
+                    && (!filter.status.you_own
+                        || controller.is_some_and(|p| self.state.objects[*id].owner == p))
                     && self.status_ok_working(&rest, *id, c)
                     && (!attached || self.attached_ok(filter, *id))
             })

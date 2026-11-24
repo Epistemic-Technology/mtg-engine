@@ -862,6 +862,7 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[**id];
                         that.is_none_or(|p| o.controller == p)
+                            && (!f.status.you_own || o.owner == you)
                             && host.is_none_or(|h| h.is_some() && o.attached_to == h)
                             && self.characteristics(**id).is_some_and(|c| {
                                 f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
