@@ -9888,6 +9888,12 @@ pub struct CardDef {
     /// creature" (negative) or "{2} more ... a Dragon": generic mana, and
     /// what the first target must match.
     pub target_cost: Option<Box<(i32, ObjFilter)>>,
+    /// With `target_cost`: one mana of each of these colors less too
+    /// ("This spell costs {1}{U} less to cast if it targets an instant or
+    /// sorcery spell", CR 118.7b: generic mana instead where the cost has
+    /// none of that color).
+    #[serde(default)]
+    pub target_cost_colors: crate::mana::ColorSet,
     /// "This spell costs {3} less to cast if a creature died this turn":
     /// generic mana, and the pool's condition index.
     pub cond_cost: Option<(i32, u16)>,
@@ -12747,6 +12753,7 @@ impl Builder {
             aura_stays: false,
             strive: None,
             target_cost: None,
+            target_cost_colors: crate::mana::ColorSet::default(),
             uncounterable: false,
             uncounterable_if: None,
             cond_cost: None,
@@ -13310,6 +13317,13 @@ impl Builder {
     #[must_use]
     pub fn target_cost(mut self, delta: i32, filter: ObjFilter) -> Self {
         self.0.target_cost = Some(Box::new((delta, filter)));
+        self
+    }
+
+    /// The colored part of a target cost reduction (see
+    /// `CardDef::target_cost_colors`).
+    pub fn target_cost_colors(mut self, colors: crate::mana::ColorSet) -> Self {
+        self.0.target_cost_colors = colors;
         self
     }
 

@@ -19229,11 +19229,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         ),
         Ability::TargetCost {
             delta,
+            colors,
             filter,
             noun,
         } => format!(
-            "This spell costs {{{}}} {} to cast if it targets {}.",
-            delta.unsigned_abs(),
+            "This spell costs {} {} to cast if it targets {}.",
+            crate::format::target_cost_mana(*delta, colors),
             if *delta < 0 { "less" } else { "more" },
             match noun {
                 crate::ast::TargetNoun::Permanent => filter_a(filter, card),

@@ -49,3 +49,28 @@ scenario "has an Adventure: Stoke Genius discards the hand and draws two" {
   assert hand A count 2
   assert exile A contains "Hearth Elemental"
 }
+
+scenario "creature spell that has an Adventure: Garenbrig Squire gets +1/+1" {
+  battlefield A: "Garenbrig Squire", 2 "Plains"
+  hand A: "Heartflame Duelist"
+  turn 1 A: cast "Heartflame Duelist"
+  run_to turn 1 postcombat_main
+  assert power "Garenbrig Squire" 3
+}
+
+scenario "creature spell that has an Adventure: not the Adventure spell itself" {
+  battlefield A: "Garenbrig Squire", 3 "Mountain"
+  hand A: "Heartflame Duelist"
+  turn 1 A: cast "Heartflame Slash" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Garenbrig Squire" 2
+  assert life B 17
+}
+
+scenario "creature spell that has an Adventure: not a creature without one" {
+  battlefield A: "Garenbrig Squire", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Garenbrig Squire" 2
+}

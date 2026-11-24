@@ -1,0 +1,7 @@
+card "Brush Off" {
+  oracle_id 873694c0-c100-4d24-a74f-1ab26442dd18
+  cost {2}{U}{U}
+  type Instant
+  this spell costs {1}{U} less if it targets spell instant or sorcery
+  spell: counter target spell
+}

@@ -7917,13 +7917,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::TargetCost {
             delta,
+            colors,
             filter: f,
             noun,
         } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{}}} {} if it targets {}{}",
-                delta.unsigned_abs(),
+                "{indent}this spell costs {} {} if it targets {}{}",
+                target_cost_mana(*delta, colors),
                 if *delta < 0 { "less" } else { "more" },
                 match noun {
                     crate::ast::TargetNoun::Permanent => "",
@@ -8898,4 +8899,16 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from other than hand",
     }
+}
+
+/// "{1}{U}": a target cost change's generic amount and colored symbols.
+pub fn target_cost_mana(delta: i32, colors: &[mtg_core::mana::Color]) -> String {
+    let mut s = String::new();
+    if delta != 0 || colors.is_empty() {
+        s.push_str(&format!("{{{}}}", delta.unsigned_abs()));
+    }
+    for c in colors {
+        s.push_str(&format!("{{{}}}", c.letter()));
+    }
+    s
 }

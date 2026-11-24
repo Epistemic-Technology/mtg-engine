@@ -2881,7 +2881,20 @@ impl P {
             }
             "this" if self.at_words(&["this", "spell", "costs"]) => {
                 self.pos += 3;
-                let per = self.mana_cost()?.mana_value();
+                let cost = self.mana_cost()?;
+                // "{1}{U} less if it targets ...": colored symbols apart.
+                let colors: Vec<mtg_core::mana::Color> = cost
+                    .symbols()
+                    .iter()
+                    .filter_map(|s| match s {
+                        mtg_core::mana::ManaSymbol::Colored(c) => Some(*c),
+                        _ => None,
+                    })
+                    .collect();
+                let per = cost.mana_value() - u32::try_from(colors.len()).unwrap_or(0);
+                if !colors.is_empty() && !self.at_words(&["less", "if", "it", "targets"]) {
+                    return self.fail("only a target cost reduction may have colored mana");
+                }
                 if self.at_words(&["less", "if", "it", "targets"])
                     || self.at_words(&["more", "if", "it", "targets"])
                 {
@@ -2899,6 +2912,7 @@ impl P {
                     let n = i32::try_from(per).unwrap_or(0);
                     return Ok(Ability::TargetCost {
                         delta: if less { -n } else { n },
+                        colors,
                         filter,
                         noun,
                     });

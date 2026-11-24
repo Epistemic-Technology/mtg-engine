@@ -7088,6 +7088,7 @@ impl GameState {
                     })))
         {
             adjust_generic(&mut req, tc.0);
+            ways::reduce_colors(&mut req, def.target_cost_colors);
         }
         let sources = self.spell_sources(spell);
         let ps = self.player(o.controller);

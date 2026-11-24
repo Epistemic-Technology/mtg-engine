@@ -1921,6 +1921,9 @@ pub enum Ability {
     /// more if it targets Dragon`.
     TargetCost {
         delta: i32,
+        /// `this spell costs {1}{U} less if it targets ...`: the colored
+        /// symbols of the reduction (one mana of each color).
+        colors: Vec<mtg_core::mana::Color>,
         filter: Filter,
         /// `if it targets spell creature`: "a creature spell"; `if it
         /// targets card creature with mana value 3 or less`: "a creature

@@ -925,7 +925,11 @@ targets are then held to ones the caster can pay for. `if it targets
 spell creature` is "a creature spell", `if it targets card creature with
 mana value 3 or less` "a creature card with mana value 3 or less", and
 `if it targets attacking or tapped creature` "an attacking or tapped
-creature". More conditions: `night` ("it's night", CR 731), `gained 3
+creature". `this spell costs {1}{U} less if it targets spell instant or
+sorcery` ("This spell costs {1}{U} less to cast if it targets an instant
+or sorcery spell.") also takes one mana of each colored symbol off (CR
+118.7b: generic mana where the cost has none of that color); only a
+reduction by a target may have colored symbols. More conditions: `night` ("it's night", CR 731), `gained 3
 life this turn` ("you've gained 3 or more life this turn", in all),
 `committed crime this turn` ("you've committed a crime this turn", CR
 700.13: a spell or ability you control targeted an opponent, a permanent

@@ -588,9 +588,21 @@ impl Compiler<'_> {
                         times: *times,
                     });
                 }
-                Ability::TargetCost { delta, filter, .. } => {
+                Ability::TargetCost {
+                    delta,
+                    filter,
+                    colors,
+                    ..
+                } => {
                     let f = self.filter(filter);
                     b = b.target_cost(*delta, f);
+                    if !colors.is_empty() {
+                        b = b.target_cost_colors(
+                            colors
+                                .iter()
+                                .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
+                        );
+                    }
                 }
                 Ability::Uncounterable => {
                     b = b.uncounterable();
