@@ -5916,17 +5916,58 @@ fn block_pair_text(
 }
 
 /// "whenever you draw your second card each turn".
-pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool) -> String {
-    let nth = match n {
+pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool, or_next: bool) -> String {
+    let ord = |n: u8| match n {
         1 => "first",
         2 => "second",
         _ => "third",
+    };
+    let nth = if or_next {
+        format!("{} or {}", ord(n), ord(n + 1))
+    } else {
+        ord(n).to_string()
     };
     let turn = if in_a_turn { "in a turn" } else { "each turn" };
     match whose {
         Who::Opponents => format!("whenever an opponent draws their {nth} card {turn}"),
         Who::Any => format!("whenever a player draws their {nth} card {turn}"),
         Who::You => format!("whenever you draw your {nth} card {turn}"),
+    }
+}
+
+/// `whenever you play a land` and kin (the same in the DSL and Oracle).
+pub(crate) fn plays_land_words(whose: Who, from_exile: bool, or_cast: bool) -> String {
+    let (subject, play, cast) = match whose {
+        Who::You => ("you", "play", "cast"),
+        Who::Any => ("a player", "plays", "casts"),
+        Who::Opponents => ("an opponent", "plays", "casts"),
+    };
+    let from = if from_exile { " from exile" } else { "" };
+    let mut s = format!("whenever {subject} {play} a land{from}");
+    if or_cast {
+        s.push_str(&format!(" or {cast} a spell{from}"));
+    }
+    s
+}
+
+/// `whenever enchanted player is dealt damage` and kin (the same in the
+/// DSL and Oracle).
+pub(crate) fn player_dealt_damage_words(enchanted: bool, combat: bool) -> &'static str {
+    match (enchanted, combat) {
+        (true, false) => "whenever enchanted player is dealt damage",
+        (true, true) => "whenever enchanted player is dealt combat damage",
+        (false, false) => "whenever you're dealt damage",
+        (false, true) => "whenever you're dealt combat damage",
+    }
+}
+
+/// `whenever an opponent searches their library` and kin (the same in
+/// the DSL and Oracle).
+pub(crate) fn searches_words(whose: Who) -> &'static str {
+    match whose {
+        Who::Opponents => "whenever an opponent searches their library",
+        Who::Any => "whenever a player searches their library",
+        Who::You => "whenever you search your library",
     }
 }
 
@@ -6353,7 +6394,8 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             whose,
             n,
             in_a_turn,
-        } => draws_nth(*whose, *n, *in_a_turn),
+            or_next,
+        } => draws_nth(*whose, *n, *in_a_turn, *or_next),
         Trigger::BecomesTargetWhenever(o) => {
             format!("whenever {} becomes targeted", trigger_obj(o))
         }
@@ -6584,6 +6626,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::Discovers => "whenever you discover".to_string(),
         Trigger::SolvesCase => "whenever you solve a Case".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
+        Trigger::Searches { whose } => searches_words(*whose).to_string(),
+        Trigger::PlaysLand {
+            whose,
+            from_exile,
+            or_cast,
+        } => plays_land_words(*whose, *from_exile, *or_cast),
+        Trigger::PlayerDealtDamage { enchanted, combat } => {
+            player_dealt_damage_words(*enchanted, *combat).to_string()
+        }
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
             filter(f)
@@ -8202,6 +8253,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(crate::ast::TrigCond::Outstats) => {
                     head.push_str(" if its power or toughness greater than this");
+                    None
+                }
+                Some(crate::ast::TrigCond::InGraveyard) => {
+                    head.push_str(" while in graveyard");
                     None
                 }
                 Some(crate::ast::TrigCond::ItsStat {

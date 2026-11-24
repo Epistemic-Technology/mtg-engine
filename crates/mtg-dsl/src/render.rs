@@ -15541,6 +15541,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Discovers => "whenever you discover".to_string(),
         Trigger::SolvesCase => "whenever you solve a Case".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
+        Trigger::Searches { whose } => crate::format::searches_words(*whose).to_string(),
+        Trigger::PlaysLand {
+            whose,
+            from_exile,
+            or_cast,
+        } => crate::format::plays_land_words(*whose, *from_exile, *or_cast),
+        Trigger::PlayerDealtDamage { enchanted, combat } => {
+            crate::format::player_dealt_damage_words(*enchanted, *combat).to_string()
+        }
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
             controller_first(f, filter_phrase(f, ctx.card, true))
@@ -15717,6 +15726,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 || f.not_types.contains(&CardType::Land)
                 // `whenever a creature dies`: the older wording.
                 || f.article
+                // A card in a graveyard is no creature dying (CR 400.7).
+                || works_from_graveyard(ctx.current)
             {
                 format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {
@@ -16388,7 +16399,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             whose,
             n,
             in_a_turn,
-        } => crate::format::draws_nth(*whose, *n, *in_a_turn),
+            or_next,
+        } => crate::format::draws_nth(*whose, *n, *in_a_turn, *or_next),
         Trigger::TargetedByYouFirstTime => format!(
             "whenever {} becomes the target of a spell or ability you control for the first time each turn",
             this(ctx)
@@ -20940,6 +20952,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     } else {
                         ", if it had a counter on it"
                     });
+                }
+                // "Whenever a creature you control dies while this card is
+                // in your graveyard" (Furious Forebear).
+                Some(crate::ast::TrigCond::InGraveyard) => {
+                    out.push_str(" while this card is in your graveyard");
                 }
                 Some(crate::ast::TrigCond::Outstats) => {
                     let this = this_ref(card);

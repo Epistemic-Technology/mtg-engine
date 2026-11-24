@@ -2485,6 +2485,10 @@ pub enum TrigCond {
     /// the event happens ("Whenever this creature attacks while you control
     /// two or more artifacts, ...").
     While(StaticCond),
+    /// `while in graveyard` after a `triggered from graveyard` ability's
+    /// trigger: "while this card is in your graveyard" (Furious
+    /// Forebear). Wording only: such an ability works only from there.
+    InGraveyard,
     /// `if it had counter`, `if it had one or more counters`: the core
     /// `TriggerHadCounters` ("if it had counters on it") printed "if it had
     /// a counter on it" (Leader's Talent) or "if it had one or more
@@ -4463,6 +4467,9 @@ pub enum Trigger {
         whose: Who,
         n: u8,
         in_a_turn: bool,
+        /// `whenever you draw your first or second card each turn`: the
+        /// `n`th card or the next.
+        or_next: bool,
     },
     /// A trigger that would print "Whenever" printed "When" ("When this
     /// creature blocks, return it to its owner's hand"): written `when`.
@@ -4579,6 +4586,27 @@ pub enum Trigger {
     SolvesCase,
     /// `whenever you forage` (CR 701.61).
     Forages,
+    /// `whenever an opponent searches their library` (CR 701.19; `you
+    /// search your library`, `a player searches their library`).
+    Searches {
+        whose: Who,
+    },
+    /// `whenever you play a land` (CR 305.1), `... a land from exile`,
+    /// `... or cast a spell` (The Endstone: one ability with both events),
+    /// `whenever you play a land from exile or cast a spell from exile`
+    /// (Ghost-Spider).
+    PlaysLand {
+        whose: Who,
+        from_exile: bool,
+        or_cast: bool,
+    },
+    /// `whenever enchanted player is dealt damage` (a Curse's player),
+    /// `whenever you're dealt combat damage`, `whenever you're dealt
+    /// damage`: that player is `that player` ("they").
+    PlayerDealtDamage {
+        enchanted: bool,
+        combat: bool,
+    },
     /// `whenever one or more creature you control deal combat damage to a
     /// player`, `... one or more Ally you control ...` (once per player,
     /// CR 603.2c).

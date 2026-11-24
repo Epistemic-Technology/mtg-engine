@@ -8420,6 +8420,23 @@ pub enum TriggerSpec {
     SolvesCase { whose: Who },
     /// "Whenever you forage" (CR 701.61).
     Forages { whose: Who },
+    /// "Whenever you play a land" (CR 305.1; not a land put onto the
+    /// battlefield otherwise), `from`: "a land from exile". The land is
+    /// the triggering object, its player the triggering player.
+    PlaysLand {
+        whose: Who,
+        from: Option<crate::state::Zone>,
+    },
+    /// "Whenever you're dealt combat damage" (`combat`), "Whenever
+    /// enchanted player is dealt damage" (`enchanted`: the player the
+    /// source, a Curse, is attached to; otherwise its controller): once
+    /// per damage event to that player, who is the triggering player, the
+    /// damage the trigger's amount.
+    PlayerDealtDamage { enchanted: bool, combat: bool },
+    /// "Whenever an opponent searches their library" (CR 701.19): once
+    /// per search a player matching `whose` makes of their own library,
+    /// whatever it finds; that player is the triggering player.
+    Searches { whose: Who },
     /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
     /// during your turn". The controller is the triggering player.
     CommitsCrime { your_turn: bool },
@@ -8544,8 +8561,14 @@ pub enum TriggerSpec {
     /// turned face up" (CR 708.8), the permanent judged face up.
     TurnedFaceUp(TriggerObj),
     /// "Whenever you draw your second card each turn": the `n`th card a
-    /// player draws in a turn.
-    DrawsNth { whose: Who, n: u8 },
+    /// player draws in a turn; with `or_next`, "your first or second card
+    /// each turn" (Lady Octopus), the `n`th or the next.
+    DrawsNth {
+        whose: Who,
+        n: u8,
+        #[serde(default)]
+        or_next: bool,
+    },
     /// "When this creature exploits a creature" (CR 702.110): queued by
     /// the exploit trigger itself, never by an event.
     Exploits,
@@ -9000,7 +9023,8 @@ impl TriggerSpec {
             | TriggerSpec::DealsDamageAtLeast(..)
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
-            | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
+            | TriggerSpec::DealsDamageTo { .. }
+            | TriggerSpec::PlayerDealtDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_)
             | TriggerSpec::TappedForTeamwork(_)
             | TriggerSpec::BecomesUntapped(_)
@@ -9021,6 +9045,7 @@ impl TriggerSpec {
             | TriggerSpec::CastsFiltered { .. }
             | TriggerSpec::CastsNth { .. }
             | TriggerSpec::CastThis
+            | TriggerSpec::PlaysLand { .. }
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedBy { .. }
@@ -9050,6 +9075,7 @@ impl TriggerSpec {
             | TriggerSpec::Discovers { .. }
             | TriggerSpec::SolvesCase { .. }
             | TriggerSpec::Forages { .. }
+            | TriggerSpec::Searches { .. }
             | TriggerSpec::OpponentGainsControl
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_)

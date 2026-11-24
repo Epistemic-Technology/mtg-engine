@@ -1,0 +1,8 @@
+card "Lady Octopus, Inspired Inventor" {
+  oracle_id 8e51fdb8-4f83-4e94-b36c-40a501075ecb
+  cost {U}
+  type Legendary Creature — Human Scientist Villain
+  pt 0/2
+  triggered whenever you draw your first or second card each turn: put 1 ingenuity counter on this
+  activated {T}: cast free artifact spell from hand with mana value up to count each ingenuity counters on this
+}

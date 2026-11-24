@@ -6156,9 +6156,12 @@ impl Compiler<'_> {
             Trigger::HauntedDies => TriggerSpec::Dies(CoreTriggerObj::This),
             Trigger::BecomesPlotted => TriggerSpec::BecomesPlotted,
             Trigger::Foretells => TriggerSpec::Foretells,
-            Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
+            Trigger::DrawsNth {
+                whose, n, or_next, ..
+            } => TriggerSpec::DrawsNth {
                 whose: *whose,
                 n: *n,
+                or_next: *or_next,
             },
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
             Trigger::TappedForTeamwork(o) => TriggerSpec::TappedForTeamwork(self.trigger_obj(o)),
@@ -6281,6 +6284,42 @@ impl Compiler<'_> {
             Trigger::Discovers => TriggerSpec::Discovers { whose: Who::You },
             Trigger::SolvesCase => TriggerSpec::SolvesCase { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
+            Trigger::Searches { whose } => TriggerSpec::Searches { whose: *whose },
+            Trigger::PlaysLand {
+                whose,
+                from_exile,
+                or_cast,
+            } => {
+                let land = TriggerSpec::PlaysLand {
+                    whose: *whose,
+                    from: from_exile.then_some(mtg_core::state::Zone::Exile),
+                };
+                if !*or_cast {
+                    land
+                } else if *from_exile {
+                    TriggerSpec::Either(Box::new((
+                        land,
+                        TriggerSpec::CastsNth {
+                            whose: *whose,
+                            nth: mtg_core::card::SpellOrdinal::FromExile,
+                        },
+                    )))
+                } else {
+                    TriggerSpec::Either(Box::new((
+                        land,
+                        TriggerSpec::CastsSpell {
+                            whose: *whose,
+                            noncreature: false,
+                            instant_or_sorcery: false,
+                            or_copy: false,
+                        },
+                    )))
+                }
+            }
+            Trigger::PlayerDealtDamage { enchanted, combat } => TriggerSpec::PlayerDealtDamage {
+                enchanted: *enchanted,
+                combat: *combat,
+            },
             Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {
                 TriggerSpec::CreaturesDealCombatDamage(self.filter(f))
@@ -6925,6 +6964,14 @@ impl Compiler<'_> {
                     }
                     Some(crate::ast::TrigCond::Outstats) => {
                         Some(mtg_core::card::Condition::Evolves)
+                    }
+                    // Wording: the ability works only from the graveyard.
+                    Some(crate::ast::TrigCond::InGraveyard) => {
+                        if !*from_graveyard {
+                            return self
+                                .err("`while in graveyard` needs `triggered from graveyard`");
+                        }
+                        None
                     }
                     Some(crate::ast::TrigCond::ItsStat { stat, cmp, n, .. }) => {
                         let mut f = ObjFilter::default();

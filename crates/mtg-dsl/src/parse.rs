@@ -4419,7 +4419,9 @@ impl P {
                 // "attacks while saddled", "attacks while you control two
                 // or more artifacts": a trigger condition, not an
                 // intervening "if" (CR 603.2, 603.4).
-                let condition = if self.eat_word("while") {
+                let condition = if self.eat_words(&["while", "in", "graveyard"]) {
+                    Some(crate::ast::TrigCond::InGraveyard)
+                } else if self.eat_word("while") {
                     Some(crate::ast::TrigCond::While(self.static_cond()?))
                 } else if self.eat_words(&["during", "your", "turn"]) {
                     // "Whenever a land enters during your turn": a trigger
@@ -19030,6 +19032,12 @@ impl P {
                 "third" => 3,
                 _ => return self.fail(format!("expected an ordinal, found `{w}`")),
             };
+            // "your first or second card each turn" (Lady Octopus).
+            let or_next = match n {
+                1 => self.eat_words(&["or", "second"]),
+                2 => self.eat_words(&["or", "third"]),
+                _ => false,
+            };
             self.expect_word("card")?;
             let in_a_turn = self.eat_words(&["in", "a", "turn"]);
             if !in_a_turn {
@@ -19039,6 +19047,7 @@ impl P {
                 whose,
                 n,
                 in_a_turn,
+                or_next,
             });
         }
         // CR 603.2c: "you discard one or more cards", "a player discards
@@ -19111,6 +19120,65 @@ impl P {
         }
         if self.eat_words(&["you", "forage"]) {
             return Ok(Trigger::Forages);
+        }
+        // CR 305.1: "you play a land [from exile] [or cast a spell [from
+        // exile]]".
+        for (words, whose) in [
+            (&["you", "play", "a", "land"][..], Who::You),
+            (&["a", "player", "plays", "a", "land"][..], Who::Any),
+            (
+                &["an", "opponent", "plays", "a", "land"][..],
+                Who::Opponents,
+            ),
+        ] {
+            if self.eat_words(words) {
+                let from_exile = self.eat_words(&["from", "exile"]);
+                let or_cast = match whose {
+                    Who::You => self.eat_words(&["or", "cast", "a", "spell"]),
+                    _ => self.eat_words(&["or", "casts", "a", "spell"]),
+                };
+                if or_cast && from_exile {
+                    self.expect_words(&["from", "exile"])?;
+                }
+                return Ok(Trigger::PlaysLand {
+                    whose,
+                    from_exile,
+                    or_cast,
+                });
+            }
+        }
+        // "enchanted player is dealt damage", "you're dealt combat damage".
+        if self.eat_words(&["enchanted", "player", "is", "dealt"]) {
+            let combat = self.eat_word("combat");
+            self.expect_word("damage")?;
+            return Ok(Trigger::PlayerDealtDamage {
+                enchanted: true,
+                combat,
+            });
+        }
+        if self.eat_words(&["you're", "dealt"]) {
+            let combat = self.eat_word("combat");
+            self.expect_word("damage")?;
+            return Ok(Trigger::PlayerDealtDamage {
+                enchanted: false,
+                combat,
+            });
+        }
+        // CR 701.19: "an opponent searches their library".
+        for (words, whose) in [
+            (
+                &["an", "opponent", "searches", "their", "library"][..],
+                Who::Opponents,
+            ),
+            (
+                &["a", "player", "searches", "their", "library"][..],
+                Who::Any,
+            ),
+            (&["you", "search", "your", "library"][..], Who::You),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Trigger::Searches { whose });
+            }
         }
         // CR 122.6: "you put one or more +1/+1 counters on a creature you
         // control".
@@ -21625,6 +21693,8 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::Discovers
         | Trigger::SolvesCase
         | Trigger::Forages
+        | Trigger::Searches { .. }
+        | Trigger::PlayerDealtDamage { .. }
         | Trigger::CreaturesDealCombatDamage(_)
         | Trigger::CreaturesDealDamage(_)
         | Trigger::CommitsCrime { .. } => true,

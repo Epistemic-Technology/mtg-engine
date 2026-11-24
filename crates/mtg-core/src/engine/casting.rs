@@ -12078,11 +12078,13 @@ impl GameState {
                 vec![Choice::Accept, Choice::Decline],
             );
             if k == 0 {
+                let from = self.objects[card].zone;
                 let new = self.put_onto_battlefield(card, p);
                 self.player_mut(p).lands_played_this_turn += 1;
                 self.emit(Event::LandPlayed {
                     player: p,
                     land: new,
+                    from,
                 });
                 ctx.did = true;
             }
@@ -12289,6 +12291,10 @@ impl GameState {
                     .get(*id)
                     .is_some_and(|o| o.zone == Zone::Library)
             });
+        // "Whenever an opponent searches their library" (CR 701.19).
+        if from_library {
+            self.emit(Event::Searched { player: p });
+        }
         let mut top = Vec::new();
         // Cultivate: the searcher chooses the one that goes onto the
         // battlefield tapped; the other goes to the hand (one found
@@ -19043,11 +19049,13 @@ impl GameState {
                             vec![Choice::Accept, Choice::Decline],
                         );
                         if k == 0 {
+                            let from = self.objects[card].zone;
                             let new = self.put_onto_battlefield(card, me);
                             self.player_mut(me).lands_played_this_turn += 1;
                             self.emit(Event::LandPlayed {
                                 player: me,
                                 land: new,
+                                from,
                             });
                         }
                     } else {
