@@ -42,3 +42,45 @@ scenario "Writ of Passage: a power-3 attacker can be blocked" {
   run_to turn 1 postcombat_main
   assert life B 20
 }
+
+# "If you discard a land card this way, put it from your graveyard onto
+# the battlefield tapped" (`if you discard land card this way, put it
+# from graveyard onto battlefield tapped`).
+
+scenario "Silvan Reveler: a discarded land is put onto the battlefield tapped" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Silvan Reveler", "Shock"
+  library A: "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Silvan Reveler"
+  turn 1 precombat_main A: discard "Plains"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+  assert hand A contains "Shock"
+  assert graveyard A lacks "Plains"
+}
+
+scenario "Silvan Reveler: a discarded nonland card stays in the graveyard" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Silvan Reveler", "Plains"
+  library A: "Shock", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Silvan Reveler"
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Shock"
+  assert hand A contains "Plains"
+  assert battlefield A lacks "Plains"
+}
+
+scenario "Silvan Reveler: landfall returns it from the graveyard for {1}{G}{U}" {
+  battlefield A: 2 "Forest", "Island"
+  hand A: "Plains"
+  graveyard A: "Silvan Reveler"
+  start turn 1 A precombat_main
+  turn 1 A: play "Plains"
+  turn 1 A: accept "Silvan Reveler"
+  run_to turn 1 begin_combat
+  assert hand A contains "Silvan Reveler"
+}

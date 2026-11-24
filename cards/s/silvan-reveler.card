@@ -1,0 +1,8 @@
+card "Silvan Reveler" {
+  oracle_id 11932191-4b19-49b1-bfe4-abb7b83b2e59
+  cost {2}{G}{U}
+  type Creature — Elf Citizen
+  pt 3/2
+  triggered whenever this enters: draw 1 card then discard 1 card; if you discard land card this way, put it from graveyard onto battlefield tapped
+  label "Landfall" triggered from graveyard whenever land you control enters: you may pay {1}{G}{U}; if you do, return this to hand
+}

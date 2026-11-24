@@ -8344,6 +8344,19 @@ impl P {
                 wording: ThisWayWording::You,
             });
         }
+        // `you discard land card this way`: "If you discard a land card
+        // this way".
+        if self.eat_words(&["you", "discard"]) {
+            let (filter, card) = self.this_way_what()?;
+            self.expect_words(&["this", "way"])?;
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::Discarded,
+                filter,
+                card,
+                negated: false,
+                wording: ThisWayWording::YouNow,
+            });
+        }
         // `you drew cards this way`: "If you draw one or more cards this
         // way".
         if self.eat_words(&["you", "drew", "cards", "this", "way"]) {
@@ -8707,6 +8720,17 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        if self.eat_words(&[
+            "put",
+            "it",
+            "from",
+            "graveyard",
+            "onto",
+            "battlefield",
+            "tapped",
+        ]) {
+            return Ok(Effect::PutDiscardedIt);
+        }
         // `either [same] if <check>, if <check>, <sentence>`: either check
         // ("If you do or if you control another Dinosaur, ...").
         if self.at_word("either") && matches!(self.word_at(1).as_deref(), Some("if" | "same")) {

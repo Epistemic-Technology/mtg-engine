@@ -4248,7 +4248,11 @@ Saproling was sacrificed this way, ...`, `if you discarded card this way,
 your hand this way", Nashi), `if you returned Squirrel card to hand this
 way, ...` ("If you returned a Squirrel card to your hand this way"), `if
 you drew cards this way, ...` ("If you draw one or more cards this way":
-cards put into your hand, Transcendent Archaic),
+cards put into your hand, Transcendent Archaic), `if you discard land card
+this way, put it from graveyard onto battlefield tapped` ("If you discard
+a land card this way, put it from your graveyard onto the battlefield
+tapped.": the present tense, and the card discarded this way if it is
+still in the graveyard, Silvan Reveler),
 `if Dragon is damaged this way, ...` ("If a
 Dragon is dealt damage this way": a permanent the resolution dealt damage
 to, as it is or last existed, The Black Arrow) and `if player is damaged

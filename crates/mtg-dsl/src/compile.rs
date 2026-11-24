@@ -3530,6 +3530,7 @@ impl Compiler<'_> {
             by_you: matches!(
                 c.wording,
                 crate::ast::ThisWayWording::You
+                    | crate::ast::ThisWayWording::YouNow
                     | crate::ast::ThisWayWording::Returned
                     | crate::ast::ThisWayWording::Drew
             ),
@@ -5963,6 +5964,12 @@ impl Compiler<'_> {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfExcessDamage(then));
             }
+            Effect::PutDiscardedIt => out.push(CoreEffect::ChooseAct {
+                act: mtg_core::card::ChooseAct::DiscardedToBattlefield,
+                filter: mtg_core::card::ObjFilter::default(),
+                count: mtg_core::card::Num::N(1),
+                up_to: false,
+            }),
             Effect::Either { conds, then, .. } => {
                 let mut checks = Vec::new();
                 for c in conds {

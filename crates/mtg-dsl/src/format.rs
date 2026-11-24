@@ -3838,6 +3838,7 @@ impl Fmt {
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
+            Effect::PutDiscardedIt => "put it from graveyard onto battlefield tapped".to_string(),
             // `either if A, if B, <sentence>`: written nested, A's sentence
             // being B.
             Effect::Either { conds, then, same } => {
@@ -4593,6 +4594,7 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
         ThisWayWording::You => format!("you {verb} {what} this way"),
         ThisWayWording::Returned => format!("you returned {what} to hand this way"),
         ThisWayWording::Drew => "you drew cards this way".to_string(),
+        ThisWayWording::YouNow => format!("you discard {what} this way"),
         ThisWayWording::The(noun) => format!(
             "the {verb} {noun} {} {what}",
             if c.negated { "wasn't" } else { "was" }

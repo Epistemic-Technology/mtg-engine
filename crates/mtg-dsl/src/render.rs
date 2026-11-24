@@ -11465,6 +11465,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 body.trim_end_matches('.')
             ))
         }
+        Effect::PutDiscardedIt => Clause::imperative(
+            "put it from your graveyard onto the battlefield tapped".to_string(),
+        ),
         // "If that creature's power is 2 or less or if you control another
         // Lizard, ...": each check rendered as its own conditional with no
         // sentence, then joined.
@@ -14520,6 +14523,7 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
         ThisWayWording::You => format!("you {verb} {what} this way"),
         ThisWayWording::Returned => format!("you returned {what} to your hand this way"),
         ThisWayWording::Drew => "you draw one or more cards this way".to_string(),
+        ThisWayWording::YouNow => format!("you discard {what} this way"),
         ThisWayWording::The(noun) => {
             let pred = match (&c.filter, c.card) {
                 // "If the sacrificed creature was legendary".

@@ -7199,6 +7199,11 @@ pub enum Effect {
     /// that permanent this way, ...` (`true`): "If excess damage was dealt
     /// to that permanent this way, ..." (Violent Echoes; wording only).
     IfExcessDamage(Vec<Sentence>, bool),
+    /// `put it from graveyard onto battlefield tapped`, after `if you
+    /// discard land card this way`: "put it from your graveyard onto the
+    /// battlefield tapped" (Silvan Reveler): the card discarded this way,
+    /// still in the graveyard (`ChooseAct::DiscardedToBattlefield`).
+    PutDiscardedIt,
     /// `either if that target 1 is with power 2 or less, if you control
     /// other Lizard, <sentence>`: "If that creature's power is 2 or less or
     /// if you control another Lizard, ..."; `either same if you control
@@ -7337,6 +7342,9 @@ pub enum ThisWayWording {
     /// "If you discarded a card this way", "If you put an artifact card
     /// into your hand this way".
     You,
+    /// `you discard land card this way`: the present tense, "If you
+    /// discard a land card this way" (Silvan Reveler).
+    YouNow,
     /// `you returned Squirrel card to hand this way`: "returned a
     /// Squirrel card to your hand this way" (Cache Grab), put into the
     /// hand.
