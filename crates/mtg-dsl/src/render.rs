@@ -1500,6 +1500,10 @@ struct Ctx<'a> {
     /// each opponent"): a following "each opponent discards" is "Those
     /// players each discard" (Skull Rend).
     opponents_object: bool,
+    /// An activated ability's cost named the source ("Put a stun counter
+    /// on Jessica Jones"): a "where X is" count in an effect that doesn't
+    /// name it again names it ("where X is Jessica Jones's power").
+    cost_named: bool,
 }
 
 impl<'a> Ctx<'a> {
@@ -1546,6 +1550,7 @@ impl<'a> Ctx<'a> {
             x_defined: Vec::new(),
             x_pending: Vec::new(),
             opponents_object: false,
+            cost_named: false,
         }
     }
 
@@ -1907,6 +1912,8 @@ impl<'a> Ctx<'a> {
             Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
             Recipient::TheTriggeringController => "the creature's controller".to_string(),
             Recipient::OwnerOf(_) => "its owner".to_string(),
+            // "Gandalf's owner".
+            Recipient::SourceOwner => format!("{}'s owner", self.source_name()),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
             Recipient::DefendingPlayerWord => "defending player".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
@@ -2528,6 +2535,9 @@ impl<'a> Ctx<'a> {
             || r == Recipient::TriggeringThey
             || (Self::is_plural(r) && !self.each_group(r))
             || self.is_many(r)
+            // "The Neutrinos get +1/+0": a card with `pronoun they` takes
+            // plural verbs as itself.
+            || (r == Recipient::Source && self.card.pronoun == Some(crate::ast::Pronoun::They))
         {
             plural
         } else {
@@ -4534,7 +4544,14 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     };
     let mut parts = Vec::new();
     if x.not_legendary {
-        parts.push("it isn't legendary".to_string());
+        parts.push(
+            if x.its_not {
+                "it's not legendary"
+            } else {
+                "it isn't legendary"
+            }
+            .to_string(),
+        );
     }
     // "it's a Vehicle artifact in addition to its other types".
     if !x.subtypes.is_empty() || !x.types.is_empty() {
@@ -5340,6 +5357,17 @@ fn stat_word(s: mtg_core::card::Stat) -> &'static str {
 /// `count_phrase` with the clause's targets known: "that card's
 /// toughness" for a card targeted in a graveyard, "that permanent's mana
 /// value" for a target of several permanent types.
+/// Whether an activated ability's cost named the source and this clause
+/// doesn't: a "where X is" count about the source names it again ("{T},
+/// Put a stun counter on Jessica Jones: Exile the top X cards of your
+/// library, where X is Jessica Jones's power").
+fn named_in_cost_only(ctx: &Ctx, c: &Clause) -> bool {
+    ctx.cost_named
+        && c.subject.is_none()
+        && !c.text.contains(&ctx.source_name())
+        && !c.text.split(' ').any(|w| w == it_obj(ctx.card))
+}
+
 fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
     use crate::ast::CountExpr;
     // "equal to twice the number of Mountains returned this way" (sweep,
@@ -5375,6 +5403,13 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
             if !each && !ctx.source_mentioned && !ctx.in_delayed =>
         {
             phrase.replacen("its", &format!("{}'s", ctx.source_name()), 1)
+        }
+        // "{T}: Iron Fist deals damage equal to his power to any other
+        // target": a character's possessive once named.
+        CountExpr::SourcePower | CountExpr::SourceToughness
+            if !each && ctx.card.pronoun.is_some() =>
+        {
+            phrase.replacen("its", its_poss(ctx.card), 1)
         }
         _ => phrase,
     }
@@ -5484,7 +5519,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Effect::Dig { .. } | Effect::ExilePlayable { .. } | Effect::ExileTop { .. }
                 ) =>
             {
+                // "Exile the top X cards of your library, where X is Jessica
+                // Jones's power" after a cost naming her.
+                let mentioned = ctx.source_mentioned;
+                if named_in_cost_only(ctx, &c) {
+                    ctx.source_mentioned = false;
+                }
                 let phrase = count_phrase_in(&count.expr, ctx, false);
+                ctx.source_mentioned = mentioned;
                 c.text = c.text.replacen(
                     " cards of your library",
                     &format!(" cards of your library, where X is {phrase}"),
@@ -5551,6 +5593,12 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // (Rhovanion Rampager): "its" would read as the Army's.
                 let mentioned = ctx.source_mentioned;
                 if matches!(e, Effect::Amass { .. }) {
+                    ctx.source_mentioned = false;
+                }
+                // "{T}, Put a stun counter on Jessica Jones: Exile the top X
+                // cards of your library, where X is Jessica Jones's power":
+                // named only in the cost, the source is named again.
+                if named_in_cost_only(ctx, &c) {
                     ctx.source_mentioned = false;
                 }
                 // "tokens with \"This token can't block,\" where X is ...":
@@ -5826,7 +5874,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             })
         }
         // "it deals 4 damage instead": to what the sentence before named.
-        Effect::DealDamage { amount, to, by } if to.is_empty() => {
+        Effect::DealDamage { amount, to, by, .. } if to.is_empty() => {
             // "Addendum — If you cast this spell during your main phase,
             // it deals 5 damage instead."
             let s = if *by == Recipient::SourceIt {
@@ -5840,7 +5888,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("deals {} damage", digits(*amount)),
             )
         }
-        Effect::DealDamage { amount, to, by } => {
+        Effect::DealDamage {
+            amount,
+            to,
+            by,
+            that_amount,
+        } => {
             let s = ctx.subj(*by);
             // "deals X damage to any target and X damage to itself".
             let objs = if *by == Recipient::Source && to.as_slice() == [Recipient::Source] {
@@ -5868,7 +5921,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(
                 Recipient::Source,
                 s,
-                format!("deals {} damage to {objs}", digits(*amount)),
+                if *that_amount {
+                    format!("deals that amount of damage to {objs}")
+                } else {
+                    format!("deals {} damage to {objs}", digits(*amount))
+                },
             )
         }
         Effect::PumpVar {
@@ -6523,6 +6580,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::DrawReveal => Clause::imperative("draw a card and reveal it".to_string()),
+        Effect::DrawAnother => Clause::imperative("draw another card".to_string()),
         Effect::DiscardIt => Clause::imperative("discard it".to_string()),
         Effect::IfCard {
             filter,
@@ -6981,11 +7039,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let mut holder = ctx.card.blank();
                     holder.name.clone_from(&ctx.card.name);
                     holder.short_name.clone_from(&ctx.card.short_name);
+                    // "{T}: Iron Fist deals damage equal to his power".
+                    holder.pronoun = ctx.card.pronoun;
                     holder.supertypes.clone_from(&ctx.card.supertypes);
                     holder.types = vec![CardType::Creature];
                     holder.groups.clone_from(&ctx.card.groups);
                     holder.counts.clone_from(&ctx.card.counts);
-                    format!("\"{}\"", ability_text(&holder, ability, ctx.lookup))
+                    let mut text = ability_text(&holder, ability, ctx.lookup);
+                    // A granted power-setting ability is no characteristic-
+                    // defining ability (CR 604.3): "Ms. Marvel gains \"Ms.
+                    // Marvel's base power is equal to the number of cards in
+                    // your hand.\"".
+                    if let Ability::Static { mods, .. } = ability.as_ref()
+                        && mods.iter().any(|m| matches!(m, Mod::CdaPt { .. }))
+                    {
+                        text = text
+                            .replacen("'s power is equal to", "'s base power is equal to", 1)
+                            .replacen(
+                                "'s toughness is equal to",
+                                "'s base toughness is equal to",
+                                1,
+                            );
+                    }
+                    format!("\"{text}\"")
                 } else {
                     quoted(ability, ctx.card, CardType::Creature, ctx.lookup)
                 }
@@ -7680,6 +7756,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("put {o} onto the battlefield{tapped}")
             } else if *put {
                 format!("put {o} onto the battlefield{tapped} under its owner's control")
+            } else if *under_you && *attacking {
+                // "return it to the battlefield under your control tapped
+                // and attacking" (The Neutrinos).
+                format!("return {o} to the battlefield under your control{tapped}")
             } else if *under_you {
                 format!("return {o} to the battlefield{tapped} under your control")
             } else if yours
@@ -7935,6 +8015,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             each,
             no_also,
+            each_combat,
         } => {
             if keywords.as_slice() == [Keyword::Lure] {
                 let o = ctx.obj(*to);
@@ -7951,6 +8032,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         if *k == Keyword::MustAttack {
                             // "Those creatures attack this turn if able."
                             format!("{} this turn if able", ctx.verb(*to, "attacks", "attack"))
+                        } else if *each_combat && *k == Keyword::MustBeBlocked {
+                            "must be blocked each combat this turn if able".to_string()
                         } else if is_block_rule(*k) {
                             block_rule_this_turn(*k).to_string()
                         } else {
@@ -8530,6 +8613,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
                 P::Shuffle => "shuffles it into their library".to_string(),
             };
+            // "Gandalf's owner shuffles him into their library and draws
+            // three cards": the owner the subject of what follows.
+            if *what == Recipient::Source && *wording != W::OwnerOf {
+                let rest = rest.replacen(" it ", &format!(" {} ", it_obj(ctx.card)), 1);
+                return Clause::with_subject(Recipient::SourceOwner, owner, rest);
+            }
             Clause::imperative(format!("{owner} {rest}"))
         }
         Effect::SacrificeChosen {
@@ -10303,8 +10392,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             c
         }
         Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
-            let cond = static_cond_text(c, ctx.card);
+            let mut cond = static_cond_text(c, ctx.card);
             let body = sentences(inner, ctx);
+            // "put a bloodstain counter on this enchantment. Then sacrifice
+            // it if it has five or more bloodstain counters on it" (Blood
+            // Spatter Analysis): the source named before.
+            if matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
+                && ctx.source_mentioned
+                && !is_spell(ctx.card)
+            {
+                cond = cond.replacen(&this_ref(ctx.card), "it", 1);
+            }
             let body = body.trim_end_matches('.');
             // "copy it if you gained life this turn. You may choose new
             // targets for the copy."
@@ -10984,6 +11082,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             toughness,
         } => {
             let s = ctx.subj(*to);
+            // "until end of turn, Moon Girl and Devil Dinosaur's base power
+            // and toughness become 6/6 and they gain trample": a legendary
+            // source named here.
+            if *to == Recipient::Source
+                && !is_spell(ctx.card)
+                && ctx.card.kind != Kind::Token
+                && ctx.card.supertypes.contains(&Supertype::Legendary)
+                && s == short_name(ctx.card)
+            {
+                return Clause::imperative(format!(
+                    "{s}'s base power and toughness become {power}/{toughness}"
+                ))
+                .until_eot();
+            }
             // "up to two target creatures each have base power and
             // toughness 3/3" (Phantasmal Form).
             let each = if matches!(to, Recipient::Targets(..)) {
@@ -14714,7 +14826,21 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                     t.push_str(&count_phrase(&c.expr, card, false));
                 } else {
                     t.push(' ');
-                    t.push_str(&count_phrase(&c.expr, card, true));
+                    let mut p = count_phrase(&c.expr, card, true);
+                    // "Other creatures you control get +1/+0 for each Aura
+                    // and Equipment attached to Kellan": the source not
+                    // the subject, it is named.
+                    if filter.relation != Relation::This
+                        && let crate::ast::CountExpr::Permanents(f) = &c.expr
+                        && f.attached_to == Some(AttachedRef::Source)
+                    {
+                        p = p.replacen(
+                            &format!(" attached to {}", it_obj(card)),
+                            &format!(" attached to {}", this_ref(card)),
+                            1,
+                        );
+                    }
+                    t.push_str(&p);
                 }
             }
             t
@@ -15511,7 +15637,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 "it"
             }
         ),
-        StaticCond::WasCast => "you cast it".to_string(),
+        // "if you cast them" (Ran and Shaw, `pronoun they`).
+        StaticCond::WasCast => format!("you cast {}", it_obj(card)),
         // "if that creature entered from a graveyard or you cast it from a
         // graveyard" (Breathless Knight).
         StaticCond::CameFrom { zone, wording } => {
@@ -16713,6 +16840,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let mut ctx = Ctx::new(card, lookup, targets);
             ctx.current = Some(a);
             let c = cost_text(cost, &mut ctx);
+            ctx.cost_named = ctx.source_mentioned;
             let mut text = format!("{c}: {}", effects_after(effects, &mut ctx, false));
             // CR 702.142, 702.177, 702.193: the keyword prints before the
             // cost and its rules are reminder text.

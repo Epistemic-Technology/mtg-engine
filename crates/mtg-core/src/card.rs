@@ -3933,6 +3933,10 @@ pub enum Recipient {
     ControllerOf(usize),
     /// The owner of the `n`th target ("its owner").
     OwnerOf(usize),
+    /// The owner of the source, as it last existed if it has left its
+    /// zone ("Gandalf's owner shuffles him into their library and draws
+    /// three cards").
+    SourceOwner,
     /// The `n`th chosen target.
     Target(usize),
     /// Chosen targets `first..first + count` together ("up to two target

@@ -1,0 +1,9 @@
+card "Hellcat, Undying Vigilante" {
+  oracle_id 4c27ba61-6812-4dd7-8efc-65435a8df7b5
+  cost {G}{G}
+  type Legendary Creature — Human Hero
+  pt 2/2
+  pronoun she
+  keywords haste
+  triggered when this dies: return this to battlefield under its owner's control with 1 +1/+1 counter; this loses all abilities indefinitely and gains haste indefinitely
+}

@@ -1,0 +1,10 @@
+card "Ms. Marvel, Kamala Khan" {
+  oracle_id ebedff30-ae43-4861-aab2-afe1fc88337e
+  cost {2}{U}
+  type Legendary Creature — Mutant Inhuman Hero
+  pt 1/4
+  short_name "Ms. Marvel"
+  keywords reach, vigilance
+  hand size none
+  label "Embiggen Fist" triggered whenever you cast a spell that targets creature you control: draw 1 card; until end of turn, this gains ability { static this: cda power hand }
+}

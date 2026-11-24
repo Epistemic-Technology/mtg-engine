@@ -1,0 +1,14 @@
+card "Ran and Shaw" {
+  oracle_id a728685f-8670-4db2-ae02-3cf74eb3c402
+  cost {3}{R}{R}
+  type Legendary Creature — Dragon
+  pt 4/4
+  pronoun they
+  keywords flying
+  firebending 2
+  triggered when this enters if you cast it and 3 Dragon or Lesson cards in your graveyard: create token copy of this with exceptions
+  activated {3}{R}: each Dragon you control gets +2/+0
+  except {
+    its not legendary
+  }
+}

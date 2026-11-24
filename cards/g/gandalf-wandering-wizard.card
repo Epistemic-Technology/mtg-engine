@@ -1,0 +1,9 @@
+card "Gandalf, Wandering Wizard" {
+  oracle_id c996bc53-184d-4dc3-8244-e8d9528516a0
+  cost {4}{U}
+  type Legendary Creature — Avatar Wizard
+  pt 4/5
+  pronoun he
+  ward {3}
+  activated {6}: owner shuffles this into library and draws 3 cards
+}

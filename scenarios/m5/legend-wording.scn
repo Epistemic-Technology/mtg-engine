@@ -1,0 +1,303 @@
+# Wording for legends and plural names: plural verbs ("The Neutrinos
+# get"), pronouns ("shuffles him"), the name where "it" would print
+# ("where X is Jessica Jones's power", "attached to Kellan"), and the
+# cards the forms unlock.
+
+scenario "The Neutrinos: another creature entering pumps them" {
+  battlefield A: "The Neutrinos", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert power "The Neutrinos" 3
+  run_to turn 3 upkeep
+  assert power "The Neutrinos" 2
+}
+
+scenario "The Neutrinos: attacking, a creature you own returns tapped and attacking" {
+  battlefield A: "The Neutrinos", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "The Neutrinos"
+  turn 2 declare_attackers A: trigger "The Neutrinos" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  # The Bears re-enter (Alliance: The Neutrinos 3/4) and deal 2 as an attacker.
+  assert life B 15
+  assert tapped "Grizzly Bears"
+}
+
+scenario "The Neutrinos: no target, only The Neutrinos attack" {
+  battlefield A: "The Neutrinos", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "The Neutrinos"
+  turn 2 declare_attackers A: trigger "The Neutrinos" targeting none
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Ran and Shaw: cast with three Dragon and/or Lesson cards in the graveyard, a nonlegendary copy" {
+  battlefield A: 5 "Mountain"
+  hand A: "Ran and Shaw"
+  graveyard A: 2 "Shivan Dragon", "Airbending Lesson"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ran and Shaw"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Ran and Shaw"
+}
+
+scenario "Ran and Shaw: two such cards, no copy" {
+  battlefield A: 5 "Mountain"
+  hand A: "Ran and Shaw"
+  graveyard A: "Shivan Dragon", "Airbending Lesson", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ran and Shaw"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Ran and Shaw"
+}
+
+scenario "Ran and Shaw: Dragons you control get +2/+0" {
+  battlefield A: "Ran and Shaw", "Shivan Dragon", "Grizzly Bears", 4 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ran and Shaw"
+  run_to turn 2 begin_combat
+  assert power "Ran and Shaw" 6
+  assert power "Shivan Dragon" 7
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Jessica Jones: exile cards equal to her power, play them this turn" {
+  battlefield A: "Jessica Jones, Private Eye", "Mountain"
+  library A: "Lightning Bolt", "Shock", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Jessica Jones, Private Eye"
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert counters "Jessica Jones, Private Eye" stun 1
+  assert exile A contains "Shock"
+  assert library A contains "Forest"
+  assert life B 17
+}
+
+scenario "Kellan, the Fae-Blooded: other creatures get +1/+0 for each Aura and Equipment attached to Kellan" {
+  battlefield A: "Kellan, the Fae-Blooded // Birthright Boon", "Grizzly Bears", "Holy Strength" on "Kellan, the Fae-Blooded"
+  start turn 2 A precombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Kellan, the Fae-Blooded" 3
+}
+
+scenario "Birthright Boon: an Aura card from the library to the hand" {
+  battlefield A: 2 "Plains"
+  hand A: "Kellan, the Fae-Blooded // Birthright Boon"
+  library A: "Forest", "Holy Strength", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Birthright Boon"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Holy Strength"
+  assert exile A contains "Kellan, the Fae-Blooded"
+}
+
+scenario "Gandalf, Wandering Wizard: his owner shuffles him into their library and draws three cards" {
+  battlefield A: "Gandalf, Wandering Wizard", 6 "Island"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Gandalf, Wandering Wizard"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Gandalf, Wandering Wizard"
+  assert hand A count 3
+  assert library A count 2
+}
+
+scenario "Moon Girl and Devil Dinosaur: the second card drawn makes them 6/6 with trample" {
+  battlefield A: "Moon Girl and Devil Dinosaur", 3 "Island"
+  hand A: "Divination"
+  start turn 2 A
+  turn 2 A: cast "Divination"
+  run_to turn 2 begin_combat
+  assert power "Moon Girl and Devil Dinosaur" 6
+  assert toughness "Moon Girl and Devil Dinosaur" 6
+  assert has "Moon Girl and Devil Dinosaur" trample
+  run_to turn 3 upkeep
+  assert power "Moon Girl and Devil Dinosaur" 2
+}
+
+scenario "Moon Girl and Devil Dinosaur: only the first card drawn, no change" {
+  battlefield A: "Moon Girl and Devil Dinosaur"
+  start turn 2 A
+  run_to turn 2 begin_combat
+  assert power "Moon Girl and Devil Dinosaur" 2
+  assert has not "Moon Girl and Devil Dinosaur" trample
+}
+
+scenario "Moon Girl and Devil Dinosaur: artifacts entering draw only once each turn" {
+  battlefield A: "Moon Girl and Devil Dinosaur"
+  hand A: 2 "Ornithopter"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ornithopter"
+  turn 2 A: wait
+  turn 2 A: cast "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Hymn of the Faller: void, a second draw" {
+  battlefield A: 2 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Hymn of the Faller", "Shock"
+  library A: "Forest", "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Hymn of the Faller"
+  turn 2 A: surveil none
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+  assert life A 19
+}
+
+scenario "Hymn of the Faller: no void, one draw" {
+  battlefield A: 2 "Swamp"
+  hand A: "Hymn of the Faller"
+  library A: "Forest", "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Hymn of the Faller"
+  turn 2 A: surveil none
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "Anzrag: must be blocked each combat this turn, blocked twice" {
+  battlefield A: "Anzrag, the Quake-Mole", 4 "Mountain", 3 "Forest"
+  battlefield B: 2 "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Anzrag, the Quake-Mole"
+  turn 2 A: attack "Anzrag, the Quake-Mole"
+  turn 2 declare_attackers combat 2 A: attack "Anzrag, the Quake-Mole"
+  run_to turn 2 postcombat_main
+  # Each combat a Bears had to block; the block untapped Anzrag and gave
+  # the second combat.
+  assert graveyard B contains 2 "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Anzrag: without the ability, unblocked" {
+  battlefield A: "Anzrag, the Quake-Mole"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Anzrag, the Quake-Mole"
+  run_to turn 2 postcombat_main
+  assert life B 12
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Fear of Burning Alive: 4 to each opponent; with delirium, that amount to a creature that player controls" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Fear of Burning Alive", "Shock"
+  graveyard A: "Forest", "Grizzly Bears", "Lightning Bolt", "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Fear of Burning Alive"
+  # Its own 4 damage to B triggers the delirium ability: 4 to Serra Angel.
+  turn 2 A: trigger "Fear of Burning Alive" targeting "Serra Angel"
+  turn 2 A: wait
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: trigger "Fear of Burning Alive" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert graveyard B contains "Serra Angel"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Fear of Burning Alive: no delirium, no damage to the creature" {
+  battlefield A: "Fear of Burning Alive", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  graveyard A: "Forest", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert damage "Hill Giant" 0
+}
+
+scenario "Howlsquad Heavy: a hasty Goblin token that attacks this combat" {
+  battlefield A: "Howlsquad Heavy"
+  start turn 2 A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Goblin"
+  assert life B 19
+  assert tapped "Goblin"
+}
+
+scenario "Dark Leo & Shredder: combat damage, a Ninja; with five Ninjas, half their life" {
+  battlefield A: "Dark Leo & Shredder", 3 "Ninja of the Deep Hours"
+  start turn 2 A
+  turn 2 A: attack "Dark Leo & Shredder"
+  run_to turn 2 postcombat_main
+  # 1 combat damage, then half of 19 rounded up.
+  assert life B 9
+  assert battlefield A contains "Ninja"
+}
+
+scenario "Dark Leo & Shredder: fewer than five Ninjas, only the token" {
+  battlefield A: "Dark Leo & Shredder", 2 "Ninja of the Deep Hours"
+  start turn 2 A
+  turn 2 A: attack "Dark Leo & Shredder"
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Ninja"
+}
+
+scenario "Dark Leo & Shredder: attacking Ninjas have deathtouch" {
+  battlefield A: "Dark Leo & Shredder", "Ninja of the Deep Hours"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Dark Leo & Shredder"
+  turn 2 B: block "Dark Leo & Shredder" with "Hill Giant"
+  run_to turn 2 declare_blockers
+  assert has "Dark Leo & Shredder" deathtouch
+  assert has not "Ninja of the Deep Hours" deathtouch
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Iron Fist: a spell targeting a creature you control, then damage equal to his power" {
+  battlefield A: "Iron Fist, Living Weapon", "Forest"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Iron Fist, Living Weapon" targeting player B
+  turn 2 begin_combat A: cast "Giant Growth" targeting "Iron Fist, Living Weapon"
+  turn 2 begin_combat A: wait
+  turn 2 begin_combat A: activate "Iron Fist, Living Weapon" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 15
+}
+
+scenario "Hellcat: dies, returns with a +1/+1 counter, no abilities but haste" {
+  battlefield A: "Hellcat, Undying Vigilante", "Mountain", "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Hellcat, Undying Vigilante"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Hellcat, Undying Vigilante"
+  assert counters "Hellcat, Undying Vigilante" +1/+1 1
+  assert has "Hellcat, Undying Vigilante" haste
+  turn 2 postcombat_main A: cast "Lightning Bolt" targeting "Hellcat, Undying Vigilante"
+  run_to turn 2 end
+  # It lost its dies trigger: it stays in the graveyard.
+  assert graveyard A contains "Hellcat, Undying Vigilante"
+}
+
+scenario "Ms. Marvel: a spell targeting a creature you control, a card, base power equal to cards in hand" {
+  battlefield A: "Ms. Marvel, Kamala Khan", "Forest"
+  hand A: "Giant Growth", "Forest", "Forest"
+  library A: "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Ms. Marvel, Kamala Khan"
+  run_to turn 2 begin_combat
+  # Three cards in hand (two Forests and the card drawn), +3 from Giant Growth.
+  assert power "Ms. Marvel, Kamala Khan" 6
+  run_to turn 3 upkeep
+  assert power "Ms. Marvel, Kamala Khan" 1
+}

@@ -181,7 +181,9 @@ fn format_inner(card: &Card) -> String {
     }
     if let Some(x) = &card.except {
         out.push_str("  except {\n");
-        if x.not_legendary {
+        if x.not_legendary && x.its_not {
+            out.push_str("    its not legendary\n");
+        } else if x.not_legendary {
             out.push_str("    not legendary\n");
         }
         if let Some((p, t)) = x.pt {
@@ -402,6 +404,7 @@ impl Fmt {
             Recipient::ThatControllerOf(i) => format!("controller of that target {}", i + 1),
             Recipient::TheControllerOf(i) => format!("controller of the target {}", i + 1),
             Recipient::OwnerOf(_) => "its owner".to_string(),
+            Recipient::SourceOwner => "owner of this".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::Attached => "attached".to_string(),
             Recipient::AttachedController => "controller of enchanted".to_string(),
@@ -791,12 +794,19 @@ impl Fmt {
     #[allow(clippy::too_many_lines)]
     fn effect(&mut self, effect: &Effect, t: &[Target]) -> String {
         match effect {
-            Effect::DealDamage { amount, to, by } => {
+            Effect::DealDamage {
+                amount,
+                to,
+                by,
+                that_amount,
+            } => {
                 let verb = match by {
                     Recipient::Source => "deal".to_string(),
                     r => format!("{} deals", self.recipient(*r, t)),
                 };
-                if to.is_empty() {
+                if *that_amount {
+                    format!("{verb} that amount of damage to {}", self.recipients(to, t))
+                } else if to.is_empty() {
                     format!("{verb} {} damage", num(*amount))
                 } else if let Some(expr) = equal_before(*amount) {
                     format!("{verb} damage equal {expr} to {}", self.recipients(to, t))
@@ -1117,6 +1127,7 @@ impl Fmt {
                 self.line(then, t)
             ),
             Effect::DrawReveal => "draw 1 card and reveal it".to_string(),
+            Effect::DrawAnother => "draw another card".to_string(),
             Effect::DiscardIt => "discard it".to_string(),
             Effect::IfCard {
                 shares_type: true,
@@ -1782,7 +1793,14 @@ impl Fmt {
                 to,
                 each,
                 no_also,
+                each_combat,
             } => {
+                if *each_combat {
+                    return format!(
+                        "{} must be blocked each combat this turn if able",
+                        self.recipient(*to, t)
+                    );
+                }
                 let v = if matches!(
                     to,
                     Recipient::You

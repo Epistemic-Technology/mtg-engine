@@ -681,6 +681,9 @@ pub struct Except {
     pub abilities: Vec<Ability>,
     /// `not legendary`: "it isn't legendary" (CR 707.9b).
     pub not_legendary: bool,
+    /// `its not legendary`: the same, worded "it's not legendary" (Ran
+    /// and Shaw). Wording only.
+    pub its_not: bool,
     /// `types Artifact`: "it's an artifact in addition to its other types".
     pub types: Vec<mtg_core::card::CardType>,
     /// `pt 1/1`: "it's a 1/1 ..." (its base power and toughness).
@@ -3944,6 +3947,10 @@ pub enum Recipient {
     ControllerOf(usize),
     /// `its owner`.
     OwnerOf(usize),
+    /// The source's owner: the subject carried after `owner shuffles
+    /// this into library` (`... and draws 3 cards`: "Gandalf's owner
+    /// shuffles him into their library and draws three cards").
+    SourceOwner,
     You,
     EachOpponent,
     /// `each opponent who doesn't control Elf`: "each opponent who doesn't
@@ -4138,6 +4145,10 @@ pub enum Effect {
         /// ("Shock deals", then "it deals"); `this creature deals` and
         /// `it deals` choose the form (`SourceNamed`, `SourceIt`).
         by: Recipient,
+        /// `deal that amount of damage to ...`: "that amount of damage"
+        /// for "that much damage" (Fear of Burning Alive). Wording only;
+        /// the amount is `Num::ThatMuch`.
+        that_amount: bool,
     },
     Pump {
         power: i32,
@@ -4396,6 +4407,10 @@ pub enum Effect {
         /// control gain lifelink until end of turn", Rush of Battle).
         /// Wording only.
         no_also: bool,
+        /// `this must be blocked each combat this turn if able`: "each
+        /// combat this turn" for "this turn" (Anzrag, the Quake-Mole).
+        /// Wording only.
+        each_combat: bool,
     },
     /// `gain control of target creature` (until end of turn); with
     /// `indefinitely`, for good.
@@ -5556,6 +5571,10 @@ pub enum Effect {
     /// `draw 1 card and reveal it`: "Draw a card and reveal it." (it is
     /// `it` after).
     DrawReveal,
+    /// `draw another card`: "draw another card", a second draw after an
+    /// earlier one (Hymn of the Faller's void clause). One card for the
+    /// controller, like `draw 1 card`.
+    DrawAnother,
     /// `discard it`: "discard it", the card drawn and revealed before.
     DiscardIt,
     /// `put it into hand`, `put that card onto battlefield tapped`, `put

@@ -243,6 +243,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             keywords: keywords(x.keywords),
             abilities: x.abilities.iter().map(|a| d.ability(a)).collect(),
             not_legendary: x.not_legendary,
+            its_not: false,
             types: x.types.iter().collect(),
             pt: x.pt,
             colors: x.colors.iter().collect(),
@@ -848,6 +849,7 @@ impl Decompiler<'_> {
             CoreRecipient::DefendingPlayer => Recipient::DefendingPlayer,
             CoreRecipient::ControllerOf(i) => Recipient::ControllerOf(i),
             CoreRecipient::OwnerOf(i) => Recipient::OwnerOf(i),
+            CoreRecipient::SourceOwner => Recipient::SourceOwner,
             CoreRecipient::EachCreature => Recipient::EachCreature,
             CoreRecipient::EachPlayer => Recipient::EachPlayer,
             CoreRecipient::EachCreatureYouControl => Recipient::EachCreatureYouControl,
@@ -976,6 +978,7 @@ impl Decompiler<'_> {
                 amount: *amount,
                 to: vec![r(*to)],
                 by: Recipient::Source,
+                that_amount: false,
             },
             CoreEffect::Pump {
                 power,
@@ -1117,6 +1120,7 @@ impl Decompiler<'_> {
                 to: r(*to),
                 each: false,
                 no_also: false,
+                each_combat: false,
             },
             CoreEffect::GainControl { of, forever } => Effect::GainControl {
                 of: r(*of),
@@ -1433,6 +1437,7 @@ impl Decompiler<'_> {
                     CoreRecipient::TriggeringObject => Recipient::TriggeringIt,
                     other => r(*other),
                 },
+                that_amount: false,
             },
             CoreEffect::Bite { source, to, twice } => Effect::Bite {
                 source: r(*source),

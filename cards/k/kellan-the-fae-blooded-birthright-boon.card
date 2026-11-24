@@ -1,0 +1,14 @@
+card "Kellan, the Fae-Blooded // Birthright Boon" {
+  oracle_id 10c48d19-d91f-4674-b186-477acaf08e5a
+  layout adventure
+  cost {2}{R}
+  type Legendary Creature — Human Faerie
+  pt 2/2
+  keywords double strike
+  static other creature you control: +1/+0 count each Aura or Equipment attached to this
+  face "Birthright Boon" {
+    cost {1}{W}
+    type Sorcery — Adventure
+    spell: search Aura or Equipment card reveal to hand
+  }
+}

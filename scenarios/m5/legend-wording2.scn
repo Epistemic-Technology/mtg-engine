@@ -1,0 +1,64 @@
+# Wording after a named source: a leading "Until the end of your next
+# turn, you may cast that card." and "Then sacrifice it if it has five or
+# more bloodstain counters on it."
+
+scenario "Practiced Scrollsmith: the exiled card may be cast until the end of your next turn" {
+  battlefield A: "Mountain", 2 "Plains", 3 "Island"
+  hand A: "Practiced Scrollsmith"
+  graveyard A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Practiced Scrollsmith"
+  turn 2 A: trigger "Practiced Scrollsmith" targeting "Divination"
+  turn 4 A: cast "Divination"
+  run_to turn 4 postcombat_main
+  assert graveyard A contains "Divination"
+}
+
+scenario "Practiced Scrollsmith: after your next turn, the card stays exiled" {
+  battlefield A: "Mountain", 2 "Plains", 3 "Island"
+  hand A: "Practiced Scrollsmith"
+  graveyard A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Practiced Scrollsmith"
+  turn 2 A: trigger "Practiced Scrollsmith" targeting "Divination"
+  illegal turn 6 A: cast "Divination"
+  run_to turn 6 postcombat_main
+  assert exile A contains "Divination"
+}
+
+scenario "Blood Spatter Analysis: a counter for each death, sacrificed at five, a creature card back" {
+  battlefield A: "Blood Spatter Analysis" with 4 bloodstain, 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  graveyard A: "Hill Giant"
+  library A: "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: trigger "Blood Spatter Analysis" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Blood Spatter Analysis"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Blood Spatter Analysis: below five counters, it stays" {
+  battlefield A: "Blood Spatter Analysis" with 2 bloodstain, 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  graveyard A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Blood Spatter Analysis" bloodstain 3
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Blood Spatter Analysis: enters, 3 damage to a creature an opponent controls" {
+  battlefield A: "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Blood Spatter Analysis"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Blood Spatter Analysis"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Blood Spatter Analysis" bloodstain 1
+}
