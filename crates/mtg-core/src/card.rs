@@ -9126,6 +9126,11 @@ pub struct Cost {
     /// loyalty; `loyalty` is 0.
     #[serde(default)]
     pub loyalty_x: bool,
+    /// A loyalty ability whatever its `loyalty`: set for every loyalty
+    /// cost, so a "0:" ability (CR 606.3) is one too. Read through
+    /// `ActivatedAbility::is_loyalty`.
+    #[serde(default)]
+    pub loyalty_ability: bool,
     /// {T}: tap the source. A creature's {T} ability needs the source to
     /// have been under its controller's control since their most recent
     /// turn began (CR 302.6).
@@ -9329,6 +9334,7 @@ impl Cost {
             discard_exile: false,
             loyalty: 0,
             loyalty_x: false,
+            loyalty_ability: false,
             tap: false,
             sacrifice: None,
             count: 0,
@@ -9679,10 +9685,9 @@ impl ActivatedAbility {
         ) && self.sorcery_speed
     }
 
-    /// A loyalty ability (CR 606.3). A "0:" ability has no loyalty in its
-    /// cost and isn't told apart (as with `ActivationKind::Loyalty`).
+    /// A loyalty ability (CR 606.3), "0:" ones included.
     pub fn is_loyalty(&self) -> bool {
-        self.cost.loyalty != 0 || self.cost.loyalty_x
+        self.cost.loyalty != 0 || self.cost.loyalty_x || self.cost.loyalty_ability
     }
 }
 
@@ -9766,10 +9771,7 @@ impl ActivatedAbility {
     /// mana; it may do other things too ("Add {G}{G}. If there are no
     /// depletion counters on this land, sacrifice it.").
     pub fn is_mana_ability(&self) -> bool {
-        self.targets.is_empty()
-            && self.cost.loyalty == 0
-            && !self.cost.loyalty_x
-            && self.effects.iter().any(Effect::adds_mana)
+        self.targets.is_empty() && !self.is_loyalty() && self.effects.iter().any(Effect::adds_mana)
     }
 }
 

@@ -1,0 +1,36 @@
+# Tellah, Great Sage: "that much" after "If eight or more mana was spent
+# to cast that spell" is the mana spent to cast it (CR 601.2h).
+
+scenario "Tellah: an eight-mana spell makes a Hero, draws two, and deals 8" {
+  battlefield A: "Tellah, Great Sage", 8 "Island"
+  hand A: "Stroke of Genius"
+  library A: 12 "Island"
+  turn 1 A: cast "Stroke of Genius" x 5 targeting player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hero"
+  assert graveyard A contains "Tellah, Great Sage"
+  assert life B 12
+  assert hand A count 7
+}
+
+scenario "Tellah: a five-mana spell draws two and doesn't sacrifice" {
+  battlefield A: "Tellah, Great Sage", 5 "Island"
+  hand A: "Stroke of Genius"
+  library A: 12 "Island"
+  turn 1 A: cast "Stroke of Genius" x 2 targeting player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hero"
+  assert battlefield A contains "Tellah, Great Sage"
+  assert life B 20
+  assert hand A count 4
+}
+
+scenario "Tellah: a three-mana spell only makes a Hero" {
+  battlefield A: "Tellah, Great Sage", 3 "Island"
+  hand A: "Divination"
+  library A: 12 "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hero"
+  assert hand A count 2
+}

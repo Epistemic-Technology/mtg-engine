@@ -50,6 +50,12 @@ impl GameState {
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
             // "discover again for the same value".
             Event::Discovered { value, .. } => *value,
+            // "If eight or more mana was spent to cast that spell, ... that
+            // much damage": the mana spent to cast it (CR 601.2h), recorded
+            // only while something watches it.
+            Event::Cast { spell, .. } if self.spent_watchers > 0 => {
+                self.spent_on(*spell).count(crate::card::SpentKind::Total)
+            }
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();

@@ -1232,7 +1232,7 @@ impl Fmt {
                 kind,
                 count,
             } => match (kind, count) {
-                (None, None) if *from == Recipient::Source => {
+                (None, None) if matches!(from, Recipient::Source | Recipient::TriggeringIt) => {
                     format!("put its counters on {}", self.recipient(*to, t))
                 }
                 (None, None)

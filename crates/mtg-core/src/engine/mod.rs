@@ -1621,7 +1621,12 @@ impl GameState {
                         } else {
                             must.iter().copied().map(Choice::AddAttacker).collect()
                         };
-                        if must.is_empty() {
+                        // CR 506.5: a lone creature that can't attack
+                        // alone isn't a declaration to stop at while
+                        // another could join it.
+                        if must.is_empty()
+                            && (options.is_empty() || !self.attacks_alone_illegally(&chosen))
+                        {
                             options.push(Choice::Done);
                         }
                         return StepResult::Decision(Decision {
@@ -2353,7 +2358,16 @@ impl GameState {
             ) => {
                 self.phyrexian_life
                     .push((spell, u8::try_from(k).unwrap_or(u8::MAX)));
-                self.finish_cast(spell, sacrifice, discard);
+                // An activated ability's cost (CR 602.2b) or a spell's.
+                if self
+                    .objects
+                    .get(spell)
+                    .is_some_and(|o| o.kind == ObjKind::Ability)
+                {
+                    self.finish_activation(spell, sacrifice, discard);
+                } else {
+                    self.finish_cast(spell, sacrifice, discard);
+                }
             }
             // CR 702.78a: the creatures are tapped as the costs are paid.
             (Flow::ChoosingConspire { spell }, Choice::Accept) => {

@@ -3217,6 +3217,7 @@ impl Compiler<'_> {
             discard_exile: c.discard_exile,
             loyalty: c.loyalty.unwrap_or(0),
             loyalty_x: c.loyalty_x,
+            loyalty_ability: c.loyalty.is_some() || c.loyalty_x,
             tap: c.tap,
             sacrifice: match &c.sacrifice {
                 None => None,

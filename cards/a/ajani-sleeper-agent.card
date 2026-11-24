@@ -5,6 +5,6 @@ card "Ajani, Sleeper Agent" {
   loyalty 4
   compleated
   loyalty +1: reveal top card; if it is creature or planeswalker card, put it into hand; otherwise, you may put it on bottom of library
-  loyalty -3: distribute 3 +1/+1 counters among 0 to 3 target creatures; target 1 gains vigilance until end of turn
+  loyalty -3: distribute 3 +1/+1 counters among 0 to 3 target creatures; they gain vigilance until end of turn
   loyalty -6: emblem "Ajani, Sleeper Agent emblem"
 }

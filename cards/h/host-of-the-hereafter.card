@@ -1,0 +1,8 @@
+card "Host of the Hereafter" {
+  oracle_id 3431338b-928a-47f2-bc2f-f3c5d8eda8d0
+  cost {2}{B}{G}
+  type Creature — Zombie Warlock
+  pt 2/2
+  enters with 2 +1/+1 counters
+  triggered whenever this or creature you control dies if it had counters: put its counters on up to 1 target creature you control
+}

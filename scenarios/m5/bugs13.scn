@@ -1,0 +1,186 @@
+# The thirteenth wave's fixes to cards already in.
+
+# CR 702.12b: an indestructible creature with lethal damage isn't
+# destroyed, so a regeneration shield on it isn't used: it stays untapped
+# with its damage. (A debug build caught the shield being spent by a
+# state-based check that had nothing to do.)
+scenario "an indestructible creature's regeneration shield is not used" {
+  battlefield A: "Drudge Skeletons", "Swamp", "Darksteel Plate" on "Drudge Skeletons"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Drudge Skeletons"
+  turn 2 declare_blockers A: activate "Drudge Skeletons"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Drudge Skeletons"
+  assert damage "Drudge Skeletons" 3
+  assert untapped "Drudge Skeletons"
+}
+
+# CR 606.3: a "0:" ability is a loyalty ability. It counts for "whenever
+# you activate a loyalty ability", takes the planeswalker's one loyalty
+# activation for the turn, and pays Eidolon of Obstruction's tax.
+scenario "a 0: ability triggers whenever you activate a loyalty ability" {
+  battlefield A: "Jace, Memory Adept", "Way of the Paradox"
+  library B: 12 "Island"
+  turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  run_to turn 1 end
+  assert life A 21
+  assert graveyard B count 10
+}
+
+scenario "a 0: ability is the planeswalker's loyalty ability for the turn" {
+  battlefield A: "Jace, Memory Adept"
+  library B: 12 "Island"
+  turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  illegal turn 1 postcombat_main A: activate "Jace, Memory Adept" ability 1 targeting player B
+  run_to turn 1 end
+}
+
+scenario "Eidolon of Obstruction taxes a 0: ability" {
+  battlefield A: "Jace, Memory Adept"
+  battlefield B: "Eidolon of Obstruction"
+  library B: 12 "Island"
+  illegal turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  run_to turn 1 end
+}
+
+scenario "Eidolon of Obstruction's tax on a 0: ability is paid with mana" {
+  battlefield A: "Jace, Memory Adept", "Island"
+  battlefield B: "Eidolon of Obstruction"
+  library B: 12 "Island"
+  turn 1 A: activate "Jace, Memory Adept" ability 2 targeting player B
+  run_to turn 1 end
+  assert tapped "Island"
+  assert graveyard B count 10
+}
+
+# "Look at an opponent's hand" shows it to the looking player only (it is
+# not a reveal, CR 701.20a), so the hand's owner isn't told of it either.
+scenario "Sorcerous Spyglass shows the hand to its controller only" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Sorcerous Spyglass"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Sorcerous Spyglass"
+  turn 1 A: choose "Prodigal Sorcerer"
+  run_to turn 1 end
+  assert known A "Grizzly Bears"
+  assert unknown B "Grizzly Bears"
+}
+
+# CR 506.5: with more than ten possible attackers they are declared one at
+# a time; a lone Loyal Pegasus isn't a declaration to stop at, so Done
+# isn't offered and another creature joins it (unscripted, the first).
+scenario "a lone creature that can't attack alone needs company when declared one at a time" {
+  battlefield A: "Loyal Pegasus", 10 "Grizzly Bears"
+  turn 1 A: attack "Loyal Pegasus"
+  run_to turn 1 end
+  assert life B 16
+}
+
+# CR 602.2b, 601.2b: an activated ability's Phyrexian symbol may be paid
+# with 2 life even when mana could pay it; the player chooses.
+scenario "a Phyrexian symbol in an activated ability's cost can be paid with life" {
+  battlefield A: "Immolating Souleater", "Mountain"
+  turn 1 A: activate "Immolating Souleater" paying_life 1
+  run_to turn 1 end
+  assert life A 18
+  assert untapped "Mountain"
+  assert power "Immolating Souleater" 2
+}
+
+scenario "unscripted, an activated ability's Phyrexian symbol is paid with mana" {
+  battlefield A: "Immolating Souleater", "Mountain"
+  turn 1 A: activate "Immolating Souleater"
+  run_to turn 1 end
+  assert life A 20
+  assert tapped "Mountain"
+  assert power "Immolating Souleater" 2
+}
+
+# A spell cast from the top of a library wasn't cast from exile: Future
+# Sight's Grizzly Bears doesn't draw for Extraordinary Journey, one cast
+# from the hand doesn't either, and nothing else is different.
+scenario "a spell cast from a library isn't cast from exile" {
+  battlefield A: "Future Sight", "Extraordinary Journey", 2 "Forest"
+  library A: "Grizzly Bears", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+# In an activated ability, `it` after an object target is that target:
+# Spires of Orazca removes the attacker from combat, not itself.
+scenario "Spires of Orazca untaps the attacker and removes it from combat" {
+  battlefield A: "Spires of Orazca"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: activate "Spires of Orazca" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert untapped "Grizzly Bears"
+}
+
+# "They gain vigilance" after distributing among a variable number of
+# targets is every one of those targets.
+scenario "Ajani, Sleeper Agent's -3: they all gain vigilance" {
+  battlefield A: "Ajani, Sleeper Agent", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Ajani, Sleeper Agent" ability 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" vigilance
+  assert has "Hill Giant" vigilance
+}
+
+# Host of the Hereafter: "put its counters on" is the dying creature's
+# counters (one), not the Host's own (two); its own death moves its own.
+scenario "Host of the Hereafter puts the dead creature's counters on the target" {
+  battlefield A: "Host of the Hereafter" with 2 +1/+1, "Grizzly Bears" with 1 +1/+1, "Hill Giant", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Host of the Hereafter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Host of the Hereafter" +1/+1 2
+}
+
+scenario "Host of the Hereafter dying puts its own counters on the target" {
+  battlefield A: "Host of the Hereafter" with 1 +1/+1, "Hill Giant", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Host of the Hereafter"
+  turn 1 A: trigger "Host of the Hereafter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Host of the Hereafter"
+  assert counters "Hill Giant" +1/+1 1
+}
+
+# "Sacrifice Mogg Bombers and it deals 3 damage": Mogg Bombers deals it,
+# not the creature that entered (a lifelinked Child of Night gains nothing).
+scenario "Mogg Bombers deals the damage, not the entering creature" {
+  battlefield A: "Mogg Bombers", 2 "Swamp"
+  hand A: "Child of Night"
+  turn 1 A: cast "Child of Night"
+  turn 1 A: trigger "Mogg Bombers" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 20
+  assert graveyard A contains "Mogg Bombers"
+}
+
+# The runner: a card exiled face up is known to every player (CR 406.3).
+scenario "assert known counts a card exiled face up" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Exile"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Exile" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert exile B contains "Grizzly Bears"
+  assert known A "Grizzly Bears"
+  assert known B "Grizzly Bears"
+}

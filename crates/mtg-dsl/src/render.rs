@@ -7627,7 +7627,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             kind,
             count,
         } => match (kind, count) {
-            (None, None) if matches!(from, Recipient::Source | Recipient::TriggeringObject) => {
+            (None, None)
+                if matches!(
+                    from,
+                    Recipient::Source | Recipient::TriggeringObject | Recipient::TriggeringIt
+                ) =>
+            {
                 let o = ctx.obj(*to);
                 // `put those counters on up to 1 target ...`: "put those
                 // counters on up to one target artifact or creature you

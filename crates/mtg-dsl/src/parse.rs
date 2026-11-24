@@ -58,6 +58,8 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         created_at: None,
         no_trigger_amount: false,
         in_spell: false,
+        in_activated: false,
+        that_spell_spent: false,
         group_named: false,
         subject: None,
         subject_each: false,
@@ -755,6 +757,13 @@ struct P {
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
     in_spell: bool,
+    /// Inside an activated ability's effects: `it` after an object target
+    /// is that target, elsewhere the source.
+    in_activated: bool,
+    /// A `that spell spent N mana` condition has been read in this
+    /// ability: after it, `that much` in a cast trigger is the mana spent
+    /// to cast that spell (Tellah, Great Sage).
+    that_spell_spent: bool,
     /// A group (`each <filter>`, `creatures you control`) has been named
     /// in this ability, for `them` and `those creatures` after it.
     group_named: bool,
@@ -2532,6 +2541,8 @@ impl P {
         self.created_at = None;
         self.no_trigger_amount = false;
         self.in_spell = false;
+        self.in_activated = false;
+        self.that_spell_spent = false;
         self.group_named = false;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
@@ -4165,6 +4176,7 @@ impl P {
             }
             "activated" | "boast" | "exhaust" | "power-up" => {
                 self.pos += 1;
+                self.in_activated = true;
                 let mut cost = self.cost()?;
                 cost.keyword = match w.as_str() {
                     "boast" => Some(mtg_core::card::ActivatedKeyword::Boast),
@@ -4183,6 +4195,7 @@ impl P {
             }
             "loyalty" => {
                 self.pos += 1;
+                self.in_activated = true;
                 // "0:" (CR 606.3) is written `loyalty 0:` or `loyalty +0:`.
                 // `loyalty -X:` (CR 606.4, 107.3).
                 let mut x = false;
@@ -6167,6 +6180,7 @@ impl P {
             return self.spent_cond();
         }
         if self.eat_words(&["that", "spell", "spent"]) {
+            self.that_spell_spent = true;
             let mut c = self.spent_cond()?;
             if let StaticCond::ManaSpent { that, .. } = &mut c {
                 *that = true;
@@ -12081,9 +12095,11 @@ impl P {
                 self.pos += 3;
                 let to = self.recipient()?;
                 // "put its counters on this creature" in a triggered
-                // ability: the triggering object's (Buzzard-Wasp Colony).
+                // ability: the triggering object's (Buzzard-Wasp Colony),
+                // "its" kept for the rendering (Host of the Hereafter: "if
+                // it had counters on it, put its counters on ...").
                 let from = if self.its_counters_triggering(to) {
-                    Recipient::TriggeringObject
+                    Recipient::TriggeringIt
                 } else {
                     Recipient::Source
                 };
@@ -14254,10 +14270,15 @@ impl P {
 
     fn num(&mut self) -> R<Num> {
         if self.at_words(&["that", "much"]) {
-            // The triggering event's amount: none for a cast, a step, or
-            // life gain ("If eight or more mana was spent to cast that
-            // spell, ... deals that much damage" would deal 0).
-            if self.in_trigger && !self.in_delayed && self.no_trigger_amount {
+            // The triggering event's amount: none for a step or life
+            // gain; for a cast, the mana spent to cast that spell, read
+            // only after a condition on it ("If eight or more mana was
+            // spent to cast that spell, ... deals that much damage").
+            if self.in_trigger
+                && !self.in_delayed
+                && self.no_trigger_amount
+                && !self.that_spell_spent
+            {
                 return self.fail("`that much`: this trigger's event has no amount");
             }
             self.pos += 2;
@@ -15339,6 +15360,8 @@ impl P {
             created_at: self.created_at,
             no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
+            in_activated: self.in_activated,
+            that_spell_spent: self.that_spell_spent,
             group_named: self.group_named,
             subject: None,
             subject_each: false,
@@ -15769,6 +15792,15 @@ impl P {
             if self.created_at == Some(self.targets.len()) && !self.at_word("deals") {
                 return Ok(Recipient::CreatedObject);
             }
+            // "Sacrifice Mogg Bombers and it deals 3 damage": the source,
+            // as it last existed, whatever triggered the ability.
+            let after_sacrifice_this = self.pos >= 4
+                && ["sacrifice", "this", "and"].iter().enumerate().all(
+                    |(k, w)| matches!(&self.toks[self.pos - 4 + k].tok, Tok::Word(x) if x == w),
+                );
+            if after_sacrifice_this && self.at_word("deals") {
+                return Ok(Recipient::SourceIt);
+            }
             if self.in_trigger && !self.it_source {
                 // After a target the ability names, `it` is that target
                 // ("put a +1/+1 counter on target creature; it gains
@@ -15791,6 +15823,17 @@ impl P {
             // damage.
             if self.in_spell && !self.targets.is_empty() && !self.at_word("deals") {
                 return Ok(Recipient::Target(self.targets.len() - 1));
+            }
+            // In an activated ability, `it` after an object target is that
+            // target, as in a spell ("Untap target attacking creature an
+            // opponent controls and remove it from combat"; "Exile target
+            // creature card from a graveyard. Create a token that's a copy
+            // of it."), unless it deals the damage.
+            if self.in_activated
+                && !self.at_word("deals")
+                && let Some(n) = self.last_object_target()
+            {
+                return Ok(Recipient::Target(n));
             }
             // In a spell or an activated ability, `it` is the source,
             // printed "it" ("If this spell was kicked, it deals 2 damage").
@@ -16195,6 +16238,17 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::AnOpponent);
         }
+        // "Distribute three +1/+1 counters among up to three target
+        // creatures. They gain vigilance": the variable group's targets,
+        // not a triggering player.
+        if self.at_word("they")
+            && !self.at_words(&["they", "control"])
+            && !self.group_named
+            && matches!(self.targets.last(), Some(Target::Many { .. }))
+        {
+            self.pos += 1;
+            return Ok(Recipient::Target(self.targets.len() - 1));
+        }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
                 // "each creature with flying" is a group, not "each creature";
@@ -16428,6 +16482,8 @@ impl P {
                         created_at: None,
                         no_trigger_amount: false,
                         in_spell: false,
+                        in_activated: false,
+                        that_spell_spent: false,
                         group_named: false,
                         subject: None,
                         subject_each: false,
@@ -16736,6 +16792,19 @@ impl P {
                             && self.word_at(2).as_deref().and_then(card_type).is_some()));
                 if negation {
                     self.pos += 1;
+                    continue;
+                }
+                // "red, white, or black creature card": one list of colors
+                // (any of them), not "red permanent or ...".
+                let color_list = f.colors.is_some()
+                    && f.types.is_empty()
+                    && f.any_types.is_empty()
+                    && f.subtypes.is_empty()
+                    && (color(&next).is_some()
+                        || next == "or" && self.word_at(2).as_deref().and_then(color).is_some());
+                if color_list {
+                    self.pos += 1;
+                    self.eat_word("or");
                     continue;
                 }
                 // "Bear, Spider, or Wolf", "creature, Vehicle, or nonbasic

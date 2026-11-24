@@ -1179,8 +1179,14 @@ impl Runner {
             self.pending_targets = None;
         }
         // `illegal trigger ... targeting X`: X must be refused; the first
-        // legal target is taken instead.
+        // legal target is taken instead. With several (`targeting X, Y`),
+        // one of them must be: a legal one is taken and the next checked.
         if self.pending_illegal {
+            if let Some(i) = index_of(d, &Choice::Target(t))
+                && index + 1 < targets.len()
+            {
+                return Ok(i);
+            }
             self.pending_illegal = false;
             if index_of(d, &Choice::Target(t)).is_some() {
                 return fail(
@@ -1356,6 +1362,7 @@ impl Runner {
                 ability,
                 mode,
                 x,
+                life,
                 sacrifice,
                 discard,
                 targets,
@@ -1370,7 +1377,10 @@ impl Runner {
                     discard.as_deref(),
                     targets,
                 )? {
-                    Some(idx) => return Ok(idx),
+                    Some(idx) => {
+                        self.pending_life = *life;
+                        return Ok(idx);
+                    }
                     None => continue,
                 }
             }
@@ -2883,12 +2893,13 @@ impl Runner {
                         .iter()
                         .flat_map(|q| q.library.iter().chain(q.hand.iter()))
                         .any(|id| st.name_of(*id) == *name && st.knows(*p, *id))
-                    // A card exiled face down (CR 406.3).
-                    || st.players.iter().flat_map(|q| q.exile.iter()).any(|id| {
-                        st.objects[*id].exiled_face_down()
-                            && st.name_of(*id) == *name
-                            && st.knows(*p, *id)
-                    });
+                    // A card in exile: face up, known to all; face down,
+                    // to those who may look (CR 406.3).
+                    || st
+                        .players
+                        .iter()
+                        .flat_map(|q| q.exile.iter())
+                        .any(|id| st.name_of(*id) == *name && st.knows(*p, *id));
                 expect(
                     line,
                     format!("whether {} knows \"{name}\"", player_name(*p)),

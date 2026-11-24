@@ -1909,7 +1909,8 @@ CR 603.10a), `adventurer` (CR 715.2a: a card with an Adventure, used or
 not; `graveyard instant or sorcery or adventurer` counts "cards in your
 graveyard that are instant cards, sorcery cards, and/or have an
 Adventure"),
-colors joined with `or` (`red or green creature`, sharing a color), types
+colors joined with `or` or listed (`red or green creature`, `red,
+white, or black creature card`: sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,
 enchantment, or land`: at least one), negations listed with commas
 (`nonartifact, nonblack creature`), and `with
@@ -3740,7 +3741,10 @@ your opponents control until end of turn; untap them; they gain haste`
 ("Gain control of all artifacts your opponents control until end of turn.
 Untap them. They gain haste until end of turn.": the stolen artifacts, not
 every permanent you now control), `put 1 +1/+1 counters on each token
-creature you control; they gain trample`. As a count, `count each those
+creature you control; they gain trample`. After a variable number of
+targets (`distribute 3 +1/+1 counters among 0 to 3 target creatures; they
+gain vigilance until end of turn`), `they` is those targets, as `target
+1` is. As a count, `count each those
 creatures` is "for each of those creatures" (Bounding Felidar's "You gain
 1 life for each of those creatures"). Without a group before it, `those
 creatures` is an error. In a triggered ability, `+1/+1 counters on it`
@@ -4473,7 +4477,10 @@ in an effect "If five or more mana was spent to cast that spell" (`if that
 spell spent 5 mana, put 2 +1/+1 counters on this creature instead`). After
 the comma, `also` prints "also" after the subject (`if that spell spent 5
 mana, also this creature gains double strike`: "this creature also gains
-double strike"). `that spell kicked` likewise reads the triggering
+double strike"). After such a condition, `that much` in a cast trigger is
+the mana spent to cast that spell (`if that spell spent 8 mana, sacrifice
+this and it deals that much damage to each opponent`, Tellah, Great
+Sage); without one it is refused there. `that spell kicked` likewise reads the triggering
 spell's kicker (CR 702.33d): `triggered whenever you cast spell if that
 spell kicked: ...` prints "Whenever you cast a spell, if that spell was
 kicked, ..." (Bloodstone Goblin); plain `kicked` is the source's own
@@ -4740,7 +4747,7 @@ Forms that change only how Oracle words what an existing form does:
 | `if you dont draw this way, ...`, `if you dont put into hand this way, ...`, `if you didnt put into hand this way, ...` | "If you don't draw a card this way, ...", "If you don't put a card into your hand this way, ...", "If you didn't put a card into your hand this way, ..." (`dont draw` is `if you dont, ...`; the two "put" forms check that no card was put into your hand by the effects before, so a search that finds nothing or a dig that takes nothing counts; the source is named again after them) |
 | `target 1 gets +1/+0 also if you control Mouse` | "It also gets +1/+0 until end of turn if you control a Mouse." (`... if <condition>` with "also" after the subject) |
 | `target player sacrifices 1 creature of their choice other than enchanted` | "target player sacrifices a creature of their choice other than enchanted creature" (never the enchanted creature) |
-| `put those counters on up to 1 target creature` | In a triggered ability: "put those counters on up to one target creature", the triggering object's counters (`put its counters on` names the source's, except `on this`) |
+| `put those counters on up to 1 target creature` | In a triggered ability: "put those counters on up to one target creature", the triggering object's counters (`put its counters on` names them too in a trigger about another object, printed "its": Host of the Hereafter; in `when this dies`, the source's) |
 | `count where greatest power Giant you control` | "the greatest power among Giants you control" (a creature type alone after `greatest power`) |
 | `copy it and new targets` | "copy it and you may choose new targets for the copy" (`copy it new targets` prints "copy it. You may choose new targets for the copy.") |
 | `whenever other creature or artifact you control is put into a graveyard from the battlefield`, `when enchanted artifact is put into a graveyard` | The dies trigger worded so for a filter that includes creatures ("dies" otherwise), and the older wording without "from the battlefield" (only for `enchanted ...`, which can only be on the battlefield; for another filter it would mean from anywhere and is a compile error) |
