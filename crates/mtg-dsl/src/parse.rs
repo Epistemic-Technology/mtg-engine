@@ -4235,7 +4235,10 @@ impl P {
             return Ok(Some(Ability::HexproofFrom(self.filter()?)));
         }
         // `has ward pay 2 life`: 'have "Ward—Pay 2 life."'.
-        if self.at_words(&["ward", "pay"]) {
+        if self.at_words(&["ward", "pay"])
+            || self.at_words(&["ward", "sacrifice"])
+            || self.at_words(&["ward", "discard"])
+        {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(self.ward_cost()?)));
         }
@@ -4341,6 +4344,8 @@ impl P {
     fn granted_mechanic_ahead(&self) -> bool {
         (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
             || self.at_words(&["ward", "pay"])
+            || self.at_words(&["ward", "sacrifice"])
+            || self.at_words(&["ward", "discard"])
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || (self.at_word("firebending") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.granted_protection_ahead()

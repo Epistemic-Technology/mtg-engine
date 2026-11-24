@@ -3,6 +3,6 @@ card "Mishra, Tamer of Mak Fawa" {
   cost {3}{B}{R}
   type Legendary Creature — Human Artificer
   pt 4/4
-  static permanent you control: has ability { ward sacrifice permanent }
+  static permanent you control: has ward sacrifice permanent
   static each artifact card in your graveyard: has unearth {1}{B}{R}
 }
