@@ -15260,6 +15260,13 @@ impl GameState {
                 piles,
                 rest,
             } => self.dig_split(ctx, *count, *of, *reveal, *opponent, piles, *rest),
+            Effect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+            } => self.piles(ctx, *count, *reveal, *face_down, *separator, *opponent_chooses),
             // CR 702.185a: the warped permanent is exiled; its owner may
             // cast it from exile on a later turn.
             // CR 601.3: "You may cast this card for as long as it remains
@@ -15988,6 +15995,88 @@ impl GameState {
             {
                 self.move_object(id, Zone::Library, true);
             }
+        }
+    }
+
+    /// `Effect::Piles` (CR 700.3): the separator puts cards in the first
+    /// pile one at a time (`choose "X"`, then `choose done` in a scenario;
+    /// the rest make the second pile), then the chooser picks a pile
+    /// (`choose "1"` or `"2"`): it goes to the controller's hand, the
+    /// other to their graveyard.
+    fn piles(
+        &mut self,
+        ctx: &mut EffectCtx,
+        count: crate::card::Num,
+        reveal: bool,
+        face_down: bool,
+        separator: Option<crate::card::Recipient>,
+        opponent_chooses: bool,
+    ) {
+        let me = ctx.controller;
+        let separator = match separator {
+            None => me,
+            Some(r) => match self.recipients(ctx, r).first() {
+                Some(Target::Player(p)) => *p,
+                _ => return,
+            },
+        };
+        let n = self.eval_num(count, ctx) as usize;
+        let cards: Vec<ObjId> = self.player(me).library.iter().rev().take(n).copied().collect();
+        // The separator looks at them (CR 700.3: a pile is known to the
+        // player who made it).
+        let bits = 1u8 << separator.index().min(7);
+        for id in &cards {
+            if reveal {
+                self.reveal_in_library(*id);
+            } else {
+                self.objects[*id].revealed |= bits;
+            }
+        }
+        let mut first: Vec<ObjId> = Vec::new();
+        let mut second = cards;
+        while !second.is_empty() {
+            let mut options: Vec<Choice> = second
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            options.push(Choice::Done);
+            let k = self.choose_mid(separator, DecisionKind::ChooseCard, options.clone());
+            match options[k] {
+                Choice::Target(Target::Object(id)) => {
+                    second.retain(|c| *c != id);
+                    first.push(id);
+                }
+                _ => break,
+            }
+        }
+        // "a face-down pile and a face-up pile": the second pile is
+        // revealed to every player.
+        if face_down && !reveal {
+            for id in &second {
+                self.reveal_in_library(*id);
+            }
+        }
+        let chooser = if opponent_chooses {
+            self.opponent(me)
+        } else {
+            me
+        };
+        let def = self.source_def(ctx);
+        let k = self.choose_mid(
+            chooser,
+            DecisionKind::ChooseOption { def },
+            vec![Choice::Mode(0), Choice::Mode(1)],
+        );
+        let (hand, rest) = if k == 0 {
+            (first, second)
+        } else {
+            (second, first)
+        };
+        for id in hand {
+            self.move_object(id, Zone::Hand, false);
+        }
+        for id in rest {
+            self.move_object(id, Zone::Graveyard, false);
         }
     }
 

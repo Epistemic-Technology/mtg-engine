@@ -92,7 +92,8 @@ fn count_words(n: Num, article: &str) -> String {
         // "Mill that many cards" (a counted noun); "that much life".
         Num::ThatMuch => "that many".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
-        Num::XPlus(n) => format!("X plus {n}"),
+        // "the top X plus one cards" (Epiphany at the Drownyard).
+        Num::XPlus(n) => format!("X plus {}", number_word(n)),
         Num::XTimes(n) => times_x(n),
         Num::NMinusX(n) => format!("{} minus X", number_word(n)),
         Num::N(1) => article.to_string(),
@@ -4554,6 +4555,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Surveil(n)
         | Effect::LookAtTop { count: n, .. }
         | Effect::DigSplit { count: n, .. }
+        | Effect::Piles { count: n, .. }
         | Effect::ScryEach { count: n, .. } => {
             vec![*n]
         }
@@ -4809,6 +4811,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             // "the number of cards shuffled into your library this way".
             let verb = match verb {
                 mtg_core::card::ThisWay::Shuffled => "shuffled into your library",
+                // "for each card put into your graveyard this way".
+                mtg_core::card::ThisWay::PutInGraveyard => "put into your graveyard",
                 // "for each permanent returned to its owner's hand this
                 // way" (Wanderwine Farewell): permanents, any player's.
                 mtg_core::card::ThisWay::PutInHand
@@ -6462,6 +6466,41 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Clause::with_subject(*player, subject, format!("{verb} {words} {dest}"))
                 }
             }
+        }
+        // CR 700.3: "separate them into two piles".
+        Effect::Piles {
+            count,
+            reveal,
+            face_down,
+            separator,
+            opponent_chooses: _,
+            the_piles,
+        } => {
+            let n = count_words(*count, "one");
+            let into = if *face_down {
+                "a face-down pile and a face-up pile"
+            } else {
+                "two piles"
+            };
+            let put = "Put one pile into your hand and the other into your graveyard";
+            let text = match separator {
+                None => format!(
+                    "{} the top {n} cards of your library and separate them into {into}. An opponent chooses one of {} piles. Put that pile into your hand and the other into your graveyard",
+                    if *reveal { "reveal" } else { "look at" },
+                    if *the_piles { "the" } else { "those" },
+                ),
+                Some(Recipient::EachOpponent) if *reveal => format!(
+                    "reveal the top {n} cards of your library. An opponent separates those cards into {into}. {put}"
+                ),
+                Some(o) => {
+                    let who = ctx.subj(*o);
+                    let verb = if *reveal { "reveals" } else { "looks at" };
+                    format!(
+                        "{who} {verb} the top {n} cards of your library and separates them into {into}. {put}"
+                    )
+                }
+            };
+            Clause::imperative(text)
         }
         Effect::DigSplit {
             count,

@@ -1,0 +1,6 @@
+card "Epiphany at the Drownyard" {
+  oracle_id 33befbd6-56ac-45a7-a4d0-448167162707
+  cost {X}{U}
+  type Instant
+  spell: piles reveal X plus 1 chosen by opponent
+}

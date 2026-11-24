@@ -2676,6 +2676,26 @@ hand.": the opponent chooses); `split top 3 of target player into top
 rest graveyard` ("Look at the top three cards of target player's library.
 Put one back and the rest into that player's graveyard."). Destinations:
 `hand`, `graveyard`, `top`, `bottom`, `exile`,
+`piles reveal 5 chosen by opponent` ("Reveal the top five cards of your
+library and separate them into two piles. An opponent chooses one of those
+piles. Put that pile into your hand and the other into your graveyard.",
+CR 700.3; `piles look 4 face-down chosen by opponent the piles`: "Look at
+the top four cards of your library and separate them into a face-down pile
+and a face-up pile. An opponent chooses one of the piles. ..."; `piles
+reveal 5 separated by opponent`: "Reveal the top five cards of your
+library. An opponent separates those cards into two piles. Put one pile
+into your hand and the other into your graveyard."; `piles look 4
+face-down separated by target opponent`: "Target opponent looks at the
+top four cards of your library and separates them into a face-down pile
+and a face-up pile. Put one pile ..."; `X plus 1` prints "X plus one"):
+the separator puts cards into the first (face-down) pile one at a time
+(`choose "X"`, then `choose done` in scenarios; unscripted, all of them),
+the rest making the second, which is revealed to every player when face
+up; a pile may be empty. Then the chooser takes `choose "1"` or `"2"`.
+The count `graveyarded this way` ("for each card put into your graveyard
+this way") counts the cards the resolution put into a graveyard,
+`count each graveyarded this way +1/+1 counters on it` (Intrude on the
+Mind);
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of

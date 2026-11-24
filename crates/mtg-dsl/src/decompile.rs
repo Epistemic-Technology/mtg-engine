@@ -1843,6 +1843,20 @@ impl Decompiler<'_> {
                 look: *look,
                 of: false,
             },
+            CoreEffect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+            } => Effect::Piles {
+                count: *count,
+                reveal: *reveal,
+                face_down: *face_down,
+                separator: separator.map(r),
+                opponent_chooses: *opponent_chooses,
+                the_piles: false,
+            },
             CoreEffect::DigSplit {
                 count,
                 of,

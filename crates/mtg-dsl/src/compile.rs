@@ -4667,6 +4667,20 @@ impl Compiler<'_> {
                 who: r(who.unwrap_or(Recipient::You)),
                 look: *look,
             }),
+            Effect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+                ..
+            } => out.push(CoreEffect::Piles {
+                count: *count,
+                reveal: *reveal,
+                face_down: *face_down,
+                separator: separator.map(r),
+                opponent_chooses: *opponent_chooses,
+            }),
             Effect::DigSplit {
                 count,
                 of,

@@ -1559,6 +1559,7 @@ impl Moved {
             // cost ("the revealed card's mana value"); a count reads the
             // resolution's revealed cards (`CountExpr::ThisWay`).
             ThisWay::Revealed => self.from == Zone::Hand && self.to == Zone::Hand,
+            ThisWay::PutInGraveyard => self.to == Zone::Graveyard && self.from != Zone::Graveyard,
         }
     }
 }

@@ -117,5 +117,213 @@ scenario "Slaughter Games: an opponent's cards of the chosen name" {
   turn 1 A: choose "Shock"
   run_to turn 1 postcombat_main
   assert exile B contains 2 "Shock"
+  assert library B contains "Island"
   assert hand B contains "Lightning Bolt"
+}
+
+scenario "Stain the Mind: convoke pays, any number of the named cards" {
+  battlefield A: 3 "Swamp", "Grizzly Bears", "Hill Giant"
+  hand A: "Stain the Mind"
+  hand B: "Shock", "Lightning Bolt"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stain the Mind" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Shock"
+  assert hand B contains "Lightning Bolt"
+}
+
+# Piles (CR 700.3): the separator puts cards in the first pile with
+# `choose "X"` and ends it with `choose done`; the rest make the second
+# pile. The chooser then takes `choose "1"` or `"2"`.
+
+scenario "Riddles in the Dark: the opponent takes the face-up pile for the caster's hand" {
+  battlefield A: 3 "Island"
+  hand A: "Riddles in the Dark"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riddles in the Dark"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Giant Growth"
+  assert hand A contains "Murder"
+  assert hand A count 2
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Lightning Bolt"
+  assert library A contains "Plains"
+  assert library A count 1
+}
+
+scenario "Riddles in the Dark: the face-down pile stays unknown to the opponent in hand" {
+  battlefield A: 3 "Island"
+  hand A: "Riddles in the Dark"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riddles in the Dark"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert unknown B "Shock"
+  assert graveyard A count 4
+}
+
+scenario "Riddles in the Dark: one pile may hold all four" {
+  battlefield A: 3 "Island"
+  hand A: "Riddles in the Dark"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Riddles in the Dark"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 5
+}
+
+scenario "Intrude on the Mind: a Thopter with a counter for each card put into the graveyard" {
+  battlefield A: 5 "Island"
+  hand A: "Intrude on the Mind"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intrude on the Mind"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A contains "Lightning Bolt"
+  assert hand A count 2
+  assert graveyard A contains "Murder"
+  assert counters "Thopter" +1/+1 3
+  assert power "Thopter" 3
+  assert has "Thopter" flying
+}
+
+scenario "Intrude on the Mind: no card to the graveyard, and the 0/0 Thopter dies" {
+  battlefield A: 5 "Island"
+  hand A: "Intrude on the Mind"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intrude on the Mind"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 5
+  assert battlefield A lacks "Thopter"
+}
+
+scenario "Fact or Fiction: the opponent separates, the caster chooses" {
+  battlefield A: 4 "Island"
+  hand A: "Fact or Fiction"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fact or Fiction"
+  turn 1 B: choose "Murder"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert graveyard A contains "Murder"
+  assert hand A lacks "Murder"
+}
+
+scenario "Epiphany at the Drownyard: X plus one cards" {
+  battlefield A: 3 "Island"
+  hand A: "Epiphany at the Drownyard"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Epiphany at the Drownyard" x 2
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert hand A contains "Giant Growth"
+  assert hand A count 2
+  assert graveyard A contains "Shock"
+  assert library A count 2
+}
+
+scenario "Fortune's Favor: the target opponent separates face-down and face-up" {
+  battlefield A: 4 "Island"
+  hand A: "Fortune's Favor"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fortune's Favor" targeting player B
+  turn 1 B: choose "Murder"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A count 2
+}
+
+scenario "Curator of Destinies: an enters trigger, the opponent chooses" {
+  battlefield A: 6 "Island"
+  hand A: "Curator of Destinies"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Curator of Destinies"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "1"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Curator of Destinies"
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert graveyard A count 4
+}
+
+scenario "Sphinx of Uthuun: the opponent separates on entering" {
+  battlefield A: 7 "Island"
+  hand A: "Sphinx of Uthuun"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sphinx of Uthuun"
+  turn 1 B: choose "Shock"
+  turn 1 B: choose done
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert graveyard A count 4
+}
+
+scenario "Atris, Oracle of Half-Truths: three cards, the target opponent separates" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  hand A: "Atris, Oracle of Half-Truths"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atris, Oracle of Half-Truths"
+  turn 1 A: trigger "Atris, Oracle of Half-Truths" targeting player B
+  turn 1 B: choose "Shock"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Shock"
+  assert library A count 1
+}
+
+scenario "Steam Augury: reveal five, the opponent chooses" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  hand A: "Steam Augury"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steam Augury"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert graveyard A contains "Shock"
+  assert hand A contains "Lightning Bolt"
 }

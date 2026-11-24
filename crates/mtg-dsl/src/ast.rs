@@ -5239,6 +5239,24 @@ pub enum Effect {
         by: Option<Recipient>,
         only: bool,
     },
+    /// `piles reveal 5 chosen by opponent` ("Reveal the top five cards of
+    /// your library and separate them into two piles. An opponent chooses
+    /// one of those piles. Put that pile into your hand and the other into
+    /// your graveyard."), `piles look 4 face-down chosen by opponent the
+    /// piles` (Riddles in the Dark), `piles reveal 5 separated by
+    /// opponent` (Fact or Fiction), `piles look 4 face-down separated by
+    /// target opponent` (Fortune's Favor).
+    Piles {
+        count: Num,
+        reveal: bool,
+        face_down: bool,
+        /// `separated by opponent` (`EachOpponent`: "an opponent") or by
+        /// a target; none, the controller.
+        separator: Option<Recipient>,
+        opponent_chooses: bool,
+        /// `the piles`: "one of the piles" rather than "of those piles".
+        the_piles: bool,
+    },
     /// `split top 3 into hand, top, bottom` ("Look at the top three cards
     /// of your library. Put one of those cards into your hand, one on top
     /// of your library, and one on the bottom of your library."), `split
@@ -5652,6 +5670,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Tapped => "tapped",
         ThisWay::Shuffled => "shuffled",
         ThisWay::Revealed => "revealed",
+        ThisWay::PutInGraveyard => "graveyarded",
     }
 }
 
@@ -5667,6 +5686,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::PutInHand,
         ThisWay::Shuffled,
         ThisWay::Revealed,
+        ThisWay::PutInGraveyard,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

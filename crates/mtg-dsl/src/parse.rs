@@ -6485,6 +6485,37 @@ impl P {
         })
     }
 
+    /// `piles look|reveal N [face-down] [separated by opponent|<who>]
+    /// [chosen by opponent] [the piles]` (`Effect::Piles`).
+    #[inline(never)]
+    fn piles(&mut self) -> R<Effect> {
+        let reveal = self.word()? == "reveal";
+        let count = self.num()?;
+        let face_down = self.eat_word("face-down");
+        let separator = if self.eat_words(&["separated", "by"]) {
+            if self.eat_word("opponent") {
+                Some(Recipient::EachOpponent)
+            } else {
+                Some(self.recipient()?)
+            }
+        } else {
+            None
+        };
+        let opponent_chooses = self.eat_words(&["chosen", "by", "opponent"]);
+        if separator.is_some() == opponent_chooses {
+            return self.fail("`piles`: an opponent either separates or chooses");
+        }
+        let the_piles = self.eat_words(&["the", "piles"]);
+        Ok(Effect::Piles {
+            count,
+            reveal,
+            face_down,
+            separator,
+            opponent_chooses,
+            the_piles,
+        })
+    }
+
     fn split_dest(&mut self) -> R<mtg_core::card::SplitDest> {
         use mtg_core::card::SplitDest;
         Ok(match self.word()?.as_str() {
@@ -10550,6 +10581,9 @@ impl P {
             "split" if self.at_word("top") => {
                 self.pos += 1;
                 self.dig_split()
+            }
+            "piles" if matches!(self.word_at(0).as_deref(), Some("look" | "reveal")) => {
+                self.piles()
             }
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),

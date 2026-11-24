@@ -1,0 +1,8 @@
+card "Sphinx of Uthuun" {
+  oracle_id 4b4f268d-34ae-416d-a412-66f4fe37659c
+  cost {5}{U}{U}
+  type Creature — Sphinx
+  pt 5/6
+  keywords flying
+  triggered when this enters: piles reveal 5 separated by opponent
+}

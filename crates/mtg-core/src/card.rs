@@ -5171,6 +5171,27 @@ pub enum Effect {
         piles: Vec<SplitDest>,
         rest: Option<SplitDest>,
     },
+    /// "Reveal the top five cards of your library and separate them into
+    /// two piles. An opponent chooses one of those piles. Put that pile
+    /// into your hand and the other into your graveyard." (Steam Augury),
+    /// "An opponent separates those cards into two piles. Put one pile
+    /// into your hand ..." (Fact or Fiction), "... into a face-down pile
+    /// and a face-up pile" (Riddles in the Dark) (CR 700.3): the top
+    /// `count` cards of the controller's library, revealed with `reveal`
+    /// (else looked at by the separator). `separator` (the controller
+    /// with none) puts each card in one of two piles (CR 700.3a: a pile
+    /// may be empty); with `face_down`, the cards of the first pile stay
+    /// unknown to the other players and the second pile's are revealed.
+    /// Then the chooser (an opponent with `opponent_chooses`, else the
+    /// controller) picks a pile: it goes to the controller's hand, the
+    /// other to their graveyard.
+    Piles {
+        count: Num,
+        reveal: bool,
+        face_down: bool,
+        separator: Option<Recipient>,
+        opponent_chooses: bool,
+    },
     /// "Exile the top two cards of your library. Until the end of your next
     /// turn, you may play those cards." (impulse draw): the controller may
     /// play the exiled cards, paying their costs and following the usual
@@ -5852,6 +5873,7 @@ impl Effect {
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::DigSplit { .. }
+                | Effect::Piles { .. }
                 | Effect::ManifestDread
                 | Effect::Champion(_)
                 | Effect::Blight(_)
@@ -5968,6 +5990,9 @@ pub enum ThisWay {
     /// each nonland card revealed this way"): the resolution's revealed
     /// cards, not a zone change, so only a count reads it.
     Revealed,
+    /// Put into a graveyard from anywhere else ("for each card put into
+    /// your graveyard this way", Intrude on the Mind's pile).
+    PutInGraveyard,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this

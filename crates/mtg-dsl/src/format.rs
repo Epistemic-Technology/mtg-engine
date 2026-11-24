@@ -906,6 +906,37 @@ impl Fmt {
                 }
                 s
             }
+            Effect::Piles {
+                count,
+                reveal,
+                face_down,
+                separator,
+                opponent_chooses,
+                the_piles,
+            } => {
+                let mut s = format!(
+                    "piles {} {}",
+                    if *reveal { "reveal" } else { "look" },
+                    num(*count)
+                );
+                if *face_down {
+                    s.push_str(" face-down");
+                }
+                match separator {
+                    Some(Recipient::EachOpponent) => s.push_str(" separated by opponent"),
+                    Some(o) => {
+                        let _ = write!(s, " separated by {}", self.recipient(*o, t));
+                    }
+                    None => {}
+                }
+                if *opponent_chooses {
+                    s.push_str(" chosen by opponent");
+                }
+                if *the_piles {
+                    s.push_str(" the piles");
+                }
+                s
+            }
             Effect::DigSplit {
                 count,
                 of,

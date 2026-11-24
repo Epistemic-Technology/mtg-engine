@@ -1,0 +1,8 @@
+card "Atris, Oracle of Half-Truths" {
+  oracle_id 8b2b00ab-f1c5-4057-9957-d7daac95a847
+  cost {2}{U}{B}
+  type Legendary Creature — Human Advisor
+  pt 3/2
+  keywords menace
+  triggered when this enters: piles look 3 face-down separated by target opponent
+}
