@@ -1063,6 +1063,21 @@ impl Decompiler<'_> {
                     out.push(Sentence::new(vec![d]));
                     continue;
                 }
+                // An impulse whose count a later sentence changes.
+                if let (
+                    [b @ CoreEffect::ExilePlayable { count: bc, .. }],
+                    [CoreEffect::ExilePlayable { count, .. }],
+                ) = (base.as_slice(), alt.as_slice())
+                {
+                    let mut d = self.effect(b);
+                    if let Effect::ExilePlayable { alt: slot, .. } = &mut d
+                        && count != bc
+                    {
+                        *slot = Some(Box::new((cond_ast, *count)));
+                    }
+                    out.push(Sentence::new(vec![d]));
+                    continue;
+                }
                 out.extend(self.sentences(base));
                 out.push(Sentence::new(vec![Effect::Instead {
                     cond: cond_ast,
@@ -2420,6 +2435,7 @@ impl Decompiler<'_> {
                 look_those: false,
                 cond: cond.map(|c| self.static_cond(self.pool.condition(c))),
                 rider: ast_rider(*rider, false),
+                alt: None,
             },
             CoreEffect::Dig {
                 count,
@@ -2428,6 +2444,7 @@ impl Decompiler<'_> {
                 all,
                 rest_graveyard,
                 take,
+                take_num,
                 also,
                 random,
                 top,
@@ -2437,6 +2454,7 @@ impl Decompiler<'_> {
                 split,
                 until,
             } => Effect::Dig {
+                take_num: *take_num,
                 until: *until,
                 shuffle: *shuffle,
                 at_random: *at_random,

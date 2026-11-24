@@ -3306,7 +3306,12 @@ revealed and put into a hand (`reveal to hand`), like every card of a
 revealed hand, is known to every player until it moves (CR 701.20):
 `determinize` keeps it in place),
 `impulse 2 next turn first` ("Exile the top two cards of your library.
-Until the end of your next turn, you may play those cards."; impulse
+Until the end of your next turn, you may play those cards."; ending
+`instead count 3 if <condition>`, a later sentence changes the count when
+the condition holds as it resolves, CR 608.2c: `impulse 2 next turn first
+instead count 3 if additional cost paid` prints "... library. If this
+spell's additional cost was paid, exile the top three cards instead.
+Until the end ...", Burning Curiosity; impulse
 draw: the controller may play the exiled cards, paying their costs, with
 the usual timing permissions and a land only with a land play left, CR
 305.2, 601.3; `impulse 1 this turn` is "You may play that card this
@@ -3451,7 +3456,11 @@ your hand and the rest into your graveyard"; `take 2 instant or sorcery
 card may`: "up to two instant and/or sorcery cards", and without a
 filter `dig 4 take 2 card rest graveyard`: "Put two of those cards into
 your hand" (with one card left over, `dig 3 take 2 card rest graveyard`,
-"Put two of them into your hand and the other into your graveyard"); `take any creature card may revealing`: "You may reveal any
+"Put two of them into your hand and the other into your graveyard"); `take X card`: exactly X
+(a number expression, X the spell's), "Put X cards from among them into
+your hand", and a count `2 times X` prints "Look at twice X cards from the
+top of your library" (Stargaze: `dig 2 times X take X card rest
+graveyard`); `take any creature card may revealing`: "You may reveal any
 number of creature cards from among them and put the revealed cards into
 your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random

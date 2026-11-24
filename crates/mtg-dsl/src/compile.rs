@@ -5729,13 +5729,14 @@ impl Compiler<'_> {
                 face_down,
                 cond,
                 rider,
+                alt,
                 ..
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
                     self.pool.intern_condition(c)
                 });
-                out.push(CoreEffect::ExilePlayable {
+                let base = CoreEffect::ExilePlayable {
                     count: *count,
                     until: *until,
                     choose: *choose,
@@ -5743,7 +5744,24 @@ impl Compiler<'_> {
                     face_down: *face_down,
                     cond,
                     rider: core_rider(rider.as_ref()),
-                });
+                };
+                // CR 608.2c: "If this spell's additional cost was paid,
+                // exile the top three cards instead.": the same impulse,
+                // with the other count.
+                if let Some(a) = alt {
+                    let mut changed = base.clone();
+                    if let CoreEffect::ExilePlayable { count, .. } = &mut changed {
+                        *count = a.1;
+                    }
+                    let cond = self.instead_cond(&a.0);
+                    out.push(CoreEffect::Instead {
+                        cond,
+                        base: vec![base],
+                        alt: vec![changed],
+                    });
+                } else {
+                    out.push(base);
+                }
             }
             Effect::Dig {
                 count,
@@ -5752,6 +5770,7 @@ impl Compiler<'_> {
                 all,
                 rest_graveyard,
                 take,
+                take_num,
                 also,
                 random,
                 top,
@@ -5770,6 +5789,7 @@ impl Compiler<'_> {
                     all: *all,
                     rest_graveyard: *rest_graveyard,
                     take: *take,
+                    take_num: *take_num,
                     also: also.as_ref().map(|f| self.filter(f)),
                     random: *random,
                     top: *top,

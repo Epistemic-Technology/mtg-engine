@@ -6012,6 +6012,10 @@ pub enum Effect {
         all: bool,
         rest_graveyard: bool,
         take: u32,
+        /// "Put X cards from among them into your hand" (Stargaze): the
+        /// take as a number expression, in place of `take`.
+        #[serde(default)]
+        take_num: Option<Num>,
         also: Option<ObjFilter>,
         random: bool,
         top: bool,

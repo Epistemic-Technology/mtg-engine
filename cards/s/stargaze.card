@@ -1,0 +1,6 @@
+card "Stargaze" {
+  oracle_id db8b4869-f898-40ad-bbad-62390a02d1b1
+  cost {X}{B}{B}
+  type Sorcery
+  spell: dig 2 times X take X card rest graveyard; you lose X life
+}

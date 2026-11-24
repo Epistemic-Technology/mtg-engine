@@ -6639,6 +6639,9 @@ pub enum Effect {
         /// `ANY_NUMBER`); without a filter, exactly that many ("Put two of
         /// those cards into your hand").
         take: u32,
+        /// `take X card`: exactly that many, a number expression ("Put X
+        /// cards from among them into your hand", Stargaze); `take` unused.
+        take_num: Option<Num>,
         /// `take creature card and land card`: "a creature card and/or a
         /// land card".
         also: Option<Filter>,
@@ -6995,6 +6998,10 @@ pub enum Effect {
         /// `any type`: "..., and mana of any type can be spent to cast
         /// them".
         rider: Option<Rider>,
+        /// `instead count 3 if additional cost paid`: "If this spell's
+        /// additional cost was paid, exile the top three cards instead."
+        /// after the first sentence (CR 608.2c; Burning Curiosity).
+        alt: Option<Box<(InsteadCond, Num)>>,
     },
     /// `exile top 3 cards`: "Exile the top three cards of your library."
     /// (`exile top 1 card`: "the top card"); `each opponent exiles top 1

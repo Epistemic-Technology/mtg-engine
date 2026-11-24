@@ -13192,7 +13192,17 @@ impl P {
                     None
                 };
                 let rider = self.cast_rider()?;
+                // `instead count 3 if <cond>`: "If ..., exile the top three
+                // cards instead." (CR 608.2c).
+                let alt = if self.eat_words(&["instead", "count"]) {
+                    let n = self.num()?;
+                    self.expect_word("if")?;
+                    Some(Box::new((self.instead_cond()?, n)))
+                } else {
+                    None
+                };
                 Ok(Effect::ExilePlayable {
+                    alt,
                     count,
                     until,
                     first,
@@ -13229,6 +13239,15 @@ impl P {
                 let reveal_top = self.eat_word("reveal");
                 self.expect_word("take")?;
                 let all = self.eat_word("all");
+                // `take X card`: "Put X cards from among them" (Stargaze).
+                let take_num = if !all
+                    && self.word_at(0).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+                    && self.word_at(1).as_deref() == Some("card")
+                {
+                    Some(self.num()?)
+                } else {
+                    None
+                };
                 let take = if matches!(self.peek(), Some(Tok::Num(_))) {
                     self.number()?
                 } else if self.eat_word("any") {
@@ -13353,6 +13372,7 @@ impl P {
                     reveal_top,
                     revealing,
                     take,
+                    take_num,
                     also,
                     random,
                     top,

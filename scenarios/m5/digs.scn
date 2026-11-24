@@ -1,0 +1,55 @@
+# Look, reveal and mill forms (CR 701.13, 701.20, 608.2c): a dig whose take
+# is a number expression (Stargaze), an impulse whose count a later
+# sentence changes (Burning Curiosity).
+
+scenario "dig take X: Stargaze for X=2 looks at four, takes two, mills two, loses 2 life" {
+  battlefield A: 4 "Swamp"
+  hand A: "Stargaze"
+  library A: "Shock", "Grizzly Bears", "Hill Giant", "Plains", "Forest"
+  turn 1 A: cast "Stargaze" x 2
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Plains"
+  run_to turn 1 end
+  assert hand A count 2
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Plains"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+  assert life A 18
+}
+
+scenario "dig take X: Stargaze with a short library takes them all" {
+  battlefield A: 5 "Swamp"
+  hand A: "Stargaze"
+  library A: "Shock", "Grizzly Bears"
+  turn 1 A: cast "Stargaze" x 3
+  run_to turn 1 end
+  assert hand A count 2
+  assert library A count 0
+  assert life A 17
+}
+
+scenario "impulse instead: Burning Curiosity without blight exiles two" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Burning Curiosity"
+  library A: "Shock", "Hill Giant", "Mountain", "Forest"
+  turn 1 A: cast "Burning Curiosity"
+  run_to turn 1 end
+  assert exile A count 2
+  assert library A count 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "impulse instead: Burning Curiosity blighted exiles three, playable next turn" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Burning Curiosity"
+  library A: "Shock", "Hill Giant", "Mountain", "Forest", "Plains", "Plains"
+  turn 1 A: cast "Burning Curiosity" kicked
+  run_to turn 3 precombat_main
+  assert exile A count 3
+  assert counters "Grizzly Bears" -1/-1 1
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 end
+  assert life B 18
+}

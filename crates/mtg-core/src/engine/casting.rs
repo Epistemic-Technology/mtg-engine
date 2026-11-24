@@ -17840,6 +17840,7 @@ impl GameState {
                 all,
                 rest_graveyard,
                 take,
+                take_num,
                 also,
                 random,
                 top: back_on_top,
@@ -17914,8 +17915,11 @@ impl GameState {
                     // Up to `take` cards matching the filter, one at a time,
                     // then one matching `also` ("a creature card and/or a
                     // land card").
+                    // "Put X cards from among them" (Stargaze): the take as
+                    // a number, X the spell's.
+                    let take = take_num.map_or(*take as usize, |k| self.eval_num(k, ctx) as usize);
                     let picks: Vec<(Option<&crate::card::ObjFilter>, bool)> =
-                        std::iter::repeat_n(filter.as_ref(), (*take as usize).min(top.len()))
+                        std::iter::repeat_n(filter.as_ref(), take.min(top.len()))
                             .map(|f| (f, *optional))
                             .chain(also.as_ref().map(|f| (Some(f), true)))
                             .collect();

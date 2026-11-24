@@ -1580,6 +1580,7 @@ impl Fmt {
                 look_those,
                 cond,
                 rider,
+                alt,
             } => {
                 let mut s = format!(
                     "impulse {} {}",
@@ -1623,6 +1624,14 @@ impl Fmt {
                     let _ = write!(s, " if {}", static_cond(c));
                 }
                 s.push_str(&rider_text(rider.as_ref()));
+                if let Some(a) = alt {
+                    let _ = write!(
+                        s,
+                        " instead count {} if {}",
+                        num(a.1),
+                        instead_cond_text(&a.0)
+                    );
+                }
                 s
             }
             Effect::ExileTop {
@@ -1655,6 +1664,7 @@ impl Fmt {
                 reveal_top,
                 revealing,
                 take,
+                take_num,
                 also,
                 random,
                 then,
@@ -1685,7 +1695,9 @@ impl Fmt {
                 if *all {
                     s.push_str(" all");
                 }
-                if *take == crate::ast::ANY_NUMBER {
+                if let Some(n) = take_num {
+                    let _ = write!(s, " {}", num(*n));
+                } else if *take == crate::ast::ANY_NUMBER {
                     s.push_str(" any");
                 } else if *take != 1 {
                     let _ = write!(s, " {take}");
@@ -1774,18 +1786,7 @@ impl Fmt {
                             s.push_str(" tapped");
                         }
                     }
-                    let cond = match &a.cond {
-                        crate::ast::InsteadCond::Kicked => "kicked".to_string(),
-                        crate::ast::InsteadCond::Static(c) => static_cond(c),
-                        crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
-                            "{}target {} is {}",
-                            if *that { "that " } else { "" },
-                            n + 1,
-                            filter(f)
-                        ),
-                        crate::ast::InsteadCond::ThisWay(c) => this_way_cond(c),
-                    };
-                    let _ = write!(s, " if {cond}");
+                    let _ = write!(s, " if {}", instead_cond_text(&a.cond));
                 }
                 s
             }
@@ -4394,6 +4395,21 @@ thread_local! {
 }
 
 /// A play permission's `Rider`, with its leading space; empty for none.
+/// A dig's or impulse's `instead ... if <cond>` condition.
+fn instead_cond_text(c: &crate::ast::InsteadCond) -> String {
+    match c {
+        crate::ast::InsteadCond::Kicked => "kicked".to_string(),
+        crate::ast::InsteadCond::Static(c) => static_cond(c),
+        crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
+            "{}target {} is {}",
+            if *that { "that " } else { "" },
+            n + 1,
+            filter(f)
+        ),
+        crate::ast::InsteadCond::ThisWay(c) => this_way_cond(c),
+    }
+}
+
 fn rider_text(rider: Option<&crate::ast::Rider>) -> String {
     use crate::ast::SpendWording;
     use mtg_core::card::SpendAs;

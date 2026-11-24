@@ -7606,8 +7606,30 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             look_those,
             cond,
             rider,
+            alt,
         } => {
             use mtg_core::card::PlayUntil;
+            // "Exile the top two cards of your library. If this spell's
+            // additional cost was paid, exile the top three cards instead.
+            // Until the end of your next turn, you may play those cards."
+            // (CR 608.2c).
+            if let Some(a) = alt {
+                let mut plain = e.clone();
+                if let Effect::ExilePlayable { alt, .. } = &mut plain {
+                    *alt = None;
+                }
+                let base = clause_inner(&plain, ctx).text;
+                let c = instead_cond_phrase(&a.0, ctx);
+                let n = count_words(a.1, "one");
+                let sentence = format!("If {c}, exile the top {n} cards instead");
+                return Clause::imperative(match base.find(". ") {
+                    Some(i) => {
+                        let (head, tail) = base.split_at(i);
+                        format!("{head}. {sentence}{tail}")
+                    }
+                    None => format!("{base}. {sentence}"),
+                });
+            }
             let one = *count == Num::N(1);
             // "Exile the top three cards of target opponent's library."
             let owner = from
@@ -8475,6 +8497,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             reveal_top,
             revealing,
             take,
+            take_num,
             also,
             random,
             then,
@@ -8531,7 +8554,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 return dig_alt_clause(e, a, ctx);
             }
             let n = count_words(*count, "one");
-            let head = if *reveal_top && *count == Num::ThatMuch {
+            // "Look at twice X cards from the top of your library."
+            // (Stargaze).
+            let from_top = matches!(count, Num::XTimes(_));
+            let head = if from_top {
+                let verb = if *reveal_top { "reveal" } else { "look at" };
+                format!("{verb} {n} cards from the top of your library")
+            } else if *reveal_top && *count == Num::ThatMuch {
                 // "reveal that many cards from the top of your library"
                 // (Gishath, Sun's Avatar).
                 "reveal that many cards from the top of your library".to_string()
@@ -8565,6 +8594,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     format!("{word} on the bottom of your library in any order")
                 }
             };
+            // "Put X cards from among them into your hand and the rest into
+            // your graveyard." (Stargaze).
+            if let Some(k) = take_num {
+                return Clause::imperative(format!(
+                    "{head}. Put {} cards from among them into your hand and {}",
+                    count_words(*k, "one"),
+                    rest("the rest")
+                ));
+            }
             let several = *take != 1 || also.is_some();
             // "a creature card and/or a land card", "up to two instant
             // and/or sorcery cards", "any number of creature cards".
