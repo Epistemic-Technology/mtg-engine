@@ -799,10 +799,14 @@ impl GameState {
                     if let Some((p, card, alt)) =
                         self.exile_casts.as_mut().and_then(|e| e.pending.pop())
                     {
-                        // From exile, the hand (Mad Wizard's Lair), or a
-                        // graveyard (The Dawning Archaic).
+                        // From exile, the hand (Mad Wizard's Lair), a
+                        // graveyard (The Dawning Archaic), or the top of a
+                        // library looked at (Planetarium of Wan Shi Tong).
                         if self.objects.get(card).is_some_and(|o| {
-                            matches!(o.zone, Zone::Exile | Zone::Hand | Zone::Graveyard)
+                            matches!(
+                                o.zone,
+                                Zone::Exile | Zone::Hand | Zone::Graveyard | Zone::Library
+                            )
                         }) && !self.cast_forbidden(p)
                         {
                             // CR 712.11a: cast transformed, back face up.

@@ -1,0 +1,8 @@
+card "Bre of Clan Stoutarm" {
+  oracle_id 59384481-3ca0-49dd-b94f-d3680b336f1e
+  cost {2}{R}{W}
+  type Legendary Creature — Giant Warrior
+  pt 4/4
+  activated {1}{W}, {T}: another target creature you control gains flying and lifelink
+  triggered at beginning of your end step if gained life this turn: exile until nonland card; cast free that card with mana value up to count where life you gained this turn; put exiled card into hand otherwise
+}

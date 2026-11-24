@@ -1,0 +1,7 @@
+card "Doom Reigns Supreme" {
+  oracle_id f398a742-22c1-4da9-9d49-fdce2eb93d01
+  cost {1}{B}
+  type Enchantment — Plan
+  triggered whenever Villain you control enters: each opponent loses 1 life and you gain 1 life; put 1 plan counter on this
+  triggered when nth 5 plan counter put on this: sacrifice this; when you do, target opponent exiles top 5 cards; cast free up to 2 spell from among exiled cards
+}

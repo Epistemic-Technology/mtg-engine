@@ -373,10 +373,18 @@ impl GameState {
                     continue;
                 }
                 // "... without paying its mana cost", with its usual
-                // timing.
-                if pe.free {
+                // timing; "pay life equal to its mana value rather than
+                // pay its mana cost" (CR 119.4: with that much life).
+                if pe.free || pe.rider.life {
+                    let alt = if pe.free {
+                        AltCast::Free
+                    } else {
+                        AltCast::PayLife
+                    };
+                    let mv = def.mana_cost.mana_value();
                     if (sorcery_timing || def.is_instant() || self.has_flash(p, def, pe.card))
-                        && self.exile_castable(p, pe.card, AltCast::Free)
+                        && (pe.free || self.player(p).life >= i32::try_from(mv).unwrap_or(i32::MAX))
+                        && self.exile_castable(p, pe.card, alt)
                         && !options.contains(&Choice::Cast(pe.card))
                     {
                         options.push(Choice::Cast(pe.card));
@@ -6015,7 +6023,11 @@ impl GameState {
         const MAX_X: u32 = 30;
         if matches!(
             self.objects[spell].alt,
-            AltCast::Free | AltCast::Suspend | AltCast::FreeExile | AltCast::PayLife
+            AltCast::Free
+                | AltCast::Suspend
+                | AltCast::FreeExile
+                | AltCast::PayLife
+                | AltCast::DiscardCost
         ) {
             return vec![Choice::X(0)];
         }
@@ -10210,6 +10222,22 @@ impl GameState {
                 out.extend(self.permanents_of(ctx.controller).map(Target::Object));
                 self.note_group(&out);
             }
+            // "cards exiled this way": still in exile (CR 608.2c).
+            Recipient::ExiledThisWay => {
+                if let Some(log) = &self.this_way {
+                    out.extend(
+                        log.moved
+                            .iter()
+                            .filter(|m| m.is(crate::card::ThisWay::Exiled))
+                            .filter(|m| {
+                                self.objects
+                                    .get(m.new)
+                                    .is_some_and(|o| o.zone == Zone::Exile)
+                            })
+                            .map(|m| Target::Object(m.new)),
+                    );
+                }
+            }
             // "Untap them": what the last group denoted (CR 608.2c).
             Recipient::ThoseObjects => {
                 if let Some(log) = &self.this_way {
@@ -10867,6 +10895,158 @@ impl GameState {
                 .get_or_insert_with(Box::default)
                 .pending
                 .push((p, card, alt));
+        }
+    }
+
+    /// `Effect::CastAmong` (CR 608.2g): the cards it may cast are offered
+    /// now, and those chosen are cast as the resolution finishes, in the
+    /// order chosen. A card the resolution moved is shown in a decision
+    /// as the object it was before (it existed before the resolution
+    /// began).
+    #[cold]
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)] // the effect's fields
+    fn cast_among(
+        &mut self,
+        ctx: &mut EffectCtx,
+        exiled: bool,
+        count: Option<u8>,
+        filter: Option<&crate::card::ObjFilter>,
+        mv: Option<crate::card::Num>,
+        below: bool,
+        cost: crate::card::AmongCost,
+    ) {
+        use crate::card::AmongCost;
+        // "Do this only once each turn." (Planetarium of Wan Shi Tong): a
+        // "you may cast" like any first "you may" (`TurnLimit::Do`).
+        let once = self.doing_once.take();
+        if let Some(key) = once
+            && self.limited_this_turn.contains(&key)
+        {
+            ctx.did = false;
+            return;
+        }
+        let p = ctx.controller;
+        let alt = match cost {
+            AmongCost::Free => AltCast::Free,
+            AmongCost::Paid => AltCast::None,
+            AmongCost::Discard => AltCast::DiscardCost,
+        };
+        let cap = mv.map(|n| self.eval_num(n, ctx));
+        let source = ctx.source;
+        let moved: Vec<(ObjId, ObjId)> = self.this_way.as_ref().map_or_else(Vec::new, |log| {
+            log.moved
+                .iter()
+                .filter(|m| !exiled || m.is(crate::card::ThisWay::Exiled))
+                .map(|m| (m.new, m.old))
+                .collect()
+        });
+        let shown = |id: ObjId| moved.iter().find(|(n, _)| *n == id).map_or(id, |m| m.1);
+        let cards: Vec<(ObjId, ObjId)> = if exiled {
+            moved
+                .iter()
+                .copied()
+                .filter(|(id, _)| self.objects.get(*id).is_some_and(|o| o.zone == Zone::Exile))
+                .collect()
+        } else {
+            ctx.created
+                .filter(|id| self.objects.contains_key(*id))
+                .map(|id| (id, shown(id)))
+                .into_iter()
+                .collect()
+        };
+        let fits = |st: &Self, id: ObjId| -> bool {
+            let o = &st.objects[id];
+            if !matches!(
+                o.zone,
+                Zone::Exile | Zone::Library | Zone::Hand | Zone::Graveyard
+            ) {
+                return false;
+            }
+            let mv = st.pool.get(o.def).mana_cost.mana_value();
+            if cap.is_some_and(|c| if below { mv >= c } else { mv > c }) {
+                return false;
+            }
+            if let Some(f) = filter {
+                let chars = st.card_characteristics(o);
+                if !(f
+                    .mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    && f.matches(id, p, &chars, Some(source), Some(p)))
+                {
+                    return false;
+                }
+            }
+            // "by discarding a card": a card to discard (CR 118.3).
+            if cost == AmongCost::Discard && st.discard_candidates(p, None, id).is_empty() {
+                return false;
+            }
+            st.exile_castable(p, id, alt)
+        };
+        let castable: Vec<(ObjId, ObjId)> = cards
+            .into_iter()
+            .filter(|(id, _)| fits(self, *id))
+            .collect();
+        // Each card in turn, until as many as allowed are chosen ("up to
+        // two"; one for "that card").
+        let most = if exiled {
+            count.map_or(usize::MAX, usize::from)
+        } else {
+            1
+        };
+        let mut chosen: Vec<ObjId> = Vec::new();
+        for (card, s) in castable {
+            if chosen.len() >= most {
+                break;
+            }
+            let k = self.choose_mid(
+                p,
+                DecisionKind::CastFromExile { card: s },
+                vec![Choice::Accept, Choice::Decline],
+            );
+            if k == 0 {
+                chosen.push(card);
+            }
+        }
+        ctx.did = !chosen.is_empty();
+        if chosen.is_empty() {
+            return;
+        }
+        if let Some(key) = once {
+            self.limited_this_turn.push(key);
+        }
+        // The last pending is cast first: the first chosen goes last.
+        let e = self.exile_casts.get_or_insert_with(Box::default);
+        for card in chosen.into_iter().rev() {
+            e.pending.push((p, card, alt));
+        }
+    }
+
+    /// `Effect::ExileUntilTotal`: each player exiles from the top of
+    /// their library until the cards they exiled this way have total mana
+    /// value `total` or greater.
+    #[cold]
+    #[inline(never)]
+    fn exile_until_total(&mut self, ctx: &mut EffectCtx, who: Recipient, total: crate::card::Num) {
+        let need = self.eval_num(total, ctx);
+        for t in self.recipients(ctx, who) {
+            let Target::Player(pl) = t else {
+                continue;
+            };
+            let mut sum = 0u32;
+            while sum < need
+                && let Some(top) = self.player(pl).library.last().copied()
+            {
+                let new = self.move_object(top, Zone::Exile, true);
+                let Some(o) = self.objects.get(new) else {
+                    continue;
+                };
+                if o.zone != Zone::Exile {
+                    continue;
+                }
+                sum += self.pool.get(o.def).mana_cost.mana_value();
+                ctx.created = Some(new);
+            }
         }
     }
 
@@ -15331,6 +15511,15 @@ impl GameState {
             }
             Effect::PunishEach { life, unless } => self.punish_each(ctx, *life, unless.as_ref()),
             Effect::DrawCastOne { count } => self.draw_cast_one(ctx, *count),
+            Effect::CastAmong {
+                exiled,
+                count,
+                filter,
+                mv,
+                below,
+                cost,
+            } => self.cast_among(ctx, *exiled, *count, filter.as_ref(), *mv, *below, *cost),
+            Effect::ExileUntilTotal { who, total } => self.exile_until_total(ctx, *who, *total),
             Effect::CastFree {
                 what,
                 filter,

@@ -1,0 +1,11 @@
+card "Ugin, Eye of the Storms" {
+  oracle_id 5c58353a-fd60-4528-bf0d-669626cda0b2
+  cost {7}
+  type Legendary Planeswalker — Ugin
+  loyalty 7
+  triggered when you cast this: exile up to 1 target colored permanent
+  triggered whenever you cast colorless spell: exile up to 1 target colored permanent
+  loyalty +2: you gain 3 life and draw 1 card
+  loyalty 0: add {C}{C}{C}
+  loyalty -11: search any number colorless nonland card to exile; may cast those cards this turn free
+}

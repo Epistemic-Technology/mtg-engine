@@ -57,7 +57,9 @@ static JUMP_START_COST: std::sync::LazyLock<Cost> = std::sync::LazyLock::new(|| 
 pub(in crate::engine) fn granted_way_additional(alt: AltCast) -> Option<&'static Cost> {
     match alt {
         AltCast::Retrace => Some(&RETRACE_COST),
-        AltCast::JumpStart => Some(&JUMP_START_COST),
+        // "by discarding a card rather than paying its mana cost": the
+        // same discard (CR 118.9).
+        AltCast::JumpStart | AltCast::DiscardCost => Some(&JUMP_START_COST),
         _ => None,
     }
 }

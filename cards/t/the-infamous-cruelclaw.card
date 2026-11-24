@@ -1,0 +1,8 @@
+card "The Infamous Cruelclaw" {
+  oracle_id e229d55c-9513-437d-bd67-015ac46aaa18
+  cost {1}{B}{R}
+  type Legendary Creature — Weasel Mercenary
+  pt 3/3
+  keywords menace
+  triggered whenever this deals combat damage to a player: exile until nonland card; cast now that card by discarding
+}

@@ -1,0 +1,7 @@
+card "Etali, Primal Storm" {
+  oracle_id 078def07-ae5d-4591-8db6-d156834aab97
+  cost {4}{R}{R}
+  type Legendary Creature — Elder Dinosaur
+  pt 6/6
+  triggered whenever this attacks: exile top 1 card of each player, then cast free any number spell from among those cards
+}

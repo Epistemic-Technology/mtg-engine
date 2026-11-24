@@ -1287,6 +1287,11 @@ fn rider_words(rider: Option<&crate::ast::Rider>, plural: bool) -> String {
     if r.exile {
         s.push_str(". If that spell would be put into a graveyard, exile it instead");
     }
+    if r.life {
+        s.push_str(
+            ". If you cast a spell this way, pay life equal to its mana value rather than pay its mana cost",
+        );
+    }
     s
 }
 
@@ -6780,9 +6785,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "becomes saddled".to_string()).until_eot()
         }
-        Effect::ExileTop { count, who, face } => {
+        Effect::ExileTop {
+            count,
+            who,
+            face,
+            of,
+        } => {
             let one = *count == Num::N(1);
-            let whose = if who.is_some() { "their" } else { "your" };
+            // "the top card of each player's library" (Etali).
+            let of_whose = who.filter(|_| *of).map(|w| {
+                let o = ctx.obj(w);
+                if o == "you" {
+                    "your".to_string()
+                } else {
+                    format!("{o}'s")
+                }
+            });
+            let whose = match &of_whose {
+                Some(w) => w.as_str(),
+                None if who.is_some() => "their",
+                None => "your",
+            };
             let what = if one {
                 format!("the top card of {whose} library")
             } else if *count == Num::ThatMuch {
@@ -6806,6 +6829,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             match who {
                 None => Clause::imperative(format!("exile {what}")),
+                Some(_) if *of => Clause::imperative(format!("exile {what}")),
                 Some(w) => {
                     let s = ctx.subj(*w);
                     Clause::with_subject(
@@ -7051,6 +7075,104 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Clause::with_subject(*who, subject, v.to_string())
             }
         }
+        Effect::MayCastExiled { those, free } => Clause::imperative(format!(
+            "until end of turn, you may cast {}{}",
+            if *those {
+                "those cards"
+            } else {
+                "cards exiled this way"
+            },
+            if *free {
+                " without paying their mana costs"
+            } else {
+                ""
+            }
+        )),
+        Effect::ExileUntilTotal { who, total } => {
+            let n = digits(*total);
+            match who {
+                None => Clause::imperative(format!(
+                    "exile cards from the top of your library until you exile cards with total mana value {n} or greater"
+                )),
+                Some(w) => {
+                    let subject = ctx.subj(*w);
+                    let v = ctx.verb(*w, "exiles", "exile");
+                    Clause::with_subject(
+                        *w,
+                        subject,
+                        format!(
+                            "{v} cards from the top of their library until they have exiled cards with total mana value {n} or greater this way"
+                        ),
+                    )
+                }
+            }
+        }
+        Effect::CastAmong {
+            words,
+            count,
+            filter,
+            mv,
+            below,
+            cost,
+        } => {
+            use crate::ast::AmongWords;
+            use mtg_core::card::AmongCost;
+            let what = match words {
+                AmongWords::It => "it".to_string(),
+                AmongWords::ThatCard => "that card".to_string(),
+                AmongWords::ExiledCard => "the exiled card".to_string(),
+                AmongWords::Them | AmongWords::Those | AmongWords::TheExiled => {
+                    let many = match count {
+                        Some(n) => format!("up to {}", number_word(u32::from(*n))),
+                        None => "any number of".to_string(),
+                    };
+                    let kind = filter.as_ref().map_or(String::new(), |f| {
+                        let p = card_filter_phrase(f, ctx.card);
+                        let p = if f.and_or {
+                            p.replacen(" or ", " and/or ", 1)
+                        } else {
+                            p
+                        };
+                        format!("{} ", p.trim())
+                    });
+                    let among = match words {
+                        AmongWords::Them => "them",
+                        AmongWords::Those => "those cards",
+                        _ => "the exiled cards",
+                    };
+                    format!("{many} {kind}spells from among {among}")
+                }
+            };
+            let free = match (cost, words.many()) {
+                (AmongCost::Free, true) => " without paying their mana costs",
+                (AmongCost::Free, false) => " without paying its mana cost",
+                (AmongCost::Discard, _) => " by discarding a card rather than paying its mana cost",
+                (AmongCost::Paid, _) => "",
+            };
+            // "if that spell's mana value is 8 or less"; "if the spell's
+            // mana value is less than or equal to the amount of life you
+            // gained this turn".
+            let bound = match (mv, below) {
+                (None, _) => String::new(),
+                (Some(Num::N(n)), false) => format!(" if that spell's mana value is {n} or less"),
+                (Some(Num::N(n)), true) => format!(" if that spell's mana value is less than {n}"),
+                (Some(n), below) => {
+                    let what = match n {
+                        Num::Count(i) => count_phrase_in(
+                            &ctx.card.counts[usize::from(*i)].expr,
+                            ctx,
+                            false,
+                        ),
+                        n => digits(*n),
+                    };
+                    format!(
+                        " if the spell's mana value is less than {}{what}",
+                        if *below { "" } else { "or equal to " }
+                    )
+                }
+            };
+            Clause::imperative(format!("you may cast {what}{free}{bound}"))
+        }
         Effect::ExileUntilCard { who, filter } => {
             let pred = card_filter_a(filter, ctx.card);
             match who {
@@ -7232,7 +7354,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if *words != crate::ast::DontWords::Plain {
                 ctx.source_mentioned = false;
             }
-            let body = lowercase_first(&sentences(then, ctx));
+            let raw = sentences(then, ctx);
+            // "If you don't, Chandra deals 2 damage to each opponent.":
+            // the card's name keeps its capital.
+            let name = this_ref(ctx.card);
+            let body = if name.starts_with(char::is_uppercase) && raw.starts_with(&name) {
+                raw
+            } else {
+                lowercase_first(&raw)
+            };
             let verb = match words {
                 crate::ast::DontWords::Plain if *cant => "can't",
                 crate::ast::DontWords::Plain => "don't",
@@ -7316,6 +7446,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardWords::ExiledIfNotCast => {
                     return Clause::imperative(
                         "if you don't, put that card into your hand".to_string(),
+                    );
+                }
+                CardWords::ExiledOtherwise => {
+                    return Clause::imperative("otherwise, put it into your hand".to_string());
+                }
+                CardWords::ExiledIfNotCastThisWay => {
+                    return Clause::imperative(
+                        "if you don't cast that card this way, put it into your hand".to_string(),
                     );
                 }
             };

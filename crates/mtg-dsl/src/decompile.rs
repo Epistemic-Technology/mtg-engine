@@ -893,7 +893,12 @@ impl Decompiler<'_> {
             CoreRecipient::ExiledCard => Recipient::ExiledCard,
             CoreRecipient::Granter => Recipient::Granter,
             CoreRecipient::GranterController => Recipient::GranterController,
-            CoreRecipient::ThoseObjects => Recipient::Those(crate::ast::Those::Them),
+            // Only `Effect::MayCastExiled` names the cards exiled this way,
+            // decompiled whole below; elsewhere "them" is the nearest
+            // wording.
+            CoreRecipient::ThoseObjects | CoreRecipient::ExiledThisWay => {
+                Recipient::Those(crate::ast::Those::Them)
+            }
         }
     }
 
@@ -1967,6 +1972,7 @@ impl Decompiler<'_> {
                     w => Some(Self::recipient(*w)),
                 },
                 face: *face,
+                of: false,
             },
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Soulbond { triggering } => Effect::Soulbond {
@@ -2054,6 +2060,32 @@ impl Decompiler<'_> {
                 kind: *kind,
                 count: *count,
             },
+            CoreEffect::ExileUntilTotal { who, total } => Effect::ExileUntilTotal {
+                who: match who {
+                    CoreRecipient::You => None,
+                    w => Some(Self::recipient(*w)),
+                },
+                total: *total,
+            },
+            CoreEffect::CastAmong {
+                exiled,
+                count,
+                filter,
+                mv,
+                below,
+                cost,
+            } => Effect::CastAmong {
+                words: if *exiled {
+                    crate::ast::AmongWords::TheExiled
+                } else {
+                    crate::ast::AmongWords::ThatCard
+                },
+                count: *count,
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                mv: *mv,
+                below: *below,
+                cost: *cost,
+            },
             CoreEffect::ExileUntilCard { who, filter } => Effect::ExileUntilCard {
                 who: match who {
                     CoreRecipient::You => None,
@@ -2062,6 +2094,16 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
             },
             CoreEffect::MayCastThisFromExile => Effect::MayCastThisFromExile,
+            CoreEffect::MayPlayCard {
+                until: mtg_core::card::PlayUntil::ThisTurn,
+                cast: true,
+                free,
+                what: Some(CoreRecipient::ExiledThisWay),
+                ..
+            } => Effect::MayCastExiled {
+                those: false,
+                free: *free,
+            },
             CoreEffect::MayPlayCard {
                 until,
                 cast,
@@ -3334,5 +3376,6 @@ fn ast_rider(r: mtg_core::card::CastRider, more_opponents: bool) -> Option<crate
         more: r.more,
         more_opponents,
         exile: r.exile,
+        life: r.life,
     })
 }

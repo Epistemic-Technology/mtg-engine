@@ -38,6 +38,9 @@ pub struct Rider {
     /// `exile instead`: ". If that spell would be put into a graveyard,
     /// exile it instead".
     pub exile: bool,
+    /// `pay life`: ". If you cast a spell this way, pay life equal to its
+    /// mana value rather than pay its mana cost".
+    pub life: bool,
 }
 
 /// How a `Rider` words its spending.
@@ -138,6 +141,37 @@ pub enum CardWords {
     /// `put exiled card into hand if not cast`: "If you don't, put that
     /// card into your hand." (Discover the Impossible), the same.
     ExiledIfNotCast,
+    /// `put exiled card into hand otherwise`: "Otherwise, put it into
+    /// your hand." (Bre of Clan Stoutarm), the same.
+    ExiledOtherwise,
+    /// `put exiled card into hand if not cast this way`: "If you don't
+    /// cast that card this way, put it into your hand." (Solstice
+    /// Revelations), the same.
+    ExiledIfNotCastThisWay,
+}
+
+/// How `Effect::CastAmong` names the cards it may cast.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum AmongWords {
+    /// `it`: "it" (the resolution's card).
+    It,
+    /// `that card`: "that card".
+    ThatCard,
+    /// `exiled card`: "the exiled card".
+    ExiledCard,
+    /// `from among them`: "from among them" (the cards exiled).
+    Them,
+    /// `from among those cards`: "from among those cards".
+    Those,
+    /// `from among exiled cards`: "from among the exiled cards".
+    TheExiled,
+}
+
+impl AmongWords {
+    /// Whether these words name the cards exiled, not the one card.
+    pub const fn many(self) -> bool {
+        matches!(self, Self::Them | Self::Those | Self::TheExiled)
+    }
 }
 
 /// How a library placement is worded (`Effect::PutInLibrary`).
@@ -6092,6 +6126,42 @@ pub enum Effect {
         who: Option<Recipient>,
         filter: Filter,
     },
+    /// `exile until total mana value 4`: "Exile cards from the top of
+    /// your library until you exile cards with total mana value 4 or
+    /// greater."; `each opponent exiles until total mana value 5`: "Each
+    /// opponent exiles cards from the top of their library until they
+    /// have exiled cards with total mana value 5 or greater this way."
+    ExileUntilTotal {
+        who: Option<Recipient>,
+        total: Num,
+    },
+    /// `may cast cards exiled this way this turn free`: "Until end of
+    /// turn, you may cast cards exiled this way without paying their mana
+    /// costs." (`those`: `may cast those cards this turn free`, "... cast
+    /// those cards ..."): every card the resolution exiled, still in
+    /// exile, may be cast from there this turn (CR 601.3).
+    MayCastExiled {
+        those: bool,
+        free: bool,
+    },
+    /// Casting from among the cards the resolution exiled or revealed
+    /// (CR 608.2g): `cast now that card` ("You may cast that card."),
+    /// `cast now that card by discarding` ("... by discarding a card
+    /// rather than paying its mana cost"), `cast free it with mana value
+    /// up to 8` ("You may cast it without paying its mana cost if that
+    /// spell's mana value is 8 or less."; `below <count>`: "if the spell's
+    /// mana value is less than ..."), `cast free up to 2 spells from among
+    /// exiled cards` ("You may cast up to two spells from among the
+    /// exiled cards without paying their mana costs."), `cast free any
+    /// number instant or sorcery spells from among them`.
+    CastAmong {
+        words: AmongWords,
+        count: Option<u8>,
+        filter: Option<Filter>,
+        mv: Option<Num>,
+        below: bool,
+        cost: mtg_core::card::AmongCost,
+    },
     /// `may cast that card this turn`: "You may cast that card this
     /// turn."; `may play that card next turn first`: "Until the end of
     /// your next turn, you may play that card."; `free`: "... without
@@ -6294,6 +6364,9 @@ pub enum Effect {
         count: Num,
         who: Option<Recipient>,
         face: mtg_core::card::ExileFace,
+        /// `exile top 1 card of each player`: "exile the top card of each
+        /// player's library" (`who` is the players, printed after).
+        of: bool,
     },
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).

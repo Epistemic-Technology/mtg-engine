@@ -2300,7 +2300,43 @@ exiled card that is instant spell with mana value up to 2` is "you may
 cast the exiled card without paying its mana cost if it's an instant
 spell with mana value 2 or less" (judged on the spell it would be, even
 face down, CR 406.3b), and `put exiled card into hand if not cast` "If
-you don't, put that card into your hand." (Discover the Impossible).
+you don't, put that card into your hand." (Discover the Impossible;
+`put exiled card into hand otherwise`: "Otherwise, put it into your
+hand.", `... if not cast this way`: "If you don't cast that card this
+way, put it into your hand.").
+
+Casting from among the cards the resolution just exiled or looked at
+(CR 608.2g: as the effect finishes, timing ignored): `cast now that card`
+("You may cast that card.": its mana cost and other costs paid as
+usual, offered only if they can be; `cast now it` "You may cast it.")
+after `exile top 1 card`, `exile until nonland card` or `look at top
+card` (the card on top of the library is cast from there); `cast now
+that card by discarding` ("You may cast that card by discarding a card
+rather than paying its mana cost.": an alternative cost, X is 0, the
+card discarded chosen as jump-start's is, `cast "X" discarding "Y"` in
+scenarios; offered only with a card to discard); `cast free it` / `cast
+free that card` ("You may cast it without paying its mana cost.") with
+`with mana value up to 8` ("... if that spell's mana value is 8 or
+less"; a count prints "if the spell's mana value is less than or equal
+to the amount of life you gained this turn", Bre of Clan Stoutarm) or
+`with mana value below count where Mountain you control` ("... if the
+spell's mana value is less than the number of Mountains you control");
+`cast free up to 2 spell from among exiled cards` ("You may cast up to
+two spells from among the exiled cards without paying their mana
+costs.", Doom Reigns Supreme), `cast free any number spell from among
+them` ("You may cast any number of spells from among them ..."; `from
+among those cards`: "from among those cards", Etali; a filter first:
+`any number andor instant or sorcery spell`, "any number of instant
+and/or sorcery spells"): each card the resolution exiled that is still
+in exile and could be cast is offered in turn (scenarios: `decline "X"`
+skips one), up to the number. `if you dont, ...` after any of these
+happens if none will be cast ("If you don't, Chandra deals 2 damage to
+each opponent.": a land can't be cast, so it counts as not cast).
+`may cast cards exiled this way this turn free` is "Until end of turn,
+you may cast cards exiled this way without paying their mana costs."
+(`may cast those cards this turn free`: "... cast those cards ..."): every
+card the resolution exiled, still in exile, may be cast by the
+controller this turn with its usual timing (Dream Harvest).
 `dig face down 5 them` is hideaway's body as an effect: "Look at the top
 five cards of your library. Exile one of them face down and put the rest
 on the bottom of your library in a random order." (the controller
@@ -2991,7 +3027,8 @@ X is ...", and `that much` "exile that many cards from the top of your
 library"), `exile top 3 cards` ("Exile the top three cards of your
 library."; `exile top 1 card`: "the top card"; `each opponent exiles top 1
 card`: "Each opponent exiles the top card of their library."; `exile top
-1 card face down` adds "face down": nobody may look at the card while it
+1 card of each player`: "exile the top card of each player's library",
+Etali; `exile top 1 card face down` adds "face down": nobody may look at the card while it
 stays in exile (CR 406.3, Bomat Courier; the reminder "(You can't look at
 it.)" is not printed), `face down look` "face down and look at it": its
 controller may),
@@ -3864,7 +3901,13 @@ nonland card` is "exile cards from the top of your library until you
 exile a nonland card" (`target opponent exiles until nonland card`:
 "Target opponent exiles cards from the top of their library until they
 exile a nonland card"): the cards stay exiled and the matching one is
-`that card`. `may cast that card this turn` ("You may cast that card this
+`that card`. `exile until total mana value 4` is "Exile cards from the
+top of your library until you exile cards with total mana value 4 or
+greater." (`each opponent exiles until total mana value 5`: "Each
+opponent exiles cards from the top of their library until they have
+exiled cards with total mana value 5 or greater this way."): the
+library's top cards are exiled one at a time until their mana values
+add up to that much, or the library runs out. `may cast that card this turn` ("You may cast that card this
 turn."; `may play that card next turn first`: "Until the end of your next
 turn, you may play that card."; `free`: "... without paying its mana
 cost"; `it` for "it"; the durations are impulse's; `may play that card
@@ -3903,7 +3946,7 @@ mana of any type to cast it", Outrageous Robbery), then `costs {2} more`
 `costs {2} more opponent`: "A spell cast by an opponent this way ...",
 Soul Partition, only for an owner who is an opponent of the controller),
 then `exile instead` (". If that spell would be put into a graveyard,
-exile it instead", Dire Fleet Daredevil: exiled as it leaves the stack).
+exile it instead", Dire Fleet Daredevil: exiled as it leaves the stack), then `pay life` (". If you cast a spell this way, pay life equal to its mana value rather than pay its mana cost", Inside Information: `impulse X this turn from target opponent pay life`; an alternative cost, X is 0, offered only with that much life, CR 118.9, 119.4; a land is played as usual).
 Hostage Taker: `exile another target creature or artifact until this
 leaves; may cast that card remains any type`.
 `put that card into hand and the rest on

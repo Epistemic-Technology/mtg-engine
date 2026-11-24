@@ -201,6 +201,18 @@ impl GameState {
             {
                 AltCast::Free
             }
+            // "If you cast a spell this way, pay life equal to its mana
+            // value rather than pay its mana cost." (CR 118.9).
+            (Zone::Exile, _)
+                if self.exile_casts.as_ref().is_some_and(|e| {
+                    e.riders
+                        && e.playable
+                            .iter()
+                            .any(|pe| pe.card == id && pe.player == player && pe.rider.life)
+                }) =>
+            {
+                AltCast::PayLife
+            }
             // CR 701.65a: for {2}.
             (Zone::Exile, AltCast::Airbent) => AltCast::Airbend,
             _ => AltCast::None,

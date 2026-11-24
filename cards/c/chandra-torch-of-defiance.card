@@ -1,0 +1,10 @@
+card "Chandra, Torch of Defiance" {
+  oracle_id 12cc800c-c7be-4811-8207-fd01a99cc892
+  cost {2}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 4
+  loyalty +1: exile top 1 card; cast now that card; if you dont, deal 2 damage to each opponent
+  loyalty +1: add {R}{R}
+  loyalty -3: deal 4 damage to target creature
+  loyalty -7: emblem "Chandra, Torch of Defiance emblem"
+}
