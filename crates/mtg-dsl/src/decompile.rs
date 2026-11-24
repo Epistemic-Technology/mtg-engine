@@ -3033,6 +3033,9 @@ impl Decompiler<'_> {
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
                 },
+                CoreReplaces::TappedForMana { what } => Replaces::TappedForMana {
+                    what: self.filter(what),
+                },
                 CoreReplaces::AnyCounters { on, by } => Replaces::AnyCounters {
                     on: self.filter(on),
                     by: *by,
@@ -3136,9 +3139,13 @@ impl Decompiler<'_> {
     fn ability(&self, a: &AbilityDef) -> Ability {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
-            AbilityDef::ManaTrigger { what, effects } => Ability::Triggered {
+            AbilityDef::ManaTrigger {
+                what,
+                effects,
+                form,
+            } => Ability::Triggered {
                 limit: mtg_core::card::TurnLimit::None,
-                trigger: Trigger::TappedForMana(TriggerObj::Filter(self.filter(what))),
+                trigger: Trigger::TappedForMana(TriggerObj::Filter(self.filter(what)), *form),
                 condition: None,
                 targets: Vec::new(),
                 effects: self.sentences(effects),

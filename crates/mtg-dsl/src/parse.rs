@@ -19823,9 +19823,32 @@ impl P {
                 self.pos += 3;
                 Ok(Trigger::DealtCombatDamage(obj))
             }
-            "is" if self.at_words(&["tapped", "for", "mana"]) => {
-                self.pos += 3;
-                Ok(Trigger::TappedForMana(obj))
+            "is" if self.at_words(&["tapped", "for", "mana"])
+                || (self.at_words(&["tapped", "for", "chosen"]))
+                || (self.at_words(&["tapped", "for"])
+                    && matches!(self.peek_at(2), Some(Tok::Sym(c)) if c == "C")) =>
+            {
+                self.pos += 2;
+                // `is tapped for {C}`, `is tapped for chosen`: only when it
+                // makes mana of that kind.
+                let made = if self.eat_word("mana") {
+                    None
+                } else if self.eat_word("chosen") {
+                    Some(mtg_core::mana::Mana::Chosen)
+                } else {
+                    self.pos += 1;
+                    Some(mtg_core::mana::Mana::Colorless)
+                };
+                let passive = self.eat_word("passive");
+                let additional = self.eat_word("additional");
+                Ok(Trigger::TappedForMana(
+                    obj,
+                    mtg_core::card::ManaTriggerForm {
+                        made,
+                        additional,
+                        passive,
+                    },
+                ))
             }
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;
@@ -20763,6 +20786,13 @@ impl P {
     fn replaces(&mut self) -> R<Replaces> {
         if self.eat_word("enters") {
             return Ok(Replaces::Enters);
+        }
+        // `tapped for mana permanent you control` (CR 106.12): "If you tap
+        // a permanent for mana, it produces three times as much ...".
+        if self.eat_words(&["tapped", "for", "mana"]) {
+            return Ok(Replaces::TappedForMana {
+                what: self.filter()?,
+            });
         }
         // `target 1 dies`.
         if self.at_word("target")

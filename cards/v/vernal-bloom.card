@@ -1,0 +1,6 @@
+card "Vernal Bloom" {
+  oracle_id 238b270c-152a-48e5-a955-65f5cb80c174
+  cost {3}{G}
+  type Enchantment
+  triggered whenever Forest is tapped for mana passive: add {G}
+}

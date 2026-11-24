@@ -2410,6 +2410,11 @@ pub struct GameState {
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.
     pub mana_trigger_sources: u32,
+    /// Delayed triggered mana abilities lasting until end of turn ("Until
+    /// end of turn, whenever a player taps an Island for mana", High
+    /// Tide), counted in `mana_trigger_sources` too until the cleanup step
+    /// ends them.
+    pub eot_mana_triggers: u32,
     /// The mana the permanent whose triggered mana abilities are
     /// resolving was just tapped for (`Effect::AddManaProduced`: "one
     /// mana of any type that land produced").

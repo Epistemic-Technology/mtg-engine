@@ -9003,7 +9003,7 @@ impl GameState {
                 && (sources.iter().any(|(s, _)| s == id) || self.flags_of(o).has_restricted_mana())
             {
                 all.push(*id);
-                if !self.mana_triggers_on(*id).is_empty() {
+                if self.mana_boosted(*id) {
                     out.push(*id);
                 }
             }
@@ -16136,6 +16136,15 @@ impl GameState {
                     Some(o) if lki_copy => smallvec::smallvec![Target::Object(o)],
                     _ => self.recipients(ctx, *about).into_iter().collect(),
                 };
+                // A delayed triggered mana ability (High Tide) is looked
+                // for as permanents are tapped for mana until the turn ends.
+                let mana = *this_turn
+                    && matches!(self.pool.ability(*ability), AbilityDef::ManaTrigger { .. });
+                if mana {
+                    let n = u32::try_from(abouts.len()).unwrap_or(0);
+                    self.eot_mana_triggers += n;
+                    self.mana_trigger_sources += n;
+                }
                 for t in abouts {
                     // "Target player draws a card at the beginning of the
                     // next turn's upkeep" (Sapphire Charm): a delayed

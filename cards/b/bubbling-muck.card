@@ -1,0 +1,6 @@
+card "Bubbling Muck" {
+  oracle_id 3c7f2b29-9f42-41ab-a2d4-7a450fb0242d
+  cost {B}
+  type Sorcery
+  spell: until end of turn, delayed this: whenever Swamp is tapped for mana additional, add {B}
+}

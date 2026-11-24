@@ -4091,6 +4091,11 @@ pub enum Replaces {
     /// `this put into a graveyard`: "If ~ would be put into a graveyard
     /// from anywhere" (CR 113.6b).
     ThisToGraveyard,
+    /// `tapped for mana permanent you control`: "If you tap a permanent for
+    /// mana, it produces ... instead" (CR 106.12; `double`, `triple`).
+    TappedForMana {
+        what: Filter,
+    },
     PlusCounters {
         on: Filter,
     },
@@ -4397,7 +4402,11 @@ pub enum Trigger {
     /// enchanted land is tapped for mana, its controller adds an
     /// additional {G}." A triggered mana ability (CR 605.1b); its effects
     /// are mana for the tapped permanent's controller, nothing else.
-    TappedForMana(TriggerObj),
+    /// `is tapped for {C}` / `is tapped for chosen` (the kind it must
+    /// make), then `passive` ("Whenever a Forest is tapped for mana, its
+    /// controller adds an additional {G}.") and `additional` ("Whenever you
+    /// tap a Swamp for mana, add an additional {B}."): the form.
+    TappedForMana(TriggerObj, mtg_core::card::ManaTriggerForm),
     /// `whenever you tap this for mana`, `whenever a player taps land for
     /// mana`, `whenever an opponent taps Mountain for mana`: not a mana
     /// ability (its effects use the stack, CR 605.1b).

@@ -8022,6 +8022,16 @@ pub enum Replaces {
         artifact: bool,
         you: bool,
     },
+    /// A permanent matching `what` would produce mana as it is tapped for
+    /// mana by a mana ability with {T} in its cost (CR 106.12, 605.1a):
+    /// "If you tap a permanent for mana, it produces three times as much
+    /// of that mana instead." (Nyxbloom Ancient; `Replacement::Double`,
+    /// `Replacement::Triple`). Only the permanent's own mana is
+    /// multiplied, not what triggered mana abilities add; several multiply
+    /// together.
+    TappedForMana {
+        what: ObjFilter,
+    },
 }
 
 /// Whose putting counters a counter replacement applies to
@@ -10161,6 +10171,24 @@ pub struct EntersCopy {
     pub graveyard: bool,
 }
 
+/// What else a triggered mana ability (`AbilityDef::ManaTrigger`) says
+/// about its event, and how it is worded.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct ManaTriggerForm {
+    /// "Whenever you tap a land for {C}" (`Mana::Colorless`), "Whenever a
+    /// basic land is tapped for mana of the chosen color" (`Mana::Chosen`,
+    /// the source's chosen color): it triggers only if the tapped
+    /// permanent made mana of that kind.
+    pub made: Option<Mana>,
+    /// "add an additional {B}" after "Whenever you tap ..." or "Whenever a
+    /// player taps ..." (rendering only).
+    pub additional: bool,
+    /// "Whenever a Forest is tapped for mana, its controller adds ..."
+    /// for a filter with no controller, not "Whenever a player taps ..."
+    /// (rendering only).
+    pub passive: bool,
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum AbilityDef {
     /// The effect of an instant or sorcery spell when it resolves.
@@ -10198,6 +10226,8 @@ pub enum AbilityDef {
     ManaTrigger {
         what: ObjFilter,
         effects: Vec<Effect>,
+        #[serde(default)]
+        form: ManaTriggerForm,
     },
     /// "{T}, Sacrifice this artifact: Add <mana>" (Treasure, Lotus
     /// Petal): a mana ability that sacrifices its source.
@@ -11652,6 +11682,11 @@ impl DefFlags {
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::ManaTrigger { .. })
                     || matches!(a, AbilityDef::Triggered(t) if t.trigger.taps_for_mana())
+                    || matches!(
+                        a,
+                        AbilityDef::Replacement(r)
+                            if matches!(r.replaces, Replaces::TappedForMana { .. })
+                    )
             }),
         );
         flags.set(

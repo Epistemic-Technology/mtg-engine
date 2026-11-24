@@ -646,6 +646,7 @@ impl GameState {
             spent_uncounterable: false,
             uncounterable_spells: Vec::new(),
             mana_trigger_sources: 0,
+            eot_mana_triggers: 0,
             tapped_produced: crate::mana::ManaPool::default(),
             turn_static_sources: 0,
             state_trigger_sources: 0,
@@ -3538,6 +3539,9 @@ impl GameState {
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);
         }
+        // "Until end of turn, whenever a player taps an Island for mana"
+        // (High Tide) ended with them.
+        self.mana_trigger_sources -= std::mem::take(&mut self.eot_mana_triggers);
         // What an effect gave may have kept an Aura or Equipment legally
         // attached, or a creature alive (CR 704.5).
         if !ended.is_empty() {

@@ -1,0 +1,6 @@
+card "High Tide" {
+  oracle_id dc671205-f2fa-454f-9957-921a6069ad53
+  cost {U}
+  type Instant
+  spell: until end of turn, delayed this: whenever Island is tapped for mana additional, add {U}
+}

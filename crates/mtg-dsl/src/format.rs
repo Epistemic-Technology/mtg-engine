@@ -824,6 +824,7 @@ impl Fmt {
                 s
             }
             Replaces::ThisToGraveyard => "this put into a graveyard".to_string(),
+            Replaces::TappedForMana { what } => format!("tapped for mana {}", filter(what)),
             Replaces::CreateTokens {
                 creature,
                 effect,
@@ -6364,7 +6365,17 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::BecomesAttachedTo(f) => {
             format!("whenever {} becomes attached to this", filter(f))
         }
-        Trigger::TappedForMana(o) => format!("whenever {} is tapped for mana", trigger_obj(o)),
+        Trigger::TappedForMana(o, form) => format!(
+            "whenever {} is tapped for {}{}{}",
+            trigger_obj(o),
+            match form.made {
+                None => "mana",
+                Some(mtg_core::mana::Mana::Chosen) => "chosen",
+                Some(_) => "{C}",
+            },
+            if form.passive { " passive" } else { "" },
+            if form.additional { " additional" } else { "" }
+        ),
         Trigger::TapsForMana { what, whose } => format!(
             "whenever {} {} for mana",
             match whose {

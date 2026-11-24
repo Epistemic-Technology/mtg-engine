@@ -1,0 +1,8 @@
+card "Badgermole Cub" {
+  oracle_id 2b0afb89-0944-4861-b9c3-e909e2ac215e
+  cost {1}{G}
+  type Creature — Badger Mole
+  pt 2/2
+  triggered when this enters: earthbend 1
+  triggered whenever creature you control is tapped for mana additional: add {G}
+}

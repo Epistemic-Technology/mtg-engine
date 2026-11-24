@@ -1,0 +1,8 @@
+card "Kinnan, Bonder Prodigy" {
+  oracle_id 8d11aa49-d4cd-48b1-aa0f-8548fa733416
+  cost {G}{U}
+  type Legendary Creature — Human Druid
+  pt 2/2
+  triggered whenever nonland permanent you control is tapped for mana: add produced
+  activated {5}{G}{U}: dig 5 take non-Human creature card may onto battlefield rest bottom random
+}

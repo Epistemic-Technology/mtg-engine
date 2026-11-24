@@ -1,0 +1,8 @@
+card "Wolfwillow Haven" {
+  oracle_id 7579f57d-c76e-4703-a030-34fb7160cb23
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land is tapped for mana: add {G}
+  activated {4}{G}, sacrifice this, during your turn: create 1 "2/2 green Wolf creature"
+}
