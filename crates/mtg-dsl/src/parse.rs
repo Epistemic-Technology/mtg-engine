@@ -19972,7 +19972,16 @@ impl P {
                 }
                 let combat = self.eat_word("combat");
                 self.expect_word("damage")?;
-                let to = if self.eat_word("to") {
+                let to = if self.at_words(&["to", "that", "player"]) {
+                    // In a delayed trigger about a player: that player.
+                    if self.delayed_player.is_none() {
+                        return self.fail(
+                            "`deals damage to that player` needs a delayed trigger about a player",
+                        );
+                    }
+                    self.pos += 3;
+                    mtg_core::card::DamageTo::ThatPlayer
+                } else if self.eat_word("to") {
                     self.eat_word("a");
                     self.eat_word("an");
                     // "deals damage to a Vampire": any other filter.

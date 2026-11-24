@@ -369,6 +369,16 @@ impl GameState {
             let Some((trigger_obj, trigger_player)) = self.fires(spec, event, &w) else {
                 continue;
             };
+            // "... deals combat damage to that player this turn": the
+            // player it is about.
+            if let TriggerSpec::DealsDamage {
+                to: crate::card::DamageTo::ThatPlayer,
+                ..
+            } = spec
+                && trigger_player != dt.ability.trigger_player
+            {
+                continue;
+            }
             // "Whenever that creature deals combat damage this turn, you
             // may exile it": an event with no object of its own (damage to
             // a player) leaves "it" the object the trigger is about.
@@ -1598,8 +1608,12 @@ impl GameState {
                     return None;
                 }
                 match (to, target) {
+                    // "to that player": the delayed trigger's player,
+                    // checked by `delayed_turn_triggers`.
                     (
-                        crate::card::DamageTo::Player | crate::card::DamageTo::Any,
+                        crate::card::DamageTo::Player
+                        | crate::card::DamageTo::Any
+                        | crate::card::DamageTo::ThatPlayer,
                         Target::Player(p),
                     ) => Some((None, Some(*p))),
                     (crate::card::DamageTo::Opponent, Target::Player(p)) => {

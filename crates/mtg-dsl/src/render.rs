@@ -16199,6 +16199,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 mtg_core::card::DamageTo::Creature => " to a creature",
                 mtg_core::card::DamageTo::Player => " to a player",
                 mtg_core::card::DamageTo::Opponent => " to an opponent",
+                mtg_core::card::DamageTo::ThatPlayer => " to that player",
             }
         ),
         Trigger::CastsFiltered {

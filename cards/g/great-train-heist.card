@@ -1,0 +1,10 @@
+card "Great Train Heist" {
+  oracle_id afe2f7a4-9440-4d93-801f-a18b627efb21
+  cost {R}
+  type Instant
+  spree {
+  mode {2}{R}: untap all creature you control; if your combat phase, additional combat phase after this phase
+  mode {2}: each creature you control gets +1/+0 and each creature you control gain first strike
+  mode {R}: choose target opponent; delayed target 1: whenever creature you control deals combat damage to that player this turn, create 1 tapped "Treasure"
+  }
+}

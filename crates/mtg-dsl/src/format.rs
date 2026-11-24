@@ -6444,6 +6444,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 mtg_core::card::DamageTo::Creature => " to creature",
                 mtg_core::card::DamageTo::Player => " to player",
                 mtg_core::card::DamageTo::Opponent => " to opponent",
+                mtg_core::card::DamageTo::ThatPlayer => " to that player",
             }
         ),
         Trigger::CastsFiltered {

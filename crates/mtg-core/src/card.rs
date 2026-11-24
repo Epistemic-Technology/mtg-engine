@@ -8884,6 +8884,10 @@ pub enum DamageTo {
     Creature,
     Player,
     Opponent,
+    /// "to that player": in a delayed trigger about a player ("Choose
+    /// target opponent. Whenever a creature you control deals combat
+    /// damage to that player this turn, ..."), that player only.
+    ThatPlayer,
 }
 
 impl TriggerSpec {
