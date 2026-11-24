@@ -1,0 +1,6 @@
+card "Endure" {
+  oracle_id f4cd32f0-d6aa-4497-b8db-a0bf4c3c31de
+  cost {3}{W}{W}
+  type Instant
+  spell: prevent all damage to you and permanent you control this turn
+}

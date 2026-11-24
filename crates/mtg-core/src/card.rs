@@ -6100,14 +6100,24 @@ impl Effect {
                 | Effect::Forage
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
-                // A source of the controller's choice (CR 609.7a).
-                | Effect::CreateReplacement(ReplacementAbility {
-                    replaces: Replaces::Damage {
-                        from: Some(Affects::Chosen(_)),
+                // A source of the controller's choice (CR 609.7a), or
+                // "Choose a creature or planeswalker you control."
+                | Effect::CreateReplacement(
+                    ReplacementAbility {
+                        replaces: Replaces::Damage {
+                            from: Some(Affects::Chosen(_)),
+                            ..
+                        },
+                        ..
+                    }
+                    | ReplacementAbility {
+                        replacement: Replacement::Redirect {
+                            to: RedirectTo::ChosenCreatureOrPlaneswalker,
+                            ..
+                        },
                         ..
                     },
-                    ..
-                })
+                )
                 | Effect::Vote { .. }
                 | Effect::VoteReturn { .. }
                 // Each clashing player puts their card on the top or
@@ -6578,6 +6588,9 @@ pub enum RuleKind {
     /// "Damage can't be prevented." Prevention effects still apply but
     /// prevent nothing (CR 615.12).
     DamageCantBePrevented,
+    /// "Combat damage can't be prevented." (Frenzied Baloth): as
+    /// `DamageCantBePrevented`, for combat damage only.
+    CombatDamageCantBePrevented,
     /// "Cards in graveyards can't be the targets of spells or abilities."
     /// (CR 115.4): no graveyard card is a legal target.
     GraveyardUntargetable,
@@ -6644,6 +6657,11 @@ pub enum Affects {
     /// resolution has dealt damage to so far, one effect locked to each
     /// as it is created (stored effects only).
     DamagedThisWay,
+    /// Anything but objects matching the filter: as a damage source,
+    /// "Prevent all combat damage that would be dealt this turn except
+    /// combat damage that would be dealt by enchanted creatures and
+    /// enchantment creatures." (Inspire Awe).
+    Except(ObjFilter),
 }
 
 /// Where a redirection effect sends the damage (CR 614.9).
@@ -6654,6 +6672,14 @@ pub enum RedirectTo {
     /// The spell's `n`th chosen target, locked in when the effect is
     /// created.
     Target(usize),
+    /// The effect's controller ("is dealt to you instead", Vassal's
+    /// Duty).
+    You,
+    /// "Choose a creature or planeswalker you control. All damage ... is
+    /// dealt to the chosen permanent instead (if it's still on the
+    /// battlefield)." (Gideon's Sacrifice): chosen by the controller as
+    /// the effect is created (stored effects only).
+    ChosenCreatureOrPlaneswalker,
 }
 
 /// The event a replacement or prevention effect watches for (CR 614.1,
@@ -6751,6 +6777,7 @@ impl Affects {
             | Affects::OpponentsAnd(f)
             | Affects::OtherThanTarget(f, _)
             | Affects::Chosen(f)
+            | Affects::Except(f)
                 if f.chosen =>
             {
                 *f = f.with_chosen(chosen);
@@ -9191,6 +9218,14 @@ pub struct CardDef {
     /// that would counter it does nothing to it).
     #[serde(default)]
     pub uncounterable: bool,
+    /// "If X is 5 or more, this spell can't be countered and the damage
+    /// can't be prevented." (Banefire), "Spell mastery — If there are two
+    /// or more instant and/or sorcery cards in your graveyard, this spell
+    /// can't be countered." (Exquisite Firecraft): the pool's condition,
+    /// judged for the spell's controller when an effect would counter it
+    /// (CR 101.2) and, with `unpreventable`, as it resolves (CR 615.12).
+    #[serde(default)]
+    pub uncounterable_if: Option<(u16, bool)>,
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<Box<ManaCost>>,
@@ -9613,6 +9648,10 @@ impl Marks {
     pub const NIGHTBOUND: Marks = Marks(16);
     /// Storied (CR 702.195a): its controller gets an enduring story.
     pub const STORIED: Marks = Marks(32);
+    /// "Damage isn't removed from this creature during cleanup steps."
+    /// (Ancient Adamantoise, CR 514.2): kept by the card's definition,
+    /// also while it has lost its abilities.
+    pub const KEEPS_DAMAGE: Marks = Marks(64);
 
     pub const fn has(self, m: Marks) -> bool {
         self.0 & m.0 != 0
@@ -11863,6 +11902,7 @@ impl Builder {
             strive: None,
             target_cost: None,
             uncounterable: false,
+            uncounterable_if: None,
             cond_cost: None,
             madness: None,
             foretell: None,
@@ -12392,6 +12432,14 @@ impl Builder {
     #[must_use]
     pub fn uncounterable(mut self) -> Self {
         self.0.uncounterable = true;
+        self
+    }
+
+    /// "If <condition>, this spell can't be countered [and the damage
+    /// can't be prevented]." (see `CardDef::uncounterable_if`).
+    #[must_use]
+    pub fn uncounterable_if(mut self, cond: u16, unpreventable: bool) -> Self {
+        self.0.uncounterable_if = Some((cond, unpreventable));
         self
     }
 

@@ -1,0 +1,8 @@
+card "Empyrial Archangel" {
+  oracle_id 3a105959-dfce-4202-b37f-ae635dfcb30b
+  cost {4}{G}{W}{W}{U}
+  type Creature — Angel
+  pt 5/8
+  keywords flying, shroud
+  replace damage to you: redirect to this
+}

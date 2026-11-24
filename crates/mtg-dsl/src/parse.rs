@@ -2522,6 +2522,12 @@ impl P {
                     mtg_core::card::RuleKind::DamageCantBePrevented,
                 ))
             }
+            "combat" if self.at_words(&["combat", "damage", "can't", "be", "prevented"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::CombatDamageCantBePrevented,
+                ))
+            }
             "additional" if self.at_words(&["additional", "land"]) => {
                 self.pos += 2;
                 let n = if matches!(self.peek(), Some(Tok::Num(_))) {
@@ -2862,6 +2868,11 @@ impl P {
                 self.pos += 4;
                 self.end_stmt()?;
                 Ok(Ability::AuraStays)
+            }
+            "damage" if self.at_words(&["damage", "isn't", "removed", "during", "cleanup"]) => {
+                self.pos += 5;
+                self.end_stmt()?;
+                Ok(Ability::KeepsDamage)
             }
             "deck" if self.at_words(&["deck", "any", "number"]) => {
                 self.pos += 3;
@@ -4021,6 +4032,8 @@ impl P {
                     outcome: Outcome::EnterTappedUnlessPay(n),
                     then: Vec::new(),
                     token: None,
+                    wording: crate::ast::ThenWording::Sentence,
+                    cond: None,
                 }))
             }
             // "As this land enters, you may reveal a Mountain or Forest
@@ -4062,6 +4075,19 @@ impl P {
                 self.pos += 1;
                 let cond = self.static_cond()?;
                 self.expect(&Tok::Comma)?;
+                if self.at_words(&["this", "spell", "can't", "be", "countered"]) {
+                    self.pos += 5;
+                    let unpreventable =
+                        self.at_words(&["and", "the", "damage", "can't", "be", "prevented"]);
+                    if unpreventable {
+                        self.pos += 6;
+                    }
+                    self.end_stmt()?;
+                    return Ok(Ability::UncounterableIf {
+                        cond,
+                        unpreventable,
+                    });
+                }
                 self.expect_word("enters")?;
                 self.expect_word("with")?;
                 let n = self.number()?;
@@ -4122,6 +4148,8 @@ impl P {
                     outcome,
                     then: Vec::new(),
                     token: None,
+                    wording: crate::ast::ThenWording::Sentence,
+                    cond: None,
                 }))
             }
             "label" => {
@@ -4888,6 +4916,13 @@ impl P {
                 return self.unexpected("the same zone twice");
             }
             return Ok(StaticCond::CameFrom { zone, wording });
+        }
+        if self.eat_words(&["it", "was", "cast"])
+            || self.eat_words(&["he", "was", "cast"])
+            || self.eat_words(&["she", "was", "cast"])
+            || self.eat_words(&["they", "were", "cast"])
+        {
+            return Ok(StaticCond::WasCastPassive);
         }
         if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutAnyCounterThisTurn);
@@ -7730,6 +7765,7 @@ impl P {
             }
             self.expect_word("replace")?;
             let mut r = self.replacement_inline()?;
+            r.wording = self.then_wording();
             r.then = self.created_then()?;
             return Ok(Effect::CreateReplacement(r));
         }
@@ -12000,6 +12036,19 @@ impl P {
                             combat,
                             wording: DamageWording::DealtLate,
                         },
+                        // `... this turn except from <filter>` (Inspire
+                        // Awe).
+                        Replaces::Damage {
+                            from: None,
+                            to,
+                            combat,
+                            ..
+                        } if self.eat_words(&["except", "from"]) => Replaces::Damage {
+                            from: Some(Affects::Except(self.filter()?)),
+                            to,
+                            combat,
+                            wording: DamageWording::Dealt,
+                        },
                         e => e,
                     }
                 } else {
@@ -12028,6 +12077,7 @@ impl P {
                         wording,
                     }
                 };
+                let wording = self.then_wording();
                 let then = self.created_then()?;
                 Ok(Effect::CreateReplacement(Replacement {
                     event,
@@ -12037,6 +12087,8 @@ impl P {
                     },
                     then,
                     token: None,
+                    wording,
+                    cond: None,
                 }))
             }
             "players" => {
@@ -12057,6 +12109,10 @@ impl P {
             "damage" => {
                 self.expect_words(&["can't", "be", "prevented", "this", "turn"])?;
                 Ok(Effect::Rule(RuleKind::DamageCantBePrevented))
+            }
+            "combat" if self.at_words(&["damage", "can't", "be", "prevented", "this", "turn"]) => {
+                self.pos += 6;
+                Ok(Effect::Rule(RuleKind::CombatDamageCantBePrevented))
             }
             // "Excess damage is dealt to that creature's controller
             // instead." (Pigment Storm).
@@ -17268,8 +17324,23 @@ impl P {
         Ok(s)
     }
 
+    /// `and` or `for each` before a prevention's `{ ... }`: how its
+    /// effects are printed (`ThenWording`).
+    fn then_wording(&mut self) -> crate::ast::ThenWording {
+        if self.at_word("and") && self.peek_at(1) == Some(&Tok::LBrace) {
+            self.pos += 1;
+            crate::ast::ThenWording::Joined
+        } else if self.at_words(&["for", "each"]) && self.peek_at(2) == Some(&Tok::LBrace) {
+            self.pos += 2;
+            crate::ast::ThenWording::ForEachFirst
+        } else {
+            crate::ast::ThenWording::Sentence
+        }
+    }
+
     fn replacement(&mut self) -> R<Replacement> {
         let mut r = self.replacement_inline()?;
+        r.wording = self.then_wording();
         if self.peek() == Some(&Tok::LBrace) {
             r.then = self.effects_body()?;
         } else {
@@ -17280,6 +17351,12 @@ impl P {
 
     fn replacement_inline(&mut self) -> R<Replacement> {
         let event = self.replaces()?;
+        // `while this has 1 or more +1/+1 counters` (Ugin's Conjurant).
+        let cond = if self.eat_word("while") {
+            Some(Box::new(self.static_cond()?))
+        } else {
+            None
+        };
         self.expect(&Tok::Colon)?;
         // `plus "1/1 green Frog creature"`, `plus that many "..."`: tokens
         // created as well (Quina, Chatterfang).
@@ -17313,6 +17390,8 @@ impl P {
             outcome,
             then: Vec::new(),
             token,
+            wording: crate::ast::ThenWording::Sentence,
+            cond,
         })
     }
 
@@ -17528,7 +17607,24 @@ impl P {
             None
         };
         self.expect_word("damage")?;
-        self.damage_event(combat)
+        // `damage this turn to A [from S]`: "that would be dealt this turn
+        // to A [by S]"; `damage to A this turn from S`: "... to A this turn
+        // by S" (in an effect's `this turn, replace`; rendering only).
+        let turn_first = self.at_words(&["this", "turn", "to"]);
+        if turn_first {
+            self.pos += 2;
+        }
+        let mut event = self.damage_event(combat)?;
+        if let Replaces::Damage { from, wording, .. } = &mut event {
+            if turn_first {
+                *wording = DamageWording::TurnFirst;
+            } else if from.is_none() && self.at_words(&["this", "turn", "from"]) {
+                self.pos += 3;
+                *from = Some(self.source()?);
+                *wording = DamageWording::DealtLate;
+            }
+        }
+        Ok(event)
     }
 
     /// The rest of a damage event after `damage`: `to and from <affects>`,
@@ -17598,6 +17694,7 @@ impl P {
         Ok(a)
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per outcome
     fn outcome(&mut self) -> R<Outcome> {
         let w = self.word()?;
         let out = match w.as_str() {
@@ -17679,14 +17776,38 @@ impl P {
                     None
                 };
                 self.expect_word("to")?;
-                if next.is_none() && (self.eat_word("attached") || self.eat_word("enchanted")) {
+                if next.is_none()
+                    && (self.eat_word("attached")
+                        || self.eat_word("enchanted")
+                        || self.eat_word("equipped"))
+                {
                     Outcome::RedirectToAttached
+                } else if self.eat_word("you") {
+                    Outcome::Redirect {
+                        to: RedirectTo::You,
+                        next,
+                    }
+                } else if self.eat_words(&[
+                    "chosen",
+                    "creature",
+                    "or",
+                    "planeswalker",
+                    "you",
+                    "control",
+                ]) {
+                    Outcome::Redirect {
+                        to: RedirectTo::ChosenCreatureOrPlaneswalker,
+                        next,
+                    }
                 } else if self.eat_word("this") {
                     Outcome::Redirect {
                         to: RedirectTo::This,
                         next,
                     }
-                } else if self.at_word("target") || self.at_words(&["another", "target"]) {
+                } else if self.at_word("target")
+                    || self.at_words(&["another", "target"])
+                    || self.at_words(&["any", "target"])
+                {
                     match self.recipient()? {
                         Recipient::Target(i) => Outcome::Redirect {
                             to: RedirectTo::Target(i),

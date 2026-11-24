@@ -1,0 +1,8 @@
+card "Razia, Boros Archangel" {
+  oracle_id d830a136-6fb9-42e7-81f1-97e1d713ee82
+  cost {4}{R}{R}{W}{W}
+  type Legendary Creature — Angel
+  pt 6/3
+  keywords flying, vigilance, haste
+  activated {T}: this turn, replace damage to target creature you control: redirect next 3 to another target creature
+}

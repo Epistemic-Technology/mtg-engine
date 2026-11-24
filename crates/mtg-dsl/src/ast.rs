@@ -2021,6 +2021,9 @@ pub enum Ability {
     /// `protection doesn't remove this`: "This effect doesn't remove this
     /// Aura.", printed after the static ability before it.
     AuraStays,
+    /// `damage isn't removed during cleanup`: "Damage isn't removed from
+    /// this creature during cleanup steps." (CR 514.2).
+    KeepsDamage,
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
@@ -2031,6 +2034,14 @@ pub enum Ability {
     Companion(String),
     /// `this spell can't be countered`: "This spell can't be countered."
     Uncounterable,
+    /// `if x 5 or more, this spell can't be countered and the damage can't
+    /// be prevented`: "If X is 5 or more, this spell can't be countered and
+    /// the damage can't be prevented." (Banefire); without the `and`
+    /// clause, "this spell can't be countered" only (Exquisite Firecraft).
+    UncounterableIf {
+        cond: StaticCond,
+        unpreventable: bool,
+    },
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
     /// Whenever a land you control enters, ...". No rules meaning.
     Labeled {
@@ -3054,6 +3065,10 @@ pub enum StaticCond {
         zone: mtg_core::state::Zone,
         wording: u8,
     },
+    /// `it was cast` (also `he was cast`, `she was cast`, `they were
+    /// cast`): "he was cast" by the card's pronoun (Anti-Venom); the same
+    /// condition as `you cast it`.
+    WasCastPassive,
     /// `put any counter this turn`: "you put a counter on a creature this
     /// turn" (any kind).
     PutAnyCounterThisTurn,
@@ -3268,6 +3283,29 @@ pub struct Replacement {
     /// The token an outcome `plus "<token>"` adds (`Outcome::PlusToken`,
     /// whose `CardRef` the compiler fills in).
     pub token: Option<String>,
+    /// How the effects after a prevention are printed (rendering only).
+    pub wording: ThenWording,
+    /// `replace damage to this while this has 1 or more +1/+1 counters:
+    /// ...`: "If damage would be dealt to this creature while it has a
+    /// +1/+1 counter on it, ..." (Ugin's Conjurant). The ability applies
+    /// only while the condition holds (a static ability only).
+    pub cond: Option<Box<StaticCond>>,
+}
+
+/// How a prevention's effects (`{ ... }`) are printed.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum ThenWording {
+    /// A sentence of their own: "... prevent that damage. Put a +1/+1
+    /// counter on that creature for each 1 damage prevented this way."
+    #[default]
+    Sentence,
+    /// `prevent and { ... }`: joined to the prevention, "prevent that
+    /// damage and put that many +1/+1 counters on him" (Anti-Venom).
+    Joined,
+    /// `for each { ... }` after a created prevention: "For each 1 damage
+    /// prevented this way, put a +1/+1 counter on that creature." (Test of
+    /// Faith).
+    ForEachFirst,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -3377,6 +3415,11 @@ pub enum DamageWording {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Affects {
+    /// `except from <filter>` after an effect's `prevent all ... this turn`
+    /// (a damage source only): any source but those ("Prevent all combat
+    /// damage that would be dealt this turn except combat damage that
+    /// would be dealt by enchanted creatures and enchantment creatures.").
+    Except(Filter),
     Any,
     This,
     You,

@@ -8320,9 +8320,15 @@ impl GameState {
             return;
         }
         let def = o.def;
+        let controller = o.controller;
         // "This spell can't be countered.", "Spells you control can't be
-        // countered."
+        // countered.", "If X is 5 or more, this spell can't be countered"
+        // (judged now, CR 101.2).
         if self.pool.get(def).uncounterable
+            || self.pool.get(def).uncounterable_if.is_some_and(|(i, _)| {
+                let c = self.pool.condition(i).clone();
+                self.condition_for(&c, controller, id, None)
+            })
             || (self.cost_change_sources > 0 && self.uncounterable_granted(id))
             || (!self.uncounterable_spells.is_empty() && self.uncounterable_spells.contains(&id))
         {
@@ -8533,7 +8539,15 @@ impl GameState {
             let outer = self.begin_this_way(spell);
             // "The damage can't be prevented" covers the spell's damage
             // dealt before the sentence too (CR 615.12).
-            if effects.contains(&Effect::DamageUnpreventable)
+            // "If X is 5 or more, ... the damage can't be prevented"
+            // (Banefire): the condition as the spell resolves.
+            let unpreventable_if = def.uncounterable_if.is_some_and(|(i, u)| {
+                u && {
+                    let c = pool.condition(i).clone();
+                    self.condition_for(&c, obj.controller, spell, None)
+                }
+            });
+            if (unpreventable_if || effects.contains(&Effect::DamageUnpreventable))
                 && let Some(log) = &mut self.this_way
             {
                 log.unpreventable = true;
@@ -16913,6 +16927,15 @@ impl GameState {
                 }
                 ctx.targets.get(i).copied()
             }
+            // "Choose a creature or planeswalker you control." (Gideon's
+            // Sacrifice): with none, the effect does nothing.
+            Replacement::Redirect {
+                to: crate::card::RedirectTo::ChosenCreatureOrPlaneswalker,
+                ..
+            } => match self.choose_own_creature_or_planeswalker(ctx) {
+                Some(id) => Some(Target::Object(id)),
+                None => return,
+            },
             _ => None,
         };
         // CR 609.7a: a source of the controller's choice is chosen as the
@@ -16962,6 +16985,31 @@ impl GameState {
             redirect,
         });
         self.bump();
+    }
+
+    /// The controller chooses a creature or planeswalker they control (not
+    /// a target): `None` if they control none.
+    fn choose_own_creature_or_planeswalker(&mut self, ctx: &EffectCtx) -> Option<ObjId> {
+        let cands: Vec<ObjId> = self
+            .battlefield
+            .iter()
+            .copied()
+            .filter(|id| {
+                self.objects[*id].controller == ctx.controller
+                    && self
+                        .characteristics(*id)
+                        .is_some_and(|c| c.is_creature() || c.is_planeswalker())
+            })
+            .collect();
+        match cands.len() {
+            0 => None,
+            1 => Some(cands[0]),
+            _ => {
+                let options: Vec<Choice> = cands.iter().map(|id| Choice::Sacrifice(*id)).collect();
+                let k = self.choose_mid(ctx.controller, DecisionKind::ChooseCard, options);
+                cands.get(k).copied()
+            }
+        }
     }
 
     /// CR 609.7a: the controller chooses a source of damage matching `f`:

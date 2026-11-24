@@ -1,0 +1,9 @@
+card "Saving Grace" {
+  oracle_id 50ddbea3-7ef4-4f6a-83c9-0c3ea1dfa3c9
+  cost {1}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature you control
+  triggered when this enters: this turn, replace damage this turn to you and permanent you control: redirect to attached
+  static enchanted: +0/+3
+}

@@ -1,0 +1,9 @@
+card "Ironscale Hydra" {
+  oracle_id cef72b9b-91b1-47ff-ab6e-91d3c548e98b
+  cost {3}{G}{G}
+  type Creature — Hydra
+  pt 5/5
+  replace combat damage from creature to this: prevent and {
+    put 1 +1/+1 counters on this creature
+  }
+}

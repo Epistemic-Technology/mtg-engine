@@ -1,0 +1,6 @@
+card "Test of Faith" {
+  oracle_id 3397aa3d-bf73-4ca3-a806-059361603079
+  cost {1}{W}
+  type Instant
+  spell: prevent next 3 damage to target creature this turn for each { put that much +1/+1 counters on that creature }
+}

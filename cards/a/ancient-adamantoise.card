@@ -1,0 +1,11 @@
+card "Ancient Adamantoise" {
+  oracle_id e6873252-653a-47a8-99b7-b2ef70aa1f7f
+  cost {5}{G}{G}{G}
+  type Creature — Turtle
+  pt 8/20
+  keywords vigilance
+  ward {3}
+  damage isn't removed during cleanup
+  replace damage to you and other permanent you control: redirect to this
+  triggered when this dies: exile this and create 10 tapped "Treasure"
+}

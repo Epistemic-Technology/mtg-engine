@@ -1,0 +1,7 @@
+card "Pariah's Shield" {
+  oracle_id f2103ab8-a183-4db8-98dd-4146217b5125
+  cost {5}
+  type Artifact — Equipment
+  replace damage to you: redirect to equipped
+  equip {3}
+}

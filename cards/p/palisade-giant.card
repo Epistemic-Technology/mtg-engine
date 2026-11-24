@@ -1,0 +1,7 @@
+card "Palisade Giant" {
+  oracle_id f38fe1e9-8997-4b63-9109-7513034bac88
+  cost {4}{W}{W}
+  type Creature — Giant Soldier
+  pt 2/7
+  replace damage to you and other permanent you control: redirect to this
+}

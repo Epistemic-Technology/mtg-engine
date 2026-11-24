@@ -841,6 +841,9 @@ impl GameState {
             }
             // A chosen source is never a recipient.
             Affects::Chosen(_) => false,
+            Affects::Except(f) => {
+                !matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
+            }
         }
     }
 
@@ -871,6 +874,7 @@ impl GameState {
             }
             // CR 609.7a: the source chosen as the effect was created.
             Affects::Chosen(_) => lock.chosen == Some(src),
+            Affects::Except(f) => !self.source_matches(f, src, source, controller),
         }
     }
 
@@ -961,12 +965,24 @@ impl GameState {
             && (!f.needs_state() || (on_battlefield && self.status_ok(f, src)))
     }
 
+    /// Whether damage (combat damage, with `combat`) dealt now can't be
+    /// prevented (CR 615.12): "Damage can't be prevented.", "Combat damage
+    /// can't be prevented.", or a resolving spell's "the damage can't be
+    /// prevented". Protection's prevention is stopped too (CR 702.16d).
+    pub(super) fn damage_unpreventable(&self, combat: bool) -> bool {
+        self.this_way.as_ref().is_some_and(|l| l.unpreventable)
+            || self.rule_in_force(RuleKind::DamageCantBePrevented)
+            || (combat && self.rule_in_force(RuleKind::CombatDamageCantBePrevented))
+    }
+
     /// Apply one effect to the event (CR 614.6, 615.6), then its additional
     /// effects (CR 615.5).
     #[allow(clippy::too_many_lines)] // one arm per (replacement, event) pair
     fn apply_replacement(&mut self, c: &Candidate, ev: Proposed) -> Outcome {
-        let unpreventable = self.rule_in_force(RuleKind::DamageCantBePrevented)
-            || self.this_way.as_ref().is_some_and(|l| l.unpreventable);
+        let unpreventable = match &ev {
+            Proposed::Damage { combat, .. } => self.damage_unpreventable(*combat),
+            _ => false,
+        };
         // "Prevent that damage and each opponent mills that many cards":
         // the replaced event's damage is the follow-up's "that much".
         let that_much = match &ev {
@@ -1105,8 +1121,15 @@ impl GameState {
             ) => {
                 let dest = match (to, c.key) {
                     (RedirectTo::This, _) => Some(Target::Object(c.source)),
-                    (RedirectTo::Target(_), Key::Stored(i)) => self.replacements[i].redirect,
-                    (RedirectTo::Target(_), Key::Ability { .. }) => None,
+                    (RedirectTo::You, _) => Some(Target::Player(c.controller)),
+                    (
+                        RedirectTo::Target(_) | RedirectTo::ChosenCreatureOrPlaneswalker,
+                        Key::Stored(i),
+                    ) => self.replacements[i].redirect,
+                    (
+                        RedirectTo::Target(_) | RedirectTo::ChosenCreatureOrPlaneswalker,
+                        Key::Ability { .. },
+                    ) => None,
                 };
                 // CR 614.9: the effect does nothing if the new recipient has
                 // left the battlefield, is no longer a creature or
@@ -1931,12 +1954,30 @@ impl GameState {
                 ) => that_much.saturating_sub(*amount),
                 _ => that_much,
             };
+            // A spell's prevention locked to its target: "that creature"
+            // in what follows is that target (Test of Faith: "For each 1
+            // damage prevented this way, put a +1/+1 counter on that
+            // creature").
+            let targets = match (c.key, &c.ability.replaces) {
+                (
+                    Key::Stored(i),
+                    crate::card::Replaces::Damage {
+                        to: Affects::Target(n),
+                        ..
+                    },
+                ) => self.replacements[i]
+                    .target
+                    .map(|t| vec![t; n + 1])
+                    .unwrap_or_default(),
+                _ => Vec::new(),
+            };
+            let targets_len = targets.len();
             let mut ctx = EffectCtx {
                 source: c.source,
                 controller: c.controller,
-                targets: Vec::new(),
+                targets,
                 division: Vec::new(),
-                legal: Vec::new(),
+                legal: vec![true; targets_len],
                 trigger_obj: damaged,
                 trigger_player: None,
                 trigger_amount: that_much,

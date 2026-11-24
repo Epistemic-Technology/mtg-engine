@@ -1,0 +1,10 @@
+card "Ugin's Conjurant" {
+  oracle_id 787055e6-5d65-458e-a56e-66ef0574d2ca
+  cost {X}
+  type Creature — Spirit Monk
+  pt 0/0
+  enters with X +1/+1 counters
+  replace damage to this while this has 1 or more +1/+1 counters: prevent and {
+    remove that much +1/+1 counters from this creature
+  }
+}

@@ -1,0 +1,7 @@
+card "Exquisite Firecraft" {
+  oracle_id e83c617f-1e07-40db-9b12-ae01122a3e24
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal 4 damage to any target
+  label "Spell mastery" if 2 instant or sorcery cards in your graveyard, this spell can't be countered
+}

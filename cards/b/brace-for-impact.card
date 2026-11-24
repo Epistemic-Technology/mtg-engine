@@ -1,0 +1,6 @@
+card "Brace for Impact" {
+  oracle_id f250fb94-e519-4bfa-921e-eddeeafcf76c
+  cost {4}{W}
+  type Instant
+  spell: prevent all damage to target multicolored creature this turn for each { put that much +1/+1 counters on that creature }
+}

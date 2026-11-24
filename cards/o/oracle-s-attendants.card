@@ -1,0 +1,7 @@
+card "Oracle's Attendants" {
+  oracle_id f4bc6674-8586-4dd9-ad3a-87ba704fda7a
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 1/5
+  activated {T}: this turn, replace damage to target creature this turn from chosen source: redirect to this
+}

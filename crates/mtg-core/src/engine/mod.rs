@@ -3305,7 +3305,16 @@ impl GameState {
 
     fn finish_cleanup(&mut self) {
         self.combat_durations = 0;
+        let pool = std::sync::Arc::clone(&self.pool);
         for (_, o) in &mut self.objects {
+            // "Damage isn't removed from this creature during cleanup
+            // steps." (CR 514.2).
+            if o.damage > 0
+                && o.zone == Zone::Battlefield
+                && pool.get(o.def).marks.has(crate::card::Marks::KEEPS_DAMAGE)
+            {
+                continue;
+            }
             o.damage = 0;
             o.deathtouch_damage = false;
         }

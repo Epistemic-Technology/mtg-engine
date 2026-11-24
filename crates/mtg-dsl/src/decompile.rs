@@ -2517,6 +2517,7 @@ impl Decompiler<'_> {
             CoreAffects::OtherThanTarget(f, i) => Affects::OtherThanTarget(self.filter(f), *i),
             CoreAffects::Chosen(f) => Affects::Chosen(self.filter(f)),
             CoreAffects::DamagedThisWay => Affects::DamagedThisWay,
+            CoreAffects::Except(f) => Affects::Except(self.filter(f)),
         }
     }
 
@@ -2595,6 +2596,8 @@ impl Decompiler<'_> {
                 }
                 _ => None,
             },
+            wording: crate::ast::ThenWording::Sentence,
+            cond: None,
         }
     }
 

@@ -1,0 +1,6 @@
+card "Inspire Awe" {
+  oracle_id 9ca539cd-9876-4c13-b220-d553c17f2378
+  cost {3}{G}
+  type Instant
+  spell: prevent all combat damage this turn except from andlist creature with aura or enchantment creature; scry 2
+}

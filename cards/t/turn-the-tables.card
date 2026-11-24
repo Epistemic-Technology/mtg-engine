@@ -1,0 +1,6 @@
+card "Turn the Tables" {
+  oracle_id bd5ad7c3-4477-4278-9875-d2ffbb0e8089
+  cost {3}{W}{W}
+  type Instant
+  spell: this turn, replace combat damage to you: redirect to target attacking creature
+}

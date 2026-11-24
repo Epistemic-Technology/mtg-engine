@@ -11697,6 +11697,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
         }
+        Effect::Rule(RuleKind::CombatDamageCantBePrevented) => {
+            Clause::imperative("combat damage can't be prevented this turn".to_string())
+        }
         Effect::Rule(RuleKind::GraveyardUntargetable) => Clause::imperative(
             "cards in graveyards can't be the targets of spells or abilities this turn".to_string(),
         ),
@@ -13672,6 +13675,7 @@ fn affects_to(a: &Affects, ctx: &mut Ctx) -> String {
         ),
         Affects::Chosen(f) => chosen_source(f, ctx.card),
         Affects::DamagedThisWay => "a creature dealt damage this way".to_string(),
+        Affects::Except(f) => format!("sources other than {}", filter_phrase(f, ctx.card, true)),
     }
 }
 
@@ -13764,6 +13768,16 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                 a => format!(" to {}", affects_all(a, ctx)),
             };
             match (from, wording) {
+                // "Prevent all combat damage that would be dealt this turn
+                // except combat damage that would be dealt by enchanted
+                // creatures and enchantment creatures." (Inspire Awe).
+                (Some(Affects::Except(f)), _) => {
+                    let to = to_text(ctx);
+                    let by = damage_source(&Affects::Objects(f.clone()), ctx);
+                    format!(
+                        "Prevent all {kind} that would be dealt{to}{turn} except {kind} that would be dealt by {by}."
+                    )
+                }
                 (_, DamageWording::TurnFirst) => {
                     let to = match to {
                         Affects::Any => String::new(),
@@ -13930,7 +13944,10 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         // this turn is dealt to target creature you control instead."
         (
             Replaces::Damage {
-                from, to, combat, ..
+                from,
+                to,
+                combat,
+                wording,
             },
             Outcome::Redirect { to: dest, next },
         ) => {
@@ -13941,12 +13958,33 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             };
             let turn = if this_turn { " this turn" } else { "" };
             let to = affects_to(to, ctx);
+            let first = *wording == DamageWording::TurnFirst;
+            let chosen = matches!(
+                dest,
+                mtg_core::card::RedirectTo::ChosenCreatureOrPlaneswalker
+            );
             let mut s = match (next, from) {
                 (Some(n), _) => format!("The next {n} {kind} that would be dealt to {to}{turn}"),
+                // "All damage that would be dealt this turn to you and
+                // permanents you control is dealt to ..." (Gideon's
+                // Sacrifice).
+                (None, None) if first => format!("All {kind} that would be dealt{turn} to {to}"),
                 (None, None) => format!("All {kind} that would be dealt to {to}{turn}"),
+                // "All damage that would be dealt this turn to A by S"
+                // (Kor Chant), "... to A this turn by S" (Oracle's
+                // Attendants), "... to A by S this turn" (Kjeldoran Royal
+                // Guard).
                 (None, Some(f)) => {
                     let by = damage_source(f, ctx);
-                    format!("All {kind} that would be dealt{turn} to {to} by {by}")
+                    match wording {
+                        DamageWording::TurnFirst => {
+                            format!("All {kind} that would be dealt{turn} to {to} by {by}")
+                        }
+                        DamageWording::DealtLate => {
+                            format!("All {kind} that would be dealt to {to}{turn} by {by}")
+                        }
+                        _ => format!("All {kind} that would be dealt to {to} by {by}{turn}"),
+                    }
                 }
             };
             let dest = match dest {
@@ -13955,8 +13993,22 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     this_ref(ctx.card)
                 }
                 mtg_core::card::RedirectTo::Target(i) => ctx.obj(Recipient::Target(*i)),
+                mtg_core::card::RedirectTo::You => "you".to_string(),
+                mtg_core::card::RedirectTo::ChosenCreatureOrPlaneswalker => {
+                    "the chosen permanent".to_string()
+                }
             };
-            let _ = write!(s, " is dealt to {dest} instead.");
+            let _ = write!(s, " is dealt to {dest} instead");
+            if chosen {
+                // "Choose a creature or planeswalker you control. All
+                // damage ... is dealt to the chosen permanent instead (if
+                // it's still on the battlefield)." (Gideon's Sacrifice).
+                s = format!(
+                    "Choose a creature or planeswalker you control. {s} (if it's still on the battlefield)."
+                );
+            } else {
+                s.push('.');
+            }
             s
         }
         // `replace damage permanent you control of chosen type would deal:
@@ -14087,6 +14139,48 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let rest = lowercase_first(rest.trim_end_matches('.'));
             return format!("If {by} would deal damage to {to}, prevent that damage and {rest}.");
         }
+        // "If damage would be dealt to Anti-Venom, prevent that damage and
+        // put that many +1/+1 counters on him.", "If a creature would deal
+        // combat damage to this creature, prevent that damage and put a
+        // +1/+1 counter on this creature." (Ironscale Hydra), "... while it
+        // has a +1/+1 counter on it, prevent that damage and remove that
+        // many +1/+1 counters from it." (Ugin's Conjurant).
+        (
+            Replaces::Damage {
+                from, to, combat, ..
+            },
+            Outcome::Prevent,
+        ) if !this_turn && r.wording == crate::ast::ThenWording::Joined => {
+            let kind = match combat {
+                Some(true) => "combat damage",
+                Some(false) => "noncombat damage",
+                None => "damage",
+            };
+            let to = match to {
+                Affects::Objects(f) => filter_a(f, ctx.card),
+                other => affects_to(other, ctx),
+            };
+            let head = match from {
+                None => format!("If {kind} would be dealt to {to}"),
+                Some(Affects::Objects(f)) if f.types.is_empty() && f.any_types.is_empty() => {
+                    let p = filter_a(f, ctx.card);
+                    let by = if p.contains("permanent") {
+                        p.replacen("permanent", "source", 1)
+                    } else {
+                        p.replacen(" you control", " source you control", 1)
+                    };
+                    format!("If {by} would deal {kind} to {to}")
+                }
+                Some(Affects::Objects(f)) => {
+                    format!("If {} would deal {kind} to {to}", filter_a(f, ctx.card))
+                }
+                Some(f) => format!("If {} would deal {kind} to {to}", affects_to(f, ctx)),
+            };
+            let cond = replacement_while(r, ctx);
+            let rest = sentences(&r.then, ctx);
+            let rest = lowercase_first(rest.trim_end_matches('.'));
+            return format!("{head}{cond}, prevent that damage and {rest}.");
+        }
         (Replaces::Damage { to, combat, .. }, Outcome::Prevent) => {
             let kind = match combat {
                 Some(true) => "combat damage",
@@ -14099,13 +14193,27 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 Affects::Objects(f) => filter_a(f, ctx.card),
                 other => affects_to(other, ctx),
             };
-            format!("If {kind} would be dealt to {to}, prevent that damage.")
+            let cond = replacement_while(r, ctx);
+            format!("If {kind} would be dealt to {to}{cond}, prevent that damage.")
         }
-        (Replaces::Damage { to, .. }, Outcome::RedirectToAttached) => {
+        // "All damage that would be dealt to you is dealt to enchanted
+        // creature instead." (Pariah), "... to equipped creature ..."
+        // (Pariah's Shield), "When this Aura enters, all damage that would
+        // be dealt this turn to you and permanents you control is dealt to
+        // enchanted creature instead." (Saving Grace).
+        (Replaces::Damage { to, wording, .. }, Outcome::RedirectToAttached) => {
             let to = affects_to(to, ctx);
-            format!(
-                "All damage that would be dealt to {to} is dealt to enchanted creature instead."
-            )
+            let attached = if is_equipment(ctx.card) {
+                "equipped"
+            } else {
+                "enchanted"
+            };
+            let dealt = match (this_turn, wording) {
+                (false, _) => format!("dealt to {to}"),
+                (true, DamageWording::TurnFirst) => format!("dealt this turn to {to}"),
+                (true, _) => format!("dealt to {to} this turn"),
+            };
+            format!("All damage that would be {dealt} is dealt to {attached} creature instead.")
         }
         (Replaces::LoseLife { whose, your_turn }, outcome) => {
             let (subj, obj) = match whose {
@@ -14537,7 +14645,10 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             r.outcome,
             Outcome::Prevent | Outcome::PreventNext(_) | Outcome::PreventNextTime
         ) {
-            out.push_str(&prevented_this_way(&then));
+            out.push_str(&prevented_this_way(
+                &then,
+                r.wording == crate::ast::ThenWording::ForEachFirst,
+            ));
         } else {
             out.push_str(&then);
         }
@@ -14549,7 +14660,9 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
 /// the damage prevented this way."; "Put that many +1/+1 counters on that
 /// creature.": "Put a +1/+1 counter on that creature for each 1 damage
 /// prevented this way."
-fn prevented_this_way(s: &str) -> String {
+/// With `for_each_first`, "For each 1 damage prevented this way, put a
+/// +1/+1 counter on that creature." (Test of Faith).
+fn prevented_this_way(s: &str, for_each_first: bool) -> String {
     const WAY: &str = "the damage prevented this way";
     let s = s
         .replace("gain that much life", &format!("gain life equal to {WAY}"))
@@ -14575,12 +14688,36 @@ fn prevented_this_way(s: &str) -> String {
             if let Some(rest) = body.strip_prefix("Put that many ")
                 && let Some((kind, on)) = rest.split_once(" counters on ")
             {
-                format!("Put a {kind} counter on {on} for each 1 damage prevented this way{end}")
+                if for_each_first {
+                    format!(
+                        "For each 1 damage prevented this way, put a {kind} counter on {on}{end}"
+                    )
+                } else {
+                    format!(
+                        "Put a {kind} counter on {on} for each 1 damage prevented this way{end}"
+                    )
+                }
             } else {
                 format!("{body}{end}")
             }
         })
         .collect()
+}
+
+/// A replacement's " while it has a +1/+1 counter on it" (Ugin's
+/// Conjurant): the source named before it is "it".
+fn replacement_while(r: &Replacement, ctx: &Ctx) -> String {
+    match &r.cond {
+        Some(c) => {
+            let text = static_cond_text(c, ctx.card);
+            let this = this_ref(ctx.card);
+            match text.strip_prefix(&this) {
+                Some(rest) => format!(" while it{rest}"),
+                None => format!(" while {text}"),
+            }
+        }
+        None => String::new(),
+    }
 }
 
 // ---- statics ----
@@ -16042,6 +16179,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 _ => format!("one or more of them entered from {z} or was cast from {z}"),
             }
         }
+        StaticCond::WasCastPassive => match card.pronoun {
+            Some(crate::ast::Pronoun::He) => "he was cast",
+            Some(crate::ast::Pronoun::She) => "she was cast",
+            Some(crate::ast::Pronoun::They) => "they were cast",
+            None => "it was cast",
+        }
+        .to_string(),
         StaticCond::PutAnyCounterThisTurn => {
             "you put a counter on a creature this turn".to_string()
         }
@@ -18238,7 +18382,25 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("A deck can have any number of cards named {}.", card.name)
         }
         Ability::Companion(text) => format!("Companion \u{2014} {text}"),
+        Ability::KeepsDamage => format!(
+            "Damage isn't removed from {} during cleanup steps.",
+            this_ref(card)
+        ),
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
+        Ability::UncounterableIf {
+            cond,
+            unpreventable,
+        } => {
+            let and = if *unpreventable {
+                " and the damage can't be prevented"
+            } else {
+                ""
+            };
+            format!(
+                "If {}, this spell can't be countered{and}.",
+                static_cond_text(cond, card)
+            )
+        }
         Ability::EquipDiscount(n) => format!(
             "Equip abilities you activate that target {} cost {{{n}}} less to activate.",
             this_ref(card)
@@ -18707,6 +18869,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
                     "damage can't be prevented".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::CombatDamageCantBePrevented) => {
+                    "combat damage can't be prevented".to_string()
                 }
                 K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
                     "cards in graveyards can't be the targets of spells or abilities".to_string()
