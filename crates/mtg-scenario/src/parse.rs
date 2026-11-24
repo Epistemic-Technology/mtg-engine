@@ -1084,6 +1084,7 @@ fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
             Assertion::Known(p, line.string()?, what == "known")
         }
         "untapped" => Assertion::Tapped(line.obj_ref()?, false),
+        "face_down" | "face_up" => Assertion::ExiledFaceDown(line.string()?, what == "face_down"),
         "winner" => Assertion::Winner(line.player()?),
         "draw" => Assertion::Draw,
         "game_over" => Assertion::GameOver(true),

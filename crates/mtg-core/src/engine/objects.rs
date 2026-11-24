@@ -1099,6 +1099,33 @@ impl GameState {
         self.emit(Event::TurnedFaceUp { obj: id });
     }
 
+    /// A card just exiled "face down" (CR 406.3): hidden from every player
+    /// but `looker` with `ExileFace::Look` (the effect lets them look at
+    /// it), until it leaves exile (a new object, face up, CR 400.7).
+    pub(super) fn turn_face_down_in_exile(
+        &mut self,
+        id: ObjId,
+        face: crate::card::ExileFace,
+        looker: PlayerId,
+    ) {
+        if face == crate::card::ExileFace::Up {
+            return;
+        }
+        let Some(o) = self.objects.get_mut(id) else {
+            return;
+        };
+        if o.zone != Zone::Exile {
+            return;
+        }
+        o.marks |= crate::state::OBJ_FACE_DOWN_EXILE;
+        o.revealed = if face == crate::card::ExileFace::Look {
+            1 << looker.index().min(7)
+        } else {
+            0
+        };
+        self.bump();
+    }
+
     /// CR 708.2a: a face-up permanent turned face down by an effect that
     /// lists no characteristics is a 2/2 face-down creature with no text
     /// (no ward, even if its card has disguise). It stays the same object;

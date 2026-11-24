@@ -1,0 +1,14 @@
+card "Decadent Dragon // Expensive Taste" {
+  oracle_id 5df44b8d-b337-49d8-8427-34253f52cb47
+  layout adventure
+  cost {2}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying, trample
+  triggered whenever this attacks: create 1 "Treasure"
+  face "Expensive Taste" {
+    cost {2}{B}
+    type Instant — Adventure
+    spell: impulse 2 remains face down from target opponent
+  }
+}

@@ -2829,13 +2829,38 @@ impl Runner {
                         .players
                         .iter()
                         .flat_map(|q| q.library.iter().chain(q.hand.iter()))
-                        .any(|id| st.name_of(*id) == *name && st.knows(*p, *id));
+                        .any(|id| st.name_of(*id) == *name && st.knows(*p, *id))
+                    // A card exiled face down (CR 406.3).
+                    || st.players.iter().flat_map(|q| q.exile.iter()).any(|id| {
+                        st.objects[*id].exiled_face_down()
+                            && st.name_of(*id) == *name
+                            && st.knows(*p, *id)
+                    });
                 expect(
                     line,
                     format!("whether {} knows \"{name}\"", player_name(*p)),
                     known,
                     *want,
                 )
+            }
+            Assertion::ExiledFaceDown(name, want) => {
+                let found: Vec<bool> = st
+                    .players
+                    .iter()
+                    .flat_map(|q| q.exile.iter())
+                    .filter(|id| st.name_of(**id) == *name)
+                    .map(|id| st.objects[*id].exiled_face_down())
+                    .collect();
+                if found.is_empty() {
+                    fail(line, format!("no card named \"{name}\" in exile"))
+                } else {
+                    expect(
+                        line,
+                        format!("whether \"{name}\" is exiled face down"),
+                        found.contains(want),
+                        true,
+                    )
+                }
             }
             Assertion::Winner(p) => match st.result {
                 Some(GameResult::Win { winner }) if winner == *p => Ok(()),

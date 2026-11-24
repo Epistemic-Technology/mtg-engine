@@ -1039,6 +1039,7 @@ impl Decompiler<'_> {
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
                 owner_hand: false,
+                put: false,
             },
             CoreEffect::ReturnToBattlefield {
                 what,
@@ -1797,12 +1798,13 @@ impl Decompiler<'_> {
             CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
-            CoreEffect::ExileTop { who, count } => Effect::ExileTop {
+            CoreEffect::ExileTop { who, count, face } => Effect::ExileTop {
                 count: *count,
                 who: match who {
                     CoreRecipient::You => None,
                     w => Some(Self::recipient(*w)),
                 },
+                face: *face,
             },
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Soulbond { triggering } => Effect::Soulbond {
@@ -1945,6 +1947,8 @@ impl Decompiler<'_> {
                 until,
                 choose,
                 from,
+                face_down,
+                cond,
             } => Effect::ExilePlayable {
                 count: *count,
                 until: *until,
@@ -1954,6 +1958,10 @@ impl Decompiler<'_> {
                 from: from.map(Self::recipient),
                 possessive: false,
                 this_way: false,
+                remains: false,
+                face_down: *face_down,
+                look_first: false,
+                cond: cond.map(|c| self.static_cond(self.pool.condition(c))),
             },
             CoreEffect::Dig {
                 count,
@@ -2842,6 +2850,7 @@ impl Decompiler<'_> {
                     [CoreEffect::ExileTop {
                         who: CoreRecipient::TriggeringPlayer,
                         count: mtg_core::card::Num::N(1),
+                        face: mtg_core::card::ExileFace::Up,
                     }]
                 ) && matches!(
                     t.trigger,

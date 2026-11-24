@@ -220,6 +220,8 @@ pub fn add_dungeons(pool: &mut CardPool) {
                 until: PlayUntil::Forever,
                 choose: false,
                 from: None,
+                face_down: false,
+                cond: None,
             }],
         ),
         room(

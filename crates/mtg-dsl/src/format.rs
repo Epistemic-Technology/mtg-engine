@@ -1187,11 +1187,16 @@ impl Fmt {
                 from,
                 possessive,
                 this_way,
+                remains,
+                face_down,
+                look_first,
+                cond,
             } => {
                 let mut s = format!(
                     "impulse {} {}",
                     num(*count),
                     match until {
+                        _ if *remains => "remains",
                         mtg_core::card::PlayUntil::ThisTurn => "this turn",
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
@@ -1212,18 +1217,32 @@ impl Fmt {
                 if *this_way {
                     s.push_str(" this way");
                 }
+                if *look_first && *face_down {
+                    s.push_str(" look");
+                }
+                if *face_down {
+                    s.push_str(" face down");
+                }
                 if let Some(w) = from {
                     let of = if *possessive { "from" } else { "of" };
                     let _ = write!(s, " {of} {}", self.recipient(*w, t));
                 }
+                if let Some(c) = cond {
+                    let _ = write!(s, " if {}", static_cond(c));
+                }
                 s
             }
-            Effect::ExileTop { count, who } => {
+            Effect::ExileTop { count, who, face } => {
                 let n = num(*count);
                 let cs = if *count == Num::N(1) { "card" } else { "cards" };
+                let face = match face {
+                    mtg_core::card::ExileFace::Up => "",
+                    mtg_core::card::ExileFace::Down => " face down",
+                    mtg_core::card::ExileFace::Look => " face down look",
+                };
                 match who {
-                    None => format!("exile top {n} {cs}"),
-                    Some(w) => format!("{} exiles top {n} {cs}", self.recipient(*w, t)),
+                    None => format!("exile top {n} {cs}{face}"),
+                    Some(w) => format!("{} exiles top {n} {cs}{face}", self.recipient(*w, t)),
                 }
             }
             Effect::Dig {
@@ -1613,11 +1632,21 @@ impl Fmt {
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }
-            Effect::ReturnToHand { what, owner_hand } => format!(
-                "return {} to {}",
-                self.recipients(what, t),
-                if *owner_hand { "owner's hand" } else { "hand" }
-            ),
+            Effect::ReturnToHand {
+                what,
+                owner_hand,
+                put,
+            } => {
+                if *put {
+                    format!("put {} into hand", self.recipients(what, t))
+                } else {
+                    format!(
+                        "return {} to {}",
+                        self.recipients(what, t),
+                        if *owner_hand { "owner's hand" } else { "hand" }
+                    )
+                }
+            }
             Effect::ReturnToBattlefield {
                 what,
                 counters,

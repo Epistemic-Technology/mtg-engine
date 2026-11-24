@@ -1,0 +1,9 @@
+card "Bomat Courier" {
+  oracle_id a88f3881-4f43-4473-965f-f5c24ae5752f
+  cost {1}
+  type Artifact Creature — Construct
+  pt 1/1
+  keywords haste
+  triggered whenever this attacks: exile top 1 card face down
+  activated {R}, discard hand, sacrifice this: put all card exiled with this into hand
+}

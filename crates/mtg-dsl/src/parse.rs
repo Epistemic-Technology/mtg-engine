@@ -8239,9 +8239,11 @@ impl P {
                 self.pos += 1;
                 let count = self.num()?;
                 self.cards_word()?;
+                let face = self.exile_face();
                 Ok(Effect::ExileTop {
                     count,
                     who: Some(subject),
+                    face,
                 })
             }
             "exiles" => {
@@ -9376,6 +9378,17 @@ impl P {
         Ok(bottom)
     }
 
+    /// `face down` / `face down look` after an exile (CR 406.3).
+    fn exile_face(&mut self) -> mtg_core::card::ExileFace {
+        if !self.eat_words(&["face", "down"]) {
+            mtg_core::card::ExileFace::Up
+        } else if self.eat_word("look") {
+            mtg_core::card::ExileFace::Look
+        } else {
+            mtg_core::card::ExileFace::Down
+        }
+    }
+
     fn cards_word(&mut self) -> R<()> {
         if self.eat_word("card") || self.eat_word("cards") {
             Ok(())
@@ -9706,6 +9719,17 @@ impl P {
                     to,
                     kind: None,
                     count: None,
+                })
+            }
+            // "Put all cards exiled with this creature into their owners'
+            // hands."
+            "put" if self.at_words(&["all", "card", "exiled", "with"]) => {
+                let what = vec![self.recipient()?];
+                self.expect_words(&["into", "hand"])?;
+                Ok(Effect::ReturnToHand {
+                    what,
+                    owner_hand: false,
+                    put: true,
                 })
             }
             // "put its counters on target creature you control".
@@ -10062,6 +10086,7 @@ impl P {
                     return Ok(Effect::ReturnToHand {
                         what: all,
                         owner_hand,
+                        put: false,
                     });
                 }
                 // "Return up to two target creature cards ... to the
@@ -10112,7 +10137,12 @@ impl P {
                     self.pos += 1;
                     let count = self.num()?;
                     self.cards_word()?;
-                    return Ok(Effect::ExileTop { count, who: None });
+                    let face = self.exile_face();
+                    return Ok(Effect::ExileTop {
+                        count,
+                        who: None,
+                        face,
+                    });
                 }
                 if self.eat_words(&["graveyard", "of"]) {
                     let who = self.recipient()?;
@@ -10258,14 +10288,33 @@ impl P {
             "discover" => Ok(Effect::Discover(self.count()?)),
             "impulse" => {
                 let count = self.num()?;
-                let until = self.play_until()?;
+                // `remains`: `forever`, printed "for as long as they remain
+                // exiled".
+                let remains = self.eat_word("remains");
+                let until = if remains {
+                    mtg_core::card::PlayUntil::Forever
+                } else {
+                    self.play_until()?
+                };
                 let first = self.eat_word("first");
                 let it = self.eat_word("it");
                 let choose = self.eat_word("choose");
                 let this_way = self.eat_words(&["this", "way"]);
+                let look_first = self.at_words(&["look", "face", "down"]);
+                if look_first {
+                    self.pos += 1;
+                }
+                let face_down = self.eat_words(&["face", "down"]);
                 let possessive = self.at_word("from");
                 let from = if self.eat_word("of") || self.eat_word("from") {
                     Some(self.recipient()?)
+                } else {
+                    None
+                };
+                // "you may play it if you control a Kavu": the permission's
+                // own condition, not the effect's.
+                let cond = if self.eat_word("if") {
+                    Some(self.static_cond()?)
                 } else {
                     None
                 };
@@ -10278,6 +10327,10 @@ impl P {
                     from,
                     possessive,
                     this_way,
+                    remains,
+                    face_down,
+                    look_first,
+                    cond,
                 })
             }
             "dig" => {

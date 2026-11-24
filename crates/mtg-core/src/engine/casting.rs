@@ -388,6 +388,12 @@ impl GameState {
                 {
                     continue;
                 }
+                // "you may play it if you control a Kavu": judged now.
+                if let Some(c) = pe.cond
+                    && !self.condition_for(self.pool.condition(c), p, pe.source, None)
+                {
+                    continue;
+                }
                 let def = self.pool.get(o.def);
                 if def.layout == Layout::ModalDfc
                     && let Some(&back) = def.faces.first()
@@ -10789,7 +10795,11 @@ impl GameState {
                     let in_zone = self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard)
                             || (o.zone == Zone::Exile
-                                && *what == crate::card::Recipient::ExiledCard)
+                                && matches!(
+                                    what,
+                                    crate::card::Recipient::ExiledCard
+                                        | crate::card::Recipient::ExiledWith(_)
+                                ))
                             || (o.zone == Zone::Stack
                                 && (id == ctx.source
                                     || matches!(what, crate::card::Recipient::Target(_)))
@@ -10893,7 +10903,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::ExileTop { who, count } => {
+            Effect::ExileTop { who, count, face } => {
                 let n = self.eval_num(*count, ctx);
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
@@ -10902,6 +10912,7 @@ impl GameState {
                                 break;
                             };
                             let new = self.move_object(top, Zone::Exile, true);
+                            self.turn_face_down_in_exile(new, *face, ctx.controller);
                             ctx.created = Some(new);
                         }
                     }
@@ -14244,6 +14255,7 @@ impl GameState {
                             card: id,
                             player: p,
                             until: *until,
+                            cond: None,
                             own_ends,
                             cast_only: *cast,
                             free: *free,
@@ -15242,6 +15254,7 @@ impl GameState {
                             card,
                             player: ctx.controller,
                             until: crate::card::PlayUntil::Forever,
+                            cond: None,
                             own_ends: 0,
                             cast_only: true,
                             free: false,
@@ -15272,6 +15285,7 @@ impl GameState {
                                 card: new,
                                 player: owner,
                                 until: crate::card::PlayUntil::Forever,
+                                cond: None,
                                 own_ends: crate::state::WARP_LATER,
                                 cast_only: true,
                                 free: false,
@@ -15286,6 +15300,8 @@ impl GameState {
                 until,
                 choose,
                 from,
+                face_down,
+                cond,
             } => {
                 let p = ctx.controller;
                 // "Target opponent exiles the top card of their library":
@@ -15325,6 +15341,11 @@ impl GameState {
                 let mut exiled: Vec<ObjId> = Vec::new();
                 for id in top {
                     let new = self.move_object(id, Zone::Exile, true);
+                    // "... face down. You may look at and play those
+                    // cards": only the controller knows them (CR 406.3).
+                    if *face_down {
+                        self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
+                    }
                     if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
                         && chosen.is_none_or(|c| c == id)
                     {
@@ -15339,6 +15360,7 @@ impl GameState {
                             card: new,
                             player: p,
                             until: *until,
+                            cond: *cond,
                             own_ends,
                             cast_only: false,
                             free: false,

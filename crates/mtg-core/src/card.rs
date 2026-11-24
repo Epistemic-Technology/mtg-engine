@@ -2549,6 +2549,19 @@ pub enum PlayUntil {
     WhileYouControlSource,
 }
 
+/// How an effect exiles cards (CR 406.3).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum ExileFace {
+    /// Face up, as usual.
+    #[default]
+    Up,
+    /// Face down: no player may look at the cards ("(You can't look at
+    /// it.)").
+    Down,
+    /// Face down; the controller may look at them.
+    Look,
+}
+
 /// Where searched-for cards go.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum SearchTo {
@@ -4131,6 +4144,11 @@ pub enum Effect {
         who: Recipient,
         #[serde(default = "Num::one")]
         count: Num,
+        /// "... face down" (CR 406.3): `Down` nobody may look at them
+        /// (Bomat Courier), `Look` the controller may ("Exile the top card
+        /// of your library face down and look at it").
+        #[serde(default)]
+        face: ExileFace,
     },
     /// The controller gets an emblem (CR 114) with this definition's
     /// abilities, in the command zone.
@@ -5168,6 +5186,11 @@ pub enum Effect {
     /// controller chooses may be played. With `from`, the cards come from
     /// that player's library ("Target opponent exiles the top card of
     /// their library. You may play that card this turn.").
+    /// With `face_down`, "Exile the top two cards of target opponent's
+    /// library face down. You may look at and play those cards ...": the
+    /// cards are exiled face down (CR 406.3), known to the controller only.
+    /// With `cond`, "you may play it if you control a Kavu": the pool's
+    /// static condition, judged whenever the controller could play it.
     ExilePlayable {
         count: Num,
         until: PlayUntil,
@@ -5175,6 +5198,10 @@ pub enum Effect {
         choose: bool,
         #[serde(default)]
         from: Option<Recipient>,
+        #[serde(default)]
+        face_down: bool,
+        #[serde(default)]
+        cond: Option<u16>,
     },
     /// "Look at the top three cards of your library, then put them back in
     /// any order" (the engine keeps the order). `who` owns the library

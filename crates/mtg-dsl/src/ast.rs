@@ -4076,6 +4076,10 @@ pub enum Effect {
         /// `to owner's hand`: a group returned "to their owner's hand"
         /// (Oracle's singular, River's Rebuke); wording only.
         owner_hand: bool,
+        /// `put all card exiled with this into hand`: "Put all cards
+        /// exiled with this creature into their owners' hands."; wording
+        /// only.
+        put: bool,
     },
     /// `return that card to battlefield tapped under your control`;
     /// `return this to battlefield attached to triggering object`: "...
@@ -5414,13 +5418,30 @@ pub enum Effect {
         possessive: bool,
         /// `this way`: "you may play cards exiled this way".
         this_way: bool,
+        /// `remains` for `forever`: "for as long as they remain exiled"
+        /// ("For as long as that card remains exiled, you may play it"
+        /// with `first`); wording only.
+        remains: bool,
+        /// `face down`: "... library face down. You may look at and play
+        /// those cards" (CR 406.3): only the controller knows them.
+        face_down: bool,
+        /// `look` with `face down`: "Look at the top two cards of your
+        /// library and exile them face down." (the permission then says
+        /// "play", not "look at and play"); wording only.
+        look_first: bool,
+        /// `if you control Kavu` at the end: "you may play it if you
+        /// control a Kavu", judged whenever the card could be played.
+        cond: Option<StaticCond>,
     },
     /// `exile top 3 cards`: "Exile the top three cards of your library."
     /// (`exile top 1 card`: "the top card"); `each opponent exiles top 1
     /// card`: "Each opponent exiles the top card of their library."
+    /// `face down` adds "face down" (CR 406.3: nobody may look at it),
+    /// `face down look` "face down and look at it" (the controller may).
     ExileTop {
         count: Num,
         who: Option<Recipient>,
+        face: mtg_core::card::ExileFace,
     },
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).

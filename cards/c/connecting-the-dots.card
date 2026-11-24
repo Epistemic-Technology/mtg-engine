@@ -1,0 +1,7 @@
+card "Connecting the Dots" {
+  oracle_id a29e2c70-8909-465b-9cec-1a7037250313
+  cost {1}{R}
+  type Enchantment
+  triggered whenever creature you control attacks: exile top 1 card face down
+  activated {1}{R}, discard hand, sacrifice this: put all card exiled with this into hand
+}

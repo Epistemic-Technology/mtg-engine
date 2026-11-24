@@ -1,0 +1,8 @@
+card "Practiced Scrollsmith" {
+  oracle_id a02f9f42-4c3a-4a97-8667-68ba4617f193
+  cost {R}{R/W}{W}
+  type Creature — Dwarf Cleric
+  pt 3/2
+  keywords first strike
+  triggered when this enters: exile target noncreature nonland card from your graveyard; may cast that card next turn first
+}

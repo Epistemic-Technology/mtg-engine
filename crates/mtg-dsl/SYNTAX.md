@@ -2162,6 +2162,8 @@ four.": the engine puts as many as it may),
 `remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove up to 3 counters from <what>` ("remove up to three counters from target permanent": one at a time, each of a kind the controller chooses, or stop; scenarios `choose "1"` the first kind on it, `choose done`; unscripted, all three), `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
+`put all card exiled with this into hand` ("Put all cards exiled with
+this creature into their owners' hands.", from exile, CR 607.2a),
 `return all card exiled with this to battlefield under your control`
 ("Return all cards exiled with this artifact to the battlefield under
 your control"; `each creature card exiled with this` "each creature card
@@ -2505,12 +2507,28 @@ prints "cards exiled this way", `of target opponent` takes the cards from
 that player's library ("Target opponent exiles the top card of their
 library. You may play that card this turn.", the permission still yours; `from target opponent`
 instead prints "Exile the top three cards of target opponent's library.
-You may play those cards this turn."),
+You may play those cards this turn."); `remains` in place of the
+duration is `forever` printed "for as long as they remain exiled"
+("You may play that card for as long as it remains exiled.", with `first`
+"For as long as that card remains exiled, you may play it" with `it`);
+`face down` exiles the cards face down (CR 406.3: no other player knows
+them, the controller may look at them; "Exile the top two cards of target
+opponent's library face down. You may look at and play those cards for as
+long as they remain exiled.", Expensive Taste), `look face down` prints
+"Look at the top two cards of your library and exile them face down."
+and "you may play" (Flameshape); a static condition last, `if you
+control Kavu`, belongs to the permission: "you may play it if you control
+a Kavu" is judged whenever the card could be played, not as the effect
+resolves (Possibility Technician),
 a count `count where ...` prints "the top X cards of your library, where
 X is ...", and `that much` "exile that many cards from the top of your
 library"), `exile top 3 cards` ("Exile the top three cards of your
 library."; `exile top 1 card`: "the top card"; `each opponent exiles top 1
-card`: "Each opponent exiles the top card of their library."),
+card`: "Each opponent exiles the top card of their library."; `exile top
+1 card face down` adds "face down": nobody may look at the card while it
+stays in exile (CR 406.3, Bomat Courier; the reminder "(You can't look at
+it.)" is not printed), `face down look` "face down and look at it": its
+controller may),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
 each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for
