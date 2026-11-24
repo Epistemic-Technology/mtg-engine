@@ -96,6 +96,9 @@ pub enum CardWords {
     TheRevealed,
     /// `all other revealed`: "all other cards revealed this way".
     OtherRevealed,
+    /// `put exiled card into hand unless cast`: "Put the exiled card into
+    /// your hand if it wasn't cast this way."
+    ExiledUnlessCast,
 }
 
 /// How a library placement is worded (`Effect::PutInLibrary`).
@@ -4405,6 +4408,10 @@ pub enum Effect {
         filter: Option<Filter>,
         max: Option<Num>,
         exile: bool,
+        /// `cast free exiled card [with mana value up to 4]`: the card the
+        /// resolution exiled ("you may cast the exiled card without paying
+        /// its mana cost if that spell's mana value is 4 or less").
+        exiled: bool,
     },
     /// `it is now enchantment`: "It's an enchantment." (the Enduring
     /// cycle's returned permanent; "They're an artifact." with `pronoun
@@ -5289,6 +5296,10 @@ pub enum Effect {
         /// card from exile this turn." (Norin, Swift Survivalist; wording
         /// only).
         from_exile: bool,
+        /// `remains`: `forever` printed "for as long as it remains exiled"
+        /// ("For as long as that card remains exiled, you may cast it"
+        /// with `first`); wording only.
+        remains: bool,
     },
     /// `may cast target Zombie creature card from your graveyard this
     /// turn`: "You may cast target Zombie creature card from your

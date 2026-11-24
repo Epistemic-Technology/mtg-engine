@@ -177,3 +177,69 @@ scenario "Practiced Scrollsmith: the permission ends after your next turn" {
   assert exile A contains "Shock"
   assert life B 20
 }
+
+scenario "remains exiled: Fiend of the Shadows lets its controller play the card the damaged player exiled" {
+  battlefield A: "Fiend of the Shadows", "Mountain"
+  hand B: "Shock"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: attack "Fiend of the Shadows"
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 15
+  assert graveyard B contains "Shock"
+  assert hand B count 0
+}
+
+scenario "remains exiled: Fiend of the Shadows' card stays playable on later turns, a land too, but not by its owner" {
+  battlefield A: "Fiend of the Shadows"
+  hand B: "Forest"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: attack "Fiend of the Shadows"
+  run_to turn 1 end
+  assert face_up "Forest"
+  illegal turn 2 B: play "Forest"
+  turn 3 A: play "Forest"
+  run_to turn 3 end
+  assert battlefield A contains "Forest"
+}
+
+scenario "Beseech the Mirror: unbargained, the card found is exiled face down, then put into hand" {
+  battlefield A: 4 "Swamp"
+  hand A: "Beseech the Mirror"
+  library A: "Island", "Shock", "Forest"
+  turn 1 A: cast "Beseech the Mirror"
+  turn 1 A: choose "Shock"
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert exile A count 0
+  assert library A count 2
+  assert life B 20
+}
+
+scenario "Beseech the Mirror: bargained, a found card with mana value 4 or less is cast free" {
+  battlefield A: 4 "Swamp", "Ornithopter"
+  hand A: "Beseech the Mirror"
+  library A: "Island", "Divination", "Forest", "Plains"
+  turn 1 A: cast "Beseech the Mirror" sacrificing "Ornithopter"
+  turn 1 A: choose "Divination"
+  run_to turn 1 end
+  # Cast without paying its mana cost: the Swamps paid for Beseech only.
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert library A count 1
+  assert exile A count 0
+}
+
+scenario "Beseech the Mirror: bargained, a found card with mana value 5 or more goes to hand" {
+  battlefield A: 4 "Swamp", "Ornithopter"
+  hand A: "Beseech the Mirror"
+  library A: "Island", "Craw Wurm", "Forest"
+  turn 1 A: cast "Beseech the Mirror" sacrificing "Ornithopter"
+  turn 1 A: choose "Craw Wurm"
+  run_to turn 1 end
+  assert hand A contains "Craw Wurm"
+  assert battlefield A lacks "Craw Wurm"
+  assert graveyard A contains "Ornithopter"
+}

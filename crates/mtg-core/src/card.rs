@@ -2403,6 +2403,10 @@ pub enum CardSet {
     /// The revealed cards but the resolution's card ("all other cards
     /// revealed this way").
     OtherRevealed,
+    /// The resolution's card unless the controller chose to cast it this
+    /// way ("Put the exiled card into your hand if it wasn't cast this
+    /// way.": no cast of it is waiting, `ExileCasts::pending`).
+    ItUnlessCast,
 }
 
 /// Where an `Effect::PutCard` moves cards.
@@ -2582,6 +2586,9 @@ pub enum SearchTo {
     /// "exile them, then shuffle" (Foresight): face up, not linked to
     /// anything.
     Exile,
+    /// "exile it face down, then shuffle" (Beseech the Mirror, CR 406.3):
+    /// the searcher may look at it; it is the resolution's card.
+    ExileFaceDown,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its

@@ -1038,6 +1038,7 @@ impl Fmt {
                 first,
                 it,
                 from_exile,
+                remains,
             } => {
                 let mut s = format!(
                     "may {} {}{} {}",
@@ -1045,6 +1046,7 @@ impl Fmt {
                     if *it { "it" } else { "that card" },
                     if *from_exile { " from exile" } else { "" },
                     match until {
+                        _ if *remains => "remains",
                         mtg_core::card::PlayUntil::ThisTurn => "this turn",
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
@@ -1148,6 +1150,9 @@ impl Fmt {
                     CardWords::Those => "those revealed",
                     CardWords::TheRevealed => "the revealed",
                     CardWords::OtherRevealed => "all other revealed",
+                    CardWords::ExiledUnlessCast => {
+                        return "put exiled card into hand unless cast".to_string();
+                    }
                 };
                 let d = match to {
                     CardDest::Hand => "into hand",
@@ -2041,9 +2046,15 @@ impl Fmt {
                 filter: f,
                 max,
                 exile,
+                exiled,
             } => {
                 let mut s = "cast free ".to_string();
-                if let Some(r) = what {
+                if *exiled {
+                    s.push_str("exiled card");
+                    if let Some(n) = max {
+                        let _ = write!(s, " with mana value up to {}", num(*n));
+                    }
+                } else if let Some(r) = what {
                     let o = self.recipient(*r, t);
                     // `cast free card exiled with this`: one of them.
                     let o = match r {
@@ -2465,6 +2476,7 @@ impl Fmt {
                     }
                     mtg_core::card::SearchTo::Graveyard => " to graveyard",
                     mtg_core::card::SearchTo::Exile => " to exile",
+                    mtg_core::card::SearchTo::ExileFaceDown => " to exile face down",
                     mtg_core::card::SearchTo::HandOrGraveyard => " to hand or graveyard",
                 });
                 if *that_card {

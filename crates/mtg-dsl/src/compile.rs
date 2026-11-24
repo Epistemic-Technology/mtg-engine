@@ -3763,6 +3763,7 @@ impl Compiler<'_> {
                 filter,
                 max,
                 exile,
+                ..
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::CastFree {
@@ -4779,6 +4780,7 @@ impl Compiler<'_> {
                             CardSet::Revealed
                         }
                         CardWords::OtherRevealed => CardSet::OtherRevealed,
+                        CardWords::ExiledUnlessCast => CardSet::ItUnlessCast,
                     },
                     to: *to,
                     random: *random,

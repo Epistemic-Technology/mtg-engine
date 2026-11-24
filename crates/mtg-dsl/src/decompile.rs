@@ -1418,6 +1418,7 @@ impl Decompiler<'_> {
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 max: *max_mv,
                 exile: *exile,
+                exiled: false,
             },
             CoreEffect::Animate {
                 to,
@@ -1905,6 +1906,7 @@ impl Decompiler<'_> {
                 first: false,
                 it: false,
                 from_exile: false,
+                remains: false,
             },
             CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
                 who: match r(*who) {
@@ -1937,6 +1939,9 @@ impl Decompiler<'_> {
                     mtg_core::card::CardSet::It => crate::ast::CardWords::It,
                     mtg_core::card::CardSet::Revealed => crate::ast::CardWords::AllRevealed,
                     mtg_core::card::CardSet::OtherRevealed => crate::ast::CardWords::OtherRevealed,
+                    mtg_core::card::CardSet::ItUnlessCast => {
+                        crate::ast::CardWords::ExiledUnlessCast
+                    }
                 },
                 to: *to,
                 who: None,

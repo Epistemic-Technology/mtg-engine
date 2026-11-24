@@ -2034,7 +2034,12 @@ exiled with Krang & Shredder without paying its mana cost": the
 controller chooses one of the cards this permanent's abilities exiled,
 CR 607.2a, or none). `exile instead` after either adds "If that spell would
 be put into your graveyard, exile it instead." (it is exiled as it
-resolves or is countered).
+resolves or is countered). `cast free exiled card with mana value up to 4`
+is "you may cast the exiled card without paying its mana cost if that
+spell's mana value is 4 or less" (the card the resolution exiled, after
+`search card to exile face down`), and `put exiled card into hand unless
+cast` "Put the exiled card into your hand if it wasn't cast this way."
+(unless its controller chose to cast it; Beseech the Mirror).
 
 Other durations (CR 611.2b) end a sentence, and whatever in it would last
 until end of turn (or "this turn") lasts that long instead: `until your
@@ -2463,7 +2468,9 @@ not an instant or sorcery (CR 110.4a); `search card to graveyard that
 card` ("Search your library for a card, put that card into your
 graveyard, then shuffle."); `search 3 cards to exile` ("Search your
 library for three cards, exile them, then shuffle.", face up and linked to
-nothing); a final `then` prints the older wording "... and put that
+nothing); `search card to exile face down` ("Search your library for a
+card, exile it face down, then shuffle.": only the searcher knows it, CR
+406.3, and it is the resolution's card, "the exiled card"); a final `then` prints the older wording "... and put that
 card onto the battlefield. Then shuffle." (`search Plains or Island or
 Swamp or Mountain or Forest card to battlefield that card then`, Spoils of
 Victory; into the hand likewise); a final `those` on a count-sized search
@@ -3334,9 +3341,11 @@ exile a nonland card"): the cards stay exiled and the matching one is
 `that card`. `may cast that card this turn` ("You may cast that card this
 turn."; `may play that card next turn first`: "Until the end of your next
 turn, you may play that card."; `free`: "... without paying its mana
-cost"; `it` for "it"; the durations are impulse's) lets the controller
-play or cast the resolution's card from exile, also after `exile target
-... card from your graveyard`. `may cast target Zombie creature card from
+cost"; `it` for "it"; the durations are impulse's; `may play that card
+remains`: "You may play that card for as long as it remains exiled.") lets
+the controller play or cast the resolution's card from exile, also after
+`exile target ... card from your graveyard` and `that player exiles 1 card
+from hand` (the card they chose; Fiend of the Shadows). `may cast target Zombie creature card from
 your graveyard this turn` ("You may cast target Zombie creature card from
 your graveyard this turn.", Zul Ashur; `may play target ...` for "play")
 gives the same permission for the targeted cards where they are, in a

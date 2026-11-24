@@ -10352,6 +10352,11 @@ impl GameState {
                 SearchTo::Exile => {
                     self.move_object(id, Zone::Exile, true);
                 }
+                SearchTo::ExileFaceDown => {
+                    let new = self.move_object(id, Zone::Exile, true);
+                    self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
+                    ctx.created = Some(new);
+                }
                 SearchTo::HandOrGraveyard => {
                     let def = self
                         .objects
@@ -12026,7 +12031,12 @@ impl GameState {
                         }
                         let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
                         if let Choice::Discard { card, .. } = options[k] {
-                            self.move_object(card, Zone::Exile, false);
+                            let new = self.move_object(card, Zone::Exile, false);
+                            // "You may play that card for as long as it
+                            // remains exiled." (Fiend of the Shadows).
+                            if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                                ctx.created = Some(new);
+                            }
                         }
                     }
                 }
@@ -16003,6 +16013,15 @@ impl GameState {
                 .copied()
                 .filter(|id| Some(*id) != ctx.created)
                 .collect(),
+            CardSet::ItUnlessCast => ctx
+                .created
+                .filter(|id| {
+                    self.exile_casts
+                        .as_ref()
+                        .is_none_or(|e| !e.pending.iter().any(|(_, c, _)| c == id))
+                })
+                .into_iter()
+                .collect(),
         };
         let mut cards = cards;
         if random {
@@ -16016,7 +16035,7 @@ impl GameState {
             // "it" may be a card the previous effect moved elsewhere
             // ("Draw a card and reveal it"); revealed cards move only from
             // their library.
-            if what != CardSet::It && o.zone != Zone::Library {
+            if !matches!(what, CardSet::It | CardSet::ItUnlessCast) && o.zone != Zone::Library {
                 continue;
             }
             let (from, owner, seen) = (o.zone, o.owner, o.revealed);

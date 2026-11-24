@@ -1,0 +1,7 @@
+card "Beseech the Mirror" {
+  oracle_id cbbe535b-12d6-4e6c-8b26-9220f06a1604
+  cost {1}{B}{B}{B}
+  type Sorcery
+  bargain
+  spell: search card to exile face down; if bargained, cast free exiled card with mana value up to 4; put exiled card into hand unless cast
+}

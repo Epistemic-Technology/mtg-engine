@@ -1,0 +1,9 @@
+card "Fiend of the Shadows" {
+  oracle_id 3891a3b6-d8ac-4cd3-b2f6-d6d786e89a67
+  cost {3}{B}{B}
+  type Creature — Vampire Wizard
+  pt 3/3
+  keywords flying
+  triggered whenever this deals combat damage to a player: that player exiles 1 card from hand; may play that card remains
+  activated sacrifice Human: regenerate this
+}

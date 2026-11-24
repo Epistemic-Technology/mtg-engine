@@ -6291,8 +6291,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             first,
             it,
             from_exile,
+            remains,
         } => {
             use mtg_core::card::PlayUntil;
+            let verb = if *cast { "cast" } else { "play" };
+            let free_text = if *free {
+                " without paying its mana cost"
+            } else {
+                ""
+            };
+            // "You may play that card for as long as it remains exiled.",
+            // "For as long as that card remains exiled, you may cast it".
+            if *remains && *until == PlayUntil::Forever {
+                let what = if *it { "it" } else { "that card" };
+                return Clause::imperative(if *first {
+                    format!(
+                        "for as long as that card remains exiled, you may {verb} {what}{free_text}"
+                    )
+                } else {
+                    format!("you may {verb} {what}{free_text} for as long as it remains exiled")
+                });
+            }
             let what = match (*it, *from_exile) {
                 (true, false) => "it",
                 (true, true) => "it from exile",
@@ -6474,6 +6493,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardWords::Those => "those cards",
                 CardWords::TheRevealed => "the revealed cards",
                 CardWords::OtherRevealed => "all other cards revealed this way",
+                CardWords::ExiledUnlessCast => {
+                    return Clause::imperative(
+                        "put the exiled card into your hand if it wasn't cast this way".to_string(),
+                    );
+                }
             };
             let whose = match who {
                 Some(player) if *player != Recipient::You => "their",
@@ -8498,11 +8522,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        // "you may cast the exiled card without paying its mana cost if
+        // that spell's mana value is 4 or less".
+        Effect::CastFree {
+            exiled: true, max, ..
+        } => {
+            let cap = max.map_or(String::new(), |n| {
+                format!(" if that spell's mana value is {} or less", digits(n))
+            });
+            Clause::imperative(format!(
+                "you may cast the exiled card without paying its mana cost{cap}"
+            ))
+        }
         Effect::CastFree {
             what,
             filter,
             max,
             exile,
+            ..
         } => {
             // CR 608.2g: "You may cast a noncreature spell from your hand
             // without paying its mana cost."
@@ -9422,6 +9459,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SearchTo::Exile => {
                     let v = if third { "exiles" } else { "exile" };
                     let _ = write!(text, "{v} {pron}, then {shuffle}");
+                }
+                // "exile it face down, then shuffle" (Beseech the Mirror).
+                mtg_core::card::SearchTo::ExileFaceDown => {
+                    let v = if third { "exiles" } else { "exile" };
+                    let _ = write!(text, "{v} {pron} face down, then {shuffle}");
                 }
             }
             match who {
