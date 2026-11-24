@@ -3761,6 +3761,8 @@ pub enum Trigger {
     Attacks(TriggerObj),
     /// "Whenever a creature you control attacks alone".
     AttacksAlone(TriggerObj),
+    /// `whenever creature you control attacks a player alone`.
+    AttacksPlayerAlone(TriggerObj),
     /// `whenever you attack` (`min` 1), `whenever you attack with 3 or
     /// more creatures`, `whenever this and at least 2 other creatures
     /// attack` (battalion: `this`, `min` 3).
@@ -4143,6 +4145,13 @@ pub enum Trigger {
         /// `whenever you attack with 2 or more Spider` (0 for "one or
         /// more").
         min: u8,
+    },
+    /// `whenever one or more creatures attack you`, `whenever one or more
+    /// of your opponents are attacked`, `whenever one or more creatures
+    /// attack one of your opponents` (`each`).
+    PlayersAttacked {
+        whose: Who,
+        each: bool,
     },
     /// `whenever you gain or lose life`, `... during your turn`.
     GainsOrLosesLife {

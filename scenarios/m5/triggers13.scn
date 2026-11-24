@@ -185,6 +185,63 @@ scenario "Long River Lurker: the unblockable creature blinks after combat damage
   assert untapped "Grizzly Bears"
 }
 
+scenario "Party Dude: at level 3, an opponent being attacked pumps an attacker by the cards in hand" {
+  battlefield A: "Party Dude", "Grizzly Bears", 5 "Forest", 2 "Mountain"
+  hand A: 3 "Island"
+  turn 1 A: activate "Party Dude"
+  turn 1 A: wait
+  turn 1 A: activate "Party Dude"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Party Dude" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Party Dude: at level 1 no attack trigger" {
+  battlefield A: "Party Dude", "Grizzly Bears"
+  hand A: 3 "Island"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Party Dude: an opponent attacking you isn't an opponent being attacked" {
+  battlefield A: "Party Dude", 5 "Forest", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: 3 "Island"
+  turn 1 A: activate "Party Dude"
+  turn 1 A: wait
+  turn 1 A: activate "Party Dude"
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Jiang Yanggu, Alone: a creature attacking a player alone loots and grows by the cards discarded this turn" {
+  battlefield A: "Jiang Yanggu, Alone"
+  hand A: "Island"
+  library A: 5 "Forest"
+  turn 1 A: attack "Jiang Yanggu, Alone"
+  turn 1 declare_attackers A: discard "Island"
+  run_to turn 1 postcombat_main
+  assert counters "Jiang Yanggu, Alone" +1/+1 1
+  assert graveyard A contains "Island"
+  assert hand A count 1
+  assert life B 15
+}
+
+scenario "Jiang Yanggu, Alone: two attackers, no trigger" {
+  battlefield A: "Jiang Yanggu, Alone", "Grizzly Bears"
+  hand A: "Island"
+  library A: 5 "Forest"
+  turn 1 A: attack "Jiang Yanggu, Alone", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Jiang Yanggu, Alone" +1/+1 0
+  assert hand A count 1
+  assert life B 14
+}
+
 scenario "Full Throttle: two more combats, and attackers untap at the beginning of each combat" {
   battlefield A: "Grizzly Bears", 4 "Mountain", 2 "Forest"
   hand A: "Full Throttle"

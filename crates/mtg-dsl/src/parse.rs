@@ -17321,6 +17321,49 @@ impl P {
         if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
             return Ok(Trigger::CreaturesYouControlAttack);
         }
+        // CR 508.1m: "one or more creatures attack you", "one or more of
+        // your opponents are attacked", "one or more creatures attack one
+        // of your opponents".
+        for (words, whose, each) in [
+            (
+                &["one", "or", "more", "creatures", "attack", "you"][..],
+                Who::You,
+                false,
+            ),
+            (
+                &[
+                    "one",
+                    "or",
+                    "more",
+                    "of",
+                    "your",
+                    "opponents",
+                    "are",
+                    "attacked",
+                ][..],
+                Who::Opponents,
+                false,
+            ),
+            (
+                &[
+                    "one",
+                    "or",
+                    "more",
+                    "creatures",
+                    "attack",
+                    "one",
+                    "of",
+                    "your",
+                    "opponents",
+                ][..],
+                Who::Opponents,
+                true,
+            ),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Trigger::PlayersAttacked { whose, each });
+            }
+        }
         // "Whenever two or more creatures your opponents control attack".
         if let Some(&Tok::Num(n)) = self.peek()
             && self.word_at(1).as_deref() == Some("or")
@@ -17839,6 +17882,9 @@ impl P {
             "attacks" => {
                 if self.eat_word("alone") {
                     return Ok(Trigger::AttacksAlone(obj));
+                }
+                if self.eat_words(&["a", "player", "alone"]) {
+                    return Ok(Trigger::AttacksPlayerAlone(obj));
                 }
                 if self.eat_words(&["for", "the", "first", "time", "each", "turn"]) {
                     return Ok(Trigger::AttacksFirstTime(obj));

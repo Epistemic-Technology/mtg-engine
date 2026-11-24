@@ -2378,6 +2378,7 @@ impl Decompiler<'_> {
                 Trigger::DealsCombatDamageToPlayerOrPlaneswalker(self.trigger_obj(o))
             }
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
+            TriggerSpec::AttacksPlayerAlone(o) => Trigger::AttacksPlayerAlone(self.trigger_obj(o)),
             TriggerSpec::PlayerAttacksWith { whose, min } => Trigger::PlayerAttacksWith {
                 whose: *whose,
                 min: *min,
@@ -2577,6 +2578,10 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 player: *player,
                 min: *min,
+            },
+            TriggerSpec::PlayersAttacked { whose, each } => Trigger::PlayersAttacked {
+                whose: *whose,
+                each: *each,
             },
             TriggerSpec::GainsOrLosesLife { your_turn } => Trigger::GainsOrLosesLife {
                 your_turn: *your_turn,

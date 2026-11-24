@@ -5453,6 +5453,7 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(self.trigger_obj(o))
             }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
+            Trigger::AttacksPlayerAlone(o) => TriggerSpec::AttacksPlayerAlone(self.trigger_obj(o)),
             Trigger::OneOrMoreAttack(f) => TriggerSpec::AttacksWithFilter {
                 filter: self.filter(f),
                 player: false,
@@ -5674,6 +5675,10 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 player: *player,
                 min: *min,
+            },
+            Trigger::PlayersAttacked { whose, each } => TriggerSpec::PlayersAttacked {
+                whose: *whose,
+                each: *each,
             },
             Trigger::GainsOrLosesLife { your_turn } => TriggerSpec::GainsOrLosesLife {
                 your_turn: *your_turn,

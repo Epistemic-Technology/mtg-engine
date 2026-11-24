@@ -5323,6 +5323,16 @@ pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool) -> String {
     }
 }
 
+/// `whenever one or more creatures attack you` and kin (the same in the
+/// DSL and Oracle).
+pub(crate) fn players_attacked_words(whose: Who, each: bool) -> &'static str {
+    match (whose, each) {
+        (Who::You, _) => "whenever one or more creatures attack you",
+        (_, true) => "whenever one or more creatures attack one of your opponents",
+        _ => "whenever one or more of your opponents are attacked",
+    }
+}
+
 /// Who sacrifices in a sacrifice trigger: "you sacrifice", "a player
 /// sacrifices", "an opponent sacrifices" (the same in the DSL and Oracle).
 pub(crate) fn sacrifices_words(whose: Who) -> &'static str {
@@ -5573,6 +5583,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             trigger_obj(o)
         ),
         Trigger::AttacksAlone(o) => format!("whenever {} attacks alone", trigger_obj(o)),
+        Trigger::AttacksPlayerAlone(o) => {
+            format!("whenever {} attacks a player alone", trigger_obj(o))
+        }
         Trigger::AttacksWith {
             this: false,
             min: 1,
@@ -5948,6 +5961,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             },
             filter(f)
         ),
+        Trigger::PlayersAttacked { whose, each } => {
+            crate::format::players_attacked_words(*whose, *each).to_string()
+        }
         Trigger::GainsOrLosesLife { your_turn } => format!(
             "whenever you gain or lose life{}",
             if *your_turn { " during your turn" } else { "" }

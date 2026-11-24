@@ -13601,6 +13601,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             },
             controller_first(f, filter_phrase(f, ctx.card, true))
         ),
+        Trigger::PlayersAttacked { whose, each } => {
+            crate::format::players_attacked_words(*whose, *each).to_string()
+        }
         Trigger::GainsOrLosesLife { your_turn } => format!(
             "whenever you gain or lose life{}",
             if *your_turn { " during your turn" } else { "" }
@@ -13872,6 +13875,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::AttacksAlone(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!("whenever {} attacks alone", trigger_subject(o, ctx))
+        }
+        Trigger::AttacksPlayerAlone(o) => {
+            format!(
+                "whenever {} attacks a player alone",
+                trigger_subject(o, ctx)
+            )
         }
         Trigger::BecomesBlocked(TriggerObj::This) => {
             format!("whenever {} becomes blocked", this(ctx))

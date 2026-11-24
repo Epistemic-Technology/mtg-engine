@@ -7547,6 +7547,11 @@ pub enum TriggerSpec {
     /// "Whenever a creature you control attacks alone" (exalted, CR
     /// 506.5).
     AttacksAlone(TriggerObj),
+    /// "Whenever a creature you control attacks a player alone" (CR
+    /// 506.5): it is the only creature declared as an attacker, and it
+    /// attacks a player (not a planeswalker or battle); that player is the
+    /// triggering player.
+    AttacksPlayerAlone(TriggerObj),
     /// "Whenever this creature becomes blocked" (once per combat).
     BecomesBlocked(TriggerObj),
     /// "Whenever you attack" (`min` 1), "Whenever you attack with three or
@@ -7927,6 +7932,14 @@ pub enum TriggerSpec {
         #[serde(default)]
         min: u8,
     },
+    /// "Whenever one or more creatures attack you" (`whose` You),
+    /// "Whenever one or more of your opponents are attacked" (`whose`
+    /// Opponents), "... attack one of your opponents" (`each`): once per
+    /// declaration of attackers (CR 508.1m) in which a creature attacks a
+    /// matching player, whoever attacks; with `each`, once for each such
+    /// player attacked. The player attacked (the first, without `each`) is
+    /// the triggering player.
+    PlayersAttacked { whose: Who, each: bool },
     /// "Whenever you gain or lose life" (CR 119.3, 119.9), `your_turn`:
     /// "... during your turn".
     GainsOrLosesLife { your_turn: bool },
@@ -8163,9 +8176,11 @@ impl TriggerSpec {
             | TriggerSpec::AttacksFirstTime(_)
             | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
+            | TriggerSpec::AttacksPlayerAlone(_)
             | TriggerSpec::AttacksWith { .. }
             | TriggerSpec::PlayerAttacksWith { .. }
-            | TriggerSpec::AttacksWithFilter { .. } => WATCH_ATTACK,
+            | TriggerSpec::AttacksWithFilter { .. }
+            | TriggerSpec::PlayersAttacked { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)

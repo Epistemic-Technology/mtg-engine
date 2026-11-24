@@ -1222,6 +1222,20 @@ impl GameState {
                 let p = self.objects.get(*attacker)?.controller;
                 whose_ok(*whose, p).then_some((None, Some(p)))
             }
+            (
+                TriggerSpec::AttacksPlayerAlone(what),
+                Event::Attack {
+                    attacker,
+                    target: Target::Player(defender),
+                },
+            ) => {
+                let alone = self.combat.as_ref().is_some_and(|c| c.attackers.len() == 1);
+                if !alone {
+                    return None;
+                }
+                on_battlefield(what, *attacker)?;
+                Some((Some(*attacker), Some(*defender)))
+            }
             (TriggerSpec::AttacksAlone(what), Event::Attack { attacker, .. }) => {
                 // CR 506.5: the only creature declared as an attacker.
                 let alone = self.combat.as_ref().is_some_and(|c| c.attackers.len() == 1);
@@ -2061,6 +2075,28 @@ impl GameState {
                     (true, Target::Player(p)) => Some((None, Some(*p))),
                     (true, Target::Object(_)) => None,
                 }
+            }
+            // CR 508.1m: the first attacker at a matching player stands
+            // for the declaration (or, with `each`, for that player).
+            (TriggerSpec::PlayersAttacked { whose, each }, Event::Attack { attacker, target }) => {
+                let Target::Player(p) = *target else {
+                    return None;
+                };
+                if !whose_ok(*whose, p) {
+                    return None;
+                }
+                let c = self.combat.as_ref()?;
+                let first = c.attackers.iter().find(|a| match a.attacking {
+                    Target::Player(q) => {
+                        if *each {
+                            q == p
+                        } else {
+                            whose_ok(*whose, q)
+                        }
+                    }
+                    Target::Object(_) => false,
+                })?;
+                (first.id == *attacker).then_some((None, Some(p)))
             }
             // CR 119.9: once per event that gains or loses life, however
             // much.
