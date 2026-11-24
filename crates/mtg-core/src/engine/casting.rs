@@ -146,6 +146,14 @@ impl GameState {
             {
                 options.push(Choice::CastFree(*id));
             }
+            // CR 118.9: an alternative cost a permanent gives the spells
+            // its controller casts (Leyline of Mutation).
+            if self.pool.alt_grants
+                && !changers.is_empty()
+                && self.granted_alt_castable(p, def, *id, sorcery_timing, &sources, &changers)
+            {
+                options.push(Choice::CastAlt(*id));
+            }
             // Most cards have no other way to be cast from the hand.
             if !def.other_casts {
                 continue;
@@ -419,6 +427,25 @@ impl GameState {
                     && !options.contains(&Choice::Cast(pe.card))
                 {
                     options.push(Choice::Cast(pe.card));
+                }
+                // CR 118.9: for an alternative cost a permanent gives it
+                // ("Once each turn, you may pay {0} rather than pay the
+                // mana cost for a spell you cast from exile.").
+                if self.pool.alt_grants
+                    && !changers.is_empty()
+                    && !pe.adventure
+                    && o.zone == Zone::Exile
+                    && !options.contains(&Choice::CastAlt(pe.card))
+                    && self.granted_alt_castable(
+                        p,
+                        def,
+                        pe.card,
+                        sorcery_timing,
+                        &sources,
+                        &changers,
+                    )
+                {
+                    options.push(Choice::CastAlt(pe.card));
                 }
             }
         }
@@ -6537,6 +6564,7 @@ impl GameState {
                 | AltCast::FreeExile
                 | AltCast::PayLife
                 | AltCast::DiscardCost
+                | AltCast::Granted
         ) {
             return vec![Choice::X(0)];
         }
@@ -9354,6 +9382,13 @@ impl GameState {
                 .find(|(s, _)| *s == spell)
                 .filter(|(_, r)| r.costs())
                 .map(|(_, r)| r.cost())
+        {
+            self.pay_other_costs(caster, &c, spell, None, None);
+        }
+        // CR 118.9: a granted alternative cost's other parts ("collect
+        // evidence 10").
+        if self.objects[spell].alt == AltCast::Granted
+            && let Some(c) = self.granted_alt_rest(spell)
         {
             self.pay_other_costs(caster, &c, spell, None, None);
         }

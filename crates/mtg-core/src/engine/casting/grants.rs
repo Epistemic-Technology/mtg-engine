@@ -683,3 +683,92 @@ impl GameState {
         });
     }
 }
+
+impl GameState {
+    /// CR 118.9: the alternative cost a static ability of one of
+    /// `changers` gives `p`'s spell `def`, cast as the card `id`
+    /// (`SpellGrant::alt`: "You may pay {W}{U}{B}{R}{G} rather than pay
+    /// the mana cost for spells you cast."), with its source and ability:
+    /// the first that applies. `used_ok`: a once-each-turn grant counts
+    /// though used this turn (the spell on the stack used it).
+    #[cold]
+    #[inline(never)]
+    pub(in crate::engine) fn granted_alt(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        changers: &[ObjId],
+        used_ok: bool,
+    ) -> Option<(ObjId, AbilityId, &Cost, bool)> {
+        for src in changers {
+            for a in &self.pool.get(self.objects[*src].def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && let Some(g) = &cc.grant
+                    && let Some(c) = g.alt.as_deref()
+                    && (used_ok || !g.alt_once || !self.activated_once.contains(&(*src, *a)))
+                    && self.cost_change_applies(cc, p, def, id, *src)
+                {
+                    return Some((*src, *a, c, g.alt_once));
+                }
+            }
+        }
+        None
+    }
+
+    /// Whether `p` may cast the card `id` as `def` now for an alternative
+    /// cost a permanent gives it (`granted_alt`; `Choice::CastAlt` of a
+    /// card without one of its own): with its usual timing, the cost's
+    /// other parts payable ("collect evidence 10"), the rest of its
+    /// costs payable, and its targets available.
+    #[cold]
+    #[inline(never)]
+    pub(in crate::engine) fn granted_alt_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        if def.alt_cost.is_some()
+            || def.is_land()
+            || def.additional.sacrifice.is_some()
+            || def.additional_or.is_some()
+            || !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
+        {
+            return false;
+        }
+        let Some((_, _, cost, _)) = self.granted_alt(p, def, id, changers, false) else {
+            return false;
+        };
+        if !self.additional_payable(p, cost, id)
+            || !self.alt_payable(p, id, def, AltCast::Granted, sources, changers)
+        {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.spell_targets_available(p, def, id),
+        }
+    }
+
+    /// The parts other than mana of the granted alternative cost `spell`
+    /// was cast for (`AltCast::Granted`), if it has any.
+    #[cold]
+    #[inline(never)]
+    pub(in crate::engine) fn granted_alt_rest(&self, spell: ObjId) -> Option<Cost> {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let (_, _, c, _) =
+            self.granted_alt(o.controller, def, spell, &self.cost_changers(), true)?;
+        let rest = Cost {
+            mana: ManaCost::default(),
+            ..c.clone()
+        };
+        (rest != Cost::default()).then_some(rest)
+    }
+}

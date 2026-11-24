@@ -2090,6 +2090,18 @@ pub enum Ability {
         /// `... have casualty 1` (CR 702.153); 0 for none.
         casualty: u8,
     },
+    /// `spells you cast have alternative cost {W}{U}{B}{R}{G}`: "You may
+    /// pay {W}{U}{B}{R}{G} rather than pay the mana cost for spells you
+    /// cast." (CR 118.9; `collect evidence 10`: "You may collect evidence
+    /// 10 ..."); `spells you cast from exile have once alternative cost
+    /// {0}`: "Once each turn, you may pay {0} rather than pay the mana cost
+    /// for a spell you cast from exile." Mana and collect evidence only.
+    SpellsAlt {
+        filter: Filter,
+        from: mtg_core::card::SpellFrom,
+        cost: Box<Cost>,
+        once: bool,
+    },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
     SelfCost {

@@ -10061,6 +10061,18 @@ pub struct SpellGrant {
     /// 702.153): N, 0 for none.
     #[serde(default)]
     pub casualty: u8,
+    /// "You may pay {W}{U}{B}{R}{G} rather than pay the mana cost for
+    /// spells you cast." (Leyline of Mutation; "collect evidence 10",
+    /// Conspiracy Unraveler; CR 118.9): an alternative cost the matching
+    /// spells may be cast for (`AltCast::Granted`): its mana, and the
+    /// rest paid as an alternative cost's is. X is 0.
+    #[serde(default)]
+    pub alt: Option<Box<Cost>>,
+    /// With `alt`: "Once each turn, you may pay {0} rather than pay the
+    /// mana cost for a spell you cast from exile." (Warped Space): one
+    /// spell a turn by each source's grant (`GameState::activated_once`).
+    #[serde(default)]
+    pub alt_once: bool,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -11967,6 +11979,10 @@ pub struct CardPool {
     /// Whether some card lets mana be spent as though it were of any color
     /// for a class of spells (`SpellGrant::spend`).
     pub spend_grants: bool,
+    /// Whether some card gives spells an alternative cost
+    /// (`SpellGrant::alt`): until one is added, no cast offer looks for
+    /// one.
+    pub alt_grants: bool,
     /// Whether some card gives spells on the stack a keyword that acts
     /// there ("Instant and sorcery spells you control have lifelink",
     /// "... split second"; `SpellGrant::keywords`).
@@ -12078,6 +12094,7 @@ impl CardPool {
             equip_discounts: false,
             card_grants: false,
             spend_grants: false,
+            alt_grants: false,
             stack_grants: false,
             powerup_again: false,
             prowess: AbilityId(0),
@@ -12867,6 +12884,10 @@ impl CardPool {
         self.spend_grants |= def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
+        });
+        self.alt_grants |= def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::CostChange(cc)
+                if cc.grant.as_ref().is_some_and(|g| g.alt.is_some()))
         });
         self.stack_grants |= def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::CostChange(cc)

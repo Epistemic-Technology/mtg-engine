@@ -7277,6 +7277,8 @@ impl Compiler<'_> {
                             spend_abilities: false,
                             conspire: false,
                             casualty: 0,
+                            alt: None,
+                            alt_once: false,
                         })
                     }),
                     per: *per,
@@ -7310,6 +7312,27 @@ impl Compiler<'_> {
                     spend_abilities: spend.is_some_and(|s| s.2),
                     conspire: *conspire,
                     casualty: *casualty,
+                    alt: None,
+                    alt_once: false,
+                })),
+                per: None,
+                first: false,
+                from: *from,
+            }),
+            Ability::SpellsAlt {
+                filter,
+                from,
+                cost,
+                once,
+            } => AbilityDef::CostChange(mtg_core::card::CostChange {
+                spells: self.filter(filter),
+                whose: Who::You,
+                generic: 0,
+                cond: None,
+                grant: Some(Box::new(mtg_core::card::SpellGrant {
+                    alt: Some(Box::new(self.cost(cost))),
+                    alt_once: *once,
+                    ..Default::default()
                 })),
                 per: None,
                 first: false,

@@ -3366,6 +3366,15 @@ impl Decompiler<'_> {
                 toughness: *toughness,
                 plus: *plus,
             },
+            AbilityDef::CostChange(c) if c.grant.as_ref().is_some_and(|g| g.alt.is_some()) => {
+                let g = c.grant.as_deref().expect("checked");
+                Ability::SpellsAlt {
+                    filter: self.filter(&c.spells),
+                    from: c.from,
+                    cost: Box::new(self.cost(g.alt.as_deref().expect("checked"))),
+                    once: g.alt_once,
+                }
+            }
             AbilityDef::CostChange(c) if c.grant.is_some() && c.generic == 0 => {
                 let g = c.grant.as_deref().expect("checked");
                 Ability::SpellsHave {

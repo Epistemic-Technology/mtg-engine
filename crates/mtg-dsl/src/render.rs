@@ -21654,6 +21654,43 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 list(&items)
             )
         }
+        // "You may pay {W}{U}{B}{R}{G} rather than pay the mana cost for
+        // spells you cast." (CR 118.9); "Once each turn, you may pay {0}
+        // rather than pay the mana cost for a spell you cast from exile."
+        Ability::SpellsAlt {
+            filter,
+            from,
+            cost,
+            once,
+        } => {
+            let mut parts = Vec::new();
+            let mana = cost.mana.to_string();
+            if !mana.is_empty() {
+                parts.push(format!("pay {mana}"));
+            }
+            if cost.evidence > 0 {
+                parts.push(format!("collect evidence {}", cost.evidence));
+            }
+            if parts.is_empty() {
+                parts.push("pay {0}".to_string());
+            }
+            let from = spell_from_text(*from);
+            let subject = lowercase_first(&cost_spells_subject(filter, card));
+            let spells = if *once {
+                with_article(subject.strip_suffix('s').unwrap_or(&subject))
+            } else {
+                subject
+            };
+            let head = if *once {
+                "Once each turn, you may"
+            } else {
+                "You may"
+            };
+            format!(
+                "{head} {} rather than pay the mana cost for {spells} you cast{from}.",
+                parts.join(" and ")
+            )
+        }
         // "This spell costs {1} less to cast during your turn." (Mental
         // Modulation).
         Ability::CondCost {

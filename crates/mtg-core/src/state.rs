@@ -488,6 +488,11 @@ pub enum AltCast {
     /// paying its mana cost" (The Infamous Cruelclaw; CR 118.9): X is 0,
     /// and a card is discarded as a cost.
     DiscardCost,
+    /// Cast for an alternative cost a static ability gives the spells its
+    /// controller casts (`SpellGrant::alt`, CR 118.9: "You may pay
+    /// {W}{U}{B}{R}{G} rather than pay the mana cost for spells you
+    /// cast."): X is 0.
+    Granted,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask

@@ -93,6 +93,11 @@ impl GameState {
             // cleaved spell is its cleave face.
             Choice::CastAlt(card) => {
                 let def = def_of(card);
+                // CR 118.9: a card without one of its own is cast for the
+                // alternative cost a permanent gives it.
+                if def.alt_cost.is_none() && self.pool.alt_grants {
+                    return Some(CastWay::new(card, AltCast::Granted));
+                }
                 CastWay::new(card, AltCast::AltCost).face(def.prototype_face.or(def.cleave_face))
             }
             // CR 708.2a: the spell has only face-down characteristics.
@@ -257,6 +262,16 @@ impl GameState {
                 let perms = self.top_permissions(player, id);
                 if !perms.iter().any(|t| !t.once)
                     && let Some((src, a)) = perms.first().and_then(|t| t.src)
+                {
+                    self.activated_once.push((src, a));
+                }
+            }
+            // "Once each turn, you may pay {0} rather than pay the mana
+            // cost ...": that permanent's grant is used.
+            Choice::CastAlt(card) if way.alt == AltCast::Granted => {
+                let def = self.pool.get(self.objects[card].def);
+                if let Some((src, a, _, true)) =
+                    self.granted_alt(player, def, card, &self.cost_changers(), false)
                 {
                     self.activated_once.push((src, a));
                 }

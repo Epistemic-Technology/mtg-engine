@@ -8610,6 +8610,28 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 items.join(" and ")
             );
         }
+        Ability::SpellsAlt {
+            filter: f,
+            from,
+            cost,
+            once,
+        } => {
+            let subject = if *f == Filter::default() {
+                String::new()
+            } else {
+                format!(" {}", filter(f))
+            };
+            let from = spell_from(*from);
+            let once = if *once { " once" } else { "" };
+            let mut text = cost_text(cost);
+            if text.is_empty() {
+                text = "{0}".to_string();
+            }
+            let _ = writeln!(
+                out,
+                "{indent}spells{subject} you cast{from} have{once} alternative cost {text}"
+            );
+        }
         Ability::CondCost {
             delta,
             cond,

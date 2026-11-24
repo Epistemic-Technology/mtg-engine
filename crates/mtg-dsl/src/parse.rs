@@ -7090,6 +7090,34 @@ impl P {
         })
     }
 
+    /// After `spells <filter> you cast [from exile] have [once]
+    /// alternative cost`: mana or `collect evidence N` (`Ability::SpellsAlt`).
+    fn spells_alt(
+        &mut self,
+        filter: Filter,
+        from: mtg_core::card::SpellFrom,
+        once: bool,
+    ) -> R<Ability> {
+        let cost = self.cost()?;
+        if cost
+            != (Cost {
+                mana: cost.mana.clone(),
+                evidence: cost.evidence,
+                order: cost.order.clone(),
+                ..Cost::default()
+            })
+        {
+            return self.fail("a granted alternative cost is mana or collect evidence");
+        }
+        self.end_stmt()?;
+        Ok(Ability::SpellsAlt {
+            filter,
+            from,
+            cost: Box::new(cost),
+            once,
+        })
+    }
+
     /// After `spells <filter> you cast [from hand] have`: convoke,
     /// improvise, delve, cascade, `storm`, `affinity for <filter>`,
     /// `conspire`, `casualty N`; after `spells <filter> you control have`
@@ -7100,6 +7128,15 @@ impl P {
         from: mtg_core::card::SpellFrom,
         control: bool,
     ) -> R<Ability> {
+        // CR 118.9: "You may pay {W}{U}{B}{R}{G} rather than pay the mana
+        // cost for spells you cast."
+        let once = !control && self.eat_word("once");
+        if !control && self.eat_words(&["alternative", "cost"]) {
+            return self.spells_alt(filter, from, once);
+        }
+        if once {
+            return self.unexpected("`alternative cost`");
+        }
         // CR 609.4b: "You may spend mana as though it were mana of any
         // color to cast planeswalker spells."
         if self.eat_word("spend") {
