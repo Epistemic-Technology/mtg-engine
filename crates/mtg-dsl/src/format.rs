@@ -5282,6 +5282,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::Exploits => "when this exploits a creature".to_string(),
         Trigger::HauntedDies => "when haunted dies".to_string(),
         Trigger::BecomesPlotted => "when this becomes plotted".to_string(),
+        Trigger::Foretells => "whenever you foretell a card".to_string(),
         Trigger::DrawsNth {
             whose,
             n,
@@ -7648,6 +7649,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Granted::Warp(c) => format!("warp {c}"),
                 crate::ast::Granted::Miracle(c) => format!("miracle {c}"),
                 crate::ast::Granted::Retrace => "retrace".to_string(),
+                crate::ast::Granted::Foretell => "foretell".to_string(),
                 crate::ast::Granted::Sneak(c) => format!("sneak {c}"),
                 crate::ast::Granted::JumpStart => "jump start".to_string(),
                 crate::ast::Granted::Ability(a) => {

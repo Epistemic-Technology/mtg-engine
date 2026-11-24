@@ -350,3 +350,55 @@ scenario "without Satoru Umezawa a creature card has no ninjutsu" {
   run_to turn 1 postcombat_main
   assert hand A contains "Hill Giant"
 }
+
+scenario "Dream Devourer: a card in hand is foretold for {2}; the Devourer gets +2/+0" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: foretell "Hill Giant"
+  run_to turn 1 begin_combat
+  assert exile A contains "Hill Giant"
+  assert power "Dream Devourer" 2
+  run_to turn 2 upkeep
+  assert power "Dream Devourer" 0
+}
+
+scenario "Dream Devourer: the foretold card is cast on a later turn for its mana cost reduced by {2}" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant"
+  library A: "Forest", "Forest"
+  turn 1 A: foretell "Hill Giant"
+  illegal turn 1 postcombat_main A: cast "Hill Giant"
+  turn 3 A: cast "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Mountain"
+}
+
+scenario "Dream Devourer: the foretold card keeps its cost after the Devourer leaves" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant", "Lightning Bolt"
+  library A: "Forest", "Forest"
+  turn 1 A: foretell "Hill Giant"
+  turn 3 A: cast "Lightning Bolt" targeting "Dream Devourer"
+  run_to turn 3 end
+  assert graveyard A contains "Dream Devourer"
+  turn 5 A: cast "Hill Giant"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Dream Devourer: a land card can't be foretold" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Forest"
+  illegal turn 1 A: foretell "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+}
+
+scenario "Dream Devourer: foretell only during your turn" {
+  battlefield A: "Dream Devourer", "Swamp", "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 2 A: foretell "Hill Giant"
+  run_to turn 2 end
+  assert hand A contains "Hill Giant"
+}

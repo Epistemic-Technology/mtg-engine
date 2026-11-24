@@ -147,6 +147,12 @@ impl GameState {
         .and_then(GrantCost::fixed)
     }
 
+    /// Whether a grant gives `card` foretell (CR 702.143a; Dream Devourer).
+    fn granted_foretell(&self, card: ObjId) -> bool {
+        self.grants_of(card)
+            .any(|g| matches!(g, GrantedWay::Foretell))
+    }
+
     /// The sneak cost a grant gives `card` (CR 702.190a).
     pub(in crate::engine) fn granted_sneak(&self, card: ObjId) -> Option<&ManaCost> {
         self.granted_cost(card, |g| match g {
@@ -332,6 +338,22 @@ impl GameState {
                 {
                     self.hand_ability_options(p, id, a, ab, sorcery_timing, sources, options);
                 }
+            }
+            // CR 702.143a: foretell, any time during its owner's turn, for
+            // {2} (mana restricted to foretelling may pay it).
+            if def.foretell.is_none()
+                && !def.is_land()
+                && p == self.active_player
+                && self.granted_foretell(id)
+                && !options.contains(&Choice::Foretell(id))
+                && self.payable_for(
+                    p,
+                    sources,
+                    &ManaCost::parse("{2}").expect("a mana cost").requirements(0),
+                    Spend::Foretell,
+                )
+            {
+                options.push(Choice::Foretell(id));
             }
             // CR 702.185a: cast for the warp cost instead, with a
             // permanent spell's timing.

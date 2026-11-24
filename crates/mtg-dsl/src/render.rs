@@ -12045,6 +12045,9 @@ fn card_grant_text(
         Granted::Warp(c) => format!("warp {c}"),
         Granted::Miracle(c) => format!("miracle {c}"),
         Granted::Retrace => "retrace".to_string(),
+        Granted::Foretell => {
+            "foretell. Its foretell cost is equal to its mana cost reduced by {2}".to_string()
+        }
         // The permission is the card's next sentence (Ninja Teen).
         Granted::Sneak(c) => format!(
             "sneak {c}.\nYou may cast {} spells from your graveyard using their sneak abilities",
@@ -12054,6 +12057,13 @@ fn card_grant_text(
         ),
         Granted::JumpStart => "jump-start".to_string(),
         Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
+    };
+    // "Each nonland card in your hand without foretell has foretell." (a
+    // card with foretell of its own uses its own).
+    let colors = if matches!(grant, Granted::Foretell) {
+        " without foretell"
+    } else {
+        colors
     };
     let s = if each {
         format!("each {subject} in {place}{colors} has {what}.")
@@ -13514,6 +13524,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             ctx.source_mentioned = true;
             "when this card becomes plotted".to_string()
         }
+        Trigger::Foretells => "whenever you foretell a card".to_string(),
         Trigger::DrawsNth {
             whose,
             n,

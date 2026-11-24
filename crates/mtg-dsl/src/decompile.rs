@@ -2321,6 +2321,7 @@ impl Decompiler<'_> {
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),
             TriggerSpec::Exploits => Trigger::Exploits,
             TriggerSpec::BecomesPlotted => Trigger::BecomesPlotted,
+            TriggerSpec::Foretells => Trigger::Foretells,
             TriggerSpec::Reflexive => {
                 unreachable!("a reflexive trigger is decompiled with its effect")
             }
@@ -2789,6 +2790,7 @@ impl Decompiler<'_> {
                         crate::ast::Granted::Miracle(c.clone())
                     }
                     mtg_core::card::GrantedWay::Retrace => crate::ast::Granted::Retrace,
+                    mtg_core::card::GrantedWay::Foretell => crate::ast::Granted::Foretell,
                     mtg_core::card::GrantedWay::Sneak(c) => crate::ast::Granted::Sneak(c.clone()),
                     mtg_core::card::GrantedWay::JumpStart => crate::ast::Granted::JumpStart,
                     mtg_core::card::GrantedWay::Ability(a) => {

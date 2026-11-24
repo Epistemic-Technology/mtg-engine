@@ -1587,6 +1587,10 @@ impl P {
                 self.pos += 1;
                 crate::ast::Granted::Retrace
             }
+            Some("foretell") => {
+                self.pos += 1;
+                crate::ast::Granted::Foretell
+            }
             Some("sneak") => {
                 self.pos += 1;
                 crate::ast::Granted::Sneak(self.mana_cost()?)
@@ -15865,6 +15869,10 @@ impl P {
                 });
             }
             return Ok(Trigger::YouTap(f));
+        }
+        // "Whenever you foretell a card" (CR 702.143a).
+        if self.eat_words(&["you", "foretell", "a", "card"]) {
+            return Ok(Trigger::Foretells);
         }
         // CR 602.2: "you activate an ability of a creature", "you activate
         // an exhaust ability", "an opponent activates a loyalty ability".

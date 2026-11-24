@@ -4479,7 +4479,11 @@ impl GameState {
                 def.miracle.is_some()
                     || self.card_grants_live() && self.granted_miracle(card).is_some()
             }
-            AltCast::Foretell => def.foretell.is_some(),
+            // A card foretold by a grant keeps its foretell cost (Dream
+            // Devourer).
+            AltCast::Foretell => {
+                def.foretell.is_some() || self.objects[card].alt == AltCast::Foretold
+            }
             _ => true,
         };
         // CR 601.2f-h: what payment charges, without paying its mana cost

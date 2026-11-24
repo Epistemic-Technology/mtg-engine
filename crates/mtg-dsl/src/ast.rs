@@ -1526,6 +1526,10 @@ pub enum Granted {
     Retrace,
     /// `jump start` ("has jump-start", in a graveyard).
     JumpStart,
+    /// `foretell`, in a hand: "Each nonland card in your hand without
+    /// foretell has foretell. Its foretell cost is equal to its mana cost
+    /// reduced by {2}."
+    Foretell,
     /// `sneak {3}{B}`, in a graveyard: "have sneak {3}{B}. You may cast
     /// creature spells from your graveyard using their sneak abilities."
     Sneak(ManaCost),
@@ -3714,6 +3718,8 @@ pub enum Trigger {
     /// `when this becomes plotted` (CR 702.170): "When this card becomes
     /// plotted".
     BecomesPlotted,
+    /// `whenever you foretell a card` (CR 702.143a).
+    Foretells,
     /// `whenever you draw your second card each turn`; `... card in a
     /// turn` prints that way ("When you draw your third card in a turn").
     DrawsNth {

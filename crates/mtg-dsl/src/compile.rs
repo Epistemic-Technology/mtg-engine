@@ -5321,6 +5321,7 @@ impl Compiler<'_> {
             // Compiled by the card (`haunted`), as a dies trigger.
             Trigger::HauntedDies => TriggerSpec::Dies(CoreTriggerObj::This),
             Trigger::BecomesPlotted => TriggerSpec::BecomesPlotted,
+            Trigger::Foretells => TriggerSpec::Foretells,
             Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
                 whose: *whose,
                 n: *n,
@@ -7145,6 +7146,7 @@ impl Compiler<'_> {
                     crate::ast::Granted::Warp(c) if hand => GrantedWay::Warp(c.clone()),
                     crate::ast::Granted::Miracle(c) if hand => GrantedWay::Miracle(c.clone()),
                     crate::ast::Granted::Retrace if !hand => GrantedWay::Retrace,
+                    crate::ast::Granted::Foretell if hand => GrantedWay::Foretell,
                     crate::ast::Granted::Sneak(c) if !hand => GrantedWay::Sneak(c.clone()),
                     crate::ast::Granted::JumpStart if !hand => GrantedWay::JumpStart,
                     crate::ast::Granted::Ability(a) => {

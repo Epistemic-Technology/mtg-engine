@@ -6567,6 +6567,11 @@ pub enum GrantedWay {
     /// Jump-start (CR 702.133a), in a graveyard: cast for its mana cost
     /// and a card discarded, then exiled (`AltCast::JumpStart`).
     JumpStart,
+    /// Foretell (CR 702.143a), in a hand, for a card without foretell of
+    /// its own: "Its foretell cost is equal to its mana cost reduced by
+    /// {2}." (Dream Devourer). A card foretold so keeps that cost in exile
+    /// without the grant.
+    Foretell,
     /// Sneak (CR 702.190a) for this cost, in a graveyard, with "You may
     /// cast creature spells from your graveyard using their sneak
     /// abilities." (Ninja Teen): cast from there for its sneak cost during
@@ -7229,6 +7234,9 @@ pub enum TriggerSpec {
     /// "When this card becomes plotted" (CR 702.170): queued as the card
     /// is plotted, from exile, never by an event.
     BecomesPlotted,
+    /// "Whenever you foretell a card" (CR 702.143a): queued as its
+    /// controller foretells a card, never by an event.
+    Foretells,
     /// "When you cycle this card" (`this`; CR 702.29d: it triggers from
     /// the graveyard the card was discarded to), "Whenever you cycle a
     /// card", "Whenever you cycle or discard a card" (`or_discard`: once
@@ -7652,6 +7660,7 @@ impl TriggerSpec {
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits
             | TriggerSpec::BecomesPlotted
+            | TriggerSpec::Foretells
             | TriggerSpec::Reflexive
             | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. }

@@ -323,6 +323,13 @@ impl GameState {
             (_, false) if alt == AltCast::Foretell && def.foretell.is_some() => {
                 reqs(def.foretell.as_ref().expect("checked"))
             }
+            // Foretold by a grant (Dream Devourer): "its mana cost reduced
+            // by {2}" (generic mana only).
+            (_, false) if alt == AltCast::Foretell => {
+                let mut r = reqs(&def.mana_cost);
+                adjust_generic(&mut r, -2);
+                r
+            }
             (_, false) if alt == AltCast::Escape && def.escape.is_some() => {
                 reqs(&def.escape.as_ref().expect("checked").0)
             }
