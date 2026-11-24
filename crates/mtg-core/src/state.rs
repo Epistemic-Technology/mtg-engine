@@ -4984,6 +4984,7 @@ impl GameState {
                 })
             }
             C::NotTheirTurn => that.is_some_and(|p| self.active_player != p),
+            C::ThatLife { n, cmp } => that.is_some_and(|p| cmp.holds(self.player(p).life, *n)),
             C::PlayerMoreHand(who) => self.hand_player_any(*who, you, source, that, |p| {
                 self.player(p).hand.len() > self.player(you).hand.len()
             }),
@@ -5218,6 +5219,7 @@ impl GameState {
             | C::ThatKicked
             | C::MoreVotes { .. }
             | C::NotTheirTurn
+            | C::ThatLife { .. }
             | C::TriggerIs(_) => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::XIs { n, at_least } => {

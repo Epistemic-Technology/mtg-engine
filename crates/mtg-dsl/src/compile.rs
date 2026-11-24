@@ -2479,6 +2479,10 @@ impl Compiler<'_> {
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
             StaticCond::NotTheirTurn => StaticCondition::NotTheirTurn,
+            StaticCond::TargetLife { life, cmp, .. } => StaticCondition::ThatLife {
+                n: *life,
+                cmp: *cmp,
+            },
             StaticCond::AttackerIs { filter, you } => StaticCondition::Attacking {
                 filter: self.filter(filter),
                 you: *you,
@@ -3524,7 +3528,9 @@ impl Compiler<'_> {
             negated: c.negated,
             by_you: matches!(
                 c.wording,
-                crate::ast::ThisWayWording::You | crate::ast::ThisWayWording::Returned
+                crate::ast::ThisWayWording::You
+                    | crate::ast::ThisWayWording::Returned
+                    | crate::ast::ThisWayWording::Drew
             ),
         }
     }

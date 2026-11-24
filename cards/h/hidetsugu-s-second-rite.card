@@ -1,0 +1,6 @@
+card "Hidetsugu's Second Rite" {
+  oracle_id 749683c9-8cc0-4e8e-8d90-adda5e5f4e93
+  cost {3}{R}
+  type Instant
+  spell: if target player life exactly 10, deal 10 damage to that target 1
+}

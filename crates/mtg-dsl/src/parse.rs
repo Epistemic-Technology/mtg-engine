@@ -6474,6 +6474,27 @@ impl P {
         if self.eat_words(&["not", "suspected"]) {
             return Ok(StaticCond::Suspected(false));
         }
+        // `target player life exactly 10`: declares the target (last, so
+        // a failed parse declares nothing).
+        if self.at_words(&["target", "player", "life"]) {
+            self.pos += 3;
+            let exactly = self.eat_word("exactly");
+            let life = i32::try_from(self.number()?).unwrap_or(0);
+            let cmp = if exactly {
+                mtg_core::card::Cmp::Exactly
+            } else if self.eat_words(&["or", "more"]) {
+                mtg_core::card::Cmp::AtLeast
+            } else {
+                self.expect_words(&["or", "less"])?;
+                mtg_core::card::Cmp::AtMost
+            };
+            self.targets.push(Target::Spec(TargetSpec::Player));
+            return Ok(StaticCond::TargetLife {
+                n: self.targets.len() - 1,
+                life,
+                cmp,
+            });
+        }
         if self.eat_words(&["opponent", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_words(&["or", "less"])?;
@@ -8309,6 +8330,17 @@ impl P {
                 wording: ThisWayWording::You,
             });
         }
+        // `you drew cards this way`: "If you draw one or more cards this
+        // way".
+        if self.eat_words(&["you", "drew", "cards", "this", "way"]) {
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::PutInHand,
+                filter: None,
+                card: true,
+                negated: false,
+                wording: ThisWayWording::Drew,
+            });
+        }
         // `you returned Squirrel card to hand this way`.
         if self.eat_words(&["you", "returned"]) {
             let (filter, card) = self.this_way_what()?;
@@ -8958,7 +8990,7 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfWonClash(vec![s]));
         }
-        if self.at_words(&["if", "target"])
+        if (self.at_words(&["if", "target"]) && !self.at_words(&["if", "target", "player", "life"]))
             || self.at_words(&["if", "that", "target"])
             || self.at_words(&["if", "the", "full", "target"])
         {
@@ -14946,7 +14978,17 @@ impl P {
             self.expect_words(&["this", "way"])?;
             return Ok(Some(CountExpr::ThisWay { verb, filter: None }));
         }
-        if (1..10).any(|k| {
+        // Within this clause: "draw X cards, where X is ...; If you draw
+        // one or more cards this way" is another sentence's.
+        let end = (0..10)
+            .find(|k| {
+                matches!(
+                    self.peek_at(*k),
+                    None | Some(Tok::Comma | Tok::Semi | Tok::Newline | Tok::LBrace)
+                )
+            })
+            .unwrap_or(10);
+        if (1..end).any(|k| {
             self.word_at(k).as_deref() == Some("this")
                 && self.word_at(k + 1).as_deref() == Some("way")
         }) {

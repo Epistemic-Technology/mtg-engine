@@ -1,0 +1,71 @@
+# A target player's life total in a condition that names the target
+# (`if target player life exactly 10, ...`), and "If you draw one or more
+# cards this way" (`if you drew cards this way`).
+
+scenario "Hidetsugu's Second Rite: a player at exactly 10 life is dealt 10 damage" {
+  life B 10
+  battlefield A: 4 "Mountain"
+  hand A: "Hidetsugu's Second Rite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hidetsugu's Second Rite" targeting player B
+  run_to end
+  assert winner A
+  assert life B 0
+}
+
+scenario "Hidetsugu's Second Rite: at 11 life nothing happens" {
+  life B 11
+  battlefield A: 4 "Mountain"
+  hand A: "Hidetsugu's Second Rite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hidetsugu's Second Rite" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 11
+  assert graveyard A contains "Hidetsugu's Second Rite"
+}
+
+scenario "Hidetsugu's Second Rite: the target's life, not the caster's" {
+  life A 10
+  battlefield A: 4 "Mountain"
+  hand A: "Hidetsugu's Second Rite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hidetsugu's Second Rite" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 10
+  assert life B 20
+}
+
+scenario "Transcendent Archaic: three colors spent draws three, then discards two" {
+  battlefield A: "Plains", "Island", "Swamp", 4 "Wastes"
+  hand A: "Transcendent Archaic"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Transcendent Archaic"
+  turn 1 A: accept "Transcendent Archaic"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "Transcendent Archaic: no colors spent draws nothing and discards nothing" {
+  battlefield A: 7 "Wastes"
+  hand A: "Transcendent Archaic", "Shock", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Transcendent Archaic"
+  turn 1 A: accept "Transcendent Archaic"
+  run_to turn 1 begin_combat
+  assert hand A count 2
+  assert graveyard A count 0
+}
+
+scenario "Transcendent Archaic: declining the draw keeps the hand" {
+  battlefield A: "Plains", "Island", "Swamp", 4 "Wastes"
+  hand A: "Transcendent Archaic", "Shock", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Transcendent Archaic"
+  turn 1 A: decline "Transcendent Archaic"
+  run_to turn 1 begin_combat
+  assert hand A count 2
+  assert graveyard A count 0
+}

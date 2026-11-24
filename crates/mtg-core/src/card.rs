@@ -3337,6 +3337,14 @@ pub enum StaticCondition {
     /// triggered for ("Whenever a player casts a spell, if it's not their
     /// turn, ...") or a spell's targeted player; false without one.
     NotTheirTurn,
+    /// "If target player has exactly 10 life": the life total of the
+    /// player the ability triggered for, else the resolving spell's first
+    /// targeted player, compared with `n` (judged by `condition_about`;
+    /// never in a static ability).
+    ThatLife {
+        n: i32,
+        cmp: Cmp,
+    },
     /// "if a Rat is attacking" (any attacking creature matching), "if a
     /// creature is attacking you" (`you`: attacking the controller, not a
     /// planeswalker or battle, CR 506.3). Judged as the effect happens or

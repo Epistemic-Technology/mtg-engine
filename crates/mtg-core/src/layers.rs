@@ -762,6 +762,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         | StaticCondition::MoreCreaturesThanOpponent { .. }
         | StaticCondition::Escaped
         | StaticCondition::NotTheirTurn
+        | StaticCondition::ThatLife { .. }
         | StaticCondition::Attacking { .. }
         | StaticCondition::TriggerIs(_) => false,
         StaticCondition::AttackedLastTurn => state.attacked_last_turn.contains(&(you, source)),

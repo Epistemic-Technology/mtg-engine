@@ -3153,6 +3153,15 @@ pub enum StaticCond {
     /// `not their turn`: "it's not their turn", the player the ability
     /// triggered for (Scytheclaw Raptor).
     NotTheirTurn,
+    /// `target player life exactly 10` (after `if`): "target player has
+    /// exactly 10 life", declaring the target (`n`); `that target 1 life
+    /// 10 or less` checks a target already declared ("that player has 10
+    /// or less life").
+    TargetLife {
+        n: usize,
+        life: i32,
+        cmp: mtg_core::card::Cmp,
+    },
     /// `attacker Rat`: "a Rat is attacking"; `attacker creature at you`:
     /// "a creature is attacking you".
     AttackerIs {
@@ -7326,6 +7335,9 @@ pub enum ThisWayWording {
     /// Squirrel card to your hand this way" (Cache Grab), put into the
     /// hand.
     Returned,
+    /// `you drew cards this way`: "If you draw one or more cards this way"
+    /// (Transcendent Archaic): a card put into the hand, from the library.
+    Drew,
     /// "If the sacrificed creature was a Human": the noun.
     The(String),
 }

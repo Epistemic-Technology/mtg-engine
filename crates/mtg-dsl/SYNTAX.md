@@ -605,7 +605,10 @@ and `controlled Mount as cast` ("you controlled a Mount as you cast this
 spell"), both judged as the spell is cast and remembered by it, `attacking`,
 `enchanted`, `equipped` ("it's attacking", or "this creature is
 attacking" when the subject is something else), `opponent life 10 or
-less` ("an opponent has 10 or less life"), `your life 30 or more`,
+less` ("an opponent has 10 or less life"), `target player life exactly
+10` (after `if` in a spell: "If target player has exactly 10 life, ...
+that player", declaring the target; `... life 10 or less`, `... life 10
+or more`; judged as it resolves, not in a static ability), `your life 30 or more`,
 `life above starting` ("your life total is greater than your starting
 life total", CR 103.4: 20 here; the game's own in a configured game),
 `x 10 or more` and `x 2 or less` ("X is 10 or more", CR 107.3: in a spell
@@ -4240,7 +4243,9 @@ Saproling was sacrificed this way, ...`, `if you discarded card this way,
 ...` (cards you owned), `if you put Town card into hand this way, ...`,
 `if you put no cards into hand this way, ...` ("If you put no cards into
 your hand this way", Nashi), `if you returned Squirrel card to hand this
-way, ...` ("If you returned a Squirrel card to your hand this way"),
+way, ...` ("If you returned a Squirrel card to your hand this way"), `if
+you drew cards this way, ...` ("If you draw one or more cards this way":
+cards put into your hand, Transcendent Archaic),
 `if Dragon is damaged this way, ...` ("If a
 Dragon is dealt damage this way": a permanent the resolution dealt damage
 to, as it is or last existed, The Black Arrow) and `if player is damaged

@@ -13089,6 +13089,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "If the gift was promised, Blooming Blast also deals ...": a
             // gift names the spell again (CR 702.174).
             let kicked = *c == StaticCond::Kicked && !has_gift(ctx.card);
+            // "If target player has exactly 10 life, ... that player": the
+            // target named in the condition.
+            if let StaticCond::TargetLife { n, .. } = c
+                && let Some(m) = ctx.target_mentioned.get_mut(*n)
+            {
+                *m = true;
+            }
             // "If this spell was kicked, those creatures also gain trample".
             let cond = if kicked {
                 format!("this {} was kicked", kicked_noun(ctx.card))
@@ -14512,6 +14519,7 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
         }
         ThisWayWording::You => format!("you {verb} {what} this way"),
         ThisWayWording::Returned => format!("you returned {what} to your hand this way"),
+        ThisWayWording::Drew => "you draw one or more cards this way".to_string(),
         ThisWayWording::The(noun) => {
             let pred = match (&c.filter, c.card) {
                 // "If the sacrificed creature was legendary".
@@ -19259,6 +19267,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
         StaticCond::NotTheirTurn => "it's not their turn".to_string(),
+        StaticCond::TargetLife { life, cmp, .. } => format!(
+            "target player has {}",
+            match cmp {
+                mtg_core::card::Cmp::Exactly => format!("exactly {life} life"),
+                mtg_core::card::Cmp::AtLeast => format!("{life} or more life"),
+                _ => format!("{life} or less life"),
+            }
+        ),
         StaticCond::AttackerIs { filter, you } => format!(
             "{} is attacking{}",
             with_article(&filter_phrase(filter, card, false)),

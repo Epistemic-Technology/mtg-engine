@@ -4592,6 +4592,7 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
         }
         ThisWayWording::You => format!("you {verb} {what} this way"),
         ThisWayWording::Returned => format!("you returned {what} to hand this way"),
+        ThisWayWording::Drew => "you drew cards this way".to_string(),
         ThisWayWording::The(noun) => format!(
             "the {verb} {noun} {} {what}",
             if c.negated { "wasn't" } else { "was" }
@@ -7297,6 +7298,14 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
         StaticCond::NotYourTurn => "not your turn".to_string(),
         StaticCond::NotTheirTurn => "not their turn".to_string(),
+        StaticCond::TargetLife { life, cmp, .. } => format!(
+            "target player life {}",
+            match cmp {
+                mtg_core::card::Cmp::Exactly => format!("exactly {life}"),
+                mtg_core::card::Cmp::AtLeast => format!("{life} or more"),
+                _ => format!("{life} or less"),
+            }
+        ),
         StaticCond::AttackerIs { filter: f, you } => {
             format!(
                 "attacker {}{}",

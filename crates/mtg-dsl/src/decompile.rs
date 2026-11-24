@@ -676,6 +676,11 @@ impl Decompiler<'_> {
             StaticCondition::YourTurn => StaticCond::YourTurn,
             StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
             StaticCondition::NotTheirTurn => StaticCond::NotTheirTurn,
+            StaticCondition::ThatLife { n, cmp } => StaticCond::TargetLife {
+                n: 0,
+                life: *n,
+                cmp: *cmp,
+            },
             StaticCondition::Attacking { filter, you } => StaticCond::AttackerIs {
                 filter: self.filter(filter),
                 you: *you,

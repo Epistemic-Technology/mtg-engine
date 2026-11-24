@@ -1,0 +1,8 @@
+card "Transcendent Archaic" {
+  oracle_id fdd4b3a9-83ce-41bf-82e2-7808657e2c09
+  cost {7}
+  type Creature — Avatar
+  pt 6/6
+  keywords vigilance
+  label "Converge" triggered whenever this enters: you may draw count where colors spent spell cards; if you drew cards this way, discard 2 cards
+}
