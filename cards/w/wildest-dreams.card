@@ -1,0 +1,6 @@
+card "Wildest Dreams" {
+  oracle_id 0a25a72e-5603-4b50-ac20-36b286cc1a2b
+  cost {X}{X}{G}
+  type Sorcery
+  spell: return X target card from your graveyard to hand; exile this
+}

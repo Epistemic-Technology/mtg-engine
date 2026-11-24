@@ -2332,6 +2332,17 @@ impl<'a> Ctx<'a> {
     }
 
     /// Objects of destruction and exile ("all creatures").
+    /// A group written `all <filter>` as "all ..." (Oracle's word where
+    /// the DSL's default prints "each"); anything else as `obj` does.
+    fn obj_flagged_all(&mut self, r: Recipient) -> String {
+        match r {
+            Recipient::Group(i) if self.card.groups.get(usize::from(i)).is_some_and(|f| f.all) => {
+                self.obj_all(r)
+            }
+            _ => self.obj(r),
+        }
+    }
+
     fn obj_all(&mut self, r: Recipient) -> String {
         match r {
             Recipient::EachCreature => "all creatures".to_string(),
@@ -6277,7 +6288,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.source_mentioned = true;
                 short_name(ctx.card).to_string()
             } else {
-                ctx.obj(*of)
+                // "gains control of all other permanents you control"
+                // (Sky Swallower, `all`).
+                ctx.obj_flagged_all(*of)
             };
             // "If they do, you draw a card." (Stiltzkin).
             ctx.they_paid = true;
@@ -8079,7 +8092,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(text)
         }
         Effect::Regenerate { to } => {
-            let o = ctx.obj(*to);
+            // "Regenerate all Werewolf creatures you control" (`all`).
+            let o = ctx.obj_flagged_all(*to);
             Clause::imperative(format!("regenerate {o}"))
         }
         Effect::Exile { what } => {
@@ -8348,14 +8362,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::GainControl { of, forever } => {
             // "Gain control of all artifacts your opponents control" (`all
             // <filter>`) against "each permanent with a corruption counter".
-            let o = match of {
-                Recipient::Group(i)
-                    if ctx.card.groups.get(usize::from(*i)).is_some_and(|f| f.all) =>
-                {
-                    ctx.obj_all(*of)
-                }
-                _ => ctx.obj(*of),
-            };
+            let o = ctx.obj_flagged_all(*of);
             let c = Clause::imperative(format!("gain control of {o}"));
             if *forever { c } else { c.until_eot() }
         }
@@ -15134,6 +15141,8 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         let bare = filter.who.is_none()
             && !filter.enchanted_player
             && filter.colors.is_none()
+            // "Nonwhite creatures get -1/-1." (Crovax, Ascendant Hero).
+            && filter.not_colors.is_empty()
             && filter.not_types.is_empty()
             && filter.not_supertypes.is_empty()
             && filter.not_subtypes.is_empty()

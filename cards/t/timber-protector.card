@@ -1,0 +1,8 @@
+card "Timber Protector" {
+  oracle_id 9bc8a69b-6065-4ef7-a580-adb1e7c72ef4
+  cost {4}{G}
+  type Creature — Treefolk Warrior
+  pt 4/6
+  static other Treefolk creature you control: +1/+1
+  static other Treefolk or Forest you control: has indestructible
+}

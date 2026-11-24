@@ -1,0 +1,9 @@
+card "Chandra, Pyrogenius" {
+  oracle_id ae2c89c2-66d6-484a-a176-9ea19e00f445
+  cost {4}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 5
+  loyalty +2: deal 2 damage to each opponent
+  loyalty -3: deal 4 damage to target creature
+  loyalty -10: deal 6 damage to target player or planeswalker and each creature that player or planeswalker 1 controls
+}

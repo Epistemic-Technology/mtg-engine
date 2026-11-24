@@ -1,0 +1,312 @@
+# Fourteenth-wave template phrases: "Nonwhite creatures get -1/-1",
+# "Other Orcs and Goblins you control have menace", "Pegasus creatures",
+# "Regenerate all ...", "gains control of all other permanents you
+# control", "copies of it", "each creature you control gains" after "If
+# you do", "can't block and can't be blocked", "two target cards", and
+# "each creature that player or that planeswalker's controller controls".
+
+scenario "Crovax, Ascendant Hero: white creatures bigger, nonwhite smaller" {
+  battlefield A: "Crovax, Ascendant Hero", "Savannah Lions", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  assert power "Savannah Lions" 3
+  assert toughness "Savannah Lions" 2
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+  assert power "Hill Giant" 2
+  assert power "Crovax, Ascendant Hero" 4
+}
+
+scenario "Crovax, Ascendant Hero: pay 2 life, return to hand" {
+  battlefield A: "Crovax, Ascendant Hero"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Crovax, Ascendant Hero"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Crovax, Ascendant Hero"
+  assert life A 18
+}
+
+scenario "Ascendant Evincar: nonblack creatures get -1/-1" {
+  battlefield A: "Ascendant Evincar", "Grizzly Bears"
+  battlefield B: "Savannah Lions", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Savannah Lions"
+  assert power "Hill Giant" 2
+  assert toughness "Grizzly Bears" 1
+  assert power "Ascendant Evincar" 3
+}
+
+scenario "Archon of Sun's Grace: an enchantment makes a Pegasus with lifelink" {
+  battlefield A: "Archon of Sun's Grace", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Pacifism"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Pegasus"
+  assert has "Pegasus" flying
+  assert has "Pegasus" lifelink
+  assert has "Archon of Sun's Grace" lifelink
+}
+
+scenario "Full Moon's Rise: Werewolves get +1/+0 and trample, and regenerate" {
+  battlefield A: "Full Moon's Rise", "Greater Werewolf", "Grizzly Bears"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Full Moon's Rise"
+  turn 1 B: wait
+  turn 1 B: cast "Murder" targeting "Greater Werewolf"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Greater Werewolf"
+  assert tapped "Greater Werewolf"
+  assert graveyard A contains "Full Moon's Rise"
+}
+
+scenario "Full Moon's Rise: the bonus" {
+  battlefield A: "Full Moon's Rise", "Greater Werewolf", "Grizzly Bears"
+  start turn 1 A precombat_main
+  assert power "Greater Werewolf" 3
+  assert has "Greater Werewolf" trample
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "Sky Swallower: the opponent gains everything else you control" {
+  battlefield A: 5 "Island", "Grizzly Bears", "Llanowar Elves"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  hand A: "Sky Swallower"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sky Swallower"
+  turn 1 A: trigger "Sky Swallower" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sky Swallower"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B contains 5 "Island"
+  assert battlefield B contains "Llanowar Elves"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Skitterbeam Battalion: cast, two copies" {
+  battlefield A: 9 "Mountain"
+  hand A: "Skitterbeam Battalion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skitterbeam Battalion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Skitterbeam Battalion"
+  assert power newest A "Skitterbeam Battalion" 4
+}
+
+scenario "Skitterbeam Battalion: put onto the battlefield, no copies" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Skitterbeam Battalion"
+  hand A: "Zombify"
+  battlefield A: 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Zombify" targeting "Skitterbeam Battalion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Skitterbeam Battalion"
+}
+
+scenario "Waterspout Weavers: a Merfolk on top, creatures gain flying" {
+  battlefield A: "Waterspout Weavers", "Grizzly Bears"
+  library A: "Selkie Hedge-Mage", "Plains"
+  start turn 2 A untap
+  turn 2 upkeep A: accept "Waterspout Weavers"
+  run_to turn 2 precombat_main
+  assert has "Grizzly Bears" flying
+  assert has "Waterspout Weavers" flying
+}
+
+scenario "Waterspout Weavers: no shared type, no flying" {
+  battlefield A: "Waterspout Weavers", "Grizzly Bears"
+  library A: "Hill Giant", "Plains"
+  start turn 2 A untap
+  run_to turn 2 precombat_main
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Inkfathom Infiltrator: can't be blocked" {
+  battlefield A: "Inkfathom Infiltrator"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Inkfathom Infiltrator"
+  illegal turn 1 B: block "Inkfathom Infiltrator" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Inkfathom Infiltrator: can't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Inkfathom Infiltrator"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Inkfathom Infiltrator"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Warg Rider: other Orcs and Goblins have menace" {
+  battlefield A: "Warg Rider", "Scarwood Goblins", "Storm Fleet Arsonist", "Grizzly Bears"
+  start turn 1 A precombat_main
+  assert has "Scarwood Goblins" menace
+  assert has "Storm Fleet Arsonist" menace
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "Warg Rider: amass Orcs 2 at the beginning of combat" {
+  battlefield A: "Warg Rider"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Orc Army"
+  assert counters "Orc Army" +1/+1 2
+  assert has "Orc Army" menace
+}
+
+scenario "Timber Protector: other Treefolk and Forests are indestructible" {
+  battlefield A: "Timber Protector", "Scarwood Treefolk", "Forest", "Grizzly Bears"
+  start turn 1 A precombat_main
+  assert has "Scarwood Treefolk" indestructible
+  assert has "Forest" indestructible
+  assert has not "Grizzly Bears" indestructible
+  assert has not "Timber Protector" indestructible
+  assert power "Scarwood Treefolk" 4
+}
+
+scenario "Wildest Dreams: X target cards to hand, then exiled" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Hill Giant", "Lightning Bolt", "Forest"
+  hand A: "Wildest Dreams"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wildest Dreams" x 2 targeting "Hill Giant", "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Lightning Bolt"
+  assert graveyard A contains "Forest"
+  assert exile A contains "Wildest Dreams"
+}
+
+scenario "Restock: two target cards to hand, then exiled" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Hill Giant", "Lightning Bolt", "Island"
+  hand A: "Restock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Restock" targeting "Hill Giant", "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Island"
+  assert graveyard A contains "Lightning Bolt"
+  assert exile A contains "Restock"
+}
+
+scenario "Return to the Ranks: X small creatures return" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Savannah Lions", "Grizzly Bears", "Hill Giant"
+  hand A: "Return to the Ranks"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Return to the Ranks" x 2 targeting "Savannah Lions", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Return to the Ranks: not a mana value 3 card" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Hill Giant"
+  hand A: "Return to the Ranks"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Return to the Ranks" x 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Bonfire of the Damned: the player and their creatures" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Savannah Lions", "Hill Giant"
+  hand A: "Bonfire of the Damned"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bonfire of the Damned" x 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Savannah Lions"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Lavalanche: a planeswalker and its controller's creatures" {
+  battlefield A: 6 "Mountain", "Swamp", "Forest"
+  battlefield B: "Ajani, Valiant Protector", "Hill Giant"
+  hand A: "Lavalanche"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lavalanche" x 3 targeting "Ajani, Valiant Protector"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Hill Giant"
+  assert counters "Ajani, Valiant Protector" loyalty 1
+}
+
+scenario "Flame Wave: 4 to the player and their creatures" {
+  battlefield A: 7 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  hand A: "Flame Wave"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flame Wave" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Savannah Lions"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Soul of Shandalar: 3 to the player and up to one of their creatures" {
+  battlefield A: "Soul of Shandalar", 5 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Soul of Shandalar" targeting player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Soul of Shandalar: not a creature of another player" {
+  battlefield A: "Soul of Shandalar", 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Soul of Shandalar" targeting player B, A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Soul of Shandalar: from the graveyard" {
+  battlefield A: 5 "Mountain"
+  graveyard A: "Soul of Shandalar"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Soul of Shandalar" targeting player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Hill Giant"
+  assert exile A contains "Soul of Shandalar"
+}
+
+scenario "Chandra, Pyrogenius: +2 hits each opponent" {
+  battlefield A: "Chandra, Pyrogenius"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Pyrogenius" ability 1
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Chandra, Pyrogenius" loyalty 7
+}
+
+scenario "Chandra, Pyrogenius: -10 hits the player and their creatures" {
+  battlefield A: "Chandra, Pyrogenius" with 10 loyalty, "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Pyrogenius" ability 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}

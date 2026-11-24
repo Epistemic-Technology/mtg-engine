@@ -5172,7 +5172,19 @@ impl GameState {
                 Some(Target::Player(p)) => Some(*p),
                 _ => None,
             },
-            ThatPlayer::TargetOrController { .. } | ThatPlayer::Acting => None,
+            // "up to one target creature that player or that planeswalker's
+            // controller controls" (Soul of Shandalar): the target player,
+            // or the target planeswalker's controller.
+            ThatPlayer::TargetOrController { n, .. } => match targets.get(usize::from(n)) {
+                Some(Target::Player(p)) => Some(*p),
+                Some(Target::Object(id)) => self
+                    .objects
+                    .get(*id)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(id).map(|l| l.object.controller)),
+                _ => None,
+            },
+            ThatPlayer::Acting => None,
         };
         let Some(player) = player else {
             return true;

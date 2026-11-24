@@ -1,0 +1,7 @@
+card "Full Moon's Rise" {
+  oracle_id 3aef097b-711a-4463-a59c-831e4dd5e69a
+  cost {1}{G}
+  type Enchantment
+  static Werewolf creature you control: +1/+0, has trample
+  activated sacrifice this: regenerate all Werewolf creature you control
+}

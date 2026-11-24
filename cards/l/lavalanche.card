@@ -1,0 +1,6 @@
+card "Lavalanche" {
+  oracle_id 4475e9a7-4e94-4965-8e7e-211d40a98217
+  cost {X}{B}{R}{G}
+  type Sorcery
+  spell: deal X damage to target player or planeswalker and each creature that player or planeswalker 1 controls
+}

@@ -1,0 +1,9 @@
+card "Ascendant Evincar" {
+  oracle_id e32c0de7-132d-4a39-85fb-da0ed1132878
+  cost {4}{B}{B}
+  type Legendary Creature — Phyrexian Vampire Noble
+  pt 3/3
+  keywords flying
+  static other black creature: +1/+1
+  static nonblack creature: -1/-1
+}

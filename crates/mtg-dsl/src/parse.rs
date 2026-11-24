@@ -15350,6 +15350,8 @@ impl P {
                                 | "Octopus"
                                 | "Platypus"
                                 | "Walrus"
+                                | "Pegasus"
+                                | "Nautilus"
                                 | "Aurochs"
                                 | "Bolas"
                         ) || raw.ends_with("'s");

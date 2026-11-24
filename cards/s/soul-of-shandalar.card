@@ -1,0 +1,9 @@
+card "Soul of Shandalar" {
+  oracle_id ac96d27c-dbae-4094-9209-3ef143f64713
+  cost {4}{R}{R}
+  type Creature — Avatar
+  pt 6/6
+  keywords first strike
+  activated {3}{R}{R}: deal 3 damage to target player or planeswalker and deal 3 damage to up to 1 target creature that player or planeswalker 1 controls
+  activated {3}{R}{R}, exile this from graveyard: it deals 3 damage to target player or planeswalker and deal 3 damage to up to 1 target creature that player or planeswalker 1 controls
+}

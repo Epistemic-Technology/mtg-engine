@@ -6782,7 +6782,16 @@ impl Builder<'_> {
         .captures(line)
             && let Some(mods) = static_mods(cap(&c, 2))
         {
+            // "Other Orcs and Goblins you control" (Warg Rider): either
+            // creature type, `or` in the DSL.
             let class = singular(&lowercase_first(cap(&c, 1)));
+            let class = match cached_regex(r"^other ([A-Z][a-z]+) and ([A-Z][a-z]+)$")
+                .unwrap()
+                .captures(&class)
+            {
+                Some(t) => format!("other {} or {}", cap(&t, 1), cap(&t, 2)),
+                None => class,
+            };
             self.statements
                 .push(format!("static {class} you control: {mods}"));
             return Ok(());
@@ -7224,6 +7233,13 @@ impl Builder<'_> {
                 _ => singular(q),
             };
             self.statements.push(format!("protection from {what}"));
+            return Ok(());
+        }
+        // "This creature can't block and can't be blocked." (Inkfathom
+        // Infiltrator): two restrictions in one sentence.
+        if line == "This creature can't block and can't be blocked." {
+            self.statements
+                .push("static this: has can't block, has can't be blocked".to_string());
             return Ok(());
         }
         // Blocking restrictions with a filter.
@@ -9423,6 +9439,35 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         )
         .replace("exile each graveyards", "exile all graveyards")
         .replace("to each of two targets", "to 2 targets");
+    // "Nonwhite creatures get -1/-1." (Crovax, Ascendant Hero): a color
+    // the class lowercased.
+    s = re(r"\bstatic Non(white|blue|black|red|green) ")
+        .replace_all(&s, "static non$1 ")
+        .into_owned();
+    // "Return two target cards from your graveyard", "Exile five target
+    // cards from an opponent's graveyard": the DSL's noun after a count is
+    // singular.
+    s = re(r"\b((?:\d+|X) (?:another )?target (?:[\w-]+ )*?)cards\b")
+        .replace_all(&s, "${1}card")
+        .into_owned();
+    // "deals 4 damage to target player or planeswalker and each creature
+    // that player or that planeswalker's controller controls" (Flame
+    // Wave): the first target's player, either way.
+    s = s
+        .lines()
+        .map(|l| {
+            let first = l.find("target ");
+            if first.is_some() && first == l.find("target player or planeswalker") {
+                l.replace(
+                    "that player or that planeswalker's controller controls",
+                    "that player or planeswalker 1 controls",
+                )
+            } else {
+                l.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     // "Put X +1/+1 counters on target creature, where X is that creature's
     // power": the line's one target, declared by the counters phrase.
     s = re(r"put X (\S+) counters on (target [^,;]+), where X is that creature's (power|toughness|mana value)$")
@@ -9844,7 +9889,12 @@ fn wording_variants(text: &str) -> Vec<String> {
         for (j, w) in words.iter().enumerate().skip(start) {
             let prev = if j > 0 { words[j - 1] } else { "" };
             let next = words.get(j + 1).copied().unwrap_or("");
-            let after_clause = prev.ends_with(':') || prev.ends_with(';') || VERBS.contains(&prev);
+            // "if you do, each creature you control gains flying"
+            // (Waterspout Weavers): after a condition's comma too.
+            let after_clause = prev.ends_with(':')
+                || prev.ends_with(';')
+                || (prev.ends_with(',') && w == &"each")
+                || VERBS.contains(&prev);
             let mut alts: Vec<String> = Vec::new();
             match *w {
                 "each" if after_clause && next != "counters" => {
@@ -9875,12 +9925,19 @@ fn wording_variants(text: &str) -> Vec<String> {
                         .copied()
                         .collect::<Vec<_>>()
                         .join(" ");
+                    // "create two tokens that are copies of it" (Skitterbeam
+                    // Battalion): the copy names nothing before "it".
+                    let copy_of = prev == "of"
+                        && j >= 2
+                        && matches!(words[j - 2], "copy" | "copies")
+                        && words[start..j].first() == Some(&"create");
                     let named = [
                         "create", "target", "that", "return", "exile", "search", "reveal", "dig",
                         "put", "attach", "copy", "mill", "discard",
                     ]
                     .iter()
-                    .any(|w| before.split(' ').any(|b| b == *w));
+                    .any(|w| before.split(' ').any(|b| b == *w))
+                        && !(copy_of && !before.contains("target") && !before.contains(';'));
                     if it_ok && !named {
                         alts.push("it".to_string());
                     }
