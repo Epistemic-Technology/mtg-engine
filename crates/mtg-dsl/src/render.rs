@@ -6222,7 +6222,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "becomes saddled".to_string()).until_eot()
         }
-        Effect::ExileTop { count, who } => {
+        Effect::ExileTop { count, who, face } => {
             let one = *count == Num::N(1);
             let whose = if who.is_some() { "their" } else { "your" };
             let what = if one {
@@ -6232,6 +6232,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "the top {} cards of {whose} library",
                     count_words(*count, "one")
                 )
+            };
+            // "face down" (CR 406.3), "face down and look at it".
+            let what = match face {
+                mtg_core::card::ExileFace::Up => what,
+                mtg_core::card::ExileFace::Down => format!("{what} face down"),
+                mtg_core::card::ExileFace::Look => format!(
+                    "{what} face down and look at {}",
+                    if one { "it" } else { "them" }
+                ),
             };
             match who {
                 None => Clause::imperative(format!("exile {what}")),
@@ -6254,6 +6263,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             from,
             possessive,
             this_way,
+            remains,
+            face_down,
+            look_first,
+            cond,
         } => {
             use mtg_core::card::PlayUntil;
             let one = *count == Num::N(1);
@@ -6271,16 +6284,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 "exile"
             };
-            let head = if one {
-                format!("{exile} the top card of {whose} library")
+            let look_first = *look_first && *face_down;
+            let top = if one {
+                format!("the top card of {whose} library")
+            } else {
+                format!(
+                    "the top {} cards of {whose} library",
+                    count_words(*count, "one")
+                )
+            };
+            let head = if look_first {
+                // "Look at the top two cards of your library and exile
+                // them face down."
+                format!(
+                    "look at {top} and exile {} face down",
+                    if one { "it" } else { "them" }
+                )
             } else if *count == Num::ThatMuch {
                 // "exile that many cards from the top of your library".
                 format!("{exile} that many cards from the top of {whose} library")
             } else {
-                format!(
-                    "{exile} the top {} cards of {whose} library",
-                    count_words(*count, "one")
-                )
+                format!("{exile} {top}")
+            };
+            // "Exile the top two cards of target opponent's library face
+            // down." (CR 406.3).
+            let head = if *face_down && !look_first {
+                format!("{head} face down")
+            } else {
+                head
             };
             let head = match from {
                 Some(w) if !*possessive => format!("{} {head}", ctx.subj(*w)),
@@ -6301,12 +6332,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (false, true) => "them",
                 (false, false) => "those cards",
             };
-            let body = if *until == PlayUntil::Forever {
+            // "You may look at and play those cards": face down, the
+            // controller may look at them.
+            let play = if *face_down && !look_first {
+                "look at and play"
+            } else {
+                "play"
+            };
+            let body = if *until == PlayUntil::Forever && *remains {
+                // "You may look at and play those cards for as long as they
+                // remain exiled.", "For as long as that card remains
+                // exiled, you may play it".
+                let single = one || *choose;
+                if *first {
+                    let subject = if single {
+                        "that card remains"
+                    } else {
+                        "they remain"
+                    };
+                    format!("For as long as {subject} exiled, you may {play} {what}")
+                } else {
+                    let subject = if single { "it remains" } else { "they remain" };
+                    format!("You may {play} {what} for as long as {subject} exiled")
+                }
+            } else if *until == PlayUntil::Forever {
                 // "You may play them." (no duration).
-                format!("You may play {}", if one { "it" } else { "them" })
+                format!("You may {play} {}", if one { "it" } else { "them" })
             } else if *until == PlayUntil::WhileYouControlSource {
                 format!(
-                    "You may play {what} for as long as you control {}",
+                    "You may {play} {what} for as long as you control {}",
                     ctx.source_name()
                 )
             } else if *first {
@@ -6317,7 +6371,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     | PlayUntil::Forever
                     | PlayUntil::WhileYouControlSource => "Until your next end step",
                 };
-                format!("{when}, you may play {what}")
+                format!("{when}, you may {play} {what}")
             } else {
                 let when = match until {
                     PlayUntil::ThisTurn => "this turn",
@@ -6326,7 +6380,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     | PlayUntil::Forever
                     | PlayUntil::WhileYouControlSource => "until your next end step",
                 };
-                format!("You may play {what} {when}")
+                format!("You may {play} {what} {when}")
+            };
+            // "you may play it if you control a Kavu".
+            let body = match cond {
+                Some(c) => format!("{body} if {}", static_cond_text(c, ctx.card)),
+                None => body,
             };
             Clause::imperative(format!("{head}. {body}"))
         }
@@ -6447,8 +6506,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             first,
             it,
             from_exile,
+            remains,
         } => {
             use mtg_core::card::PlayUntil;
+            let verb = if *cast { "cast" } else { "play" };
+            let free_text = if *free {
+                " without paying its mana cost"
+            } else {
+                ""
+            };
+            // "You may play that card for as long as it remains exiled.",
+            // "For as long as that card remains exiled, you may cast it".
+            if *remains && *until == PlayUntil::Forever {
+                let what = if *it { "it" } else { "that card" };
+                return Clause::imperative(if *first {
+                    format!(
+                        "for as long as that card remains exiled, you may {verb} {what}{free_text}"
+                    )
+                } else {
+                    format!("you may {verb} {what}{free_text} for as long as it remains exiled")
+                });
+            }
             let what = match (*it, *from_exile) {
                 (true, false) => "it",
                 (true, true) => "it from exile",
@@ -6631,6 +6709,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardWords::Those => "those cards",
                 CardWords::TheRevealed => "the revealed cards",
                 CardWords::OtherRevealed => "all other cards revealed this way",
+                CardWords::ExiledUnlessCast => {
+                    return Clause::imperative(
+                        "put the exiled card into your hand if it wasn't cast this way".to_string(),
+                    );
+                }
             };
             let whose = match who {
                 Some(player) if *player != Recipient::You => "their",
@@ -7542,13 +7625,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::ReturnToHand {
             what, put: true, ..
-        } => Clause::imperative(format!(
-            "put {} into its owner's hand",
-            what.iter()
-                .map(|w| ctx.obj(*w))
-                .collect::<Vec<_>>()
-                .join(" and ")
-        )),
+        } => {
+            // "put the exiled card into its owner's hand"; "Put all cards
+            // exiled with this creature into their owners' hands."
+            let all = matches!(what.as_slice(), [Recipient::ExiledWith(i)]
+                if ctx.card.groups.get(usize::from(*i)).is_some_and(|f| f.all));
+            let hand = if all {
+                "their owners' hands"
+            } else {
+                "its owner's hand"
+            };
+            Clause::imperative(format!(
+                "put {} into {hand}",
+                what.iter()
+                    .map(|w| ctx.obj(*w))
+                    .collect::<Vec<_>>()
+                    .join(" and ")
+            ))
+        }
         Effect::ReturnToHand {
             what, owner_hand, ..
         } => {
@@ -8712,6 +8806,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         } => {
             // CR 608.2g: "You may cast a noncreature spell from your hand
             // without paying its mana cost."
+            let what_r = what;
             #[allow(clippy::single_match_else)] // the hand's long phrase
             let what = match what {
                 // "a card exiled with Krang & Shredder" (CR 607.2a).
@@ -8760,6 +8855,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ". If that spell would be put into your graveyard, exile it instead"
             } else {
                 ""
+            };
+            // "you may cast the exiled card without paying its mana cost if
+            // that spell's mana value is 4 or less" (Beseech the Mirror).
+            let tail = match (what_r, max) {
+                (Some(_), Some(n)) => {
+                    format!(
+                        "{tail} if that spell's mana value is {} or less",
+                        digits(*n)
+                    )
+                }
+                _ => tail.to_string(),
             };
             Clause::imperative(format!(
                 "you may {} {what} without paying its mana cost{tail}",
@@ -9561,6 +9667,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SearchTo::Exile => {
                     let v = if third { "exiles" } else { "exile" };
                     let _ = write!(text, "{v} {pron}, then {shuffle}");
+                }
+                // "exile it face down, then shuffle" (Beseech the Mirror).
+                mtg_core::card::SearchTo::ExileFaceDown => {
+                    let v = if third { "exiles" } else { "exile" };
+                    let _ = write!(text, "{v} {pron} face down, then {shuffle}");
                 }
             }
             match who {

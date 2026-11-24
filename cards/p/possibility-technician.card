@@ -1,0 +1,8 @@
+card "Possibility Technician" {
+  oracle_id ebbf84f7-d142-4de5-bfc1-ea86f082d733
+  cost {2}{R}
+  type Creature — Kavu Artificer
+  pt 3/3
+  triggered whenever this or Kavu you control enters: impulse 1 remains first it if you control Kavu
+  warp {1}{R}
+}

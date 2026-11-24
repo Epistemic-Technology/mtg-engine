@@ -1,0 +1,245 @@
+# M5: cards exiled face down (CR 406.3), and play permissions that last
+# "for as long as that card remains exiled".
+
+scenario "face-down impulse: Expensive Taste exiles two cards face down; only the caster knows them" {
+  battlefield A: 3 "Swamp", 2 "Mountain"
+  hand A: "Decadent Dragon // Expensive Taste"
+  library B: "Shock", "Mountain", "Hill Giant"
+  turn 1 A: cast "Expensive Taste" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert exile B contains "Mountain"
+  assert face_down "Shock"
+  assert face_down "Mountain"
+  assert library B count 1
+  assert known A "Shock"
+  assert known A "Mountain"
+  assert unknown B "Shock"
+  assert unknown B "Mountain"
+  # The Adventure card waits in exile, face up.
+  assert face_up "Decadent Dragon"
+}
+
+scenario "face-down impulse: Expensive Taste's caster plays the cards on a later turn, paying for them" {
+  battlefield A: 3 "Swamp", 2 "Mountain"
+  hand A: "Decadent Dragon // Expensive Taste"
+  library A: 3 "Island"
+  library B: "Shock", "Mountain", "Hill Giant", "Island", "Island", "Island"
+  turn 1 A: cast "Expensive Taste" targeting player B
+  turn 3 A: play "Mountain"
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 end
+  assert battlefield A count 6
+  assert life B 18
+  assert graveyard B contains "Shock"
+  assert exile B count 0
+}
+
+scenario "face-down impulse: the owner can't play their own cards exiled by Expensive Taste" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Decadent Dragon // Expensive Taste"
+  library A: 3 "Island"
+  library B: "Shock", "Hill Giant", "Island", "Island"
+  turn 1 A: cast "Expensive Taste" targeting player B
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 20
+  assert exile B contains "Shock"
+}
+
+scenario "face down: Connecting the Dots exiles cards nobody may look at, then puts them into their owners' hands" {
+  battlefield A: "Connecting the Dots", "Grizzly Bears", "Hill Giant", 2 "Mountain"
+  hand A: "Island"
+  library A: "Shock", "Lightning Bolt", "Forest", "Forest"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  illegal turn 1 combat_damage A: cast "Shock" targeting player B
+  turn 1 postcombat_main A: activate "Connecting the Dots"
+  run_to turn 1 combat_damage
+  assert face_down "Shock"
+  assert face_down "Lightning Bolt"
+  assert unknown A "Shock"
+  assert unknown B "Shock"
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert hand A contains "Lightning Bolt"
+  assert hand A count 2
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Connecting the Dots"
+  assert exile A count 0
+}
+
+scenario "face down: Bomat Courier exiles the top card face down as it attacks" {
+  battlefield A: "Bomat Courier"
+  library A: "Shock", "Forest"
+  turn 1 A: attack "Bomat Courier"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert face_down "Shock"
+  assert unknown A "Shock"
+  assert library A count 1
+}
+
+scenario "face down: Bomat Courier's cards go to hand when it is sacrificed" {
+  battlefield A: "Bomat Courier", "Mountain"
+  hand A: "Forest", "Island"
+  library A: "Shock", "Plains"
+  turn 1 A: attack "Bomat Courier"
+  turn 1 postcombat_main A: activate "Bomat Courier"
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Bomat Courier"
+}
+
+scenario "remains exiled: Possibility Technician's card is playable while you control a Kavu" {
+  battlefield A: 6 "Mountain"
+  hand A: "Possibility Technician"
+  library A: "Shock", "Forest"
+  turn 1 A: cast "Possibility Technician"
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert exile A count 0
+  assert life B 18
+}
+
+scenario "remains exiled: Possibility Technician's card isn't playable without a Kavu, and is again with one" {
+  battlefield A: 6 "Mountain"
+  battlefield B: 2 "Mountain"
+  hand A: "Possibility Technician"
+  hand B: "Lightning Bolt"
+  library A: "Shock", "Possibility Technician", "Forest", "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Possibility Technician"
+  run_to turn 1 end
+  assert face_up "Shock"
+  turn 2 B: cast "Lightning Bolt" targeting "Possibility Technician"
+  illegal turn 2 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 2 end
+  assert graveyard A contains "Possibility Technician"
+  assert exile A contains "Shock"
+  # Turn 3: A draws the second Technician; its own trigger exiles Forest.
+  turn 3 A: cast "Possibility Technician"
+  turn 3 postcombat_main A: cast "Shock" targeting player B
+  turn 3 postcombat_main A: play "Forest"
+  run_to turn 3 end
+  assert life B 18
+  assert exile A count 0
+  assert battlefield A contains "Forest"
+}
+
+scenario "remains exiled: Flameshape's cards need a Wizard; Gandalf is one" {
+  battlefield A: 5 "Mountain"
+  hand A: "Gandalf, Goblins' Bane // Flameshape"
+  library A: "Shock", "Forest", "Island", "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Flameshape"
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert face_down "Shock"
+  assert face_down "Forest"
+  assert known A "Shock"
+  assert unknown B "Shock"
+  turn 3 A: cast "Gandalf, Goblins' Bane"
+  turn 3 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 3 end
+  # Shock, then Gandalf's trigger for the noncreature spell.
+  assert life B 17
+  assert battlefield A contains "Gandalf, Goblins' Bane"
+}
+
+scenario "Practiced Scrollsmith: the exiled card may be cast until the end of your next turn" {
+  battlefield A: 3 "Mountain", "Plains", "Plains"
+  hand A: "Practiced Scrollsmith"
+  graveyard A: "Shock", "Grizzly Bears"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Practiced Scrollsmith"
+  turn 1 A: trigger "Practiced Scrollsmith" targeting "Shock"
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 end
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Practiced Scrollsmith: the permission ends after your next turn" {
+  battlefield A: 3 "Mountain", "Plains", "Plains"
+  hand A: "Practiced Scrollsmith"
+  graveyard A: "Shock"
+  library A: 5 "Island"
+  library B: 5 "Island"
+  turn 1 A: cast "Practiced Scrollsmith"
+  turn 1 A: trigger "Practiced Scrollsmith" targeting "Shock"
+  illegal turn 5 A: cast "Shock" targeting player B
+  run_to turn 5 end
+  assert exile A contains "Shock"
+  assert life B 20
+}
+
+scenario "remains exiled: Fiend of the Shadows lets its controller play the card the damaged player exiled" {
+  battlefield A: "Fiend of the Shadows", "Mountain"
+  hand B: "Shock"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: attack "Fiend of the Shadows"
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 15
+  assert graveyard B contains "Shock"
+  assert hand B count 0
+}
+
+scenario "remains exiled: Fiend of the Shadows' card stays playable on later turns, a land too, but not by its owner" {
+  battlefield A: "Fiend of the Shadows"
+  hand B: "Forest"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: attack "Fiend of the Shadows"
+  run_to turn 1 end
+  assert face_up "Forest"
+  illegal turn 2 B: play "Forest"
+  turn 3 A: play "Forest"
+  run_to turn 3 end
+  assert battlefield A contains "Forest"
+}
+
+scenario "Beseech the Mirror: unbargained, the card found is exiled face down, then put into hand" {
+  battlefield A: 4 "Swamp"
+  hand A: "Beseech the Mirror"
+  library A: "Island", "Shock", "Forest"
+  turn 1 A: cast "Beseech the Mirror"
+  turn 1 A: choose "Shock"
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert exile A count 0
+  assert library A count 2
+  assert life B 20
+}
+
+scenario "Beseech the Mirror: bargained, a found card with mana value 4 or less is cast free" {
+  battlefield A: 4 "Swamp", "Ornithopter"
+  hand A: "Beseech the Mirror"
+  library A: "Island", "Divination", "Forest", "Plains"
+  turn 1 A: cast "Beseech the Mirror" sacrificing "Ornithopter"
+  turn 1 A: choose "Divination"
+  run_to turn 1 end
+  # Cast without paying its mana cost: the Swamps paid for Beseech only.
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert library A count 1
+  assert exile A count 0
+}
+
+scenario "Beseech the Mirror: bargained, a found card with mana value 5 or more goes to hand" {
+  battlefield A: 4 "Swamp", "Ornithopter"
+  hand A: "Beseech the Mirror"
+  library A: "Island", "Craw Wurm", "Forest"
+  turn 1 A: cast "Beseech the Mirror" sacrificing "Ornithopter"
+  turn 1 A: choose "Craw Wurm"
+  run_to turn 1 end
+  assert hand A contains "Craw Wurm"
+  assert battlefield A lacks "Craw Wurm"
+  assert graveyard A contains "Ornithopter"
+}

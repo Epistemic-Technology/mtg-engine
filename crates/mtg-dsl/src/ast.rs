@@ -96,6 +96,9 @@ pub enum CardWords {
     TheRevealed,
     /// `all other revealed`: "all other cards revealed this way".
     OtherRevealed,
+    /// `put exiled card into hand unless cast`: "Put the exiled card into
+    /// your hand if it wasn't cast this way."
+    ExiledUnlessCast,
 }
 
 /// How a library placement is worded (`Effect::PutInLibrary`).
@@ -4253,7 +4256,9 @@ pub enum Effect {
         /// (Oracle's singular, River's Rebuke); wording only.
         owner_hand: bool,
         /// `put exiled card into hand`: "put the exiled card into its
-        /// owner's hand" (Watcher for Tomorrow); wording only.
+        /// owner's hand" (Watcher for Tomorrow); `put all card exiled with
+        /// this into hand`: "Put all cards exiled with this creature into
+        /// their owners' hands."; wording only.
         put: bool,
     },
     /// `return that card to battlefield tapped under your control`;
@@ -5484,6 +5489,10 @@ pub enum Effect {
         /// card from exile this turn." (Norin, Swift Survivalist; wording
         /// only).
         from_exile: bool,
+        /// `remains`: `forever` printed "for as long as it remains exiled"
+        /// ("For as long as that card remains exiled, you may cast it"
+        /// with `first`); wording only.
+        remains: bool,
     },
     /// `may cast target Zombie creature card from your graveyard this
     /// turn`: "You may cast target Zombie creature card from your
@@ -5617,13 +5626,30 @@ pub enum Effect {
         possessive: bool,
         /// `this way`: "you may play cards exiled this way".
         this_way: bool,
+        /// `remains` for `forever`: "for as long as they remain exiled"
+        /// ("For as long as that card remains exiled, you may play it"
+        /// with `first`); wording only.
+        remains: bool,
+        /// `face down`: "... library face down. You may look at and play
+        /// those cards" (CR 406.3): only the controller knows them.
+        face_down: bool,
+        /// `look` with `face down`: "Look at the top two cards of your
+        /// library and exile them face down." (the permission then says
+        /// "play", not "look at and play"); wording only.
+        look_first: bool,
+        /// `if you control Kavu` at the end: "you may play it if you
+        /// control a Kavu", judged whenever the card could be played.
+        cond: Option<StaticCond>,
     },
     /// `exile top 3 cards`: "Exile the top three cards of your library."
     /// (`exile top 1 card`: "the top card"); `each opponent exiles top 1
     /// card`: "Each opponent exiles the top card of their library."
+    /// `face down` adds "face down" (CR 406.3: nobody may look at it),
+    /// `face down look` "face down and look at it" (the controller may).
     ExileTop {
         count: Num,
         who: Option<Recipient>,
+        face: mtg_core::card::ExileFace,
     },
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).

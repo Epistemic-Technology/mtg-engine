@@ -1845,12 +1845,13 @@ impl Decompiler<'_> {
             | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
-            CoreEffect::ExileTop { who, count } => Effect::ExileTop {
+            CoreEffect::ExileTop { who, count, face } => Effect::ExileTop {
                 count: *count,
                 who: match who {
                     CoreRecipient::You => None,
                     w => Some(Self::recipient(*w)),
                 },
+                face: *face,
             },
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Soulbond { triggering } => Effect::Soulbond {
@@ -1951,6 +1952,7 @@ impl Decompiler<'_> {
                 first: false,
                 it: false,
                 from_exile: false,
+                remains: false,
             },
             CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
                 who: match r(*who) {
@@ -1983,6 +1985,9 @@ impl Decompiler<'_> {
                     mtg_core::card::CardSet::It => crate::ast::CardWords::It,
                     mtg_core::card::CardSet::Revealed => crate::ast::CardWords::AllRevealed,
                     mtg_core::card::CardSet::OtherRevealed => crate::ast::CardWords::OtherRevealed,
+                    mtg_core::card::CardSet::ItUnlessCast => {
+                        crate::ast::CardWords::ExiledUnlessCast
+                    }
                 },
                 to: *to,
                 who: None,
@@ -1993,6 +1998,8 @@ impl Decompiler<'_> {
                 until,
                 choose,
                 from,
+                face_down,
+                cond,
             } => Effect::ExilePlayable {
                 count: *count,
                 until: *until,
@@ -2002,6 +2009,10 @@ impl Decompiler<'_> {
                 from: from.map(Self::recipient),
                 possessive: false,
                 this_way: false,
+                remains: false,
+                face_down: *face_down,
+                look_first: false,
+                cond: cond.map(|c| self.static_cond(self.pool.condition(c))),
             },
             CoreEffect::Dig {
                 count,
@@ -2913,6 +2924,7 @@ impl Decompiler<'_> {
                     [CoreEffect::ExileTop {
                         who: CoreRecipient::TriggeringPlayer,
                         count: mtg_core::card::Num::N(1),
+                        face: mtg_core::card::ExileFace::Up,
                     }]
                 ) && matches!(
                     t.trigger,

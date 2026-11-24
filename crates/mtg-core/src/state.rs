@@ -161,6 +161,11 @@ pub const OBJ_ECHO_DUE: u8 = 32;
 /// anywhere else" (unearth, CR 702.84a; Whip of Erebos): set by
 /// `Effect::ExileOnLeave`, for this object only (CR 400.7).
 pub const OBJ_EXILE_ON_LEAVE: u8 = 64;
+/// Exiled face down (CR 406.3): only the players in `revealed` (those an
+/// effect lets look at it) know the card; to the others it has no
+/// characteristics they can see. A zone change makes a new object (CR
+/// 400.7), face up.
+pub const OBJ_FACE_DOWN_EXILE: u8 = 128;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -186,6 +191,10 @@ impl GameObject {
     }
     pub const fn exile_on_leave(&self) -> bool {
         self.marks & OBJ_EXILE_ON_LEAVE != 0
+    }
+    /// In exile face down (`OBJ_FACE_DOWN_EXILE`).
+    pub fn exiled_face_down(&self) -> bool {
+        self.marks & OBJ_FACE_DOWN_EXILE != 0 && self.zone == Zone::Exile
     }
 }
 
@@ -342,6 +351,9 @@ pub struct PlayableExile {
     pub card: ObjId,
     pub player: PlayerId,
     pub until: crate::card::PlayUntil,
+    /// "you may play it if you control a Kavu": the pool's static
+    /// condition, judged for the player whenever they could play it.
+    pub cond: Option<u16>,
     /// For `EndOfYourNextTurn`: how many more of the player's turns must
     /// end before the permission does. `WARP_LATER` with `Forever`: not
     /// until a later turn (CR 702.185a).
@@ -1578,10 +1590,6 @@ pub struct LinkedExile {
     /// Exiled from a hand "until": it returns there (CR 610.3), not to
     /// the battlefield.
     pub to_hand: bool,
-    /// Exiled face down by hideaway (CR 702.75a, 406.3): only a player
-    /// who has controlled the source may look at it, so the views show
-    /// it to others as a face-down card.
-    pub face_down: bool,
 }
 
 impl Moved {

@@ -388,6 +388,12 @@ impl GameState {
                 {
                     continue;
                 }
+                // "you may play it if you control a Kavu": judged now.
+                if let Some(c) = pe.cond
+                    && !self.condition_for(self.pool.condition(c), p, pe.source, None)
+                {
+                    continue;
+                }
                 let def = self.pool.get(o.def);
                 if def.layout == Layout::ModalDfc
                     && let Some(&back) = def.faces.first()
@@ -3867,7 +3873,6 @@ impl GameState {
                         card: new,
                         until: false,
                         to_hand: false,
-                        face_down: false,
                     });
                 }
             }
@@ -10348,13 +10353,8 @@ impl GameState {
         let new = self.move_object(card, Zone::Exile, false);
         if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
             self.link_exile(ctx.source, new, false);
-            if let Some(l) = self
-                .linked_exiles
-                .iter_mut()
-                .find(|l| l.source == ctx.source && l.card == new)
-            {
-                l.face_down = true;
-            }
+            // CR 702.75a, 406.3: face down; its controller may look at it.
+            self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
             ctx.did = true;
         }
         rand::seq::SliceRandom::shuffle(top.as_mut_slice(), &mut self.rng);
@@ -10587,6 +10587,15 @@ impl GameState {
                 }
                 SearchTo::Exile => {
                     self.move_object(id, Zone::Exile, true);
+                }
+                SearchTo::ExileFaceDown => {
+                    let new = self.move_object(id, Zone::Exile, true);
+                    self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
+                    // "the exiled card" (CR 607.2a): linked to the spell.
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.link_exile(ctx.source, new, false);
+                    }
+                    ctx.created = Some(new);
                 }
                 SearchTo::HandOrGraveyard => {
                     let def = self
@@ -11035,7 +11044,11 @@ impl GameState {
                     let in_zone = self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard)
                             || (o.zone == Zone::Exile
-                                && *what == crate::card::Recipient::ExiledCard)
+                                && matches!(
+                                    what,
+                                    crate::card::Recipient::ExiledCard
+                                        | crate::card::Recipient::ExiledWith(_)
+                                ))
                             || (o.zone == Zone::Stack
                                 && (id == ctx.source
                                     || matches!(what, crate::card::Recipient::Target(_)))
@@ -11141,7 +11154,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::ExileTop { who, count } => {
+            Effect::ExileTop { who, count, face } => {
                 let n = self.eval_num(*count, ctx);
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
@@ -11150,6 +11163,7 @@ impl GameState {
                                 break;
                             };
                             let new = self.move_object(top, Zone::Exile, true);
+                            self.turn_face_down_in_exile(new, *face, ctx.controller);
                             ctx.created = Some(new);
                         }
                     }
@@ -12279,7 +12293,12 @@ impl GameState {
                         }
                         let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
                         if let Choice::Discard { card, .. } = options[k] {
-                            self.move_object(card, Zone::Exile, false);
+                            let new = self.move_object(card, Zone::Exile, false);
+                            // "You may play that card for as long as it
+                            // remains exiled." (Fiend of the Shadows).
+                            if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                                ctx.created = Some(new);
+                            }
                         }
                     }
                 }
@@ -14590,6 +14609,7 @@ impl GameState {
                             card: id,
                             player: p,
                             until: *until,
+                            cond: None,
                             own_ends,
                             cast_only: *cast,
                             free: *free,
@@ -15588,6 +15608,7 @@ impl GameState {
                             card,
                             player: ctx.controller,
                             until: crate::card::PlayUntil::Forever,
+                            cond: None,
                             own_ends: 0,
                             cast_only: true,
                             free: false,
@@ -15618,6 +15639,7 @@ impl GameState {
                                 card: new,
                                 player: owner,
                                 until: crate::card::PlayUntil::Forever,
+                                cond: None,
                                 own_ends: crate::state::WARP_LATER,
                                 cast_only: true,
                                 free: false,
@@ -15632,6 +15654,8 @@ impl GameState {
                 until,
                 choose,
                 from,
+                face_down,
+                cond,
             } => {
                 let p = ctx.controller;
                 // "Target opponent exiles the top card of their library":
@@ -15671,6 +15695,11 @@ impl GameState {
                 let mut exiled: Vec<ObjId> = Vec::new();
                 for id in top {
                     let new = self.move_object(id, Zone::Exile, true);
+                    // "... face down. You may look at and play those
+                    // cards": only the controller knows them (CR 406.3).
+                    if *face_down {
+                        self.turn_face_down_in_exile(new, crate::card::ExileFace::Look, p);
+                    }
                     if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
                         && chosen.is_none_or(|c| c == id)
                     {
@@ -15685,6 +15714,7 @@ impl GameState {
                             card: new,
                             player: p,
                             until: *until,
+                            cond: *cond,
                             own_ends,
                             cast_only: false,
                             free: false,
@@ -16327,6 +16357,15 @@ impl GameState {
                 .copied()
                 .filter(|id| Some(*id) != ctx.created)
                 .collect(),
+            CardSet::ItUnlessCast => ctx
+                .created
+                .filter(|id| {
+                    self.exile_casts
+                        .as_ref()
+                        .is_none_or(|e| !e.pending.iter().any(|(_, c, _)| c == id))
+                })
+                .into_iter()
+                .collect(),
         };
         let mut cards = cards;
         if random {
@@ -16340,7 +16379,7 @@ impl GameState {
             // "it" may be a card the previous effect moved elsewhere
             // ("Draw a card and reveal it"); revealed cards move only from
             // their library.
-            if what != CardSet::It && o.zone != Zone::Library {
+            if !matches!(what, CardSet::It | CardSet::ItUnlessCast) && o.zone != Zone::Library {
                 continue;
             }
             let (from, owner, seen) = (o.zone, o.owner, o.revealed);

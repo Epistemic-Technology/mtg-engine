@@ -389,6 +389,9 @@ pub enum Assertion {
     /// or hand is known to player A (revealed to them or looked at by
     /// them, `GameObject::revealed`).
     Known(PlayerId, String, bool),
+    /// `face_down "X"` / `face_up "X"`: a card named X in exile is
+    /// exiled face down (CR 406.3), or face up.
+    ExiledFaceDown(String, bool),
 }
 
 /// Step names accepted in scenario files.

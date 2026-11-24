@@ -4840,6 +4840,7 @@ impl Compiler<'_> {
                             CardSet::Revealed
                         }
                         CardWords::OtherRevealed => CardSet::OtherRevealed,
+                        CardWords::ExiledUnlessCast => CardSet::ItUnlessCast,
                     },
                     to: *to,
                     random: *random,
@@ -4854,22 +4855,33 @@ impl Compiler<'_> {
                     });
                 }
             }
-            Effect::ExileTop { count, who } => out.push(CoreEffect::ExileTop {
+            Effect::ExileTop { count, who, face } => out.push(CoreEffect::ExileTop {
                 who: who.map_or(CoreRecipient::You, r),
                 count: *count,
+                face: *face,
             }),
             Effect::ExilePlayable {
                 count,
                 until,
                 choose,
                 from,
+                face_down,
+                cond,
                 ..
-            } => out.push(CoreEffect::ExilePlayable {
-                count: *count,
-                until: *until,
-                choose: *choose,
-                from: from.map(r),
-            }),
+            } => {
+                let cond = cond.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                out.push(CoreEffect::ExilePlayable {
+                    count: *count,
+                    until: *until,
+                    choose: *choose,
+                    from: from.map(r),
+                    face_down: *face_down,
+                    cond,
+                });
+            }
             Effect::Dig {
                 count,
                 filter,
@@ -6776,6 +6788,7 @@ impl Compiler<'_> {
                     effects: vec![CoreEffect::ExileTop {
                         who: CoreRecipient::TriggeringPlayer,
                         count: mtg_core::card::Num::N(1),
+                        face: mtg_core::card::ExileFace::Up,
                     }],
                 }),
                 // CR 702.101a: "Whenever you cast a spell, you may pay

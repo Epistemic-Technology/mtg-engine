@@ -77,11 +77,9 @@ impl GameState {
     /// revealed from a hand stays known until it moves.
     pub fn visible_to(&self, viewer: PlayerId, obj: ObjId) -> bool {
         self.objects.get(obj).is_some_and(|o| {
-            (o.zone.is_public()
-                && !(o.zone == Zone::Exile
-                    && !self.linked_exiles.is_empty()
-                    && self.hidden_in_exile(viewer, obj)))
+            (o.zone.is_public() && !o.exiled_face_down())
                 || (o.zone == Zone::Hand && (o.owner == viewer || Self::seen_by(o, viewer)))
+                || (o.exiled_face_down() && Self::seen_by(o, viewer))
         })
     }
 
@@ -177,29 +175,33 @@ impl GameState {
             Zone::Hand => {
                 Self::seen_by(o, viewer) || (self.top_play_sources > 0 && self.hands_revealed())
             }
+            // CR 406.3: a card exiled face down, by those who may look.
+            Zone::Exile => !o.exiled_face_down() || Self::seen_by(o, viewer),
             _ => Self::seen_by(o, viewer),
         }
     }
 
-    /// Whether `id` is a card hideaway exiled face down that `viewer` may
-    /// not look at (CR 702.75a, 406.3): only the source's controller may
-    /// (its last controller once it has left; its owner without either).
-    fn hidden_in_exile(&self, viewer: PlayerId, id: ObjId) -> bool {
-        self.linked_exiles.iter().any(|l| {
-            l.card == id && l.face_down && {
-                let looker = self
-                    .objects
-                    .get(l.source)
-                    .map(|s| s.controller)
-                    .or_else(|| self.lki.get(&l.source).map(|k| k.object.controller))
-                    .unwrap_or(self.objects[id].owner);
-                looker != viewer
-            }
-        })
-    }
-
     fn object_view(&self, id: ObjId, viewer: PlayerId) -> ObjectView {
         let o = &self.objects[id];
+        // CR 406.3: a card exiled face down that `viewer` may not look at
+        // shows nothing of itself.
+        if o.exiled_face_down() && !Self::seen_by(o, viewer) {
+            return ObjectView {
+                id,
+                def: self.pool.face_down(false),
+                name: "face-down card".to_string(),
+                controller: o.controller,
+                tapped: false,
+                damage: 0,
+                power: 0,
+                toughness: 0,
+                summoning_sick: false,
+                attacking: None,
+                blocking: None,
+                targets: Vec::new(),
+                face_down_card: None,
+            };
+        }
         let c = self.characteristics(id).expect("object exists");
         let combat = self.combat.as_ref();
         let mut name = self.pool.get(o.def).name.clone();
@@ -263,14 +265,7 @@ impl GameState {
                     exile: p
                         .exile
                         .iter()
-                        .map(|o| {
-                            let mut v = self.object_view(*o, viewer);
-                            if self.hidden_in_exile(viewer, *o) {
-                                v.name = "face-down card".to_string();
-                                v.def = self.pool.face_down(false);
-                            }
-                            v
-                        })
+                        .map(|o| self.object_view(*o, viewer))
                         .collect(),
                     mana_pool: p.mana_pool,
                     restricted_mana: self.restricted_pool_of(id),

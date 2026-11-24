@@ -2119,7 +2119,13 @@ exiled with Krang & Shredder without paying its mana cost": the
 controller chooses one of the cards this permanent's abilities exiled,
 CR 607.2a, or none). `exile instead` after either adds "If that spell would
 be put into your graveyard, exile it instead." (it is exiled as it
-resolves or is countered).
+resolves or is countered). `cast free exiled card with mana value up to 4`
+is "you may cast the exiled card without paying its mana cost if that
+spell's mana value is 4 or less" (hideaway's `cast free exiled card` with
+a cap; `search card to exile face down` links its card to the spell, CR
+607.2a, so it is "the exiled card"), and `put exiled card into hand unless
+cast` "Put the exiled card into your hand if it wasn't cast this way."
+(unless its controller chose to cast it; Beseech the Mirror).
 
 Other durations (CR 611.2b) end a sentence, and whatever in it would last
 until end of turn (or "this turn") lasts that long instead: `until your
@@ -2247,6 +2253,8 @@ four.": the engine puts as many as it may),
 `remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove up to 3 counters from <what>` ("remove up to three counters from target permanent": one at a time, each of a kind the controller chooses, or stop; scenarios `choose "1"` the first kind on it, `choose done`; unscripted, all three), `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
+`put all card exiled with this into hand` ("Put all cards exiled with
+this creature into their owners' hands.", from exile, CR 607.2a),
 `return all card exiled with this to battlefield under your control`
 ("Return all cards exiled with this artifact to the battlefield under
 your control"; `each creature card exiled with this` "each creature card
@@ -2550,7 +2558,9 @@ not an instant or sorcery (CR 110.4a); `search card to graveyard that
 card` ("Search your library for a card, put that card into your
 graveyard, then shuffle."); `search 3 cards to exile` ("Search your
 library for three cards, exile them, then shuffle.", face up and linked to
-nothing); a final `then` prints the older wording "... and put that
+nothing); `search card to exile face down` ("Search your library for a
+card, exile it face down, then shuffle.": only the searcher knows it, CR
+406.3, and it is the resolution's card, "the exiled card"); a final `then` prints the older wording "... and put that
 card onto the battlefield. Then shuffle." (`search Plains or Island or
 Swamp or Mountain or Forest card to battlefield that card then`, Spoils of
 Victory; into the hand likewise); a final `those` on a count-sized search
@@ -2640,12 +2650,28 @@ prints "cards exiled this way", `of target opponent` takes the cards from
 that player's library ("Target opponent exiles the top card of their
 library. You may play that card this turn.", the permission still yours; `from target opponent`
 instead prints "Exile the top three cards of target opponent's library.
-You may play those cards this turn."),
+You may play those cards this turn."); `remains` in place of the
+duration is `forever` printed "for as long as they remain exiled"
+("You may play that card for as long as it remains exiled.", with `first`
+"For as long as that card remains exiled, you may play it" with `it`);
+`face down` exiles the cards face down (CR 406.3: no other player knows
+them, the controller may look at them; "Exile the top two cards of target
+opponent's library face down. You may look at and play those cards for as
+long as they remain exiled.", Expensive Taste), `look face down` prints
+"Look at the top two cards of your library and exile them face down."
+and "you may play" (Flameshape); a static condition last, `if you
+control Kavu`, belongs to the permission: "you may play it if you control
+a Kavu" is judged whenever the card could be played, not as the effect
+resolves (Possibility Technician),
 a count `count where ...` prints "the top X cards of your library, where
 X is ...", and `that much` "exile that many cards from the top of your
 library"), `exile top 3 cards` ("Exile the top three cards of your
 library."; `exile top 1 card`: "the top card"; `each opponent exiles top 1
-card`: "Each opponent exiles the top card of their library."),
+card`: "Each opponent exiles the top card of their library."; `exile top
+1 card face down` adds "face down": nobody may look at the card while it
+stays in exile (CR 406.3, Bomat Courier; the reminder "(You can't look at
+it.)" is not printed), `face down look` "face down and look at it": its
+controller may),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
 each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for
@@ -3451,9 +3477,11 @@ exile a nonland card"): the cards stay exiled and the matching one is
 `that card`. `may cast that card this turn` ("You may cast that card this
 turn."; `may play that card next turn first`: "Until the end of your next
 turn, you may play that card."; `free`: "... without paying its mana
-cost"; `it` for "it"; the durations are impulse's) lets the controller
-play or cast the resolution's card from exile, also after `exile target
-... card from your graveyard`. `may cast target Zombie creature card from
+cost"; `it` for "it"; the durations are impulse's; `may play that card
+remains`: "You may play that card for as long as it remains exiled.") lets
+the controller play or cast the resolution's card from exile, also after
+`exile target ... card from your graveyard` and `that player exiles 1 card
+from hand` (the card they chose; Fiend of the Shadows). `may cast target Zombie creature card from
 your graveyard this turn` ("You may cast target Zombie creature card from
 your graveyard this turn.", Zul Ashur; `may play target ...` for "play")
 gives the same permission for the targeted cards where they are, in a

@@ -5891,7 +5891,15 @@ impl P {
             })?;
             (Some(Recipient::ExiledWith(i)), None, None)
         } else if self.at_word("target") || self.at_words(&["exiled", "card"]) {
-            (Some(self.recipient()?), None, None)
+            let what = self.recipient()?;
+            // `cast free exiled card with mana value up to 4`: "if that
+            // spell's mana value is 4 or less" (Beseech the Mirror).
+            let max = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
+                Some(self.num()?)
+            } else {
+                None
+            };
+            (Some(what), None, max)
         } else {
             let filter = if self.at_word("spell") {
                 None
@@ -6844,6 +6852,8 @@ impl P {
             SearchTo::TopOfLibrary
         } else if self.eat_word("graveyard") {
             SearchTo::Graveyard
+        } else if self.eat_words(&["exile", "face", "down"]) {
+            SearchTo::ExileFaceDown
         } else if self.eat_word("exile") {
             SearchTo::Exile
         } else {
@@ -7009,9 +7019,28 @@ impl P {
         // "You may play the exiled card without paying its mana cost"
         // (hideaway, CR 702.75a).
         // "put the exiled card into its owner's hand" (CR 607.2a).
-        if self.eat_words(&["put", "exiled", "card", "into", "hand"]) {
+        // "Put all cards exiled with this creature into their owners'
+        // hands." (`put all card exiled with this into hand`).
+        if self.at_words(&["put", "exiled", "card", "into", "hand"])
+            || self.at_words(&["put", "all", "card", "exiled", "with"])
+        {
+            self.pos += 1;
+            let what = vec![self.recipient()?];
+            self.expect_words(&["into", "hand"])?;
+            // "Put the exiled card into your hand if it wasn't cast this
+            // way." (Beseech the Mirror).
+            if what == [Recipient::ExiledCard] && self.eat_words(&["unless", "cast"]) {
+                return Ok(Effect::PutCard {
+                    what: crate::ast::CardWords::ExiledUnlessCast,
+                    to: mtg_core::card::CardDest::Hand,
+                    who: None,
+                    that_player: false,
+                    random: false,
+                    rest: None,
+                });
+            }
             return Ok(Effect::ReturnToHand {
-                what: vec![Recipient::ExiledCard],
+                what,
                 owner_hand: false,
                 put: true,
             });
@@ -8519,9 +8548,11 @@ impl P {
                 self.pos += 1;
                 let count = self.num()?;
                 self.cards_word()?;
+                let face = self.exile_face();
                 Ok(Effect::ExileTop {
                     count,
                     who: Some(subject),
+                    face,
                 })
             }
             "exiles" => {
@@ -9662,6 +9693,17 @@ impl P {
         Ok(bottom)
     }
 
+    /// `face down` / `face down look` after an exile (CR 406.3).
+    fn exile_face(&mut self) -> mtg_core::card::ExileFace {
+        if !self.eat_words(&["face", "down"]) {
+            mtg_core::card::ExileFace::Up
+        } else if self.eat_word("look") {
+            mtg_core::card::ExileFace::Look
+        } else {
+            mtg_core::card::ExileFace::Down
+        }
+    }
+
     fn cards_word(&mut self) -> R<()> {
         if self.eat_word("card") || self.eat_word("cards") {
             Ok(())
@@ -10428,7 +10470,12 @@ impl P {
                     self.pos += 1;
                     let count = self.num()?;
                     self.cards_word()?;
-                    return Ok(Effect::ExileTop { count, who: None });
+                    let face = self.exile_face();
+                    return Ok(Effect::ExileTop {
+                        count,
+                        who: None,
+                        face,
+                    });
                 }
                 if self.eat_words(&["graveyard", "of"]) {
                     let who = self.recipient()?;
@@ -10574,14 +10621,33 @@ impl P {
             "discover" => Ok(Effect::Discover(self.count()?)),
             "impulse" => {
                 let count = self.num()?;
-                let until = self.play_until()?;
+                // `remains`: `forever`, printed "for as long as they remain
+                // exiled".
+                let remains = self.eat_word("remains");
+                let until = if remains {
+                    mtg_core::card::PlayUntil::Forever
+                } else {
+                    self.play_until()?
+                };
                 let first = self.eat_word("first");
                 let it = self.eat_word("it");
                 let choose = self.eat_word("choose");
                 let this_way = self.eat_words(&["this", "way"]);
+                let look_first = self.at_words(&["look", "face", "down"]);
+                if look_first {
+                    self.pos += 1;
+                }
+                let face_down = self.eat_words(&["face", "down"]);
                 let possessive = self.at_word("from");
                 let from = if self.eat_word("of") || self.eat_word("from") {
                     Some(self.recipient()?)
+                } else {
+                    None
+                };
+                // "you may play it if you control a Kavu": the permission's
+                // own condition, not the effect's.
+                let cond = if self.eat_word("if") {
+                    Some(self.static_cond()?)
                 } else {
                     None
                 };
@@ -10594,6 +10660,10 @@ impl P {
                     from,
                     possessive,
                     this_way,
+                    remains,
+                    face_down,
+                    look_first,
+                    cond,
                 })
             }
             "dig" => {
@@ -10741,7 +10811,12 @@ impl P {
                     self.expect_words(&["that", "card"])?;
                 }
                 let from_exile = self.eat_words(&["from", "exile"]);
-                let until = self.play_until()?;
+                let remains = self.eat_word("remains");
+                let until = if remains {
+                    mtg_core::card::PlayUntil::Forever
+                } else {
+                    self.play_until()?
+                };
                 let first = self.eat_word("first");
                 let free = self.eat_word("free");
                 Ok(Effect::MayPlayCard {
@@ -10751,6 +10826,7 @@ impl P {
                     first,
                     it,
                     from_exile,
+                    remains,
                 })
             }
             "face-down" if self.at_words(&["spells", "cost"]) => {

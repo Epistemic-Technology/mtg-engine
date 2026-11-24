@@ -2450,6 +2450,10 @@ pub enum CardSet {
     /// The revealed cards but the resolution's card ("all other cards
     /// revealed this way").
     OtherRevealed,
+    /// The resolution's card unless the controller chose to cast it this
+    /// way ("Put the exiled card into your hand if it wasn't cast this
+    /// way.": no cast of it is waiting, `ExileCasts::pending`).
+    ItUnlessCast,
 }
 
 /// Where an `Effect::PutCard` moves cards.
@@ -2596,6 +2600,19 @@ pub enum PlayUntil {
     WhileYouControlSource,
 }
 
+/// How an effect exiles cards (CR 406.3).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum ExileFace {
+    /// Face up, as usual.
+    #[default]
+    Up,
+    /// Face down: no player may look at the cards ("(You can't look at
+    /// it.)").
+    Down,
+    /// Face down; the controller may look at them.
+    Look,
+}
+
 /// Where searched-for cards go.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum SearchTo {
@@ -2616,6 +2633,10 @@ pub enum SearchTo {
     /// "exile them, then shuffle" (Foresight): face up, not linked to
     /// anything.
     Exile,
+    /// "exile it face down, then shuffle" (Beseech the Mirror, CR 406.3):
+    /// the searcher may look at it; it is the resolution's card, linked
+    /// to the resolving object ("the exiled card").
+    ExileFaceDown,
     /// "Put one into your hand and the other into your graveyard" (Fork
     /// in the Road): the searcher chooses the one for the hand.
     HandAndGraveyard,
@@ -4248,6 +4269,11 @@ pub enum Effect {
         who: Recipient,
         #[serde(default = "Num::one")]
         count: Num,
+        /// "... face down" (CR 406.3): `Down` nobody may look at them
+        /// (Bomat Courier), `Look` the controller may ("Exile the top card
+        /// of your library face down and look at it").
+        #[serde(default)]
+        face: ExileFace,
     },
     /// The controller gets an emblem (CR 114) with this definition's
     /// abilities, in the command zone.
@@ -5313,6 +5339,11 @@ pub enum Effect {
     /// controller chooses may be played. With `from`, the cards come from
     /// that player's library ("Target opponent exiles the top card of
     /// their library. You may play that card this turn.").
+    /// With `face_down`, "Exile the top two cards of target opponent's
+    /// library face down. You may look at and play those cards ...": the
+    /// cards are exiled face down (CR 406.3), known to the controller only.
+    /// With `cond`, "you may play it if you control a Kavu": the pool's
+    /// static condition, judged whenever the controller could play it.
     ExilePlayable {
         count: Num,
         until: PlayUntil,
@@ -5320,6 +5351,10 @@ pub enum Effect {
         choose: bool,
         #[serde(default)]
         from: Option<Recipient>,
+        #[serde(default)]
+        face_down: bool,
+        #[serde(default)]
+        cond: Option<u16>,
     },
     /// "Look at the top three cards of your library, then put them back in
     /// any order" (the engine keeps the order). `who` owns the library
