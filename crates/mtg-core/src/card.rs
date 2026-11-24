@@ -10053,10 +10053,35 @@ impl DefFlags {
                 )
             }),
         );
+        // Two "enters" replacements of its own whose order matters: its
+        // controller chooses the order as it enters (CR 616.1), with no
+        // other replacement in play (`replace::commute` skips the rest).
+        let enters: Vec<&Replacement> = abilities
+            .iter()
+            .filter_map(|a| match a {
+                AbilityDef::Replacement(r) if matches!(r.replaces, Replaces::Enters) => {
+                    Some(&r.replacement)
+                }
+                _ => None,
+            })
+            .collect();
+        let orders_own_enters = enters.len() >= 2
+            && enters.iter().any(|r| {
+                !matches!(
+                    r,
+                    Replacement::EnterTapped
+                        | Replacement::EnterTappedUnless(_)
+                        | Replacement::EnterPrepared
+                        | Replacement::EnterWithCounters { .. }
+                        | Replacement::EnterWithCountersIf { .. }
+                        | Replacement::EnterWithCountersMay { .. }
+                )
+            });
         // Cipher asks whether to encode as the spell resolves (CR 702.99a).
         flags.set(
             DefFlags::MID_CHOICE,
-            keywords.contains(Keyword::Cipher)
+            orders_own_enters
+                || keywords.contains(Keyword::Cipher)
                 || abilities.iter().any(|a| {
                     matches!(
                         a,
