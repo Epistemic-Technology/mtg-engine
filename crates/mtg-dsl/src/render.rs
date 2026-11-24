@@ -4810,7 +4810,12 @@ fn token_description_plain(
     {
         words.push(format!("{p}/{t}"));
     }
-    if let Some(colors) = &token.color_indicator {
+    // "a 2/2 Elemental creature token that's all colors" (The Wandering
+    // Minstrel).
+    let all_colors = token.color_indicator.as_ref().is_some_and(|c| c.len() == 5);
+    if let Some(colors) = &token.color_indicator
+        && !all_colors
+    {
         if colors.is_empty() {
             words.push("colorless".to_string());
         } else {
@@ -4822,7 +4827,7 @@ fn token_description_plain(
                     .join(" and "),
             );
         }
-    } else {
+    } else if !all_colors {
         words.push("colorless".to_string());
     }
     words.extend(token.subtypes.iter().cloned());
@@ -4833,6 +4838,9 @@ fn token_description_plain(
         words.join(" "),
         plural(count, "token")
     );
+    if all_colors {
+        s.push_str(" that's all colors");
+    }
     // A creature token whose name is not its subtypes is named (CR
     // 111.4): "a 2/2 colorless Wizard Soldier creature token named Cadet".
     let shown = token.display_name.as_deref().unwrap_or(&token.name);
@@ -15368,6 +15376,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             Replaces::Draw {
                 whose,
                 library_empty,
+                except_first,
             },
             outcome,
         ) => {
@@ -15377,6 +15386,9 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             };
             let cond = if *library_empty {
                 " while your library has no cards in it"
+            } else if *except_first {
+                // Bard, King of Dale.
+                " except the first one you draw in each of your draw steps"
             } else {
                 ""
             };
@@ -15389,6 +15401,77 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 }
                 _ => format!("If {subj} would draw a card{cond}, something else happens instead."),
             }
+        }
+        // "As long as you have one or fewer cards in hand, if you would
+        // draw one or more cards, you draw that many cards plus one
+        // instead." (Quantum Riddler).
+        (Replaces::DrawMany { whose }, outcome) => {
+            let (subj, obj) = match whose {
+                Who::You => ("you", "you draw"),
+                Who::Opponents => ("an opponent", "they draw"),
+                Who::Any => ("a player", "that player draws"),
+            };
+            let many = match outcome {
+                Outcome::Double => "twice that many cards".to_string(),
+                Outcome::PlusOne => "that many cards plus one".to_string(),
+                Outcome::PlusN { n, .. } => format!("that many cards plus {}", number_word(*n)),
+                _ => "something else".to_string(),
+            };
+            let text = format!("if {subj} would draw one or more cards, {obj} {many} instead.");
+            match &r.cond {
+                Some(c) => format!("As long as {}, {text}", static_cond_text(c, ctx.card)),
+                None => capitalize(&text),
+            }
+        }
+        // "If an opponent would mill one or more cards, they mill that many
+        // cards plus four instead." (The Water Crystal), "... twice that
+        // many cards instead." (Bruvac the Grandiloquent).
+        (Replaces::Mill { whose }, outcome) => {
+            let (subj, obj) = match whose {
+                Who::You => ("you", "you mill"),
+                Who::Opponents => ("an opponent", "they mill"),
+                Who::Any => ("a player", "that player mills"),
+            };
+            let many = match outcome {
+                Outcome::Double => "twice that many cards".to_string(),
+                Outcome::PlusOne => "that many cards plus one".to_string(),
+                Outcome::PlusN { n, .. } => format!("that many cards plus {}", number_word(*n)),
+                _ => "something else".to_string(),
+            };
+            format!("If {subj} would mill one or more cards, {obj} {many} instead.")
+        }
+        // "If a creature you control would connive, instead you draw a
+        // card, then that creature connives." (Leader, Super-Genius).
+        (Replaces::Connive { what } | Replaces::Explore { what }, Outcome::First) => {
+            let verb = if matches!(r.event, Replaces::Connive { .. }) {
+                ("connive", "connives")
+            } else {
+                ("explore", "explores")
+            };
+            let first = sentences(&r.then, ctx);
+            let first = first.trim_end_matches('.');
+            let first = match first.split_once(' ') {
+                Some((w, rest)) if w.chars().next().is_some_and(char::is_uppercase) => {
+                    format!("{} {rest}", w.to_lowercase())
+                }
+                _ => first.to_string(),
+            };
+            let first = if first.starts_with("you ") {
+                first
+            } else {
+                format!("you {first}")
+            };
+            let noun = if what.types.contains(&CardType::Creature) {
+                "creature"
+            } else {
+                "permanent"
+            };
+            return format!(
+                "If {} would {}, instead {first}, then that {noun} {}.",
+                filter_a(what, ctx.card),
+                verb.0,
+                verb.1
+            );
         }
         (
             Replaces::ToGraveyard {
@@ -15434,20 +15517,26 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 artifact,
                 ..
             },
-            Outcome::Double,
+            Outcome::Double | Outcome::Triple,
         ) => {
             let c = match (*creature, *artifact) {
                 (true, _) => "creature ",
                 (false, true) => "artifact ",
                 _ => "",
             };
+            // "three times that many of those tokens" (Ojer Taq).
+            let times = if r.outcome == Outcome::Triple {
+                "three times"
+            } else {
+                "twice"
+            };
             if *effect {
                 format!(
-                    "If an effect would create one or more {c}tokens under your control, it creates twice that many of those tokens instead."
+                    "If an effect would create one or more {c}tokens under your control, it creates {times} that many of those tokens instead."
                 )
             } else {
                 format!(
-                    "If one or more {c}tokens would be created under your control, twice that many of those tokens are created instead."
+                    "If one or more {c}tokens would be created under your control, {times} that many of those tokens are created instead."
                 )
             }
         }
@@ -15563,6 +15652,11 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         ),
         // "Creatures your opponents control enter tapped." (CR 614.1c),
         // "Artifacts, creatures, and lands your opponents control ...".
+        // "Lands you control enter untapped." (Spelunking).
+        (Replaces::OthersEnter { what, each: false }, Outcome::EnterUntapped) => format!(
+            "{} enter untapped.",
+            capitalize(&controller_first(what, filter_phrase(what, ctx.card, true)))
+        ),
         (Replaces::OthersEnter { what, each }, Outcome::EnterTapped) => {
             if *each {
                 format!(
@@ -16199,7 +16293,21 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                 | Mod::AddChosenType { .. }
         )
     });
-    let (subject, plural_form) = if filter.relation == Relation::This {
+    let (subject, plural_form) = if filter.relation == Relation::This
+        && let Some(alt) = filter.or.as_deref()
+        && alt.relation == Relation::Other
+    {
+        // "Dion and other Knights you control have flying." (Dion,
+        // Bahamut's Dominant): the source or the others.
+        (
+            format!(
+                "{} and {}",
+                capitalize(&this_ref(card)),
+                filter_phrase(alt, card, true)
+            ),
+            true,
+        )
+    } else if filter.relation == Relation::This {
         (capitalize(&this_ref(card)), false)
     } else if filter.enchanted {
         (capitalize(&filter_phrase(filter, card, false)), false)
@@ -17072,8 +17180,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least && *n == 1 {
                 // "this creature has a +1/+1 counter on it".
+                // "Zhao has a conqueror counter on him".
                 let c = kind.name();
-                format!("{} has {} {c} counter on it", this_ref(card), article(c))
+                format!(
+                    "{} has {} {c} counter on {}",
+                    this_ref(card),
+                    article(c),
+                    it_obj(card)
+                )
             } else if *at_least && *kind == CounterKind::Any {
                 // "As long as this creature has three or more counters on
                 // it": every kind.

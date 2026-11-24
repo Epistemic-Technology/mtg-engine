@@ -48,8 +48,18 @@ impl GameState {
                 to,
                 to_top,
                 controller,
-                enter,
-            } => Some(self.move_object_now(obj, to, to_top, controller, enter)),
+                mut enter,
+            } => {
+                // "Lands you control enter untapped." (Spelunking).
+                if enter.tapped
+                    && to == Zone::Battlefield
+                    && self.replacement_sources > 0
+                    && self.enters_untapped(obj, controller)
+                {
+                    enter.tapped = false;
+                }
+                Some(self.move_object_now(obj, to, to_top, controller, enter))
+            }
             Proposed::AddCounters { obj, kind, n } => {
                 self.add_counters_now(obj, kind, n);
                 None
@@ -2012,6 +2022,7 @@ impl GameState {
 
     /// Put the top `n` cards of `p`'s library into their graveyard (CR 701.13).
     pub(super) fn mill(&mut self, p: PlayerId, n: u32) {
+        let n = self.mill_count(p, n);
         for _ in 0..n {
             let Some(top) = self.player(p).library.last().copied() else {
                 return;

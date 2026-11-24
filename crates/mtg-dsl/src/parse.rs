@@ -19035,10 +19035,18 @@ impl P {
         }
         {
             let at = self.pos;
-            if let Ok(what) = self.filter()
-                && self.eat_word("enter")
-            {
-                return Ok(Replaces::OthersEnter { what, each: false });
+            if let Ok(what) = self.filter() {
+                if self.eat_word("enter") {
+                    return Ok(Replaces::OthersEnter { what, each: false });
+                }
+                // `creature you control connives` (CR 701.50), `...
+                // explores` (CR 701.44).
+                if self.eat_word("connives") {
+                    return Ok(Replaces::Connive { what });
+                }
+                if self.eat_word("explores") {
+                    return Ok(Replaces::Explore { what });
+                }
             }
             self.pos = at;
         }
@@ -19082,6 +19090,27 @@ impl P {
                 whose: Who::Opponents,
             });
         }
+        // `you mill`, `an opponent mills`, `a player mills` (CR 701.13).
+        for (words, whose) in [
+            (&["you", "mill"][..], Who::You),
+            (&["an", "opponent", "mills"][..], Who::Opponents),
+            (&["opponent", "mills"][..], Who::Opponents),
+            (&["a", "player", "mills"][..], Who::Any),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Replaces::Mill { whose });
+            }
+        }
+        // `you draw cards`: "if you would draw one or more cards".
+        for (words, whose) in [
+            (&["you", "draw", "cards"][..], Who::You),
+            (&["an", "opponent", "draws", "cards"][..], Who::Opponents),
+            (&["a", "player", "draws", "cards"][..], Who::Any),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Replaces::DrawMany { whose });
+            }
+        }
         if self.at_words(&["you", "draw"]) || self.at_words(&["a", "player", "draws"]) {
             let whose = if self.at_word("you") {
                 Who::You
@@ -19092,9 +19121,11 @@ impl P {
             self.eat_words(&["a", "card"]);
             let library_empty = self.eat_words(&["with", "empty", "library"])
                 || self.eat_words(&["while", "your", "library", "has", "no", "cards", "in", "it"]);
+            let except_first = self.eat_words(&["except", "first", "in", "draw", "step"]);
             return Ok(Replaces::Draw {
                 whose,
                 library_empty,
+                except_first,
             });
         }
         // "If an instant or sorcery card would be put into a graveyard
@@ -19337,6 +19368,10 @@ impl P {
                 Outcome::WinGame
             }
             "tapped" => Outcome::EnterTapped,
+            "untapped" => Outcome::EnterUntapped,
+            "triple" => Outcome::Triple,
+            // `instead { you draw 1 card }`: those effects, then the event.
+            "instead" => Outcome::First,
             "with" => {
                 let n = self.num()?;
                 let kind = self.counter_kind()?;

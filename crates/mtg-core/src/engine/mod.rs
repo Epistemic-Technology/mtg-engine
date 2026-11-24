@@ -608,6 +608,7 @@ impl GameState {
             untargetable: Vec::new(),
             player_grants: Vec::new(),
             replacement_sources: 0,
+            drawn_before_draw_step: 0,
             control_sources: 0,
             control_effects: 0,
             control_dirty: false,
@@ -3117,8 +3118,9 @@ impl GameState {
             }
             Step::Draw => {
                 // CR 103.8a: the starting player skips their first draw.
+                self.drawn_before_draw_step = self.tallied(crate::card::TurnEvent::Drew, active);
                 if !(self.turn_number == 1 && active == self.starting_player) {
-                    self.draw(active);
+                    self.draw_n(active, 1);
                 }
                 self.give_priority(active);
             }

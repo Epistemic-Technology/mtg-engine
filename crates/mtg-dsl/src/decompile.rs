@@ -2739,9 +2739,19 @@ impl Decompiler<'_> {
                 CoreReplaces::Draw {
                     whose,
                     library_empty,
+                    except_first,
                 } => Replaces::Draw {
                     whose: *whose,
                     library_empty: *library_empty,
+                    except_first: *except_first,
+                },
+                CoreReplaces::DrawMany { whose } => Replaces::DrawMany { whose: *whose },
+                CoreReplaces::Mill { whose } => Replaces::Mill { whose: *whose },
+                CoreReplaces::Connive { what } => Replaces::Connive {
+                    what: self.filter(what),
+                },
+                CoreReplaces::Explore { what } => Replaces::Explore {
+                    what: self.filter(what),
                 },
                 CoreReplaces::ToGraveyard {
                     whose,

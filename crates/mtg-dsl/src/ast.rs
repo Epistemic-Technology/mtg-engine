@@ -3670,6 +3670,24 @@ pub enum Replaces {
     Draw {
         whose: Who,
         library_empty: bool,
+        /// `except first in draw step`: "except the first one you draw in
+        /// each of your draw steps" (Bard, King of Dale).
+        except_first: bool,
+    },
+    /// `you draw cards`: "if you would draw one or more cards".
+    DrawMany {
+        whose: Who,
+    },
+    /// `opponent mills`: "If an opponent would mill one or more cards".
+    Mill {
+        whose: Who,
+    },
+    /// `creature you control connives`, `... explores`.
+    Connive {
+        what: Filter,
+    },
+    Explore {
+        what: Filter,
     },
     ToGraveyard {
         whose: Who,

@@ -1,0 +1,8 @@
+card "The Water Crystal" {
+  oracle_id f8d2a94f-7be1-4b17-8556-398dde531360
+  cost {2}{U}{U}
+  type Legendary Artifact
+  spells blue you cast cost {1} less
+  replace opponent mills: plus 4
+  activated {4}{U}{U}, {T}: each opponent mills count equal hand cards
+}

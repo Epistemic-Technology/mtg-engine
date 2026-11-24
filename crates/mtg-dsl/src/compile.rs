@@ -5805,9 +5805,19 @@ impl Compiler<'_> {
             Replaces::Draw {
                 whose,
                 library_empty,
+                except_first,
             } => CoreReplaces::Draw {
                 whose: *whose,
                 library_empty: *library_empty,
+                except_first: *except_first,
+            },
+            Replaces::DrawMany { whose } => CoreReplaces::DrawMany { whose: *whose },
+            Replaces::Mill { whose } => CoreReplaces::Mill { whose: *whose },
+            Replaces::Connive { what } => CoreReplaces::Connive {
+                what: self.filter(what),
+            },
+            Replaces::Explore { what } => CoreReplaces::Explore {
+                what: self.filter(what),
             },
             Replaces::ToGraveyard {
                 whose,

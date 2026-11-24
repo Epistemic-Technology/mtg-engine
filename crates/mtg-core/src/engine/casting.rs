@@ -11897,9 +11897,8 @@ impl GameState {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         self.set_acting(Some(p));
-                        for _ in 0..self.eval_num(*count, ctx) {
-                            self.draw(p);
-                        }
+                        let n = self.eval_num(*count, ctx);
+                        self.draw_n(p, n);
                     }
                 }
                 self.set_acting(None);
@@ -12785,9 +12784,7 @@ impl GameState {
                     match per_hand {
                         Some(crate::card::PerHandExiled::Draw) => {
                             self.set_acting(Some(p));
-                            for _ in 0..from_hand {
-                                self.draw(p);
-                            }
+                            self.draw_n(p, from_hand);
                             self.set_acting(None);
                         }
                         Some(crate::card::PerHandExiled::Create(token)) => {
@@ -15953,7 +15950,7 @@ impl GameState {
             Effect::DrawReveal => {
                 let p = ctx.controller;
                 let before = self.player(p).hand.len();
-                self.draw(p);
+                self.draw_n(p, 1);
                 let hand = &self.player(p).hand;
                 ctx.created = (hand.len() > before).then(|| hand[hand.len() - 1]);
                 if let Some(id) = ctx.created {
@@ -16683,8 +16680,11 @@ impl GameState {
             Effect::Connive { what } => {
                 for t in self.recipients(ctx, *what) {
                     let Target::Object(id) = t else { continue };
-                    let p = self.objects[id].controller;
-                    self.draw(p);
+                    self.before_connive_or_explore(id, false);
+                    let Some(p) = self.objects.get(id).map(|o| o.controller) else {
+                        continue;
+                    };
+                    self.draw_n(p, 1);
                     let options: Vec<Choice> = self
                         .player(p)
                         .hand
@@ -17402,6 +17402,7 @@ impl GameState {
     }
 
     fn explore(&mut self, ctx: &EffectCtx, id: ObjId) {
+        self.before_connive_or_explore(id, true);
         let Some(o) = self.objects.get(id) else {
             return;
         };

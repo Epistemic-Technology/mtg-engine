@@ -2293,6 +2293,10 @@ pub struct GameState {
     /// Battlefield objects whose definition has a replacement or
     /// prevention ability, so that events on plain boards cost nothing.
     pub replacement_sources: u32,
+    /// Cards the active player had drawn this turn as their draw step
+    /// began, so "except the first one you draw in each of your draw
+    /// steps" (Bard, King of Dale) knows the first (CR 504.1).
+    pub drawn_before_draw_step: u32,
     /// Battlefield objects whose definition has a control-changing static
     /// ability (Control Magic), and stored effects with a control part;
     /// `sync_control` does nothing while both are zero.

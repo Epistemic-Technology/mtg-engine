@@ -755,6 +755,7 @@ impl Fmt {
             Replaces::Draw {
                 whose,
                 library_empty,
+                except_first,
             } => {
                 let mut s = match whose {
                     Who::You => "you draw",
@@ -764,8 +765,25 @@ impl Fmt {
                 if *library_empty {
                     s.push_str(" with empty library");
                 }
+                if *except_first {
+                    s.push_str(" a card except first in draw step");
+                }
                 s
             }
+            Replaces::DrawMany { whose } => match whose {
+                Who::You => "you draw cards",
+                Who::Opponents => "an opponent draws cards",
+                Who::Any => "a player draws cards",
+            }
+            .to_string(),
+            Replaces::Mill { whose } => match whose {
+                Who::You => "you mill",
+                Who::Opponents => "an opponent mills",
+                Who::Any => "a player mills",
+            }
+            .to_string(),
+            Replaces::Connive { what } => format!("{} connives", filter(what)),
+            Replaces::Explore { what } => format!("{} explores", filter(what)),
             Replaces::FilteredToGraveyard(f) => {
                 format!("{} card put into a graveyard", filter(f))
             }
@@ -4528,6 +4546,9 @@ fn outcome(o: &Outcome) -> String {
         Outcome::IntoLibrary { top: false } => "library bottom".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
+        Outcome::Triple => "triple".to_string(),
+        Outcome::First => "instead".to_string(),
+        Outcome::EnterUntapped => "untapped".to_string(),
         Outcome::WinGame => "win".to_string(),
         Outcome::EnterTappedUnless(_)
         | Outcome::EnterTappedUnlessReveal { .. }

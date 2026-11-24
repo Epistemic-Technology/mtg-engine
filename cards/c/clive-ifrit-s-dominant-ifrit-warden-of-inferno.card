@@ -1,0 +1,16 @@
+card "Clive, Ifrit's Dominant // Ifrit, Warden of Inferno" {
+  oracle_id ceba3d03-be5a-4dd7-b829-7db216a0f44e
+  layout transform
+  cost {4}{R}{R}
+  type Legendary Creature — Human Noble Warrior
+  pt 5/5
+  triggered when this enters: you may discard hand then draw count equal devotion red cards
+  activated {4}{R}{R}, {T}, sorcery: exile this then return this to battlefield transformed
+  face "Ifrit, Warden of Inferno" {
+    type Legendary Enchantment Creature — Saga Demon
+    pt 9/9
+    color red
+    label "Lunge" triggered chapter 1: this fights up to one another target creature
+    label "Brimstone" triggered chapter 2, 3: add {R}{R}{R}{R}; if this has 3 or more lore counters, exile it then return it to battlefield front face up
+  }
+}

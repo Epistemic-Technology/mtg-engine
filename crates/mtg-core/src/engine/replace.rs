@@ -369,7 +369,7 @@ impl GameState {
         // (the player's order, CR 616.1, is fixed here).
         found.sort_by_key(|(_, r, _, _)| match r {
             Replacement::TokensInstead { .. } => 0,
-            Replacement::Double => 2,
+            Replacement::Double | Replacement::Triple => 2,
             _ => 1,
         });
         for (by, r, creature, artifact) in found {
@@ -382,10 +382,11 @@ impl GameState {
                 continue;
             }
             match r {
-                Replacement::Double => {
+                Replacement::Double | Replacement::Triple => {
+                    let times = if r == Replacement::Triple { 3 } else { 2 };
                     for (d, k) in &mut out {
                         if covers(self, *d, creature, artifact) {
-                            *k = k.saturating_mul(2);
+                            *k = k.saturating_mul(times);
                         }
                     }
                 }
@@ -575,6 +576,11 @@ impl GameState {
         {
             return false;
         }
+        // Applied where their events happen (`enters_untapped` in
+        // `perform`), not in the pipeline.
+        if r.replacement == Replacement::EnterUntapped {
+            return false;
+        }
         match (&r.replaces, ev) {
             (
                 Replaces::Damage { from, to, combat },
@@ -612,11 +618,19 @@ impl GameState {
                 Replaces::Draw {
                     whose,
                     library_empty,
+                    except_first,
                 },
                 Proposed::Draw { player },
             ) => {
                 whose_ok(*whose, *player)
                     && (!*library_empty || self.player(*player).library.is_empty())
+                    // "except the first one you draw in each of your draw
+                    // steps" (Bard, King of Dale).
+                    && !(*except_first
+                        && self.step == crate::turn::Step::Draw
+                        && *player == self.active_player
+                        && self.tallied(crate::card::TurnEvent::Drew, *player)
+                            == self.drawn_before_draw_step)
             }
             (
                 Replaces::ToGraveyard {
@@ -2151,6 +2165,163 @@ impl GameState {
             });
         }
         self.cbump();
+    }
+}
+
+impl GameState {
+    /// The static replacement abilities of permanents on the battlefield
+    /// that `pick` accepts and whose condition holds, as (source,
+    /// controller, definition, ability). Nothing to scan without a
+    /// replacement source.
+    fn event_replacements(
+        &self,
+        pick: impl Fn(&Self, &ReplacementAbility, ObjId, PlayerId) -> bool,
+    ) -> SmallVec<[(ObjId, PlayerId, CardRef, ReplacementAbility); 1]> {
+        let mut out = SmallVec::new();
+        if self.replacement_sources == 0 {
+            return out;
+        }
+        let granted = self.grant_sources > 0;
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            if !granted && !self.flags_of(o).has_replacements() {
+                continue;
+            }
+            let Some(c) = self.characteristics(*id) else {
+                continue;
+            };
+            for ability in c.abilities.iter().copied() {
+                let AbilityDef::Replacement(r) = self.pool.ability(ability) else {
+                    continue;
+                };
+                if r.condition
+                    .is_some_and(|k| !self.condition_now(self.pool.condition(k), o.controller, *id))
+                {
+                    continue;
+                }
+                if pick(self, r, *id, o.controller) {
+                    out.push((*id, o.controller, o.def, r.clone()));
+                }
+            }
+        }
+        out
+    }
+
+    /// Draw `n` cards, one at a time (CR 121.2), after the replacements
+    /// of the whole instruction: "if you would draw one or more cards, you
+    /// draw that many cards plus one instead" (Quantum Riddler).
+    pub(super) fn draw_n(&mut self, p: PlayerId, n: u32) {
+        let mut n = n;
+        if self.replacement_sources > 0 && n > 0 {
+            let found = self.event_replacements(|_, r, _, ctl| {
+                matches!(r.replaces, Replaces::DrawMany { whose } if who_ok(whose, ctl, p))
+            });
+            for (_, _, by, r) in found {
+                n = many(r.replacement, n);
+                self.emit(Event::Replaced { by });
+            }
+        }
+        for _ in 0..n {
+            self.draw(p);
+        }
+    }
+
+    /// How many cards `p` mills when an instruction would mill `n` (CR
+    /// 701.13): "they mill that many cards plus four instead" (The Water
+    /// Crystal), "twice that many" (Bruvac). The milling player orders
+    /// them (CR 616.1): doubling first, the fewer.
+    pub(super) fn mill_count(&mut self, p: PlayerId, n: u32) -> u32 {
+        if self.replacement_sources == 0 || n == 0 {
+            return n;
+        }
+        let mut found = self.event_replacements(
+            |_, r, _, ctl| matches!(r.replaces, Replaces::Mill { whose } if who_ok(whose, ctl, p)),
+        );
+        found.sort_by_key(|(_, _, _, r)| r.replacement != Replacement::Double);
+        let mut n = n;
+        for (_, _, by, r) in found {
+            n = many(r.replacement, n);
+            self.emit(Event::Replaced { by });
+        }
+        n
+    }
+
+    /// "If a creature you control would connive, instead you draw a card,
+    /// then that creature connives." (Leader, Super-Genius), "... would
+    /// explore, instead you scry 1, then that creature explores." (Twists
+    /// and Turns): each such ability's effects, before `id` connives
+    /// (`explore` false) or explores. Each applies once (CR 614.5).
+    pub(super) fn before_connive_or_explore(&mut self, id: ObjId, explore: bool) {
+        if self.replacement_sources == 0 {
+            return;
+        }
+        let found = self.event_replacements(|s, r, src, ctl| match &r.replaces {
+            Replaces::Connive { what } if !explore => s.filter_matches(what, id, src, ctl),
+            Replaces::Explore { what } if explore => s.filter_matches(what, id, src, ctl),
+            _ => false,
+        });
+        for (source, controller, by, r) in found {
+            self.emit(Event::Replaced { by });
+            let mut ctx = EffectCtx {
+                source,
+                controller,
+                targets: Vec::new(),
+                division: Vec::new(),
+                legal: Vec::new(),
+                trigger_obj: Some(id),
+                trigger_player: None,
+                trigger_amount: 0,
+                created: None,
+                revealed: Vec::new(),
+                x: 0,
+                did: true,
+                chosen: Chosen::None,
+                couldnt: 0,
+                created_tokens: SmallVec::new(),
+                counts: None,
+            };
+            for effect in &r.then {
+                self.apply_effect(&mut ctx, effect);
+            }
+        }
+    }
+
+    /// Whether a land `controller` controls would enter untapped however
+    /// it would enter ("Lands you control enter untapped.", Spelunking).
+    pub(super) fn enters_untapped(&self, obj: ObjId, controller: PlayerId) -> bool {
+        let Some(o) = self.objects.get(obj) else {
+            return false;
+        };
+        let printed = self.printed(o.def);
+        !self
+            .event_replacements(|_, r, src, ctl| {
+                r.replacement == Replacement::EnterUntapped
+                    && matches!(&r.replaces, Replaces::OthersEnter { what }
+                        if what.matches(obj, controller, &printed, Some(src), Some(ctl)))
+            })
+            .is_empty()
+    }
+}
+
+/// Whether a replacement of `whose` events, controlled by `ctl`, covers
+/// player `p`'s.
+fn who_ok(whose: crate::card::Who, ctl: PlayerId, p: PlayerId) -> bool {
+    match whose {
+        crate::card::Who::Any => true,
+        crate::card::Who::You => p == ctl,
+        crate::card::Who::Opponents => p != ctl,
+    }
+}
+
+/// A count after a replacement of "one or more": twice, three times,
+/// plus one, plus N.
+fn many(r: Replacement, n: u32) -> u32 {
+    match r {
+        Replacement::Double => n.saturating_mul(2),
+        Replacement::Triple => n.saturating_mul(3),
+        Replacement::PlusOne => n.saturating_add(1),
+        Replacement::PlusN { n: k, .. } => n.saturating_add(k),
+        _ => n,
     }
 }
 

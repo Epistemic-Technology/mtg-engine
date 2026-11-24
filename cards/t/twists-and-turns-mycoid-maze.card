@@ -1,0 +1,16 @@
+card "Twists and Turns // Mycoid Maze" {
+  oracle_id 740aa9d9-91a9-431e-8bf9-1344e5273e27
+  layout transform
+  cost {G}
+  type Enchantment
+  replace creature you control explores: instead {
+    scry 1
+  }
+  triggered when this enters: target creature you control explores
+  triggered when land you control enters if you control 7 land: transform this
+  face "Mycoid Maze" {
+    type Land — Cave
+    mana {G}
+    activated {3}{G}, {T}: dig 4 take creature card may revealing that card rest bottom random
+  }
+}

@@ -1,0 +1,141 @@
+# "Exile Clive, then return it to the battlefield transformed under its
+# owner's control." and the back face Saga's "exile it, then return it to
+# the battlefield (front face up)" (CR 712.14); "Dion and other Knights you
+# control have flying" during your turn.
+
+scenario "Clive: transforms into Ifrit, whose first chapter fights" {
+  battlefield A: "Clive, Ifrit's Dominant", 6 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Clive, Ifrit's Dominant"
+  turn 1 A: trigger "Ifrit, Warden of Inferno" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ifrit, Warden of Inferno"
+  assert counters "Ifrit, Warden of Inferno" lore 1
+  assert graveyard B contains "Hill Giant"
+  assert damage "Ifrit, Warden of Inferno" 3
+}
+
+scenario "Clive: only as a sorcery" {
+  battlefield A: "Clive, Ifrit's Dominant", 6 "Mountain"
+  start turn 2 B
+  illegal turn 2 A: activate "Clive, Ifrit's Dominant"
+  run_to turn 2 end
+  assert battlefield A contains "Clive, Ifrit's Dominant"
+}
+
+scenario "Clive: Ifrit's second chapter adds mana and stays; the third brings Clive back" {
+  battlefield A: "Clive, Ifrit's Dominant", 6 "Mountain"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Clive, Ifrit's Dominant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Ifrit, Warden of Inferno"
+  assert counters "Ifrit, Warden of Inferno" lore 2
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Clive, Ifrit's Dominant"
+  assert battlefield A lacks "Ifrit, Warden of Inferno"
+  assert exile A count 0
+}
+
+scenario "Clive: entering, you may discard your hand and draw your devotion to red" {
+  battlefield A: 6 "Mountain", "Rakdos Cackler"
+  hand A: "Clive, Ifrit's Dominant", "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Clive, Ifrit's Dominant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert hand A count 3
+}
+
+scenario "Clive: declining keeps the hand" {
+  battlefield A: 6 "Mountain"
+  hand A: "Clive, Ifrit's Dominant", "Grizzly Bears"
+  turn 1 A: cast "Clive, Ifrit's Dominant"
+  turn 1 A: decline "Clive, Ifrit's Dominant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Dion: during your turn, Dion and other Knights you control have flying" {
+  battlefield A: "Dion, Bahamut's Dominant", "Knight of the White Orchid", "Grizzly Bears"
+  battlefield B: "Knight of the White Orchid"
+  run_to turn 1 precombat_main
+  assert has "Dion, Bahamut's Dominant" flying
+  assert has A "Knight of the White Orchid" flying
+  assert has not B "Knight of the White Orchid" flying
+  assert has not "Grizzly Bears" flying
+  run_to turn 2 precombat_main
+  assert has not "Dion, Bahamut's Dominant" flying
+  assert has not A "Knight of the White Orchid" flying
+}
+
+scenario "Dion: entering creates a Knight, which flies during your turn" {
+  battlefield A: 4 "Plains"
+  hand A: "Dion, Bahamut's Dominant"
+  turn 1 A: cast "Dion, Bahamut's Dominant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Knight"
+  assert has "Knight" flying
+}
+
+scenario "Dion: transforms into Bahamut; Wings of Light counters the others" {
+  battlefield A: "Dion, Bahamut's Dominant", "Grizzly Bears", 6 "Plains"
+  turn 1 A: activate "Dion, Bahamut's Dominant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bahamut, Warden of Light"
+  assert has "Bahamut, Warden of Light" flying
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" flying
+  assert counters "Bahamut, Warden of Light" +1/+1 0
+  run_to turn 2 precombat_main
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Dion: Gigaflare destroys a permanent and Bahamut returns as Dion" {
+  battlefield A: "Dion, Bahamut's Dominant", 6 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Dion, Bahamut's Dominant"
+  turn 5 A: trigger "Bahamut, Warden of Light" targeting "Hill Giant"
+  run_to turn 5 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Dion, Bahamut's Dominant"
+  assert battlefield A lacks "Bahamut, Warden of Light"
+  assert battlefield A contains "Knight"
+}
+
+scenario "Ojer Taq: dies, returns tapped and transformed as the Temple" {
+  battlefield A: "Ojer Taq, Deepest Foundation"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Ojer Taq, Deepest Foundation"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Temple of Civilization"
+  assert tapped "Temple of Civilization"
+  assert graveyard A count 0
+}
+
+scenario "Ojer Taq: the Temple transforms back after attacking with three creatures" {
+  battlefield A: "Ojer Taq, Deepest Foundation", 3 "Grizzly Bears", 3 "Plains"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Ojer Taq, Deepest Foundation"
+  turn 3 A: attack "Grizzly Bears", "Grizzly Bears", "Grizzly Bears"
+  turn 3 postcombat_main A: activate "Temple of Civilization"
+  run_to turn 3 end
+  assert battlefield A contains "Ojer Taq, Deepest Foundation"
+  assert battlefield A lacks "Temple of Civilization"
+}
+
+scenario "Ojer Taq: the Temple can't transform after attacking with two" {
+  battlefield A: "Ojer Taq, Deepest Foundation", 2 "Grizzly Bears", 3 "Plains"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Ojer Taq, Deepest Foundation"
+  turn 3 A: attack "Grizzly Bears", "Grizzly Bears"
+  illegal turn 3 postcombat_main A: activate "Temple of Civilization"
+  run_to turn 3 end
+  assert battlefield A contains "Temple of Civilization"
+}
