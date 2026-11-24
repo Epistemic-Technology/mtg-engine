@@ -3885,6 +3885,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             crate::ast::CombatRef::BlockingOrBlockedByThis => {
                 write!(s, " blocking or blocked by {this}")
             }
+            crate::ast::CombatRef::CrewedIt => write!(s, " that crewed it this turn"),
+            crate::ast::CombatRef::SaddledIt => write!(s, " that saddled it this turn"),
         };
     }
     if f.status.entered_this_turn {
@@ -5413,6 +5415,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Earthbend { count, .. }
         | Effect::Search { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
+        Effect::Discover(n) => vec![*n],
         Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
@@ -5570,6 +5573,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 && !f.attacking
                 && !f.blocking
                 && f.attached_to.is_none()
+                // "for each creature that crewed it this turn".
+                && f.combat_with.is_none()
             {
                 " on the battlefield"
             } else {
@@ -7167,6 +7172,38 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
+        Effect::ManifestDreadBy { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(*who, s, "manifests dread".to_string())
+        }
+        Effect::Behold { filter, n } => {
+            let what = if *n == 1 {
+                filter_a(filter, ctx.card)
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(Num::N(*n), "one"),
+                    filter_phrase(filter, ctx.card, true)
+                )
+            };
+            Clause::imperative(format!("behold {what}"))
+        }
+        Effect::ReduceSpeed { who } => {
+            // "that opponent": the controller of the target the ability
+            // named first.
+            let p = ctx.obj(*who);
+            let p = if p.ends_with("controller") {
+                "that opponent".to_string()
+            } else {
+                p
+            };
+            Clause::imperative(format!(
+                "if {p}'s speed is greater than each other player's speed, reduce {p}'s speed by 1. This effect can't reduce their speed below 1"
+            ))
+        }
+        Effect::DreadCardToHand => Clause::imperative(
+            "put a card you put into your graveyard this way into your hand".to_string(),
+        ),
         Effect::Blight(n) => Clause::imperative(format!("blight {n}")),
         Effect::CollectEvidence(n) => Clause::imperative(format!("collect evidence {n}")),
         Effect::Forage => Clause::imperative("forage".to_string()),
@@ -7293,7 +7330,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "you".to_string(),
             format!("incubate {}", digits(*count)),
         ),
-        Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
+        Effect::Discover(n) => Clause::imperative(format!("discover {}", digits(*n))),
+        Effect::DiscoverAgain => {
+            Clause::imperative("discover again for the same value".to_string())
+        }
         Effect::Soulbond { .. } => Clause::imperative("pair them".to_string()),
         Effect::MoveSourceCounters { to } => {
             let o = ctx.obj(*to);
@@ -7305,6 +7345,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Connive { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "connives".to_string())
+        }
+        // "It becomes plotted.": always the card just exiled.
+        Effect::BecomePlotted { what } => {
+            Clause::with_subject(*what, "it".to_string(), "becomes plotted".to_string())
+        }
+        Effect::Door { own: true, .. } => {
+            Clause::imperative("unlock a locked door of a Room you control".to_string())
+        }
+        Effect::Door { what, lock, .. } => {
+            let s = ctx.obj(*what);
+            Clause::imperative(format!(
+                "{} {s}",
+                if *lock {
+                    "lock or unlock a door of"
+                } else {
+                    "unlock a locked door of"
+                }
+            ))
+        }
+        Effect::PlotOnResolve { what } => {
+            let s = if *what == Recipient::TriggeringObject {
+                "that spell".to_string()
+            } else {
+                ctx.obj(*what)
+            };
+            Clause::imperative(format!(
+                "exile {s} instead of putting it into your graveyard as it resolves. If you do, it becomes plotted"
+            ))
         }
         Effect::BecomePrepared { what } => {
             let s = ctx.subj(*what);
@@ -12069,7 +12137,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 });
             }
             if *in_addition {
-                let their = if plural { "their" } else { "its" };
+                // "Sarkhan becomes a Dragon in addition to his other types".
+                let their = if plural {
+                    "their"
+                } else if matches!(to, Recipient::Source | Recipient::SourceNamed) {
+                    its_poss(ctx.card)
+                } else {
+                    "its"
+                };
                 let what = if colors.is_empty() {
                     "types"
                 } else {
@@ -14912,6 +14987,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::ManifestsDread => "whenever you manifest dread".to_string(),
+        Trigger::GivesGift => "whenever you give a gift".to_string(),
+        Trigger::Discovers => "whenever you discover".to_string(),
+        Trigger::SolvesCase => "whenever you solve a Case".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
@@ -15549,7 +15628,23 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 mtg_core::card::DamageTo::Opponent => " to an opponent",
             }
         ),
-        Trigger::CastsFiltered { whose, filter } => {
+        Trigger::CastsFiltered {
+            whose,
+            filter,
+            from,
+        } if *from != mtg_core::card::SpellFrom::Anywhere => {
+            let base = trigger_text(
+                &Trigger::CastsFiltered {
+                    whose: *whose,
+                    filter: filter.clone(),
+                    from: mtg_core::card::SpellFrom::Anywhere,
+                },
+                ctx,
+                next,
+            );
+            format!("{base}{}", spell_from_text(*from))
+        }
+        Trigger::CastsFiltered { whose, filter, .. } => {
             let who = match whose {
                 Who::You => "you cast",
                 Who::Opponents => "an opponent casts",
@@ -20896,6 +20991,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Buyback(c) => format!("Buyback {c}"),
             crate::ast::Mechanic::Outlast(c) => format!("Outlast {c}"),
             crate::ast::Mechanic::Crew(n) => format!("Crew {n}"),
+            crate::ast::Mechanic::CrewOnce(n) => format!("Crew {n}. Activate only once each turn."),
             crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
             crate::ast::Mechanic::Evoke(c) => format!("Evoke {c}"),
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
@@ -21084,7 +21180,18 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         ),
         // "As this land enters, you may reveal a Mountain or Forest card
         // from your hand. If you don't, this land enters tapped."
-        Ability::EntersTappedUnlessReveal { filter, or } => {
+        Ability::EntersTappedUnlessReveal {
+            filter,
+            behold: true,
+            ..
+        } => {
+            let this = this_ref(card);
+            format!(
+                "As {this} enters, you may behold {}. If you don't, {this} enters tapped.",
+                filter_a(filter, card)
+            )
+        }
+        Ability::EntersTappedUnlessReveal { filter, or, .. } => {
             let this = this_ref(card);
             let what = with_article(&cards_phrase(filter, card, false));
             let rest = match or {
@@ -21707,6 +21814,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::KeepRedMana => {
                     "you don't lose unspent red mana as steps and phases end".to_string()
                 }
+                K::UnlockCost { by } => format!("unlock costs you pay cost {{{by}}} less"),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {
@@ -22973,5 +23081,6 @@ fn spell_from_text(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Graveyard => " from your graveyard",
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from anywhere other than your hand",
+        SpellFrom::GraveyardOrExile => " from graveyards or from exile",
     }
 }

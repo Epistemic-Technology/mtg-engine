@@ -1568,7 +1568,7 @@ impl GameState {
                 })
             }
             (
-                Replacement::EnterTappedUnlessReveal { filter, or },
+                Replacement::EnterTappedUnlessReveal { filter, or, behold },
                 Proposed::ZoneChange {
                     obj,
                     to,
@@ -1587,8 +1587,18 @@ impl GameState {
                         f.matches(id, controller, &c, Some(obj), Some(controller))
                     }
                 });
+                // "you may behold a Jace": a Jace they control will do
+                // (chosen, not revealed).
+                let permanent = behold && card.is_none() && {
+                    let f = &f;
+                    self.permanents_of(controller).any(|id| {
+                        self.characteristics(id).is_some_and(|c| {
+                            f.matches(id, controller, &c, Some(obj), Some(controller))
+                        })
+                    })
+                };
                 let def = self.objects[obj].def;
-                let revealed = card.is_some()
+                let revealed = (card.is_some() || permanent)
                     && self.choose_mid(
                         controller,
                         DecisionKind::YouMay { def },

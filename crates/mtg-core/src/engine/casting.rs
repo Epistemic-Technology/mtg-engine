@@ -911,6 +911,16 @@ impl GameState {
             CountExpr::Divided { by, up, inner } => {
                 return CountExpr::divide(self.eval_count(inner, ctx), *by, *up);
             }
+            // "for each creature that crewed it this turn" (Luxurious
+            // Locomotive): those gone from the battlefield count too.
+            CountExpr::Permanents(f)
+                if matches!(
+                    f.combat_with,
+                    Some(crate::card::CombatWith::Crewed | crate::card::CombatWith::Saddled)
+                ) =>
+            {
+                self.crewed.iter().filter(|(v, _)| *v == ctx.source).count()
+            }
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let host = f.attached_to.map(|a| self.attached_host(ctx, a));
@@ -1692,6 +1702,8 @@ impl GameState {
                             .characteristics(*id)
                             .is_some_and(|c| filter.matches(*id, p, &c, Some(ctx.source), Some(p)))
                         && self.status_ok(filter, *id)
+                        // "a creature that saddled it this turn".
+                        && self.combat_with_ok(filter.combat_with, Some(ctx.source), *id)
                 })
                 .collect(),
             ChooseAct::Discard
@@ -2283,6 +2295,22 @@ impl GameState {
                 who: crate::card::Recipient::You,
                 ..
             } => !self.player(ctx.controller).hand.is_empty(),
+            Effect::Behold(b) => {
+                self.behold_candidates(ctx.controller, b, ctx.source).len() >= b.n as usize
+            }
+            // "or unlock a locked door of a Room you control".
+            Effect::Door {
+                own: true,
+                lock: false,
+                ..
+            } => self.permanents_of(ctx.controller).any(|id| {
+                let def = self.objects[id].def;
+                self.pool
+                    .get(def)
+                    .doors
+                    .as_deref()
+                    .is_some_and(|d| d.unlocked(def).contains(&false))
+            }),
             _ => true,
         }
     }
@@ -3036,7 +3064,7 @@ impl GameState {
                 let cost = &self.pool.get(doors.half(door)).mana_cost;
                 let ways =
                     crate::card::SpendWays::of_cost(cost).with(crate::card::SpendWays::UNLOCK);
-                if self.payable_for(p, sources, &cost.requirements(0), Spend::Special(ways)) {
+                if self.payable_for(p, sources, &self.unlock_cost(p, cost), Spend::Special(ways)) {
                     options.push(Choice::Unlock { obj: id, door });
                 }
             }
@@ -7184,6 +7212,7 @@ impl GameState {
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
+                self.crewed.push((sa.source, c));
                 self.emit(Event::Crewed {
                     crew: c,
                     vehicle: sa.source,
@@ -8016,6 +8045,120 @@ impl GameState {
     /// may cast it free as a sorcery from a later turn on. The exiled card.
     pub(super) fn plot(&mut self, card: ObjId) -> ObjId {
         let new = self.move_object(card, Zone::Exile, true);
+        self.mark_plotted(new);
+        new
+    }
+
+    /// "Unlock a locked door of target Room you control", "... of a Room
+    /// you control" (`own`), "Lock or unlock a door of target Room you
+    /// control" (`lock`), CR 709.5: the controller picks the Room and the
+    /// door as it resolves (CR 608.2d), each pair offered as a
+    /// `Choice::Unlock` (for `lock`, the door to lock or unlock).
+    fn door_effect(&mut self, ctx: &EffectCtx, what: Recipient, own: bool, lock: bool) {
+        let rooms: Vec<ObjId> = if own {
+            self.permanents_of(ctx.controller).collect()
+        } else {
+            self.recipients(ctx, what)
+                .into_iter()
+                .filter_map(|t| match t {
+                    Target::Object(id) => self
+                        .objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                        .then_some(id),
+                    Target::Player(_) => None,
+                })
+                .collect()
+        };
+        let mut options: Vec<Choice> = Vec::new();
+        for id in rooms {
+            let def = self.objects[id].def;
+            let Some(doors) = self.pool.get(def).doors.as_deref() else {
+                continue;
+            };
+            let unlocked = doors.unlocked(def);
+            for door in 0..2u8 {
+                if lock || !unlocked[usize::from(door)] {
+                    options.push(Choice::Unlock { obj: id, door });
+                }
+            }
+        }
+        let k = match options.len() {
+            0 => return,
+            1 => 0,
+            _ => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                self.choose_mid(
+                    ctx.controller,
+                    DecisionKind::ChooseOption { def },
+                    options.clone(),
+                )
+            }
+        };
+        let Choice::Unlock { obj, door } = options[k] else {
+            return;
+        };
+        let def = self.objects[obj].def;
+        let unlocked = self.pool.get(def).doors.as_deref().map(|d| d.unlocked(def));
+        if unlocked.is_some_and(|u| u[usize::from(door)]) {
+            self.lock(obj, door);
+        } else {
+            self.unlock(obj, door);
+        }
+    }
+
+    /// Player `p` manifests dread (CR 701.62a): looks at the top two cards
+    /// of their library, manifests one, and puts the other into their
+    /// graveyard. The manifested permanent, if any; "whenever you manifest
+    /// dread" triggers either way.
+    fn manifest_dread(&mut self, p: PlayerId) -> Option<ObjId> {
+        let top: Vec<ObjId> = self
+            .player(p)
+            .library
+            .iter()
+            .rev()
+            .take(2)
+            .copied()
+            .collect();
+        let mut new = None;
+        let mut milled = None;
+        if let Some(&first) = top.first() {
+            let pick = if top.len() > 1 {
+                let options: Vec<Choice> = top
+                    .iter()
+                    .map(|id| Choice::Target(Target::Object(*id)))
+                    .collect();
+                top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
+            } else {
+                first
+            };
+            self.objects[pick].def = self.pool.face_down(false);
+            new = Some(self.put_onto_battlefield(pick, p));
+            for id in top {
+                if id != pick {
+                    let card = self.move_object(id, Zone::Graveyard, true);
+                    // Not if a replacement put it elsewhere (CR 614.6).
+                    if self
+                        .objects
+                        .get(card)
+                        .is_some_and(|o| o.zone == Zone::Graveyard)
+                    {
+                        milled = Some(card);
+                    }
+                }
+            }
+        }
+        self.emit(Event::ManifestedDread { player: p, milled });
+        new
+    }
+
+    /// A card in exile becomes plotted (CR 702.170a, c).
+    fn mark_plotted(&mut self, new: ObjId) {
         self.objects[new].alt = AltCast::Plotted;
         let owner = self.objects[new].owner;
         self.player_mut(owner).adventures_in_exile += 1;
@@ -8033,7 +8176,6 @@ impl GameState {
                 self.queue_builtin(owner, *a, new, def);
             }
         }
-        new
     }
 
     /// The sources `p` may tap to unlock a door (`unlock`) or turn a
@@ -9665,6 +9807,10 @@ impl GameState {
             } else if obj.cast.bought_back() && !obj.cast.flashback() {
                 // CR 702.27a: to its owner's hand as it resolves.
                 self.move_object(spell, Zone::Hand, false);
+            } else if obj.marks & crate::state::OBJ_PLOT_ON_RESOLVE != 0 {
+                // "exile that spell instead of putting it into your
+                // graveyard as it resolves. If you do, it becomes plotted."
+                self.plot(spell);
             } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
                 self.rebound(spell);
             } else if def.keywords.contains(Keyword::Paradigm) {
@@ -15778,12 +15924,26 @@ impl GameState {
                             if self.objects.get(id).is_some_and(|o| {
                                 o.zone == Zone::Graveyard
                                     || (o.zone == Zone::Stack && id == ctx.source)
+                                    // "Exile target spell." (Aven
+                                    // Interrupter): a spell, not an ability.
+                                    || (o.zone == Zone::Stack
+                                        && o.ability.is_none()
+                                        && matches!(what, Recipient::Target(_)))
                             }) =>
                         {
                             Some(id)
                         }
                         _ => None,
                     });
+                    // CR 707.10a: a copy of a spell ceases to exist off
+                    // the stack.
+                    if let Some(id) = id
+                        && self.objects[id].zone == Zone::Stack
+                        && self.objects[id].cast.copy()
+                    {
+                        self.remove_from_game(id);
+                        continue;
+                    }
                     if let Some(id) = id {
                         let new = self.move_object(id, Zone::Exile, true);
                         ctx.created = Some(new);
@@ -16691,7 +16851,15 @@ impl GameState {
             }
             Effect::Cascade => self.cascade(ctx, None),
             Effect::Ripple => self.ripple(ctx),
-            Effect::Discover(n) => self.cascade(ctx, Some(*n)),
+            Effect::Discover(n) => {
+                let n = self.eval_num(*n, ctx);
+                self.cascade(ctx, Some(n));
+                // "Whenever you discover" (CR 701.57).
+                self.emit(Event::Discovered {
+                    player: ctx.controller,
+                    value: n,
+                });
+            }
             Effect::Exploit => self.exploit(ctx),
             Effect::MoveSourceCounters { to } => {
                 let n = self
@@ -16907,6 +17075,28 @@ impl GameState {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {
                         self.become_prepared(id);
+                    }
+                }
+            }
+            Effect::BecomePlotted { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && let Some(card) = self.current_object(id)
+                        && self.objects[card].zone == Zone::Exile
+                        && self.objects[card].alt != AltCast::Plotted
+                    {
+                        self.mark_plotted(card);
+                    }
+                }
+            }
+            Effect::Door { what, own, lock } => self.door_effect(ctx, *what, *own, *lock),
+            Effect::PlotOnResolve { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && let Some(o) = self.objects.get_mut(id)
+                        && o.zone == Zone::Stack
+                    {
+                        o.marks |= crate::state::OBJ_PLOT_ON_RESOLVE;
                     }
                 }
             }
@@ -17710,34 +17900,41 @@ impl GameState {
                 }
             }
             Effect::ManifestDread => {
-                // CR 701.62a: look at the top two, manifest one, the rest
-                // into the graveyard.
-                let p = ctx.controller;
-                let top: Vec<ObjId> = self
-                    .player(p)
-                    .library
-                    .iter()
-                    .rev()
-                    .take(2)
-                    .copied()
-                    .collect();
-                if let Some(&first) = top.first() {
-                    let pick = if top.len() > 1 {
-                        let options: Vec<Choice> = top
-                            .iter()
-                            .map(|id| Choice::Target(Target::Object(*id)))
-                            .collect();
-                        top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
-                    } else {
-                        first
-                    };
-                    self.objects[pick].def = self.pool.face_down(false);
-                    let new = self.put_onto_battlefield(pick, p);
+                if let Some(new) = self.manifest_dread(ctx.controller) {
                     ctx.created = Some(new);
-                    for id in top {
-                        if id != pick {
-                            self.move_object(id, Zone::Graveyard, true);
-                        }
+                }
+            }
+            Effect::Behold(b) => {
+                if self.behold_candidates(ctx.controller, b, ctx.source).len() < b.n as usize {
+                    ctx.did = false;
+                } else {
+                    self.pay_behold(ctx.controller, b, ctx.source);
+                }
+            }
+            Effect::ReduceSpeed { who } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let s = self.desig.speed(p);
+                    let greatest = self
+                        .players_in_game()
+                        .filter(|q| *q != p)
+                        .all(|q| self.desig.speed(q) < s);
+                    if greatest && s > 1 {
+                        self.set_speed(p, s - 1);
+                    }
+                }
+            }
+            Effect::GaveGift => self.emit(Event::GaveGift {
+                player: ctx.controller,
+            }),
+            Effect::ManifestDreadBy { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && let Some(new) = self.manifest_dread(p)
+                    {
+                        ctx.created = Some(new);
                     }
                 }
             }

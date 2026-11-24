@@ -1008,6 +1008,13 @@ impl Fmt {
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),
+            Effect::ManifestDreadBy { who } => {
+                format!("{} manifests dread", self.recipient(*who, t))
+            }
+            Effect::DreadCardToHand => "dread card to hand".to_string(),
+            Effect::ReduceSpeed { who } => format!("reduce speed of {}", self.recipient(*who, t)),
+            Effect::Behold { filter: f, n: 1 } => format!("behold {}", filter(f)),
+            Effect::Behold { filter: f, n } => format!("behold {n} {}", filter(f)),
             Effect::Blight(n) => format!("blight {n}"),
             Effect::CollectEvidence(n) => format!("collect evidence {n}"),
             Effect::Forage => "forage".to_string(),
@@ -1044,13 +1051,36 @@ impl Fmt {
             Effect::Recruit { you: true } => "you recruit".to_string(),
             Effect::Incubate { count, you: false } => format!("incubate {}", num(*count)),
             Effect::Incubate { count, you: true } => format!("you incubate {}", num(*count)),
-            Effect::Discover(n) => format!("discover {n}"),
+            Effect::Discover(n) => format!("discover {}", num(*n)),
+            Effect::DiscoverAgain => "discover again".to_string(),
             Effect::MoveSourceCounters { .. }
             | Effect::CumulativeUpkeep(_)
             | Effect::Soulbond { .. } => {
                 unreachable!("only in expansions")
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
+            Effect::BecomePlotted { what } => {
+                format!("{} becomes plotted", self.recipient(*what, t))
+            }
+            Effect::Door { own: true, .. } => {
+                "unlock a locked door of a Room you control".to_string()
+            }
+            Effect::Door { what, lock, .. } => format!(
+                "{} {}",
+                if *lock {
+                    "lock or unlock a door of"
+                } else {
+                    "unlock a locked door of"
+                },
+                self.recipient(*what, t)
+            ),
+            Effect::PlotOnResolve { what } => {
+                if *what == Recipient::TriggeringObject {
+                    "plot that spell as it resolves".to_string()
+                } else {
+                    format!("plot {} as it resolves", self.recipient(*what, t))
+                }
+            }
             Effect::BecomePrepared { what } => {
                 format!("{} becomes prepared", self.recipient(*what, t))
             }
@@ -5342,6 +5372,8 @@ fn filter_one(f: &Filter) -> String {
                 crate::ast::CombatRef::BlockedByThis => "blocked by this",
                 crate::ast::CombatRef::BlockedByIt => "blocked by it",
                 crate::ast::CombatRef::BlockingOrBlockedByThis => "blocking or blocked by this",
+                crate::ast::CombatRef::CrewedIt => "crewed it",
+                crate::ast::CombatRef::SaddledIt => "saddled it",
             }
             .to_string(),
         );
@@ -6247,7 +6279,29 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 mtg_core::card::DamageTo::Opponent => " to opponent",
             }
         ),
-        Trigger::CastsFiltered { whose, filter: f } => {
+        Trigger::CastsFiltered {
+            whose,
+            filter: f,
+            from,
+        } if *from != mtg_core::card::SpellFrom::Anywhere => format!(
+            "{}{}",
+            trigger_text_one(
+                &Trigger::CastsFiltered {
+                    whose: *whose,
+                    filter: f.clone(),
+                    from: mtg_core::card::SpellFrom::Anywhere,
+                },
+                next
+            ),
+            if *from == mtg_core::card::SpellFrom::Hand {
+                " from your hand"
+            } else {
+                ""
+            }
+        ),
+        Trigger::CastsFiltered {
+            whose, filter: f, ..
+        } => {
             let mut g = f.clone();
             let t = g.targeting.take();
             // `spell with X cost`, `spell that has adventure`: after the noun.
@@ -6363,6 +6417,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::ManifestsDread => "whenever you manifest dread".to_string(),
+        Trigger::GivesGift => "whenever you give a gift".to_string(),
+        Trigger::Discovers => "whenever you discover".to_string(),
+        Trigger::SolvesCase => "whenever you solve a Case".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
@@ -8450,6 +8508,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Buyback(c) => format!("buyback {c}"),
                 crate::ast::Mechanic::Outlast(c) => format!("outlast {c}"),
                 crate::ast::Mechanic::Crew(n) => format!("crew {n}"),
+                crate::ast::Mechanic::CrewOnce(n) => format!("crew {n}, once"),
                 crate::ast::Mechanic::Morph(c) => format!("morph {c}"),
                 crate::ast::Mechanic::Evoke(c) => format!("evoke {c}"),
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
@@ -8569,7 +8628,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
         }
-        Ability::EntersTappedUnlessReveal { filter: f, or } => {
+        Ability::EntersTappedUnlessReveal {
+            filter: f,
+            behold: true,
+            ..
+        } => {
+            let _ = writeln!(out, "{indent}enters tapped unless behold {}", filter(f));
+        }
+        Ability::EntersTappedUnlessReveal { filter: f, or, .. } => {
             let _ = write!(
                 out,
                 "{indent}enters tapped unless reveal {} card",
@@ -9078,6 +9144,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
                 K::KeepRedMana => "you don't lose unspent red mana".to_string(),
+                K::UnlockCost { by } => format!("unlock costs you pay cost {{{by}}} less"),
                 K::ChosenName(ban) => match ban {
                     mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
                     mtg_core::card::NameBan::ActivateNonMana => {
@@ -9393,6 +9460,7 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Graveyard => " from graveyard",
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from other than hand",
+        SpellFrom::GraveyardOrExile => " from graveyards or exile",
     }
 }
 

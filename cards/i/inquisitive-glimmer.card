@@ -1,0 +1,8 @@
+card "Inquisitive Glimmer" {
+  oracle_id 4abb227a-534e-4300-9009-065a10f10e8a
+  cost {W}{U}
+  type Enchantment Creature — Fox Glimmer
+  pt 2/3
+  spells enchantment you cast cost {1} less
+  unlock costs you pay cost {1} less
+}

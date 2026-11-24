@@ -1,0 +1,8 @@
+card "Lilah, Undefeated Slickshot" {
+  oracle_id 0757c5a7-e51b-4c39-bb4d-b32657c10cb4
+  cost {1}{U}{R}
+  type Legendary Creature — Human Rogue
+  pt 3/3
+  keywords prowess
+  triggered whenever you cast multicolored instant or sorcery spell from your hand: plot that spell as it resolves
+}

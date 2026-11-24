@@ -1,0 +1,132 @@
+# "creature that crewed it this turn", "creatures that saddled it this
+# turn" (CR 702.122, 702.171): the creatures tapped to pay that Vehicle's
+# crew cost or that Mount's saddle cost this turn.
+
+scenario "Subterranean Schooner: the creature that crewed it explores" {
+  battlefield A: "Subterranean Schooner", "Grizzly Bears", "Hill Giant"
+  library A: "Serra Angel", "Plains"
+  turn 1 A: activate "Subterranean Schooner"
+  turn 1 declare_attackers A: attack "Subterranean Schooner"
+  illegal turn 1 declare_attackers A: trigger "Subterranean Schooner" targeting "Hill Giant"
+  turn 1 declare_attackers A: trigger "Subterranean Schooner" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Subterranean Schooner: a creature that crewed another Vehicle is no target" {
+  battlefield A: "Subterranean Schooner", "Smuggler's Copter", "Grizzly Bears", "Hill Giant"
+  library A: "Serra Angel", "Plains"
+  turn 1 A: activate "Smuggler's Copter"
+  turn 1 A: activate "Subterranean Schooner"
+  turn 1 declare_attackers A: attack "Subterranean Schooner"
+  illegal turn 1 declare_attackers A: trigger "Subterranean Schooner" targeting "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Subterranean Schooner" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Turtle Van: a counter, doubled on a Turtle" {
+  start turn 1 A precombat_main
+  battlefield A: "Turtle Van", "Silburlind Snapper", "Hill Giant" tapped
+  turn 1 A: activate "Turtle Van"
+  turn 1 declare_attackers A: attack "Turtle Van"
+  illegal turn 1 declare_attackers A: trigger "Turtle Van" targeting "Hill Giant"
+  turn 1 declare_attackers A: trigger "Turtle Van" targeting "Silburlind Snapper"
+  run_to turn 1 postcombat_main
+  assert tapped "Silburlind Snapper"
+  assert counters "Silburlind Snapper" +1/+1 2
+}
+
+scenario "Turtle Van: one counter on a creature of another type" {
+  battlefield A: "Turtle Van", "Hill Giant"
+  turn 1 A: activate "Turtle Van"
+  turn 1 declare_attackers A: attack "Turtle Van"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Luxurious Locomotive: a Treasure for the creature that crewed it" {
+  battlefield A: "Luxurious Locomotive", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Luxurious Locomotive"
+  illegal turn 1 A: activate "Luxurious Locomotive"
+  turn 1 declare_attackers A: attack "Luxurious Locomotive"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "Luxurious Locomotive: a creature that crewed it and died still counts" {
+  battlefield A: "Luxurious Locomotive", "Grizzly Bears", 2 "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Luxurious Locomotive"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Luxurious Locomotive"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "Rambling Possum: +1/+2, and the creature that saddled it returns" {
+  battlefield A: "Rambling Possum", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Rambling Possum"
+  turn 1 declare_attackers A: attack "Rambling Possum"
+  run_to turn 1 postcombat_main
+  assert power "Rambling Possum" 4
+  assert toughness "Rambling Possum" 5
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Rambling Possum: declining returns nothing" {
+  battlefield A: "Rambling Possum", "Grizzly Bears"
+  turn 1 A: activate "Rambling Possum"
+  turn 1 declare_attackers A: attack "Rambling Possum"
+  turn 1 declare_attackers A: decline "Rambling Possum"
+  run_to turn 1 postcombat_main
+  assert power "Rambling Possum" 4
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Kolodin: a Mount that enters is saddled and has haste" {
+  battlefield A: "Kolodin, Triumph Caster", 3 "Forest"
+  hand A: "Rambling Possum"
+  turn 1 A: cast "Rambling Possum"
+  turn 1 declare_attackers A: attack "Rambling Possum"
+  run_to turn 1 postcombat_main
+  assert power "Rambling Possum" 4
+  assert life B 16
+}
+
+scenario "Kolodin: a Vehicle that enters is an artifact creature with haste" {
+  battlefield A: "Kolodin, Triumph Caster", 2 "Plains"
+  hand A: "Smuggler's Copter"
+  turn 1 A: cast "Smuggler's Copter"
+  turn 1 declare_attackers A: attack "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert is "Smuggler's Copter" creature
+  run_to turn 2 upkeep
+  assert is not "Smuggler's Copter" creature
+}
+
+scenario "Cloudspire Captain: crews as though its power were 2 greater" {
+  battlefield A: "Cloudspire Captain", "Cultivator's Caravan"
+  turn 1 A: activate "Cultivator's Caravan"
+  run_to turn 1 postcombat_main
+  assert tapped "Cloudspire Captain"
+  assert is "Cultivator's Caravan" creature
+  assert power "Cultivator's Caravan" 6
+  assert toughness "Cultivator's Caravan" 6
+}
+
+scenario "Cloudspire Captain: a 2-power creature alone can't crew 3" {
+  battlefield A: "Grizzly Bears", "Cultivator's Caravan"
+  illegal turn 1 A: activate "Cultivator's Caravan"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}

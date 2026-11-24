@@ -2035,6 +2035,8 @@ impl Compiler<'_> {
                     CombatRef::BlockingThis | CombatRef::BlockingIt => CombatWith::Blocking,
                     CombatRef::BlockedByThis | CombatRef::BlockedByIt => CombatWith::BlockedBy,
                     CombatRef::BlockingOrBlockedByThis => CombatWith::BlockingOrBlockedBy,
+                    CombatRef::CrewedIt => CombatWith::Crewed,
+                    CombatRef::SaddledIt => CombatWith::Saddled,
                 }
             }),
             that_player: f.that_player,
@@ -2226,7 +2228,10 @@ impl Compiler<'_> {
             GiftKind::TappedFish => token("1/1 blue Fish creature", true),
             GiftKind::Treasure => token("Treasure", false),
         };
-        self.sentences(&[Sentence::new(vec![e])])
+        let mut out = self.sentences(&[Sentence::new(vec![e])])?;
+        // "Whenever you give a gift" triggers after it is given.
+        out.push(CoreEffect::GaveGift);
+        Ok(out)
     }
 
     /// The modes under another head (CR 700.2). "Choose one or more":
@@ -5160,6 +5165,22 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
+            Effect::ManifestDreadBy { who } => {
+                out.push(CoreEffect::ManifestDreadBy { who: r(*who) });
+            }
+            Effect::Behold { filter, n } => {
+                out.push(CoreEffect::Behold(Box::new(mtg_core::card::Behold {
+                    filter: self.filter(filter),
+                    n: *n,
+                    exile: false,
+                    hand: false,
+                    x: false,
+                })));
+            }
+            Effect::ReduceSpeed { who } => out.push(CoreEffect::ReduceSpeed { who: r(*who) }),
+            Effect::DreadCardToHand => out.push(CoreEffect::ReturnToHand {
+                what: CoreRecipient::TriggeringObject,
+            }),
             Effect::Blight(n) => out.push(CoreEffect::Blight(*n)),
             Effect::CollectEvidence(n) => out.push(CoreEffect::CollectEvidence(*n)),
             Effect::Forage => out.push(CoreEffect::Forage),
@@ -5230,6 +5251,7 @@ impl Compiler<'_> {
                 });
             }
             Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
+            Effect::DiscoverAgain => out.push(CoreEffect::Discover(Num::ThatMuch)),
             Effect::Soulbond { triggering } => {
                 out.push(CoreEffect::Soulbond {
                     triggering: *triggering,
@@ -5242,6 +5264,19 @@ impl Compiler<'_> {
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
             Effect::BecomeSaddledTarget { what } => {
                 out.push(CoreEffect::BecomeSaddledTarget { what: r(*what) });
+            }
+            Effect::BecomePlotted { what } => {
+                out.push(CoreEffect::BecomePlotted { what: r(*what) });
+            }
+            Effect::Door { what, own, lock } => {
+                out.push(CoreEffect::Door {
+                    what: r(*what),
+                    own: *own,
+                    lock: *lock,
+                });
+            }
+            Effect::PlotOnResolve { what } => {
+                out.push(CoreEffect::PlotOnResolve { what: r(*what) });
             }
             Effect::BecomePrepared { what } => {
                 out.push(CoreEffect::BecomePrepared { what: r(*what) });
@@ -5955,9 +5990,14 @@ impl Compiler<'_> {
                 what: self.trigger_obj(obj),
                 filter: self.filter(filter),
             },
-            Trigger::CastsFiltered { whose, filter } => TriggerSpec::CastsFiltered {
+            Trigger::CastsFiltered {
+                whose,
+                filter,
+                from,
+            } => TriggerSpec::CastsFiltered {
                 whose: *whose,
                 filter: self.filter(filter),
+                from: *from,
             },
             Trigger::Cycles {
                 this,
@@ -6010,6 +6050,10 @@ impl Compiler<'_> {
             },
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::ManifestsDread => TriggerSpec::ManifestsDread { whose: Who::You },
+            Trigger::GivesGift => TriggerSpec::GivesGift { whose: Who::You },
+            Trigger::Discovers => TriggerSpec::Discovers { whose: Who::You },
+            Trigger::SolvesCase => TriggerSpec::SolvesCase { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
             Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {
@@ -6829,7 +6873,7 @@ impl Compiler<'_> {
                     joined: false,
                 })
             }
-            Ability::EntersTappedUnlessReveal { filter, or } => {
+            Ability::EntersTappedUnlessReveal { filter, or, behold } => {
                 let f = self.filter(filter);
                 let filter = self.pool.intern_filter(f);
                 let or = or.as_ref().map(|c| {
@@ -6841,6 +6885,7 @@ impl Compiler<'_> {
                     replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal {
                         filter,
                         or,
+                        behold: *behold,
                     },
                     then: Vec::new(),
                     condition: None,
@@ -8811,12 +8856,13 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             equip: false,
             cycling: false,
         },
-        Mechanic::Crew(n) => {
+        Mechanic::Crew(n) | Mechanic::CrewOnce(n) => {
             // The Vehicle keeps its printed power and toughness (CR
             // 301.7a).
             Ability::Activated {
                 cost: Cost {
                     crew: *n,
+                    per_turn: u8::from(matches!(m, Mechanic::CrewOnce(_))),
                     ..Default::default()
                 },
                 targets: Vec::new(),

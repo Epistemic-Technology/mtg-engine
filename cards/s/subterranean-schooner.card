@@ -1,0 +1,8 @@
+card "Subterranean Schooner" {
+  oracle_id 7f82bae3-feaa-4967-a843-32a4f72806d5
+  cost {1}{U}
+  type Artifact — Vehicle
+  pt 3/4
+  triggered whenever this attacks: target creature crewed it explores
+  crew 1
+}

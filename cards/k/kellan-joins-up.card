@@ -1,0 +1,7 @@
+card "Kellan Joins Up" {
+  oracle_id 9b3ddd31-c058-4846-8784-25c7a9bbcb31
+  cost {G}{W}{U}
+  type Legendary Enchantment
+  triggered when this enters: you may exile 1 nonland with mana value 3 or less card from your hand chosen; if you do, that card becomes plotted
+  triggered whenever legendary creature you control enters: put 1 +1/+1 counter on each creature you control
+}

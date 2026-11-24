@@ -168,6 +168,9 @@ pub const OBJ_EXILE_ON_LEAVE: u16 = 64;
 /// characteristics they can see. A zone change makes a new object (CR
 /// 400.7), face up.
 pub const OBJ_FACE_DOWN_EXILE: u16 = 128;
+/// A spell to be exiled and plotted as it resolves instead of going to
+/// the graveyard (`Effect::PlotOnResolve`, CR 608.2n, 702.170).
+pub const OBJ_PLOT_ON_RESOLVE: u16 = 1 << 10;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -2153,6 +2156,13 @@ pub struct GameState {
     /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
     /// it leaves the battlefield, which makes it a new object).
     pub saddled: Vec<ObjId>,
+    /// (Vehicle or Mount, creature) for each creature tapped to pay a crew
+    /// or saddle cost this turn (CR 702.122, 702.171): "creature that
+    /// crewed it this turn", "creatures that saddled it this turn". The
+    /// pair names the creature as the object it was then; one that has
+    /// left the battlefield still counts ("for each creature that crewed
+    /// it this turn", Luxurious Locomotive).
+    pub crewed: Vec<(ObjId, ObjId)>,
     /// The first timestamp of this turn: a permanent whose timestamp is
     /// not older entered this turn (power-up, CR 702.193a), as a
     /// permanent's timestamp is the time it entered (CR 613.7e).
@@ -3402,6 +3412,34 @@ impl GameState {
                         _ => false,
                     }
             })
+    }
+
+    /// How much less `p`'s unlock costs cost ("Unlock costs you pay cost
+    /// {1} less.", CR 709.5e).
+    pub fn unlock_reduction(&self, p: PlayerId) -> u32 {
+        if self.player_static_sources == 0 {
+            return 0;
+        }
+        self.player_statics()
+            .filter(|(who, _)| *who == p)
+            .map(|(_, kind)| match kind {
+                crate::card::PlayerStaticKind::UnlockCost { by } => u32::from(by),
+                _ => 0,
+            })
+            .sum()
+    }
+
+    /// The cost `p` pays to unlock a door whose half costs `cost`, after
+    /// "Unlock costs you pay cost {1} less" (generic mana only).
+    pub fn unlock_cost(
+        &self,
+        p: PlayerId,
+        cost: &crate::mana::ManaCost,
+    ) -> crate::mana::ManaRequirement {
+        let mut req = cost.requirements(0);
+        let by = self.unlock_reduction(p);
+        req.generic = req.generic.saturating_sub(by);
+        req
     }
 
     /// "You may play lands from your graveyard." applies to `p`.
@@ -5724,6 +5762,9 @@ impl GameState {
         let Some(source) = source else {
             return true;
         };
+        if matches!(with, CombatWith::Crewed | CombatWith::Saddled) {
+            return self.crewed.contains(&(source, id));
+        }
         if self
             .objects
             .get(source)
@@ -5746,6 +5787,7 @@ impl GameState {
             CombatWith::Blocking => blocking(),
             CombatWith::BlockedBy => blocked_by(),
             CombatWith::BlockingOrBlockedBy => blocking() || blocked_by(),
+            CombatWith::Crewed | CombatWith::Saddled => false,
         }
     }
 

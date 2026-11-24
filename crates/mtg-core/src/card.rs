@@ -863,6 +863,7 @@ impl Subtype {
     pub const VEHICLE: Subtype = Subtype(5 + 28);
     pub const SPACECRAFT: Subtype = Subtype(5 + 29);
     pub const ROOM: Subtype = Subtype(5 + 37);
+    pub const CASE: Subtype = Subtype(5 + 33);
     pub const SAGA: Subtype = Subtype(5 + 39);
     pub const SIEGE: Subtype = Subtype(5 + 47);
     /// Not interned: "is every creature type" (layer 4), held among an
@@ -1284,6 +1285,13 @@ pub enum CombatWith {
     BlockedBy,
     /// Either.
     BlockingOrBlockedBy,
+    /// "creature that crewed it this turn" (CR 702.122): it was tapped to
+    /// pay the source's crew cost this turn (`GameState::crewed`), judged
+    /// even once the source has left the battlefield.
+    Crewed,
+    /// "creature that saddled it this turn" (CR 702.171): the same for a
+    /// saddle cost.
+    Saddled,
 }
 
 /// Game-state qualifiers of a filter beyond tapped, attacking, blocking,
@@ -6335,6 +6343,34 @@ pub enum Effect {
     BecomePrepared {
         what: Recipient,
     },
+    /// "It becomes plotted." after the recipient card was exiled (CR
+    /// 702.170a, c): a card in exile, followed through its zone change,
+    /// becomes plotted; its owner may cast it free as a sorcery on a later
+    /// turn ("exile target spell. It becomes plotted.", "you may exile a
+    /// nonland card ... from your hand. If you do, it becomes plotted.").
+    BecomePlotted {
+        what: Recipient,
+    },
+    /// "exile that spell instead of putting it into your graveyard as it
+    /// resolves. If you do, it becomes plotted." (Lilah, Undefeated
+    /// Slickshot): marks the recipient spell (`OBJ_PLOT_ON_RESOLVE`); as
+    /// it resolves it is exiled and plotted instead of going to the
+    /// graveyard (CR 608.2n).
+    PlotOnResolve {
+        what: Recipient,
+    },
+    /// A Room's doors as an effect (CR 709.5): "unlock a locked door of
+    /// up to one target Room you control", "unlock a locked door of a Room
+    /// you control" (`own`: any Room its controller controls, `what`
+    /// unused), "lock or unlock a door of target Room you control"
+    /// (`lock`). The controller picks the Room and the door as it
+    /// resolves (CR 608.2d); an unlocked door unlocks as by the special
+    /// action, without paying its cost (CR 709.5f).
+    Door {
+        what: Recipient,
+        own: bool,
+        lock: bool,
+    },
     /// Monstrosity N (CR 701.37a): if the source isn't monstrous, N +1/+1
     /// counters on it and it becomes monstrous.
     Monstrosity(Num),
@@ -6365,7 +6401,7 @@ pub enum Effect {
     Cascade,
     /// Discover N (CR 701.57): like cascade, mana value N or less; the card
     /// is cast free or put into the hand.
-    Discover(u32),
+    Discover(Num),
     /// Exploit (CR 702.110): the controller may sacrifice a creature; if
     /// they do, the source's "when this exploits a creature" triggers.
     Exploit,
@@ -6421,6 +6457,28 @@ pub enum Effect {
     /// controller's library, manifest one, and put the rest into their
     /// graveyard.
     ManifestDread,
+    /// "Its controller manifests dread.", "the exiled card's owner
+    /// manifests dread" (CR 701.62a): each recipient player manifests
+    /// dread, the manifested creature under their control.
+    ManifestDreadBy {
+        who: Recipient,
+    },
+    /// "You may behold a Dragon. If you do, ..." (CR 701.69a): behold as
+    /// an effect, its controller choosing a matching permanent they
+    /// control or revealing a matching card from their hand; with too
+    /// few, nothing happens and "If you do" sees that.
+    Behold(Box<Behold>),
+    /// "If that opponent's speed is greater than each other player's
+    /// speed, reduce that opponent's speed by 1. This effect can't reduce
+    /// their speed below 1." (CR 702.179): each recipient player whose
+    /// speed is greater than every other player's loses 1 speed, never
+    /// below 1.
+    ReduceSpeed {
+        who: Recipient,
+    },
+    /// The gift has been given (CR 702.174): after a gift's effects, for
+    /// "Whenever you give a gift".
+    GaveGift,
     /// "Target creature gains '...' until end of turn": a registered
     /// ability granted until end of turn (layer 6).
     GrantAbility {
@@ -6769,6 +6827,8 @@ impl Effect {
                 | Effect::DigSplit { .. }
                 | Effect::Piles { .. }
                 | Effect::ManifestDread
+                | Effect::ManifestDreadBy { .. }
+                | Effect::Door { .. }
                 | Effect::Champion(_)
                 | Effect::Blight(_)
                 | Effect::BlightBy { .. }
@@ -7218,6 +7278,9 @@ pub enum PlayerStaticKind {
     /// 500.4, 106.4): the controller's red mana stays in their pool as
     /// each step and phase ends, cleanup included.
     KeepRedMana,
+    /// "Unlock costs you pay cost {1} less." (CR 709.5e, 601.2f): the
+    /// generic mana of the controller's unlock costs is reduced by `by`.
+    UnlockCost { by: u8 },
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
     /// "You can't lose the game and your opponents can't win the game."
@@ -7858,7 +7921,15 @@ pub enum Replacement {
     /// their hand matches the pool's `filter`th filter (judged as printed).
     /// `or`: "This land enters tapped unless you revealed a Dragon card
     /// this way or you control a Dragon." (the pool's `or`th condition).
-    EnterTappedUnlessReveal { filter: u16, or: Option<u16> },
+    EnterTappedUnlessReveal {
+        filter: u16,
+        or: Option<u16>,
+        /// "As this land enters, you may behold a Jace. If you don't, this
+        /// land enters tapped." (CR 701.69a): a matching permanent its
+        /// controller controls counts too.
+        #[serde(default)]
+        behold: bool,
+    },
     /// Enters tapped unless the pool's `n`th condition holds for its
     /// controller ("unless you control a planeswalker", CR 614.1d).
     EnterTappedUnless(u16),
@@ -8112,6 +8183,17 @@ pub enum TriggerSpec {
     FullyUnlocks { whose: Who },
     /// "Whenever you collect evidence" (CR 701.59).
     CollectsEvidence { whose: Who },
+    /// "Whenever you manifest dread" (CR 701.62): the card put into the
+    /// graveyard this way, if any, is the triggering object.
+    ManifestsDread { whose: Who },
+    /// "Whenever you discover" (CR 701.57): the value discovered is the
+    /// trigger's amount ("discover again for the same value").
+    Discovers { whose: Who },
+    /// "Whenever you give a gift" (CR 702.174).
+    GivesGift { whose: Who },
+    /// "Whenever you solve a Case" (CR 719.3a): a Case the player controls
+    /// becomes solved.
+    SolvesCase { whose: Who },
     /// "Whenever you forage" (CR 701.61).
     Forages { whose: Who },
     /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
@@ -8224,7 +8306,14 @@ pub enum TriggerSpec {
     DealsDamageTo { what: TriggerObj, filter: ObjFilter },
     /// "Whenever you cast an artifact spell", "a multicolored spell", "a
     /// Spirit or Arcane spell": the spell matches the filter.
-    CastsFiltered { whose: Who, filter: ObjFilter },
+    CastsFiltered {
+        whose: Who,
+        filter: ObjFilter,
+        /// "... spell from your hand" (Lilah, Undefeated Slickshot): only
+        /// a spell cast from there.
+        #[serde(default)]
+        from: SpellFrom,
+    },
     /// "When this creature is turned face up", "Whenever a permanent is
     /// turned face up" (CR 708.8), the permanent judged face up.
     TurnedFaceUp(TriggerObj),
@@ -8729,6 +8818,10 @@ impl TriggerSpec {
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::CollectsEvidence { .. }
+            | TriggerSpec::ManifestsDread { .. }
+            | TriggerSpec::GivesGift { .. }
+            | TriggerSpec::Discovers { .. }
+            | TriggerSpec::SolvesCase { .. }
             | TriggerSpec::Forages { .. }
             | TriggerSpec::OpponentGainsControl
             | TriggerSpec::DayNight => WATCH_DESIG,
@@ -9671,6 +9764,8 @@ pub enum SpellFrom {
     Exile,
     /// "from anywhere other than your hand".
     NotHand,
+    /// "from graveyards or from exile" (Aven Interrupter).
+    GraveyardOrExile,
 }
 
 impl SpellFrom {
@@ -9683,6 +9778,7 @@ impl SpellFrom {
             SpellFrom::Graveyard => zone == Some(Zone::Graveyard),
             SpellFrom::Exile => zone == Some(Zone::Exile),
             SpellFrom::NotHand => zone.is_some_and(|z| z != Zone::Hand),
+            SpellFrom::GraveyardOrExile => matches!(zone, Some(Zone::Graveyard | Zone::Exile)),
         }
     }
 }

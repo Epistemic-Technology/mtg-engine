@@ -1,0 +1,5 @@
+card "Elven Passage" {
+  oracle_id 97a2cd39-6b54-496b-b3ac-dab9dfed7edc
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search basic land card to battlefield tapped; you may behold Elf; if you do, untap that created land
+}

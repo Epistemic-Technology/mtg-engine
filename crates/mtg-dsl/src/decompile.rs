@@ -449,6 +449,8 @@ impl Decompiler<'_> {
                     CombatWith::Blocking => CombatRef::BlockingThis,
                     CombatWith::BlockedBy => CombatRef::BlockedByThis,
                     CombatWith::BlockingOrBlockedBy => CombatRef::BlockingOrBlockedByThis,
+                    CombatWith::Crewed => CombatRef::CrewedIt,
+                    CombatWith::Saddled => CombatRef::SaddledIt,
                 }
             }),
             that_player: f.that_player,
@@ -2050,6 +2052,12 @@ impl Decompiler<'_> {
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,
+            CoreEffect::ManifestDreadBy { who } => Effect::ManifestDreadBy { who: r(*who) },
+            CoreEffect::ReduceSpeed { who } => Effect::ReduceSpeed { who: r(*who) },
+            CoreEffect::Behold(b) => Effect::Behold {
+                filter: self.filter(&b.filter),
+                n: b.n,
+            },
             CoreEffect::Blight(n) => Effect::Blight(*n),
             CoreEffect::CollectEvidence(n) => Effect::CollectEvidence(*n),
             CoreEffect::Forage => Effect::Forage,
@@ -2065,7 +2073,9 @@ impl Decompiler<'_> {
             | CoreEffect::TokenPtX(_)
             | CoreEffect::EnteredAttack
             | CoreEffect::ReturnTransformed
-            | CoreEffect::BecomeSaddled => {
+            | CoreEffect::BecomeSaddled
+            // Compiled after a gift's effects (`Mechanic::Gift`) only.
+            | CoreEffect::GaveGift => {
                 unreachable!("built-in abilities only")
             }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
@@ -2137,6 +2147,7 @@ impl Decompiler<'_> {
                 face: *face,
                 of: false,
             },
+            CoreEffect::Discover(mtg_core::card::Num::ThatMuch) => Effect::DiscoverAgain,
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Soulbond { triggering } => Effect::Soulbond {
                 triggering: *triggering,
@@ -2146,6 +2157,13 @@ impl Decompiler<'_> {
             },
             CoreEffect::CumulativeUpkeep(c) => Effect::CumulativeUpkeep(c.clone()),
             CoreEffect::BecomePrepared { what } => Effect::BecomePrepared { what: r(*what) },
+            CoreEffect::BecomePlotted { what } => Effect::BecomePlotted { what: r(*what) },
+            CoreEffect::PlotOnResolve { what } => Effect::PlotOnResolve { what: r(*what) },
+            CoreEffect::Door { what, own, lock } => Effect::Door {
+                what: r(*what),
+                own: *own,
+                lock: *lock,
+            },
             CoreEffect::BecomeSaddledTarget { what } => {
                 Effect::BecomeSaddledTarget { what: r(*what) }
             }
@@ -2724,9 +2742,14 @@ impl Decompiler<'_> {
                 obj: self.trigger_obj(what),
                 filter: Box::new(self.filter(filter)),
             },
-            TriggerSpec::CastsFiltered { whose, filter } => Trigger::CastsFiltered {
+            TriggerSpec::CastsFiltered {
+                whose,
+                filter,
+                from,
+            } => Trigger::CastsFiltered {
                 whose: *whose,
                 filter: self.filter(filter),
+                from: *from,
             },
             TriggerSpec::BlockedBy(f) => {
                 Trigger::BecomesBlocked(TriggerObj::Filter(self.filter(f)))
@@ -2769,6 +2792,10 @@ impl Decompiler<'_> {
             },
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
+            TriggerSpec::ManifestsDread { .. } => Trigger::ManifestsDread,
+            TriggerSpec::GivesGift { .. } => Trigger::GivesGift,
+            TriggerSpec::Discovers { .. } => Trigger::Discovers,
+            TriggerSpec::SolvesCase { .. } => Trigger::SolvesCase,
             TriggerSpec::Forages { .. } => Trigger::Forages,
             TriggerSpec::CreaturesDealDamage(f) => Trigger::CreaturesDealDamage(self.filter(f)),
             TriggerSpec::CreaturesDealCombatDamage(f) => {
@@ -3518,11 +3545,13 @@ impl Decompiler<'_> {
                 c => Ability::EntersTappedUnless(self.static_cond(c)),
             },
             AbilityDef::Replacement(ReplacementAbility {
-                replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal { filter, or },
+                replacement:
+                    mtg_core::card::Replacement::EnterTappedUnlessReveal { filter, or, behold },
                 ..
             }) => Ability::EntersTappedUnlessReveal {
                 filter: self.filter(self.pool.filter(*filter)),
                 or: or.map(|c| self.static_cond(self.pool.condition(c))),
+                behold: *behold,
             },
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, kind },

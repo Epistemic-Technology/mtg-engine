@@ -2718,6 +2718,13 @@ impl P {
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
             }
             // Chosen-name bans (CR 201.3): Meddling Mage, Pithing Needle.
+            // "Unlock costs you pay cost {1} less." (CR 709.5e).
+            "unlock" if self.at_words(&["unlock", "costs", "you", "pay", "cost"]) => {
+                self.pos += 5;
+                let by = u8::try_from(self.mana_cost()?.mana_value()).unwrap_or(u8::MAX);
+                self.expect_word("less")?;
+                self.player_static(mtg_core::card::PlayerStaticKind::UnlockCost { by })
+            }
             "you"
                 if self.at_words(&["you", "may", "play", "lands", "from", "your", "graveyard"]) =>
             {
@@ -3593,6 +3600,15 @@ impl P {
             {
                 self.pos += 1;
                 let n = self.number()?;
+                // "Crew 1. Activate only once each turn."
+                if w == "crew"
+                    && self.peek() == Some(&Tok::Comma)
+                    && self.word_at(1).as_deref() == Some("once")
+                {
+                    self.pos += 2;
+                    self.end_stmt()?;
+                    return Ok(Ability::Mechanic(Mechanic::CrewOnce(n)));
+                }
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
                     "devour" => Mechanic::Devour(None, n),
@@ -4448,6 +4464,18 @@ impl P {
             }
             // "As this land enters, you may reveal a Mountain or Forest
             // card from your hand. If you don't, this land enters tapped."
+            // "As this land enters, you may behold a Jace. If you don't,
+            // this land enters tapped." (CR 701.69a).
+            "enters" if self.at_words(&["enters", "tapped", "unless", "behold"]) => {
+                self.pos += 4;
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedUnlessReveal {
+                    filter,
+                    or: None,
+                    behold: true,
+                })
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless", "reveal"]) => {
                 self.pos += 4;
                 let filter = self.filter()?;
@@ -4460,7 +4488,11 @@ impl P {
                     None
                 };
                 self.end_stmt()?;
-                Ok(Ability::EntersTappedUnlessReveal { filter, or })
+                Ok(Ability::EntersTappedUnlessReveal {
+                    filter,
+                    or,
+                    behold: false,
+                })
             }
             "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
                 self.pos += 6;
@@ -4814,6 +4846,10 @@ impl P {
         // storm", "Spells you cast from your graveyard cost {2} less".
         let from = if whose == Who::You {
             self.spell_from()
+        } else if self.eat_words(&["from", "graveyards", "or", "exile"]) {
+            // "Spells your opponents cast from graveyards or from exile
+            // cost {2} more to cast." (Aven Interrupter).
+            mtg_core::card::SpellFrom::GraveyardOrExile
         } else {
             mtg_core::card::SpellFrom::Anywhere
         };
@@ -4866,6 +4902,8 @@ impl P {
             SpellFrom::Exile
         } else if self.eat_words(&["from", "other", "than", "hand"]) {
             SpellFrom::NotHand
+        } else if self.eat_words(&["from", "graveyards", "or", "exile"]) {
+            SpellFrom::GraveyardOrExile
         } else {
             SpellFrom::Anywhere
         }
@@ -10466,6 +10504,15 @@ impl P {
                 Ok(Effect::PhaseOut { what: subject })
             }
             "connives" => Ok(Effect::Connive { what: subject }),
+            // "Its controller manifests dread." (CR 701.62a).
+            "manifests" if self.at_word("dread") => {
+                self.pos += 1;
+                Ok(Effect::ManifestDreadBy { who: subject })
+            }
+            "becomes" if self.at_word("plotted") => {
+                self.pos += 1;
+                Ok(Effect::BecomePlotted { what: subject })
+            }
             "becomes" if self.at_word("prepared") => {
                 self.pos += 1;
                 Ok(Effect::BecomePrepared { what: subject })
@@ -11646,6 +11693,36 @@ impl P {
         }
         let w = self.word()?;
         match w.as_str() {
+            // "exile that spell instead of putting it into your graveyard
+            // as it resolves. If you do, it becomes plotted."
+            // "Unlock a locked door of up to one target Room you control.",
+            // "unlock a locked door of a Room you control", "Lock or
+            // unlock a door of target Room you control." (CR 709.5).
+            "unlock" | "lock"
+                if self.at_words(&["a", "locked", "door", "of"])
+                    || self.at_words(&["or", "unlock", "a", "door", "of"]) =>
+            {
+                let lock = w == "lock";
+                self.pos += if lock { 5 } else { 4 };
+                if !lock && self.eat_words(&["a", "Room", "you", "control"]) {
+                    return Ok(Effect::Door {
+                        what: Recipient::You,
+                        own: true,
+                        lock,
+                    });
+                }
+                let what = self.recipient()?;
+                Ok(Effect::Door {
+                    what,
+                    own: false,
+                    lock,
+                })
+            }
+            "plot" => {
+                let what = self.recipient()?;
+                self.expect_words(&["as", "it", "resolves"])?;
+                Ok(Effect::PlotOnResolve { what })
+            }
             // "Choose a creature type." as the effect resolves.
             "choose"
                 if matches!(
@@ -12174,6 +12251,25 @@ impl P {
                 })
             }
 
+            // "you may behold a Dragon. If you do, ..." (CR 701.69a).
+            "behold" => {
+                let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.count()?
+                } else {
+                    1
+                };
+                let filter = self.filter()?;
+                Ok(Effect::Behold { filter, n })
+            }
+            "reduce" if self.at_words(&["speed", "of"]) => {
+                self.pos += 2;
+                let who = self.recipient()?;
+                Ok(Effect::ReduceSpeed { who })
+            }
+            "dread" if self.at_words(&["card", "to", "hand"]) => {
+                self.pos += 3;
+                Ok(Effect::DreadCardToHand)
+            }
             "put" => {
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -12563,7 +12659,9 @@ impl P {
                 }
                 Ok(Effect::Support(to))
             }
-            "discover" => Ok(Effect::Discover(self.count()?)),
+            "discover" if self.eat_word("again") => Ok(Effect::DiscoverAgain),
+            // "Discover X, where X is that spell's mana value."
+            "discover" => Ok(Effect::Discover(self.num()?)),
             "impulse" => {
                 let count = self.num()?;
                 // `remains`: `forever`, printed "for as long as they remain
@@ -16266,6 +16364,7 @@ impl P {
                         )
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
+                        | (Some("crewed" | "saddled"), Some("it"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
                         && !matches!(
@@ -17314,6 +17413,18 @@ impl P {
                     };
                     f.combat_with = Some(r);
                     self.pos += n;
+                }
+                // "creature that crewed it this turn", "creatures that
+                // saddled it this turn" (CR 702.122, 702.171).
+                "crewed" | "saddled"
+                    if f.combat_with.is_none() && self.word_at(1).as_deref() == Some("it") =>
+                {
+                    f.combat_with = Some(if w == "crewed" {
+                        crate::ast::CombatRef::CrewedIt
+                    } else {
+                        crate::ast::CombatRef::SaddledIt
+                    });
+                    self.pos += 2;
                 }
                 "attacking" if self.at_words(&["attacking", "or", "blocking"]) => {
                     f.attacking = true;
@@ -18369,6 +18480,18 @@ impl P {
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
         }
+        if self.eat_words(&["you", "manifest", "dread"]) {
+            return Ok(Trigger::ManifestsDread);
+        }
+        if self.eat_words(&["you", "discover"]) {
+            return Ok(Trigger::Discovers);
+        }
+        if self.eat_words(&["you", "give", "a", "gift"]) {
+            return Ok(Trigger::GivesGift);
+        }
+        if self.eat_words(&["you", "solve", "a", "Case"]) {
+            return Ok(Trigger::SolvesCase);
+        }
         if self.eat_words(&["you", "forage"]) {
             return Ok(Trigger::Forages);
         }
@@ -18794,7 +18917,11 @@ impl P {
                     targeting: self.spell_targeting()?,
                     ..Filter::default()
                 };
-                return Ok(Trigger::CastsFiltered { whose, filter });
+                return Ok(Trigger::CastsFiltered {
+                    whose,
+                    filter,
+                    from: mtg_core::card::SpellFrom::Anywhere,
+                });
             }
             // Repartee: "an instant or sorcery spell that targets a
             // creature" is a filter with targets.
@@ -18835,7 +18962,18 @@ impl P {
                     filter.or = Some(Box::new(alt));
                     filter.alt_article = true;
                 }
-                return Ok(Trigger::CastsFiltered { whose, filter });
+                // "... spell from your hand" (Lilah, Undefeated Slickshot).
+                let from =
+                    if filter.targeting.is_none() && self.eat_words(&["from", "your", "hand"]) {
+                        mtg_core::card::SpellFrom::Hand
+                    } else {
+                        mtg_core::card::SpellFrom::Anywhere
+                    };
+                return Ok(Trigger::CastsFiltered {
+                    whose,
+                    filter,
+                    from,
+                });
             }
             let noncreature = self.eat_word("noncreature");
             let instant_or_sorcery = self.eat_words(&["instant", "or", "sorcery"]);
@@ -20793,6 +20931,10 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::WinsFlip { .. }
         | Trigger::DrawsNth { .. }
         | Trigger::CollectsEvidence
+        | Trigger::ManifestsDread
+        | Trigger::GivesGift
+        | Trigger::Discovers
+        | Trigger::SolvesCase
         | Trigger::Forages
         | Trigger::CreaturesDealCombatDamage(_)
         | Trigger::CreaturesDealDamage(_)

@@ -1,0 +1,8 @@
+card "Luxurious Locomotive" {
+  oracle_id c68c2a98-9a6d-4199-af3a-78eb92beda48
+  cost {5}
+  type Artifact — Vehicle
+  pt 6/5
+  triggered whenever this attacks: create count each creature crewed it "Treasure"
+  crew 1, once
+}

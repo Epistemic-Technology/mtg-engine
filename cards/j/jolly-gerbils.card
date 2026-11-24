@@ -1,0 +1,7 @@
+card "Jolly Gerbils" {
+  oracle_id 8e22bf51-1b1b-459b-af78-91188b6e3f09
+  cost {1}{W}
+  type Creature — Hamster Citizen
+  pt 2/3
+  triggered whenever you give a gift: draw 1 card
+}

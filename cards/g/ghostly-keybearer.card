@@ -1,0 +1,8 @@
+card "Ghostly Keybearer" {
+  oracle_id ec86a45f-046c-4aab-9b82-422c6f39142e
+  cost {3}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  triggered whenever this deals combat damage to player: unlock a locked door of up to 1 target Room you control
+}

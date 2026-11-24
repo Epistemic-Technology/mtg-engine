@@ -1547,6 +1547,10 @@ pub enum CombatRef {
     /// `blocking or blocked by this`: "blocking or blocked by this
     /// creature".
     BlockingOrBlockedByThis,
+    /// `crewed it`: "that crewed it this turn" (CR 702.122).
+    CrewedIt,
+    /// `saddled it`: "that saddled it this turn" (CR 702.171).
+    SaddledIt,
 }
 
 /// What a filter's objects must be attached to.
@@ -2178,6 +2182,9 @@ pub enum Ability {
     EntersTappedUnlessReveal {
         filter: Filter,
         or: Option<StaticCond>,
+        /// `enters tapped unless behold Jace`: "As this land enters, you
+        /// may behold a Jace. If you don't, this land enters tapped."
+        behold: bool,
     },
     /// `enters tapped if not your turn`: "This creature enters tapped if
     /// it's not your turn." (the same replacement as `enters tapped unless
@@ -2586,6 +2593,9 @@ pub enum Mechanic {
     /// with total power N or more: This Vehicle becomes an artifact
     /// creature until end of turn."
     Crew(u32),
+    /// `crew 1, once`: "Crew 1. Activate only once each turn." (Luxurious
+    /// Locomotive).
+    CrewOnce(u32),
     /// CR 702.74: an alternative cost; sacrificed as it enters if evoked.
     Evoke(ManaCost),
     /// CR 702.35: cast for this cost as it's discarded.
@@ -4353,6 +4363,8 @@ pub enum Trigger {
     CastsFiltered {
         whose: Who,
         filter: Filter,
+        /// `from hand`: "... spell from your hand".
+        from: mtg_core::card::SpellFrom,
     },
     /// `when this exploits a creature` (CR 702.110).
     Exploits,
@@ -4473,6 +4485,14 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever you manifest dread` (CR 701.62).
+    ManifestsDread,
+    /// `whenever you discover` (CR 701.57).
+    Discovers,
+    /// `whenever you give a gift` (CR 702.174).
+    GivesGift,
+    /// `whenever you solve a Case` (CR 719.3a).
+    SolvesCase,
     /// `whenever you forage` (CR 701.61).
     Forages,
     /// `whenever one or more creature you control deal combat damage to a
@@ -6263,6 +6283,27 @@ pub enum Effect {
     Manifest,
     /// `manifest dread` (CR 701.62).
     ManifestDread,
+    /// `its controller manifests dread` (CR 701.62a): a player other than
+    /// the controller manifests dread.
+    ManifestDreadBy {
+        who: Recipient,
+    },
+    /// `behold Dragon`, `behold 2 Elf`: behold as an effect (CR 701.69a),
+    /// "you may behold a Dragon. If you do, ...".
+    Behold {
+        filter: Filter,
+        n: u32,
+    },
+    /// `reduce speed of <player>`: "If that opponent's speed is greater
+    /// than each other player's speed, reduce that opponent's speed by 1.
+    /// This effect can't reduce their speed below 1." (CR 702.179).
+    ReduceSpeed {
+        who: Recipient,
+    },
+    /// `dread card to hand`: "put a card you put into your graveyard
+    /// this way into your hand" in a "whenever you manifest dread" trigger
+    /// (the triggering card).
+    DreadCardToHand,
     /// `suspect target creature` (CR 701.60a); `<what> no longer
     /// suspected` (`on` false): "... are no longer suspected".
     Suspect {
@@ -6399,7 +6440,10 @@ pub enum Effect {
         you: bool,
     },
     /// `discover 4` (CR 701.57).
-    Discover(u32),
+    Discover(Num),
+    /// `discover again`: "discover again for the same value" in a
+    /// "whenever you discover" trigger (the trigger's amount).
+    DiscoverAgain,
     /// Modular's "put its +1/+1 counters on [recipient]" (internal).
     /// Soulbond's pairing (internal; CR 702.95a).
     Soulbond {
@@ -6419,6 +6463,25 @@ pub enum Effect {
     /// 722.3a).
     BecomePrepared {
         what: Recipient,
+    },
+    /// `it becomes plotted`: "It becomes plotted." after the card was
+    /// exiled (CR 702.170).
+    BecomePlotted {
+        what: Recipient,
+    },
+    /// `plot that spell as it resolves`: "exile that spell instead of
+    /// putting it into your graveyard as it resolves. If you do, it
+    /// becomes plotted." (Lilah, Undefeated Slickshot).
+    PlotOnResolve {
+        what: Recipient,
+    },
+    /// `unlock a locked door of <recipient>`, `unlock a locked door of a
+    /// Room you control` (`own`), `lock or unlock a door of <recipient>`
+    /// (`lock`): a Room's doors as an effect (CR 709.5).
+    Door {
+        what: Recipient,
+        own: bool,
+        lock: bool,
     },
     /// `this connives` (CR 701.50).
     Connive {

@@ -536,6 +536,7 @@ impl GameState {
             entered_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
+            crewed: Vec::new(),
             phased_out: Vec::new(),
             encoded: Vec::new(),
             turn_started_at: 0,
@@ -2096,7 +2097,8 @@ impl GameState {
                 if let Some(half) = half {
                     let cost = self.pool.get(half).mana_cost.clone();
                     let sources = self.special_sources(player, &cost, true);
-                    self.pay_from(player, &cost.requirements(0), &sources, None);
+                    let req = self.unlock_cost(player, &cost);
+                    self.pay_from(player, &req, &sources, None);
                     self.unlock(obj, door);
                 }
                 self.give_priority(player);
@@ -3729,6 +3731,7 @@ impl GameState {
             self.entered_this_turn.clear();
             self.damaged_by_this_turn.clear();
             self.saddled.clear();
+            self.crewed.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
             self.resolutions_this_turn = 0;

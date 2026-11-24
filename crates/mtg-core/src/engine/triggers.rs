@@ -48,6 +48,8 @@ impl GameState {
             Event::CountersAdded { n, .. } | Event::CountersRemoved { n, .. } => *n,
             // "you gain that much life" after a player loses or gains life.
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
+            // "discover again for the same value".
+            Event::Discovered { value, .. } => *value,
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
@@ -1410,8 +1412,21 @@ impl GameState {
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. })
             | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player })
-            | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
+            | (TriggerSpec::Forages { whose }, Event::Foraged { player })
+            | (TriggerSpec::Discovers { whose }, Event::Discovered { player, .. })
+            | (TriggerSpec::GivesGift { whose }, Event::GaveGift { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
+            // CR 719.3a: a Case becomes solved (its second stage).
+            (TriggerSpec::SolvesCase { whose }, Event::StageChanged { obj, stage: 1 }) => {
+                let o = self.objects.get(*obj)?;
+                let case = self
+                    .characteristics(*obj)
+                    .is_some_and(|c| c.has_subtype(crate::card::Subtype::CASE));
+                (case && whose_ok(*whose, o.controller)).then_some((Some(*obj), Some(o.controller)))
+            }
+            (TriggerSpec::ManifestsDread { whose }, Event::ManifestedDread { player, milled }) => {
+                whose_ok(*whose, *player).then_some((*milled, Some(*player)))
             }
             // CR 122.6: "Whenever you put one or more +1/+1 counters on a
             // creature you control": counters its controller's effect put.
@@ -1617,12 +1632,21 @@ impl GameState {
                 .then_some((Some(*o), Some(obj.controller)))
             }
             (
-                TriggerSpec::CastsFiltered { whose, filter },
+                TriggerSpec::CastsFiltered {
+                    whose,
+                    filter,
+                    from,
+                },
                 Event::Cast {
                     player, spell, def, ..
                 },
             ) => {
                 if !whose_ok(*whose, *player) {
+                    return None;
+                }
+                if *from != crate::card::SpellFrom::Anywhere
+                    && !from.allows(self.objects.get(*spell).and_then(|o| o.cast.cast_from()))
+                {
                     return None;
                 }
                 let c = self
