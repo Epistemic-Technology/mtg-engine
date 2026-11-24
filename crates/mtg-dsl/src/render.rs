@@ -11152,7 +11152,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::PlayerRule { who, kind } => {
-            let s = ctx.subj(*who);
+            // "Your opponents can't gain life this turn." (Atarka's
+            // Command).
+            let s = if *who == Recipient::EachOpponent {
+                "your opponents".to_string()
+            } else {
+                ctx.subj(*who)
+            };
             Clause::with_subject(
                 *who,
                 s,

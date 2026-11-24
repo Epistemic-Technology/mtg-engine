@@ -184,7 +184,88 @@ scenario "Spirit of the Labyrinth: after the draw step's card, Divination draws 
   assert hand A contains "Plains"
 }
 
+scenario "Narset, Parter of Veils: an opponent's second draw doesn't happen; its controller's does" {
+  battlefield A: 3 "Island"
+  battlefield B: "Narset, Parter of Veils", 3 "Island"
+  hand A: "Divination"
+  hand B: "Divination"
+  library A: "Plains", "Swamp", "Forest"
+  library B: "Plains", "Swamp", "Forest"
+  start turn 3 A
+  turn 3 A: cast "Divination"
+  run_to turn 3 postcombat_main
+  assert hand A count 1
+  turn 4 B: cast "Divination"
+  run_to turn 4 postcombat_main
+  assert hand B count 3
+}
+
+scenario "Narset, Parter of Veils: -2 takes a noncreature, nonland card from the top four" {
+  battlefield A: "Narset, Parter of Veils"
+  library A: "Grizzly Bears", "Forest", "Shock", "Island", "Plains"
+  turn 1 A: activate "Narset, Parter of Veils"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert counters "Narset, Parter of Veils" loyalty 3
+}
+
 # ----- "Your opponents can't gain life." -----
+
+scenario "Rampaging Ferocidon: no one gains life; another creature entering pings its controller" {
+  battlefield A: "Rampaging Ferocidon", 3 "Plains"
+  hand A: "Healing Salve", "Grizzly Bears"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 19
+}
+
+scenario "Gríma Wormtongue: opponents gain no life; sacrificing a legend amasses" {
+  battlefield A: "Gríma Wormtongue", "Isamaru, Hound of Konda"
+  battlefield B: "Plains"
+  hand B: "Healing Salve"
+  turn 1 A: activate "Gríma Wormtongue" sacrificing "Isamaru, Hound of Konda" targeting player B
+  turn 1 B: cast "Healing Salve" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Orc Army"
+  assert counters "Orc Army" +1/+1 2
+}
+
+scenario "Gríma Wormtongue: a nonlegendary creature sacrificed amasses nothing" {
+  battlefield A: "Gríma Wormtongue", "Grizzly Bears"
+  turn 1 A: activate "Gríma Wormtongue" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield A lacks "Orc Army"
+}
+
+scenario "Atarka's Command: opponents can't gain life this turn, and 3 damage to each" {
+  battlefield A: "Mountain", "Forest"
+  battlefield B: 2 "Plains"
+  hand A: "Atarka's Command"
+  hand B: "Healing Salve", "Healing Salve"
+  turn 1 A: cast "Atarka's Command" mode 1
+  turn 1 postcombat_main B: cast "Healing Salve" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Atarka's Command: the next turn life is gained again" {
+  battlefield A: "Mountain", "Forest"
+  battlefield B: 2 "Plains"
+  hand A: "Atarka's Command"
+  hand B: "Healing Salve"
+  turn 1 A: cast "Atarka's Command" mode 1
+  turn 2 B: cast "Healing Salve" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
 
 scenario "Knight of Dusk's Shadow: an opponent gains no life, its controller does" {
   battlefield A: 2 "Plains"

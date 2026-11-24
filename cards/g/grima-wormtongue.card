@@ -1,0 +1,8 @@
+card "Gríma Wormtongue" {
+  oracle_id 8f98806e-c6b7-44af-b436-88acf36d25ec
+  cost {2}{B}
+  type Legendary Creature — Human Advisor
+  pt 1/4
+  opponents can't gain life
+  activated {T}, sacrifice another creature: target player loses 1 life; if the sacrificed creature was legendary, amass Orcs 2
+}
