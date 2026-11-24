@@ -3046,8 +3046,6 @@ impl Compiler<'_> {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
-            // Chosen first (`Compiler::effect`), then "it".
-            Recipient::OneExiledWith(..) => CoreRecipient::CreatedObject,
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
             Recipient::Rest => CoreRecipient::Rest,
             Recipient::Declined(_) => CoreRecipient::Declined,
@@ -3134,7 +3132,9 @@ impl Compiler<'_> {
             }
             // `ChosenOf`: chosen by the `ChooseAct` compiled before the
             // effect.
-            Recipient::ChosenOf(_)
+            // Chosen first (`Compiler::effect`), then "it".
+            Recipient::OneExiledWith(..)
+            | Recipient::ChosenOf(_)
             | Recipient::Manifested
             | Recipient::CreatedObject
             | Recipient::CreatedThat

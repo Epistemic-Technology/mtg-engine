@@ -14487,14 +14487,11 @@ impl P {
         self.pos += 1;
         let f = if self.at_word("card") {
             Filter::default()
+        } else if let Ok(f) = self.filter() {
+            f
         } else {
-            match self.filter() {
-                Ok(f) => f,
-                Err(_) => {
-                    self.pos = at;
-                    return Ok(None);
-                }
-            }
+            self.pos = at;
+            return Ok(None);
         };
         if !self.eat_words(&["card", "exiled", "with"]) {
             self.pos = at;
