@@ -7308,6 +7308,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
+        Effect::ManifestDreadTimes(n) => {
+            Clause::imperative(format!("manifest dread {} times", digits(*n)))
+        }
         Effect::ManifestDreadBy { who } => {
             let s = ctx.subj(*who);
             Clause::with_subject(*who, s, "manifests dread".to_string())
@@ -7357,6 +7360,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.subj(*what)
             };
+            // "Creatures your opponents control get -2/-0 until end of
+            // turn. If any of them are suspected, they're no longer
+            // suspected." (Eliminate the Impossible): the group named
+            // again, where only the suspected ones change.
+            if s == "those creatures" {
+                return Clause::imperative(
+                    "if any of them are suspected, they're no longer suspected".to_string(),
+                );
+            }
             Clause::with_subject(
                 *what,
                 s,
@@ -10040,6 +10052,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::TurnFaceDown { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("turn {o} face down"))
+        }
+        Effect::TurnFaceUpChosen { filter } => {
+            Clause::imperative(format!("turn {} face up", filter_a(filter, ctx.card)))
         }
         Effect::LookAtFaceDown { what } => {
             let o = ctx.obj(*what);

@@ -1,0 +1,6 @@
+card "Valgavoth's Onslaught" {
+  oracle_id 663d9559-6619-46fe-8ff4-655f1d5e0e4c
+  cost {X}{X}{G}
+  type Sorcery
+  spell: manifest dread x times, then put x +1/+1 counters on those creatures
+}

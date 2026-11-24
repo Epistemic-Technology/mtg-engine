@@ -18337,6 +18337,20 @@ impl GameState {
             Effect::GaveGift => self.emit(Event::GaveGift {
                 player: ctx.controller,
             }),
+            Effect::ManifestDreadTimes { count } => {
+                let n = self.eval_num(*count, ctx);
+                let mut group = Vec::new();
+                for _ in 0..n {
+                    if let Some(new) = self.manifest_dread(ctx.controller) {
+                        ctx.created = Some(new);
+                        group.push(new);
+                    }
+                }
+                // "then put X +1/+1 counters on each of those creatures".
+                if let Some(log) = self.this_way.as_mut() {
+                    log.group = group;
+                }
+            }
             Effect::ManifestDreadBy { who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t

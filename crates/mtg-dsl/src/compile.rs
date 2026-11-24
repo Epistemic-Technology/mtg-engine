@@ -4070,6 +4070,20 @@ impl Compiler<'_> {
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::ExileOnLeave { what } => out.push(CoreEffect::ExileOnLeave { what: r(*what) }),
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
+            // "You may turn a creature you control face up.": the
+            // controller chooses one (CR 608.2d), then it turns face up.
+            Effect::TurnFaceUpChosen { filter } => {
+                // Only a face-down one can turn face up (CR 708.8).
+                let mut filter = self.filter(filter);
+                filter.status.face_down = true;
+                out.push(CoreEffect::PlayerChooses {
+                    who: CoreRecipient::You,
+                    filter,
+                });
+                out.push(CoreEffect::TurnFaceUp {
+                    what: CoreRecipient::CreatedObject,
+                });
+            }
             Effect::TurnFaceDown { what } => out.push(CoreEffect::TurnFaceDown { what: r(*what) }),
             Effect::LookAtFaceDown { what } => {
                 out.push(CoreEffect::LookAtFaceDown { what: r(*what) });
@@ -5345,6 +5359,9 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
+            Effect::ManifestDreadTimes(n) => {
+                out.push(CoreEffect::ManifestDreadTimes { count: *n });
+            }
             Effect::ManifestDreadBy { who } => {
                 out.push(CoreEffect::ManifestDreadBy { who: r(*who) });
             }

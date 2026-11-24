@@ -1,0 +1,21 @@
+# Suspect forms (put-other14).
+
+# "Investigate. Creatures your opponents control get -2/-0 until end of
+# turn. If any of them are suspected, they're no longer suspected."
+scenario "Eliminate the Impossible: opponents' creatures shrink and stop being suspected" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: 4 "Swamp", "Hill Giant"
+  hand A: "Eliminate the Impossible"
+  hand B: "Barbed Servitor"
+  start turn 2 B
+  turn 2 B: cast "Barbed Servitor"
+  turn 2 postcombat_main A: cast "Eliminate the Impossible"
+  run_to turn 2 postcombat_main
+  assert has "Barbed Servitor" menace
+  run_to turn 2 end
+  assert has not "Barbed Servitor" menace
+  assert power "Barbed Servitor" -1
+  assert power "Hill Giant" 1
+  assert power "Grizzly Bears" 2
+  assert battlefield A contains "Clue"
+}

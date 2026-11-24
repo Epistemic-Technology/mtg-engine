@@ -6429,6 +6429,10 @@ pub enum Effect {
     ManifestDread,
     /// `its controller manifests dread` (CR 701.62a): a player other than
     /// the controller manifests dread.
+    /// `manifest dread x times`: "Manifest dread X times" (each a separate
+    /// manifest dread); `those creatures` after it are the manifested
+    /// permanents.
+    ManifestDreadTimes(Num),
     ManifestDreadBy {
         who: Recipient,
     },
@@ -6574,6 +6578,13 @@ pub enum Effect {
     /// battlefield under your control." (Clone Shell, Summoner's Egg; CR
     /// 406.3, 607.2a).
     TurnFaceUpExiled,
+    /// `turn face up 1 creature you control chosen`: "turn a creature you
+    /// control face up" (Bustle): the controller chooses a permanent
+    /// matching the filter as it resolves (not targeted) and turns it face
+    /// up without paying a cost (CR 708.8).
+    TurnFaceUpChosen {
+        filter: Filter,
+    },
     /// `return those exiled cards to hand`: "return those cards to your
     /// hand" (Ignorant Bliss's delayed trigger): the cards the source
     /// exiled face down, still in exile (CR 607.2a).

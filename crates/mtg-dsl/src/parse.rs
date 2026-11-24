@@ -13535,6 +13535,14 @@ impl P {
             "turn" if self.at_words(&["face", "up"]) || self.at_words(&["face", "down"]) => {
                 self.pos += 1;
                 let up = self.word()? == "up";
+                // `turn face up 1 creature you control chosen`: "turn a
+                // creature you control face up" (Bustle).
+                if up && self.peek() == Some(&Tok::Num(1)) {
+                    self.pos += 1;
+                    let filter = self.filter()?;
+                    self.expect_word("chosen")?;
+                    return Ok(Effect::TurnFaceUpChosen { filter });
+                }
                 let what = self.recipient()?;
                 Ok(if up {
                     Effect::TurnFaceUp { what }
@@ -13595,7 +13603,16 @@ impl P {
             {
                 self.piles()
             }
-            "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
+            "manifest" if self.eat_word("dread") => {
+                // `manifest dread x times` (Valgavoth's Onslaught).
+                if self.word_at(1).as_deref() == Some("times") {
+                    let n = self.num()?;
+                    self.expect_word("times")?;
+                    self.group_named = true;
+                    return Ok(Effect::ManifestDreadTimes(n));
+                }
+                Ok(Effect::ManifestDread)
+            }
             "blight" => Ok(Effect::Blight(self.count()?)),
             "collect" if self.eat_word("evidence") => Ok(Effect::CollectEvidence(self.count()?)),
             "forage" => Ok(Effect::Forage),

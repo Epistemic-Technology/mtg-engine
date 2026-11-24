@@ -6584,6 +6584,13 @@ pub enum Effect {
     /// "Its controller manifests dread.", "the exiled card's owner
     /// manifests dread" (CR 701.62a): each recipient player manifests
     /// dread, the manifested creature under their control.
+    /// "Manifest dread X times" (Valgavoth's Onslaught): `count` separate
+    /// manifest dreads by the controller (CR 701.62), one after another;
+    /// the manifested permanents are "those creatures" for the rest of the
+    /// resolution (`ThisWayLog::group`, `Recipient::ThoseObjects`).
+    ManifestDreadTimes {
+        count: Num,
+    },
     ManifestDreadBy {
         who: Recipient,
     },
@@ -6959,6 +6966,7 @@ impl Effect {
                 | Effect::DigSplit { .. }
                 | Effect::Piles { .. }
                 | Effect::ManifestDread
+                | Effect::ManifestDreadTimes { .. }
                 | Effect::ManifestDreadBy { .. }
                 | Effect::Door { .. }
                 | Effect::Champion(_)

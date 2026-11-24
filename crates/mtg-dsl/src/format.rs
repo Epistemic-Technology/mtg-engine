@@ -1037,6 +1037,7 @@ impl Fmt {
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),
+            Effect::ManifestDreadTimes(n) => format!("manifest dread {} times", num(*n)),
             Effect::ManifestDreadBy { who } => {
                 format!("{} manifests dread", self.recipient(*who, t))
             }
@@ -2329,6 +2330,7 @@ impl Fmt {
                 format!("leaving exiles {}", self.recipient(*what, t))
             }
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
+            Effect::TurnFaceUpChosen { filter: f } => format!("turn face up 1 {} chosen", filter(f)),
             Effect::TurnFaceDown { what } => {
                 format!("turn face down {}", self.recipient(*what, t))
             }
