@@ -1,138 +1,60 @@
-scenario "Exotic Orchard adds a color an opponent's land could produce" {
-  battlefield A: "Exotic Orchard"
-  battlefield B: "Mountain"
-  hand A: "Lightning Bolt"
-  start turn 2 A precombat_main
-  turn 2 A: cast "Lightning Bolt" targeting player B
-  run_to turn 2 postcombat_main
-  assert life B 17
+// "Choose a color. Add an amount of mana of that color equal to ...",
+// "add {R} or {G} for each Raccoon you control", "Add X {G} or X {W},
+// where X is ..." (CR 106.1b, 106.4).
+
+scenario "Three Tree City adds a mana of the chosen color per creature of the chosen type" {
+  battlefield A: 2 "Forest", 2 "Grizzly Bears"
+  hand A: "Three Tree City", "Grizzly Bears"
+  turn 1 A: play "Three Tree City"
+  turn 1 A: choose Bear
+  turn 1 A: activate "Three Tree City"
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Grizzly Bears"
 }
 
-scenario "Exotic Orchard can't add a color no opponent's land could produce" {
-  battlefield A: "Exotic Orchard", "Mountain" tapped
-  battlefield B: "Forest"
-  hand A: "Lightning Bolt"
-  start turn 2 A precombat_main
-  illegal turn 2 A: cast "Lightning Bolt" targeting player B
-  run_to turn 2 postcombat_main
-  assert life B 20
+scenario "Three Tree City adds nothing for another creature type" {
+  battlefield A: 2 "Forest", 2 "Grizzly Bears"
+  hand A: "Three Tree City", "Grizzly Bears"
+  turn 1 A: play "Three Tree City"
+  turn 1 A: choose Elf
+  turn 1 A: activate "Three Tree City"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Grizzly Bears"
 }
 
-scenario "Reflecting Pool adds a type a land you control could produce" {
-  battlefield A: "Reflecting Pool", "Mountain" tapped
-  hand A: "Lightning Bolt"
-  start turn 2 A precombat_main
-  turn 2 A: cast "Lightning Bolt" targeting player B
-  run_to turn 2 postcombat_main
-  assert life B 17
+scenario "Muerra adds a red or green mana for each Raccoon at the first main phase" {
+  battlefield A: "Muerra, Trash Tactician"
+  hand A: "Shock"
+  start turn 2 A upkeep
+  turn 2 precombat_main A: choose red
+  turn 2 precombat_main A: wait
+  turn 2 precombat_main A: cast "Shock" targeting player B
+  run_to turn 2 end
+  assert life B 18
 }
 
-scenario "Cascading Cataracts adds five mana in any combination of colors" {
-  battlefield A: "Cascading Cataracts", 5 "Wastes"
-  hand A: "Serra Angel"
-  start turn 2 A precombat_main
-  turn 2 A: cast "Serra Angel"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Serra Angel"
+scenario "Brigid, Doun's Mind adds X mana of one color" {
+  battlefield A: "Brigid, Doun's Mind", 2 "Grizzly Bears"
+  hand A: "Centaur Courser", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: decline "Brigid, Doun's Mind"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 A: cast "Centaur Courser"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Grizzly Bears"
 }
 
-scenario "Castle Garenbrig adds six {G} for a creature spell" {
-  battlefield A: "Castle Garenbrig", 4 "Forest"
-  hand A: "Craw Wurm"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Castle Garenbrig" ability 2
-  turn 2 A: cast "Craw Wurm"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Craw Wurm"
-}
-
-scenario "Castle Garenbrig's six {G} can't cast an instant" {
-  battlefield A: "Castle Garenbrig", 4 "Forest", "Grizzly Bears"
-  hand A: "Giant Growth"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Castle Garenbrig" ability 2
-  illegal turn 2 A: cast "Giant Growth" targeting "Grizzly Bears"
-  run_to turn 2 postcombat_main
-  assert power "Grizzly Bears" 2
-}
-
-scenario "Slobad sacrifices an artifact for {R} equal to its mana value, for an artifact spell" {
-  battlefield A: "Slobad, Iron Goblin", "Standing Stones"
-  hand A: "Standing Stones"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Slobad, Iron Goblin" sacrificing "Standing Stones"
-  turn 2 A: cast "Standing Stones"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Standing Stones"
-  assert graveyard A contains "Standing Stones"
-}
-
-scenario "Slobad's mana can't cast a creature" {
-  battlefield A: "Slobad, Iron Goblin", "Standing Stones"
-  hand A: "Hill Giant"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Slobad, Iron Goblin" sacrificing "Standing Stones"
-  illegal turn 2 A: cast "Hill Giant"
-  run_to turn 2 postcombat_main
-  assert hand A contains "Hill Giant"
-}
-
-scenario "Glittering Stockpile adds {R} and a stash counter" {
-  battlefield A: "Glittering Stockpile"
-  hand A: "Lightning Bolt"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Glittering Stockpile" ability 1
-  turn 2 A: cast "Lightning Bolt" targeting player B
-  run_to turn 2 postcombat_main
-  assert life B 17
-  assert counters "Glittering Stockpile" stash 1
-}
-
-scenario "Glittering Stockpile sacrificed adds one mana of one color per stash counter" {
-  battlefield A: "Glittering Stockpile" with 3 stash
-  hand A: "Hypnotic Specter"
-  start turn 2 A precombat_main
-  turn 2 A: activate "Glittering Stockpile" ability 2
-  turn 2 A: choose black
-  turn 2 A: cast "Hypnotic Specter"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Hypnotic Specter"
-  assert graveyard A contains "Glittering Stockpile"
-}
-
-scenario "Karametra's Acolyte adds {G} equal to your devotion to green" {
-  battlefield A: "Karametra's Acolyte", "Llanowar Elves" tapped
-  hand A: "Grizzly Bears"
-  start turn 2 A precombat_main
-  turn 2 A: cast "Grizzly Bears"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Grizzly Bears"
-}
-
-scenario "Karametra's Acolyte alone adds one {G}" {
-  battlefield A: "Karametra's Acolyte"
-  hand A: "Grizzly Bears"
-  start turn 2 A precombat_main
-  illegal turn 2 A: cast "Grizzly Bears"
-  run_to turn 2 postcombat_main
-  assert hand A contains "Grizzly Bears"
-}
-
-scenario "Marwyn adds {G} equal to her power" {
-  battlefield A: "Marwyn, the Nurturer" with 2 +1/+1
-  hand A: "Centaur Courser"
-  start turn 2 A precombat_main
-  turn 2 A: cast "Centaur Courser"
-  run_to turn 2 postcombat_main
-  assert battlefield A contains "Centaur Courser"
-}
-
-scenario "Marwyn grows when another Elf enters, and her 1/1 self adds one {G}" {
-  battlefield A: "Marwyn, the Nurturer", "Forest"
-  hand A: "Llanowar Elves", "Grizzly Bears"
-  start turn 2 A precombat_main
-  turn 2 A: cast "Llanowar Elves"
-  run_to turn 2 postcombat_main
-  assert power "Marwyn, the Nurturer" 2
-  assert hand A contains "Grizzly Bears"
+scenario "Brigid, Doun's Mind's mana is all one color" {
+  battlefield A: "Brigid, Doun's Mind", 2 "Grizzly Bears"
+  hand A: "Watchwolf"
+  start turn 1 A precombat_main
+  turn 1 A: decline "Brigid, Doun's Mind"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A lacks "Watchwolf"
 }

@@ -1,0 +1,6 @@
+card "Cavernous Maw" {
+  oracle_id 952ab8fe-f7d3-4673-89de-8c6d3f8a081f
+  type Land — Cave
+  mana {C}
+  activated {2}, if count 3 other Cave you control plus graveyard Cave: this becomes 3/3 Elemental creature until end of turn
+}

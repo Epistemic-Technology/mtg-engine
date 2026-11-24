@@ -1,0 +1,9 @@
+card "Your Temple Is Under Attack" {
+  oracle_id f48f69c0-cca8-4f44-84cc-71e7cbbb9208
+  cost {2}{W}
+  type Instant
+  choose one {
+    mode "Pray for Protection": each creature you control gains indestructible
+    mode "Strike a Deal": you and target opponent each draw 2 cards
+  }
+}

@@ -1,0 +1,6 @@
+card "Honden of Life's Web" {
+  oracle_id a1fdfcc6-4b3c-40f8-a9e4-dff9ace74a59
+  cost {4}{G}
+  type Legendary Enchantment — Shrine
+  triggered at beginning of your upkeep: create count each Shrine you control "1/1 colorless Spirit creature"
+}

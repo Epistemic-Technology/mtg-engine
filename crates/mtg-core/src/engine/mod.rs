@@ -311,6 +311,21 @@ impl Engine {
         }
         state.turn_number = setup.turn_number;
         state.step = setup.step;
+        // The turns each player has begun, taking turns in order with the
+        // active player's being this one ("your first, second, or third
+        // turn of the game").
+        let n = state.players.len();
+        let mut p = setup.active_player;
+        for k in 0..n {
+            let k32 = u32::try_from(k).unwrap_or(u32::MAX);
+            let n32 = u32::try_from(n).unwrap_or(u32::MAX);
+            state.player_mut(p).turns_begun = if setup.turn_number > k32 {
+                (setup.turn_number - 1 - k32) / n32 + 1
+            } else {
+                0
+            };
+            p = PlayerId(u8::try_from((p.index() + n - 1) % n).unwrap_or(0));
+        }
         // Permanents set up count as controlled since the turn began, so
         // they did not enter this turn either (power-up, CR 702.193a).
         state.turn_started_at = state.next_timestamp;
@@ -515,9 +530,13 @@ impl GameState {
             attacked_last_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
+            counters_put_this_turn: Vec::new(),
+            dealt_damage_ever: Vec::new(),
+            noncombat_last_turn: 0,
             entered_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
+            crewed: Vec::new(),
             phased_out: Vec::new(),
             encoded: Vec::new(),
             turn_started_at: 0,
@@ -540,6 +559,8 @@ impl GameState {
             next_spell_less: [0; 4],
             next_spell_free: Vec::new(),
             next_uncounterable: 0,
+            spell_gains: Vec::new(),
+            turn_spell_changes: Vec::new(),
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
             block_demands: Vec::new(),
@@ -582,6 +603,7 @@ impl GameState {
                     energy: 0,
                     adventures_in_exile: 0,
                     lands_played_this_turn: 0,
+                    turns_begun: 0,
                     extra_land_plays: 0,
                     flashback_in_graveyard: 0,
                     max_hand_size: 7,
@@ -594,6 +616,7 @@ impl GameState {
                     skip_combat_this_turn: 0,
                     combat_mana: 0,
                     turn_mana: crate::mana::ManaPool::default(),
+                    keep_red_turn: false,
                 })
                 .collect(),
             objects: SlotMap::with_key(),
@@ -622,6 +645,7 @@ impl GameState {
             spent_uncounterable: false,
             uncounterable_spells: Vec::new(),
             mana_trigger_sources: 0,
+            tapped_produced: crate::mana::ManaPool::default(),
             turn_static_sources: 0,
             state_trigger_sources: 0,
             mark_sources: 0,
@@ -640,6 +664,8 @@ impl GameState {
             top_play_sources: 0,
             top_static_sources: 0,
             top_grants: Vec::new(),
+            grave_turn_grants: Vec::new(),
+            grave_cast_spells: Vec::new(),
             starting_life: 20,
             foreign_activated_sources: 0,
             saga_count: 0,
@@ -1014,7 +1040,7 @@ impl GameState {
                         continue;
                     };
                     let player = obj.controller;
-                    let n = self.pool.get(obj.def).casualty;
+                    let n = self.spell_casualty(spell);
                     let mut options: Vec<Choice> = self
                         .casualty_candidates(player, n)
                         .into_iter()
@@ -1595,7 +1621,12 @@ impl GameState {
                         } else {
                             must.iter().copied().map(Choice::AddAttacker).collect()
                         };
-                        if must.is_empty() {
+                        // CR 506.5: a lone creature that can't attack
+                        // alone isn't a declaration to stop at while
+                        // another could join it.
+                        if must.is_empty()
+                            && (options.is_empty() || !self.attacks_alone_illegally(&chosen))
+                        {
                             options.push(Choice::Done);
                         }
                         return StepResult::Decision(Decision {
@@ -2071,7 +2102,8 @@ impl GameState {
                 if let Some(half) = half {
                     let cost = self.pool.get(half).mana_cost.clone();
                     let sources = self.special_sources(player, &cost, true);
-                    self.pay_from(player, &cost.requirements(0), &sources, None);
+                    let req = self.unlock_cost(player, &cost);
+                    self.pay_from(player, &req, &sources, None);
                     self.unlock(obj, door);
                 }
                 self.give_priority(player);
@@ -2326,7 +2358,16 @@ impl GameState {
             ) => {
                 self.phyrexian_life
                     .push((spell, u8::try_from(k).unwrap_or(u8::MAX)));
-                self.finish_cast(spell, sacrifice, discard);
+                // An activated ability's cost (CR 602.2b) or a spell's.
+                if self
+                    .objects
+                    .get(spell)
+                    .is_some_and(|o| o.kind == ObjKind::Ability)
+                {
+                    self.finish_activation(spell, sacrifice, discard);
+                } else {
+                    self.finish_cast(spell, sacrifice, discard);
+                }
             }
             // CR 702.78a: the creatures are tapped as the costs are paid.
             (Flow::ChoosingConspire { spell }, Choice::Accept) => {
@@ -2736,7 +2777,7 @@ impl GameState {
     fn after_bargain(&self, spell: ObjId) -> Flow {
         // CR 702.153a: casualty, with a creature to sacrifice.
         let o = &self.objects[spell];
-        let n = self.pool.get(o.def).casualty;
+        let n = self.spell_casualty(spell);
         if n > 0 && !self.casualty_candidates(o.controller, n).is_empty() {
             return Flow::ChoosingCasualty { spell };
         }
@@ -2772,8 +2813,7 @@ impl GameState {
 
     fn after_optional_cost(&self, spell: ObjId) -> Flow {
         // CR 702.78a: conspire, with two creatures to tap.
-        let o = &self.objects[spell];
-        if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {
+        if self.spell_conspire(spell) && self.conspirators(spell).len() >= 2 {
             return Flow::ChoosingConspire { spell };
         }
         self.after_conspire(spell)
@@ -2978,6 +3018,7 @@ impl GameState {
     fn begin_game(&mut self) {
         self.turn_number = 1;
         self.active_player = self.starting_player;
+        self.player_mut(self.starting_player).turns_begun += 1;
         self.step = Step::Untap;
         self.emit(Event::TurnBegin {
             turn: 1,
@@ -3287,6 +3328,10 @@ impl GameState {
     /// CR 402.2, 514.1: the hand size `p` discards down to, after static
     /// abilities that change it (`usize::MAX` for none).
     fn max_hand_size(&self, p: PlayerId) -> usize {
+        // "You have no maximum hand size for the rest of the game."
+        if self.player(p).max_hand_size == usize::MAX {
+            return usize::MAX;
+        }
         let mut n = i64::try_from(self.player(p).max_hand_size).unwrap_or(7);
         for id in &self.battlefield {
             let o = &self.objects[*id];
@@ -3457,6 +3502,7 @@ impl GameState {
         self.granted_flashback.clear();
         self.granted_graveyard_cast.clear();
         self.top_grants.clear();
+        self.grave_turn_grants.clear();
         self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
@@ -3569,8 +3615,17 @@ impl GameState {
                 | Step::CombatDamage
         );
         let cleanup = self.step == Step::Cleanup;
-        for p in &mut self.players {
+        // "You don't lose unspent red mana as steps and phases end."
+        let mut keep_red: u64 = 0;
+        for i in 0..self.players.len().min(64) {
+            let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            if (self.players[i].keep_red_turn && !cleanup) || self.keeps_red_mana(p) {
+                keep_red |= 1 << i;
+            }
+        }
+        for (i, p) in self.players.iter_mut().enumerate() {
             let red = crate::mana::Color::Red as usize;
+            let all_red = i < 64 && keep_red & (1 << i) != 0;
             let keep = if combat {
                 p.combat_mana.min(p.mana_pool.colored[red])
             } else {
@@ -3590,10 +3645,14 @@ impl GameState {
                 }
                 kept.colorless = p.turn_mana.colorless.min(p.mana_pool.colorless);
             }
+            let red_left = p.mana_pool.colored[red];
             p.mana_pool = kept;
             p.turn_mana = kept;
             p.combat_mana = keep;
             p.mana_pool.colored[red] += keep;
+            if all_red {
+                p.mana_pool.colored[red] = red_left;
+            }
         }
         // Restricted mana empties too (CR 500.4).
         self.restricted_pool.clear();
@@ -3686,9 +3745,11 @@ impl GameState {
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
+            self.counters_put_this_turn.clear();
             self.entered_this_turn.clear();
             self.damaged_by_this_turn.clear();
             self.saddled.clear();
+            self.crewed.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
             self.resolutions_this_turn = 0;
@@ -3707,12 +3768,21 @@ impl GameState {
             self.combats_this_turn = 0;
             for p in &mut self.players {
                 p.skip_combat_this_turn = 0;
+                p.keep_red_turn = false;
             }
             let cast = self.turn_log.tally[crate::card::TurnEvent::Cast as usize];
             self.spells_last_turn = cast.map(|n| u8::try_from(n).unwrap_or(u8::MAX));
+            self.noncombat_last_turn = self.turn_log.tally
+                [crate::card::TurnEvent::NoncombatDamaged as usize]
+                .iter()
+                .enumerate()
+                .filter(|(_, n)| **n > 0)
+                .fold(0, |a, (i, _)| a | (1 << i));
             self.next_spell_less = [0; 4];
             self.next_spell_free.clear();
             self.next_uncounterable = 0;
+            self.spell_gains.clear();
+            self.turn_spell_changes.clear();
             // "As long as you've drawn two or more cards this turn" and
             // the other this-turn statics start over (CR 611.3a).
             if self.turn_static_sources > 0 {
@@ -3798,6 +3868,7 @@ impl GameState {
                     None => self.next_player_in_game(self.active_player),
                 },
             };
+            self.player_mut(self.active_player).turns_begun += 1;
             // CR 611.2b: "until your next turn" ends as that turn begins.
             let ends = Duration::UntilYourNextTurn(self.active_player);
             if self.effects.iter().any(|e| e.duration == ends) {

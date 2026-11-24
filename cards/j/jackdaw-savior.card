@@ -1,0 +1,8 @@
+card "Jackdaw Savior" {
+  oracle_id 9e31ef54-b2f2-4f3f-9779-151b74470ce4
+  cost {2}{W}
+  type Creature — Bird Cleric
+  pt 3/1
+  keywords flying
+  triggered whenever this or creature you control with flying dies: return another target creature card with lesser mana value from your graveyard to battlefield
+}

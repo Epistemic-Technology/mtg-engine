@@ -1,0 +1,7 @@
+card "Consult the Star Charts" {
+  oracle_id e921839f-9d91-41a9-bc89-016af3c757aa
+  cost {1}{U}
+  type Instant
+  kicker {1}{U}
+  spell: dig count where land you control take card rest bottom random reword instead take 2 if kicked
+}

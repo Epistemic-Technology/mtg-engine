@@ -1,0 +1,8 @@
+card "Festival of Embers" {
+  oracle_id 2de138b0-3159-4a0c-a474-a4e5600b2e51
+  cost {4}{R}
+  type Enchantment
+  static during your turn, instant or sorcery card in your graveyard: has cast by pay 1 life brief
+  replace card or token put into your graveyard: exile
+  activated {1}{R}: sacrifice this
+}

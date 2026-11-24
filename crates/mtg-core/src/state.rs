@@ -168,6 +168,9 @@ pub const OBJ_EXILE_ON_LEAVE: u16 = 64;
 /// characteristics they can see. A zone change makes a new object (CR
 /// 400.7), face up.
 pub const OBJ_FACE_DOWN_EXILE: u16 = 128;
+/// A spell to be exiled and plotted as it resolves instead of going to
+/// the graveyard (`Effect::PlotOnResolve`, CR 608.2n, 702.170).
+pub const OBJ_PLOT_ON_RESOLVE: u16 = 1 << 10;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -657,14 +660,18 @@ impl CastInfo {
     /// `CAST_MASK`'s unused combinations, so no bit of their own.
     const ENTERED_GRAVEYARD: u32 = Self::CAST_HAND | Self::CAST_GRAVEYARD;
     const ENTERED_EXILE: u32 = Self::CAST_HAND | Self::CAST_ELSEWHERE;
+    /// Cast from a library (the top card: "you may cast spells from the
+    /// top of your library"), another unused combination.
+    const CAST_LIBRARY: u32 = Self::CAST_GRAVEYARD | Self::CAST_ELSEWHERE;
 
     /// The zone the spell was cast from, `None` if it wasn't cast (a copy,
-    /// a permanent put onto the battlefield); exile and the library read
-    /// as `Zone::Exile`.
+    /// a permanent put onto the battlefield); zones other than the hand,
+    /// a graveyard and a library read as `Zone::Exile`.
     pub const fn cast_from(self) -> Option<Zone> {
         match self.0 & Self::CAST_MASK {
             Self::CAST_HAND => Some(Zone::Hand),
             Self::CAST_GRAVEYARD => Some(Zone::Graveyard),
+            Self::CAST_LIBRARY => Some(Zone::Library),
             Self::CAST_ELSEWHERE => Some(Zone::Exile),
             _ => None,
         }
@@ -696,6 +703,7 @@ impl CastInfo {
         let bit = match zone {
             Zone::Hand => Self::CAST_HAND,
             Zone::Graveyard => Self::CAST_GRAVEYARD,
+            Zone::Library => Self::CAST_LIBRARY,
             _ => Self::CAST_ELSEWHERE,
         };
         self.0 = (self.0 & !Self::CAST_MASK) | bit;
@@ -1015,6 +1023,9 @@ pub struct PlayerState {
     pub exile: Vec<ObjId>,
     pub mana_pool: ManaPool,
     pub lands_played_this_turn: u32,
+    /// Turns of the game the player has begun ("your first, second, or
+    /// third turn of the game"): counted as each of their turns begins.
+    pub turns_begun: u32,
     /// Additional land plays granted this turn by resolved effects ("You
     /// may play an additional land this turn", CR 305.2).
     pub extra_land_plays: u32,
@@ -1053,6 +1064,11 @@ pub struct PlayerState {
     /// much of each kind stays as a step ends (the player's other mana is
     /// taken to be spent first).
     pub turn_mana: crate::mana::ManaPool,
+    /// "Until end of turn, you don't lose unspent red mana as steps and
+    /// phases end." (The Last Agni Kai): red mana stays as each step ends
+    /// this turn, until the cleanup step (CR 514.2); cleared as a turn
+    /// begins.
+    pub keep_red_turn: bool,
 }
 
 impl PlayerState {
@@ -1256,6 +1272,21 @@ pub struct NameRule {
     pub until: PlayerId,
     pub opponents: bool,
     pub lands: bool,
+}
+
+/// What spells a player casts this turn cost or have, from a resolved
+/// effect (`Effect::SpellsThisTurn`, CR 601.2f, 611.2a): "Spells you cast
+/// this turn that are black and/or red cost {X} less to cast" (`less`
+/// fixed as it resolved), "The next noncreature spell you cast this turn
+/// has affinity for artifacts" (`next`: the first matching spell cast uses
+/// it up).
+#[derive(Clone, Debug)]
+pub struct TurnSpellChange {
+    pub player: PlayerId,
+    pub spells: crate::card::ObjFilter,
+    pub less: u32,
+    pub grant: Option<Box<crate::card::SpellGrant>>,
+    pub next: bool,
 }
 
 /// A "can't" effect on one player from a resolved spell (CR 614.17),
@@ -1598,6 +1629,8 @@ pub struct ThisWayLog {
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,
+    /// The players dealt damage ("If a player is dealt damage this way").
+    pub damaged_players: Vec<PlayerId>,
     /// The objects the most recent group recipient denoted ("Untap
     /// them", `Recipient::ThoseObjects`).
     pub group: Vec<ObjId>,
@@ -1683,6 +1716,8 @@ impl Moved {
             // resolution's revealed cards (`CountExpr::ThisWay`).
             ThisWay::Revealed => self.from == Zone::Hand && self.to == Zone::Hand,
             ThisWay::PutInGraveyard => self.to == Zone::Graveyard && self.from != Zone::Graveyard,
+            // Not zone changes (`ThisWayLog::damaged`, `damaged_players`).
+            ThisWay::Damaged | ThisWay::DamagedPlayer => false,
         }
     }
 }
@@ -2095,6 +2130,19 @@ pub struct GameState {
     /// Sources that dealt damage this turn ("that dealt damage this
     /// turn"), each once.
     pub dealt_damage_this_turn: Vec<ObjId>,
+    /// Counters put on permanents this turn, with the player who put them
+    /// and whether they were +1/+1 counters ("as long as you've put one or
+    /// more +1/+1 counters on this creature this turn"), each once; kept
+    /// only with such a card in the pool (`CardPool::HISTORY_COUNTERS`).
+    pub counters_put_this_turn: Vec<(ObjId, PlayerId, bool)>,
+    /// Sources that have dealt damage, and whether combat damage, since
+    /// they became the objects they are ("as long as it hasn't dealt
+    /// damage yet"), each once; kept only with such a card in the pool
+    /// (`CardPool::HISTORY_DAMAGE`).
+    pub dealt_damage_ever: Vec<(ObjId, bool)>,
+    /// Players dealt noncombat damage during the previous turn, one bit
+    /// each ("if an opponent was dealt noncombat damage last turn").
+    pub noncombat_last_turn: u8,
     /// Permanents that entered the battlefield this turn, with the player
     /// they entered under the control of ("another Knight entered the
     /// battlefield under your control this turn").
@@ -2113,6 +2161,13 @@ pub struct GameState {
     /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
     /// it leaves the battlefield, which makes it a new object).
     pub saddled: Vec<ObjId>,
+    /// (Vehicle or Mount, creature) for each creature tapped to pay a crew
+    /// or saddle cost this turn (CR 702.122, 702.171): "creature that
+    /// crewed it this turn", "creatures that saddled it this turn". The
+    /// pair names the creature as the object it was then; one that has
+    /// left the battlefield still counts ("for each creature that crewed
+    /// it this turn", Luxurious Locomotive).
+    pub crewed: Vec<(ObjId, ObjId)>,
     /// The first timestamp of this turn: a permanent whose timestamp is
     /// not older entered this turn (power-up, CR 702.193a), as a
     /// permanent's timestamp is the time it entered (CR 613.7e).
@@ -2187,6 +2242,14 @@ pub struct GameState {
     /// Players (by index bit) whose next spell this turn can't be
     /// countered (`Effect::NextSpellUncounterable`); zero in most games.
     pub next_uncounterable: u8,
+    /// Keywords spells on the stack gained ("That spell gains deathtouch
+    /// and lifelink", `Effect::SpellGains`): the spell and what it gained,
+    /// for as long as it is that object (CR 400.7); emptied each turn.
+    pub spell_gains: Vec<(ObjId, crate::card::KeywordSet)>,
+    /// "Artifact spells you cast this turn cost {1} less to cast", "The
+    /// next noncreature spell you cast this turn has affinity for
+    /// artifacts" (`Effect::SpellsThisTurn`); empty in most games.
+    pub turn_spell_changes: Vec<TurnSpellChange>,
     /// Total mana each player has spent to cast spells this turn (expend,
     /// CR 700.14), and what it was before their latest spell was paid
     /// for: "Whenever you expend 4" triggers on the spell that crosses 4.
@@ -2338,6 +2401,10 @@ pub struct GameState {
     /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
     /// them only then.
     pub mana_trigger_sources: u32,
+    /// The mana the permanent whose triggered mana abilities are
+    /// resolving was just tapped for (`Effect::AddManaProduced`: "one
+    /// mana of any type that land produced").
+    pub tapped_produced: crate::mana::ManaPool,
     /// Battlefield permanents with a static ability reading this turn's
     /// history or step (`DefFlags::TURN_STATIC`).
     pub turn_static_sources: u32,
@@ -2371,6 +2438,14 @@ pub struct GameState {
     /// Permissions to play from the top of a library until end of turn
     /// (`Effect::TopPermission`), by player.
     pub top_grants: Vec<(PlayerId, crate::card::TopPlay)>,
+    /// Permissions to cast spells from a graveyard until end of turn
+    /// (`Effect::GraveCastTurn`): the player, the cards, the rider.
+    pub grave_turn_grants: Vec<(PlayerId, crate::card::ObjFilter, crate::card::GraveRider)>,
+    /// Spells being cast or on the stack that a permission to cast from a
+    /// graveyard let be cast (`GrantedWay::Cast`, `Effect::GraveCastTurn`),
+    /// with its rider: its cost is paid with the spell's, and a finality
+    /// counter put on the permanent it becomes.
+    pub grave_cast_spells: Vec<(ObjId, crate::card::GraveRider)>,
     /// Each player's starting life total (CR 103.4): the game's, or 20
     /// for a prepared position.
     pub starting_life: i32,
@@ -2725,6 +2800,12 @@ impl GameState {
             TurnWho::Anyone => self.turn_log.tally[c.kind as usize]
                 .iter()
                 .fold(0u32, |a, n| a.saturating_add(*n)),
+            TurnWho::Opponents => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .fold(0u32, |a, p| {
+                    a.saturating_add(self.turn_count_of(c, p, you, source))
+                }),
         }
     }
 
@@ -2772,7 +2853,20 @@ impl GameState {
     }
 
     pub fn name_of(&self, id: ObjId) -> &str {
-        self.def_of(id).map_or("?", |d| d.name.as_str())
+        self.objects.get(id).map_or("?", |o| self.obj_name(o))
+    }
+
+    /// An object's name: its definition's, or, for a copy whose exception
+    /// keeps its own name ("except his name is Absorbing Man", CR 707.9b),
+    /// the name of the card whose copy effect made it.
+    pub fn obj_name(&self, o: &GameObject) -> &str {
+        if let Some(x) = o.except {
+            let xd = self.pool.get(x);
+            if xd.copy_except.as_ref().is_some_and(|c| c.own_name) {
+                return xd.name.as_str();
+            }
+        }
+        self.pool.get(o.def).name.as_str()
     }
 
     pub fn tick(&mut self) -> Timestamp {
@@ -3102,13 +3196,14 @@ impl GameState {
     /// cast more than one spell each turn." once they have cast one, or
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     pub fn cast_forbidden(&self, p: PlayerId) -> bool {
-        self.player_static_sources > 0
-            && (self.cant_cast_spells(p)
-                || self.tallied(crate::card::TurnEvent::Cast, p) >= 1
-                    && self.player_statics_of().any(|(who, kind, src)| {
-                        matches!(kind, crate::card::PlayerStaticKind::CastLimit(ps)
+        !self.player_rules.is_empty() && self.player_rule(p, PlayerRuleKind::CantCastSpells)
+            || self.player_static_sources > 0
+                && (self.cant_cast_spells(p)
+                    || self.tallied(crate::card::TurnEvent::Cast, p) >= 1
+                        && self.player_statics_of().any(|(who, kind, src)| {
+                            matches!(kind, crate::card::PlayerStaticKind::CastLimit(ps)
                             if self.rule_players_include(ps, who, src, p))
-                    }))
+                        }))
     }
 
     /// Whether the legend rule (CR 704.5j) doesn't apply to `p`'s
@@ -3319,10 +3414,39 @@ impl GameState {
                 who == p
                     && match kind {
                         crate::card::PlayerStaticKind::Shroud => true,
-                        crate::card::PlayerStaticKind::Hexproof => caster != p,
+                        crate::card::PlayerStaticKind::Hexproof
+                        | crate::card::PlayerStaticKind::ProtectionFromOpponents => caster != p,
                         _ => false,
                     }
             })
+    }
+
+    /// How much less `p`'s unlock costs cost ("Unlock costs you pay cost
+    /// {1} less.", CR 709.5e).
+    pub fn unlock_reduction(&self, p: PlayerId) -> u32 {
+        if self.player_static_sources == 0 {
+            return 0;
+        }
+        self.player_statics()
+            .filter(|(who, _)| *who == p)
+            .map(|(_, kind)| match kind {
+                crate::card::PlayerStaticKind::UnlockCost { by } => u32::from(by),
+                _ => 0,
+            })
+            .sum()
+    }
+
+    /// The cost `p` pays to unlock a door whose half costs `cost`, after
+    /// "Unlock costs you pay cost {1} less" (generic mana only).
+    pub fn unlock_cost(
+        &self,
+        p: PlayerId,
+        cost: &crate::mana::ManaCost,
+    ) -> crate::mana::ManaRequirement {
+        let mut req = cost.requirements(0);
+        let by = self.unlock_reduction(p);
+        req.generic = req.generic.saturating_sub(by);
+        req
     }
 
     /// "You may play lands from your graveyard." applies to `p`.
@@ -3330,6 +3454,26 @@ impl GameState {
         self.player_static_sources > 0
             && self.player_statics().any(|(who, kind)| {
                 who == p && kind == crate::card::PlayerStaticKind::LandsFromGraveyard
+            })
+    }
+
+    /// "You don't lose unspent red mana as steps and phases end." applies
+    /// to `p` by a static ability of a permanent they control.
+    pub fn keeps_red_mana(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self
+                .player_statics()
+                .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::KeepRedMana)
+    }
+
+    /// Whether player `p` has protection from player `q` ("You have
+    /// protection from each of your opponents.", CR 702.16j): from each
+    /// object `q` controls.
+    pub fn protected_from_player(&self, p: PlayerId, q: PlayerId) -> bool {
+        p != q
+            && self.player_static_sources > 0
+            && self.player_statics().any(|(who, kind)| {
+                who == p && kind == crate::card::PlayerStaticKind::ProtectionFromOpponents
             })
     }
 
@@ -3500,10 +3644,67 @@ impl GameState {
     /// can't cast spells during your turn." during that opponent's turn.
     pub fn cant_cast_spells(&self, p: PlayerId) -> bool {
         self.player_static_sources > 0
-            && self.active_player != p
-            && self.player_statics().any(|(who, kind)| {
-                who == self.active_player
-                    && kind == crate::card::PlayerStaticKind::OpponentsCantCastYourTurn
+            && self.player_statics_of().any(|(who, kind, src)| match kind {
+                crate::card::PlayerStaticKind::OpponentsCantCastYourTurn => {
+                    self.active_player != p && who == self.active_player
+                }
+                crate::card::PlayerStaticKind::Silence {
+                    players, during, ..
+                } => {
+                    self.silence_now(during, who) && self.rule_players_include(players, who, src, p)
+                }
+                _ => false,
+            })
+    }
+
+    /// Whether a `Silence` static of a source `who` controls applies now
+    /// ("During combat", "During your turn").
+    fn silence_now(&self, during: crate::card::SilenceWhen, who: PlayerId) -> bool {
+        match during {
+            crate::card::SilenceWhen::YourTurn => self.active_player == who,
+            // CR 506.1: the combat phase's steps.
+            crate::card::SilenceWhen::Combat => matches!(
+                self.step,
+                crate::turn::Step::BeginningOfCombat
+                    | crate::turn::Step::DeclareAttackers
+                    | crate::turn::Step::DeclareBlockers
+                    | crate::turn::Step::FirstStrikeDamage
+                    | crate::turn::Step::CombatDamage
+                    | crate::turn::Step::EndOfCombat
+            ),
+        }
+    }
+
+    /// Whether `p` can't activate an activated ability (`mana`: a mana
+    /// ability) of `source` now: "During combat, players can't ... activate
+    /// abilities that aren't mana abilities.", "During your turn, your
+    /// opponents can't ... activate abilities of artifacts, creatures, or
+    /// enchantments." (CR 101.2).
+    pub fn activation_silenced(&self, p: PlayerId, source: ObjId, mana: bool) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics_of().any(|(who, kind, src)| match kind {
+                crate::card::PlayerStaticKind::Silence {
+                    players,
+                    during,
+                    activate,
+                } => {
+                    (match activate {
+                        crate::card::ActivateBan::None => false,
+                        crate::card::ActivateBan::NonMana => !mana,
+                        crate::card::ActivateBan::ArtifactsCreaturesEnchantments => {
+                            self.objects
+                                .get(source)
+                                .is_some_and(|o| o.zone == Zone::Battlefield)
+                                && self.characteristics(source).is_some_and(|c| {
+                                    c.types.contains(CardType::Creature)
+                                        || c.types.contains(CardType::Artifact)
+                                        || c.types.contains(CardType::Enchantment)
+                                })
+                        }
+                    }) && self.silence_now(during, who)
+                        && self.rule_players_include(players, who, src, p)
+                }
+                _ => false,
             })
     }
 
@@ -3634,6 +3835,119 @@ impl GameState {
             .iter()
             .filter(|id| self.objects[**id].kind != ObjKind::Token)
             .count()
+    }
+
+    /// Permanent types (CR 110.4a) among the cards in `p`'s graveyard.
+    pub fn permanent_types_in_graveyard(&self, p: PlayerId) -> u32 {
+        use crate::card::CardType;
+        let permanent = crate::card::TypeSet::of([
+            CardType::Artifact,
+            CardType::Battle,
+            CardType::Creature,
+            CardType::Enchantment,
+            CardType::Land,
+            CardType::Planeswalker,
+        ]);
+        let mut types = crate::card::TypeSet::default();
+        for g in &self.player(p).graveyard {
+            let o = &self.objects[*g];
+            if o.kind != ObjKind::Token {
+                types = types.union(self.pool.get(o.def).types);
+            }
+        }
+        u32::try_from(permanent.iter().filter(|t| types.contains(*t)).count()).unwrap_or(u32::MAX)
+    }
+
+    /// Graveyards with at least `n` cards in them ("for each graveyard with
+    /// seven or more cards in it").
+    pub fn graveyards_with_at_least(&self, n: u32) -> u32 {
+        u32::try_from(
+            self.players_in_game()
+                .filter(|p| self.cards_in_graveyard(*p) >= n as usize)
+                .count(),
+        )
+        .unwrap_or(u32::MAX)
+    }
+
+    /// A count over a group of permanents with their characteristics
+    /// (`CountExpr::ColorsAmong` and the like): colors, card types,
+    /// counters, kinds of counters, different powers, or the most that
+    /// share a creature type. 0 for any other count.
+    pub fn group_count(
+        &self,
+        expr: &crate::card::CountExpr,
+        group: &[(ObjId, Characteristics)],
+    ) -> u32 {
+        use crate::card::CountExpr;
+        let n = match expr {
+            CountExpr::ColorsAmong(_) => {
+                let mut seen = crate::mana::ColorSet::default();
+                for (_, c) in group {
+                    for col in c.colors.iter() {
+                        seen = seen.with(col);
+                    }
+                }
+                seen.iter().count()
+            }
+            CountExpr::CardTypesAmong(_) => {
+                return group
+                    .iter()
+                    .fold(crate::card::TypeSet::default(), |acc, (_, c)| {
+                        acc.union(c.types)
+                    })
+                    .len();
+            }
+            CountExpr::CountersAmong(kind, _) => {
+                return group
+                    .iter()
+                    .map(|(id, _)| self.objects[*id].counters(*kind))
+                    .fold(0u32, u32::saturating_add);
+            }
+            CountExpr::CounterKindsAmong(_) => {
+                let mut kinds: SmallVec<[CounterKind; 8]> = SmallVec::new();
+                for (id, _) in group {
+                    for (k, n) in &self.objects[*id].counters {
+                        if *n > 0 && !kinds.contains(k) {
+                            kinds.push(*k);
+                        }
+                    }
+                }
+                kinds.len()
+            }
+            CountExpr::DifferentPowers(_) => {
+                let mut v: SmallVec<[i32; 16]> = group.iter().map(|(_, c)| c.power()).collect();
+                v.sort_unstable();
+                v.dedup();
+                v.len()
+            }
+            // CR 702.73a: a changeling (or "all creature types") shares
+            // each type; with no other types they share them all.
+            CountExpr::SharingCreatureType(_) => {
+                let all = |c: &Characteristics| {
+                    c.has(Keyword::Changeling)
+                        || c.subtypes
+                            .contains(&crate::card::Subtype::ALL_CREATURE_TYPES)
+                };
+                let every = group.iter().filter(|(_, c)| all(c)).count();
+                let mut best = every;
+                let mut seen: SmallVec<[crate::card::Subtype; 16]> = SmallVec::new();
+                for (_, c) in group.iter().filter(|(_, c)| !all(c)) {
+                    for s in &c.subtypes {
+                        if s.is_creature_type() && !seen.contains(s) {
+                            seen.push(*s);
+                            let n = group
+                                .iter()
+                                .filter(|(_, d)| !all(d) && d.subtypes.contains(s))
+                                .count();
+                            best = best.max(n + every);
+                        }
+                    }
+                }
+                best
+            }
+            _ => 0,
+        };
+        u32::try_from(n).unwrap_or(u32::MAX)
     }
 
     /// Current characteristics of an object, computed through the layers
@@ -3944,12 +4258,110 @@ impl GameState {
                 return false;
             }
         }
+        // "with mana value 4 or 5".
+        if let Some((lo, hi)) = f.status.mana_value_range {
+            let mv = self.pool.get(o.def).mana_cost.mana_value();
+            if mv != u32::from(lo) && mv != u32::from(hi) {
+                return false;
+            }
+        }
+        if let Some(stat) = f.status.greatest
+            && !self.is_greatest(f, stat, id, o)
+        {
+            return false;
+        }
+
+        // "that doesn't have the same name as a token you control".
+        if let Some(g) = &f.name_unlike
+            && !self.name_unlike_ok(g, id, o)
+        {
+            return false;
+        }
         !f.status.any() || self.status_quals_ok(f.status, id, o)
+    }
+
+    /// "that doesn't have the same name as another permanent you control"
+    /// (`ObjFilter::name_unlike`): no other permanent `id`'s controller
+    /// controls matching `g` has its name (its definition, CR 201.2).
+    fn name_unlike_ok(&self, g: &crate::card::ObjFilter, id: ObjId, o: &GameObject) -> bool {
+        let Some(c) = self.characteristics(id) else {
+            return true;
+        };
+        if self.pool.is_face_down(c.def) {
+            return true;
+        }
+        let mut g = g.clone();
+        g.relation = crate::card::Relation::Any;
+        !self.battlefield.iter().any(|&x| {
+            x != id
+                && self.objects[x].controller == o.controller
+                && self.characteristics(x).is_some_and(|cx| {
+                    cx.def == c.def
+                        && g.matches(x, o.controller, &cx, None, Some(o.controller))
+                        && self.status_ok(&g, x)
+                })
+        })
+    }
+
+    /// "with the greatest power among creatures they control": `id`, on
+    /// the battlefield, has a `stat` no smaller than any other permanent
+    /// its controller controls matching `f` without the comparison.
+    fn is_greatest(
+        &self,
+        f: &crate::card::ObjFilter,
+        stat: crate::card::Stat,
+        id: ObjId,
+        o: &GameObject,
+    ) -> bool {
+        if o.zone != Zone::Battlefield {
+            return false;
+        }
+        let mut g = f.clone();
+        g.status.greatest = None;
+        g.who = None;
+        g.relation = crate::card::Relation::Any;
+        let value = |x: ObjId| -> Option<i64> {
+            let c = self.characteristics(x)?;
+            Some(match stat {
+                crate::card::Stat::Power => i64::from(c.power),
+                crate::card::Stat::Toughness => i64::from(c.toughness),
+                crate::card::Stat::ManaValue => i64::from(
+                    self.pool
+                        .get(self.objects.get(x)?.def)
+                        .mana_cost
+                        .mana_value(),
+                ),
+            })
+        };
+        let Some(mine) = value(id) else {
+            return false;
+        };
+        self.battlefield.iter().all(|&x| {
+            x == id
+                || self.objects[x].controller != o.controller
+                || !self
+                    .characteristics(x)
+                    .is_some_and(|c| g.matches(x, o.controller, &c, None, None))
+                || !self.status_ok(&g, x)
+                || value(x).is_none_or(|v| v <= mine)
+        })
+    }
+
+    /// The qualifiers of `StatusQuals` about the card `o` itself: "with
+    /// {X} in its mana cost" (CR 107.3), "that has an Adventure" (CR
+    /// 715.2a; not an Adventure spell on the stack, whose definition is
+    /// the Adventure's own).
+    pub fn card_quals_ok(q: &crate::card::StatusQuals, def: &crate::card::CardDef) -> bool {
+        (!q.x_in_cost || def.mana_cost.has_x())
+            && (!q.adventure || def.layout == crate::card::Layout::Adventure)
     }
 
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
     #[allow(clippy::too_many_lines)] // one check per qualifier
     fn status_quals_ok(&self, q: crate::card::StatusQuals, id: ObjId, o: &GameObject) -> bool {
+        if (q.x_in_cost || q.adventure) && !Self::card_quals_ok(&q, self.pool.get(o.def)) {
+            return false;
+        }
         if let Some(b) = q.blocked {
             // CR 509.1h: blocked or unblocked only once blockers are
             // declared, and only while attacking.
@@ -4003,6 +4415,22 @@ impl GameState {
         if q.dealt_damage && !self.dealt_damage_this_turn.contains(&id) {
             return false;
         }
+        // "that you've put one or more +1/+1 counters on this turn": by
+        // its controller.
+        if q.counters_put
+            && !self
+                .counters_put_this_turn
+                .iter()
+                .any(|&(x, by, plus)| x == id && by == o.controller && plus)
+        {
+            return false;
+        }
+        // "card in a graveyard that was put there this turn".
+        if q.put_there_this_turn
+            && (o.zone != Zone::Graveyard || o.timestamp < self.turn_started_at)
+        {
+            return false;
+        }
         if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
             return false;
         }
@@ -4046,8 +4474,9 @@ impl GameState {
                 return false;
             }
         }
-        // CR 903.3: the game has no commanders.
-        if q.commander.is_some() {
+        // CR 903.3: the game has no commanders; an unfilled "except for
+        // tokens you control" matches nothing.
+        if q.commander.is_some() || q.except_your_tokens {
             return false;
         }
         // CR 708.2: a face-down permanent.
@@ -4096,8 +4525,21 @@ impl GameState {
         you: PlayerId,
         source: Option<ObjId>,
     ) -> bool {
+        // "with a single target", "that targets only a single creature
+        // you control": one target, however many times it was chosen.
+        if t.single {
+            let Some(first) = obj.targets.first() else {
+                return false;
+            };
+            if obj.targets.iter().any(|x| x != first) {
+                return false;
+            }
+            if !t.player && !t.you && !t.opponent && t.filter.is_none() {
+                return true;
+            }
+        }
         obj.targets.iter().any(|x| match *x {
-            Target::Player(p) => t.player || (t.you && p == you),
+            Target::Player(p) => t.player || (t.you && p == you) || (t.opponent && p != you),
             Target::Object(o) => t.filter.as_ref().is_some_and(|f| {
                 self.objects
                     .get(o)
@@ -4425,6 +4867,21 @@ impl GameState {
             return trigger_obj
                 .is_some_and(|t| self.spent_on(t).count(*kind) >= u32::from(*at_least));
         }
+        // "if its toughness was less than 1": the triggering object, as it
+        // last existed once it has left (CR 603.10a).
+        if let crate::card::StaticCondition::TriggerIs(f) = cond {
+            return trigger_obj.is_some_and(|t| {
+                let controller = self
+                    .objects
+                    .get(t)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(&t).map(|l| l.object.controller));
+                controller.is_some_and(|c| {
+                    self.characteristics_or_lki(t)
+                        .is_some_and(|ch| f.matches(t, c, &ch, Some(source), Some(you)))
+                })
+            });
+        }
         if *cond == crate::card::StaticCondition::ThatKicked {
             return trigger_obj
                 .is_some_and(|t| self.objects.get(t).is_some_and(|o| o.cast.kicked()));
@@ -4500,6 +4957,7 @@ impl GameState {
                     }
                 })
             }
+            C::NotTheirTurn => that.is_some_and(|p| self.active_player != p),
             C::PlayerMoreHand(who) => self.hand_player_any(*who, you, source, that, |p| {
                 self.player(p).hand.len() > self.player(you).hand.len()
             }),
@@ -4641,6 +5099,21 @@ impl GameState {
             C::YourTurn => self.active_player == you,
             C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::NotYourTurn => self.active_player != you,
+            // Judged by `condition_about`, which knows "they".
+            C::Attacking {
+                filter,
+                you: at_you,
+            } => self.combat.as_ref().is_some_and(|c| {
+                c.attackers.iter().any(|a| {
+                    (!*at_you || a.attacking == Target::Player(you))
+                        && self.objects.get(a.id).is_some_and(|o| {
+                            o.zone == Zone::Battlefield
+                                && self.characteristics(a.id).is_some_and(|ch| {
+                                    filter.matches(a.id, o.controller, &ch, Some(source), Some(you))
+                                })
+                        })
+                })
+            }),
             C::YourMainPhase => self.active_player == you && self.step.is_main(),
             C::YourCombatPhase => {
                 self.active_player == you && self.step.phase() == crate::turn::Phase::Combat
@@ -4705,7 +5178,14 @@ impl GameState {
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
             // Judged by `condition_for`, which knows the triggering spell;
             // the vote is the resolution's (`IfCondition` reads it).
-            C::ManaSpent { that: true, .. } | C::ThatKicked | C::MoreVotes { .. } => false,
+            // `NotTheirTurn` is judged by `condition_about` (it knows
+            // "they"), `TriggerIs` by `condition_for` (the triggering
+            // object).
+            C::ManaSpent { that: true, .. }
+            | C::ThatKicked
+            | C::MoreVotes { .. }
+            | C::NotTheirTurn
+            | C::TriggerIs(_) => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::XIs { n, at_least } => {
                 let x = self.x_of(source);
@@ -4948,6 +5428,12 @@ impl GameState {
     ) -> bool {
         use crate::card::StaticCondition as C;
         match cond {
+            C::SourceHistory(h) => self.source_history(*h, you, source),
+            // CR 500.1: one of your first turns, and it's your turn.
+            C::EarlyTurn(n) => self.active_player == you && self.player(you).turns_begun <= *n,
+            C::OpponentNoncombatLastTurn => self
+                .players_in_game()
+                .any(|p| p != you && self.noncombat_last_turn & (1 << p.index().min(7)) != 0),
             C::GraveyardCards { filter, at_least } => {
                 let n = self
                     .player(you)
@@ -5007,6 +5493,7 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
             C::Happened { count, cmp, n } => self.turn_count_holds(count, *cmp, *n, you, source),
+            C::CountAtLeast(c, n) => self.eval_count_of(c, source, you) >= *n,
             // "the top card of your library is a Goblin card": by its
             // printed characteristics.
             C::TopCard(f) => self.player(you).library.last().is_some_and(|t| {
@@ -5082,6 +5569,32 @@ impl GameState {
                 self.condition_history(a, you, source) && self.condition_history(b, you, source)
             }
             _ => false,
+        }
+    }
+
+    /// What `source` did or had done to it (`SourceHistory`), for `you`.
+    pub fn source_history(
+        &self,
+        h: crate::card::SourceHistory,
+        you: PlayerId,
+        source: ObjId,
+    ) -> bool {
+        use crate::card::SourceHistory as H;
+        match h {
+            H::CountersPut { plus } => self
+                .counters_put_this_turn
+                .iter()
+                .any(|&(o, by, p)| o == source && by == you && (p || !plus)),
+            H::DealtDamage { combat } => self
+                .dealt_damage_ever
+                .iter()
+                .any(|&(o, c)| o == source && (c || !combat)),
+            H::EnteredThisTurn => self.objects.get(source).is_some_and(|o| {
+                o.zone == Zone::Battlefield && o.timestamp >= self.turn_started_at
+            }),
+            H::AttackedThisCombat => {
+                self.combat.is_some() && self.attackers_this_turn.contains(&source)
+            }
         }
     }
 
@@ -5195,14 +5708,22 @@ impl GameState {
             // A relation to another target ("two target permanents that
             // share a card type") is judged with the targets
             // (`that_player_ok`).
-            Some(crate::card::Same {
-                of: crate::card::SameOf::Target(_),
-                what:
-                    crate::card::SameWhat::SharesType
-                    | crate::card::SameWhat::SharesCreatureType
-                    | crate::card::SameWhat::DifferentController
-                    | crate::card::SameWhat::SameController,
-            }) => {
+            // A relation to the triggering object is judged with the
+            // stack object (`trigger_rel_ok`).
+            Some(
+                crate::card::Same {
+                    of: crate::card::SameOf::Triggering,
+                    ..
+                }
+                | crate::card::Same {
+                    of: crate::card::SameOf::Target(_),
+                    what:
+                        crate::card::SameWhat::SharesType
+                        | crate::card::SameWhat::SharesCreatureType
+                        | crate::card::SameWhat::DifferentController
+                        | crate::card::SameWhat::SameController,
+                },
+            ) => {
                 let mut g = f.clone();
                 g.same = None;
                 std::borrow::Cow::Owned(g)
@@ -5316,6 +5837,9 @@ impl GameState {
         let Some(source) = source else {
             return true;
         };
+        if matches!(with, CombatWith::Crewed | CombatWith::Saddled) {
+            return self.crewed.contains(&(source, id));
+        }
         if self
             .objects
             .get(source)
@@ -5338,6 +5862,7 @@ impl GameState {
             CombatWith::Blocking => blocking(),
             CombatWith::BlockedBy => blocked_by(),
             CombatWith::BlockingOrBlockedBy => blocking() || blocked_by(),
+            CombatWith::Crewed | CombatWith::Saddled => false,
         }
     }
 
@@ -5407,6 +5932,53 @@ impl GameState {
         source: Option<ObjId>,
     ) -> bool {
         self.is_legal_target_x(caster, spec, target, source, None)
+    }
+
+    /// A target's relation to the object that triggered its ability
+    /// (`SameOf::Triggering`): "with lesser mana value" (than it, as it is
+    /// or last existed), "other than that creature". Without a triggering
+    /// object, or for another spec, it holds.
+    pub fn trigger_rel_ok(
+        &self,
+        spec: crate::card::TargetSpec,
+        t: Target,
+        trigger_obj: Option<ObjId>,
+    ) -> bool {
+        use crate::card::TargetSpec;
+        let (TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. }) =
+            self.pool.base_spec(spec)
+        else {
+            return true;
+        };
+        let Some(crate::card::Same {
+            of: crate::card::SameOf::Triggering,
+            what,
+        }) = self.pool.filter(f).same
+        else {
+            return true;
+        };
+        let (Some(trig), Target::Object(id)) = (trigger_obj, t) else {
+            return true;
+        };
+        match what {
+            crate::card::SameWhat::NotIt => {
+                id != trig && self.lki.get(&trig).and_then(|l| l.moved_to) != Some(id)
+            }
+            crate::card::SameWhat::LesserManaValue => {
+                let mv = |x: ObjId| {
+                    self.objects
+                        .get(x)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&x).map(|l| l.object.def))
+                        .map(|d| self.pool.get(d).mana_cost.mana_value())
+                };
+                match (mv(id), mv(trig)) {
+                    (Some(a), Some(b)) => a < b,
+                    _ => false,
+                }
+            }
+            _ => true,
+        }
     }
 
     /// Whether target `t` for `spec` answers its filter's "that player"

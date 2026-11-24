@@ -88,6 +88,8 @@ const KEYWORDS: &[&str] = &[
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
     "Read ahead",
+    // CR 702.183: the "Tiered" line and its modes.
+    "Tiered",
     "Read Ahead",
     "Champion",
     "Cleave",
@@ -2168,6 +2170,19 @@ impl Templates {
                     // "where X is the number of lands you control": the
                     // count in place of X.
                     let x = match c.get(6) {
+                        // "This creature gets +X/+X until end of turn,
+                        // where X is its power": the creature's own power
+                        // as the ability resolves.
+                        Some(w) if matches!(w.as_str(), "its power" | "its toughness") => {
+                            let stat = &w.as_str()[4..];
+                            if who == "this" {
+                                format!("count where {stat}")
+                            } else if who.starts_with("target ") && *t == 1 {
+                                format!("count where {stat} of target 1")
+                            } else {
+                                return None;
+                            }
+                        }
                         Some(w) => {
                             let w = w.as_str();
                             let e = bound_amount(w)
@@ -2428,6 +2443,34 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // "Create a 1/1 green Elf Warrior creature token for each Elf
+            // you control.", "create a Treasure token for each artifact
+            // you control": one token for each, counted as it resolves.
+            (
+                r(
+                    r"^[Cc]reate an? ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+?)?) for each (.+)$",
+                ),
+                |c, _| {
+                    let key = format!("{}{}", cap(c, 1), cap(c, 2));
+                    token_block(&key)?;
+                    Some(format!(
+                        "create count each {} \"{key}\"",
+                        count_expr(cap(c, 3))?
+                    ))
+                },
+            ),
+            (
+                r(
+                    r"^[Cc]reate an? (Treasure|Food|Clue|Blood|Map|Powerstone|Lander) token for each (.+)$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "create count each {} \"{}\"",
+                        count_expr(cap(c, 2))?,
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // "For each land you control, create a Treasure token." (Brass's
             // Bounty), "For each creature you control, create a 1/2 white
             // Moogle creature token with lifelink."
@@ -4816,6 +4859,7 @@ impl Templates {
                 spell_at: None,
                 spell_targets: 0,
                 cleave: None,
+                flavor: Vec::new(),
             }
             .quoted(cap(&c, 2));
             let who = recipient(&lowercase_first(cap(&c, 1)), targets);
@@ -6676,9 +6720,18 @@ struct Builder<'a> {
     /// Cleave (CR 702.148a): its cost, and the spell's paragraphs with the
     /// bracketed words removed.
     cleave: Option<(String, Vec<String>)>,
+    /// Flavor words (CR 207.2d) the card prints before an em dash ("Fire
+    /// Cross — Whenever ..."): labels with no rules meaning, kept as
+    /// `label "Fire Cross"` so the renderer prints them back.
+    flavor: Vec<String>,
 }
 
 impl Builder<'_> {
+    /// An ability word or one of the card's flavor words.
+    fn is_label(&self, word: &str) -> bool {
+        ABILITY_WORDS.contains(&word) || self.flavor.iter().any(|f| f == word)
+    }
+
     /// An ability quoted inside another's text, authored on its own: the
     /// one statement it makes.
     fn quoted(&self, text: &str) -> Option<String> {
@@ -6693,6 +6746,7 @@ impl Builder<'_> {
             spell_at: None,
             spell_targets: 0,
             cleave: None,
+            flavor: self.flavor.clone(),
         };
         // A keyword alone ("has \"Flying\"") is not an ability statement.
         inner.statements.push(String::new());
@@ -6809,11 +6863,34 @@ impl Builder<'_> {
         // "Landfall — <ability>": the label prefixes the one statement the
         // rest makes.
         if let Some((label, rest)) = line.split_once(" — ")
-            && ABILITY_WORDS.contains(&label)
+            && self.is_label(label)
         {
             let before = self.statements.len();
             let paragraphs = self.spell_paragraphs.len();
+            let keywords = self.keywords.len();
+            let spell_at = self.spell_at;
             self.line(rest)?;
+            // "Domain — Create a 1/1 green Saproling creature token for
+            // each basic land type among lands you control.": a spell's
+            // only paragraph under a label is `label "Domain" spell: ...`.
+            if self.statements.len() == before
+                && paragraphs == 0
+                && self.spell_paragraphs.len() == 1
+                && spell_at.is_none()
+            {
+                let p = self.spell_paragraphs.pop().unwrap_or_default();
+                self.spell_at = None;
+                self.statements.push(format!("spell: {p}"));
+            }
+            // "Fear Gas — Wraith can't be blocked.": a keyword line under a
+            // label is the permanent's static ability.
+            if self.statements.len() == before
+                && self.keywords.len() == keywords + 1
+                && !self.is_spell
+            {
+                let kw = self.keywords.pop().unwrap_or_default();
+                self.statements.push(format!("static this: has {kw}"));
+            }
             if self.statements.len() != before + 1 || self.spell_paragraphs.len() != paragraphs {
                 return Err(Skip::Sentence(line.to_string()));
             }
@@ -9409,6 +9486,20 @@ impl Builder<'_> {
         Ok(format!("{head}: {effects}"))
     }
 
+    /// "Tiered" with its named modes and their costs (CR 702.183).
+    fn tiered(&mut self, modes: &[(String, String, String)]) -> Result<(), Skip> {
+        few_modes(modes.len())?;
+        let mut lines = vec!["tiered {".to_string()];
+        for (name, cost, m) in modes {
+            let mut targets = 0;
+            let effects = self.templates.effects(m, &mut targets)?;
+            lines.push(format!("  mode \"{name}\" {cost}: {effects}"));
+        }
+        lines.push("}".to_string());
+        self.statements.push(lines.join("\n  "));
+        Ok(())
+    }
+
     /// "Spree" with its modes and their costs (CR 702.172).
     fn spree(&mut self, modes: &[(String, String)]) -> Result<(), Skip> {
         few_modes(modes.len())?;
@@ -9434,6 +9525,220 @@ impl Builder<'_> {
         self.statements.push(lines.join("\n  "));
         Ok(())
     }
+}
+
+/// Keyword abilities (CR 702) printed before an em dash like a flavor
+/// word, with rules meaning: never a bare label.
+const DASH_KEYWORDS: &[&str] = &[
+    "Exhaust",
+    "Power-up",
+    "Boast",
+    "Solved",
+    "Companion",
+    "Forecast",
+];
+
+/// Lines of the corpus's cards and the statement that prints each: a line
+/// no template covers but an accepted card already says is written as
+/// that card writes it ("Creatures entering don't cause abilities to
+/// trigger." from Torpor Orb). The key is the line as the author reads
+/// Oracle text (reminder text dropped, the card's name as `~`).
+fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, String> {
+    use std::collections::HashMap;
+    use std::sync::OnceLock;
+    static LINES: OnceLock<HashMap<String, String>> = OnceLock::new();
+    LINES.get_or_init(|| {
+        let by_name: HashMap<&str, &Card> = corpus.iter().map(|c| (c.name.as_str(), c)).collect();
+        let lookup: &dyn Lookup = &by_name;
+        let mut out = HashMap::new();
+        // A double-faced card's front (the card's own abilities) and each
+        // face, each read as a card of its own.
+        let fronts = corpus
+            .iter()
+            .filter(|c| c.kind == Kind::Card && c.mismatch.is_none())
+            .flat_map(|c| {
+                let mut front = c.clone();
+                front.faces.clear();
+                front.layout = mtg_core::card::Layout::Normal;
+                let faces = c.faces.iter().map(|f| {
+                    let mut f = f.clone();
+                    f.kind = Kind::Card;
+                    f
+                });
+                std::iter::once(front).chain(faces).collect::<Vec<_>>()
+            });
+        for c in fronts {
+            let c = &c;
+            // The card with nothing but its frame: what its file says
+            // besides the one ability.
+            let mut bare = c.clone();
+            bare.abilities.clear();
+            bare.keywords.clear();
+            bare.pronoun = None;
+            bare.additional = None;
+            bare.additional_or = None;
+            bare.optional_cost = None;
+            bare.alt_cost = None;
+            bare.kicker = None;
+            bare.kicker_cost = None;
+            bare.flashback = None;
+            bare.graveyard_cast = None;
+            bare.cast_only = None;
+            bare.flash_if = None;
+            bare.except = None;
+            let frame: Vec<String> = mtg_dsl::format::format(&bare)
+                .lines()
+                .map(str::to_string)
+                .collect();
+            let mut names = vec![c.name.clone()];
+            if let Some(s) = &c.short_name {
+                names.push(s.clone());
+            }
+            if let Some((short, _)) = c.name.split_once(", ") {
+                names.push(short.to_string());
+            }
+            for a in &c.abilities {
+                let mut one = bare.clone();
+                one.abilities = vec![a.clone()];
+                let text = strip_reminder(&render::oracle_text(&one, lookup));
+                if text.contains('\n') || text.is_empty() {
+                    continue;
+                }
+                let mut key = text;
+                for n in &names {
+                    key = key.replace(n.as_str(), "~");
+                }
+                for noun in ["Saga", "Class", "Case"] {
+                    key = key
+                        .replace(&format!("this {noun}"), "this enchantment")
+                        .replace(&format!("This {noun}"), "This enchantment");
+                }
+                if out.contains_key(&key) {
+                    continue;
+                }
+                let dsl = mtg_dsl::format::format(&one);
+                let mut rest = frame.clone();
+                let lines: Vec<&str> = dsl
+                    .lines()
+                    .filter(|l| {
+                        if let Some(i) = rest.iter().position(|f| f == l) {
+                            rest.remove(i);
+                            false
+                        } else {
+                            true
+                        }
+                    })
+                    .collect();
+                let Some((first, more)) = lines.split_first() else {
+                    continue;
+                };
+                let mut st = first.trim_start().to_string();
+                for l in more {
+                    st.push('\n');
+                    st.push_str(l);
+                }
+                out.insert(key, st);
+            }
+        }
+        out
+    })
+}
+
+/// A line's amounts and mana symbols, each as the DSL writes it ("two" →
+/// `2`, "{2}{G}" as it is), and the line with each replaced by a mark:
+/// "~ deals 2 damage to any target." and "~ deals 3 damage to any
+/// target." share the shape.
+fn line_shape(line: &str) -> (String, Vec<String>) {
+    let token = cached_regex(
+        r"(?:\{[^}]+\})+|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+    )
+    .expect("a token pattern");
+    let mut values = Vec::new();
+    let shape = token
+        .replace_all(line, |c: &regex::Captures| {
+            let t = &c[0];
+            if t.starts_with('{') {
+                values.push(t.to_string());
+                "\u{1}M".to_string()
+            } else {
+                values.push(number(t).unwrap_or_else(|| t.to_string()));
+                "\u{1}N".to_string()
+            }
+        })
+        .into_owned();
+    (shape, values)
+}
+
+/// The statement a corpus card prints `line` with: the line itself, or
+/// one of the same shape with its amounts and mana symbols put in. The
+/// card it goes into is still rendered and checked against its Oracle
+/// text, so a substitution that misses shows as a mismatch.
+fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
+    use std::collections::HashMap;
+    use std::sync::OnceLock;
+    /// Statements by line shape, each with its corpus line's values.
+    type Shapes = HashMap<String, Vec<(Vec<String>, String)>>;
+    static SHAPES: OnceLock<Shapes> = OnceLock::new();
+    let exact = corpus_lines(corpus);
+    if let Some(st) = exact.get(line) {
+        return Some(st.clone());
+    }
+    let shapes = SHAPES.get_or_init(|| {
+        let mut out = Shapes::new();
+        for (l, st) in exact {
+            let (shape, values) = line_shape(l);
+            if !values.is_empty() {
+                out.entry(shape).or_default().push((values, st.clone()));
+            }
+        }
+        out
+    });
+    let (shape, values) = line_shape(line);
+    let token = cached_regex(r"(?:\{[^}]+\})+|\d+").expect("a token pattern");
+    'next: for (theirs, st) in shapes.get(&shape)? {
+        let mut map: HashMap<&str, &str> = HashMap::new();
+        for (a, b) in theirs.iter().zip(&values) {
+            if *map.entry(a.as_str()).or_insert(b.as_str()) != b.as_str() {
+                continue 'next;
+            }
+        }
+        // Each of the corpus line's values must be in its statement.
+        if theirs.iter().any(|a| !st.contains(a.as_str())) {
+            continue;
+        }
+        let out = token.replace_all(st, |c: &regex::Captures| {
+            map.get(&c[0])
+                .map_or_else(|| c[0].to_string(), |b| (*b).to_string())
+        });
+        return Some(out.into_owned());
+    }
+    None
+}
+
+/// The card's flavor words and mode names (CR 207.2d, 700.2): Scryfall
+/// tags each as a keyword; the text prints it at the start of a line or a
+/// mode, before an em dash. A real keyword printed so ("Forecast —") is
+/// not one.
+fn flavor_words(s: &ScryCard) -> Vec<String> {
+    flavor_in(s, s.oracle_text.as_deref().unwrap_or(""))
+}
+
+/// The card's flavor words printed in `text` (one face's).
+fn flavor_in(s: &ScryCard, text: &str) -> Vec<String> {
+    s.keywords
+        .iter()
+        .filter(|k| {
+            !KEYWORDS.contains(&k.as_str())
+                && !TEMPLATED_TAGS.contains(&k.as_str())
+                && !DASH_KEYWORDS.contains(&k.as_str())
+                && text.lines().any(|l| {
+                    let l = l.strip_prefix("• ").unwrap_or(l);
+                    l.strip_prefix(k.as_str())
+                        .is_some_and(|r| r.starts_with(" \u{2014} "))
+                })
+        })
+        .cloned()
+        .collect()
 }
 
 /// Five or more modes: written by hand, where a scenario checks each mode
@@ -9466,6 +9771,17 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     for f in &faces {
         let mut rec = f.clone();
         rec.layout = "normal".to_string();
+        // A flavor word printed on the other face is not this face's.
+        let all = s
+            .card_faces
+            .iter()
+            .filter_map(|f| f.oracle_text.as_deref())
+            .collect::<Vec<_>>()
+            .join("\n");
+        let elsewhere = flavor_in(s, &all);
+        let here = flavor_words(&rec);
+        rec.keywords
+            .retain(|k| !elsewhere.contains(k) || here.contains(k));
         let a = author_card(&rec, corpus)?;
         // The block's lines between its braces, without the oracle_id.
         let body: Vec<String> = a
@@ -9627,7 +9943,32 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
             "exile graveyard of each opponent",
         )
         .replace("exile each graveyards", "exile all graveyards")
-        .replace("to each of two targets", "to 2 targets");
+        .replace("to each of two targets", "to 2 target any");
+    // "Destroy target creature. ~ deals 3 damage to that creature's
+    // controller.": in a spell or an ability without a triggering
+    // creature, the creature is the line's one target.
+    s = s
+        .lines()
+        .map(|l| {
+            if l.matches("target ").count() == 1
+                && l.contains("target creature")
+                && !l.starts_with("triggered")
+            {
+                l.replace("controller of that creature", "controller of that target 1")
+            } else {
+                l.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    // "deals X damage to each of up to two targets": a group of up to
+    // two, any target each (CR 115.4, 601.2c).
+    s = re(r"\bup to (\d) targets\b")
+        .replace_all(&s, "0 to $1 targets")
+        .into_owned();
+    s = re(r"\bdamage to (\d) targets\b")
+        .replace_all(&s, "damage to $1 target any")
+        .into_owned();
     // "Radiance — {T}: This creature deals 1 damage to target creature and
     // each other creature that shares a color with it." (Wojek
     // Embermage): "it" is the line's one target.
@@ -10282,6 +10623,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             && !TEMPLATED_TAGS.contains(&k.as_str())
             && !typecycling
             && !ABILITY_WORDS.contains(&k.as_str())
+            && !flavor_words(s).contains(k)
             // A flavor word before equip ("Hagneia — Equip {3}") is tagged
             // as a keyword; the line is templated as a labeled equip.
             && !s
@@ -10378,6 +10720,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         spell_at: None,
         spell_targets: 0,
         cleave: None,
+        flavor: flavor_words(s),
     };
     // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
     let leveler = cached_regex(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
@@ -10409,6 +10752,23 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             b.spree(&modes)?;
             continue;
         }
+        // CR 702.183: "Tiered" and its "• Fire — {0} — ..." modes.
+        if line == "Tiered" {
+            let mut modes = Vec::new();
+            i += 1;
+            while i < lines.len() && lines[i].starts_with("• ") {
+                let Some((name, rest)) = lines[i]["• ".len()..].split_once(" — ") else {
+                    return Err(Skip::Sentence(lines[i].to_string()));
+                };
+                let Some((cost, text)) = rest.split_once(" — ") else {
+                    return Err(Skip::Sentence(lines[i].to_string()));
+                };
+                modes.push((name.to_string(), cost.to_string(), text.to_string()));
+                i += 1;
+            }
+            b.tiered(&modes)?;
+            continue;
+        }
         // Strive: "This spell costs {2}{B} more to cast for each target
         // beyond the first." (the ability word's cost, `strive {2}{B}`).
         if let Some(c) = strive.captures(line) {
@@ -10419,7 +10779,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         // "Choose one. If this spell was cast using teamwork, choose both
         // instead." (CR 700.2), with an ability word before it.
         let (cond_label, cond_line) = match line.split_once(" — ") {
-            Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
+            Some((word, h)) if b.is_label(word) => (Some(word), h),
             _ => (None, line),
         };
         if let Some(c) = choose_if.captures(cond_line) {
@@ -10500,7 +10860,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if let Some((head, dsl_head)) = trigger_head {
             // "Landfall — Whenever a land you control enters, choose one —".
             let (label, head) = match head.split_once(" — ") {
-                Some((word, h)) if ABILITY_WORDS.contains(&word) => (Some(word), h),
+                Some((word, h)) if b.is_label(word) => (Some(word), h),
                 _ => (None, head),
             };
             let Some(trigger) = trigger_text(head) else {
@@ -10520,7 +10880,44 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             }
             continue;
         }
-        b.line(line)?;
+        let mark = (
+            b.statements.len(),
+            b.keywords.len(),
+            b.spell_paragraphs.len(),
+            b.spell_at,
+            b.spell_targets,
+        );
+        if let Err(e) = b.line(line) {
+            // A line an accepted card already says: its statement.
+            b.statements.truncate(mark.0);
+            b.keywords.truncate(mark.1);
+            b.spell_paragraphs.truncate(mark.2);
+            b.spell_at = mark.3;
+            b.spell_targets = mark.4;
+            let Some(st) = corpus_statement(corpus, line) else {
+                return Err(e);
+            };
+            // A spell's paragraph numbers its targets from the spell's
+            // first: only a first paragraph with targets is the corpus's.
+            let ability = ["static", "triggered", "activated", "mana"]
+                .iter()
+                .any(|w| st.starts_with(w));
+            match st.strip_prefix("spell: ") {
+                Some(p)
+                    if b.is_spell
+                        && !p.contains('\n')
+                        && (b.spell_targets == 0 || !p.contains("target")) =>
+                {
+                    b.spell_at.get_or_insert(b.statements.len());
+                    b.spell_paragraphs.push(p.to_string());
+                    if p.contains("target") {
+                        b.spell_targets = 1;
+                    }
+                }
+                _ if st.starts_with("spell") || (b.is_spell && ability) => return Err(e),
+                _ => b.statements.push(st.clone()),
+            }
+        }
         i += 1;
     }
     // A copy effect's exceptions (`token_copy`): the card's one `except`
@@ -10653,7 +11050,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
     }
     // Tokens it creates that the corpus lacks are generated from their key.
-    let created = cached_regex(r#"create \S+ "([^"]+)""#).unwrap();
+    let created = cached_regex(r#"create (?:count [^"]*?|\S+) "([^"]+)""#).unwrap();
     let mut tokens = Vec::new();
     let mut token_cards = Vec::new();
     for c in created.captures_iter(&text) {

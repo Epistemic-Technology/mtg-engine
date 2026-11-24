@@ -1,0 +1,8 @@
+card "Desecration Demon" {
+  oracle_id ef75be00-1a88-47a1-a1ae-fe2c9881a798
+  cost {2}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying
+  triggered at beginning of each combat: any opponent may sacrifice 1 creature chosen; if a player does, tap this and put 1 +1/+1 counter on this
+}

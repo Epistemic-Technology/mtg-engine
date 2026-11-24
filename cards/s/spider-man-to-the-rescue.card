@@ -1,0 +1,9 @@
+card "Spider-Man, To the Rescue" {
+  oracle_id 85dec6cf-6f27-4eb0-834b-5f6fbbe25fc8
+  cost {2}{G/W}
+  type Legendary Creature — Spider Human Hero
+  pt 3/2
+  pronoun he
+  keywords flash, reach, vigilance
+  label "No One Dies!" triggered when this enters: you may tap this; when you do, another target nonattacking creature you control gains indestructible
+}

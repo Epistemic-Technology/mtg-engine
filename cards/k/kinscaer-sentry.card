@@ -1,0 +1,8 @@
+card "Kinscaer Sentry" {
+  oracle_id fdf0fba8-f335-419c-b96b-e99037727c43
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  keywords first strike, lifelink
+  triggered whenever this attacks: you may put creature card with mana value at most count where attacking creature you control from hand onto battlefield tapped and attacking
+}

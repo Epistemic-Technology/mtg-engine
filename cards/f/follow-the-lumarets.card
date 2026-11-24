@@ -1,0 +1,6 @@
+card "Follow the Lumarets" {
+  oracle_id 5bb38d08-582e-43aa-9507-7c20759978ec
+  cost {1}{G}
+  type Sorcery
+  label "Infusion" spell: dig 4 take creature or land card may revealing rest bottom random instead lead take 2 if gained life this turn
+}

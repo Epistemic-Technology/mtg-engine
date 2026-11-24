@@ -1,0 +1,6 @@
+card "Flame Spill" {
+  oracle_id de6ebf55-f1df-4c3c-bba5-8655b7daf488
+  cost {2}{R}
+  type Instant
+  spell: deal 4 damage to target creature; excess damage to its controller instead
+}

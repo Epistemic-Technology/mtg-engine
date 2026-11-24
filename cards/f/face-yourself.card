@@ -1,0 +1,11 @@
+card "Face Yourself" {
+  oracle_id 3c0fe71c-bee1-41d3-aeb5-1723028eedde
+  cost {5}{R}{R}
+  type Sorcery
+  except {
+    noun creature
+    keywords haste
+    triggered at the beginning of each end step if you don't control planeswalker: sacrifice this creature
+  }
+  spell: create token copy of each creature target player controls with exceptions
+}

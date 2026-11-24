@@ -1,0 +1,8 @@
+card "Noggle the Mind" {
+  oracle_id b49efbe8-e15b-4dc7-82de-970cbce92b79
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: loses all abilities, set colorless, set subtype Noggle, base 1/1
+}

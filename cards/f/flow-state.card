@@ -1,0 +1,6 @@
+card "Flow State" {
+  oracle_id e7194bca-0cf4-4a86-8b84-d2f9219a08b3
+  cost {1}{U}
+  type Sorcery
+  spell: dig 3 take card rest bottom instead lead end rest take 2 if there is instant card in your graveyard and there is sorcery card in your graveyard
+}

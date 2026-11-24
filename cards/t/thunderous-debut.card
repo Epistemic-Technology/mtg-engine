@@ -1,0 +1,7 @@
+card "Thunderous Debut" {
+  oracle_id 07995092-af6c-43b8-b30b-17e020ead37c
+  cost {6}{G}{G}
+  type Sorcery
+  bargain
+  spell: dig 20 take 2 creature card may revealing rest shuffle reword instead otherwise onto battlefield if bargained
+}

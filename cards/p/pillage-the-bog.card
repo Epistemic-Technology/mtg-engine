@@ -1,0 +1,7 @@
+card "Pillage the Bog" {
+  oracle_id 91740570-1a97-4513-8af9-b32c363daf15
+  cost {B}{G}
+  type Sorcery
+  spell: dig count where 2 land you control take card rest bottom random
+  plot {1}{B}{G}
+}

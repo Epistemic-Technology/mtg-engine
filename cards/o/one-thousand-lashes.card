@@ -1,0 +1,8 @@
+card "One Thousand Lashes" {
+  oracle_id d3b259e9-f9c7-4830-91fa-6e3d9f4cc1e3
+  cost {2}{W}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block, can't activate
+  triggered at beginning of enchanted controller's upkeep: that player loses 1 life
+}

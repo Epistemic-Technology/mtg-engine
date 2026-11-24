@@ -1,0 +1,8 @@
+card "Fool's Demise" {
+  oracle_id d719b761-a35d-4cec-b3fe-f0fc64278677
+  cost {4}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: return triggering card to battlefield under your control
+  triggered when this dies: return this to hand
+}

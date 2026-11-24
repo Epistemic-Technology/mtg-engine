@@ -1,0 +1,7 @@
+card "Kumano's Pupils" {
+  oracle_id f7f8a186-313e-4a29-bf4e-b6a200dfd1ed
+  cost {4}{R}
+  type Creature — Human Shaman
+  pt 3/3
+  replace creature dealt damage by this this turn dies: exile
+}

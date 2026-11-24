@@ -1,0 +1,17 @@
+card "Kessig Naturalist // Lord of the Ulvenwald" {
+  oracle_id 54f8acb1-58f3-49d1-bff8-c1b578245936
+  layout transform
+  cost {R}{G}
+  type Creature — Human Werewolf
+  pt 2/2
+  triggered whenever this attacks: keep mana add {R} or {G}
+  daybound
+  face "Lord of the Ulvenwald" {
+    type Creature — Werewolf
+    pt 3/3
+    color green red
+    static other Wolf or Werewolf you control: +1/+1
+    triggered whenever this attacks: keep mana add {R} or {G}
+    nightbound
+  }
+}

@@ -1,0 +1,8 @@
+card "Sonic Shrieker" {
+  oracle_id d317e3f1-553f-44f6-8543-d6d4c42534ad
+  cost {2}{R}{W}{B}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered when this enters: deal 2 damage to any target and you gains 2 life; if player is damaged this way, target 1 discards 1 card
+}

@@ -1,0 +1,8 @@
+card "Prehistoric Pet" {
+  oracle_id 2519ccc0-c206-41fb-aa15-2ef88025ff96
+  cost {W}
+  type Creature — Dinosaur Ninja
+  pt 1/2
+  can't be blocked by creature with greater power
+  activated {1}{W}, {T}, during your turn: return another target creature you control to hand
+}

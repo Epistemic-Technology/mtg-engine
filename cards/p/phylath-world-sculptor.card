@@ -1,0 +1,8 @@
+card "Phylath, World Sculptor" {
+  oracle_id 3d79cbe2-cf1b-4313-ab47-0118fcdbfc6c
+  cost {4}{R}{G}
+  type Legendary Creature — Elemental
+  pt 5/5
+  triggered when this enters: create count each basic land you control "0/1 green Plant creature"
+  label "Landfall" triggered whenever land you control enters: put 4 +1/+1 counters on target Plant you control
+}

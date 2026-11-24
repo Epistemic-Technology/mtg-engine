@@ -1,0 +1,18 @@
+card "Emet-Selch, Unsundered // Hades, Sorcerer of Eld" {
+  oracle_id 3b102ccc-7629-457c-aba6-e9b00fd50c85
+  layout transform
+  cost {1}{U}{B}
+  type Legendary Creature — Elder Wizard
+  pt 2/4
+  keywords vigilance
+  triggered whenever this enters or attacks: draw 1 card, then discard 1 card
+  triggered at beginning of your upkeep if 14 cards in your graveyard: you may transform this
+  face "Hades, Sorcerer of Eld" {
+    type Legendary Creature — Avatar
+    pt 6/6
+    color blue black
+    keywords vigilance
+    label "Echo of the Lost" static during your turn, card in your graveyard: has play
+    replace card or token put into your graveyard: exile
+  }
+}

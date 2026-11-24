@@ -1,0 +1,7 @@
+card "Command the Stage" {
+  oracle_id 13bfc51f-d079-40ef-a4ba-47d06d3150a3
+  cost {2}{R}
+  type Sorcery
+  spell: create 1 "Cadet" then put 1 +1/+1 counter on each other Wizard token you control
+  triggered from graveyard at beginning of every upkeep if opponent dealt noncombat damage last turn: return this to hand
+}

@@ -164,6 +164,7 @@ pub fn add_card(
             tmap: TargetMap::default(),
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
+            chose_target: None,
             scavenge: None,
             station: None,
             sunburst: None,
@@ -209,6 +210,7 @@ pub fn add_card(
                 tmap: TargetMap::default(),
                 implied: Vec::new(),
                 implied_used: std::rc::Rc::default(),
+                chose_target: None,
                 scavenge: None,
                 station: None,
                 sunburst: None,
@@ -243,6 +245,7 @@ pub fn add_card(
         tmap: TargetMap::default(),
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
+        chose_target: None,
         scavenge: None,
         station: None,
         sunburst: None,
@@ -342,6 +345,7 @@ fn add_stages(
             tmap: TargetMap::default(),
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
+            chose_target: None,
             scavenge: None,
             station: None,
             extort: None,
@@ -449,6 +453,10 @@ struct Compiler<'a> {
     implied: Vec<Option<CoreChoiceKind>>,
     /// Set as an effect's recipient uses such a group.
     implied_used: std::rc::Rc<std::cell::Cell<Option<CoreChoiceKind>>>,
+    /// The target named by the last `choose up to that much target ...`
+    /// ("Choose up to that many target creatures you control. Put a +1/+1
+    /// counter on each of them."), for "each of them" after it.
+    chose_target: Option<Recipient>,
     /// Scavenge's count (the card's power), once added to the counts.
     scavenge: Option<u8>,
     /// Station's count (the tapped creature's power), likewise.
@@ -588,9 +596,21 @@ impl Compiler<'_> {
                         times: *times,
                     });
                 }
-                Ability::TargetCost { delta, filter, .. } => {
+                Ability::TargetCost {
+                    delta,
+                    filter,
+                    colors,
+                    ..
+                } => {
                     let f = self.filter(filter);
                     b = b.target_cost(*delta, f);
+                    if !colors.is_empty() {
+                        b = b.target_cost_colors(
+                            colors
+                                .iter()
+                                .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
+                        );
+                    }
                 }
                 Ability::Uncounterable => {
                     b = b.uncounterable();
@@ -1100,6 +1120,32 @@ impl Compiler<'_> {
         if let Some(c) = &card.cast_only {
             let c = self.static_cond(c);
             b = b.cast_only(self.pool.intern_condition(c));
+        } else if card
+            .supertypes
+            .contains(&mtg_core::card::Supertype::Legendary)
+            && card.types.iter().any(|t| {
+                matches!(
+                    t,
+                    mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+                )
+            })
+        {
+            // CR 205.4e: a legendary instant or sorcery can be cast only
+            // while its caster controls a legendary creature or a
+            // legendary planeswalker.
+            let legend = |t: mtg_core::card::CardType| StaticCondition::YouControl {
+                filter: ObjFilter {
+                    types: TypeSet::of([t]),
+                    supertypes: SupertypeSet::of([mtg_core::card::Supertype::Legendary]),
+                    ..ObjFilter::default()
+                },
+                at_least: 1,
+            };
+            let c = StaticCondition::Or(
+                Box::new(legend(mtg_core::card::CardType::Creature)),
+                Box::new(legend(mtg_core::card::CardType::Planeswalker)),
+            );
+            b = b.cast_only(self.pool.intern_condition(c));
         }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
@@ -1120,8 +1166,19 @@ impl Compiler<'_> {
             // "Flashback—Sacrifice three creatures.", "Flashback—Tap three
             // untapped white creatures you control." settle the permanent
             // the way an additional cost does, so not alongside one.
-            if fb.tap || fb.discard > 0 || fb.discard_self {
-                return self.err("a flashback cost may only be mana, life, and a chosen permanent");
+            // "Flashback—{1}{U/R}{U/R}, Discard a card." (Twinned Vision):
+            // the card discarded is chosen as a graveyard cast's is.
+            if fb.tap || fb.discard_self || fb.discard > 1 || fb.discard_x || fb.discard_random {
+                return self.err(
+                    "a flashback cost may only be mana, life, a discarded card, and a chosen permanent",
+                );
+            }
+            if fb.discard > 0
+                && (fb.sacrifice.is_some()
+                    || card.additional.is_some()
+                    || card.additional_or.is_some())
+            {
+                return self.err("a flashback cost discarding a card with another chosen cost");
             }
             if fb.sacrifice.is_some() && (card.additional.is_some() || card.additional_or.is_some())
             {
@@ -1636,6 +1693,45 @@ impl Compiler<'_> {
                     otherwise: Vec::new(),
                 })?);
             }
+            // "Yuna and enchantment creatures you control have ...": the
+            // source has them too; "you and other Heroes you control have
+            // hexproof": so does its controller.
+            if let Ability::Static {
+                filter,
+                mods,
+                condition,
+                ..
+            } = a
+                && (filter.and_you || filter.and_this)
+            {
+                if filter.and_this {
+                    b = b.ability(self.ability(&Ability::Static {
+                        filter: Filter::this(),
+                        mods: mods.clone(),
+                        condition: condition.clone(),
+                        cond_first: false,
+                        cond_if: false,
+                        otherwise: Vec::new(),
+                    })?);
+                }
+                if filter.and_you {
+                    for m in mods {
+                        let kind = match m {
+                            Mod::AddKeywords(ks) if ks.as_slice() == [Keyword::Hexproof] => {
+                                mtg_core::card::PlayerStaticKind::Hexproof
+                            }
+                            Mod::AddKeywords(ks) if ks.as_slice() == [Keyword::Shroud] => {
+                                mtg_core::card::PlayerStaticKind::Shroud
+                            }
+                            _ => return self.err("`you and ...`: only hexproof or shroud"),
+                        };
+                        b = b.ability(self.ability(&Ability::PlayerStatic {
+                            kind,
+                            cond: condition.clone(),
+                        })?);
+                    }
+                }
+            }
             // "Equip—Pay {3} or discard a card.": the second equip ability.
             if let Ability::EquipOr { other, targets, .. } = a {
                 b = b.ability(self.ability(&equip_ability((**other).clone(), targets))?);
@@ -1756,6 +1852,7 @@ impl Compiler<'_> {
                     .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
                 legendary: x.legendary,
                 exactly: x.exactly,
+                own_name: x.own_name,
             });
         }
         if haunted.is_some() || haunt_spell.is_some() {
@@ -1801,6 +1898,28 @@ impl Compiler<'_> {
 
     #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
+        // "that you've put one or more +1/+1 counters on this turn": the
+        // game keeps who put counters on what.
+        if f.status.counters_put {
+            self.pool
+                .note_history(mtg_core::card::CardPool::HISTORY_COUNTERS);
+        }
+        // "a land card with a basic land type" (CR 205.3i): one of the
+        // five.
+        if f.basic_land_type {
+            let mut g = f.clone();
+            g.basic_land_type = false;
+            let mut out: Option<ObjFilter> = None;
+            for t in ["Forest", "Mountain", "Swamp", "Island", "Plains"] {
+                let mut h = g.clone();
+                h.subtypes.push(t.to_string());
+                let mut one = self.filter(&h);
+                one.or = out.map(Box::new);
+                out = Some(one);
+            }
+            return out.expect("five types");
+        }
+
         // "an outlaw" (CR 700.12): one alternative per creature type.
         if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
             let mut chain = f.or.clone();
@@ -1898,6 +2017,14 @@ impl Compiler<'_> {
                         of: SameOf::Source,
                         what: SameWhat::ManaValueAtMostPower,
                     },
+                    SameRef::LesserManaValue => Same {
+                        of: SameOf::Triggering,
+                        what: SameWhat::LesserManaValue,
+                    },
+                    SameRef::NotTriggering => Same {
+                        of: SameOf::Triggering,
+                        what: SameWhat::NotIt,
+                    },
                 }
             }),
             // `named "Keimi"`: a token definition's name; an unknown one
@@ -1947,6 +2074,8 @@ impl Compiler<'_> {
                     CombatRef::BlockingThis | CombatRef::BlockingIt => CombatWith::Blocking,
                     CombatRef::BlockedByThis | CombatRef::BlockedByIt => CombatWith::BlockedBy,
                     CombatRef::BlockingOrBlockedByThis => CombatWith::BlockingOrBlockedBy,
+                    CombatRef::CrewedIt => CombatWith::Crewed,
+                    CombatRef::SaddledIt => CombatWith::Saddled,
                 }
             }),
             that_player: f.that_player,
@@ -1954,12 +2083,15 @@ impl Compiler<'_> {
             not_granter: f.not_granter,
             enchanted_player: f.enchanted_player,
             controlled_by: None,
+            name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {
                     you: t.you,
                     player: t.player,
                     filter: t.filter.as_ref().map(|g| self.filter(g)),
+                    opponent: t.opponent,
+                    single: t.single,
                 })
             }),
         }
@@ -2135,7 +2267,10 @@ impl Compiler<'_> {
             GiftKind::TappedFish => token("1/1 blue Fish creature", true),
             GiftKind::Treasure => token("Treasure", false),
         };
-        self.sentences(&[Sentence::new(vec![e])])
+        let mut out = self.sentences(&[Sentence::new(vec![e])])?;
+        // "Whenever you give a gift" triggers after it is given.
+        out.push(CoreEffect::GaveGift);
+        Ok(out)
     }
 
     /// The modes under another head (CR 700.2). "Choose one or more":
@@ -2316,6 +2451,9 @@ impl Compiler<'_> {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
             StaticCond::TopCard(f) => StaticCondition::TopCard(self.filter(f)),
+            StaticCond::CountAtLeast(c, n) => {
+                StaticCondition::CountAtLeast(Box::new(self.count_expr(c)), *n)
+            }
             StaticCond::CardTypesInGraveyard(n) => StaticCondition::CardTypesInGraveyard(*n),
             StaticCond::YouControl { filter, at_least }
             | StaticCond::YouControlAtLeast {
@@ -2333,6 +2471,11 @@ impl Compiler<'_> {
             }
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
+            StaticCond::NotTheirTurn => StaticCondition::NotTheirTurn,
+            StaticCond::AttackerIs { filter, you } => StaticCondition::Attacking {
+                filter: self.filter(filter),
+                you: *you,
+            },
             StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
                 let inner = match c {
                     StaticCond::ControlledAsCast(f) => StaticCondition::YouControl {
@@ -2535,7 +2678,9 @@ impl Compiler<'_> {
                 at_most: *at_most,
             },
             StaticCond::PlayerMoreHand(w) => StaticCondition::PlayerMoreHand(*w),
-            StaticCond::LibraryEmpty => StaticCondition::LibraryEmpty,
+            StaticCond::LibraryEmpty | StaticCond::NoCardsInLibrary => {
+                StaticCondition::LibraryEmpty
+            }
             // CR 702.185: any player's.
             StaticCond::Void => StaticCondition::Or(
                 Box::new(StaticCondition::happened(
@@ -2551,6 +2696,9 @@ impl Compiler<'_> {
             StaticCond::NotCastFromHand => {
                 StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
             }
+            StaticCond::WasntCastFromHand => StaticCondition::Not(Box::new(
+                StaticCondition::CastFrom(mtg_core::state::Zone::Hand),
+            )),
             StaticCond::WasCast | StaticCond::WasCastPassive => StaticCondition::WasCast,
             StaticCond::CameFrom { zone, wording } => StaticCondition::CameFrom {
                 zone: *zone,
@@ -2621,6 +2769,27 @@ impl Compiler<'_> {
                     gained
                 }
             }
+            StaticCond::SourceHistory { what, not } => {
+                use mtg_core::card::{CardPool, SourceHistory as H};
+                match what {
+                    H::CountersPut { .. } => self.pool.note_history(CardPool::HISTORY_COUNTERS),
+                    H::DealtDamage { .. } => self.pool.note_history(CardPool::HISTORY_DAMAGE),
+                    H::EnteredThisTurn | H::AttackedThisCombat => {}
+                }
+                let c = StaticCondition::SourceHistory(*what);
+                if *not {
+                    StaticCondition::Not(Box::new(c))
+                } else {
+                    c
+                }
+            }
+            StaticCond::EarlyTurn => StaticCondition::EarlyTurn(3),
+            StaticCond::OpponentNoncombatLastTurn => StaticCondition::OpponentNoncombatLastTurn,
+            StaticCond::Tally { what, n } => StaticCondition::Happened {
+                count: what.count(),
+                cmp: mtg_core::card::Cmp::AtLeast,
+                n: *n,
+            },
             StaticCond::DescendedThisTurn => {
                 StaticCondition::happened(TurnEvent::Descended, TurnWho::You)
             }
@@ -2842,7 +3011,9 @@ impl Compiler<'_> {
                 verb: *verb,
                 stat: *stat,
             },
-            A::TargetHand(n) => C::TargetHand(target_index(self.tmap, *n)),
+            A::TargetHand(n) | A::TargetHandDeclared { n, .. } => {
+                C::TargetHand(target_index(self.tmap, *n))
+            }
             A::GreatestToughness(f) => C::GreatestToughness(self.filter(f)),
             A::Sum(a, b) => C::Sum(Box::new(self.count_expr(a)), Box::new(self.count_expr(b))),
             A::LifeLostThisTurn => C::Happened(TurnCount::of(TurnEvent::LifeLost, TurnWho::You)),
@@ -2873,6 +3044,7 @@ impl Compiler<'_> {
                 C::Happened(TurnCount::of(TurnEvent::CreatureEntered, TurnWho::You))
             }
             A::DiscardedThisTurn => C::Happened(TurnCount::of(TurnEvent::Discarded, TurnWho::You)),
+            A::Tally(t) => C::Happened(t.count()),
 
             A::OpponentsMoreCards => C::OpponentsMoreCards,
             A::OpponentsHandAtMost(n) => C::OpponentsHandAtMost(*n),
@@ -2889,6 +3061,18 @@ impl Compiler<'_> {
                 C::Happened(TurnCount::of(TurnEvent::CreatureLeft, TurnWho::You))
             }
             A::TargetColors(n) => C::TargetColors(target_index(self.tmap, *n)),
+            A::ColorsAmong(f) => C::ColorsAmong(self.filter(f)),
+            A::CardTypesAmong(f) => C::CardTypesAmong(self.filter(f)),
+            A::CardTypesCastThisTurn => C::CardTypesCastThisTurn,
+            A::CardTypesThisWay(verb) => C::CardTypesThisWay(*verb),
+            A::PermanentTypesInGraveyard => C::PermanentTypesInGraveyard,
+            A::GraveyardsWithAtLeast(n) => C::GraveyardsWithAtLeast(*n),
+            A::CountersAmong(kind, f) => C::CountersAmong(*kind, self.filter(f)),
+            A::CounterKindsAmong(f) => C::CounterKindsAmong(self.filter(f)),
+            A::DifferentPowers(f) => C::DifferentPowers(self.filter(f)),
+            A::SharingCreatureType(f) => C::SharingCreatureType(self.filter(f)),
+            A::TriggerPtDifference => C::TriggerPtDifference,
+            A::X => C::X,
         }
     }
 
@@ -2934,10 +3118,38 @@ impl Compiler<'_> {
                 different,
             } => {
                 let spec = self.target(target);
+                // "up to X target creatures you control get +X/+X ..., where
+                // X is the number of colors among permanents you control"
+                // (Prismabasher): on a card without {X}, the X of its one
+                // "where X is" count.
+                let wheres: Vec<usize> = self
+                    .card
+                    .counts
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, c)| c.style == crate::ast::CountStyle::Where)
+                    .map(|(i, _)| i)
+                    .collect();
+                let x_count = match wheres.as_slice() {
+                    [i] if !self
+                        .card
+                        .cost
+                        .symbols()
+                        .iter()
+                        .any(|s| matches!(s, mtg_core::mana::ManaSymbol::X)) =>
+                    {
+                        u8::try_from(*i).ok().map(Num::Count)
+                    }
+                    _ => None,
+                };
+                let bound = |n: Num| match (n, x_count) {
+                    (Num::X, Some(c)) => c,
+                    (n, _) => n,
+                };
                 self.pool.intern_many(mtg_core::card::ManyTargets {
                     spec,
-                    min: *min,
-                    max: *max,
+                    min: bound(*min),
+                    max: max.map(bound),
                     total_mv: *total,
                     different_names: *different,
                 })
@@ -3004,6 +3216,8 @@ impl Compiler<'_> {
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             discard_exile: c.discard_exile,
             loyalty: c.loyalty.unwrap_or(0),
+            loyalty_x: c.loyalty_x,
+            loyalty_ability: c.loyalty.is_some() || c.loyalty_x,
             tap: c.tap,
             sacrifice: match &c.sacrifice {
                 None => None,
@@ -3048,7 +3262,11 @@ impl Compiler<'_> {
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
             Recipient::Rest => CoreRecipient::Rest,
+            Recipient::Declined(d) if d.tense == crate::ast::DeclinedTense::Does => {
+                CoreRecipient::Accepted
+            }
             Recipient::Declined(_) => CoreRecipient::Declined,
+            Recipient::MostControl(i) => CoreRecipient::MostControl(groups[usize::from(i)]),
             Recipient::OpponentsWithout(i) => {
                 CoreRecipient::OpponentsWithout(groups[usize::from(i)])
             }
@@ -3056,6 +3274,7 @@ impl Compiler<'_> {
                 CoreRecipient::TargetAndGroup(ti(t), groups[usize::from(i)])
             }
             Recipient::AttachedAnd(i) => CoreRecipient::AttachedAndSharing(groups[usize::from(i)]),
+            Recipient::YouAnd(i) => CoreRecipient::YouAndGroup(groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
             // `that target 1` after "one or two target creatures": all of
             // them ("double the number of +1/+1 counters on those
@@ -3155,6 +3374,22 @@ impl Compiler<'_> {
         }
     }
 
+    /// What an `instead` sentence checks, as it resolves.
+    fn instead_cond(&mut self, cond: &InsteadCond) -> EffectCond {
+        match cond {
+            InsteadCond::Kicked => EffectCond::Kicked,
+            InsteadCond::Static(c) => {
+                let c = self.static_cond(c);
+                EffectCond::Static(self.pool.intern_condition(c))
+            }
+            InsteadCond::Target { n, filter, .. } => EffectCond::Target {
+                n: u8::try_from(*n).unwrap_or(u8::MAX),
+                filter: Box::new(self.filter(filter)),
+            },
+            InsteadCond::ThisWay(c) => EffectCond::ThisWay(self.this_way_cond(c)),
+        }
+    }
+
     fn sentences(&mut self, ss: &[Sentence]) -> Result<Vec<CoreEffect>, CompileError> {
         let mut out = Vec::new();
         // Where the previous sentence's effects start, and that sentence.
@@ -3206,18 +3441,7 @@ impl Compiler<'_> {
                     }
                     alt = vec![modified];
                 }
-                let cond = match cond {
-                    InsteadCond::Kicked => EffectCond::Kicked,
-                    InsteadCond::Static(c) => {
-                        let c = self.static_cond(c);
-                        EffectCond::Static(self.pool.intern_condition(c))
-                    }
-                    InsteadCond::Target { n, filter, .. } => EffectCond::Target {
-                        n: u8::try_from(*n).unwrap_or(u8::MAX),
-                        filter: Box::new(self.filter(filter)),
-                    },
-                    InsteadCond::ThisWay(c) => EffectCond::ThisWay(self.this_way_cond(c)),
-                };
+                let cond = self.instead_cond(cond);
                 out.push(CoreEffect::Instead { cond, base, alt });
                 continue;
             }
@@ -3363,6 +3587,11 @@ impl Compiler<'_> {
                 })
                 .collect();
             before.reverse();
+            if before.is_empty()
+                && let Some(r) = self.chose_target
+            {
+                before.push(Self::recipient(&self.groups, self.many, self.tmap, r));
+            }
             if before.is_empty() {
                 return self
                     .err("`each of them` needs tokens created, or a tap or pump, before it");
@@ -3729,6 +3958,30 @@ impl Compiler<'_> {
                 out.push(CoreEffect::NextSpellFree(f));
             }
             Effect::NextSpellUncounterable => out.push(CoreEffect::NextSpellUncounterable),
+            Effect::SpellGains { what, keywords } => out.push(CoreEffect::SpellGains {
+                what: r(*what),
+                keywords: KeywordSet::of(keywords.iter().copied()),
+            }),
+            Effect::SpellsThisTurn {
+                filter,
+                less,
+                affinity,
+                next,
+            } => {
+                let spells = self.filter(filter);
+                let grant = affinity.as_ref().map(|f| {
+                    Box::new(mtg_core::card::SpellGrant {
+                        affinity: Some(self.filter(f)),
+                        ..Default::default()
+                    })
+                });
+                out.push(CoreEffect::SpellsThisTurn {
+                    spells,
+                    less: *less,
+                    grant,
+                    next: *next,
+                });
+            }
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
@@ -3811,6 +4064,7 @@ impl Compiler<'_> {
                 count,
                 tapped,
                 attacking,
+                who,
                 ..
             } => {
                 out.push(CoreEffect::CreateTokenCopy {
@@ -3818,6 +4072,7 @@ impl Compiler<'_> {
                     except: *except,
                     count: *count,
                     tapped: *tapped,
+                    who: who.map(r),
                 });
                 // CR 508.4: "a tapped and attacking token that's a copy".
                 if *attacking {
@@ -3877,6 +4132,7 @@ impl Compiler<'_> {
                 dest: *dest,
             }),
             Effect::ChangeTarget { what } => out.push(CoreEffect::ChangeTarget { what: r(*what) }),
+            Effect::NewTargets { what } => out.push(CoreEffect::NewTargets { what: r(*what) }),
             Effect::CounterUnlessPays { to, mana, x, dest } => {
                 out.push(CoreEffect::CounterUnlessPays {
                     to: r(*to),
@@ -3895,6 +4151,16 @@ impl Compiler<'_> {
             }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
             Effect::AddManaOneOf(m) => out.push(CoreEffect::AddManaOneOf(m.clone())),
+            // "Choose a color. Add one mana of that color for each ...":
+            // one color chosen as the mana is added, as for "X mana of any
+            // one color".
+            Effect::AddManaTimes {
+                mana: Mana::Chosen,
+                count: count @ Num::Count(_),
+            } => out.push(CoreEffect::AddManaTimes {
+                mana: Mana::Any,
+                count: *count,
+            }),
             Effect::AddManaTimes { mana, count } => out.push(CoreEffect::AddManaTimes {
                 mana: *mana,
                 count: *count,
@@ -3919,6 +4185,28 @@ impl Compiler<'_> {
                 basic: *basic,
                 any_type: *any_type,
             }),
+            Effect::AddManaProduced => out.push(CoreEffect::AddManaProduced),
+            Effect::AddManaOneOfTimes { mana, count, each } => {
+                let mut colors = mtg_core::mana::ColorSet::COLORLESS;
+                for m in mana {
+                    if let Mana::Colored(c) = m {
+                        colors = colors.with(*c);
+                    }
+                }
+                let count = *count;
+                out.push(if *each {
+                    CoreEffect::AddManaCombination {
+                        count,
+                        colors,
+                        different: false,
+                    }
+                } else {
+                    CoreEffect::AddManaOneOfTimes { colors, count }
+                });
+            }
+            Effect::AddManaColorsAmong(f) => {
+                out.push(CoreEffect::AddManaColorsAmong(self.filter(f)));
+            }
             Effect::AddManaCommander { rider } => {
                 out.push(CoreEffect::AddManaCommander { rider: *rider });
             }
@@ -4033,7 +4321,7 @@ impl Compiler<'_> {
             }
             // Wording: the target is the ability's, chosen as it is put on
             // the stack.
-            Effect::ChooseTarget(_) => {}
+            Effect::ChooseTarget(r) => self.chose_target = Some(*r),
             Effect::FlipCoin => out.push(CoreEffect::FlipCoin { won: Vec::new() }),
             Effect::Clash => out.push(CoreEffect::Clash { won: Vec::new() }),
             // What winning the clash just before does.
@@ -4390,6 +4678,7 @@ impl Compiler<'_> {
                 indefinite,
                 loses_abilities,
                 in_addition,
+                ability,
                 ..
             } => {
                 let subtypes = self.subtypes(subtypes);
@@ -4404,6 +4693,24 @@ impl Compiler<'_> {
                     loses_abilities: *loses_abilities,
                     in_addition: *in_addition,
                 });
+                // "becomes a 2/4 Wizard creature with \"...\"": the
+                // ability for as long as the animation lasts (layer 6).
+                if let Some(a) = ability {
+                    let def = self.ability(a)?;
+                    let id = self.pool.register_ability(def);
+                    let grant = CoreEffect::GrantAbility {
+                        ability: id,
+                        to: r(*to),
+                    };
+                    out.push(if *indefinite {
+                        CoreEffect::Lasting {
+                            lasting: mtg_core::card::Lasting::Forever,
+                            effects: vec![grant],
+                        }
+                    } else {
+                        grant
+                    });
+                }
             }
             Effect::BecomeColor {
                 to,
@@ -4452,12 +4759,46 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
             }
-            Effect::PlayerMay { who, inner } => {
-                let effects = self.sentences(inner)?;
+            Effect::PlayerMay {
+                who,
+                inner,
+                have_you,
+            } => {
+                // "Each player may shuffle ..., then each player who does
+                // draws seven cards." (Turtles in Time): what each player
+                // who does does comes after everyone has decided.
+                let after = |e: &Effect| {
+                    matches!(
+                        e,
+                        Effect::DrawCards {
+                            who: Some(Recipient::Declined(d)),
+                            ..
+                        } if d.tense == crate::ast::DeclinedTense::Does
+                    )
+                };
+                let split = match inner.as_slice() {
+                    [s] => s.effects.iter().position(after),
+                    _ => None,
+                };
+                let (mine, rest) = match split {
+                    Some(at) => {
+                        let mut before = inner[0].clone();
+                        let later = before.effects.split_off(at);
+                        let mut then = inner[0].clone();
+                        then.effects = later;
+                        (vec![before], Some(then))
+                    }
+                    None => (inner.clone(), None),
+                };
+                let effects = self.sentences(&mine)?;
                 out.push(CoreEffect::PlayerMay {
                     who: r(*who),
                     effects,
+                    have_you: *have_you,
                 });
+                if let Some(rest) = rest {
+                    out.extend(self.sentences(std::slice::from_ref(&rest))?);
+                }
             }
             Effect::UnlessAnyPlayer { act, effect } => {
                 let mut acts = Vec::new();
@@ -4477,14 +4818,20 @@ impl Compiler<'_> {
                     effects,
                 });
             }
-            Effect::IfTarget(n, f, inner, _) => {
+            Effect::IfTarget(n, f, inner, check) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfTarget {
-                    n: u8::try_from(*n).unwrap_or(u8::MAX),
+                    n: if *n == crate::ast::IT_TRIGGER {
+                        mtg_core::card::IF_TRIGGER_OBJ
+                    } else {
+                        u8::try_from(*n).unwrap_or(u8::MAX)
+                    },
                     filter: Box::new(self.filter(f)),
                     then,
+                    negated: check.negated,
                 });
             }
+            Effect::KeepRedManaThisTurn => out.push(CoreEffect::KeepRedManaThisTurn),
             Effect::KeepMana(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::KeepMana(effects));
@@ -4493,6 +4840,7 @@ impl Compiler<'_> {
                 inner,
                 spells,
                 then,
+                ..
             } => {
                 let effects = self.sentences(inner)?;
                 if !effects.iter().any(CoreEffect::adds_mana) {
@@ -4902,6 +5250,22 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
+            Effect::ManifestDreadBy { who } => {
+                out.push(CoreEffect::ManifestDreadBy { who: r(*who) });
+            }
+            Effect::Behold { filter, n } => {
+                out.push(CoreEffect::Behold(Box::new(mtg_core::card::Behold {
+                    filter: self.filter(filter),
+                    n: *n,
+                    exile: false,
+                    hand: false,
+                    x: false,
+                })));
+            }
+            Effect::ReduceSpeed { who } => out.push(CoreEffect::ReduceSpeed { who: r(*who) }),
+            Effect::DreadCardToHand => out.push(CoreEffect::ReturnToHand {
+                what: CoreRecipient::TriggeringObject,
+            }),
             Effect::Blight(n) => out.push(CoreEffect::Blight(*n)),
             Effect::CollectEvidence(n) => out.push(CoreEffect::CollectEvidence(*n)),
             Effect::Forage => out.push(CoreEffect::Forage),
@@ -4972,6 +5336,7 @@ impl Compiler<'_> {
                 });
             }
             Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
+            Effect::DiscoverAgain => out.push(CoreEffect::Discover(Num::ThatMuch)),
             Effect::Soulbond { triggering } => {
                 out.push(CoreEffect::Soulbond {
                     triggering: *triggering,
@@ -4984,6 +5349,19 @@ impl Compiler<'_> {
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
             Effect::BecomeSaddledTarget { what } => {
                 out.push(CoreEffect::BecomeSaddledTarget { what: r(*what) });
+            }
+            Effect::BecomePlotted { what } => {
+                out.push(CoreEffect::BecomePlotted { what: r(*what) });
+            }
+            Effect::Door { what, own, lock } => {
+                out.push(CoreEffect::Door {
+                    what: r(*what),
+                    own: *own,
+                    lock: *lock,
+                });
+            }
+            Effect::PlotOnResolve { what } => {
+                out.push(CoreEffect::PlotOnResolve { what: r(*what) });
             }
             Effect::BecomePrepared { what } => {
                 out.push(CoreEffect::BecomePrepared { what: r(*what) });
@@ -5252,19 +5630,62 @@ impl Compiler<'_> {
                 random,
                 top,
                 onto,
+                shuffle,
+                at_random,
+                split,
+                alt,
+                until,
                 ..
-            } => out.push(CoreEffect::Dig {
-                count: *count,
-                filter: filter.as_ref().map(|f| self.filter(f)),
-                optional: *optional,
-                all: *all,
-                rest_graveyard: *rest_graveyard,
-                take: *take,
-                also: also.as_ref().map(|f| self.filter(f)),
-                random: *random,
-                top: *top,
-                onto: *onto,
-            }),
+            } => {
+                let base = CoreEffect::Dig {
+                    count: *count,
+                    filter: filter.as_ref().map(|f| self.filter(f)),
+                    optional: *optional,
+                    all: *all,
+                    rest_graveyard: *rest_graveyard,
+                    take: *take,
+                    also: also.as_ref().map(|f| self.filter(f)),
+                    random: *random,
+                    top: *top,
+                    onto: *onto,
+                    shuffle: *shuffle,
+                    at_random: *at_random,
+                    split: split.as_ref().map(|(f, _)| self.filter(f)),
+                    until: *until,
+                };
+                // CR 608.2c: "If this spell was kicked, put two of those
+                // cards into your hand instead.": the same dig, changed.
+                if let Some(a) = alt {
+                    let mut changed = base.clone();
+                    if let CoreEffect::Dig {
+                        count,
+                        take,
+                        all,
+                        onto,
+                        ..
+                    } = &mut changed
+                    {
+                        if let Some(c) = a.count {
+                            *count = c;
+                        }
+                        if let Some(k) = a.take {
+                            *take = k;
+                        }
+                        *all |= a.all;
+                        if a.onto.is_some() {
+                            *onto = a.onto;
+                        }
+                    }
+                    let cond = self.instead_cond(&a.cond);
+                    out.push(CoreEffect::Instead {
+                        cond,
+                        base: vec![base],
+                        alt: vec![changed],
+                    });
+                } else {
+                    out.push(base);
+                }
+            }
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false, false)?;
                 out.push(CoreEffect::Modes(modes));
@@ -5298,6 +5719,13 @@ impl Compiler<'_> {
                         life: t.more.life,
                     },
                 )));
+            }
+            Effect::GraveCastTurn { cards, rider } => {
+                let cards = self.filter(cards);
+                out.push(CoreEffect::GraveCastTurn {
+                    cards,
+                    rider: Box::new(rider.clone()),
+                });
             }
             Effect::GrantGraveyardCast(f) => {
                 let f = self.filter(f);
@@ -5657,9 +6085,14 @@ impl Compiler<'_> {
                 what: self.trigger_obj(obj),
                 filter: self.filter(filter),
             },
-            Trigger::CastsFiltered { whose, filter } => TriggerSpec::CastsFiltered {
+            Trigger::CastsFiltered {
+                whose,
+                filter,
+                from,
+            } => TriggerSpec::CastsFiltered {
                 whose: *whose,
                 filter: self.filter(filter),
+                from: *from,
             },
             Trigger::Cycles {
                 this,
@@ -5712,6 +6145,10 @@ impl Compiler<'_> {
             },
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::ManifestsDread => TriggerSpec::ManifestsDread { whose: Who::You },
+            Trigger::GivesGift => TriggerSpec::GivesGift { whose: Who::You },
+            Trigger::Discovers => TriggerSpec::Discovers { whose: Who::You },
+            Trigger::SolvesCase => TriggerSpec::SolvesCase { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
             Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {
@@ -5826,9 +6263,11 @@ impl Compiler<'_> {
             Replaces::ToGraveyard {
                 whose,
                 from_battlefield,
+                tokens,
             } => CoreReplaces::ToGraveyard {
                 whose: *whose,
                 from_battlefield: *from_battlefield,
+                tokens: *tokens && *whose != Who::Any,
             },
             Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
             Replaces::FilteredToGraveyard(f) => CoreReplaces::FilteredToGraveyard {
@@ -5999,10 +6438,12 @@ impl Compiler<'_> {
                 power: *power,
                 toughness: *toughness,
             },
-            Mod::ModifyPt { power, toughness } => Modification::ModifyPt {
-                power: *power,
-                toughness: *toughness,
-            },
+            Mod::ModifyPt { power, toughness } | Mod::ModifyPtAdditional { power, toughness } => {
+                Modification::ModifyPt {
+                    power: *power,
+                    toughness: *toughness,
+                }
+            }
             Mod::SwitchPt => Modification::SwitchPt,
             Mod::CdaColors(c) => Modification::CdaColors(ColorSet::of(c.iter().copied())),
             Mod::ChosenColor => Modification::ChosenColor,
@@ -6072,6 +6513,7 @@ impl Compiler<'_> {
                     ..ObjFilter::default()
                 }),
                 then: grants,
+                negated: false,
             });
         }
         Ok(AbilityDef::Triggered(TriggeredAbility {
@@ -6223,7 +6665,14 @@ impl Compiler<'_> {
                 ..
             } => AbilityDef::Activated(ActivatedAbility {
                 cost: self.cost(cost),
-                targets: self.targets(targets),
+                targets: {
+                    let ts = self.targets(targets);
+                    // No triggering object: "That creature gains haste"
+                    // after a put from the hand is that creature (Meek
+                    // Attack).
+                    self.tmap.spell = true;
+                    ts
+                },
                 effects: self.sentences(effects)?,
                 sorcery_speed: cost.sorcery,
                 per_turn: cost.per_turn,
@@ -6332,6 +6781,24 @@ impl Compiler<'_> {
                     Some(crate::ast::TrigCond::Core(c)) => Some(*c),
                     Some(crate::ast::TrigCond::HadCounter { .. }) => {
                         Some(mtg_core::card::Condition::TriggerHadCounters)
+                    }
+                    Some(crate::ast::TrigCond::Outstats) => {
+                        Some(mtg_core::card::Condition::Evolves)
+                    }
+                    Some(crate::ast::TrigCond::ItsStat { stat, cmp, n, .. }) => {
+                        let mut f = ObjFilter::default();
+                        match stat {
+                            crate::ast::ItStat::Power => f.power = Some((*cmp, *n)),
+                            crate::ast::ItStat::Toughness => f.toughness = Some((*cmp, *n)),
+                            crate::ast::ItStat::ManaValue => {
+                                f.mana_value =
+                                    Some((*cmp, u8::try_from((*n).max(0)).unwrap_or(u8::MAX)));
+                            }
+                        }
+                        Some(mtg_core::card::Condition::Static(
+                            self.pool
+                                .intern_condition(mtg_core::card::StaticCondition::TriggerIs(f)),
+                        ))
                     }
                     Some(crate::ast::TrigCond::Static(c)) => {
                         let c = self.static_cond(c);
@@ -6503,7 +6970,7 @@ impl Compiler<'_> {
                     joined: false,
                 })
             }
-            Ability::EntersTappedUnlessReveal { filter, or } => {
+            Ability::EntersTappedUnlessReveal { filter, or, behold } => {
                 let f = self.filter(filter);
                 let filter = self.pool.intern_filter(f);
                 let or = or.as_ref().map(|c| {
@@ -6515,6 +6982,7 @@ impl Compiler<'_> {
                     replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal {
                         filter,
                         or,
+                        behold: *behold,
                     },
                     then: Vec::new(),
                     condition: None,
@@ -6612,6 +7080,9 @@ impl Compiler<'_> {
                     mtg_core::card::BlockRule::OnlyBy(self.filter(f))
                 }
                 crate::ast::BlockRule::AtMostOne => mtg_core::card::BlockRule::AtMostOne,
+                crate::ast::BlockRule::NotByGreaterPower => {
+                    mtg_core::card::BlockRule::NotByGreaterPower
+                }
                 crate::ast::BlockRule::NotByLesserPower => {
                     mtg_core::card::BlockRule::NotByLesserPower
                 }
@@ -6663,6 +7134,8 @@ impl Compiler<'_> {
                             uncounterable: false,
                             spend: mtg_core::card::SpendAs::Normal,
                             spend_abilities: false,
+                            conspire: false,
+                            casualty: 0,
                         })
                     }),
                     per: *per,
@@ -6679,6 +7152,9 @@ impl Compiler<'_> {
                 affinity,
                 uncounterable,
                 spend,
+                control: _,
+                conspire,
+                casualty,
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
                 whose: *whose,
@@ -6691,6 +7167,8 @@ impl Compiler<'_> {
                     uncounterable: *uncounterable,
                     spend: spend.map_or(mtg_core::card::SpendAs::Normal, |s| s.0),
                     spend_abilities: spend.is_some_and(|s| s.2),
+                    conspire: *conspire,
+                    casualty: *casualty,
                 })),
                 per: None,
                 first: false,
@@ -7527,6 +8005,7 @@ impl Compiler<'_> {
                     crate::ast::Granted::Foretell if hand => GrantedWay::Foretell,
                     crate::ast::Granted::Sneak(c) if !hand => GrantedWay::Sneak(c.clone()),
                     crate::ast::Granted::JumpStart if !hand => GrantedWay::JumpStart,
+                    crate::ast::Granted::Cast(r) if !hand => GrantedWay::Cast(r.clone()),
                     crate::ast::Granted::Ability(a) => {
                         let def = self.ability(a)?;
                         match &def {
@@ -8475,12 +8954,13 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             equip: false,
             cycling: false,
         },
-        Mechanic::Crew(n) => {
+        Mechanic::Crew(n) | Mechanic::CrewOnce(n) => {
             // The Vehicle keeps its printed power and toughness (CR
             // 301.7a).
             Ability::Activated {
                 cost: Cost {
                     crew: *n,
+                    per_turn: u8::from(matches!(m, Mechanic::CrewOnce(_))),
                     ..Default::default()
                 },
                 targets: Vec::new(),
@@ -8499,6 +8979,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     loses_abilities: false,
                     in_addition: false,
                     is_word: false,
+                    ability: None,
                 }),
                 equip: false,
                 cycling: false,

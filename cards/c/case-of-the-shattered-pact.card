@@ -1,0 +1,8 @@
+card "Case of the Shattered Pact" {
+  oracle_id d00a089b-7d0d-4b89-902b-7b914e892178
+  cost {2}
+  type Enchantment — Case
+  triggered when this enters: search basic land card reveal to hand
+  to solve count 5 colors among permanents
+  solved triggered at beginning of your combat: target creature you control gains flying, double strike, and vigilance until end of turn
+}

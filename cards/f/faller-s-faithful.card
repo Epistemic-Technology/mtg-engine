@@ -1,0 +1,7 @@
+card "Faller's Faithful" {
+  oracle_id df7500e8-76b4-49b3-a427-9a28ffa14637
+  cost {2}{B}
+  type Creature — Human Wizard
+  pt 3/1
+  triggered when this enters: destroy up to 1 another target creature; if that target 1 wasnt damaged, its controller draws 2 cards
+}

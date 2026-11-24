@@ -1,0 +1,43 @@
+# A life total against the starting life total (CR 103.4), and "gets an
+# additional +5/+5" (`additional +5/+5`, the same modification).
+
+scenario "Elenda: at the starting life total she is 4/4 without menace" {
+  battlefield A: "Elenda, Saint of Dusk"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Elenda, Saint of Dusk" 4
+  assert has not "Elenda, Saint of Dusk" menace
+}
+
+scenario "Elenda: above the starting life total she gets +1/+1 and menace" {
+  life A 21
+  battlefield A: "Elenda, Saint of Dusk"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Elenda, Saint of Dusk" 5
+  assert toughness "Elenda, Saint of Dusk" 5
+  assert has "Elenda, Saint of Dusk" menace
+}
+
+scenario "Elenda: 10 or more above it she gets an additional +5/+5" {
+  life A 30
+  battlefield A: "Elenda, Saint of Dusk"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Elenda, Saint of Dusk" 10
+  assert toughness "Elenda, Saint of Dusk" 10
+}
+
+scenario "Elenda: lifelink raises her as life is gained; instants can't target her" {
+  life A 20
+  battlefield A: "Elenda, Saint of Dusk"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Elenda, Saint of Dusk"
+  illegal turn 1 declare_attackers B: cast "Lightning Bolt" targeting "Elenda, Saint of Dusk"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 24
+  assert power "Elenda, Saint of Dusk" 5
+}

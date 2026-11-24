@@ -369,7 +369,7 @@ impl GameState {
         // (the player's order, CR 616.1, is fixed here).
         found.sort_by_key(|(_, r, _, _)| match r {
             Replacement::TokensInstead { .. } => 0,
-            Replacement::Double => 2,
+            Replacement::Double | Replacement::Triple => 2,
             _ => 1,
         });
         for (by, r, creature, artifact) in found {
@@ -382,10 +382,11 @@ impl GameState {
                 continue;
             }
             match r {
-                Replacement::Double => {
+                Replacement::Double | Replacement::Triple => {
+                    let by = if r == Replacement::Triple { 3 } else { 2 };
                     for (d, k) in &mut out {
                         if covers(self, *d, creature, artifact) {
-                            *k = k.saturating_mul(2);
+                            *k = k.saturating_mul(by);
                         }
                     }
                 }
@@ -622,6 +623,7 @@ impl GameState {
                 Replaces::ToGraveyard {
                     whose,
                     from_battlefield,
+                    tokens,
                 },
                 Proposed::ZoneChange {
                     obj,
@@ -629,7 +631,13 @@ impl GameState {
                     ..
                 },
             ) => self.objects.get(*obj).is_some_and(|o| {
-                whose_ok(*whose, o.owner) && (!*from_battlefield || o.zone == Zone::Battlefield)
+                whose_ok(*whose, o.owner)
+                    && (!*from_battlefield || o.zone == Zone::Battlefield)
+                    // "If a card would be put into your graveyard": a token
+                    // isn't a card (CR 108.2).
+                    && (*tokens
+                        || *whose == crate::card::Who::Any
+                        || o.kind == crate::state::ObjKind::Card)
             }),
             (
                 Replaces::ThisToGraveyard,
@@ -1257,7 +1265,9 @@ impl GameState {
                     }),
                 }
             }
-            (Replacement::Prevent, Proposed::GainLife { .. }) => {
+            // "Skip that draw instead." (Living Conundrum, CR 614.10).
+            (Replacement::Prevent, Proposed::GainLife { .. })
+            | (Replacement::SkipDraw, Proposed::Draw { .. }) => {
                 self.emit(Event::Replaced { by: c.def });
                 Outcome::Nothing
             }
@@ -1560,7 +1570,7 @@ impl GameState {
                 })
             }
             (
-                Replacement::EnterTappedUnlessReveal { filter, or },
+                Replacement::EnterTappedUnlessReveal { filter, or, behold },
                 Proposed::ZoneChange {
                     obj,
                     to,
@@ -1579,8 +1589,18 @@ impl GameState {
                         f.matches(id, controller, &c, Some(obj), Some(controller))
                     }
                 });
+                // "you may behold a Jace": a Jace they control will do
+                // (chosen, not revealed).
+                let permanent = behold && card.is_none() && {
+                    let f = &f;
+                    self.permanents_of(controller).any(|id| {
+                        self.characteristics(id).is_some_and(|c| {
+                            f.matches(id, controller, &c, Some(obj), Some(controller))
+                        })
+                    })
+                };
                 let def = self.objects[obj].def;
-                let revealed = card.is_some()
+                let revealed = (card.is_some() || permanent)
                     && self.choose_mid(
                         controller,
                         DecisionKind::YouMay { def },

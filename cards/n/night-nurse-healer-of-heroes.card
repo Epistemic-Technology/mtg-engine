@@ -1,0 +1,8 @@
+card "Night Nurse, Healer of Heroes" {
+  oracle_id e3559565-0512-4525-addb-bf27903bcd13
+  cost {1}{W}
+  type Legendary Creature — Human Doctor Hero
+  pt 2/1
+  keywords flash, lifelink
+  triggered when this enters: choose target permanent card from your graveyard put there from anywhere this turn; return target 1 to hand
+}

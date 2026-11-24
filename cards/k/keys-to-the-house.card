@@ -1,0 +1,7 @@
+card "Keys to the House" {
+  oracle_id 62320290-ac8e-4f92-bb06-3368f66ae0a9
+  cost {1}
+  type Artifact
+  activated {1}, {T}, sacrifice this: search basic land card reveal to hand
+  activated {3}, {T}, sacrifice this, sorcery: lock or unlock a door of target Room you control
+}

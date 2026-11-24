@@ -1,0 +1,8 @@
+card "Shadowspear" {
+  oracle_id 8b27326f-e7b8-4a4d-b589-df459246d19a
+  cost {1}
+  type Legendary Artifact — Equipment
+  static enchanted: +1/+1, has trample, lifelink
+  activated {1}: each permanent your opponents control loses hexproof, indestructible
+  equip {2}
+}

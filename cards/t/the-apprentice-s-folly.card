@@ -1,0 +1,13 @@
+card "The Apprentice's Folly" {
+  oracle_id f45542a0-0d49-4b56-9c3e-663ff8d0529a
+  cost {2}{U}{R}
+  type Enchantment — Saga
+  triggered chapter 1, 2: choose target nontoken creature you control that doesn't have same name as token you control; create token copy of target 1 with exceptions
+  triggered chapter 3: sacrifice all Reflection you control
+  except {
+    not legendary
+    subtypes Reflection
+    keywords haste
+    and is
+  }
+}

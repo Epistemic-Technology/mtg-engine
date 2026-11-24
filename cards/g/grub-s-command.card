@@ -1,0 +1,11 @@
+card "Grub's Command" {
+  oracle_id 8173e160-9a22-43f7-90d1-9ada043bc1b7
+  cost {3}{B}{R}
+  type Kindred Sorcery — Goblin
+  choose two {
+    mode: create token copy of target Goblin you control
+    mode: all creature target player controls get +1/+1 and gain haste
+    mode: destroy target artifact or creature
+    mode: target player mills 5 cards then target 1 puts all Goblin card from among milled this way cards into hand chosen
+  }
+}

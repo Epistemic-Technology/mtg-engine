@@ -1,0 +1,7 @@
+card "Spikeshell Harrier" {
+  oracle_id 23102d8a-3a93-4e83-af5b-401c85ba9dbc
+  cost {4}{U}
+  type Artifact Creature — Robot Turtle
+  pt 4/4
+  triggered when this enters: return target creature or Vehicle an opponent controls to hand; reduce speed of controller of that target 1
+}

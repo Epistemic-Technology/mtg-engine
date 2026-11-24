@@ -1,0 +1,6 @@
+card "No Witnesses" {
+  oracle_id 0639bd82-084f-47d5-b158-05dfc29efa40
+  cost {2}{W}{W}
+  type Sorcery
+  spell: each player who controls most creature investigates; then destroy each creature
+}

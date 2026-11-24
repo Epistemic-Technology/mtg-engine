@@ -209,7 +209,11 @@ impl GameState {
                     // "Enchant player" (CR 303.4, 702.5): attached to a
                     // player still in the game.
                     && !o.attached_player().is_some_and(|p| {
-                        spec == TargetSpec::Player && self.player(p).lost.is_none()
+                        spec == TargetSpec::Player
+                            && self.player(p).lost.is_none()
+                            // CR 702.16c: not enchanted by anything a
+                            // player it has protection from controls.
+                            && !self.protected_from_player(p, o.controller)
                     })
                 {
                     // CR 702.103f: a bestowed Aura not attached (or
@@ -464,7 +468,6 @@ impl GameState {
             }
             let mut by_name: HashMap<&str, Vec<ObjId>> = HashMap::new();
             for id in self.permanents_of(p) {
-                let def = self.pool.get(self.objects[id].def);
                 // "Except it isn't legendary" (CR 707.9b): a copy
                 // exception can take the supertype away, or add it.
                 if self.legend_of(&self.objects[id])
@@ -473,7 +476,12 @@ impl GameState {
                             c.supertypes.contains(crate::card::Supertype::Legendary)
                         }))
                 {
-                    by_name.entry(def.name.as_str()).or_default().push(id);
+                    // "except his name is Chameleon, Master of Disguise":
+                    // the copy's own name (CR 707.9b).
+                    by_name
+                        .entry(self.obj_name(&self.objects[id]))
+                        .or_default()
+                        .push(id);
                 }
             }
             let mut groups: Vec<Vec<ObjId>> =

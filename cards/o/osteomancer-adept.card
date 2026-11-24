@@ -1,0 +1,8 @@
+card "Osteomancer Adept" {
+  oracle_id 791cbb7c-7935-4902-b050-9ea9d030e9fa
+  cost {1}{B}
+  type Creature — Squirrel Warlock
+  pt 2/2
+  keywords deathtouch
+  activated {T}: graveyard cast this turn creature cards by forage finality
+}

@@ -1,0 +1,7 @@
+card "Step Between Worlds" {
+  oracle_id 48b43d53-9a8a-47a2-8610-a54d276d7be7
+  cost {3}{U}{U}
+  type Sorcery
+  spell: each player may shuffle hand and graveyard into library; each player who does draws 7 cards; exile this
+  plot {4}{U}{U}
+}

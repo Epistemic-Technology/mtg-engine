@@ -58,6 +58,8 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         created_at: None,
         no_trigger_amount: false,
         in_spell: false,
+        in_activated: false,
+        that_spell_spent: false,
         group_named: false,
         subject: None,
         subject_each: false,
@@ -755,6 +757,13 @@ struct P {
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
     in_spell: bool,
+    /// Inside an activated ability's effects: `it` after an object target
+    /// is that target, elsewhere the source.
+    in_activated: bool,
+    /// A `that spell spent N mana` condition has been read in this
+    /// ability: after it, `that much` in a cast trigger is the mana spent
+    /// to cast that spell (Tellah, Great Sage).
+    that_spell_spent: bool,
     /// A group (`each <filter>`, `creatures you control`) has been named
     /// in this ability, for `them` and `those creatures` after it.
     group_named: bool,
@@ -1515,6 +1524,18 @@ impl P {
                             except.not_legendary = true;
                             self.end_stmt()?;
                         }
+                        // "... sacrifice this creature" in a spell's copy.
+                        Some("noun") if self.word_at(1).as_deref() == Some("creature") => {
+                            self.pos += 2;
+                            except.creature_noun = true;
+                            self.end_stmt()?;
+                        }
+                        // "except his name is Absorbing Man".
+                        Some("named") if self.word_at(1).as_deref() == Some("this") => {
+                            self.pos += 2;
+                            except.own_name = true;
+                            self.end_stmt()?;
+                        }
                         // "it's legendary".
                         Some("legendary") => {
                             self.pos += 1;
@@ -1581,6 +1602,28 @@ impl P {
                 Ok(())
             }
         }
+    }
+
+    /// A permission to cast from a graveyard's rider (`Granted::Cast`,
+    /// `Effect::GraveCastTurn`): `[by pay N life | by forage] [brief]
+    /// [finality]`.
+    fn grave_rider(&mut self, lands: bool) -> R<mtg_core::card::GraveRider> {
+        let mut r = mtg_core::card::GraveRider {
+            lands,
+            ..Default::default()
+        };
+        if self.eat_word("by") {
+            if self.eat_word("forage") {
+                r.forage = true;
+            } else {
+                self.expect_word("pay")?;
+                r.life = self.number()?;
+                self.expect_word("life")?;
+            }
+        }
+        r.brief = self.eat_word("brief");
+        r.finality = self.eat_word("finality");
+        Ok(r)
     }
 
     /// The rest of `static [each] <filter> card [or <filter> card] in your
@@ -1651,6 +1694,11 @@ impl P {
             Some("jump") if self.word_at(1).as_deref() == Some("start") => {
                 self.pos += 2;
                 crate::ast::Granted::JumpStart
+            }
+            Some(w @ ("cast" | "play")) if zone == mtg_core::state::Zone::Graveyard => {
+                let lands = w == "play";
+                self.pos += 1;
+                crate::ast::Granted::Cast(self.grave_rider(lands)?)
             }
             _ => {
                 let a = self.ability()?;
@@ -1765,7 +1813,24 @@ impl P {
                     count: Num::N(n),
                 });
             }
+            // `add chosen count each ...`: "Choose a color. Add one mana of
+            // that color for each ..." (Loot, the Nexus).
+            if self.at_word("count") {
+                return Ok(Effect::AddManaTimes {
+                    mana: Mana::Chosen,
+                    count: self.num()?,
+                });
+            }
             return Ok(Effect::AddMana(vec![Mana::Chosen]));
+        }
+        // CR 106.12: "add one mana of any type that land produced".
+        if self.eat_word("produced") {
+            return Ok(Effect::AddManaProduced);
+        }
+        // "For each color among permanents you control, add one mana of
+        // that color."
+        if self.eat_words(&["each", "color", "among"]) {
+            return Ok(Effect::AddManaColorsAmong(self.filter()?));
         }
         // CR 903.4f: "one mana of any color in your commander's color
         // identity".
@@ -1835,6 +1900,29 @@ impl P {
                 });
             }
             return Ok(Effect::AddMana(vec![Mana::Any]));
+        }
+        // `add x {G} or x {W} count where ...`: "Add X {G} or X {W}".
+        if self.at_word("x") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
+            let mut mana = Vec::new();
+            loop {
+                self.expect_word("x")?;
+                match self.mana_cost()?.symbols() {
+                    [mtg_core::mana::ManaSymbol::Colored(c)] => mana.push(Mana::Colored(*c)),
+                    _ => return self.unexpected("one colored mana symbol after `x`"),
+                }
+                if !self.eat_word("or") {
+                    break;
+                }
+            }
+            if mana.len() < 2 {
+                return self.unexpected("`or x {W}`");
+            }
+            let count = self.num()?;
+            return Ok(Effect::AddManaOneOfTimes {
+                mana,
+                count,
+                each: false,
+            });
         }
         let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");
         if x || matches!(self.peek(), Some(Tok::Num(_))) {
@@ -1949,6 +2037,15 @@ impl P {
                     _ => return self.unexpected("one mana symbol after `or`"),
                 }
             }
+            // `add {R} or {G} count each Raccoon you control`.
+            if self.at_word("count") {
+                let count = self.num()?;
+                return Ok(Effect::AddManaOneOfTimes {
+                    mana: out,
+                    count,
+                    each: true,
+                });
+            }
             return Ok(Effect::AddManaOneOf(out));
         }
         // `add {R} that much` (Raphael's "add that much {R}").
@@ -1972,7 +2069,14 @@ impl P {
     fn spend_only_suffix(&mut self, e: Effect) -> R<Effect> {
         // `spent on Dragon creature spell: you gain 2 life`: "When you
         // spend this mana to cast a Dragon creature spell, ...".
-        if self.eat_words(&["spent", "on"]) {
+        let wording = if self.eat_words(&["when", "spent", "on"]) {
+            Some(1)
+        } else if self.eat_words(&["spent", "on"]) {
+            Some(0)
+        } else {
+            None
+        };
+        if let Some(wording) = wording {
             let spells = self.filter()?;
             self.expect_word("spell")?;
             self.expect(&Tok::Colon)?;
@@ -1983,6 +2087,7 @@ impl P {
                 inner: vec![Sentence::new(vec![e])],
                 spells,
                 then: vec![then],
+                wording,
             });
         }
         if self.at_words(&["only", "to"])
@@ -2446,6 +2551,8 @@ impl P {
         self.created_at = None;
         self.no_trigger_amount = false;
         self.in_spell = false;
+        self.in_activated = false;
+        self.that_spell_spent = false;
         self.group_named = false;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
@@ -2623,11 +2730,26 @@ impl P {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
             }
+            "you" if self.at_words(&["you", "don't", "lose", "unspent", "red", "mana"]) => {
+                self.pos += 6;
+                self.player_static(mtg_core::card::PlayerStaticKind::KeepRedMana)
+            }
+            "you" if self.at_words(&["you", "have", "protection", "from", "opponents"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::ProtectionFromOpponents)
+            }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
             }
             // Chosen-name bans (CR 201.3): Meddling Mage, Pithing Needle.
+            // "Unlock costs you pay cost {1} less." (CR 709.5e).
+            "unlock" if self.at_words(&["unlock", "costs", "you", "pay", "cost"]) => {
+                self.pos += 5;
+                let by = u8::try_from(self.mana_cost()?.mana_value()).unwrap_or(u8::MAX);
+                self.expect_word("less")?;
+                self.player_static(mtg_core::card::PlayerStaticKind::UnlockCost { by })
+            }
             "you"
                 if self.at_words(&["you", "may", "play", "lands", "from", "your", "graveyard"]) =>
             {
@@ -2647,6 +2769,51 @@ impl P {
             {
                 self.pos += 7;
                 self.player_static(mtg_core::card::PlayerStaticKind::OpponentsCantCastYourTurn)
+            }
+            // "During combat, players can't cast spells or activate
+            // abilities that aren't mana abilities.", "During your turn,
+            // your opponents can't cast spells or activate abilities of
+            // artifacts, creatures, or enchantments." (CR 101.2).
+            "during"
+                if self.at_words(&["during", "combat"])
+                    || self.at_words(&["during", "your", "turn", "opponents", "can't"])
+                    || self.at_words(&["during", "your", "turn", "players", "can't"]) =>
+            {
+                use mtg_core::card::{ActivateBan, PlayerStaticKind, RulePlayers, SilenceWhen};
+                self.pos += 1;
+                let during = if self.eat_word("combat") {
+                    SilenceWhen::Combat
+                } else {
+                    self.expect_words(&["your", "turn"])?;
+                    SilenceWhen::YourTurn
+                };
+                let players = if self.eat_word("opponents") {
+                    RulePlayers::Opponents
+                } else {
+                    self.expect_word("players")?;
+                    RulePlayers::Each
+                };
+                self.expect_words(&["can't", "cast", "spells"])?;
+                let activate = if self.eat_words(&["or", "activate", "nonmana", "abilities"]) {
+                    ActivateBan::NonMana
+                } else if self.eat_words(&[
+                    "or",
+                    "activate",
+                    "abilities",
+                    "of",
+                    "artifacts",
+                    "creatures",
+                    "enchantments",
+                ]) {
+                    ActivateBan::ArtifactsCreaturesEnchantments
+                } else {
+                    ActivateBan::None
+                };
+                self.player_static(PlayerStaticKind::Silence {
+                    players,
+                    during,
+                    activate,
+                })
             }
             // "You may pay {0} rather than pay the equip cost of the first
             // equip ability you activate each turn."
@@ -2891,7 +3058,20 @@ impl P {
             }
             "this" if self.at_words(&["this", "spell", "costs"]) => {
                 self.pos += 3;
-                let per = self.mana_cost()?.mana_value();
+                let cost = self.mana_cost()?;
+                // "{1}{U} less if it targets ...": colored symbols apart.
+                let colors: Vec<mtg_core::mana::Color> = cost
+                    .symbols()
+                    .iter()
+                    .filter_map(|s| match s {
+                        mtg_core::mana::ManaSymbol::Colored(c) => Some(*c),
+                        _ => None,
+                    })
+                    .collect();
+                let per = cost.mana_value() - u32::try_from(colors.len()).unwrap_or(0);
+                if !colors.is_empty() && !self.at_words(&["less", "if", "it", "targets"]) {
+                    return self.fail("only a target cost reduction may have colored mana");
+                }
                 if self.at_words(&["less", "if", "it", "targets"])
                     || self.at_words(&["more", "if", "it", "targets"])
                 {
@@ -2909,6 +3089,7 @@ impl P {
                     let n = i32::try_from(per).unwrap_or(0);
                     return Ok(Ability::TargetCost {
                         delta: if less { -n } else { n },
+                        colors,
                         filter,
                         noun,
                     });
@@ -3489,6 +3670,15 @@ impl P {
             {
                 self.pos += 1;
                 let n = self.number()?;
+                // "Crew 1. Activate only once each turn."
+                if w == "crew"
+                    && self.peek() == Some(&Tok::Comma)
+                    && self.word_at(1).as_deref() == Some("once")
+                {
+                    self.pos += 2;
+                    self.end_stmt()?;
+                    return Ok(Ability::Mechanic(Mechanic::CrewOnce(n)));
+                }
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
                     "devour" => Mechanic::Devour(None, n),
@@ -3996,6 +4186,7 @@ impl P {
             }
             "activated" | "boast" | "exhaust" | "power-up" => {
                 self.pos += 1;
+                self.in_activated = true;
                 let mut cost = self.cost()?;
                 cost.keyword = match w.as_str() {
                     "boast" => Some(mtg_core::card::ActivatedKeyword::Boast),
@@ -4014,16 +4205,25 @@ impl P {
             }
             "loyalty" => {
                 self.pos += 1;
+                self.in_activated = true;
                 // "0:" (CR 606.3) is written `loyalty 0:` or `loyalty +0:`.
+                // `loyalty -X:` (CR 606.4, 107.3).
+                let mut x = false;
                 let n = match self.next() {
                     Some(Tok::Signed(n)) => n,
                     Some(Tok::Num(0)) => 0,
-                    _ => return self.fail("expected a loyalty cost such as +1, 0, or -3"),
+                    Some(Tok::Dash) if matches!(self.peek(), Some(Tok::Word(w)) if w == "X") => {
+                        self.pos += 1;
+                        x = true;
+                        0
+                    }
+                    _ => return self.fail("expected a loyalty cost such as +1, 0, -3, or -X"),
                 };
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {
                     cost: Cost {
                         loyalty: Some(n),
+                        loyalty_x: x,
                         sorcery: true,
                         ..Default::default()
                     },
@@ -4187,6 +4387,20 @@ impl P {
                         Some(crate::ast::TrigCond::HadCounter { one_or_more: false })
                     } else if self.eat_words(&["it", "had", "one", "or", "more", "counters"]) {
                         Some(crate::ast::TrigCond::HadCounter { one_or_more: true })
+                    } else if self.eat_words(&[
+                        "its",
+                        "power",
+                        "or",
+                        "toughness",
+                        "greater",
+                        "than",
+                        "this",
+                    ]) {
+                        Some(crate::ast::TrigCond::Outstats)
+                    } else if self.at_word("its")
+                        && let Some(c) = self.its_stat()?
+                    {
+                        Some(c)
                     } else if let Ok(c) = self.condition() {
                         Some(crate::ast::TrigCond::Core(c))
                     } else {
@@ -4322,6 +4536,18 @@ impl P {
             }
             // "As this land enters, you may reveal a Mountain or Forest
             // card from your hand. If you don't, this land enters tapped."
+            // "As this land enters, you may behold a Jace. If you don't,
+            // this land enters tapped." (CR 701.69a).
+            "enters" if self.at_words(&["enters", "tapped", "unless", "behold"]) => {
+                self.pos += 4;
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedUnlessReveal {
+                    filter,
+                    or: None,
+                    behold: true,
+                })
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless", "reveal"]) => {
                 self.pos += 4;
                 let filter = self.filter()?;
@@ -4334,7 +4560,11 @@ impl P {
                     None
                 };
                 self.end_stmt()?;
-                Ok(Ability::EntersTappedUnlessReveal { filter, or })
+                Ok(Ability::EntersTappedUnlessReveal {
+                    filter,
+                    or,
+                    behold: false,
+                })
             }
             "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
                 self.pos += 6;
@@ -4504,6 +4734,8 @@ impl P {
                         BlockRule::AtMostOne
                     } else if self.eat_words(&["by", "creature", "with", "lesser", "power"]) {
                         BlockRule::NotByLesserPower
+                    } else if self.eat_words(&["by", "creature", "with", "greater", "power"]) {
+                        BlockRule::NotByGreaterPower
                     } else if self.eat_words(&["except", "by"]) {
                         // "except by three or more creatures".
                         if matches!(self.peek(), Some(Tok::Num(_)))
@@ -4543,9 +4775,20 @@ impl P {
                 if condition.is_some() && self.at_word("spells") {
                     return self.cost_change(condition);
                 }
+                // "During your turn, you may play cards from your
+                // graveyard.": any card (`card in your graveyard: has play`).
+                if self.at_words(&["card", "in", "your", "graveyard"]) {
+                    return self.card_grant(Filter::default(), false, condition);
+                }
                 let each = self.at_word("each");
                 let plural = !each && self.eat_word("plural");
+                // `you and other Hero you control`, `this and enchantment
+                // creature you control`.
+                let and_you = self.eat_words(&["you", "and"]);
+                let and_this = !and_you && self.eat_words(&["this", "and"]);
                 let mut filter = self.filter()?;
+                filter.and_you = and_you;
+                filter.and_this = and_this;
                 // "Each instant and sorcery card in your graveyard has
                 // flashback." (CR 113.6b).
                 if !plural
@@ -4652,6 +4895,9 @@ impl P {
                 affinity: None,
                 uncounterable: true,
                 spend: None,
+                control: false,
+                conspire: false,
+                casualty: 0,
             });
         }
         if cond.is_none()
@@ -4669,17 +4915,31 @@ impl P {
                 affinity: None,
                 uncounterable: true,
                 spend: None,
+                control: false,
+                conspire: false,
+                casualty: 0,
             });
         }
         // "Instant and sorcery spells you cast [from your hand] have
         // storm", "Spells you cast from your graveyard cost {2} less".
         let from = if whose == Who::You {
             self.spell_from()
+        } else if self.eat_words(&["from", "graveyards", "or", "exile"]) {
+            // "Spells your opponents cast from graveyards or from exile
+            // cost {2} more to cast." (Aven Interrupter).
+            mtg_core::card::SpellFrom::GraveyardOrExile
         } else {
             mtg_core::card::SpellFrom::Anywhere
         };
         if whose == Who::You && cond.is_none() && self.eat_word("have") {
-            return self.spells_have(filter, from);
+            return self.spells_have(filter, from, false);
+        }
+        // "Instant and sorcery spells you control have lifelink." (the
+        // filter read "you control").
+        if mine && whose == Who::Any && cond.is_none() && self.eat_word("have") {
+            let mut filter = filter;
+            filter.who = None;
+            return self.spells_have(filter, from, true);
         }
         self.expect_word("cost")?;
         let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
@@ -4720,6 +4980,8 @@ impl P {
             SpellFrom::Exile
         } else if self.eat_words(&["from", "other", "than", "hand"]) {
             SpellFrom::NotHand
+        } else if self.eat_words(&["from", "graveyards", "or", "exile"]) {
+            SpellFrom::GraveyardOrExile
         } else {
             SpellFrom::Anywhere
         }
@@ -5195,6 +5457,61 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond_one(&mut self) -> R<StaticCond> {
+        if self.eat_words(&["early", "turn"]) {
+            return Ok(StaticCond::EarlyTurn);
+        }
+        if self.eat_words(&["opponent", "dealt", "noncombat", "damage", "last", "turn"]) {
+            return Ok(StaticCond::OpponentNoncombatLastTurn);
+        }
+        // `this plus counters put this turn`, `this not dealt damage`, ...
+        if self.at_word("this") {
+            use mtg_core::card::SourceHistory as H;
+            let not = self.word_at(1).as_deref() == Some("not");
+            let k = 1 + usize::from(not);
+            let forms: [(&[&str], H); 6] = [
+                (
+                    &["plus", "counters", "put", "this", "turn"],
+                    H::CountersPut { plus: true },
+                ),
+                (
+                    &["counters", "put", "this", "turn"],
+                    H::CountersPut { plus: false },
+                ),
+                (
+                    &["dealt", "combat", "damage"],
+                    H::DealtDamage { combat: true },
+                ),
+                (&["dealt", "damage"], H::DealtDamage { combat: false }),
+                (&["entered", "this", "turn"], H::EnteredThisTurn),
+                (&["attacked", "this", "combat"], H::AttackedThisCombat),
+            ];
+            if let Some((ws, what)) = forms.iter().find(|(ws, _)| {
+                ws.iter()
+                    .enumerate()
+                    .all(|(i, w)| self.word_at(k + i).as_deref() == Some(*w))
+                    // `this dealt damage` must not be a longer phrase.
+                    && !matches!(
+                        self.word_at(k + ws.len()).as_deref(),
+                        Some("this" | "to" | "by")
+                    )
+            }) {
+                self.pos += k + ws.len();
+                return Ok(StaticCond::SourceHistory { what: *what, not });
+            }
+        }
+        // `3 cards left your graveyard this turn` (`Tally`).
+        if let Some(Tok::Num(_)) = self.peek()
+            && let Some(what) = crate::ast::Tally::ALL.into_iter().find(|t| {
+                t.words()
+                    .iter()
+                    .enumerate()
+                    .all(|(i, w)| self.word_at(i + 1).as_deref() == Some(*w))
+            })
+        {
+            let n = self.number()?;
+            self.pos += what.words().len();
+            return Ok(StaticCond::Tally { what, n });
+        }
         // `either you control land creature else land entered this turn`:
         // either holds (`else`, where a filter's own `or` would run on).
         if self.eat_word("either") {
@@ -5207,6 +5524,14 @@ impl P {
         // Goblin card".
         if self.eat_words(&["top", "card", "is"]) {
             return Ok(StaticCond::TopCard(self.filter()?));
+        }
+        // `count 5 colors among permanents`: "there are five colors among
+        // permanents you control" (a count at least N).
+        if self.at_word("count") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            let c = self.count_expr()?;
+            return Ok(StaticCond::CountAtLeast(Box::new(c), n));
         }
         // `flash if pay {2} more` (Mystical Tether).
         if self.at_word("pay")
@@ -5227,6 +5552,15 @@ impl P {
         }
         if self.eat_words(&["cast", "from", "anywhere", "other", "than", "hand"]) {
             return Ok(StaticCond::NotCastFromHand);
+        }
+        // Not `not cast from hand this turn` ("you haven't cast a spell
+        // from your hand this turn").
+        if self.at_words(&["not", "cast", "from", "hand"])
+            && !(self.word_at(4).as_deref() == Some("this")
+                && self.word_at(5).as_deref() == Some("turn"))
+        {
+            self.pos += 4;
+            return Ok(StaticCond::WasntCastFromHand);
         }
         if self.eat_words(&["you", "cast", "it"]) {
             return Ok(StaticCond::WasCast);
@@ -5307,6 +5641,9 @@ impl P {
         }
         if self.eat_words(&["library", "empty"]) {
             return Ok(StaticCond::LibraryEmpty);
+        }
+        if self.eat_words(&["no", "cards", "in", "library"]) {
+            return Ok(StaticCond::NoCardsInLibrary);
         }
         if self.eat_words(&["opponent", "controls", "more", "creatures"]) {
             return Ok(StaticCond::OpponentHasMore(
@@ -5412,6 +5749,14 @@ impl P {
         }
         if self.eat_words(&["not", "your", "turn"]) {
             return Ok(StaticCond::NotYourTurn);
+        }
+        if self.eat_words(&["not", "their", "turn"]) {
+            return Ok(StaticCond::NotTheirTurn);
+        }
+        if self.eat_word("attacker") {
+            let filter = self.filter()?;
+            let you = self.eat_words(&["at", "you"]);
+            return Ok(StaticCond::AttackerIs { filter, you });
         }
         if self.eat_words(&["cast", "during", "main", "phase"]) {
             return Ok(StaticCond::CastDuringMain);
@@ -5845,6 +6190,7 @@ impl P {
             return self.spent_cond();
         }
         if self.eat_words(&["that", "spell", "spent"]) {
+            self.that_spell_spent = true;
             let mut c = self.spent_cond()?;
             if let StaticCond::ManaSpent { that, .. } = &mut c {
                 *that = true;
@@ -6685,8 +7031,15 @@ impl P {
     }
 
     /// After `spells <filter> you cast [from hand] have`: convoke,
-    /// improvise, delve, cascade, `storm`, `affinity for <filter>`.
-    fn spells_have(&mut self, filter: Filter, from: mtg_core::card::SpellFrom) -> R<Ability> {
+    /// improvise, delve, cascade, `storm`, `affinity for <filter>`,
+    /// `conspire`, `casualty N`; after `spells <filter> you control have`
+    /// (`control`): lifelink, deathtouch, wither, split second.
+    fn spells_have(
+        &mut self,
+        filter: Filter,
+        from: mtg_core::card::SpellFrom,
+        control: bool,
+    ) -> R<Ability> {
         // CR 609.4b: "You may spend mana as though it were mana of any
         // color to cast planeswalker spells."
         if self.eat_word("spend") {
@@ -6709,16 +7062,25 @@ impl P {
                 affinity: None,
                 uncounterable: false,
                 spend: Some((kind, can, abilities)),
+                control: false,
+                conspire: false,
+                casualty: 0,
             });
         }
         let mut keywords = Vec::new();
         let mut storm = false;
         let mut affinity = None;
+        let mut conspire = false;
+        let mut casualty = 0;
         loop {
-            if self.eat_word("storm") {
+            if !control && self.eat_word("storm") {
                 storm = true;
-            } else if self.eat_words(&["affinity", "for"]) {
+            } else if !control && self.eat_words(&["affinity", "for"]) {
                 affinity = Some(self.filter()?);
+            } else if !control && self.eat_word("conspire") {
+                conspire = true;
+            } else if !control && self.eat_word("casualty") {
+                casualty = u8::try_from(self.number()?).unwrap_or(u8::MAX);
             } else {
                 match self.keyword() {
                     Some(
@@ -6727,10 +7089,22 @@ impl P {
                         | Keyword::Delve
                         | Keyword::Cascade
                         | Keyword::Flash),
-                    ) => keywords.push(k),
-                    _ => return self.fail(
-                        "spells can have convoke, improvise, delve, cascade, storm, or affinity",
-                    ),
+                    ) if !control => keywords.push(k),
+                    // CR 702.15, 702.2, 702.80, 702.61: what the spells
+                    // have on the stack.
+                    Some(
+                        k @ (Keyword::Lifelink
+                        | Keyword::Deathtouch
+                        | Keyword::Wither
+                        | Keyword::SplitSecond),
+                    ) if control => keywords.push(k),
+                    _ => {
+                        return self.fail(
+                            "spells you cast can have convoke, improvise, delve, cascade, storm, \
+                         affinity, conspire, or casualty; spells you control lifelink, \
+                         deathtouch, wither, or split second",
+                        );
+                    }
                 }
             }
             if self.peek() == Some(&Tok::Comma) {
@@ -6751,6 +7125,9 @@ impl P {
             affinity,
             uncounterable: false,
             spend: None,
+            control,
+            conspire,
+            casualty,
         })
     }
 
@@ -6830,12 +7207,23 @@ impl P {
                 } else {
                     crate::ast::TargetTense::Is
                 },
-                also: false,
                 after: true,
-                not: None,
+                ..crate::ast::TargetCheck::default()
             };
             return Ok(Sentence::new(vec![Effect::IfTarget(
                 n - 1,
+                filter,
+                vec![s],
+                check,
+            )]));
+        }
+        // `<sentence> if it was attacking`: "draw a card if it was
+        // attacking" about the triggering object.
+        if self.it_check_ahead().is_some() {
+            let (filter, mut check) = self.it_check()?;
+            check.after = true;
+            return Ok(Sentence::new(vec![Effect::IfTarget(
+                crate::ast::IT_TRIGGER,
                 filter,
                 vec![s],
                 check,
@@ -7503,6 +7891,7 @@ impl P {
 
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
     /// judged on the target's last state.
+    #[allow(clippy::too_many_lines)] // one branch per tense
     fn if_target(&mut self) -> R<Effect> {
         self.pos += 1;
         let full = self.eat_words(&["the", "full"]);
@@ -7557,8 +7946,8 @@ impl P {
                 let check = crate::ast::TargetCheck {
                     tense,
                     also: true,
-                    after: false,
                     not,
+                    ..crate::ast::TargetCheck::default()
                 };
                 return Ok(Effect::IfTarget(n - 1, filter, vec![s], check));
             }
@@ -7572,9 +7961,8 @@ impl P {
                 Err(s) => {
                     let check = crate::ast::TargetCheck {
                         tense,
-                        also: false,
-                        after: false,
                         not,
+                        ..crate::ast::TargetCheck::default()
                     };
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
@@ -7583,14 +7971,21 @@ impl P {
         if full {
             return self.fail("`if the full target N` takes `is`");
         }
-        let tense = if that {
-            self.expect_words(&["was"])?;
-            crate::ast::TargetTense::ThatWas
-        } else if self.eat_word("had") {
-            crate::ast::TargetTense::Had
+        // `if target 1 wasnt attacking, ...`: "If it wasn't attacking"
+        // (negated).
+        let (tense, negated) = if !that && self.eat_word("had") {
+            (crate::ast::TargetTense::Had, false)
         } else {
-            self.expect_words(&["was"])?;
-            crate::ast::TargetTense::Was
+            let negated = self.eat_word("wasnt");
+            if !negated {
+                self.expect_words(&["was"])?;
+            }
+            let tense = if that {
+                crate::ast::TargetTense::ThatWas
+            } else {
+                crate::ast::TargetTense::Was
+            };
+            (tense, negated)
         };
         let f = self.filter()?;
         Self::no_host_check(&f).or_else(|m| self.fail(m))?;
@@ -7604,9 +7999,114 @@ impl P {
             vec![s],
             crate::ast::TargetCheck {
                 tense,
-                also: false,
-                after: false,
-                not: None,
+                negated,
+                ..crate::ast::TargetCheck::default()
+            },
+        ))
+    }
+
+    /// `its toughness was less than 1`, `its power was 4 or greater`, `its
+    /// mana value was 2 or less` after a trigger's `if` (`None` if `its`
+    /// starts something else).
+    fn its_stat(&mut self) -> R<Option<crate::ast::TrigCond>> {
+        use crate::ast::ItStat;
+        use mtg_core::card::Cmp;
+        let at = self.pos;
+        self.pos += 1;
+        let stat = if self.eat_word("power") {
+            ItStat::Power
+        } else if self.eat_word("toughness") {
+            ItStat::Toughness
+        } else if self.eat_words(&["mana", "value"]) {
+            ItStat::ManaValue
+        } else {
+            self.pos = at;
+            return Ok(None);
+        };
+        if !self.eat_word("was") {
+            self.pos = at;
+            return Ok(None);
+        }
+        if self.eat_words(&["less", "than"]) {
+            let n = i16::try_from(self.number()?).unwrap_or(i16::MAX);
+            return Ok(Some(crate::ast::TrigCond::ItsStat {
+                stat,
+                cmp: Cmp::AtMost,
+                less_than: true,
+                n: n - 1,
+            }));
+        }
+        let n = i16::try_from(self.number()?).unwrap_or(i16::MAX);
+        self.expect_word("or")?;
+        let cmp = if self.eat_word("less") {
+            Cmp::AtMost
+        } else {
+            self.expect_word("greater")?;
+            Cmp::AtLeast
+        };
+        Ok(Some(crate::ast::TrigCond::ItsStat {
+            stat,
+            cmp,
+            less_than: false,
+            n,
+        }))
+    }
+
+    /// Whether `if it is ...`, `if it wasnt ...` or `if that land is ...`
+    /// starts here about the triggering object: in a triggered ability
+    /// with one, before any target and outside a reveal. The number of
+    /// words before the filter, the noun after "that", and the verb.
+    fn it_check_ahead(&self) -> Option<(usize, Option<&'static str>, String)> {
+        const NOUNS: [&str; 6] = ["creature", "land", "spell", "permanent", "artifact", "card"];
+        if !self.in_trigger || self.no_trigger_obj || self.revealed || self.it_source {
+            return None;
+        }
+        if !self.at_word("if") {
+            return None;
+        }
+        let (words, noun) = match self.word_at(1).as_deref() {
+            Some("it") => (2, None),
+            Some("that") => {
+                let w = self.word_at(2)?;
+                (3, Some(*NOUNS.iter().find(|n| **n == w)?))
+            }
+            _ => return None,
+        };
+        // After a target, "it" is that target; "that spell" in a cast
+        // trigger is still the spell ("earthbend 1. If that spell is a
+        // Lesson, ...", Toph, Hardheaded Teacher).
+        if self.last_object_target().is_some() && noun != Some("spell") {
+            return None;
+        }
+        let verb = self.word_at(words)?;
+        matches!(verb.as_str(), "is" | "isnt" | "was" | "wasnt").then_some((words + 1, noun, verb))
+    }
+
+    /// `if it is Spider` ("If it's a Spider"), `if that land is Mountain`
+    /// ("If that land is a Mountain"), `if it wasnt attacking`: the
+    /// triggering object (`IT_TRIGGER`), as it is or as it last existed.
+    fn it_check(&mut self) -> R<(Filter, crate::ast::TargetCheck)> {
+        let Some((words, noun, verb)) = self.it_check_ahead() else {
+            return self.fail("expected `if it is ...` about the triggering object");
+        };
+        self.pos += words;
+        let negated = matches!(verb.as_str(), "isnt" | "wasnt");
+        let was = matches!(verb.as_str(), "was" | "wasnt");
+        let filter = self.filter()?;
+        Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
+        let tense = match (was, noun.is_some()) {
+            (false, false) => crate::ast::TargetTense::Is,
+            (false, true) => crate::ast::TargetTense::ThatIs,
+            (true, false) => crate::ast::TargetTense::Was,
+            (true, true) => crate::ast::TargetTense::ThatWas,
+        };
+        Ok((
+            filter,
+            crate::ast::TargetCheck {
+                tense,
+                negated,
+                noun,
+                ..crate::ast::TargetCheck::default()
             },
         ))
     }
@@ -7664,6 +8164,17 @@ impl P {
                 wording: ThisWayWording::The(noun),
             });
         }
+        // `you put no cards into hand this way`: "If you put no cards into
+        // your hand this way" (nothing was put there).
+        if self.eat_words(&["you", "put", "no", "cards", "into", "hand", "this", "way"]) {
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::PutInHand,
+                filter: None,
+                card: true,
+                negated: true,
+                wording: ThisWayWording::You,
+            });
+        }
         if self.eat_word("you") {
             let verb = if self.eat_word("put") {
                 mtg_core::card::ThisWay::PutInHand
@@ -7685,6 +8196,16 @@ impl P {
                 card,
                 negated: false,
                 wording: ThisWayWording::You,
+            });
+        }
+        // `player is damaged this way`: "a player is dealt damage this way".
+        if self.eat_words(&["player", "is", "damaged", "this", "way"]) {
+            return Ok(ThisWayCond {
+                verb: mtg_core::card::ThisWay::DamagedPlayer,
+                filter: None,
+                card: false,
+                negated: false,
+                wording: ThisWayWording::Is,
             });
         }
         let at_least_one = self.eat_words(&["at", "least", "one"]);
@@ -7994,6 +8515,10 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        // "That spell gains deathtouch and lifelink." (`verb_first`).
+        if self.at_words(&["that", "spell", "gains"]) {
+            return self.verb_first();
+        }
         // "For each player, you choose a creature that player controls."
         if self.at_words(&["for", "each", "player"]) && self.peek_at(3) == Some(&Tok::Comma) {
             let by = if self.word_at(4).as_deref() == Some("you")
@@ -8129,6 +8654,10 @@ impl P {
         }
         // "Add {R}. Until end of turn, you don't lose this mana as steps
         // and phases end."
+        if self.at_words(&["keep", "red", "mana", "this", "turn"]) {
+            self.pos += 5;
+            return Ok(Effect::KeepRedManaThisTurn);
+        }
         if self.at_words(&["keep", "mana"]) {
             self.pos += 2;
             let saved = self.subject.take();
@@ -8234,8 +8763,12 @@ impl P {
                 words: crate::ast::DontWords::Plain,
             });
         }
-        // "If you don't, ...": after an optional action that didn't happen.
-        if self.at_words(&["if", "you", "don't"]) && self.peek_at(3) == Some(&Tok::Comma) {
+        // "If you don't, ...": after an optional action that didn't happen
+        // (`if they don't,` after another player's: the same, printed
+        // "If they don't").
+        if (self.at_words(&["if", "you", "don't"]) || self.at_words(&["if", "they", "don't"]))
+            && self.peek_at(3) == Some(&Tok::Comma)
+        {
             self.pos += 4;
             let saved = self.subject.take();
             let s = self.sentence()?;
@@ -8276,6 +8809,19 @@ impl P {
             || self.at_words(&["if", "the", "full", "target"])
         {
             return self.if_target();
+        }
+        if self.it_check_ahead().is_some() {
+            let (filter, check) = self.it_check()?;
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                crate::ast::IT_TRIGGER,
+                filter,
+                vec![s],
+                check,
+            ));
         }
         // `if you dont, ...` / `if you cant, ...` after an action.
         if (self.at_words(&["if", "you", "dont"]) || self.at_words(&["if", "you", "cant"]))
@@ -8614,6 +9160,28 @@ impl P {
                 }
             }
         }
+        // "You have no maximum hand size for the rest of the game."
+        if self.at_words(&[
+            "you", "have", "no", "maximum", "hand", "size", "for", "rest", "of", "game",
+        ]) {
+            self.pos += 10;
+            return Ok(Effect::PlayerRule {
+                who: Recipient::You,
+                kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
+            });
+        }
+        // `you and all permanent you control gain hexproof`: "You and
+        // permanents you control gain hexproof until end of turn."
+        // (Dawn's Truce).
+        if self.at_words(&["you", "and", "all"]) {
+            self.pos += 2;
+            let Recipient::Group(g) = self.recipient()? else {
+                return self.fail("`you and all ...`: a group");
+            };
+            let subject = Recipient::YouAnd(g);
+            self.subject = Some(subject);
+            return self.subject_verb(subject, true);
+        }
         if self.at_recipient() {
             let subjects = self.recipients()?;
             // "up to two target creatures each get": consecutive targets
@@ -8634,6 +9202,7 @@ impl P {
             // and up to one other target creature each get +3/+3".
             let pair = match subjects.as_slice() {
                 [Recipient::You, Recipient::Target(a)] => Some(Recipient::YouAndTarget(*a)),
+                [Recipient::You, Recipient::Group(g)] => Some(Recipient::YouAnd(*g)),
                 [Recipient::Source, Recipient::Target(a)] => Some(Recipient::SourceAndTarget(*a)),
                 _ => None,
             };
@@ -8942,6 +9511,7 @@ impl P {
                     loses_abilities,
                     in_addition: true,
                     is_word: true,
+                    ability: None,
                 })
             }
             // "It's an enchantment." (indefinitely, layer 4).
@@ -9292,6 +9862,7 @@ impl P {
                         loses_abilities: true,
                         in_addition: false,
                         is_word: false,
+                        ability: None,
                     });
                 }
                 if !(self.at_word("becomes") || self.at_word("become")) {
@@ -9308,6 +9879,7 @@ impl P {
                         keywords,
                         indefinite,
                         in_addition,
+                        ability,
                         ..
                     } => Ok(Effect::Animate {
                         to,
@@ -9321,6 +9893,7 @@ impl P {
                         loses_abilities: true,
                         in_addition,
                         is_word: false,
+                        ability,
                     }),
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
@@ -9412,6 +9985,28 @@ impl P {
                     place: crate::ast::LibraryPlace::Shuffle,
                     wording: LibraryWording::By(subject),
                 })
+            }
+            // "Target player mills five cards, then puts each Goblin card
+            // milled this way into their hand." (every one, so no one
+            // chooses).
+            "puts"
+                if self.at_word("all")
+                    && (1..12).any(|k| self.word_at(k).as_deref() == Some("chosen")) =>
+            {
+                self.pos -= 1;
+                let mut e = self.chosen_act()?;
+                if let Effect::ChooseAct {
+                    act: mtg_core::card::ChooseAct::MilledToHand,
+                    this_way: true,
+                    by,
+                    ..
+                } = &mut e
+                {
+                    *by = Some(subject);
+                    Ok(e)
+                } else {
+                    self.fail("`<player> puts all ...` is `... from among milled this way cards into hand chosen`")
+                }
             }
             // "Each player puts a creature card from their graveyard onto
             // the battlefield."
@@ -9566,18 +10161,26 @@ impl P {
             // at random": the player decides and acts (`PlayerMay`).
             // "If the player does, they may copy this spell" (Chain
             // Lightning): the copy is that player's.
+            // "Target opponent may sacrifice two nonland, nontoken
+            // permanents of their choice." (Rakdos, Patron of Chaos);
+            // "Target opponent may have you create two Lander tokens."
             "may"
                 if subject != Recipient::You
                     && (self.at_word("pay")
                         || self.at_word("discard")
+                        || self.at_word("sacrifice")
+                        || self.at_word("shuffle")
+                        || self.at_words(&["have", "you"])
                         || self.at_words(&["copy", "this"])) =>
             {
+                let have_you = self.eat_words(&["have", "you"]);
                 let saved = self.subject.take();
                 let s = self.sentence()?;
                 self.subject = saved;
                 Ok(Effect::PlayerMay {
                     who: subject,
                     inner: vec![s],
+                    have_you,
                 })
             }
             // "Its controller may search their library for ...": the
@@ -9938,12 +10541,15 @@ impl P {
             "can't"
                 if self.at_words(&["play", "lands"])
                     || self.at_words(&["cast", "creature", "spells"])
+                    || self.at_words(&["cast", "spells", "this", "turn"])
                     || self.at_words(&["gain", "life", "this", "turn"]) =>
             {
                 let kind = if self.eat_words(&["play", "lands"]) {
                     mtg_core::card::PlayerRuleKind::CantPlayLands
                 } else if self.eat_words(&["gain", "life"]) {
                     mtg_core::card::PlayerRuleKind::CantGainLife
+                } else if self.eat_words(&["cast", "spells"]) {
+                    mtg_core::card::PlayerRuleKind::CantCastSpells
                 } else {
                     self.expect_words(&["cast", "creature", "spells"])?;
                     mtg_core::card::PlayerRuleKind::CantCastCreatureSpells
@@ -10051,6 +10657,15 @@ impl P {
                 Ok(Effect::PhaseOut { what: subject })
             }
             "connives" => Ok(Effect::Connive { what: subject }),
+            // "Its controller manifests dread." (CR 701.62a).
+            "manifests" if self.at_word("dread") => {
+                self.pos += 1;
+                Ok(Effect::ManifestDreadBy { who: subject })
+            }
+            "becomes" if self.at_word("plotted") => {
+                self.pos += 1;
+                Ok(Effect::BecomePlotted { what: subject })
+            }
             "becomes" if self.at_word("prepared") => {
                 self.pos += 1;
                 Ok(Effect::BecomePrepared { what: subject })
@@ -10313,13 +10928,24 @@ impl P {
                     base = true;
                 }
                 let mut keywords = Vec::new();
+                let mut ability = None;
                 if self.eat_word("with") {
                     loop {
+                        // `with ability { ... }`, `with flying and ability
+                        // { ... }`: a quoted ability it gains.
+                        if self.at_word("ability") && self.peek_at(1) == Some(&Tok::LBrace) {
+                            self.pos += 1;
+                            ability = Some(Box::new(self.nested_ability()?));
+                            break;
+                        }
                         let Some(k) = self.keyword() else {
                             return self.fail("expected a keyword after `with`");
                         };
                         keywords.push(k);
-                        if self.peek() == Some(&Tok::Comma) {
+                        if self.peek() == Some(&Tok::Comma)
+                            || (self.at_word("and")
+                                && self.word_at(1).as_deref() == Some("ability"))
+                        {
                             self.pos += 1;
                         } else {
                             break;
@@ -10352,6 +10978,7 @@ impl P {
                     loses_abilities: false,
                     in_addition,
                     is_word: false,
+                    ability,
                 })
             }
             // "and you create a 1/1 ... token", "Its controller creates a
@@ -10377,6 +11004,25 @@ impl P {
                         it_has,
                         attached,
                         sized,
+                    }),
+                    // "Target player creates a token that's a copy of
+                    // target creature you control" (Echocasting Symposium).
+                    Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count,
+                        tapped,
+                        attacking,
+                        trailing,
+                        ..
+                    } if !attacking => Ok(Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count,
+                        tapped,
+                        attacking,
+                        trailing,
+                        who: Some(subject),
                     }),
                     _ => self.fail("expected a token after `create`"),
                 }
@@ -10478,6 +11124,10 @@ impl P {
         // cards".
         let (up_to, count) = if self.eat_words(&["any", "number"]) {
             (true, Num::N(crate::ast::ANY_NUMBER))
+        } else if self.eat_word("all") {
+            // `put all Elf card from among them into hand chosen`: every
+            // one, none chosen.
+            (false, Num::N(crate::ast::ANY_NUMBER))
         } else {
             (self.eat_words(&["up", "to"]), self.num()?)
         };
@@ -10674,6 +11324,21 @@ impl P {
                 f.who = Some(mtg_core::card::Who::Opponents);
                 (ChooseAct::ExileToGraveyard, f)
             }
+            // `put up to 1 land card discarded this way onto battlefield
+            // tapped chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let d = card_filter(self).is_ok()
+                        && self.at_words(&["discarded", "this", "way", "onto"]);
+                    self.pos = at;
+                    d
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.expect_words(&["discarded", "this", "way", "onto", "battlefield", "tapped"])?;
+                (ChooseAct::DiscardedToBattlefield, f)
+            }
             _ => {
                 let f = card_filter(self)?;
                 self.expect_words(&["from", "among"])?;
@@ -10690,6 +11355,10 @@ impl P {
                 // chosen`.
                 if self.eat_words(&["onto", "battlefield"]) {
                     (ChooseAct::MilledToBattlefield, f)
+                } else if self.eat_words(&["on", "top", "of", "library"]) {
+                    // `put 1 creature or land card from among milled cards
+                    // on top of library chosen`.
+                    (ChooseAct::MilledToTop, f)
                 } else {
                     self.expect_words(&["into", "hand"])?;
                     (ChooseAct::MilledToHand, f)
@@ -10711,6 +11380,7 @@ impl P {
             among_those,
             this_way,
             returns,
+            by: None,
         })
     }
 
@@ -11187,6 +11857,36 @@ impl P {
         }
         let w = self.word()?;
         match w.as_str() {
+            // "exile that spell instead of putting it into your graveyard
+            // as it resolves. If you do, it becomes plotted."
+            // "Unlock a locked door of up to one target Room you control.",
+            // "unlock a locked door of a Room you control", "Lock or
+            // unlock a door of target Room you control." (CR 709.5).
+            "unlock" | "lock"
+                if self.at_words(&["a", "locked", "door", "of"])
+                    || self.at_words(&["or", "unlock", "a", "door", "of"]) =>
+            {
+                let lock = w == "lock";
+                self.pos += if lock { 5 } else { 4 };
+                if !lock && self.eat_words(&["a", "Room", "you", "control"]) {
+                    return Ok(Effect::Door {
+                        what: Recipient::You,
+                        own: true,
+                        lock,
+                    });
+                }
+                let what = self.recipient()?;
+                Ok(Effect::Door {
+                    what,
+                    own: false,
+                    lock,
+                })
+            }
+            "plot" => {
+                let what = self.recipient()?;
+                self.expect_words(&["as", "it", "resolves"])?;
+                Ok(Effect::PlotOnResolve { what })
+            }
             // "Choose a creature type." as the effect resolves.
             "choose"
                 if matches!(
@@ -11449,9 +12149,11 @@ impl P {
                 self.pos += 3;
                 let to = self.recipient()?;
                 // "put its counters on this creature" in a triggered
-                // ability: the triggering object's (Buzzard-Wasp Colony).
+                // ability: the triggering object's (Buzzard-Wasp Colony),
+                // "its" kept for the rendering (Host of the Hereafter: "if
+                // it had counters on it, put its counters on ...").
                 let from = if self.its_counters_triggering(to) {
-                    Recipient::TriggeringObject
+                    Recipient::TriggeringIt
                 } else {
                     Recipient::Source
                 };
@@ -11550,9 +12252,10 @@ impl P {
                 if (0..10).any(|k| {
                     self.word_at(k).as_deref() == Some("onto")
                         && self.word_at(k + 1).as_deref() == Some("battlefield")
-                }) && !(0..8).any(|k| {
+                }) && !(0..16).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
                         && self.word_at(k + 1).as_deref() == Some("hand")
+                        && self.word_at(k + 2).as_deref() == Some("onto")
                 }) =>
             {
                 let what = self.recipient()?;
@@ -11560,17 +12263,25 @@ impl P {
                 self.battlefield_tail(what, true)
             }
             "put"
-                if (0..8).any(|k| {
+                if (0..16).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
                         && self.word_at(k + 1).as_deref() == Some("hand")
+                        && self.word_at(k + 2).as_deref() == Some("onto")
                 }) =>
             {
-                let filter = if self.at_word("card") {
+                let mut filter = if self.at_word("card") {
                     Filter::default()
                 } else {
                     self.filter()?
                 };
                 self.expect_word("card")?;
+                // "a creature card with mana value 3 or less from your
+                // hand", "with total power and toughness 5 or less": the
+                // qualities after the noun.
+                if self.at_word("with") {
+                    let g = self.filter()?;
+                    Self::merge_after_card(&mut filter, &g);
+                }
                 let also = if self.eat_word("and") {
                     let f = self.filter()?;
                     self.expect_word("card")?;
@@ -11706,6 +12417,25 @@ impl P {
                 })
             }
 
+            // "you may behold a Dragon. If you do, ..." (CR 701.69a).
+            "behold" => {
+                let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.count()?
+                } else {
+                    1
+                };
+                let filter = self.filter()?;
+                Ok(Effect::Behold { filter, n })
+            }
+            "reduce" if self.at_words(&["speed", "of"]) => {
+                self.pos += 2;
+                let who = self.recipient()?;
+                Ok(Effect::ReduceSpeed { who })
+            }
+            "dread" if self.at_words(&["card", "to", "hand"]) => {
+                self.pos += 3;
+                Ok(Effect::DreadCardToHand)
+            }
             "put" => {
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -12095,7 +12825,9 @@ impl P {
                 }
                 Ok(Effect::Support(to))
             }
-            "discover" => Ok(Effect::Discover(self.count()?)),
+            "discover" if self.eat_word("again") => Ok(Effect::DiscoverAgain),
+            // "Discover X, where X is that spell's mana value."
+            "discover" => Ok(Effect::Discover(self.num()?)),
             "impulse" => {
                 let count = self.num()?;
                 // `remains`: `forever`, printed "for as long as they remain
@@ -12163,6 +12895,7 @@ impl P {
             }
             "dig" => {
                 let count = self.num()?;
+                let until = self.eat_word("until");
                 let then = self.eat_word("then");
                 let reveal_top = self.eat_word("reveal");
                 self.expect_word("take")?;
@@ -12191,6 +12924,8 @@ impl P {
                 } else {
                     None
                 };
+                // `take creature card at random`: "a random creature card".
+                let at_random = self.eat_words(&["at", "random"]);
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
                 let that_card = revealing && self.eat_words(&["that", "card"]);
@@ -12203,17 +12938,83 @@ impl P {
                 } else {
                     None
                 };
+                // `split land card creature card`: the land cards taken
+                // onto the battlefield tapped, the creature cards into the
+                // hand.
+                let split = if self.eat_word("split") {
+                    let field = self.filter()?;
+                    self.expect_word("card")?;
+                    let hand = self.filter()?;
+                    self.expect_word("card")?;
+                    Some((field, hand))
+                } else {
+                    None
+                };
                 self.expect_word("rest")?;
-                let rest_graveyard = if self.eat_word("graveyard") {
+                let shuffle = self.eat_word("shuffle");
+                let rest_graveyard = if shuffle {
+                    false
+                } else if self.eat_word("graveyard") {
                     true
                 } else {
                     self.expect_word("bottom")?;
                     false
                 };
-                let random = !rest_graveyard && self.eat_word("random");
+                let random = !rest_graveyard && !shuffle && self.eat_word("random");
                 let reword = self.eat_word("reword");
                 let short = self.eat_word("short");
                 let rest_revealed = self.eat_word("revealed");
+                let among = all && self.eat_word("among");
+                let alt = if self.eat_word("instead") {
+                    use crate::ast::InsteadWording;
+                    let wording = if self.eat_word("lead") {
+                        InsteadWording::Lead
+                    } else if self.eat_word("after") {
+                        InsteadWording::After
+                    } else {
+                        InsteadWording::Trail
+                    };
+                    let end = self.eat_word("end");
+                    let rest = self.eat_word("rest");
+                    let count = if self.eat_word("count") {
+                        Some(self.num()?)
+                    } else {
+                        None
+                    };
+                    let (take, all) = if self.eat_word("take") {
+                        if self.eat_word("all") {
+                            (None, true)
+                        } else if self.eat_word("any") {
+                            (Some(crate::ast::ANY_NUMBER), false)
+                        } else {
+                            (Some(self.number()?), false)
+                        }
+                    } else {
+                        (None, false)
+                    };
+                    let onto = if self.eat_words(&["otherwise", "onto", "battlefield"]) {
+                        Some(self.eat_word("tapped"))
+                    } else {
+                        None
+                    };
+                    if count.is_none() && take.is_none() && !all && onto.is_none() {
+                        return self.fail("a dig's `instead` changes `count`, `take`, or `onto`");
+                    }
+                    self.expect_word("if")?;
+                    let cond = self.instead_cond()?;
+                    Some(Box::new(crate::ast::DigAlt {
+                        cond,
+                        wording,
+                        count,
+                        take,
+                        all,
+                        onto,
+                        end,
+                        rest,
+                    }))
+                } else {
+                    None
+                };
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -12232,6 +13033,12 @@ impl P {
                     then,
                     reword,
                     rest_revealed,
+                    shuffle,
+                    at_random,
+                    split,
+                    among,
+                    alt,
+                    until,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {
@@ -12451,6 +13258,70 @@ impl P {
                 self.expect_words(&["spell", "free"])?;
                 Ok(Effect::NextSpellFree(f))
             }
+            // "the next noncreature spell you cast this turn has affinity
+            // for artifacts".
+            "next"
+                if (0..8).any(|k| {
+                    self.word_at(k).as_deref() == Some("spell")
+                        && self.word_at(k + 1).as_deref() == Some("has")
+                }) =>
+            {
+                let filter = if self.at_word("spell") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                self.expect_words(&["spell", "has", "affinity", "for"])?;
+                let affinity = Some(self.filter()?);
+                Ok(Effect::SpellsThisTurn {
+                    filter,
+                    less: Num::N(0),
+                    affinity,
+                    next: true,
+                })
+            }
+            "spells"
+                if (0..8).any(|k| {
+                    self.word_at(k).as_deref() == Some("cost") && self.word_at(k + 1).is_none()
+                }) =>
+            {
+                let filter = if self.at_word("cost") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                self.expect_word("cost")?;
+                let cost = self.mana_cost()?;
+                self.expect_words(&["less", "this", "turn"])?;
+                let less = if cost.has_x() {
+                    self.num()?
+                } else {
+                    Num::N(cost.mana_value())
+                };
+                Ok(Effect::SpellsThisTurn {
+                    filter,
+                    less,
+                    affinity: None,
+                    next: false,
+                })
+            }
+            "that" if self.at_words(&["spell", "gains"]) => {
+                self.pos += 2;
+                let mut keywords = Vec::new();
+                loop {
+                    match self.keyword() {
+                        Some(k) => keywords.push(k),
+                        None => return self.unexpected("a keyword"),
+                    }
+                    if !self.eat_word("and") {
+                        break;
+                    }
+                }
+                Ok(Effect::SpellGains {
+                    what: Recipient::TriggeringObject,
+                    keywords,
+                })
+            }
             "next" if self.at_word("spell") => {
                 self.expect_words(&["spell", "costs"])?;
                 let n = self.mana_cost()?.mana_value();
@@ -12560,6 +13431,15 @@ impl P {
             }
             // "Creature cards in your graveyard gain \"You may cast this
             // card from your graveyard\" until end of turn."
+            // "Until end of turn, you may cast creature spells from your
+            // graveyard by foraging ..."
+            "graveyard" if self.at_words(&["cast", "this", "turn"]) => {
+                self.pos += 3;
+                let cards = self.filter()?;
+                self.expect_word("cards")?;
+                let rider = self.grave_rider(false)?;
+                Ok(Effect::GraveCastTurn { cards, rider })
+            }
             "grant" if self.at_words(&["graveyard", "cast", "to"]) => {
                 self.pos += 3;
                 let f = self.filter()?;
@@ -12690,12 +13570,18 @@ impl P {
                         self.pos += 3;
                     }
                 }
+                // "a land card with a basic land type".
+                if self.eat_words(&["with", "basic", "land", "type"]) {
+                    filter.basic_land_type = true;
+                }
                 // "a creature card with mana value 6 or greater": the mana
                 // value after the noun.
                 if filter.mana_value.is_none() && self.at_words(&["with", "mana", "value"]) {
                     let g = self.filter()?;
                     filter.mana_value = g.mana_value;
                     filter.status.mana_value_x = g.status.mana_value_x;
+                    // "an artifact card with mana value 4 or 5".
+                    filter.status.mana_value_range = g.status.mana_value_range;
                     if g.same == Some(SameRef::ManaValueAtMostPower) {
                         filter.same = g.same;
                     }
@@ -12942,6 +13828,12 @@ impl P {
             }
             // "Change the target of target spell or ability with a single
             // target" (CR 115.7a).
+            // "You may choose new targets for that spell." (CR 115.7d).
+            "choose" if self.at_words(&["new", "targets", "for"]) => {
+                self.pos += 3;
+                let what = self.recipient()?;
+                Ok(Effect::NewTargets { what })
+            }
             "change" if self.at_words(&["target", "of"]) => {
                 self.pos += 2;
                 let what = self.recipient()?;
@@ -13002,6 +13894,7 @@ impl P {
                         tapped: skip > 0 || trailing,
                         attacking: attack || trailing,
                         trailing,
+                        who: None,
                     });
                 }
                 // `create 2 token copies of this`, `create x token copies
@@ -13026,6 +13919,7 @@ impl P {
                         tapped: skip > 0 || trailing,
                         attacking: attack || trailing,
                         trailing,
+                        who: None,
                     });
                 }
                 let count = self.num()?;
@@ -13436,10 +14330,15 @@ impl P {
 
     fn num(&mut self) -> R<Num> {
         if self.at_words(&["that", "much"]) {
-            // The triggering event's amount: none for a cast, a step, or
-            // life gain ("If eight or more mana was spent to cast that
-            // spell, ... deals that much damage" would deal 0).
-            if self.in_trigger && !self.in_delayed && self.no_trigger_amount {
+            // The triggering event's amount: none for a step or life
+            // gain; for a cast, the mana spent to cast that spell, read
+            // only after a condition on it ("If eight or more mana was
+            // spent to cast that spell, ... deals that much damage").
+            if self.in_trigger
+                && !self.in_delayed
+                && self.no_trigger_amount
+                && !self.that_spell_spent
+            {
                 return self.fail("`that much`: this trigger's event has no amount");
             }
             self.pos += 2;
@@ -13464,6 +14363,20 @@ impl P {
             };
             let expr = self.count_expr()?;
             return self.push_count(crate::ast::Count { expr, style });
+        }
+        // `half up x`: "half X, rounded up" (The Goose Mother's Food
+        // tokens).
+        if self.half_ahead() && self.word_at(2).is_some_and(|w| w.eq_ignore_ascii_case("x")) {
+            let up = self.word_at(1).as_deref() == Some("up");
+            self.pos += 3;
+            return self.push_count(crate::ast::Count {
+                expr: crate::ast::CountExpr::Divided {
+                    by: 2,
+                    up,
+                    inner: Box::new(crate::ast::CountExpr::X),
+                },
+                style: crate::ast::CountStyle::Half,
+            });
         }
         match self.peek() {
             // `2 times that much`: "twice that many" (Angel of Suffering).
@@ -13768,6 +14681,49 @@ impl P {
         if self.eat_words(&["life", "you", "lost", "this", "turn"]) {
             return Ok(CountExpr::LifeLostThisTurn);
         }
+        if self.at_words(&["colors", "among"]) && self.word_at(2).as_deref() != Some("permanents") {
+            self.pos += 2;
+            return Ok(CountExpr::ColorsAmong(self.filter()?));
+        }
+        if self.eat_words(&["card", "types", "among"]) {
+            if self.eat_words(&["spells", "cast", "this", "turn"]) {
+                return Ok(CountExpr::CardTypesCastThisTurn);
+            }
+            if let Some(verb) = self
+                .word_at(0)
+                .and_then(|w| crate::ast::this_way_verb(&w))
+                .filter(|_| self.word_at(1).as_deref() == Some("this"))
+            {
+                self.pos += 1;
+                self.expect_words(&["this", "way"])?;
+                return Ok(CountExpr::CardTypesThisWay(verb));
+            }
+            return Ok(CountExpr::CardTypesAmong(self.filter()?));
+        }
+        if self.eat_words(&["permanent", "types", "in", "your", "graveyard"]) {
+            return Ok(CountExpr::PermanentTypesInGraveyard);
+        }
+        if self.eat_words(&["graveyards", "with"]) {
+            let n = self.number()?;
+            self.expect_word("cards")?;
+            return Ok(CountExpr::GraveyardsWithAtLeast(n));
+        }
+        if self.eat_words(&["counter", "kinds", "among"]) {
+            return Ok(CountExpr::CounterKindsAmong(self.filter()?));
+        }
+        if self.eat_words(&["different", "powers", "among"]) {
+            return Ok(CountExpr::DifferentPowers(self.filter()?));
+        }
+        if self.eat_words(&["most", "sharing", "type"]) {
+            return Ok(CountExpr::SharingCreatureType(self.filter()?));
+        }
+        if self.eat_words(&["difference", "of", "power", "and", "toughness"]) {
+            return Ok(CountExpr::TriggerPtDifference);
+        }
+        if self.at_word("x") || self.at_word("X") {
+            self.pos += 1;
+            return Ok(CountExpr::X);
+        }
         if self.eat_words(&["loyalty", "of", "this"]) {
             return Ok(CountExpr::SourceLoyalty);
         }
@@ -13807,6 +14763,16 @@ impl P {
         if self.eat_words(&["discarded", "this", "turn"]) {
             return Ok(CountExpr::DiscardedThisTurn);
         }
+        // `times descended this turn`, `lands entered this turn`, ...
+        // (`Tally`); "creatures attacked" is only a condition, the count
+        // being `creature attacked this turn`.
+        if let Some(t) = crate::ast::Tally::ALL
+            .into_iter()
+            .find(|t| *t != crate::ast::Tally::CreaturesAttacked && self.at_words(t.words()))
+        {
+            self.pos += t.words().len();
+            return Ok(CountExpr::Tally(t));
+        }
 
         if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
             return Ok(CountExpr::OpponentsMoreCards);
@@ -13822,13 +14788,14 @@ impl P {
         if self.at_word("their")
             && matches!(
                 self.word_at(1).as_deref(),
-                Some("hand" | "library" | "life")
+                Some("hand" | "library" | "life" | "graveyard")
             )
         {
             use mtg_core::card::PlayerCount;
             let what = match self.word_at(1).as_deref() {
                 Some("hand") => PlayerCount::Hand,
                 Some("library") => PlayerCount::Library,
+                Some("graveyard") => PlayerCount::Graveyard,
                 _ => PlayerCount::Life,
             };
             self.pos += 2;
@@ -13861,6 +14828,10 @@ impl P {
         if self.eat_words(&["counters", "on"]) {
             if self.eat_word("this") {
                 return Ok(CountExpr::SourceAllCounters { it: false });
+            }
+            // `counters on creature you control`: every kind, on a group.
+            if !self.at_word("it") {
+                return Ok(CountExpr::CountersAmong(CounterKind::Any, self.filter()?));
             }
             self.expect_word("it")?;
             // In a triggered ability `it` is the triggering object: its
@@ -13901,6 +14872,15 @@ impl P {
                 }
                 return Ok(CountExpr::SourceCounters { kind, it: true });
             }
+            // `+1/+1 counters on land you control`: on a group.
+            let back = self.pos;
+            if !self.at_word("target")
+                && !self.at_word("that")
+                && let Ok(f) = self.filter()
+            {
+                return Ok(CountExpr::CountersAmong(kind, f));
+            }
+            self.pos = back;
         }
         self.pos = at;
         // "for each of those creatures": a group named before.
@@ -13926,6 +14906,22 @@ impl P {
         }
         if self.eat_words(&["greatest", "toughness"]) {
             return Ok(CountExpr::GreatestToughness(self.filter()?));
+        }
+        // `hand of target opponent`: declares the target.
+        if self.at_words(&["hand", "of", "target", "opponent"])
+            || self.at_words(&["hand", "of", "target", "player"])
+        {
+            let opponent = self.word_at(3).as_deref() == Some("opponent");
+            self.pos += 4;
+            self.targets.push(Target::Spec(if opponent {
+                TargetSpec::Opponent
+            } else {
+                TargetSpec::Player
+            }));
+            return Ok(CountExpr::TargetHandDeclared {
+                n: self.targets.len() - 1,
+                opponent,
+            });
         }
         if self.eat_words(&["hand", "of", "target"]) {
             let n = self.number()? as usize;
@@ -13997,7 +14993,12 @@ impl P {
             // Hire): a creature type alone.
             let subtype = matches!(self.peek(), Some(Tok::Word(w))
                 if w.chars().next().is_some_and(char::is_uppercase));
-            let f = if subtype || self.word_at(0).is_some_and(|w| card_type(&w).is_some()) {
+            // "among other creatures you control" (Prime Speaker Zegana).
+            let f = if subtype
+                || self
+                    .word_at(0)
+                    .is_some_and(|w| card_type(&w).is_some() || w == "other")
+            {
                 self.filter()?
             } else {
                 Filter {
@@ -14422,6 +15423,8 @@ impl P {
             created_at: self.created_at,
             no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
+            in_activated: self.in_activated,
+            that_spell_spent: self.that_spell_spent,
             group_named: self.group_named,
             subject: None,
             subject_each: false,
@@ -14447,6 +15450,7 @@ impl P {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
             || (self.at_words(&["up", "to", "x"]) && target(3))
+            || (self.at_words(&["up", "to", "that", "much"]) && target(4))
             || (self.at_words(&["any", "number", "of"])
                 && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
@@ -14462,6 +15466,13 @@ impl P {
         } else if self.eat_words(&["up", "to", "x"]) {
             // "up to X target cards" (CR 601.2c).
             (Num::N(0), Some(Num::X))
+        } else if self.eat_words(&["up", "to", "that", "much"]) {
+            // "choose up to that many target creatures you control" (the
+            // triggering event's amount, known as the targets are chosen).
+            if !self.in_trigger || self.in_delayed || self.no_trigger_amount {
+                return self.fail("`that much`: this trigger's event has no amount");
+            }
+            (Num::N(0), Some(Num::ThatMuch))
         } else if self.eat_words(&["any", "number", "of"]) {
             (Num::N(0), None)
         } else {
@@ -14742,7 +15753,7 @@ impl P {
             && self.word_at(2).as_deref() == Some("who")
             && matches!(
                 self.word_at(3).as_deref(),
-                Some("didn't" | "doesn't" | "can't")
+                Some("didn't" | "doesn't" | "can't" | "does")
             )
             && self.word_at(4).as_deref() != Some("control")
         {
@@ -14751,6 +15762,7 @@ impl P {
             let tense = match self.word_at(3).as_deref() {
                 Some("didn't") => DeclinedTense::Didnt,
                 Some("doesn't") => DeclinedTense::Doesnt,
+                Some("does") => DeclinedTense::Does,
                 _ => DeclinedTense::Cant,
             };
             self.pos += 4;
@@ -14761,6 +15773,17 @@ impl P {
                 tense,
                 tail,
             }));
+        }
+        // "each player who controls the most creatures".
+        if self.eat_words(&["each", "player", "who", "controls", "most"]) {
+            let f = self.filter()?;
+            self.groups.push(f);
+            return Ok(Recipient::MostControl(
+                u16::try_from(self.groups.len() - 1).map_err(|_| ParseError {
+                    line: self.line(),
+                    message: "too many groups".to_string(),
+                })?,
+            ));
         }
         // "each opponent who doesn't control an Elf".
         if self.eat_words(&["each", "opponent", "who", "doesn't", "control"]) {
@@ -14832,6 +15855,15 @@ impl P {
             if self.created_at == Some(self.targets.len()) && !self.at_word("deals") {
                 return Ok(Recipient::CreatedObject);
             }
+            // "Sacrifice Mogg Bombers and it deals 3 damage": the source,
+            // as it last existed, whatever triggered the ability.
+            let after_sacrifice_this = self.pos >= 4
+                && ["sacrifice", "this", "and"].iter().enumerate().all(
+                    |(k, w)| matches!(&self.toks[self.pos - 4 + k].tok, Tok::Word(x) if x == w),
+                );
+            if after_sacrifice_this && self.at_word("deals") {
+                return Ok(Recipient::SourceIt);
+            }
             if self.in_trigger && !self.it_source {
                 // After a target the ability names, `it` is that target
                 // ("put a +1/+1 counter on target creature; it gains
@@ -14854,6 +15886,17 @@ impl P {
             // damage.
             if self.in_spell && !self.targets.is_empty() && !self.at_word("deals") {
                 return Ok(Recipient::Target(self.targets.len() - 1));
+            }
+            // In an activated ability, `it` after an object target is that
+            // target, as in a spell ("Untap target attacking creature an
+            // opponent controls and remove it from combat"; "Exile target
+            // creature card from a graveyard. Create a token that's a copy
+            // of it."), unless it deals the damage.
+            if self.in_activated
+                && !self.at_word("deals")
+                && let Some(n) = self.last_object_target()
+            {
+                return Ok(Recipient::Target(n));
             }
             // In a spell or an activated ability, `it` is the source,
             // printed "it" ("If this spell was kicked, it deals 2 damage").
@@ -15258,6 +16301,17 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::AnOpponent);
         }
+        // "Distribute three +1/+1 counters among up to three target
+        // creatures. They gain vigilance": the variable group's targets,
+        // not a triggering player.
+        if self.at_word("they")
+            && !self.at_words(&["they", "control"])
+            && !self.group_named
+            && matches!(self.targets.last(), Some(Target::Many { .. }))
+        {
+            self.pos += 1;
+            return Ok(Recipient::Target(self.targets.len() - 1));
+        }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
                 // "each creature with flying" is a group, not "each creature";
@@ -15400,12 +16454,43 @@ impl P {
         })
     }
 
+    /// After a cast trigger's `spell`: `with X cost` ("with {X} in its
+    /// mana cost"), `that has adventure` ("that has an Adventure").
+    fn spell_suffix(&mut self, f: &mut Filter) {
+        if self.eat_words(&["with", "x", "cost"]) {
+            f.status.x_in_cost = true;
+        }
+        if self.eat_words(&["that", "has", "adventure"]) {
+            f.status.adventure = true;
+        }
+    }
+
     /// `that targets you or a creature you control`, if there.
     fn spell_targeting(&mut self) -> R<Option<Box<crate::ast::Targeting>>> {
+        // "with a single target".
+        if self.eat_words(&["with", "a", "single", "target"]) {
+            return Ok(Some(Box::new(crate::ast::Targeting {
+                single: true,
+                ..Default::default()
+            })));
+        }
         if !self.eat_words(&["that", "targets"]) {
             return Ok(None);
         }
         let mut t = crate::ast::Targeting::default();
+        // "that targets only a single creature you control".
+        if self.eat_words(&["only", "a", "single"]) {
+            t.single = true;
+            t.filter = Some(self.filter()?);
+            return Ok(Some(Box::new(t)));
+        }
+        // "that targets an opponent or a creature an opponent controls".
+        if self.eat_words(&["an", "opponent"]) {
+            t.opponent = true;
+            if !self.eat_word("or") {
+                return Ok(Some(Box::new(t)));
+            }
+        }
         if self.eat_word("you") {
             t.you = true;
             if !self.eat_word("or") {
@@ -15460,6 +16545,8 @@ impl P {
                         created_at: None,
                         no_trigger_amount: false,
                         in_spell: false,
+                        in_activated: false,
+                        that_spell_spent: false,
                         group_named: false,
                         subject: None,
                         subject_each: false,
@@ -15490,14 +16577,21 @@ impl P {
                         | (Some("defending" | "your"), Some("player" | "opponents"))
                         | (
                             Some("that"),
-                            Some("was" | "entered" | "dealt" | "blocked" | "player" | "share" | "opponent")
+                            Some(
+                                "was" | "entered" | "dealt" | "blocked" | "player" | "share"
+                                    | "opponent" | "doesn't"
+                            )
                         )
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter" | "toxic" | "morph" | "no" | "same"))
+                        | (
+                            Some("with"),
+                            Some("counter" | "toxic" | "morph" | "no" | "same" | "lesser")
+                        )
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
+                        | (Some("crewed" | "saddled"), Some("it"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
                         && !matches!(
@@ -15575,10 +16669,20 @@ impl P {
             f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));
         }
-        let named = self.at_words(&["card", "named", "this", "from"]);
+        let mut named = self.at_words(&["card", "named", "this", "from"]);
         if named {
             self.pos += 2;
             f.same = Some(SameRef::NamedThis);
+        }
+        // "another target creature card with lesser mana value from your
+        // graveyard" (than the triggering object, Jackdaw Savior).
+        if !named
+            && f.same.is_none()
+            && self.at_words(&["card", "with", "lesser", "mana", "value", "from"])
+        {
+            self.pos += 4;
+            f.same = Some(SameRef::LesserManaValue);
+            named = true;
         }
         // "creature card with mana value X or less from your graveyard":
         // the mana value after the noun.
@@ -15689,6 +16793,13 @@ impl P {
                 Who::Any
             };
             self.expect_word("graveyard")?;
+            // `... from a graveyard put there this turn` (`put there from
+            // anywhere this turn`).
+            if self.eat_words(&["put", "there"]) {
+                f.status.put_there_this_turn = true;
+                f.put_there_anywhere = self.eat_words(&["from", "anywhere"]);
+                self.expect_words(&["this", "turn"])?;
+            }
             return Ok(Target::GraveyardCard {
                 filter: f,
                 who,
@@ -15699,6 +16810,23 @@ impl P {
     }
 
     // ---- filters ----
+
+    /// The qualities written after a card noun (`creature card with mana
+    /// value 3 or less`) joined to the filter before it.
+    fn merge_after_card(f: &mut Filter, g: &Filter) {
+        f.mana_value = f.mana_value.or(g.mana_value);
+        f.power = f.power.or(g.power);
+        f.toughness = f.toughness.or(g.toughness);
+        f.keywords.extend(g.keywords.iter().copied());
+        let s = &mut f.status;
+        s.mana_value_x |= g.status.mana_value_x;
+        s.bound = s.bound.or(g.status.bound);
+        s.pt_total = s.pt_total.or(g.status.pt_total);
+        s.mana_value_range = s.mana_value_range.or(g.status.mana_value_range);
+        if g.same == Some(SameRef::ManaValueAtMostPower) {
+            f.same = g.same;
+        }
+    }
 
     #[allow(clippy::too_many_lines)]
     fn filter(&mut self) -> R<Filter> {
@@ -15727,6 +16855,19 @@ impl P {
                             && self.word_at(2).as_deref().and_then(card_type).is_some()));
                 if negation {
                     self.pos += 1;
+                    continue;
+                }
+                // "red, white, or black creature card": one list of colors
+                // (any of them), not "red permanent or ...".
+                let color_list = f.colors.is_some()
+                    && f.types.is_empty()
+                    && f.any_types.is_empty()
+                    && f.subtypes.is_empty()
+                    && (color(&next).is_some()
+                        || next == "or" && self.word_at(2).as_deref().and_then(color).is_some());
+                if color_list {
+                    self.pos += 1;
+                    self.eat_word("or");
                     continue;
                 }
                 // "Bear, Spider, or Wolf", "creature, Vehicle, or nonbasic
@@ -15765,6 +16906,23 @@ impl P {
                     continue;
                 }
                 break;
+            }
+            // `1/1 creature`: exactly that power and toughness.
+            if let Some(&Tok::Pt {
+                power,
+                toughness,
+                signed: false,
+            }) = self.peek()
+                && f.power.is_none()
+                && f.toughness.is_none()
+                && self.word_at(1).is_some()
+            {
+                f.power = Some((Cmp::Exactly, i16::try_from(power).unwrap_or(i16::MAX)));
+                f.toughness = Some((Cmp::Exactly, i16::try_from(toughness).unwrap_or(i16::MAX)));
+                f.pt_word = true;
+                self.pos += 1;
+                consumed += 1;
+                continue;
             }
             let Some(w) = self.word_at(0) else {
                 break;
@@ -15857,6 +17015,15 @@ impl P {
                     f.relation = Relation::Other;
                     f.other_than_this = true;
                     self.pos += 3;
+                }
+                // "other than that creature" (the triggering object).
+                "other"
+                    if self.at_words(&["other", "than", "that", "creature"])
+                        && f.same.is_none()
+                        && consumed > 0 =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::NotTriggering);
                 }
                 "other" | "another" => {
                     f.relation = Relation::Other;
@@ -16231,6 +17398,19 @@ impl P {
                     f.status.dealt_damage = true;
                     self.pos += 5;
                 }
+                "with" if self.at_words(&["with", "counters", "put", "this", "turn"]) => {
+                    f.status.counters_put = true;
+                    self.pos += 5;
+                }
+                "put" if self.at_words(&["put", "there", "this", "turn"]) => {
+                    f.status.put_there_this_turn = true;
+                    self.pos += 4;
+                }
+                "put" if self.at_words(&["put", "there", "from", "anywhere", "this", "turn"]) => {
+                    f.status.put_there_this_turn = true;
+                    f.put_there_anywhere = true;
+                    self.pos += 6;
+                }
                 "that" if self.at_words(&["that", "blocked", "this", "turn"]) => {
                     f.status.blocked_this_turn = true;
                     self.pos += 4;
@@ -16272,6 +17452,50 @@ impl P {
                     f.status.shares_chosen = Some(true);
                     self.pos += 6;
                 }
+                // "a land card with a basic land type".
+                "with"
+                    if !f.basic_land_type && self.at_words(&["with", "basic", "land", "type"]) =>
+                {
+                    self.pos += 4;
+                    f.basic_land_type = true;
+                }
+                // "each creature except for tokens you control".
+                "except"
+                    if !f.status.except_your_tokens
+                        && self.at_words(&["except", "for", "tokens", "you", "control"]) =>
+                {
+                    self.pos += 5;
+                    f.status.except_your_tokens = true;
+                }
+                // "that doesn't have the same name as a token you control".
+                "that"
+                    if f.name_unlike.is_none()
+                        && self.at_words(&["that", "doesn't", "have", "same", "name", "as"]) =>
+                {
+                    self.pos += 6;
+                    let g = self.filter()?;
+                    f.name_unlike = Some(Box::new(g));
+                }
+                // "with the greatest power among creatures they control".
+                "with"
+                    if self.at_words(&["with", "greatest"])
+                        && f.status.greatest.is_none()
+                        && matches!(
+                            self.word_at(2).as_deref(),
+                            Some("power" | "toughness" | "mana")
+                        ) =>
+                {
+                    self.pos += 2;
+                    let w = self.word()?;
+                    f.status.greatest = Some(match w.as_str() {
+                        "power" => mtg_core::card::Stat::Power,
+                        "toughness" => mtg_core::card::Stat::Toughness,
+                        _ => {
+                            self.expect_word("value")?;
+                            mtg_core::card::Stat::ManaValue
+                        }
+                    });
+                }
                 // "with toughness greater than its power".
                 "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {
                     f.status.toughness_over_power = true;
@@ -16306,11 +17530,23 @@ impl P {
                                 NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())
                             }))
                     {
-                        return self.fail(format!(
-                            "`with {what} {n} or ...`: a range of values is not supported"
-                        ));
+                        // ... except a mana value, which may be one of two
+                        // (Transit Mage).
+                        if what == "mana" && f.status.mana_value_range.is_none() {
+                            self.pos += 1;
+                            let m = self.number()?;
+                            f.status.mana_value_range = Some((
+                                u8::try_from(n).unwrap_or(u8::MAX),
+                                u8::try_from(m).unwrap_or(u8::MAX),
+                            ));
+                        } else {
+                            return self.fail(format!(
+                                "`with {what} {n} or ...`: a range of values is not supported"
+                            ));
+                        }
                     }
                     match what.as_str() {
+                        _ if f.status.mana_value_range.is_some() && what == "mana" => {}
                         "power" if either => {
                             let n = i16::try_from(n).unwrap_or(i16::MAX);
                             f.power = Some((cmp, n));
@@ -16334,6 +17570,11 @@ impl P {
                 }
                 "modified" if !f.status.modified => {
                     f.status.modified = true;
+                    self.pos += 1;
+                }
+                // `adventurer`: "that has an Adventure" (CR 715.2a).
+                "adventurer" if !f.status.adventure => {
+                    f.status.adventure = true;
                     self.pos += 1;
                 }
                 // CR 903.3: "commander creatures you own", "a commander".
@@ -16413,6 +17654,18 @@ impl P {
                     f.combat_with = Some(r);
                     self.pos += n;
                 }
+                // "creature that crewed it this turn", "creatures that
+                // saddled it this turn" (CR 702.122, 702.171).
+                "crewed" | "saddled"
+                    if f.combat_with.is_none() && self.word_at(1).as_deref() == Some("it") =>
+                {
+                    f.combat_with = Some(if w == "crewed" {
+                        crate::ast::CombatRef::CrewedIt
+                    } else {
+                        crate::ast::CombatRef::SaddledIt
+                    });
+                    self.pos += 2;
+                }
                 "attacking" if self.at_words(&["attacking", "or", "blocking"]) => {
                     f.attacking = true;
                     or_blocking = true;
@@ -16440,6 +17693,17 @@ impl P {
                 }
                 "damaged" => {
                     f.damaged = true;
+                    self.pos += 1;
+                }
+                // "that aren't of the chosen type": `not of chosen type`.
+                "not"
+                    if f.chosen.is_none()
+                        && !f.status.not_chosen
+                        && (self.at_words(&["not", "of", "chosen"])
+                            || self.at_words(&["not", "of", "that", "type"])
+                            || self.at_words(&["not", "of", "that", "color"])) =>
+                {
+                    f.status.not_chosen = true;
                     self.pos += 1;
                 }
                 // "of the chosen type", "of that type", "of the color of
@@ -16559,6 +17823,14 @@ impl P {
                     self.pos += 3;
                     f.same = Some(SameRef::WithSameController);
                 }
+                // "with lesser mana value" (than the triggering object).
+                "with"
+                    if self.at_words(&["with", "lesser", "mana", "value"]) && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::LesserManaValue);
+                }
+
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
                     self.pos += 3;
@@ -17448,6 +18720,18 @@ impl P {
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
         }
+        if self.eat_words(&["you", "manifest", "dread"]) {
+            return Ok(Trigger::ManifestsDread);
+        }
+        if self.eat_words(&["you", "discover"]) {
+            return Ok(Trigger::Discovers);
+        }
+        if self.eat_words(&["you", "give", "a", "gift"]) {
+            return Ok(Trigger::GivesGift);
+        }
+        if self.eat_words(&["you", "solve", "a", "Case"]) {
+            return Ok(Trigger::SolvesCase);
+        }
         if self.eat_words(&["you", "forage"]) {
             return Ok(Trigger::Forages);
         }
@@ -17876,7 +19160,11 @@ impl P {
                     targeting: self.spell_targeting()?,
                     ..Filter::default()
                 };
-                return Ok(Trigger::CastsFiltered { whose, filter });
+                return Ok(Trigger::CastsFiltered {
+                    whose,
+                    filter,
+                    from: mtg_core::card::SpellFrom::Anywhere,
+                });
             }
             // Repartee: "an instant or sorcery spell that targets a
             // creature" is a filter with targets.
@@ -17884,15 +19172,51 @@ impl P {
                 p.word_at(n).as_deref() == Some("that")
                     && p.word_at(n + 1).as_deref() == Some("targets")
             };
-            let simple = (self.at_word("spell") && !targets_after(self, 1))
-                || self.at_words(&["noncreature", "spell"])
+            // `spell with X cost`, `spell that has adventure`, `spell with
+            // a single target`: a spell's own qualities after the noun.
+            let suffix_after = |p: &Self, n: usize| {
+                targets_after(p, n)
+                    || (p.word_at(n).as_deref() == Some("with")
+                        && matches!(p.word_at(n + 1).as_deref(), Some("x" | "a")))
+                    || (p.word_at(n).as_deref() == Some("that")
+                        && p.word_at(n + 1).as_deref() == Some("has"))
+                    || p.word_at(n).as_deref() == Some("or")
+            };
+            let simple = (self.at_word("spell") && !suffix_after(self, 1))
+                || (self.at_words(&["noncreature", "spell"]) && !suffix_after(self, 2))
                 || (self.at_words(&["instant", "or", "sorcery", "spell"])
-                    && !targets_after(self, 4));
+                    && !suffix_after(self, 4));
             if !simple {
-                let mut filter = self.filter()?;
+                let mut filter = if self.at_word("spell") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
                 self.expect_word("spell")?;
+                self.spell_suffix(&mut filter);
                 filter.targeting = self.spell_targeting()?;
-                return Ok(Trigger::CastsFiltered { whose, filter });
+                // `Equipment spell or spell that targets creature you
+                // control`: "an Equipment spell or a spell that targets a
+                // creature you control".
+                if self.eat_words(&["or", "spell"]) {
+                    let mut alt = Filter::default();
+                    self.spell_suffix(&mut alt);
+                    alt.targeting = self.spell_targeting()?;
+                    filter.or = Some(Box::new(alt));
+                    filter.alt_article = true;
+                }
+                // "... spell from your hand" (Lilah, Undefeated Slickshot).
+                let from =
+                    if filter.targeting.is_none() && self.eat_words(&["from", "your", "hand"]) {
+                        mtg_core::card::SpellFrom::Hand
+                    } else {
+                        mtg_core::card::SpellFrom::Anywhere
+                    };
+                return Ok(Trigger::CastsFiltered {
+                    whose,
+                    filter,
+                    from,
+                });
             }
             let noncreature = self.eat_word("noncreature");
             let instant_or_sorcery = self.eat_words(&["instant", "or", "sorcery"]);
@@ -18487,15 +19811,20 @@ impl P {
                         cost.order.push(CostItem::Sacrifice);
                     }
                     "remove"
-                        if (1..5).any(|k| {
+                        if (1..6).any(|k| {
                             self.word_at(k).as_deref() == Some("from")
                                 && self.word_at(k + 1).as_deref() == Some("this")
                         }) =>
                     {
                         self.pos += 1;
-                        // `remove X ki counters from this` (X the ability's).
+                        // `remove X ki counters from this` (X the ability's);
+                        // `remove any number +1/+1 counters from this`.
                         let n = if self.eat_word("x") {
                             cost.remove_x = true;
+                            0
+                        } else if self.eat_words(&["any", "number"]) {
+                            cost.remove_x = true;
+                            cost.remove_any = true;
                             0
                         } else {
                             self.count()?
@@ -19177,9 +20506,15 @@ impl P {
             }
             self.pos = start;
         }
-        if self.at_words(&["card", "put", "into"]) || self.at_words(&["a", "card", "put", "into"]) {
-            self.eat_word("a");
-            self.pos += 3;
+        let tokens = self.eat_words(&["card", "or", "token", "put", "into"]);
+        if tokens
+            || self.at_words(&["card", "put", "into"])
+            || self.at_words(&["a", "card", "put", "into"])
+        {
+            if !tokens {
+                self.eat_word("a");
+                self.pos += 3;
+            }
             let whose = if self.eat_words(&["an", "opponent's"]) {
                 Who::Opponents
             } else if self.eat_word("your") {
@@ -19195,6 +20530,7 @@ impl P {
             return Ok(Replaces::ToGraveyard {
                 whose,
                 from_battlefield,
+                tokens,
             });
         }
         if matches!(
@@ -19356,6 +20692,7 @@ impl P {
                 }
             }
             "double" => Outcome::Double,
+            "triple" => Outcome::Triple,
             // "reveal it and shuffle it into its owner's library instead".
             "shuffle" => {
                 self.eat_words(&["into", "library"]);
@@ -19403,6 +20740,10 @@ impl P {
             "win" => {
                 self.eat_words(&["the", "game"]);
                 Outcome::WinGame
+            }
+            "skip" => {
+                self.eat_words(&["that", "draw"]);
+                Outcome::SkipDraw
             }
             "tapped" => Outcome::EnterTapped,
             "with" => {
@@ -19475,6 +20816,17 @@ impl P {
 
     #[allow(clippy::too_many_lines)]
     fn modification(&mut self) -> R<Mod> {
+        if self.at_word("additional")
+            && let Some(Tok::Pt {
+                power,
+                toughness,
+                signed: true,
+            }) = self.peek_at(1)
+        {
+            let (power, toughness) = (*power, *toughness);
+            self.pos += 2;
+            return Ok(Mod::ModifyPtAdditional { power, toughness });
+        }
         if let Some(Tok::Pt {
             power,
             toughness,
@@ -19670,6 +21022,8 @@ impl P {
                         })
                     }
                     "color" if set && self.eat_word("chosen") => Ok(Mod::ChosenColor),
+                    // `set colorless`: "is a colorless land" (layer 5).
+                    "colorless" if set => Ok(Mod::SetColors(Vec::new())),
                     "color" | "colors" => {
                         let colors = self.color_list()?;
                         Ok(if set {
@@ -19778,13 +21132,14 @@ fn no_trigger_amount(t: &Trigger) -> bool {
         Trigger::When(t) | Trigger::Next(t) | Trigger::Each(t) | Trigger::OnNextTurn(t) => {
             no_trigger_amount(t)
         }
-        Trigger::Batch(_) => false,
+        // "Whenever you gain life, target opponent loses that much life":
+        // the life gained (CR 119.10).
+        Trigger::Batch(_) | Trigger::GainsLife { .. } => false,
         Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
         Trigger::CastsSpell { .. }
         | Trigger::CastsFiltered { .. }
         | Trigger::CastThis { .. }
         | Trigger::CastsNth { .. }
-        | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. } => true,
         t => {
             no_trigger_object(t)
@@ -19825,6 +21180,10 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::WinsFlip { .. }
         | Trigger::DrawsNth { .. }
         | Trigger::CollectsEvidence
+        | Trigger::ManifestsDread
+        | Trigger::GivesGift
+        | Trigger::Discovers
+        | Trigger::SolvesCase
         | Trigger::Forages
         | Trigger::CreaturesDealCombatDamage(_)
         | Trigger::CreaturesDealDamage(_)

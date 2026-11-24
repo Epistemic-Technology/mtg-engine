@@ -1,0 +1,8 @@
+card "Aurora Awakener" {
+  oracle_id cf9d13e2-bdcc-4c66-95ad-654ef795dbd3
+  cost {6}{G}
+  type Creature — Giant Druid
+  pt 7/7
+  keywords trample
+  label "Vivid" triggered when this enters: dig count where colors among permanents until take any permanent card may onto battlefield rest bottom random revealed
+}

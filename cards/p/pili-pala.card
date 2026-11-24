@@ -1,0 +1,8 @@
+card "Pili-Pala" {
+  oracle_id ad97333e-733c-402f-8ca3-e836c96b843c
+  cost {2}
+  type Artifact Creature — Scarecrow
+  pt 1/1
+  keywords flying
+  activated {2}, {Q}: add any
+}

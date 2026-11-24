@@ -1,0 +1,9 @@
+card "Plaxmanta" {
+  oracle_id 36780340-824d-420b-b41b-182f88d944de
+  cost {1}{U}
+  type Creature — Beast
+  pt 2/2
+  keywords flash
+  triggered when this enters: each creature you control gains shroud
+  triggered whenever this enters: sacrifice this unless spent {G}
+}

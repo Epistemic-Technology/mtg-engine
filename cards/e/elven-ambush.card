@@ -1,0 +1,6 @@
+card "Elven Ambush" {
+  oracle_id a2373025-20c1-4416-91f7-e51f68dbd146
+  cost {3}{G}
+  type Instant
+  spell: create count each Elf you control "1/1 green Elf Warrior creature"
+}

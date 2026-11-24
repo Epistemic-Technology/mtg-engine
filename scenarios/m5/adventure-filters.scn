@@ -1,0 +1,76 @@
+# "Has an Adventure" (CR 715.2a): a card with an Adventure, used or not,
+# counted with instant and sorcery cards ("cards in your graveyard that
+# are instant cards, sorcery cards, and/or have an Adventure").
+
+scenario "has an Adventure: Frantic Firebolt counts instants, sorceries and adventurer cards" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Colossal Dreadmaw"
+  graveyard A: "Shock", "Divination", "Heartflame Duelist", "Grizzly Bears"
+  hand A: "Frantic Firebolt"
+  turn 1 A: cast "Frantic Firebolt" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert damage "Colossal Dreadmaw" 5
+}
+
+scenario "has an Adventure: with no such card, Frantic Firebolt deals 2" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Colossal Dreadmaw"
+  graveyard A: "Grizzly Bears", "Forest"
+  hand A: "Frantic Firebolt"
+  turn 1 A: cast "Frantic Firebolt" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert damage "Colossal Dreadmaw" 2
+}
+
+scenario "has an Adventure: Hearth Elemental costs {1} less for each" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Shock", "Heartflame Duelist", "Divination"
+  hand A: "Hearth Elemental"
+  turn 1 A: cast "Hearth Elemental"
+  run_to turn 1 end
+  assert battlefield A contains "Hearth Elemental"
+}
+
+scenario "has an Adventure: a creature card without one doesn't reduce Hearth Elemental" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Shock", "Grizzly Bears", "Divination"
+  hand A: "Hearth Elemental"
+  illegal turn 1 precombat_main A: cast "Hearth Elemental"
+  run_to turn 1 end
+  assert hand A contains "Hearth Elemental"
+}
+
+scenario "has an Adventure: Stoke Genius discards the hand and draws two" {
+  battlefield A: 2 "Mountain"
+  hand A: "Hearth Elemental", "Forest", "Island"
+  turn 1 A: cast "Stoke Genius"
+  run_to turn 1 end
+  assert graveyard A contains "Forest"
+  assert hand A count 2
+  assert exile A contains "Hearth Elemental"
+}
+
+scenario "creature spell that has an Adventure: Garenbrig Squire gets +1/+1" {
+  battlefield A: "Garenbrig Squire", 2 "Plains"
+  hand A: "Heartflame Duelist"
+  turn 1 A: cast "Heartflame Duelist"
+  run_to turn 1 postcombat_main
+  assert power "Garenbrig Squire" 3
+}
+
+scenario "creature spell that has an Adventure: not the Adventure spell itself" {
+  battlefield A: "Garenbrig Squire", 3 "Mountain"
+  hand A: "Heartflame Duelist"
+  turn 1 A: cast "Heartflame Slash" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Garenbrig Squire" 2
+  assert life B 17
+}
+
+scenario "creature spell that has an Adventure: not a creature without one" {
+  battlefield A: "Garenbrig Squire", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Garenbrig Squire" 2
+}

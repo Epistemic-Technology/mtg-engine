@@ -1,0 +1,9 @@
+card "Amphibian Downpour" {
+  oracle_id a4280cea-386b-450d-a7e9-29c7aa58ce5a
+  cost {2}{U}
+  type Enchantment — Aura
+  keywords flash
+  storm
+  enchant creature
+  static enchanted: loses all abilities, set color blue, set subtype Frog, set type creature, base 1/1
+}

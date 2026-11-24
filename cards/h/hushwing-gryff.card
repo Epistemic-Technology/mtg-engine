@@ -1,0 +1,8 @@
+card "Hushwing Gryff" {
+  oracle_id a0d615b3-7ee3-43d7-ad37-5f7f1544a8db
+  cost {2}{W}
+  type Creature — Hippogriff
+  pt 2/1
+  keywords flash, flying
+  trigger never permanent when creature enters
+}

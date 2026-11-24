@@ -1,0 +1,8 @@
+card "Starfield Mystic" {
+  oracle_id 2975590d-6a5b-41e5-8a3b-e9325e71226a
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  spells enchantment you cast cost {1} less
+  triggered whenever enchantment you control dies: put 1 +1/+1 counter on this
+}

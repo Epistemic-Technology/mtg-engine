@@ -1,0 +1,6 @@
+card "Hurl into History" {
+  oracle_id 016718df-2eb5-499f-adea-18231c0375b3
+  cost {3}{U}{U}
+  type Instant
+  spell: counter target artifact or creature spell; discover count where mana value of that target 1
+}

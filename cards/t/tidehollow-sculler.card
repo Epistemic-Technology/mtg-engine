@@ -1,0 +1,8 @@
+card "Tidehollow Sculler" {
+  oracle_id 51b55057-8b14-4277-894b-4813b4f7eb39
+  cost {W}{B}
+  type Artifact Creature — Zombie
+  pt 2/2
+  triggered whenever this enters: target opponent reveals hand and exiling nonland card
+  triggered when this leaves the battlefield: return exiled card to hand
+}

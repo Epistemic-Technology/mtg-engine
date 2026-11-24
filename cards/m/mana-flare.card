@@ -1,0 +1,6 @@
+card "Mana Flare" {
+  oracle_id 97159138-c34b-416e-b079-5c952383a243
+  cost {2}{R}
+  type Enchantment
+  triggered whenever land is tapped for mana: add produced
+}

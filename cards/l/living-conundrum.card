@@ -1,0 +1,9 @@
+card "Living Conundrum" {
+  oracle_id 378ae023-04d3-44cc-9248-3d787796ed6c
+  cost {4}{U}
+  type Creature — Elemental
+  pt 2/5
+  keywords hexproof
+  replace you draw while your library has no cards in it: skip
+  static as long as no cards in library, this: base 10/10, has flying, vigilance
+}

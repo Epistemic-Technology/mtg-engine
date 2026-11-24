@@ -1,0 +1,11 @@
+card "Electro, Assaulting Battery" {
+  oracle_id 3db16fb8-5650-4568-b975-42ad3d44ebcd
+  cost {1}{R}{R}
+  type Legendary Creature — Human Villain
+  pt 2/3
+  pronoun he
+  keywords flying
+  you don't lose unspent red mana
+  triggered whenever you cast an instant or sorcery spell: add {R}
+  triggered when this leaves the battlefield: you may pay {X}; when you do, deal X damage to target player
+}

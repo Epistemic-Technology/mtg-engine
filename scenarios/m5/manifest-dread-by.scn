@@ -1,0 +1,59 @@
+# "Its controller manifests dread" (CR 701.62a: a player other than the
+# effect's controller manifests dread) and "Whenever you manifest dread,
+# put a card you put into your graveyard this way into your hand."
+
+scenario "Unwanted Remake: the destroyed creature's controller manifests dread" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Unwanted Remake"
+  library B: "Hill Giant", "Forest"
+  turn 1 A: cast "Unwanted Remake" targeting "Grizzly Bears"
+  turn 1 B: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "face-down creature"
+  assert battlefield A lacks "face-down creature"
+  assert power B "face-down creature" 2
+}
+
+scenario "Fear of Impostors: the countered spell's controller manifests dread" {
+  battlefield A: "Mountain"
+  battlefield B: 3 "Island"
+  hand A: "Lightning Bolt"
+  hand B: "Fear of Impostors"
+  library A: "Forest", "Hill Giant"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Fear of Impostors"
+  turn 1 B: trigger "Fear of Impostors" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+  assert battlefield A contains "face-down creature"
+  assert battlefield B lacks "face-down creature"
+}
+
+scenario "Paranormal Analyst: the card put into the graveyard goes to hand" {
+  battlefield A: "Paranormal Analyst", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Unwanted Remake"
+  library A: "Hill Giant", "Forest"
+  library B: "Serra Angel", "Island"
+  turn 1 A: cast "Unwanted Remake" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Island"
+  assert hand A lacks "Island"
+  assert hand B lacks "Island"
+}
+
+scenario "Paranormal Analyst: its controller's own manifest dread" {
+  battlefield A: "Paranormal Analyst", 4 "Forest"
+  hand A: "Threats Around Every Corner"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: cast "Threats Around Every Corner"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A lacks "Forest"
+  assert graveyard A lacks "Hill Giant"
+  assert battlefield A contains "face-down creature"
+}

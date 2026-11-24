@@ -72,7 +72,19 @@ pub struct TargetCheck {
     /// target 1 is not creature` ("If it's not a creature"): the check is
     /// the filter with those types negated (`noncreature`). Wording only.
     pub not: Option<NotWording>,
+    /// `if target 1 wasnt attacking` ("If it wasn't attacking"), `if that
+    /// target 1 wasnt damaged` ("If that creature wasn't dealt damage this
+    /// turn"): the sentence happens if the target doesn't match.
+    pub negated: bool,
+    /// `if that land is Mountain` about the triggering object
+    /// (`IT_TRIGGER`): the noun printed after "that".
+    pub noun: Option<&'static str>,
 }
+
+/// `Effect::IfTarget`'s index for a check of the triggering object, not a
+/// target: `if it is Spider, ...` ("If it's a Spider, ..."), `if that land
+/// is Mountain, ...`, `draw 1 card if it was attacking`.
+pub const IT_TRIGGER: usize = usize::MAX;
 
 /// How a negated target check prints its "not".
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -705,6 +717,9 @@ pub enum CountExpr {
     CreaturesEnteredThisTurn,
     /// `discarded this turn`: "for each card you've discarded this turn".
     DiscardedThisTurn,
+    /// `times descended this turn`, `lands entered this turn`, ...: a
+    /// turn-log count worded by its own phrase (`Tally`).
+    Tally(Tally),
     /// `opponents more cards in hand`: "for each opponent who has more
     /// cards in hand than you".
     OpponentsMoreCards,
@@ -754,6 +769,48 @@ pub enum CountExpr {
     CreaturesLeftThisTurn,
     /// `colors of target 1`: "for each of its colors".
     TargetColors(usize),
+    /// `colors among Ally you control`: "for each color among Allies you
+    /// control", "the number of colors among ...".
+    ColorsAmong(Filter),
+    /// `card types among other nonland permanent you control`: "the number
+    /// of card types among other nonland permanents you control".
+    CardTypesAmong(Filter),
+    /// `card types among spells cast this turn`: "for each card type among
+    /// spells you've cast this turn".
+    CardTypesCastThisTurn,
+    /// `card types among discarded this way`: "for each card type among
+    /// cards discarded this way".
+    CardTypesThisWay(mtg_core::card::ThisWay),
+    /// `permanent types in your graveyard`: "permanent types among cards in
+    /// your graveyard".
+    PermanentTypesInGraveyard,
+    /// `graveyards with 7 cards`: "for each graveyard with seven or more
+    /// cards in it".
+    GraveyardsWithAtLeast(u32),
+    /// `+1/+1 counters on land you control`: "the number of +1/+1 counters
+    /// on lands you control".
+    CountersAmong(mtg_core::card::CounterKind, Filter),
+    /// `counter kinds among creature you control`: "different kinds of
+    /// counters among creatures you control".
+    CounterKindsAmong(Filter),
+    /// `different powers among creature you control`: "for each different
+    /// power among creatures you control".
+    DifferentPowers(Filter),
+    /// `most sharing type creature you control`: "the greatest number of
+    /// creatures you control that have a creature type in common".
+    SharingCreatureType(Filter),
+    /// `difference of power and toughness`: "the difference between its
+    /// power and toughness" (the triggering object's).
+    TriggerPtDifference,
+    /// `x`: X, under a count built on it (`half up x`: "half X, rounded
+    /// up").
+    X,
+    /// `hand of target opponent`: "the number of cards in target
+    /// opponent's hand", declaring the target (the `n`th).
+    TargetHandDeclared {
+        n: usize,
+        opponent: bool,
+    },
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -798,6 +855,11 @@ pub struct Except {
     /// to its other types" (The Cloning of Shredder), not "and it's"
     /// (wording only).
     pub and_is: bool,
+    /// `named this`: "except its name is <this card's name>" (CR 707.9b).
+    pub own_name: bool,
+    /// `noun creature`: a spell's token copies' abilities call the token
+    /// "this creature" (Face Yourself), not "this token". Wording only.
+    pub creature_noun: bool,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -892,6 +954,9 @@ pub struct Cost {
     pub discard_exile: bool,
     /// A loyalty ability's cost (CR 606).
     pub loyalty: Option<i32>,
+    /// `loyalty -X`: "−X" (with `loyalty` `Some(0)`), X announced as the
+    /// ability is activated.
+    pub loyalty_x: bool,
     pub sacrifice: Option<SacCost>,
     /// "Activate only as a sorcery."
     pub sorcery: bool,
@@ -996,6 +1061,10 @@ pub struct Cost {
     /// `remove X ki counters from this`: "Remove X ki counters from this
     /// creature", X the ability's.
     pub remove_x: bool,
+    /// `remove any number +1/+1 counters from this` (with `remove_x`):
+    /// "Remove any number of +1/+1 counters from ~", the ability's X
+    /// called "that many" in its effects. Wording only.
+    pub remove_any: bool,
     /// `{Q}`: the untap symbol.
     pub untap: bool,
 }
@@ -1090,10 +1159,17 @@ pub enum SacCost {
 
 /// What a spell targets ("that targets you or a creature").
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed qualifier
 pub struct Targeting {
     pub you: bool,
     pub player: bool,
     pub filter: Option<Filter>,
+    /// `that targets an opponent [or ...]`: "an opponent".
+    pub opponent: bool,
+    /// `with single target`: "with a single target" (nothing else set);
+    /// `that targets only single creature you control`: "that targets
+    /// only a single creature you control".
+    pub single: bool,
 }
 
 /// The subtype name standing for every creature type in a `becomes`
@@ -1188,6 +1264,10 @@ pub struct Filter {
     /// damage this turn" rather than "creature that was dealt damage this
     /// turn".
     pub damaged_short: bool,
+    /// `put there from anywhere this turn`: `status.put_there_this_turn`
+    /// printed "that was put there from anywhere this turn" rather than
+    /// "that was put there this turn".
+    pub put_there_anywhere: bool,
     /// `blocked` / `unblocked`, `with aura` / `without aura` ("enchanted
     /// permanent", "that isn't enchanted"), `that entered this turn`,
     /// `that dealt damage this turn`, `that blocked this turn`, `with mana
@@ -1256,11 +1336,28 @@ pub struct Filter {
     /// `other than granter`: "an artifact other than Dire Blunderbuss",
     /// not the Equipment granting the quoted ability.
     pub not_granter: bool,
+    /// `with basic land type`: "a land card with a basic land type"
+    /// (Nervous Gardener): compiled as a Plains, Island, Swamp, Mountain,
+    /// or Forest.
+    pub basic_land_type: bool,
+
+    /// `that doesn't have same name as token you control`: "that doesn't
+    /// have the same name as a token you control" (`ObjFilter::name_unlike`).
+    pub name_unlike: Option<Box<Filter>>,
     /// How `status.unchosen` is worded: `unchosen` ("all other
     /// creatures"), `not chosen this way` ("all nonland permanents not
     /// chosen this way"), `except chosen this way` ("all creatures except
     /// creatures chosen this way").
     pub unchosen_wording: UnchosenWording,
+    /// `static you and other Hero you control: has hexproof`: "you and
+    /// other Heroes you control have hexproof" (Captain America,
+    /// Super-Soldier): the controller has the hexproof or shroud too
+    /// (`PlayerStaticKind::Hexproof`).
+    pub and_you: bool,
+    /// `static this and enchantment creature you control: has trample`:
+    /// "Yuna and enchantment creatures you control have trample": the
+    /// source too, as a second static ability.
+    pub and_this: bool,
     /// `andor Villain or artifact`: its alternatives joined "and/or" as a
     /// trigger's subject ("Whenever another Villain and/or artifact you
     /// control enters"); wording only.
@@ -1287,6 +1384,10 @@ pub struct Filter {
     /// opponent controls") rather than before them ("target creature an
     /// opponent controls with flying"). Wording only.
     pub control_late: bool,
+    /// `1/1 creature`: exactly that power and toughness (`power` and
+    /// `toughness` both `Exactly`), printed before the noun ("Target 1/1
+    /// creature gets +1/+2"). Wording only.
+    pub pt_word: bool,
     /// `non-Faerie, nonland permanent`: a negated subtype written before a
     /// negated type prints first ("non-Faerie, nonland permanent",
     /// Nurturing Pixie) rather than after it. Wording only.
@@ -1461,6 +1562,10 @@ pub enum CombatRef {
     /// `blocking or blocked by this`: "blocking or blocked by this
     /// creature".
     BlockingOrBlockedByThis,
+    /// `crewed it`: "that crewed it this turn" (CR 702.122).
+    CrewedIt,
+    /// `saddled it`: "that saddled it this turn" (CR 702.171).
+    SaddledIt,
 }
 
 /// What a filter's objects must be attached to.
@@ -1519,6 +1624,12 @@ pub enum SameRef {
     /// or equal to this creature's power" (the source's, as it is or last
     /// existed).
     ManaValueAtMostPower,
+    /// `with lesser mana value`: "with lesser mana value" (than the object
+    /// that triggered the ability, as it is or last existed).
+    LesserManaValue,
+    /// `other than that creature`: "other than that creature" (the object
+    /// that triggered the ability).
+    NotTriggering,
 }
 
 /// How a filter refers to a chosen color or type, as printed after the
@@ -1716,6 +1827,12 @@ pub enum Granted {
     /// An activated keyword ability, activated from the cards' zone:
     /// `slivercycling {3}`, `cycling {2}`, `unearth {2}`.
     Ability(Box<Ability>),
+    /// `cast`, `cast by pay 3 life finality`, `cast by pay 1 life brief`,
+    /// `play`, in a graveyard: "You may cast artifact spells from your
+    /// graveyard by paying 3 life in addition to paying their other
+    /// costs. If you cast a spell this way, that artifact enters with a
+    /// finality counter on it.", "You may play cards from your graveyard."
+    Cast(mtg_core::card::GraveRider),
 }
 
 /// Whose activated abilities an `Ability::ActivationCost` changes
@@ -1935,6 +2052,14 @@ pub enum Ability {
         /// mana of any color." (spells and activated abilities alike; the
         /// third field).
         spend: Option<(mtg_core::card::SpendAs, bool, bool)>,
+        /// `spells instant or sorcery you control have lifelink`: written
+        /// and printed "you control" rather than "you cast" (the spells on
+        /// the stack: lifelink, deathtouch, wither, split second).
+        control: bool,
+        /// `... have conspire` (CR 702.78).
+        conspire: bool,
+        /// `... have casualty 1` (CR 702.153); 0 for none.
+        casualty: u8,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
@@ -1946,6 +2071,9 @@ pub enum Ability {
     /// more if it targets Dragon`.
     TargetCost {
         delta: i32,
+        /// `this spell costs {1}{U} less if it targets ...`: the colored
+        /// symbols of the reduction (one mana of each color).
+        colors: Vec<mtg_core::mana::Color>,
         filter: Filter,
         /// `if it targets spell creature`: "a creature spell"; `if it
         /// targets card creature with mana value 3 or less`: "a creature
@@ -2069,6 +2197,9 @@ pub enum Ability {
     EntersTappedUnlessReveal {
         filter: Filter,
         or: Option<StaticCond>,
+        /// `enters tapped unless behold Jace`: "As this land enters, you
+        /// may behold a Jace. If you don't, this land enters tapped."
+        behold: bool,
     },
     /// `enters tapped if not your turn`: "This creature enters tapped if
     /// it's not your turn." (the same replacement as `enters tapped unless
@@ -2329,6 +2460,29 @@ pub enum TrigCond {
     HadCounter {
         one_or_more: bool,
     },
+    /// `if its power or toughness greater than this`: the core `Evolves`
+    /// printed "if its power is greater than this creature's power or its
+    /// toughness is greater than this creature's toughness" (Sharp-Eyed
+    /// Rookie).
+    Outstats,
+    /// `if its toughness was less than 1` (also `power`, `mana value`; `N
+    /// or less`, `N or greater`): the triggering object as it last existed
+    /// (`StaticCondition::TriggerIs`, Massacre Girl, Known Killer).
+    ItsStat {
+        stat: ItStat,
+        cmp: mtg_core::card::Cmp,
+        /// `less than N`: printed so, the check "N-1 or less".
+        less_than: bool,
+        n: i16,
+    },
+}
+
+/// What `TrigCond::ItsStat` compares.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum ItStat {
+    Power,
+    Toughness,
+    ManaValue,
 }
 
 /// Keyword abilities with a parameter (CR 702).
@@ -2454,6 +2608,9 @@ pub enum Mechanic {
     /// with total power N or more: This Vehicle becomes an artifact
     /// creature until end of turn."
     Crew(u32),
+    /// `crew 1, once`: "Crew 1. Activate only once each turn." (Luxurious
+    /// Locomotive).
+    CrewOnce(u32),
     /// CR 702.74: an alternative cost; sacrificed as it enters if evoked.
     Evoke(ManaCost),
     /// CR 702.35: cast for this cost as it's discarded.
@@ -2772,6 +2929,9 @@ pub enum BlockRule {
     /// `can't be blocked by creature with lesser power`: "Creatures with
     /// power less than this creature's power can't block it."
     NotByLesserPower,
+    /// `can't be blocked by creature with greater power`: "This creature
+    /// can't be blocked by creatures with greater power."
+    NotByGreaterPower,
     /// `can't be blocked except by 3 or more creatures`.
     MinBlockers(u8),
     /// `can block shadow as though had shadow` ("can block creatures with
@@ -2826,6 +2986,112 @@ pub struct PlayExiledMore {
     pub condition: Option<Box<StaticCond>>,
 }
 
+/// A turn-log count (`TurnEvent`) the card language words by its own
+/// phrase, as a condition (`StaticCond::Tally`: "three or more cards left
+/// your graveyard this turn") and as a count (`CountExpr::Tally`: "the
+/// number of times you descended this turn"). One row per kind: its words
+/// in the card language, its noun phrase, and what it counts.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub enum Tally {
+    /// "cards left your graveyard this turn".
+    LeftGraveyard,
+    /// "times you descended this turn" (CR 700.11).
+    Descended,
+    /// "lands that entered the battlefield under your control this turn".
+    LandsEntered,
+    /// "cards were put into exile this turn" (any player's).
+    Exiled,
+    /// "creature cards were put into graveyards from anywhere this turn".
+    CreatureCardsToGraveyards,
+    /// "creatures that were exiled under your opponents' control this turn".
+    CreaturesExiledOpponents,
+    /// "sources you controlled dealt damage this turn".
+    DamageSources,
+    /// "you've activated a loyalty ability this turn".
+    LoyaltyActivated,
+    /// "creatures attacked this turn" (any player's).
+    CreaturesAttacked,
+    /// "an opponent was dealt combat damage by a legendary creature this
+    /// turn".
+    LegendaryCombatDamaged,
+}
+
+impl Tally {
+    pub const ALL: [Tally; 10] = [
+        Tally::LegendaryCombatDamaged,
+        Tally::LeftGraveyard,
+        Tally::Descended,
+        Tally::LandsEntered,
+        Tally::Exiled,
+        Tally::CreatureCardsToGraveyards,
+        Tally::CreaturesExiledOpponents,
+        Tally::DamageSources,
+        Tally::LoyaltyActivated,
+        Tally::CreaturesAttacked,
+    ];
+
+    /// Its words in the card language, after the number of a condition
+    /// (`3 cards left your graveyard this turn`) or as a count (`count
+    /// each times descended this turn`).
+    #[must_use]
+    pub const fn words(self) -> &'static [&'static str] {
+        match self {
+            Tally::LeftGraveyard => &["cards", "left", "your", "graveyard", "this", "turn"],
+            Tally::Descended => &["times", "descended", "this", "turn"],
+            Tally::LandsEntered => &["lands", "entered", "this", "turn"],
+            Tally::Exiled => &["cards", "exiled", "this", "turn"],
+            Tally::CreatureCardsToGraveyards => {
+                &["creature", "cards", "to", "graveyards", "this", "turn"]
+            }
+            Tally::CreaturesExiledOpponents => {
+                &["creatures", "exiled", "under", "opponents", "this", "turn"]
+            }
+            Tally::DamageSources => &["sources", "dealt", "damage", "this", "turn"],
+            Tally::LoyaltyActivated => &["loyalty", "abilities", "activated", "this", "turn"],
+            Tally::CreaturesAttacked => &["creatures", "attacked", "this", "turn"],
+            Tally::LegendaryCombatDamaged => &[
+                "opponent",
+                "dealt",
+                "combat",
+                "damage",
+                "by",
+                "legendary",
+                "creature",
+                "this",
+                "turn",
+            ],
+        }
+    }
+
+    /// The turn count it reads.
+    #[must_use]
+    pub const fn count(self) -> mtg_core::card::TurnCount {
+        use mtg_core::card::{TurnCount, TurnEvent as E, TurnWho as W};
+        match self {
+            Tally::LeftGraveyard => TurnCount::of(E::LeftGraveyard, W::You),
+            Tally::Descended => TurnCount::of(E::Descended, W::You),
+            Tally::LandsEntered => TurnCount::of(E::LandEntered, W::You),
+            Tally::Exiled => TurnCount::of(E::Exiled, W::Anyone),
+            Tally::CreatureCardsToGraveyards => {
+                TurnCount::of(E::CreatureCardToGraveyard, W::Anyone)
+            }
+            Tally::CreaturesExiledOpponents => TurnCount::of(E::CreatureExiled, W::Opponents),
+            Tally::DamageSources => TurnCount::of(E::DamageSource, W::You),
+            Tally::LoyaltyActivated => TurnCount::of(E::LoyaltyActivated, W::You),
+            Tally::CreaturesAttacked => TurnCount::of(E::Attacked, W::Anyone),
+            Tally::LegendaryCombatDamaged => TurnCount::of(E::LegendaryCombatDamaged, W::Opponent),
+        }
+    }
+
+    /// The tally that reads this turn count, if one does.
+    #[must_use]
+    pub fn of(c: &mtg_core::card::TurnCount) -> Option<Tally> {
+        (c.types.is_empty() && !c.other && c.filter.is_none())
+            .then(|| Tally::ALL.into_iter().find(|t| t.count() == *c))
+            .flatten()
+    }
+}
+
 /// What a conditional static ability checks.
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
@@ -2852,6 +3118,15 @@ pub enum StaticCond {
     /// `not your turn`: "it's not your turn"; `static during turns other
     /// than yours, ...` prints "During turns other than yours, ...".
     NotYourTurn,
+    /// `not their turn`: "it's not their turn", the player the ability
+    /// triggered for (Scytheclaw Raptor).
+    NotTheirTurn,
+    /// `attacker Rat`: "a Rat is attacking"; `attacker creature at you`:
+    /// "a creature is attacking you".
+    AttackerIs {
+        filter: Filter,
+        you: bool,
+    },
     /// `cast during main phase`: "you cast this spell during your main
     /// phase" (judged as it was cast).
     CastDuringMain,
@@ -3001,6 +3276,10 @@ pub enum StaticCond {
     /// your library is a Goblin card", "... is black" (by its printed
     /// characteristics).
     TopCard(Filter),
+    /// `count 5 colors among permanents`: the count is at least N ("there
+    /// are five colors among permanents you control", "the number of ...
+    /// plus the number of ... is three or greater").
+    CountAtLeast(Box<CountExpr>, u32),
     /// `creature died this turn` (morbid).
     CreatureDiedThisTurn,
     /// `opponent damaged this turn`: "an opponent was dealt damage this
@@ -3150,6 +3429,29 @@ pub enum StaticCond {
     },
     /// `descended this turn`: "you descended this turn".
     DescendedThisTurn,
+    /// `3 cards left your graveyard this turn`, `1 cards exiled this
+    /// turn`: a turn-log count (`Tally`) of `n` or more.
+    Tally {
+        what: Tally,
+        n: u32,
+    },
+    /// What the source did or had done to it (`SourceHistory`), or with
+    /// `not` didn't: `this plus counters put this turn` ("you've put one
+    /// or more +1/+1 counters on this creature this turn"), `this counters
+    /// put this turn` ("you put a counter on this creature this turn"),
+    /// `this not dealt damage` ("it hasn't dealt damage yet"), `this not
+    /// dealt combat damage`, `this not entered this turn` ("this creature
+    /// didn't enter the battlefield this turn"), `this attacked this
+    /// combat` ("Tolsimir attacked this combat").
+    SourceHistory {
+        what: mtg_core::card::SourceHistory,
+        not: bool,
+    },
+    /// `early turn`: "it's your first, second, or third turn of the game".
+    EarlyTurn,
+    /// `opponent dealt noncombat damage last turn`: "an opponent was dealt
+    /// noncombat damage last turn".
+    OpponentNoncombatLastTurn,
     /// `spell number 2 this turn`: the spell being cast would be your
     /// second this turn ("The second spell you cast each turn costs {1}
     /// less to cast.").
@@ -3352,6 +3654,9 @@ pub enum StaticCond {
     PlayerMoreHand(mtg_core::card::HandPlayer),
     /// `library empty`: "your library has no cards in it".
     LibraryEmpty,
+    /// `no cards in library`: the same, printed "there are no cards in
+    /// your library" (Living Conundrum).
+    NoCardsInLibrary,
     /// `void`: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn".
     Void,
@@ -3360,6 +3665,9 @@ pub enum StaticCond {
     /// `cast from anywhere other than hand`: "this spell was cast from
     /// anywhere other than your hand".
     NotCastFromHand,
+    /// `not cast from hand`: "this spell wasn't cast from your hand" (a
+    /// copy wasn't cast, so it qualifies).
+    WasntCastFromHand,
     /// `you cast it`: "you cast it" (from any zone).
     WasCast,
     /// `that creature entered from graveyard or you cast it from
@@ -3478,6 +3786,28 @@ pub enum InsteadCond {
     /// `the sacrificed creature was legendary`: "If the sacrificed
     /// creature was legendary, draw three cards instead."
     ThisWay(ThisWayCond),
+}
+
+/// What a dig's `instead ... if <cond>` changes (CR 608.2c: the later text
+/// modifies the earlier instruction): `count 8` ("If this spell was
+/// bargained, look at the top eight cards of your library instead."),
+/// `take 2`, `take any`, `take all` ("Put each of those cards into your
+/// hand instead if ..."), `otherwise onto battlefield` ("If this spell was
+/// bargained, put the revealed cards onto the battlefield. Otherwise, put
+/// the revealed cards into your hand."). `end` prints the sentence after
+/// the one about the rest, `rest` repeats "and the rest ..." in it.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct DigAlt {
+    pub cond: InsteadCond,
+    /// `Lead`, `Trail`, or `After` (written `lead`, nothing, `after`).
+    pub wording: InsteadWording,
+    pub count: Option<Num>,
+    pub take: Option<u32>,
+    pub all: bool,
+    /// `otherwise onto battlefield [tapped]`.
+    pub onto: Option<bool>,
+    pub end: bool,
+    pub rest: bool,
 }
 
 /// Where "instead" and the condition print.
@@ -3677,9 +4007,13 @@ pub enum Replaces {
         whose: Who,
         library_empty: bool,
     },
+    /// `card put into your graveyard`; `card or token put into your
+    /// graveyard` ("If a card or token would be put into your graveyard
+    /// from anywhere").
     ToGraveyard {
         whose: Who,
         from_battlefield: bool,
+        tokens: bool,
     },
     /// `instant or sorcery card put into a graveyard`: "If an instant or
     /// sorcery card would be put into a graveyard from anywhere".
@@ -4052,6 +4386,8 @@ pub enum Trigger {
     CastsFiltered {
         whose: Who,
         filter: Filter,
+        /// `from hand`: "... spell from your hand".
+        from: mtg_core::card::SpellFrom,
     },
     /// `when this exploits a creature` (CR 702.110).
     Exploits,
@@ -4172,6 +4508,14 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever you manifest dread` (CR 701.62).
+    ManifestsDread,
+    /// `whenever you discover` (CR 701.57).
+    Discovers,
+    /// `whenever you give a gift` (CR 702.174).
+    GivesGift,
+    /// `whenever you solve a Case` (CR 719.3a).
+    SolvesCase,
     /// `whenever you forage` (CR 701.61).
     Forages,
     /// `whenever one or more creature you control deal combat damage to a
@@ -4377,6 +4721,12 @@ pub enum Mod {
         power: i32,
         toughness: i32,
     },
+    /// `additional +5/+5`: "gets an additional +5/+5" (Elenda, Saint of
+    /// Dusk), the same modification.
+    ModifyPtAdditional {
+        power: i32,
+        toughness: i32,
+    },
     /// `+1/+1 count each creature you control`: "gets +1/+1 for each
     /// creature you control".
     ModifyPtPer {
@@ -4485,6 +4835,9 @@ pub enum Recipient {
     /// `each opponent who doesn't control Elf`: "each opponent who doesn't
     /// control an Elf" (the group's filter).
     OpponentsWithout(u16),
+    /// `each player who controls most creature`: "each player who controls
+    /// the most creatures" (ties included), judged as it happens.
+    MostControl(u16),
     /// `each opponent who didn't`, `each player who doesn't`, `each
     /// opponent who can't`: the players who didn't (or couldn't) do what
     /// the last per-player act asked ("Zoyowa deals 3 damage to each
@@ -4661,6 +5014,10 @@ pub enum Recipient {
     /// that share a creature type with it, "Enchanted creature and other
     /// creatures that share a creature type with it" (Crown of Vigor).
     AttachedAnd(u16),
+    /// `you and all permanent you control gain hexproof`: the controller
+    /// and the `g`th group as one subject, "You and permanents you control
+    /// gain hexproof until end of turn." (Dawn's Truce).
+    YouAnd(u16),
     /// `you and target opponent each draw 1 card`: you and the `n`th
     /// target as one subject, "You and target opponent each draw a card."
     /// (Sky Crier); the effect happens to each, you first.
@@ -4909,6 +5266,27 @@ pub enum Effect {
     /// `next spell can't be countered`: "the next spell you cast this turn
     /// can't be countered".
     NextSpellUncounterable,
+    /// `that spell gains deathtouch and lifelink`: "That spell gains
+    /// deathtouch and lifelink." (the triggering spell, while it is on the
+    /// stack).
+    SpellGains {
+        what: Recipient,
+        keywords: Vec<Keyword>,
+    },
+    /// `spells artifact cost {1} less this turn`: "Artifact spells you
+    /// cast this turn cost {1} less to cast."; `spells black or red cost
+    /// {X} less this turn count where life you lost this turn`: "Spells
+    /// you cast this turn that are black and/or red cost {X} less to cast,
+    /// where X is the amount of life you lost this turn" (X fixed as it
+    /// resolves); `next noncreature spell has affinity for artifact`
+    /// (`next`): "the next noncreature spell you cast this turn has
+    /// affinity for artifacts".
+    SpellsThisTurn {
+        filter: Filter,
+        less: Num,
+        affinity: Option<Filter>,
+        next: bool,
+    },
     /// `play additional land this turn`, `play 2 additional land this
     /// turn`: "You may play an additional land this turn.", "You may play
     /// up to two additional lands this turn." (CR 305.2).
@@ -5080,6 +5458,9 @@ pub enum Effect {
         /// wording "create a token that's a copy of ... and that's tapped
         /// and attacking". Wording only.
         trailing: bool,
+        /// `target player creates token copy of ...`: "Target player
+        /// creates a token that's a copy of ..." (that player's token).
+        who: Option<Recipient>,
     },
     /// `copy target instant or sorcery spell you control [times N] [new
     /// targets] [with exceptions]` (CR 707.10): "Copy target instant or
@@ -5125,6 +5506,11 @@ pub enum Effect {
     /// "Change the target of target spell or ability with a single
     /// target." (CR 115.7a).
     ChangeTarget {
+        what: Recipient,
+    },
+    /// `choose new targets for that spell`: "you may choose new targets for
+    /// that spell" (CR 115.7d).
+    NewTargets {
         what: Recipient,
     },
     /// `counter target spell unless its controller pays {X} [count ...]
@@ -5520,6 +5906,22 @@ pub enum Effect {
     AddManaCommander {
         rider: u8,
     },
+    /// `add {R} or {G} count each Raccoon you control` (`each`): "add {R}
+    /// or {G} for each Raccoon you control", each mana's color chosen;
+    /// `add x {G} or x {W} count where ...`: "Add X {G} or X {W}, where X
+    /// is ...", one color chosen for all of it.
+    AddManaOneOfTimes {
+        mana: Vec<Mana>,
+        count: Num,
+        each: bool,
+    },
+    /// `add produced`: in a triggered mana ability, "add one mana of any
+    /// type that land produced" (Mana Flare, CR 106.12): a kind of the mana
+    /// the tapped permanent made.
+    AddManaProduced,
+    /// `add each color among permanent you control`: "For each color among
+    /// permanents you control, add one mana of that color."
+    AddManaColorsAmong(Filter),
     Surveil(Num),
     /// `learn` (CR 701.48): there is no sideboard here, so "you may
     /// discard a card; if you do, draw a card" (CR 701.48a's other
@@ -5624,6 +6026,11 @@ pub enum Effect {
         /// flying and is an Angel ...", `and has no abilities` loses them
         /// last). Wording only.
         is_word: bool,
+        /// `this becomes 2/4 Wizard creature with ability { ... }`: "it
+        /// becomes a 2/4 Wizard creature with \"Whenever ...\"" (Great
+        /// Hall of the Biblioplex): it gains the ability for as long as the
+        /// rest lasts (layer 6).
+        ability: Option<Box<Ability>>,
     },
     /// `this becomes blue`, `becomes colorless` (until end of turn).
     BecomeColor {
@@ -5675,6 +6082,10 @@ pub enum Effect {
     PlayerMay {
         who: Recipient,
         inner: Vec<Sentence>,
+        /// `target opponent may have you create 2 "Lander"`: "Target
+        /// opponent may have you create two Lander tokens." The player
+        /// decides; the effect's controller acts.
+        have_you: bool,
     },
     /// `any player may pay 5 life`, `any opponent may sacrifice 1 creature
     /// chosen`, `any player may this deals 6 damage to you`: "Any player
@@ -5909,6 +6320,27 @@ pub enum Effect {
     Manifest,
     /// `manifest dread` (CR 701.62).
     ManifestDread,
+    /// `its controller manifests dread` (CR 701.62a): a player other than
+    /// the controller manifests dread.
+    ManifestDreadBy {
+        who: Recipient,
+    },
+    /// `behold Dragon`, `behold 2 Elf`: behold as an effect (CR 701.69a),
+    /// "you may behold a Dragon. If you do, ...".
+    Behold {
+        filter: Filter,
+        n: u32,
+    },
+    /// `reduce speed of <player>`: "If that opponent's speed is greater
+    /// than each other player's speed, reduce that opponent's speed by 1.
+    /// This effect can't reduce their speed below 1." (CR 702.179).
+    ReduceSpeed {
+        who: Recipient,
+    },
+    /// `dread card to hand`: "put a card you put into your graveyard
+    /// this way into your hand" in a "whenever you manifest dread" trigger
+    /// (the triggering card).
+    DreadCardToHand,
     /// `suspect target creature` (CR 701.60a); `<what> no longer
     /// suspected` (`on` false): "... are no longer suspected".
     Suspect {
@@ -5939,6 +6371,9 @@ pub enum Effect {
     /// `keep mana add {R}`: "Add {R}. Until end of turn, you don't lose
     /// this mana as steps and phases end."
     KeepMana(Vec<Sentence>),
+    /// `keep red mana this turn`: "Until end of turn, you don't lose
+    /// unspent red mana as steps and phases end."
+    KeepRedManaThisTurn,
     /// `add 2 mana any combination only to cast legendary spells`: "Add
     /// two mana in any combination of colors. Spend this mana only to
     /// cast legendary spells." (CR 106.6): the mana is restricted.
@@ -5953,6 +6388,9 @@ pub enum Effect {
         inner: Vec<Sentence>,
         spells: Filter,
         then: Vec<Sentence>,
+        /// Wording only: 0, `spent on`; 1, `when spent on`: "When that
+        /// mana is spent to cast a red instant or sorcery spell, ...".
+        wording: u8,
     },
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
@@ -6039,7 +6477,10 @@ pub enum Effect {
         you: bool,
     },
     /// `discover 4` (CR 701.57).
-    Discover(u32),
+    Discover(Num),
+    /// `discover again`: "discover again for the same value" in a
+    /// "whenever you discover" trigger (the trigger's amount).
+    DiscoverAgain,
     /// Modular's "put its +1/+1 counters on [recipient]" (internal).
     /// Soulbond's pairing (internal; CR 702.95a).
     Soulbond {
@@ -6059,6 +6500,25 @@ pub enum Effect {
     /// 722.3a).
     BecomePrepared {
         what: Recipient,
+    },
+    /// `it becomes plotted`: "It becomes plotted." after the card was
+    /// exiled (CR 702.170).
+    BecomePlotted {
+        what: Recipient,
+    },
+    /// `plot that spell as it resolves`: "exile that spell instead of
+    /// putting it into your graveyard as it resolves. If you do, it
+    /// becomes plotted." (Lilah, Undefeated Slickshot).
+    PlotOnResolve {
+        what: Recipient,
+    },
+    /// `unlock a locked door of <recipient>`, `unlock a locked door of a
+    /// Room you control` (`own`), `lock or unlock a door of <recipient>`
+    /// (`lock`): a Room's doors as an effect (CR 709.5).
+    Door {
+        what: Recipient,
+        own: bool,
+        lock: bool,
     },
     /// `this connives` (CR 701.50).
     Connive {
@@ -6116,6 +6576,28 @@ pub enum Effect {
         /// `revealed`, wording only: "and the rest of the revealed cards
         /// into your graveyard" (Kruphix's Insight).
         rest_revealed: bool,
+        /// `rest shuffle`: "Then shuffle." (the rest stay in the library).
+        shuffle: bool,
+        /// `take creature card at random`: "Put a random creature card
+        /// from among them ...".
+        at_random: bool,
+        /// `split land card creature card`: the cards taken that are land
+        /// cards go onto the battlefield tapped, the others into the hand
+        /// ("Put all land cards revealed this way onto the battlefield
+        /// tapped and put all creature cards revealed this way into your
+        /// hand."); the second filter names the others.
+        split: Option<(Filter, Filter)>,
+        /// `among`, wording only, with `take all`: "Put all enchantment
+        /// cards from among them into your hand" for "... revealed this
+        /// way ...".
+        among: bool,
+        /// `instead ... if <cond>`: a later sentence changes the dig when
+        /// the condition holds (CR 608.2c).
+        alt: Option<Box<DigAlt>>,
+        /// `dig 2 until take all land card ...`: "Reveal cards from the top
+        /// of your library until you reveal two land cards." (the count is
+        /// of cards matching the filter).
+        until: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order"; `look at top 3 of target player`:
@@ -6535,6 +7017,15 @@ pub enum Effect {
     /// graveyard gain \"You may cast this card from your graveyard\" until
     /// end of turn." (CR 611.2c: the cards there as it resolves).
     GrantGraveyardCast(Filter),
+    /// `graveyard cast this turn creature cards by forage finality`:
+    /// "Until end of turn, you may cast creature spells from your graveyard
+    /// by foraging in addition to paying their other costs. If you cast a
+    /// spell this way, that creature enters with a finality counter on
+    /// it." (`mtg_core::card::Effect::GraveCastTurn`).
+    GraveCastTurn {
+        cards: Filter,
+        rider: mtg_core::card::GraveRider,
+    },
     /// `until end of turn may look top and play from top lands and
     /// spells`: "Until end of turn, you may look at the top card of your
     /// library any time, and you may play lands and cast spells from the
@@ -6609,6 +7100,11 @@ pub enum Effect {
         /// `MilledToHand` only: written `return ... from among them to
         /// hand`, "return ... from among them to your hand".
         returns: bool,
+        /// `target 1 puts all Goblin card from among milled this way cards
+        /// into hand chosen`, wording only: "then puts each Goblin card
+        /// milled this way into their hand" (every card goes to its
+        /// owner's hand; with `all` no one chooses).
+        by: Option<Recipient>,
     },
     /// `sacrifice 1 artifact chosen or discard 1 card`: one of these, as
     /// the controller chooses.
@@ -6674,6 +7170,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Shuffled => "shuffled",
         ThisWay::Revealed => "revealed",
         ThisWay::PutInGraveyard => "graveyarded",
+        ThisWay::Damaged | ThisWay::DamagedPlayer => "damaged",
     }
 }
 
@@ -6690,6 +7187,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::Shuffled,
         ThisWay::Revealed,
         ThisWay::PutInGraveyard,
+        ThisWay::Damaged,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)
@@ -6756,6 +7254,8 @@ pub enum DeclinedTense {
     Didnt,
     Doesnt,
     Cant,
+    /// "each player who does": those who did (`Recipient::Accepted`).
+    Does,
 }
 
 impl Declined {
@@ -6769,6 +7269,7 @@ impl Declined {
             (DeclinedTense::Didnt, false) => "didn't",
             (DeclinedTense::Doesnt, _) => "doesn't",
             (DeclinedTense::Cant, _) => "can't",
+            (DeclinedTense::Does, _) => "does",
         }
     }
 }

@@ -1,0 +1,8 @@
+card "Rakdos, Patron of Chaos" {
+  oracle_id d08ce18a-0fd9-47ac-ad2f-6934b60070f1
+  cost {4}{B}{R}
+  type Legendary Creature — Demon
+  pt 6/6
+  keywords flying, trample
+  triggered at beginning of your end step: target opponent may sacrifice 2 nonland nontoken permanent chosen; if they don't, you draw 2 cards
+}

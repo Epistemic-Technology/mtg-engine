@@ -1,0 +1,7 @@
+card "Bioengineered Future" {
+  oracle_id 6fa78914-85b3-46fd-977a-0e5b4d29eca4
+  cost {1}{G}{G}
+  type Enchantment
+  triggered when this enters: create 1 "Lander"
+  replace each creature you control enters: with count each lands entered this turn +1/+1 counters
+}

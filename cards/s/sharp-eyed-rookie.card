@@ -1,0 +1,8 @@
+card "Sharp-Eyed Rookie" {
+  oracle_id 0642fb0d-73cb-4989-852c-3233fe36c3b4
+  cost {1}{G}
+  type Creature — Human Detective
+  pt 2/2
+  keywords vigilance
+  triggered whenever creature you control enters if its power or toughness greater than this: put 1 +1/+1 counter on this and investigate
+}

@@ -1,0 +1,7 @@
+card "Curator of Sun's Creation" {
+  oracle_id 0e636c98-67c7-4f02-b909-5d43e276fa41
+  cost {3}{R}
+  type Creature — Human Artificer
+  pt 3/3
+  triggered once each turn whenever you discover: discover again
+}

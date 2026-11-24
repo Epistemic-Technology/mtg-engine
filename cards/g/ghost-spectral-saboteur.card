@@ -1,0 +1,8 @@
+card "Ghost, Spectral Saboteur" {
+  oracle_id 88f34d15-c338-40a7-b56c-c5b650847430
+  cost {2}{U/B}
+  type Legendary Creature — Human Rogue Villain
+  pt 2/2
+  keywords flash
+  label "Intangibility" static this: has can't be blocked
+}

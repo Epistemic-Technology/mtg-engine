@@ -1,0 +1,11 @@
+card "Captain America, Super-Soldier" {
+  oracle_id ac1b6ffc-12a9-4d9c-a9fc-68a839a40738
+  cost {1}{W}{W}
+  type Legendary Creature — Human Soldier Hero
+  pt 3/2
+  short_name "Captain America"
+  pronoun he
+  keywords first strike
+  enters with 1 shield counter
+  static as long as this has 1 or more shield counters, you and other Hero you control: has hexproof
+}

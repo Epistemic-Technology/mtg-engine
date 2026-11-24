@@ -24,3 +24,15 @@ scenario "illegal trigger alone: the engine's first legal target" {
   run_to turn 1 postcombat_main
   assert tapped "Hill Giant"
 }
+
+# With two targets, the second refused: the first is taken (it is legal)
+# and the second checked.
+scenario "illegal trigger targeting two: the second target is checked" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Hunter's Talent"
+  turn 1 A: cast "Hunter's Talent"
+  illegal turn 1 A: trigger "Hunter's Talent" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}

@@ -1,0 +1,9 @@
+card "Glyph Keeper" {
+  oracle_id d22b7d4a-0ac7-4221-80fd-a47edad03b84
+  cost {3}{U}{U}
+  type Creature — Sphinx
+  pt 5/3
+  keywords flying
+  triggered whenever this becomes targeted first time each turn: counter that creature
+  embalm {5}{U}{U}
+}

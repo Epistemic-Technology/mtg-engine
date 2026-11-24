@@ -1,0 +1,7 @@
+card "Plan for All Outcomes" {
+  oracle_id 7fd2cac5-cd29-4a47-9e89-9c6be39a0b67
+  cost {3}{U}
+  type Enchantment
+  triggered when this enters: owner of up to 1 another target nonland permanent puts it on top or bottom of library
+  triggered whenever you cast your first noncreature spell each turn: empower jace 1
+}

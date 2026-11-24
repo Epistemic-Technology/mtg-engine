@@ -1,0 +1,9 @@
+card "Pawpatch Recruit" {
+  oracle_id 50ab0194-c7dc-4f11-abc0-1a82393cc42e
+  cost {G}
+  type Creature — Rabbit Warrior
+  pt 2/1
+  offspring {2}
+  keywords trample
+  triggered whenever creature you control becomes targeted by opponent: put 1 +1/+1 counter on target creature you control other than that creature
+}

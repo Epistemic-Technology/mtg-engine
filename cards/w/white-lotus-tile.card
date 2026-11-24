@@ -1,0 +1,7 @@
+card "White Lotus Tile" {
+  oracle_id f8a5e009-45b7-4e62-a494-1579f5fc0ba6
+  cost {4}
+  type Artifact
+  enters tapped
+  activated {T}: add any count where most sharing type creature you control
+}

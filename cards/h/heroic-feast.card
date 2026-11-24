@@ -1,0 +1,7 @@
+card "Heroic Feast" {
+  oracle_id 31cae00a-3a74-4a59-80b0-a656f524e878
+  cost {2}{G}
+  type Enchantment
+  triggered when this enters: create 1 "Food"
+  triggered whenever you gain life: choose up to that much target creature you control; put 1 +1/+1 counter on each of them
+}

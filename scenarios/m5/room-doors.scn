@@ -1,0 +1,80 @@
+# A Room's doors as an effect (CR 709.5): "unlock a locked door of up to
+# one target Room you control", "unlock a locked door of a Room you
+# control", "lock or unlock a door of target Room you control", and
+# "Unlock costs you pay cost {1} less."
+
+scenario "Ghostly Keybearer: combat damage unlocks the locked door, free" {
+  battlefield A: "Ghostly Keybearer", "Widow's Walk"
+  turn 1 declare_attackers A: attack "Ghostly Keybearer"
+  turn 1 combat_damage A: trigger "Ghostly Keybearer" targeting "Widow's Walk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Derelict Attic // Widow's Walk"
+  assert life B 16
+  assert life A 18
+  assert hand A count 2
+}
+
+scenario "Ghostly Keybearer: a fully unlocked Room has nothing to unlock" {
+  battlefield A: "Ghostly Keybearer", "Derelict Attic", 4 "Swamp"
+  turn 1 A: unlock "Widow's Walk"
+  turn 1 declare_attackers A: attack "Ghostly Keybearer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Derelict Attic // Widow's Walk"
+  assert life A 20
+}
+
+scenario "Keys to the House: lock a door of a fully unlocked Room" {
+  battlefield A: "Keys to the House", 3 "Plains", 4 "Swamp", "Derelict Attic"
+  turn 1 A: unlock "Widow's Walk"
+  turn 1 A: activate "Keys to the House" ability 2 targeting "Derelict Attic // Widow's Walk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Widow's Walk"
+  assert battlefield A lacks "Derelict Attic // Widow's Walk"
+  assert graveyard A contains "Keys to the House"
+}
+
+scenario "Keys to the House: unlock the locked door" {
+  battlefield A: "Keys to the House", 3 "Plains", "Widow's Walk"
+  turn 1 A: activate "Keys to the House" ability 2 targeting "Widow's Walk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Derelict Attic // Widow's Walk"
+  assert hand A count 2
+}
+
+scenario "Ghostly Dancers: no enchantment card to return, so a door unlocks; Eerie" {
+  battlefield A: 5 "Plains", "Widow's Walk"
+  hand A: "Ghostly Dancers"
+  turn 1 A: cast "Ghostly Dancers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Derelict Attic // Widow's Walk"
+  assert battlefield A contains "Spirit"
+  assert power "Spirit" 3
+  assert life A 18
+}
+
+scenario "Ghostly Dancers: return the enchantment card instead" {
+  battlefield A: 5 "Plains", "Widow's Walk"
+  graveyard A: "Inquisitive Glimmer"
+  hand A: "Ghostly Dancers"
+  turn 1 A: cast "Ghostly Dancers"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Inquisitive Glimmer"
+  assert battlefield A contains "Widow's Walk"
+}
+
+scenario "Inquisitive Glimmer: an unlock cost {1} less" {
+  battlefield A: "Inquisitive Glimmer", 3 "Swamp", "Derelict Attic"
+  turn 1 A: unlock "Widow's Walk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Derelict Attic // Widow's Walk"
+  assert tapped A "Swamp"
+}
+
+scenario "Inquisitive Glimmer: enchantment spells cost {1} less" {
+  battlefield A: "Inquisitive Glimmer", 2 "Swamp"
+  hand A: "Derelict Attic // Widow's Walk"
+  turn 1 A: cast "Derelict Attic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Derelict Attic"
+}

@@ -1,0 +1,8 @@
+card "Earthen Ally" {
+  oracle_id 913bca28-faf9-42e6-a8c0-469cd9bc0208
+  cost {G}
+  type Creature — Human Soldier Ally
+  pt 0/2
+  static this: +1/+0 count each colors among Ally you control
+  activated {2}{W}{U}{B}{R}{G}: earthbend 5
+}

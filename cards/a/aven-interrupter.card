@@ -1,0 +1,9 @@
+card "Aven Interrupter" {
+  oracle_id d31fd12f-b4dd-4bc3-ace4-703dabd0f607
+  cost {1}{W}{W}
+  type Creature — Bird Rogue
+  pt 2/2
+  keywords flash, flying
+  triggered when this enters: exile target spell; it becomes plotted
+  spells your opponents cast from graveyards or exile cost {2} more
+}

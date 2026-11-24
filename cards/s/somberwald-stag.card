@@ -1,0 +1,7 @@
+card "Somberwald Stag" {
+  oracle_id b1b67851-23d3-4799-ab29-15bce7bb2c39
+  cost {3}{G}{G}
+  type Creature — Elk
+  pt 4/3
+  triggered whenever this enters: you may this fights target creature you don't control
+}

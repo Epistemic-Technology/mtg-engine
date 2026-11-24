@@ -1,0 +1,9 @@
+card "Famished Worldsire" {
+  oracle_id e7f53928-a4cc-41ed-877d-b72d786e77d9
+  cost {5}{G}{G}{G}
+  type Creature — Leviathan
+  pt 0/0
+  ward {3}
+  devour land 3
+  triggered when this enters: dig count where power take any land card may onto battlefield tapped rest shuffle
+}

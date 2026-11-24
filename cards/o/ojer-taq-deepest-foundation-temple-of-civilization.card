@@ -1,0 +1,15 @@
+card "Ojer Taq, Deepest Foundation // Temple of Civilization" {
+  oracle_id 486bb9a5-73f1-4cec-b097-fb07ac80b72e
+  layout transform
+  cost {4}{W}{W}
+  type Legendary Creature — God
+  pt 6/6
+  keywords vigilance
+  replace creature tokens created under your control: triple
+  triggered when this dies: return this to battlefield tapped and transformed under its owner's control
+  face "Temple of Civilization" {
+    type Land
+    mana {W}
+    activated {2}{W}, {T}, if attacked with 3 creature this turn, sorcery: transform this
+  }
+}

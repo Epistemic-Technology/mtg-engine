@@ -1,0 +1,8 @@
+card "Case File Auditor" {
+  oracle_id 8c612741-2b30-43b3-bd3f-7df19662d298
+  cost {2}{W}
+  type Creature — Human Detective
+  pt 1/4
+  triggered when this enters and whenever you solve a Case: dig 6 take enchantment card may revealing rest bottom random
+  spells Case you cast have spend any color
+}

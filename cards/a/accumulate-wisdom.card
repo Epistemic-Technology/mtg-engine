@@ -1,0 +1,6 @@
+card "Accumulate Wisdom" {
+  oracle_id a63eb744-71c4-447d-9372-c3a734f022c5
+  cost {1}{U}
+  type Instant — Lesson
+  spell: dig 3 take card rest bottom reword instead after end take all if 3 Lesson cards in your graveyard
+}

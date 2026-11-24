@@ -1,0 +1,8 @@
+card "Skyclave Shadowcat" {
+  oracle_id 043ded41-2506-4dab-91c4-142d9287e7d7
+  cost {3}{B}
+  type Creature — Cat Horror
+  pt 3/3
+  activated {1}{B}, sacrifice other creature: put 1 +1/+1 counters on this
+  triggered whenever creature with +1/+1 counter you control dies: draw 1 card
+}

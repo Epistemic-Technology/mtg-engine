@@ -1,0 +1,6 @@
+card "Paraselene" {
+  oracle_id e14ac0f3-00d5-4a95-990c-b7ea157bb87e
+  cost {2}{W}
+  type Sorcery
+  spell: destroy each enchantment; you gain count each 1 enchantment destroyed this way life
+}

@@ -1,0 +1,43 @@
+// "−X:" (CR 606.4, 107.3): X is announced as the loyalty ability is
+// activated, that many loyalty counters are removed, at most its loyalty.
+
+scenario "Chandra, Flamecaller's −X deals X damage to each creature" {
+  battlefield A: "Chandra, Flamecaller"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Chandra, Flamecaller" ability 3 x 2
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert counters "Chandra, Flamecaller" loyalty 2
+}
+
+// The engine offers X from 0 to the planeswalker's loyalty (a scripted
+// `x 5` with four loyalty fails: "available: X = 0 ... X = 4").
+scenario "−X with X = 0 removes no loyalty" {
+  battlefield A: "Chandra, Flamecaller"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Chandra, Flamecaller" ability 3 x 0
+  run_to turn 1 end
+  assert damage "Hill Giant" 0
+  assert counters "Chandra, Flamecaller" loyalty 4
+}
+
+scenario "−X for all its loyalty puts the planeswalker into the graveyard" {
+  battlefield A: "Chandra, Flamecaller"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Chandra, Flamecaller" ability 3 x 4
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Chandra, Flamecaller"
+}
+
+scenario "a −X ability is one loyalty ability per turn" {
+  battlefield A: "Chandra, Flamecaller"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Chandra, Flamecaller" ability 3 x 1
+  turn 1 A: wait
+  illegal turn 1 A: activate "Chandra, Flamecaller" ability 1
+  run_to turn 1 end
+  assert counters "Chandra, Flamecaller" loyalty 3
+}

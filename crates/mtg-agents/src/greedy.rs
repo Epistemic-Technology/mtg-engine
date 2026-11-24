@@ -423,7 +423,7 @@ impl GreedyAgent {
                     // ones every turn.
                     let loyalty = matches!(
                         state.pool.ability(*ability),
-                        AbilityDef::Activated(a) if a.cost.loyalty != 0
+                        AbilityDef::Activated(a) if a.is_loyalty()
                     );
                     if specs.is_empty() {
                         return if loyalty { 10 } else { -5 };

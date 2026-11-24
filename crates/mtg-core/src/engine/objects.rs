@@ -370,6 +370,18 @@ impl GameState {
             // "if a creature card was put into your graveyard from anywhere
             // this turn".
             self.log_typed(TurnEvent::CardToGraveyard, old.owner, types);
+            if types.contains(crate::card::CardType::Creature) {
+                self.log_event(TurnEvent::CreatureCardToGraveyard, old.owner, 1);
+            }
+        }
+        // "if one or more cards were put into exile this turn".
+        if to == Zone::Exile && old.zone != Zone::Exile {
+            if old.kind == crate::state::ObjKind::Card {
+                self.log_event(TurnEvent::Exiled, old.owner, 1);
+            }
+            if old.zone == Zone::Battlefield && characteristics.is_creature() {
+                self.log_event(TurnEvent::CreatureExiled, old.controller, 1);
+            }
         }
         // "if one or more cards left your graveyard this turn".
         if old.zone == Zone::Graveyard {
@@ -1759,7 +1771,16 @@ impl GameState {
         if amount == 0 {
             return;
         }
-        let src = self.characteristics_or_lki(source);
+        let mut src = self.characteristics_or_lki(source);
+        // A resolving spell's keywords from a static ability ("Instant and
+        // sorcery spells you control have lifelink") or an effect ("That
+        // spell gains deathtouch and lifelink").
+        if ((self.pool.stack_grants && self.cost_change_sources > 0)
+            || !self.spell_gains.is_empty())
+            && let Some(c) = src.as_mut()
+        {
+            c.keywords = c.keywords.union(self.stack_spell_keywords(source));
+        }
         let lifelink = src.as_ref().is_some_and(|c| c.has(Keyword::Lifelink));
         let deathtouch = src.as_ref().is_some_and(|c| c.has(Keyword::Deathtouch));
         let infect = src.as_ref().is_some_and(|c| c.has(Keyword::Infect));
@@ -1777,18 +1798,30 @@ impl GameState {
                 // CR 702.16d: protection from a color (a player's, "you
                 // gain protection from the color of your choice")
                 // prevents damage from sources of that color.
-                if !self.player_grants.is_empty()
-                    && self.player_protected_from(p, source)
+                if (!self.player_grants.is_empty() && self.player_protected_from(p, source)
+                    // "You have protection from each of your opponents."
+                    // (CR 702.16j).
+                    || self.player_static_sources > 0
+                        && controller.is_some_and(|q| self.protected_from_player(p, q)))
                     && !self.damage_unpreventable(combat)
                 {
                     return;
+                }
+                if let Some(log) = &mut self.this_way
+                    && !log.damaged_players.contains(&p)
+                {
+                    log.damaged_players.push(p);
                 }
                 self.log_event(TurnEvent::Damaged, p, 1);
                 self.log_event(TurnEvent::DamageTaken, p, amount);
                 if !combat {
                     self.log_event(TurnEvent::NoncombatDamaged, p, 1);
+                } else if src.as_ref().is_some_and(|c| {
+                    c.is_creature() && c.supertypes.contains(crate::card::Supertype::Legendary)
+                }) {
+                    self.log_event(TurnEvent::LegendaryCombatDamaged, p, 1);
                 }
-                self.note_damage_source(source);
+                self.note_damage_source(source, combat);
                 // CR 702.173a: an Assassin's combat damage enables
                 // freerunning for its controller this turn.
                 if combat
@@ -1901,7 +1934,7 @@ impl GameState {
                 }
                 self.bump();
                 self.sba_touch();
-                self.note_damage_source(source);
+                self.note_damage_source(source, combat);
                 self.emit(Event::Damage {
                     source,
                     target,
@@ -1949,9 +1982,27 @@ impl GameState {
 
     /// Remember that `source` dealt damage this turn ("creature that dealt
     /// damage this turn").
-    fn note_damage_source(&mut self, source: ObjId) {
+    fn note_damage_source(&mut self, source: ObjId, combat: bool) {
+        // "as long as it hasn't dealt damage yet": refreshed as it first
+        // does.
+        if self.pool.history(crate::card::CardPool::HISTORY_DAMAGE)
+            && !self.dealt_damage_ever.contains(&(source, combat))
+        {
+            self.dealt_damage_ever.push((source, combat));
+            self.cbump();
+        }
         if !self.dealt_damage_this_turn.contains(&source) {
             self.dealt_damage_this_turn.push(source);
+            // "three or more sources you controlled dealt damage this
+            // turn": its controller as it dealt the damage.
+            let controller = self
+                .objects
+                .get(source)
+                .map(|o| o.controller)
+                .or_else(|| self.lki.get(&source).map(|l| l.object.controller));
+            if let Some(c) = controller {
+                self.log_event(TurnEvent::DamageSource, c, 1);
+            }
         }
     }
 
@@ -1982,6 +2033,15 @@ impl GameState {
         if kind == CounterKind::PlusOnePlusOne {
             self.log_event(TurnEvent::PlusCountersOn, on, 1);
             self.log_event(TurnEvent::PlusCountersBy, by, 1);
+        }
+        // "you've put one or more +1/+1 counters on this creature this
+        // turn": who put which kind on what (the bump below refreshes the
+        // statics that read it).
+        if self.pool.history(crate::card::CardPool::HISTORY_COUNTERS) {
+            let e = (id, by, kind == CounterKind::PlusOnePlusOne);
+            if !self.counters_put_this_turn.contains(&e) {
+                self.counters_put_this_turn.push(e);
+            }
         }
         self.cbump();
         // "if you put a counter on a creature this turn": asked once per
@@ -2026,6 +2086,8 @@ impl GameState {
         let id = self.new_object(def, controller, Zone::Command);
         self.objects[id].kind = ObjKind::Emblem;
         self.emblems.push(id);
+        // An emblem never leaves the command zone (CR 114.1).
+        self.cost_change_sources += u32::from(self.pool.get(def).flags().has_cost_change());
         self.cbump();
         self.emit(Event::EmblemCreated {
             obj: id,
@@ -2219,6 +2281,29 @@ impl GameState {
         self.emit(Event::StageChanged { obj: id, stage });
     }
 
+    /// Lock a Room's unlocked door ("Lock or unlock a door of target
+    /// Room you control", CR 709.5): the permanent takes the definition of
+    /// its remaining unlocked doors. Nothing triggers.
+    pub(super) fn lock(&mut self, id: ObjId, door: u8) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        let Some(doors) = self.pool.get(o.def).doors.as_deref().copied() else {
+            return;
+        };
+        let mut unlocked = doors.unlocked(o.def);
+        if !unlocked[usize::from(door)] {
+            return;
+        }
+        unlocked[usize::from(door)] = false;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, false, false);
+        self.objects[id].def = doors.def_for(unlocked);
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, false, true);
+        self.cbump();
+    }
+
     pub(super) fn unlock(&mut self, id: ObjId, door: u8) {
         let Some(o) = self.objects.get(id) else {
             return;
@@ -2251,7 +2336,13 @@ impl GameState {
     }
 
     pub(super) fn destroy_with(&mut self, id: ObjId, regenerate: bool) {
-        if !self.objects.contains_key(id) {
+        // CR 702.12b: an indestructible permanent can't be destroyed, so
+        // there is no destruction for a regeneration shield or another
+        // replacement to replace (the shield stays unused).
+        if self
+            .characteristics(id)
+            .is_none_or(|c| c.has(Keyword::Indestructible))
+        {
             return;
         }
         // "That creature can't be regenerated this turn".

@@ -1,0 +1,8 @@
+card "Kiora of Salt and Sand" {
+  oracle_id e70bb7f8-8098-49c5-929c-68f63cd821c5
+  cost {1}{G}{U}
+  type Legendary Creature — Merfolk Noble
+  pt 2/4
+  triggered whenever you attack if 1 loyalty abilities activated this turn: untap target attacking creature; it can't be blocked this turn
+  static planeswalker you control: has ability { loyalty -8: create 1 "8/8 blue Leviathan creature with hexproof" }
+}

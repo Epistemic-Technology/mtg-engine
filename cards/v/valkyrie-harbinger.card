@@ -1,0 +1,8 @@
+card "Valkyrie Harbinger" {
+  oracle_id 18a5e71e-eb75-4ac7-bedd-2220aaa24f78
+  cost {4}{W}{W}
+  type Creature — Angel Cleric
+  pt 4/5
+  keywords flying, lifelink
+  triggered at beginning of every end if gained 4 life this turn: create 1 "4/4 white Angel creature with flying and vigilance"
+}

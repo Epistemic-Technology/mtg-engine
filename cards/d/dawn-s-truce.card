@@ -1,0 +1,7 @@
+card "Dawn's Truce" {
+  oracle_id 37c06f89-db36-4937-9404-2b07cd22e1a6
+  cost {1}{W}
+  type Instant
+  gift card
+  spell: you and all permanent you control gain hexproof; if kicked, also each permanent you control gain indestructible
+}

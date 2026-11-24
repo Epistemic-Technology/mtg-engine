@@ -746,6 +746,13 @@ impl GameState {
                         .get(o.def)
                         .keywords
                         .contains(crate::card::Keyword::SplitSecond)
+                        // "Instant and sorcery spells you control have
+                        // split second."
+                        || (((self.pool.stack_grants && self.cost_change_sources > 0)
+                            || !self.spell_gains.is_empty())
+                            && self
+                                .stack_spell_keywords(*s)
+                                .contains(crate::card::Keyword::SplitSecond))
                 })
             })
         {
@@ -836,6 +843,36 @@ impl GameState {
         self.eval_num(n, &ctx)
     }
 
+    /// A count for `source`'s controller outside any resolution (a
+    /// condition such as "if there are five colors among permanents you
+    /// control").
+    pub(crate) fn eval_count_of(
+        &self,
+        c: &crate::card::CountExpr,
+        source: ObjId,
+        controller: PlayerId,
+    ) -> u32 {
+        let ctx = EffectCtx {
+            source,
+            controller,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: None,
+            trigger_player: None,
+            trigger_amount: 0,
+            created: None,
+            revealed: Vec::new(),
+            x: 0,
+            did: true,
+            chosen: Chosen::None,
+            couldnt: 0,
+            created_tokens: SmallVec::new(),
+            counts: None,
+        };
+        self.eval_count(c, &ctx)
+    }
+
     /// A variable amount's value as an effect happens: X from the spell, or
     /// one of the source card's counts (CR 107.3 for X; "the number of
     /// ..." judged from the effect's controller).
@@ -873,6 +910,16 @@ impl GameState {
             }
             CountExpr::Divided { by, up, inner } => {
                 return CountExpr::divide(self.eval_count(inner, ctx), *by, *up);
+            }
+            // "for each creature that crewed it this turn" (Luxurious
+            // Locomotive): those gone from the battlefield count too.
+            CountExpr::Permanents(f)
+                if matches!(
+                    f.combat_with,
+                    Some(crate::card::CombatWith::Crewed | crate::card::CombatWith::Saddled)
+                ) =>
+            {
+                self.crewed.iter().filter(|(v, _)| *v == ctx.source).count()
             }
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
@@ -1000,6 +1047,7 @@ impl GameState {
                 match what {
                     crate::card::PlayerCount::Hand => ps.hand.len(),
                     crate::card::PlayerCount::Library => ps.library.len(),
+                    crate::card::PlayerCount::Graveyard => self.cards_in_graveyard(p),
                     crate::card::PlayerCount::Life => {
                         return u32::try_from(ps.life.max(0)).unwrap_or(0);
                     }
@@ -1434,6 +1482,77 @@ impl GameState {
                     })
                     .len();
             }
+            CountExpr::ColorsAmong(_)
+            | CountExpr::CardTypesAmong(_)
+            | CountExpr::CountersAmong(..)
+            | CountExpr::CounterKindsAmong(_)
+            | CountExpr::DifferentPowers(_)
+            | CountExpr::SharingCreatureType(_) => {
+                let (CountExpr::ColorsAmong(f)
+                | CountExpr::CardTypesAmong(f)
+                | CountExpr::CountersAmong(_, f)
+                | CountExpr::CounterKindsAmong(f)
+                | CountExpr::DifferentPowers(f)
+                | CountExpr::SharingCreatureType(f)) = expr
+                else {
+                    unreachable!()
+                };
+                let f = &*self.chosen_filter(f, ctx);
+                let group: SmallVec<[(ObjId, crate::state::Characteristics); 16]> = self
+                    .battlefield
+                    .iter()
+                    .filter_map(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.characteristics(*id)?;
+                        (f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(f, *id))
+                        .then_some((*id, c))
+                    })
+                    .collect();
+                return self.group_count(expr, &group);
+            }
+            CountExpr::CardTypesCastThisTurn => {
+                return self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(p, _)| *p == you)
+                    .fold(crate::card::TypeSet::default(), |acc, (_, d)| {
+                        acc.union(self.pool.get(*d).types)
+                    })
+                    .len();
+            }
+            // CR 608.2h: the moved cards as they last existed.
+            CountExpr::CardTypesThisWay(verb) => {
+                return self.this_way.as_ref().map_or(0, |log| {
+                    log.moved
+                        .iter()
+                        .filter(|m| m.is(*verb))
+                        .filter_map(|m| {
+                            self.lki
+                                .get(&m.old)
+                                .map(|l| l.characteristics.types)
+                                .or_else(|| {
+                                    self.objects.get(m.new).map(|o| self.pool.get(o.def).types)
+                                })
+                        })
+                        .fold(crate::card::TypeSet::default(), crate::card::TypeSet::union)
+                        .len()
+                });
+            }
+            CountExpr::PermanentTypesInGraveyard => {
+                return self.permanent_types_in_graveyard(you);
+            }
+            CountExpr::GraveyardsWithAtLeast(n) => {
+                return self.graveyards_with_at_least(*n);
+            }
+            // CR 608.2h: the triggering object as it last existed.
+            CountExpr::TriggerPtDifference => {
+                return ctx.trigger_obj.map_or(0, |id| {
+                    self.characteristics_or_lki(id)
+                        .map_or(0, |c| (c.power() - c.toughness()).unsigned_abs())
+                });
+            }
+            CountExpr::X => return ctx.x,
             // CR 107.1b: a negative total is 0.
             CountExpr::Total(stat, f) => {
                 let f = &*self.chosen_filter(f, ctx);
@@ -1583,6 +1702,8 @@ impl GameState {
                             .characteristics(*id)
                             .is_some_and(|c| filter.matches(*id, p, &c, Some(ctx.source), Some(p)))
                         && self.status_ok(filter, *id)
+                        // "a creature that saddled it this turn".
+                        && self.combat_with_ok(filter.combat_with, Some(ctx.source), *id)
                 })
                 .collect(),
             ChooseAct::Discard
@@ -1644,11 +1765,19 @@ impl GameState {
                 })
                 .collect(),
             // "from among the milled cards": those still in the graveyard.
-            ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => {
+            ChooseAct::MilledToHand
+            | ChooseAct::MilledToBattlefield
+            | ChooseAct::MilledToTop
+            | ChooseAct::DiscardedToBattlefield => {
+                let kind = if act == ChooseAct::DiscardedToBattlefield {
+                    crate::card::ThisWay::Discarded
+                } else {
+                    crate::card::ThisWay::Milled
+                };
                 self.this_way.as_ref().map_or_else(Vec::new, |log| {
                     log.moved
                         .iter()
-                        .filter(|m| m.is(crate::card::ThisWay::Milled))
+                        .filter(|m| m.is(kind))
                         .map(|m| m.new)
                         .filter(|id| {
                             self.objects
@@ -1863,6 +1992,13 @@ impl GameState {
         if act == ChooseAct::ExiledWith {
             ctx.created = None;
         }
+        // "put all Elf cards from among them into your hand": every
+        // candidate, none chosen.
+        let n = if n == u32::MAX as usize && !up_to {
+            cands.len()
+        } else {
+            n
+        };
         if n == 0 || (!up_to && cands.len() < n) {
             return 0;
         }
@@ -1935,7 +2071,7 @@ impl GameState {
                 ChooseAct::HandToBottom => {
                     self.move_object(id, Zone::Library, false);
                 }
-                ChooseAct::GraveyardToTop => {
+                ChooseAct::GraveyardToTop | ChooseAct::MilledToTop => {
                     self.move_object(id, Zone::Library, true);
                 }
                 ChooseAct::ExileToGraveyard => {
@@ -1956,6 +2092,17 @@ impl GameState {
                 | ChooseAct::ReturnRandomFromGraveyard
                 | ChooseAct::MilledToHand => {
                     ctx.created = Some(self.move_object(id, Zone::Hand, false));
+                }
+                // CR 110.2a: "under your control".
+                ChooseAct::DiscardedToBattlefield => {
+                    ctx.created = Some(self.put_onto_battlefield_with(
+                        id,
+                        ctx.controller,
+                        super::replace::Enter {
+                            tapped: true,
+                            ..super::replace::Enter::default()
+                        },
+                    ));
                 }
                 ChooseAct::MilledToBattlefield | ChooseAct::GraveyardToBattlefield { .. } => {
                     let tapped = matches!(act, ChooseAct::GraveyardToBattlefield { tapped: true });
@@ -2127,6 +2274,7 @@ impl GameState {
                 up_to,
             } => {
                 *up_to
+                    || *count == crate::card::Num::N(u32::MAX)
                     || self.act_candidates(ctx, *act, filter).len()
                         >= self.eval_num(*count, ctx) as usize
             }
@@ -2147,6 +2295,22 @@ impl GameState {
                 who: crate::card::Recipient::You,
                 ..
             } => !self.player(ctx.controller).hand.is_empty(),
+            Effect::Behold(b) => {
+                self.behold_candidates(ctx.controller, b, ctx.source).len() >= b.n as usize
+            }
+            // "or unlock a locked door of a Room you control".
+            Effect::Door {
+                own: true,
+                lock: false,
+                ..
+            } => self.permanents_of(ctx.controller).any(|id| {
+                let def = self.objects[id].def;
+                self.pool
+                    .get(def)
+                    .doors
+                    .as_deref()
+                    .is_some_and(|d| d.unlocked(def).contains(&false))
+            }),
             _ => true,
         }
     }
@@ -2398,6 +2562,32 @@ impl GameState {
         // ability's controller exiled it, whoever owns it; "if you
         // discarded" is about the cards you owned.
         let by_you = cond.by_you && cond.verb != crate::card::ThisWay::Exiled;
+        // "If a Dragon is dealt damage this way, destroy it.", "If a player
+        // is dealt damage this way, they discard a card.": not zone
+        // changes; a permanent as it is or last existed (CR 608.2h).
+        match cond.verb {
+            crate::card::ThisWay::DamagedPlayer => {
+                return log.damaged_players.is_empty() == cond.negated;
+            }
+            crate::card::ThisWay::Damaged => {
+                let any = log.damaged.iter().any(|id| {
+                    cond.filter.as_ref().is_none_or(|f| {
+                        let controller = self
+                            .objects
+                            .get(*id)
+                            .map(|o| o.controller)
+                            .or_else(|| self.lki.get(id).map(|l| l.object.controller));
+                        controller.is_some_and(|c| {
+                            self.characteristics_or_lki(*id).is_some_and(|ch| {
+                                f.matches(*id, c, &ch, Some(ctx.source), Some(ctx.controller))
+                            })
+                        })
+                    })
+                });
+                return any != cond.negated;
+            }
+            _ => {}
+        }
         if nothing {
             return !log
                 .moved
@@ -2874,7 +3064,7 @@ impl GameState {
                 let cost = &self.pool.get(doors.half(door)).mana_cost;
                 let ways =
                     crate::card::SpendWays::of_cost(cost).with(crate::card::SpendWays::UNLOCK);
-                if self.payable_for(p, sources, &cost.requirements(0), Spend::Special(ways)) {
+                if self.payable_for(p, sources, &self.unlock_cost(p, cost), Spend::Special(ways)) {
                     options.push(Choice::Unlock { obj: id, door });
                 }
             }
@@ -3558,8 +3748,11 @@ impl GameState {
         if self.cost_change_sources == 0 {
             return SmallVec::new();
         }
+        // An emblem's static ability (CR 114.4): "You get an emblem with
+        // \"Instant and sorcery spells you cast have storm.\"".
         self.battlefield
             .iter()
+            .chain(self.emblems.iter())
             .copied()
             .filter(|id| self.flags_of(&self.objects[*id]).has_cost_change())
             .collect()
@@ -3576,6 +3769,9 @@ impl GameState {
         changers: &[ObjId],
     ) -> i32 {
         let mut d = -i32::from(self.next_spell_less[p.index().min(3)]);
+        if !self.turn_spell_changes.is_empty() {
+            d -= self.turn_spell_less(p, def, id);
+        }
         if let Some((delta, cond)) = def.cond_cost {
             let cond = self.pool.condition(cond);
             // "If you've cast another instant or sorcery spell this turn":
@@ -3655,6 +3851,49 @@ impl GameState {
         d
     }
 
+    /// Whether the turn's change `tc` (`Effect::SpellsThisTurn`) applies
+    /// to `def`, the card or spell `id` that `p` casts.
+    fn turn_change_applies(
+        tc: &crate::state::TurnSpellChange,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+    ) -> bool {
+        tc.player == p
+            && def.printed.as_ref().is_some_and(|c| {
+                tc.spells
+                    .mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)))
+                    && tc.spells.matches(id, p, c, None, Some(p))
+            })
+    }
+
+    /// How much less generic mana the turn's changes make `def`'s card
+    /// `id` cost `p` (`Effect::SpellsThisTurn`): their amounts, and
+    /// affinity they give it (CR 702.41a).
+    #[cold]
+    #[inline(never)]
+    fn turn_spell_less(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> i32 {
+        let mut d = 0i32;
+        for tc in &self.turn_spell_changes {
+            if !Self::turn_change_applies(tc, p, def, id) {
+                continue;
+            }
+            d = d.saturating_add(i32::try_from(tc.less).unwrap_or(i32::MAX));
+            if let Some(f) = tc.grant.as_ref().and_then(|g| g.affinity.as_ref()) {
+                let n = self
+                    .permanents_of(p)
+                    .filter(|q| {
+                        self.characteristics(*q)
+                            .is_some_and(|c| f.matches(*q, p, &c, None, Some(p)))
+                    })
+                    .count();
+                d = d.saturating_add(i32::try_from(n).unwrap_or(i32::MAX));
+            }
+        }
+        d
+    }
+
     /// Whether the cost change (or grant) `cc` of `src` applies to `def`,
     /// the card or spell `id` that `p` casts.
     fn cost_change_applies(
@@ -3705,10 +3944,14 @@ impl GameState {
                     })
                 }
             });
+        // "Permanent spells you cast that have an Adventure".
+        let card_ok = !(cc.spells.status.x_in_cost || cc.spells.status.adventure)
+            || GameState::card_quals_ok(&cc.spells.status, def);
         whose
             && from_ok
             && mv_ok
             && first_ok
+            && card_ok
             && cc
                 .spells
                 .matches(id, p, chars, Some(src), Some(o.controller))
@@ -3728,6 +3971,16 @@ impl GameState {
     ) -> (KeywordSet, bool) {
         let mut kw = def.keywords;
         let mut storm = def.storm;
+        if !self.turn_spell_changes.is_empty() {
+            for tc in &self.turn_spell_changes {
+                if let Some(g) = &tc.grant
+                    && Self::turn_change_applies(tc, p, def, id)
+                {
+                    kw = kw.union(g.keywords);
+                    storm |= g.storm;
+                }
+            }
+        }
         if self.cost_change_sources == 0 {
             return (kw, storm);
         }
@@ -3744,6 +3997,81 @@ impl GameState {
             }
         }
         (kw, storm)
+    }
+
+    /// The keywords the spell `id` on the stack has beyond its card's: what
+    /// static abilities give it ("Instant and sorcery spells you control
+    /// have lifelink", "... have split second"; CR 702.15, 702.61) and
+    /// what an effect gave it ("That spell gains deathtouch and
+    /// lifelink"). The callers gate it on `cost_change_sources` and
+    /// `spell_gains`.
+    #[cold]
+    #[inline(never)]
+    pub(crate) fn stack_spell_keywords(&self, id: ObjId) -> KeywordSet {
+        let Some(o) = self.objects.get(id) else {
+            return KeywordSet::default();
+        };
+        if o.zone != Zone::Stack || o.kind == ObjKind::Ability {
+            return KeywordSet::default();
+        }
+        let mut kw = KeywordSet::default();
+        for (s, k) in &self.spell_gains {
+            if *s == id {
+                kw = kw.union(*k);
+            }
+        }
+        if self.pool.stack_grants && self.cost_change_sources > 0 {
+            let def = self.pool.get(o.def);
+            kw = kw.union(self.spell_keywords(o.controller, def, id).0);
+        }
+        kw
+    }
+
+    /// Casualty N (CR 702.153a) the spell `spell` being cast has: its own,
+    /// or the greatest a static ability gives it ("Each instant and
+    /// sorcery spell you cast has casualty 1"); 0 for none.
+    pub(super) fn spell_casualty(&self, spell: ObjId) -> u8 {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let mut n = def.casualty;
+        if self.cost_change_sources > 0 {
+            self.for_spell_grants(o.controller, def, spell, |g| n = n.max(g.casualty));
+        }
+        n
+    }
+
+    /// Whether the spell `spell` being cast has conspire (CR 702.78a): its
+    /// own, or given ("Each noncreature spell you cast has conspire").
+    pub(super) fn spell_conspire(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let mut on = def.conspire;
+        if !on && self.cost_change_sources > 0 {
+            self.for_spell_grants(o.controller, def, spell, |g| on |= g.conspire);
+        }
+        on
+    }
+
+    /// Calls `f` with each grant of a static ability that applies to the
+    /// spell `id` that `p` casts or controls.
+    fn for_spell_grants(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        mut f: impl FnMut(&crate::card::SpellGrant),
+    ) {
+        for src in self.cost_changers() {
+            let o = &self.objects[src];
+            for a in &self.pool.get(o.def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && let Some(g) = &cc.grant
+                    && self.cost_change_applies(cc, p, def, id, src)
+                {
+                    f(g);
+                }
+            }
+        }
     }
 
     /// Whether `p` may cast `def`'s card `id` as though it had flash: the
@@ -5289,7 +5617,7 @@ impl GameState {
                 }
                 // CR 606.3: one loyalty ability per planeswalker per turn, at
                 // sorcery speed; CR 606.5: a −N cost needs N loyalty.
-                if ab.cost.loyalty != 0 {
+                if ab.is_loyalty() {
                     if !sorcery_timing || self.loyalty_activated.contains(&id) {
                         continue;
                     }
@@ -5494,9 +5822,11 @@ impl GameState {
             .iter()
             .all(|c| self.condition_now(c, p, source))
             && !(ab.once_ever && self.activated_ever.contains(&(source, ability)))
-            // Pithing Needle (CR 201.3, 605.1a).
+            // Pithing Needle (CR 201.3, 605.1a); Grand Abolisher (CR
+            // 101.2).
             && !(self.player_static_sources > 0
-                && self.name_cant_activate(source, ab.is_mana_ability()))
+                && (self.name_cant_activate(source, ab.is_mana_ability())
+                    || self.activation_silenced(p, source, ab.is_mana_ability())))
     }
 
     /// Whether an ability with this keyword may be activated now (CR
@@ -5887,8 +6217,11 @@ impl GameState {
     ) {
         self.consecutive_passes = 0;
         let def = self.objects[source].def;
+        if matches!(self.pool.ability(ability), AbilityDef::Activated(a) if a.cost.loyalty != 0) {
+            self.log_event(crate::card::TurnEvent::LoyaltyActivated, player, 1);
+        }
         if let AbilityDef::Activated(a) = self.pool.ability(ability) {
-            if a.cost.loyalty != 0 {
+            if a.is_loyalty() {
                 self.loyalty_activated.push(source);
             }
             if a.per_turn > 0 || a.keyword == Some(ActivatedKeyword::Boast) || a.counted {
@@ -5947,6 +6280,7 @@ impl GameState {
             self.pool.ability(ability),
             AbilityDef::Activated(a) if ((a.cost.mana.has_x()
                 || a.cost.remove_x
+                || a.cost.loyalty_x
                 || a.cost.behold.as_ref().is_some_and(|b| b.x)
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
                 && !a.is_mana_ability())
@@ -6127,6 +6461,17 @@ impl GameState {
             }
             _ => max_x,
         };
+        // "−X": no more than its loyalty (CR 606.6).
+        let max_x = match ability {
+            Some((source, a)) if a.cost.loyalty_x => {
+                let n = self
+                    .objects
+                    .get(source)
+                    .map_or(0, |o| o.counters(CounterKind::Loyalty));
+                max_x.min(n)
+            }
+            _ => max_x,
+        };
         // "Remove X ki counters from this creature": no more than it has.
         let max_x = match ability {
             Some((source, a)) if a.cost.remove_x => {
@@ -6275,8 +6620,24 @@ impl GameState {
     pub(super) fn many_bounds(&self, spell: ObjId, i: u16) -> (usize, usize) {
         let m = self.pool.many(i);
         let x = self.x_of(spell);
-        let mut min = m.min.eval(x) as usize;
-        let mut max = m.max.map_or(usize::MAX, |n| n.eval(x) as usize);
+        // "up to that many target creatures": a triggered ability's event
+        // amount (the life gained).
+        // "up to X target creatures ..., where X is ...": the card's count,
+        // judged as the targets are chosen.
+        let eval = |n: crate::card::Num| match n {
+            crate::card::Num::ThatMuch => self
+                .objects
+                .get(spell)
+                .and_then(|o| o.ability)
+                .map_or(0, |a| a.trigger_amount),
+            crate::card::Num::Count(_) => self.objects.get(spell).map_or(0, |o| {
+                let source = o.ability.map_or(spell, |a| a.source);
+                self.eval_num_of(n, source, o.controller)
+            }),
+            n => n.eval(x),
+        };
+        let mut min = eval(m.min) as usize;
+        let mut max = m.max.map_or(usize::MAX, |n| eval(n) as usize);
         if let Some(total) = self.divided_total(spell) {
             max = max.min(total as usize);
             if total > 0 {
@@ -6545,6 +6906,14 @@ impl GameState {
                 _ => true,
             });
         }
+        // "with lesser mana value", "other than that creature": against
+        // the triggering object.
+        if let Some(trigger_obj) = o.ability.and_then(|a| a.trigger_obj) {
+            options.retain(|c| match c {
+                Choice::Target(t) => self.trigger_rel_ok(spec, *t, Some(trigger_obj)),
+                _ => true,
+            });
+        }
         let related: SmallVec<[usize; 2]> = (index + 1..specs.len())
             .filter(|i| {
                 matches!(
@@ -6785,7 +7154,12 @@ impl GameState {
     /// first so that it is not also tapped for mana; sacrifices come last,
     /// so a "sacrifice ~" source is still there to be tapped.
     #[allow(clippy::too_many_lines)] // one step per kind of cost
-    fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>, discard: Option<ObjId>) {
+    pub(super) fn finish_activation(
+        &mut self,
+        obj: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    ) {
         let o = &self.objects[obj];
         let (controller, def) = (o.controller, o.def);
         let sa = o.ability.expect("ability object");
@@ -6793,6 +7167,28 @@ impl GameState {
         let AbilityDef::Activated(ab) = pool.ability(sa.ability) else {
             unreachable!("checked by finish_ability_targets");
         };
+        // CR 602.2b, 601.2b: how its Phyrexian symbols are paid is
+        // announced before the costs are paid; the player chooses when
+        // more than one way can be paid.
+        let mut life_symbols = None;
+        if ab.cost.mana.requirements(0).phyrexian_count() > 0 && !ab.is_mana_ability() {
+            if let Some(i) = self.phyrexian_life.iter().position(|(s, _)| *s == obj) {
+                life_symbols = Some(self.phyrexian_life.swap_remove(i).1);
+            } else {
+                match self.phyrexian_options(obj, sacrifice).as_slice() {
+                    [] => {}
+                    [k] => life_symbols = Some(u8::try_from(*k).unwrap_or(u8::MAX)),
+                    _ => {
+                        self.flow = crate::state::Flow::ChoosingPhyrexian {
+                            spell: obj,
+                            sacrifice,
+                            discard,
+                        };
+                        return;
+                    }
+                }
+            }
+        }
         if ab.cost.tap {
             self.tap(sa.source);
         }
@@ -6838,6 +7234,22 @@ impl GameState {
         if ab.cost.waterbend {
             sources.extend(self.waterbend_sources(controller, req.generic, None));
         }
+        if let Some(k) = life_symbols {
+            req.life_symbols = Some(k);
+            // The permanents tapped for the cost may have taken mana the
+            // announcement counted on: then any way.
+            let ps = self.player(controller);
+            if !self.payable(
+                controller,
+                &sources,
+                &ps.mana_pool,
+                &req,
+                ps.life,
+                Some(sa.source),
+            ) {
+                req.life_symbols = None;
+            }
+        }
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.is_equip() {
             self.log_event(crate::card::TurnEvent::Equipped, controller, 1);
@@ -6845,6 +7257,7 @@ impl GameState {
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
+                self.crewed.push((sa.source, c));
                 self.emit(Event::Crewed {
                     crew: c,
                     vehicle: sa.source,
@@ -6891,6 +7304,7 @@ impl GameState {
             // not the source's.
             if ab.cost.life_x
                 || ab.cost.remove_x
+                || ab.cost.loyalty_x
                 || ab.cost.behold.as_ref().is_some_and(|b| b.x)
                 || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
             {
@@ -6908,6 +7322,9 @@ impl GameState {
                     && let Some((_, n)) = &mut cost.remove_counters
                 {
                     *n = s.x_of(obj);
+                }
+                if cost.loyalty_x {
+                    cost.loyalty = -i32::try_from(s.x_of(obj)).unwrap_or(i32::MAX);
                 }
                 if let Some(b) = &mut cost.behold
                     && b.x
@@ -6937,10 +7354,26 @@ impl GameState {
         }
         // CR 605.3b: a mana ability doesn't use the stack.
         if ab.is_mana_ability() {
+            let before = (self.mana_trigger_sources > 0 && ab.cost.tap).then(|| {
+                (
+                    self.player(controller).mana_pool,
+                    self.restricted_pool.len(),
+                )
+            });
             self.resolve_top();
             // CR 605.4a: mana abilities it triggered by tapping its source
             // for mana resolve right after it.
-            if ab.cost.tap && self.mana_trigger_sources > 0 {
+            if let Some((pool, restricted)) = before {
+                let after = self.player(controller).mana_pool;
+                let mut made = crate::mana::ManaPool::default();
+                for c in 0..5 {
+                    made.colored[c] = after.colored[c].saturating_sub(pool.colored[c]);
+                }
+                made.colorless = after.colorless.saturating_sub(pool.colorless);
+                for r in self.restricted_pool.iter().skip(restricted) {
+                    made.add(r.mana);
+                }
+                self.tapped_produced = made;
                 self.fire_mana_triggers(sa.source);
                 self.emit(Event::TappedForMana { obj: sa.source });
             }
@@ -6985,6 +7418,7 @@ impl GameState {
                     })))
         {
             adjust_generic(&mut req, tc.0);
+            ways::reduce_colors(&mut req, def.target_cost_colors);
         }
         let sources = self.spell_sources(spell);
         let ps = self.player(o.controller);
@@ -7154,7 +7588,8 @@ impl GameState {
             // (Encrust on a mana artifact; Voidstone Gargoyle's chosen
             // name).
             if c.has(Keyword::CantActivate)
-                || (self.player_static_sources > 0 && self.name_cant_activate(id, true))
+                || (self.player_static_sources > 0
+                    && (self.name_cant_activate(id, true) || self.activation_silenced(p, id, true)))
             {
                 continue;
             }
@@ -7196,7 +7631,9 @@ impl GameState {
                 };
                 if (c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste))
                     || c.has(Keyword::CantActivate)
-                    || (self.player_static_sources > 0 && self.name_cant_activate(id, true))
+                    || (self.player_static_sources > 0
+                        && (self.name_cant_activate(id, true)
+                            || self.activation_silenced(p, id, true)))
                 {
                     continue;
                 }
@@ -7656,6 +8093,120 @@ impl GameState {
     /// may cast it free as a sorcery from a later turn on. The exiled card.
     pub(super) fn plot(&mut self, card: ObjId) -> ObjId {
         let new = self.move_object(card, Zone::Exile, true);
+        self.mark_plotted(new);
+        new
+    }
+
+    /// "Unlock a locked door of target Room you control", "... of a Room
+    /// you control" (`own`), "Lock or unlock a door of target Room you
+    /// control" (`lock`), CR 709.5: the controller picks the Room and the
+    /// door as it resolves (CR 608.2d), each pair offered as a
+    /// `Choice::Unlock` (for `lock`, the door to lock or unlock).
+    fn door_effect(&mut self, ctx: &EffectCtx, what: Recipient, own: bool, lock: bool) {
+        let rooms: Vec<ObjId> = if own {
+            self.permanents_of(ctx.controller).collect()
+        } else {
+            self.recipients(ctx, what)
+                .into_iter()
+                .filter_map(|t| match t {
+                    Target::Object(id) => self
+                        .objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                        .then_some(id),
+                    Target::Player(_) => None,
+                })
+                .collect()
+        };
+        let mut options: Vec<Choice> = Vec::new();
+        for id in rooms {
+            let def = self.objects[id].def;
+            let Some(doors) = self.pool.get(def).doors.as_deref() else {
+                continue;
+            };
+            let unlocked = doors.unlocked(def);
+            for door in 0..2u8 {
+                if lock || !unlocked[usize::from(door)] {
+                    options.push(Choice::Unlock { obj: id, door });
+                }
+            }
+        }
+        let k = match options.len() {
+            0 => return,
+            1 => 0,
+            _ => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                self.choose_mid(
+                    ctx.controller,
+                    DecisionKind::ChooseOption { def },
+                    options.clone(),
+                )
+            }
+        };
+        let Choice::Unlock { obj, door } = options[k] else {
+            return;
+        };
+        let def = self.objects[obj].def;
+        let unlocked = self.pool.get(def).doors.as_deref().map(|d| d.unlocked(def));
+        if unlocked.is_some_and(|u| u[usize::from(door)]) {
+            self.lock(obj, door);
+        } else {
+            self.unlock(obj, door);
+        }
+    }
+
+    /// Player `p` manifests dread (CR 701.62a): looks at the top two cards
+    /// of their library, manifests one, and puts the other into their
+    /// graveyard. The manifested permanent, if any; "whenever you manifest
+    /// dread" triggers either way.
+    fn manifest_dread(&mut self, p: PlayerId) -> Option<ObjId> {
+        let top: Vec<ObjId> = self
+            .player(p)
+            .library
+            .iter()
+            .rev()
+            .take(2)
+            .copied()
+            .collect();
+        let mut new = None;
+        let mut milled = None;
+        if let Some(&first) = top.first() {
+            let pick = if top.len() > 1 {
+                let options: Vec<Choice> = top
+                    .iter()
+                    .map(|id| Choice::Target(Target::Object(*id)))
+                    .collect();
+                top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
+            } else {
+                first
+            };
+            self.objects[pick].def = self.pool.face_down(false);
+            new = Some(self.put_onto_battlefield(pick, p));
+            for id in top {
+                if id != pick {
+                    let card = self.move_object(id, Zone::Graveyard, true);
+                    // Not if a replacement put it elsewhere (CR 614.6).
+                    if self
+                        .objects
+                        .get(card)
+                        .is_some_and(|o| o.zone == Zone::Graveyard)
+                    {
+                        milled = Some(card);
+                    }
+                }
+            }
+        }
+        self.emit(Event::ManifestedDread { player: p, milled });
+        new
+    }
+
+    /// A card in exile becomes plotted (CR 702.170a, c).
+    fn mark_plotted(&mut self, new: ObjId) {
         self.objects[new].alt = AltCast::Plotted;
         let owner = self.objects[new].owner;
         self.player_mut(owner).adventures_in_exile += 1;
@@ -7673,7 +8224,6 @@ impl GameState {
                 self.queue_builtin(owner, *a, new, def);
             }
         }
-        new
     }
 
     /// The sources `p` may tap to unlock a door (`unlock`) or turn a
@@ -8221,6 +8771,13 @@ impl GameState {
             }
         }
         for id in boosted {
+            let mut made = crate::mana::ManaPool::default();
+            for &(src, mana) in plan {
+                if src == id {
+                    made.add(mana);
+                }
+            }
+            self.tapped_produced = made;
             self.fire_mana_triggers(id);
         }
         for obj in for_mana {
@@ -8465,9 +9022,27 @@ impl GameState {
     /// caster could pay with 2 life each, the rest of the cost then
     /// payable, fewest first.
     pub(super) fn phyrexian_options(&self, spell: ObjId, sacrifice: Option<ObjId>) -> Vec<u32> {
-        let req = self.cast_requirements(spell, sacrifice);
         let p = self.objects[spell].controller;
-        let sources = self.spell_sources(spell);
+        let (req, sources, exclude) = match self.objects[spell].ability {
+            // An activated ability's cost (CR 602.2b), as it will be paid.
+            Some(sa) if self.objects[spell].kind == ObjKind::Ability => {
+                let AbilityDef::Activated(ab) = self.pool.ability(sa.ability) else {
+                    return Vec::new();
+                };
+                let mut req = self.activation_mana_x(sa.source, ab, self.x_of(spell), p);
+                if self.target_reduces(ab)
+                    && let Some(t) = self.objects[spell].targets.first().copied()
+                {
+                    self.reduce_for_target(p, sa.source, ab, t, &mut req);
+                }
+                (req, self.ability_sources(p, sa.source, ab), Some(sa.source))
+            }
+            _ => (
+                self.cast_requirements(spell, sacrifice),
+                self.spell_sources(spell),
+                None,
+            ),
+        };
         let ps = self.player(p);
         (0..=req.phyrexian_count())
             .filter(|k| {
@@ -8475,7 +9050,7 @@ impl GameState {
                     life_symbols: Some(u8::try_from(*k).unwrap_or(u8::MAX)),
                     ..req
                 };
-                self.payable(p, &sources, &ps.mana_pool, &r, ps.life, None)
+                self.payable(p, &sources, &ps.mana_pool, &r, ps.life, exclude)
             })
             .collect()
     }
@@ -8616,6 +9191,18 @@ impl GameState {
         if let Some(c) = grants::granted_way_additional(self.objects[spell].alt) {
             let card = discard.take();
             self.pay_other_costs(caster, c, spell, None, card);
+        }
+        // "by paying 3 life", "by foraging" in addition to its other costs
+        // (the permission it was cast from a graveyard by, CR 601.3).
+        if !self.grave_cast_spells.is_empty()
+            && let Some(c) = self
+                .grave_cast_spells
+                .iter()
+                .find(|(s, _)| *s == spell)
+                .filter(|(_, r)| r.costs())
+                .map(|(_, r)| r.cost())
+        {
+            self.pay_other_costs(caster, &c, spell, None, None);
         }
         // CR 702.33a: a kicker cost other than mana, its permanent chosen
         // after targets (`additional_of`).
@@ -8830,6 +9417,25 @@ impl GameState {
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
+        // "The next noncreature spell you cast this turn has affinity for
+        // artifacts": used up by this spell, if it matches; keywords it
+        // gave stay with the spell (`spell_gains`).
+        if self.turn_spell_changes.iter().any(|t| t.next) {
+            let def = self.pool.get(self.objects[spell].def);
+            let mut kept = Vec::new();
+            for tc in std::mem::take(&mut self.turn_spell_changes) {
+                if tc.next && Self::turn_change_applies(&tc, caster, def, spell) {
+                    if let Some(g) = &tc.grant
+                        && !g.keywords.is_empty()
+                    {
+                        self.spell_gains.push((spell, g.keywords));
+                    }
+                } else {
+                    kept.push(tc);
+                }
+            }
+            self.turn_spell_changes = kept;
+        }
         // "The next red or green creature spell you cast this turn can be
         // cast without paying its mana cost": used up by the next such
         // spell, however it was cast.
@@ -8897,7 +9503,9 @@ impl GameState {
         // before it this turn; CR 702.56a: replicate once for each time
         // its cost was paid. (Each copy is its own trigger here.)
         let mut copies = self.objects.get(spell).map_or(0, |o| {
-            usize::from(o.cast.conspired() || o.cast.casualty()) + o.cast.replicated() as usize
+            usize::from(o.cast.conspired())
+                + usize::from(o.cast.casualty())
+                + o.cast.replicated() as usize
         });
         if storm {
             copies += self.cast_this_turn.len().saturating_sub(1);
@@ -9118,7 +9726,8 @@ impl GameState {
             let specs = spliced.as_ref().map_or(specs, |s| s.targets.as_slice());
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
-            let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None);
+            let legal =
+                self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None, None);
             // A spell whose optional targets were all declined has none.
             if all_illegal(&legal, &obj.targets) {
                 self.emit(Event::Fizzle {
@@ -9207,7 +9816,19 @@ impl GameState {
                     self.objects[spell].kind = ObjKind::Token;
                 }
                 self.choose_copy_on_resolving(spell);
-                if obj.alt == AltCast::Sneak {
+                let counters = self.cast_way_counters(spell);
+                if counters.is_some() {
+                    // "that creature enters with a finality counter on it"
+                    // (the permission it was cast from a graveyard by).
+                    self.put_onto_battlefield_with(
+                        spell,
+                        obj.controller,
+                        super::replace::Enter {
+                            counters,
+                            ..Default::default()
+                        },
+                    );
+                } else if obj.alt == AltCast::Sneak {
                     self.enter_sneaking(spell, obj.controller);
                 } else if obj.alt == AltCast::Impending
                     && let Some(n) = def.impending.as_deref().map(|i| i.0)
@@ -9252,6 +9873,10 @@ impl GameState {
             } else if obj.cast.bought_back() && !obj.cast.flashback() {
                 // CR 702.27a: to its owner's hand as it resolves.
                 self.move_object(spell, Zone::Hand, false);
+            } else if obj.marks & crate::state::OBJ_PLOT_ON_RESOLVE != 0 {
+                // "exile that spell instead of putting it into your
+                // graveyard as it resolves. If you do, it becomes plotted."
+                self.plot(spell);
             } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
                 self.rebound(spell);
             } else if def.keywords.contains(Keyword::Paradigm) {
@@ -9283,6 +9908,23 @@ impl GameState {
                 }
             }
         }
+    }
+
+    /// The counters a permanent spell enters with by the way it was cast:
+    /// a finality counter from the permission it was cast from a
+    /// graveyard by (`GameState::grave_cast_spells`, CR 122.1h). Free
+    /// unless such a spell is being cast.
+    #[inline]
+    fn cast_way_counters(&mut self, spell: ObjId) -> Option<(CounterKind, u32)> {
+        if self.grave_cast_spells.is_empty() {
+            return None;
+        }
+        let i = self
+            .grave_cast_spells
+            .iter()
+            .position(|(s, _)| *s == spell)?;
+        let (_, r) = self.grave_cast_spells.remove(i);
+        r.finality.then_some((CounterKind::Finality, 1))
     }
 
     /// CR 702.190b: a permanent spell whose sneak cost was paid enters
@@ -9531,6 +10173,66 @@ impl GameState {
 
     /// CR 707.10c: the copy's controller may change each of its targets to
     /// another one legal for its spec (judged from `source`), or keep it.
+    /// CR 115.7d: `chooser` may choose new targets for `obj` on the stack:
+    /// each target may stay or become another legal for it (judged for its
+    /// controller and source; not `obj` itself, nor a target it already
+    /// has). New targets become targeted anew (CR 115.7).
+    #[cold]
+    #[inline(never)]
+    fn choose_new_targets(&mut self, obj: ObjId, chooser: PlayerId) {
+        let Some(o) = self.objects.get(obj).filter(|o| o.zone == Zone::Stack) else {
+            return;
+        };
+        let (controller, kind) = (o.controller, o.kind);
+        let source = match (kind, o.ability) {
+            (ObjKind::Ability, Some(sa)) => sa.source,
+            _ => obj,
+        };
+        let specs: Vec<TargetSpec> = crate::state::targets_in(&self.pool, o).to_vec();
+        let mut changed = false;
+        for i in 0..self.objects[obj].targets.len() {
+            let Some(spec) = crate::card::spec_for(&specs, i) else {
+                break;
+            };
+            let current = self.objects[obj].targets[i];
+            if current.is_none() {
+                continue;
+            }
+            let mut options = vec![Choice::Target(current)];
+            options.extend(
+                self.legal_targets(controller, spec, Some(source))
+                    .into_iter()
+                    .filter(|t| {
+                        *t != current
+                            && *t != Target::Object(obj)
+                            && !self.objects[obj].targets.contains(t)
+                    })
+                    .map(Choice::Target),
+            );
+            if options.len() < 2 {
+                continue;
+            }
+            let k = self.choose_mid(
+                chooser,
+                DecisionKind::CopyTarget {
+                    spell: obj,
+                    index: i,
+                },
+                options.clone(),
+            );
+            if let Some(Choice::Target(t)) = options.get(k)
+                && *t != current
+            {
+                self.objects[obj].targets[i] = *t;
+                changed = true;
+            }
+        }
+        if changed {
+            self.cbump();
+            self.emit_targeted_objects(obj);
+        }
+    }
+
     fn choose_copy_targets(&mut self, copy: ObjId, controller: PlayerId, source: ObjId) {
         let specs: Vec<TargetSpec> =
             crate::state::targets_in(&self.pool, &self.objects[copy]).to_vec();
@@ -9834,10 +10536,16 @@ impl GameState {
             // "choose a card name": the names of the cards in the game, in
             // name order (`choose "Lightning Bolt"` in a scenario).
             ChoiceKind::CardName { .. } | ChoiceKind::CardNameOf(_) => {
+                // "Look at an opponent's hand": seen by the chooser only
+                // (CR 701.20a reveals to every player; looking doesn't).
                 if let ChoiceKind::CardName { look: true, .. } = kind {
                     let opp = self.next_player(p);
                     if opp != p {
-                        self.reveal_hand(opp);
+                        let bit = 1 << p.index().min(7);
+                        for i in 0..self.player(opp).hand.len() {
+                            let id = self.player(opp).hand[i];
+                            self.objects[id].revealed |= bit;
+                        }
                     }
                 }
                 // Which names may be chosen: "nonland", "creature", "other
@@ -10012,6 +10720,7 @@ impl GameState {
         targets: &[Target],
         source: Option<ObjId>,
         trigger_player: Option<PlayerId>,
+        trigger_obj: Option<ObjId>,
     ) -> Vec<bool> {
         targets
             .iter()
@@ -10021,6 +10730,7 @@ impl GameState {
                     !t.is_none()
                         && self.is_legal_target_for(controller, spec, *t, source)
                         && self.that_player_ok(spec, *t, trigger_player, targets)
+                        && self.trigger_rel_ok(spec, *t, trigger_obj)
                 })
             })
             .collect()
@@ -10241,6 +10951,41 @@ impl GameState {
                     out.extend(l.declined.iter().map(|p| Target::Player(*p)));
                 }
             }
+            Recipient::MostControl(f) => {
+                let filter = self.pool.filter(f);
+                let source = self.current_object(ctx.source);
+                let counts: SmallVec<[(PlayerId, usize); 4]> = self
+                    .players_in_game()
+                    .map(|q| {
+                        let n = self
+                            .permanents_of(q)
+                            .filter(|id| {
+                                self.characteristics(*id).is_some_and(|c| {
+                                    filter.matches(*id, q, &c, source, Some(ctx.controller))
+                                }) && self.status_ok(filter, *id)
+                            })
+                            .count();
+                        (q, n)
+                    })
+                    .collect();
+                let most = counts.iter().map(|(_, n)| *n).max().unwrap_or(0);
+                out.extend(
+                    counts
+                        .iter()
+                        .filter(|(_, n)| *n == most)
+                        .map(|(q, _)| Target::Player(*q)),
+                );
+            }
+            Recipient::Accepted => {
+                if let Some(l) = &self.this_way {
+                    out.extend(
+                        l.asked
+                            .iter()
+                            .filter(|p| !l.declined.contains(p))
+                            .map(|p| Target::Player(*p)),
+                    );
+                }
+            }
             // "Destroy the rest.": what the last choice could have chosen
             // and didn't, still on the battlefield.
             Recipient::Rest => {
@@ -10386,6 +11131,10 @@ impl GameState {
             Recipient::Group(f) => {
                 self.group_into(ctx, f, &mut out);
                 self.note_group(&out);
+            }
+            Recipient::YouAndGroup(f) => {
+                out.push(Target::Player(ctx.controller));
+                self.group_into(ctx, f, &mut out);
             }
             Recipient::ExiledCard => {
                 // CR 607.2a: what the source's linked ability exiled, while
@@ -10745,8 +11494,20 @@ impl GameState {
             && !f.status.mana_value_x
             && f.status.bound.is_none()
             && !f.enchanted_player
+            && !f.status.except_your_tokens
         {
             return std::borrow::Cow::Borrowed(f);
+        }
+        // "each creature except for tokens you control": the effect's
+        // controller's.
+        if f.status.except_your_tokens && f.or.is_none() {
+            let mut g = f.clone();
+            g.status.except_your_tokens = false;
+            let mut theirs = g.clone();
+            theirs.controlled_by = Some(self.opponent(ctx.controller));
+            g.status.token = Some(false);
+            g.or = Some(Box::new(theirs));
+            return std::borrow::Cow::Owned(self.chosen_filter(&g, ctx).into_owned());
         }
         // "each creature enchanted player controls" (CR 303.4).
         let f = &if f.enchanted_player {
@@ -10796,6 +11557,8 @@ impl GameState {
                     Some(Target::Object(id)) => Some(*id),
                     _ => None,
                 },
+                // Judged for targets only (`trigger_rel_ok`).
+                crate::card::SameOf::Triggering => None,
             };
             g = self.with_same_of(&g, of);
         }
@@ -12119,6 +12882,13 @@ impl GameState {
                     }
                 }
             }
+            Effect::NewTargets { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.choose_new_targets(id, ctx.controller);
+                    }
+                }
+            }
             Effect::CounterUnlessPays { to, mana, x, dest } => {
                 // "{1} for each card in your hand": counted as it resolves.
                 let x = self.eval_num(*x, ctx);
@@ -12289,6 +13059,31 @@ impl GameState {
                     self.bump();
                 }
             }
+            Effect::AddManaProduced => {
+                // CR 106.12: a kind of mana the tapped permanent made; of
+                // several, the one it made most of.
+                let made = self.tapped_produced;
+                let mut best = (made.colorless, Mana::Colorless);
+                for c in Color::ALL {
+                    if made.colored[c as usize] > best.0 {
+                        best = (made.colored[c as usize], Mana::Colored(c));
+                    }
+                }
+                if best.0 > 0 {
+                    self.player_mut(ctx.controller).mana_pool.add(best.1);
+                    self.bump();
+                }
+            }
+            Effect::AddManaColorsAmong(filter) => {
+                let p = ctx.controller;
+                let seen = self.colors_among(p, filter, ctx.source);
+                for col in seen.iter() {
+                    self.player_mut(p).mana_pool.add(Mana::Colored(col));
+                }
+                if seen.count() > 0 {
+                    self.bump();
+                }
+            }
             Effect::AddManaLandCould {
                 whose,
                 basic,
@@ -12367,6 +13162,28 @@ impl GameState {
                     self.player_mut(p).mana_pool.add(Mana::Colored(c));
                 }
                 self.bump();
+            }
+            Effect::AddManaOneOfTimes { colors, count } => {
+                // One color chosen, then that much of it.
+                let p = ctx.controller;
+                let n = self.eval_num(*count, ctx).min(1000);
+                let options: Vec<Choice> = colors.iter().map(Choice::Color).collect();
+                let c = match options.len() {
+                    0 => None,
+                    1 => options.first().cloned(),
+                    k => {
+                        let i = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                        options.get(i.min(k - 1)).cloned()
+                    }
+                };
+                if let Some(Choice::Color(c)) = c
+                    && n > 0
+                {
+                    for _ in 0..n {
+                        self.player_mut(p).mana_pool.add(Mana::Colored(c));
+                    }
+                    self.bump();
+                }
             }
             Effect::Surveil { count } => {
                 self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), true);
@@ -12660,6 +13477,11 @@ impl GameState {
             Effect::PlayerRule { who, kind } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
+                        // "... for the rest of the game" (CR 402.2).
+                        if *kind == crate::card::PlayerRuleKind::NoMaxHandSize {
+                            self.player_mut(p).max_hand_size = usize::MAX;
+                            continue;
+                        }
                         self.player_rules.push(crate::state::PlayerRuleEffect {
                             player: p,
                             kind: *kind,
@@ -12687,6 +13509,32 @@ impl GameState {
                 // CR 305.2: additional land plays this turn.
                 let p = ctx.controller;
                 self.player_mut(p).extra_land_plays += *n;
+            }
+            Effect::SpellGains { what, keywords } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && self.objects.get(id).is_some_and(|o| o.zone == Zone::Stack)
+                    {
+                        self.spell_gains.push((id, *keywords));
+                    }
+                }
+            }
+            Effect::SpellsThisTurn {
+                spells,
+                less,
+                grant,
+                next,
+            } => {
+                // CR 611.2a: X is fixed as the effect begins (Rowan, Scion
+                // of War's ruling).
+                let less = self.eval_num(*less, ctx);
+                self.turn_spell_changes.push(crate::state::TurnSpellChange {
+                    player: ctx.controller,
+                    spells: spells.clone(),
+                    less,
+                    grant: grant.clone(),
+                    next: *next,
+                });
             }
             Effect::NextSpellUncounterable => {
                 self.next_uncounterable |= 1 << ctx.controller.index().min(7);
@@ -13076,6 +13924,13 @@ impl GameState {
                     .collect();
                 self.granted_graveyard_cast.extend(cards);
             }
+            // CR 601.3: "Until end of turn, you may cast creature spells
+            // from your graveyard by foraging ..." (Osteomancer Adept).
+            Effect::GraveCastTurn { cards, rider } => {
+                self.grave_turn_grants
+                    .push((ctx.controller, cards.clone(), (**rider).clone()));
+                self.bump();
+            }
             // "Until end of turn, you may look at the top card of your
             // library any time, and you may play lands and cast spells from
             // the top of your library." (CR 601.3, 305.1).
@@ -13096,6 +13951,10 @@ impl GameState {
             }
             Effect::PutFromHand { filter, tapped } => {
                 let p = ctx.controller;
+                // "with mana value X or less", "... less than or equal to
+                // the number of lands you control": filled in as it
+                // happens.
+                let filter = &*self.chosen_filter(filter, ctx);
                 let mut options: Vec<Choice> = self
                     .player(p)
                     .hand
@@ -13110,6 +13969,9 @@ impl GameState {
                         def: self.objects[*id].def,
                     })
                     .collect();
+                // "You may put ... If you don't, draw a card." (Origin of
+                // the Avengers): nothing put is not done.
+                let mut put = false;
                 if !options.is_empty() {
                     options.push(Choice::Done);
                     let k = self.choose_mid(p, DecisionKind::PutFromHand, options.clone());
@@ -13120,7 +13982,11 @@ impl GameState {
                             self.tap(new);
                         }
                         ctx.created = Some(new);
+                        put = true;
                     }
+                }
+                if !put {
+                    ctx.did = false;
                 }
             }
             Effect::Strip { keywords, to } => {
@@ -14272,16 +15138,21 @@ impl GameState {
                     }
                 }
             }
-            Effect::IfTarget { n, filter, then } => {
+            Effect::IfTarget {
+                n,
+                filter,
+                then,
+                negated,
+            } => {
                 // `ctx.did` for an "Otherwise" after it ("If it's
                 // suspected, exile it. Otherwise, suspect it.").
-                if self.nth_target_matches(ctx, *n, filter) {
+                if self.nth_target_matches(ctx, *n, filter) == *negated {
+                    ctx.did = false;
+                } else {
                     ctx.did = true;
                     for e in then {
                         self.apply_effect(ctx, e);
                     }
-                } else {
-                    ctx.did = false;
                 }
             }
             Effect::Instead { cond, base, alt } => {
@@ -14477,7 +15348,11 @@ impl GameState {
             // "That player may pay {4}. If the player does, ...": the
             // player decides (CR 608.2d) and acts as the one doing it; an
             // act they can't complete in full isn't offered (CR 101.3).
-            Effect::PlayerMay { who, effects } => {
+            Effect::PlayerMay {
+                who,
+                effects,
+                have_you,
+            } => {
                 // "Each player may discard their hand and draw seven
                 // cards": each player in turn order decides and acts
                 // (CR 101.4; an approximation of simultaneous actions).
@@ -14504,7 +15379,7 @@ impl GameState {
                 // "Each player who doesn't loses 3 life."
                 let mut declined: SmallVec<[PlayerId; 4]> = SmallVec::new();
                 for &p in &players {
-                    ctx.controller = p;
+                    ctx.controller = if *have_you { you } else { p };
                     let possible = effects.iter().all(|e| match e {
                         Effect::Pay { mana, life } => {
                             (*life == 0
@@ -15169,12 +16044,26 @@ impl GameState {
                             if self.objects.get(id).is_some_and(|o| {
                                 o.zone == Zone::Graveyard
                                     || (o.zone == Zone::Stack && id == ctx.source)
+                                    // "Exile target spell." (Aven
+                                    // Interrupter): a spell, not an ability.
+                                    || (o.zone == Zone::Stack
+                                        && o.ability.is_none()
+                                        && matches!(what, Recipient::Target(_)))
                             }) =>
                         {
                             Some(id)
                         }
                         _ => None,
                     });
+                    // CR 707.10a: a copy of a spell ceases to exist off
+                    // the stack.
+                    if let Some(id) = id
+                        && self.objects[id].zone == Zone::Stack
+                        && self.objects[id].cast.copy()
+                    {
+                        self.remove_from_game(id);
+                        continue;
+                    }
                     if let Some(id) = id {
                         let new = self.move_object(id, Zone::Exile, true);
                         ctx.created = Some(new);
@@ -16082,7 +16971,15 @@ impl GameState {
             }
             Effect::Cascade => self.cascade(ctx, None),
             Effect::Ripple => self.ripple(ctx),
-            Effect::Discover(n) => self.cascade(ctx, Some(*n)),
+            Effect::Discover(n) => {
+                let n = self.eval_num(*n, ctx);
+                self.cascade(ctx, Some(n));
+                // "Whenever you discover" (CR 701.57).
+                self.emit(Event::Discovered {
+                    player: ctx.controller,
+                    value: n,
+                });
+            }
             Effect::Exploit => self.exploit(ctx),
             Effect::MoveSourceCounters { to } => {
                 let n = self
@@ -16301,6 +17198,28 @@ impl GameState {
                     }
                 }
             }
+            Effect::BecomePlotted { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && let Some(card) = self.current_object(id)
+                        && self.objects[card].zone == Zone::Exile
+                        && self.objects[card].alt != AltCast::Plotted
+                    {
+                        self.mark_plotted(card);
+                    }
+                }
+            }
+            Effect::Door { what, own, lock } => self.door_effect(ctx, *what, *own, *lock),
+            Effect::PlotOnResolve { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && let Some(o) = self.objects.get_mut(id)
+                        && o.zone == Zone::Stack
+                    {
+                        o.marks |= crate::state::OBJ_PLOT_ON_RESOLVE;
+                    }
+                }
+            }
             Effect::Suspect { what, on } => {
                 for t in self.recipients(ctx, *what) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -16487,6 +17406,9 @@ impl GameState {
                     ps.turn_mana.colored[c] += after.colored[c].saturating_sub(before.colored[c]);
                 }
                 ps.turn_mana.colorless += after.colorless.saturating_sub(before.colorless);
+            }
+            Effect::KeepRedManaThisTurn => {
+                self.player_mut(ctx.controller).keep_red_turn = true;
             }
             Effect::Firebend(n) => {
                 let n = self.eval_num(*n, ctx);
@@ -16718,6 +17640,10 @@ impl GameState {
                 random,
                 top: back_on_top,
                 onto,
+                shuffle,
+                at_random,
+                split,
+                until,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -16745,13 +17671,33 @@ impl GameState {
                 let filled_also = fill_x(also.as_ref()).map(Some);
                 let filter = filled.as_ref().unwrap_or(filter);
                 let also = filled_also.as_ref().unwrap_or(also);
-                let lib = &self.player(p).library;
-                let top: Vec<ObjId> = lib.iter().rev().take(n).copied().collect();
                 let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {
                     f.is_none_or(|f| {
                         let c = s.base_characteristics(&s.objects[id]);
                         f.matches(id, p, &c, Some(ctx.source), Some(p)) && s.status_ok(f, id)
                     })
+                };
+                let lib = &self.player(p).library;
+                let top: Vec<ObjId> = if *until {
+                    // CR 701.20: from the top down until the `n`th matching
+                    // card, every card revealed.
+                    let mut found = 0;
+                    let mut top = Vec::new();
+                    for id in lib.iter().rev().copied() {
+                        if found >= n {
+                            break;
+                        }
+                        top.push(id);
+                        if matches(self, filter.as_ref(), id) {
+                            found += 1;
+                        }
+                    }
+                    for id in &top {
+                        self.reveal_in_library(*id);
+                    }
+                    top
+                } else {
+                    lib.iter().rev().take(n).copied().collect()
                 };
                 let mut taken: Vec<ObjId> = Vec::new();
                 if *all {
@@ -16782,10 +17728,16 @@ impl GameState {
                             }
                             break;
                         }
-                        if may {
+                        if may && !*at_random {
                             options.push(Choice::Decline);
                         }
-                        let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                        // "Put a random creature card from among them ...":
+                        // from the game's random number generator.
+                        let k = if *at_random {
+                            rand::Rng::random_range(&mut self.rng, 0..options.len())
+                        } else {
+                            self.choose_mid(p, DecisionKind::SearchLibrary, options.clone())
+                        };
                         match options[k] {
                             Choice::Target(Target::Object(id)) => taken.push(id),
                             _ if also.is_some() => {}
@@ -16793,9 +17745,29 @@ impl GameState {
                         }
                     }
                 }
-                // "back on top of your library": the taken cards stay where
-                // they are, on top once the rest have gone.
-                if let Some(tapped) = *onto {
+                // "Put all land cards revealed this way onto the battlefield
+                // tapped and put all creature cards revealed this way into
+                // your hand." (Zimone's Experiment): the lands first.
+                if let Some(f) = split {
+                    let (field, hand): (Vec<ObjId>, Vec<ObjId>) = taken
+                        .iter()
+                        .copied()
+                        .partition(|id| matches(self, Some(f), *id));
+                    for id in field {
+                        let new = self.put_onto_battlefield_with(
+                            id,
+                            p,
+                            super::replace::Enter {
+                                tapped: true,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        ctx.created = Some(new);
+                    }
+                    for id in hand {
+                        self.move_object(id, Zone::Hand, false);
+                    }
+                } else if let Some(tapped) = *onto {
                     // CR 110.2a: under the controller's control.
                     for id in &taken {
                         let new = self.put_onto_battlefield_with(
@@ -16814,7 +17786,13 @@ impl GameState {
                         self.move_object(*id, Zone::Hand, false);
                     }
                 }
+                // "Then shuffle." (CR 701.24): the rest stay; the library is
+                // shuffled.
                 let mut top = top;
+                if *shuffle {
+                    self.shuffle_library(p);
+                    top.clear();
+                }
                 if *random && !*rest_graveyard {
                     use rand::seq::SliceRandom;
                     top.shuffle(&mut self.rng);
@@ -17046,34 +18024,41 @@ impl GameState {
                 }
             }
             Effect::ManifestDread => {
-                // CR 701.62a: look at the top two, manifest one, the rest
-                // into the graveyard.
-                let p = ctx.controller;
-                let top: Vec<ObjId> = self
-                    .player(p)
-                    .library
-                    .iter()
-                    .rev()
-                    .take(2)
-                    .copied()
-                    .collect();
-                if let Some(&first) = top.first() {
-                    let pick = if top.len() > 1 {
-                        let options: Vec<Choice> = top
-                            .iter()
-                            .map(|id| Choice::Target(Target::Object(*id)))
-                            .collect();
-                        top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
-                    } else {
-                        first
-                    };
-                    self.objects[pick].def = self.pool.face_down(false);
-                    let new = self.put_onto_battlefield(pick, p);
+                if let Some(new) = self.manifest_dread(ctx.controller) {
                     ctx.created = Some(new);
-                    for id in top {
-                        if id != pick {
-                            self.move_object(id, Zone::Graveyard, true);
-                        }
+                }
+            }
+            Effect::Behold(b) => {
+                if self.behold_candidates(ctx.controller, b, ctx.source).len() < b.n as usize {
+                    ctx.did = false;
+                } else {
+                    self.pay_behold(ctx.controller, b, ctx.source);
+                }
+            }
+            Effect::ReduceSpeed { who } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let s = self.desig.speed(p);
+                    let greatest = self
+                        .players_in_game()
+                        .filter(|q| *q != p)
+                        .all(|q| self.desig.speed(q) < s);
+                    if greatest && s > 1 {
+                        self.set_speed(p, s - 1);
+                    }
+                }
+            }
+            Effect::GaveGift => self.emit(Event::GaveGift {
+                player: ctx.controller,
+            }),
+            Effect::ManifestDreadBy { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && let Some(new) = self.manifest_dread(p)
+                    {
+                        ctx.created = Some(new);
                     }
                 }
             }
@@ -17170,7 +18155,20 @@ impl GameState {
                 except,
                 count,
                 tapped,
+                who,
             } => {
+                // "Target player creates a token that's a copy of ...": the
+                // token is that player's (CR 111.2).
+                let maker = match who {
+                    None => ctx.controller,
+                    Some(w) => match self.recipients(ctx, *w).into_iter().find_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    }) {
+                        Some(p) => p,
+                        None => return,
+                    },
+                };
                 let x = except.then(|| {
                     self.objects
                         .get(ctx.source)
@@ -17200,18 +18198,12 @@ impl GameState {
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
                         let (def, was, sized) = (l.object.def, l.object.except, l.object.sized);
-                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
+                        for (d, k) in self.tokens_to_create(maker, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy_of(
-                                        def,
-                                        x.or(was),
-                                        sized,
-                                        ctx.controller,
-                                        *tapped,
-                                    )
+                                    self.create_token_copy_of(def, x.or(was), sized, maker, *tapped)
                                 } else {
-                                    self.create_token(d, ctx.controller)
+                                    self.create_token(d, maker)
                                 };
                                 ctx.created = Some(new);
                                 ctx.created_tokens.push(new);
@@ -17241,12 +18233,12 @@ impl GameState {
                         // CR 614.1a: token-creation replacement effects
                         // ("twice that many of those tokens").
                         let def = self.objects[id].def;
-                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
+                        for (d, k) in self.tokens_to_create(maker, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy(id, ctx.controller, x, *tapped)
+                                    self.create_token_copy(id, maker, x, *tapped)
                                 } else {
-                                    self.create_token(d, ctx.controller)
+                                    self.create_token(d, maker)
                                 };
                                 ctx.created = Some(new);
                                 ctx.created_tokens.push(new);
@@ -18044,8 +19036,17 @@ impl GameState {
         } else {
             filter
         };
-        let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
-            return false;
+        // "If it's a Spider, ...": the triggering object (CR 608.2h).
+        let id = if n == crate::card::IF_TRIGGER_OBJ {
+            let Some(id) = ctx.trigger_obj else {
+                return false;
+            };
+            id
+        } else {
+            let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
+                return false;
+            };
+            id
         };
         // "If an opponent protects it" (CR 310.8): a battle still on the
         // battlefield, its protector judged from the effect's controller.

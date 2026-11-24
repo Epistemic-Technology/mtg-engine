@@ -1,0 +1,7 @@
+card "Ancient Cornucopia" {
+  oracle_id f0950c95-a297-489d-b166-74bba6af5376
+  cost {2}{G}
+  type Artifact
+  triggered do once each turn whenever you cast colored spell: you may you gain count each colors of that spell life
+  mana any
+}

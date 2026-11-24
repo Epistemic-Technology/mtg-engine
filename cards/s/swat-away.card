@@ -1,0 +1,7 @@
+card "Swat Away" {
+  oracle_id 79090b00-d920-4134-a838-fb434cf3ee4d
+  cost {2}{U}{U}
+  type Instant
+  this spell costs {2} less if attacker creature at you
+  spell: owner of target spell or creature puts it on top or bottom of library
+}

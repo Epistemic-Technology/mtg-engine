@@ -1,0 +1,7 @@
+card "Loot, the Nexus" {
+  oracle_id a99ce9db-9b7d-45a0-bee7-0875fc62ca48
+  cost {2}{G}
+  type Legendary Creature — Beast Noble
+  pt 2/1
+  activated {T}: add chosen count each different powers among creature you control
+}

@@ -1,0 +1,12 @@
+card "Chameleon, Master of Disguise" {
+  oracle_id 1ce239f2-79ad-4a30-8e8f-f985045f78dc
+  cost {3}{U}
+  type Legendary Creature — Human Shapeshifter Villain
+  pt 2/3
+  pronoun he
+  except {
+    named this
+  }
+  enters as copy of creature you control
+  mayhem {2}{U}
+}

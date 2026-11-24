@@ -1,0 +1,115 @@
+# Plot as an effect (CR 702.170): "exile target spell. It becomes
+# plotted.", "you may exile a nonland card ... from your hand. If you do,
+# it becomes plotted.", and "exile that spell instead of putting it into
+# your graveyard as it resolves. If you do, it becomes plotted." A plotted
+# card's owner may cast it free as a sorcery on a later turn.
+
+scenario "Aven Interrupter: the spell is exiled plotted, cast free on a later turn" {
+  battlefield A: "Mountain"
+  battlefield B: 3 "Plains"
+  hand A: "Lightning Bolt"
+  hand B: "Aven Interrupter"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Aven Interrupter"
+  turn 1 B: trigger "Aven Interrupter" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert exile A contains "Lightning Bolt"
+  illegal turn 1 postcombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 upkeep
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "Aven Interrupter: a plotted spell is cast free a later turn, plus {2} from exile" {
+  battlefield A: "Mountain"
+  battlefield B: 3 "Plains"
+  hand A: "Lightning Bolt"
+  hand B: "Aven Interrupter"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Aven Interrupter"
+  turn 1 B: trigger "Aven Interrupter" targeting "Lightning Bolt"
+  illegal turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 postcombat_main
+  assert exile A contains "Lightning Bolt"
+  assert life B 20
+}
+
+scenario "Aven Interrupter: the plotted spell costs {2} while it is on the battlefield" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 3 "Plains"
+  hand A: "Lightning Bolt"
+  hand B: "Aven Interrupter"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Aven Interrupter"
+  turn 1 B: trigger "Aven Interrupter" targeting "Lightning Bolt"
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Lightning Bolt"
+  assert tapped A "Mountain"
+}
+
+scenario "Kellan Joins Up: a card from hand is plotted, then cast free" {
+  battlefield A: "Forest", "Plains", "Island"
+  hand A: "Kellan Joins Up", "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Kellan Joins Up"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert hand A contains "Serra Angel"
+  illegal turn 1 postcombat_main A: cast "Grizzly Bears"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Kellan Joins Up: declining keeps the card" {
+  battlefield A: "Forest", "Plains", "Island"
+  hand A: "Kellan Joins Up", "Grizzly Bears"
+  turn 1 A: cast "Kellan Joins Up"
+  turn 1 A: decline "Kellan Joins Up"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Kellan Joins Up: a legendary creature puts a counter on each creature" {
+  battlefield A: "Kellan Joins Up", "Grizzly Bears", "Plains", "Mountain", "Island"
+  hand A: "Lilah, Undefeated Slickshot"
+  turn 1 A: cast "Lilah, Undefeated Slickshot"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Lilah, Undefeated Slickshot" +1/+1 1
+}
+
+scenario "Lilah: a multicolored instant from hand is exiled plotted as it resolves" {
+  battlefield A: "Lilah, Undefeated Slickshot", "Mountain", "Plains"
+  hand A: "Lightning Helix"
+  turn 1 A: cast "Lightning Helix" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert exile A contains "Lightning Helix"
+  assert graveyard A lacks "Lightning Helix"
+  turn 3 A: cast "Lightning Helix" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 14
+  assert graveyard A contains "Lightning Helix"
+}
+
+scenario "Lilah: a monocolored instant goes to the graveyard" {
+  battlefield A: "Lilah, Undefeated Slickshot", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+}
+
+scenario "Lilah: a countered spell is not plotted" {
+  battlefield A: "Lilah, Undefeated Slickshot", "Mountain", "Plains"
+  battlefield B: 2 "Island"
+  hand A: "Lightning Helix"
+  hand B: "Counterspell"
+  turn 1 A: cast "Lightning Helix" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Lightning Helix"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Helix"
+}

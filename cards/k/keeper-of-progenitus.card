@@ -1,0 +1,7 @@
+card "Keeper of Progenitus" {
+  oracle_id a30241b4-5e92-44cd-b19b-7d6d59e95ada
+  cost {3}{G}
+  type Creature — Elf Druid
+  pt 1/3
+  triggered whenever Mountain or Forest or Plains is tapped for mana: add produced
+}

@@ -1,0 +1,3 @@
+emblem "Professor Dellian Fel emblem" {
+  triggered whenever you gain life: target opponent loses that much life
+}

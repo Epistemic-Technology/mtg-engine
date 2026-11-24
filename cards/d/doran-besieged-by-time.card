@@ -1,0 +1,8 @@
+card "Doran, Besieged by Time" {
+  oracle_id dd35a377-0865-4b25-bd0f-aaead29a9f0e
+  cost {1}{W}{B}{G}
+  type Legendary Creature — Treefolk Druid
+  pt 0/5
+  spells each creature with toughness greater than power you cast cost {1} less
+  triggered whenever creature you control attacks or blocks: it gets +1/+1 count where difference of power and toughness
+}

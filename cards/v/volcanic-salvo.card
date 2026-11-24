@@ -1,0 +1,7 @@
+card "Volcanic Salvo" {
+  oracle_id 9c2fd3a3-96f2-4e84-85a9-77698c2f83aa
+  cost {10}{R}{R}
+  type Sorcery
+  this spell costs {1} less count where total power creature you control
+  spell: deal 6 damage to up to 2 target andor creature or planeswalker
+}

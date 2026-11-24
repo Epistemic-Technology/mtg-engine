@@ -1,0 +1,82 @@
+# Behold as an effect (CR 701.69a): "you may behold a Dragon. If you do,
+# ..." (choose a Dragon you control or reveal a Dragon card from your
+# hand), and "As this land enters, you may behold a Jace. If you don't,
+# this land enters tapped."
+
+scenario "Sarkhan: a Dragon card in hand is beheld, a Treasure" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Sarkhan, Dragon Ascendant", "Shivan Dragon"
+  turn 1 A: cast "Sarkhan, Dragon Ascendant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert hand A contains "Shivan Dragon"
+}
+
+scenario "Sarkhan: no Dragon, no Treasure" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Sarkhan, Dragon Ascendant", "Grizzly Bears"
+  turn 1 A: cast "Sarkhan, Dragon Ascendant"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Sarkhan: declining to behold, no Treasure" {
+  battlefield A: "Mountain", "Forest", "Shivan Dragon"
+  hand A: "Sarkhan, Dragon Ascendant"
+  turn 1 A: cast "Sarkhan, Dragon Ascendant"
+  turn 1 A: decline "Sarkhan, Dragon Ascendant"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Sarkhan: a Dragon entering makes him a flying Dragon this turn" {
+  battlefield A: "Sarkhan, Dragon Ascendant", 6 "Mountain"
+  hand A: "Shivan Dragon"
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert counters "Sarkhan, Dragon Ascendant" +1/+1 1
+  assert is "Sarkhan, Dragon Ascendant" Dragon
+  assert has "Sarkhan, Dragon Ascendant" flying
+  run_to turn 2 upkeep
+  assert is not "Sarkhan, Dragon Ascendant" Dragon
+}
+
+scenario "Elven Passage: beholding an Elf untaps the fetched land" {
+  battlefield A: "Elven Passage", "Llanowar Elves"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Elven Passage"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert untapped "Forest"
+  assert graveyard A contains "Elven Passage"
+}
+
+scenario "Elven Passage: no Elf, the land stays tapped" {
+  battlefield A: "Elven Passage", "Grizzly Bears"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Elven Passage"
+  run_to turn 1 postcombat_main
+  assert tapped "Forest"
+}
+
+scenario "Theorist's Sanctum: a Jace card in hand, it enters untapped" {
+  hand A: "Theorist's Sanctum", "Jace Beleren"
+  turn 1 A: play "Theorist's Sanctum"
+  run_to turn 1 postcombat_main
+  assert untapped "Theorist's Sanctum"
+}
+
+scenario "Theorist's Sanctum: a Jace on the battlefield will do" {
+  battlefield A: "Jace Beleren"
+  hand A: "Theorist's Sanctum"
+  turn 1 A: play "Theorist's Sanctum"
+  run_to turn 1 postcombat_main
+  assert untapped "Theorist's Sanctum"
+}
+
+scenario "Theorist's Sanctum: no Jace, it enters tapped" {
+  hand A: "Theorist's Sanctum", "Grizzly Bears"
+  turn 1 A: play "Theorist's Sanctum"
+  run_to turn 1 postcombat_main
+  assert tapped "Theorist's Sanctum"
+}

@@ -1,0 +1,8 @@
+card "Evil Eye of Urborg" {
+  oracle_id 752b5a97-e2f7-43c0-b8c8-2c1efbbfbd2a
+  cost {4}{B}
+  type Creature — Eye
+  pt 6/3
+  static non-Eye creature you control: has can't attack
+  triggered whenever this becomes blocked by a creature: destroy that creature
+}

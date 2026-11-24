@@ -1,0 +1,8 @@
+card "Yuna, Hope of Spira" {
+  oracle_id 3dee768a-612c-4960-bad2-2fe5b83a70c3
+  cost {3}{G}{W}
+  type Legendary Creature — Human Cleric
+  pt 3/5
+  static during your turn, this and enchantment creature you control: has trample, has lifelink, has ward {2}
+  triggered at beginning of your end step: return up to 1 target enchantment card from your graveyard to battlefield with 1 finality counter
+}

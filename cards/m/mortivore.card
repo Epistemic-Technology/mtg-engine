@@ -1,0 +1,7 @@
+card "Mortivore" {
+  oracle_id 2f554218-2072-4d9b-b4d4-34f161f1f2a9
+  cost {2}{B}{B}
+  type Creature — Lhurgoyf
+  static this: cda pt all graveyards creature
+  activated {B}: regenerate this
+}

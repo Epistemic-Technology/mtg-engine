@@ -1,0 +1,15 @@
+card "Onward // Victory" {
+  oracle_id 9a52c1ea-35ac-4028-8c1f-b7971c1df886
+  layout split
+  face "Onward" {
+    cost {2}{R}
+    type Instant
+    spell: target creature gets +1/+0 count where power of target 1
+  }
+  face "Victory" {
+    cost {2}{W}
+    type Sorcery
+    keywords aftermath
+    spell: target creature gains double strike
+  }
+}

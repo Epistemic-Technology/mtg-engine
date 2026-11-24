@@ -1,0 +1,9 @@
+card "Vren, the Relentless" {
+  oracle_id 1216900e-93e3-41a4-b354-9c81938639c2
+  cost {2}{U}{B}
+  type Legendary Creature — Rat Rogue
+  pt 3/4
+  ward {2}
+  replace creature an opponent controls dies: exile
+  triggered at beginning of every end: create count where creatures exiled under opponents this turn "1/1 black Rat creature with rat pump"
+}

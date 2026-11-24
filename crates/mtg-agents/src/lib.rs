@@ -84,7 +84,7 @@ impl ActivationGuard {
                     && a.cost.sacrifice.is_none()
                     && a.cost.discard == 0
                     && a.cost.life == 0
-                    && a.cost.loyalty == 0
+                    && !a.is_loyalty()
             }
             _ => false,
         }

@@ -1,0 +1,8 @@
+card "Glint-Eye Nephilim" {
+  oracle_id d6b6d965-1401-4566-adb3-90b03218af8d
+  cost {U}{B}{R}{G}
+  type Creature — Nephilim
+  pt 2/2
+  triggered whenever this deals combat damage to a player: draw that much cards
+  activated {1}, discard 1 card: this gets +1/+1
+}

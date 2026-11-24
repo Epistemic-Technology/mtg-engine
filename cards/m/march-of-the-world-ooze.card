@@ -1,0 +1,7 @@
+card "March of the World Ooze" {
+  oracle_id a04696c4-4138-47e2-8da4-81d61748519f
+  cost {3}{G}{G}{G}
+  type Enchantment
+  static plural creature you control: base 6/6, add subtype Ooze
+  triggered whenever an opponent casts spell if not their turn: you create 1 "3/3 green Elephant creature"
+}

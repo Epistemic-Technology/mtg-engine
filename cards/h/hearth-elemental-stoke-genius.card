@@ -1,0 +1,13 @@
+card "Hearth Elemental // Stoke Genius" {
+  oracle_id f01cf0c5-0ac6-4ad3-8642-dd21c8e8563e
+  layout adventure
+  cost {5}{R}
+  type Creature — Elemental
+  pt 4/5
+  this spell costs {1} less count where graveyard instant or sorcery or adventurer
+  face "Stoke Genius" {
+    cost {1}{R}
+    type Sorcery — Adventure
+    spell: discard hand then draw 2 cards
+  }
+}

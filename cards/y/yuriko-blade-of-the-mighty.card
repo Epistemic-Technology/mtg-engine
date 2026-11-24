@@ -1,0 +1,8 @@
+card "Yuriko, Blade of the Mighty" {
+  oracle_id f89b0143-4b19-4ab1-a96b-356b21e435ef
+  cost {3}{W}
+  type Legendary Creature — Human Samurai
+  pt 2/3
+  during combat players can't cast spells or activate nonmana abilities
+  triggered whenever creature you control attacks a player alone: it gains double strike until end of turn
+}

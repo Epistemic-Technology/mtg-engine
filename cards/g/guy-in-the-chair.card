@@ -1,0 +1,8 @@
+card "Guy in the Chair" {
+  oracle_id 83eb74df-1c77-48b0-83be-55d7aa4d3618
+  cost {2}{G}
+  type Creature — Human Advisor
+  pt 2/3
+  mana any
+  label "Web Support" activated {2}{G}, {T}, sorcery: put 1 +1/+1 counters on target Spider
+}

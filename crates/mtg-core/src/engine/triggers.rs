@@ -48,6 +48,14 @@ impl GameState {
             Event::CountersAdded { n, .. } | Event::CountersRemoved { n, .. } => *n,
             // "you gain that much life" after a player loses or gains life.
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
+            // "discover again for the same value".
+            Event::Discovered { value, .. } => *value,
+            // "If eight or more mana was spent to cast that spell, ... that
+            // much damage": the mana spent to cast it (CR 601.2h), recorded
+            // only while something watches it.
+            Event::Cast { spell, .. } if self.spent_watchers > 0 => {
+                self.spent_on(*spell).count(crate::card::SpentKind::Total)
+            }
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
@@ -1410,8 +1418,21 @@ impl GameState {
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. })
             | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player })
-            | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
+            | (TriggerSpec::Forages { whose }, Event::Foraged { player })
+            | (TriggerSpec::Discovers { whose }, Event::Discovered { player, .. })
+            | (TriggerSpec::GivesGift { whose }, Event::GaveGift { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
+            // CR 719.3a: a Case becomes solved (its second stage).
+            (TriggerSpec::SolvesCase { whose }, Event::StageChanged { obj, stage: 1 }) => {
+                let o = self.objects.get(*obj)?;
+                let case = self
+                    .characteristics(*obj)
+                    .is_some_and(|c| c.has_subtype(crate::card::Subtype::CASE));
+                (case && whose_ok(*whose, o.controller)).then_some((Some(*obj), Some(o.controller)))
+            }
+            (TriggerSpec::ManifestsDread { whose }, Event::ManifestedDread { player, milled }) => {
+                whose_ok(*whose, *player).then_some((*milled, Some(*player)))
             }
             // CR 122.6: "Whenever you put one or more +1/+1 counters on a
             // creature you control": counters its controller's effect put.
@@ -1617,12 +1638,21 @@ impl GameState {
                 .then_some((Some(*o), Some(obj.controller)))
             }
             (
-                TriggerSpec::CastsFiltered { whose, filter },
+                TriggerSpec::CastsFiltered {
+                    whose,
+                    filter,
+                    from,
+                },
                 Event::Cast {
                     player, spell, def, ..
                 },
             ) => {
                 if !whose_ok(*whose, *player) {
+                    return None;
+                }
+                if *from != crate::card::SpellFrom::Anywhere
+                    && !from.allows(self.objects.get(*spell).and_then(|o| o.cast.cast_from()))
+                {
                     return None;
                 }
                 let c = self
@@ -1633,12 +1663,28 @@ impl GameState {
                 let filter = &*self.with_source_chosen(filter, w.source);
                 // Heroic (CR 207.2c): "a spell that targets this creature",
                 // judged with the targets chosen as it was cast (CR 601.2c).
-                let targets_ok = filter.targeting.as_ref().is_none_or(|t| {
-                    self.objects
-                        .get(*spell)
-                        .is_some_and(|o| self.spell_targets(o, t, w.controller, Some(w.source)))
-                });
-                (targets_ok
+                let targets_ok = |f: &crate::card::ObjFilter| {
+                    f.targeting.as_ref().is_none_or(|t| {
+                        self.objects
+                            .get(*spell)
+                            .is_some_and(|o| self.spell_targets(o, t, w.controller, Some(w.source)))
+                    })
+                };
+                // "an Equipment spell or a spell that targets a creature
+                // you control": each side with its own targets.
+                if let Some(alt) = &filter.or
+                    && (filter.targeting.is_some() || alt.targeting.is_some())
+                {
+                    let mut base = filter.clone();
+                    base.or = None;
+                    let side = |f: &crate::card::ObjFilter| {
+                        targets_ok(f)
+                            && f.matches(*spell, *player, &c, Some(w.source), Some(w.controller))
+                            && self.status_ok(f, *spell)
+                    };
+                    return (side(&base) || side(alt)).then_some((Some(*spell), Some(*player)));
+                }
+                (targets_ok(filter)
                     && filter.matches(*spell, *player, &c, Some(w.source), Some(w.controller))
                     && self.status_ok(filter, *spell))
                 .then_some((Some(*spell), Some(*player)))
@@ -2199,7 +2245,7 @@ impl GameState {
                     crate::card::ActivationKind::Exhaust => {
                         ab.keyword == Some(crate::card::ActivatedKeyword::Exhaust)
                     }
-                    crate::card::ActivationKind::Loyalty => ab.cost.loyalty != 0,
+                    crate::card::ActivationKind::Loyalty => ab.is_loyalty(),
                     crate::card::ActivationKind::Ninjutsu => {
                         ab.keyword == Some(crate::card::ActivatedKeyword::Ninjutsu)
                     }
@@ -2485,6 +2531,7 @@ impl GameState {
             &obj.targets,
             Some(sa.source),
             sa.trigger_player,
+            sa.trigger_obj,
         );
         // An activated ability's X (CR 107.3): "target artifact with mana
         // value X" is judged with it.

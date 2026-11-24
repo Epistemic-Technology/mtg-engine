@@ -1,0 +1,9 @@
+card "Master's Councillors" {
+  oracle_id b9079564-5c86-4765-988a-f2334e016fa6
+  cost {1}{U}
+  type Creature — Human Advisor
+  pt 1/3
+  keywords vigilance
+  static this: +2/+0 count each graveyards with 7 cards
+  triggered whenever you draw your second card each turn: target player mills 3 cards
+}

@@ -1,0 +1,7 @@
+card "Bilbo's Gambit" {
+  oracle_id ef71ef07-8a35-41ec-a851-d95e9e3a221b
+  cost {1}{W}
+  type Instant
+  gift treasure
+  spell: return target spell to hand; if kicked, each player can't cast spells this turn
+}

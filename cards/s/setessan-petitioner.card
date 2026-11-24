@@ -1,0 +1,7 @@
+card "Setessan Petitioner" {
+  oracle_id 63d92a82-d77d-4c47-a49b-bde6a8c9dd8d
+  cost {1}{G}{G}
+  type Creature — Human Druid
+  pt 2/2
+  triggered whenever this enters: you gain count equal devotion green life
+}

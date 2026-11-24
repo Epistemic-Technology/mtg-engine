@@ -1,0 +1,134 @@
+# "Players can't cast spells" and "can't activate abilities" (CR 101.2):
+# Bilbo's Gambit's effect, Yuriko's combat ban, Grand Abolisher's
+# your-turn ban.
+
+# ----- Bilbo's Gambit -----
+
+scenario "Bilbo's Gambit with the gift: the spell returns and no one can cast spells this turn" {
+  battlefield A: 2 "Plains"
+  battlefield B: 4 "Mountain"
+  hand A: "Bilbo's Gambit"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Bilbo's Gambit" gift targeting "Shock"
+  turn 2 B: wait
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert hand B contains "Shock"
+  assert hand B contains "Lightning Bolt"
+  assert battlefield B contains "Treasure"
+}
+
+scenario "Bilbo's Gambit without the gift: the spell returns and may be cast again" {
+  battlefield A: 2 "Plains"
+  battlefield B: 4 "Mountain"
+  hand A: "Bilbo's Gambit"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Bilbo's Gambit" targeting "Shock"
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield B lacks "Treasure"
+}
+
+scenario "Bilbo's Gambit's ban ends with the turn" {
+  battlefield A: 2 "Plains"
+  battlefield B: 4 "Mountain"
+  hand A: "Bilbo's Gambit"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Bilbo's Gambit" gift targeting "Shock"
+  turn 4 B: cast "Shock" targeting player A
+  run_to turn 4 postcombat_main
+  assert life A 18
+}
+
+# ----- Yuriko, Blade of the Mighty -----
+
+scenario "Yuriko: no spell during combat" {
+  battlefield A: "Yuriko, Blade of the Mighty", "Mountain"
+  hand A: "Shock"
+  turn 1 declare_attackers A: attack "Yuriko, Blade of the Mighty"
+  illegal turn 1 declare_blockers A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A contains "Shock"
+}
+
+scenario "Yuriko: spells in a main phase are allowed" {
+  battlefield A: "Yuriko, Blade of the Mighty", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Yuriko: an opponent can't activate a non-mana ability during combat" {
+  battlefield A: "Yuriko, Blade of the Mighty"
+  battlefield B: "Prodigal Sorcerer"
+  turn 1 declare_attackers A: attack "Yuriko, Blade of the Mighty"
+  illegal turn 1 declare_blockers B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Yuriko: a non-mana ability outside combat is allowed" {
+  battlefield A: "Yuriko, Blade of the Mighty"
+  battlefield B: "Prodigal Sorcerer"
+  turn 1 A: wait
+  turn 1 B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 begin_combat
+  assert life A 19
+}
+
+scenario "Yuriko: a creature attacking a player alone gains double strike" {
+  battlefield A: "Yuriko, Blade of the Mighty"
+  turn 1 declare_attackers A: attack "Yuriko, Blade of the Mighty"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+# ----- Grand Abolisher -----
+
+scenario "Grand Abolisher: opponents can't cast spells during its controller's turn" {
+  battlefield A: "Grand Abolisher"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  illegal turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Grand Abolisher: opponents can't activate abilities of creatures during that turn" {
+  battlefield A: "Grand Abolisher"
+  battlefield B: "Prodigal Sorcerer"
+  illegal turn 1 B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Grand Abolisher: its controller may cast and activate as usual" {
+  battlefield A: "Grand Abolisher", "Prodigal Sorcerer", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Grand Abolisher: on the opponent's own turn they cast and activate" {
+  battlefield A: "Grand Abolisher"
+  battlefield B: "Prodigal Sorcerer", "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

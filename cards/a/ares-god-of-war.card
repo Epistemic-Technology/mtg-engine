@@ -1,0 +1,8 @@
+card "Ares, God of War" {
+  oracle_id 8a09d4a2-4796-4a15-ab75-a3a0b717f62d
+  cost {1}{B}{R}
+  type Legendary Creature — God Warrior Villain
+  pt 4/3
+  keywords attacks each combat if able
+  triggered whenever an attacking creature you control dies: return triggering card to hand
+}

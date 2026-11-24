@@ -1,0 +1,16 @@
+card "Elusive Tormentor // Insidious Mist" {
+  oracle_id 78b86f23-650b-4347-917c-3ee8c6007e4e
+  layout transform
+  cost {2}{B}{B}
+  type Creature — Vampire Wizard
+  pt 4/4
+  activated {1}, discard 1 card: transform this
+  face "Insidious Mist" {
+    type Creature — Elemental
+    pt 0/1
+    color blue
+    keywords hexproof, indestructible
+    static this: has can't block, has can't be blocked
+    triggered whenever this attacks and isn't blocked: you may pay {2}{B}; if you do, transform this
+  }
+}

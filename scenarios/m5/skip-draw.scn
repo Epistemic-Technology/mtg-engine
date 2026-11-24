@@ -1,0 +1,43 @@
+# "If you would draw a card while your library has no cards in it, skip
+# that draw instead." (Living Conundrum, CR 614.10).
+
+scenario "Living Conundrum: a draw from an empty library is skipped, and the player doesn't lose" {
+  battlefield A: "Living Conundrum"
+  library A:
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert not game_over
+  assert hand A count 0
+  assert power "Living Conundrum" 10
+  assert toughness "Living Conundrum" 10
+  assert has "Living Conundrum" flying
+  assert has "Living Conundrum" vigilance
+}
+
+scenario "Living Conundrum: with cards in the library, draws happen and it stays 2/5" {
+  battlefield A: "Living Conundrum"
+  library A: "Island", "Island"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert hand A count 1
+  assert power "Living Conundrum" 2
+  assert has not "Living Conundrum" flying
+}
+
+scenario "Without Living Conundrum a draw from an empty library loses the game" {
+  battlefield A: "Grizzly Bears"
+  library A:
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert winner B
+}
+
+scenario "Living Conundrum: an effect's draws past the library's end are skipped" {
+  battlefield A: "Living Conundrum", 3 "Island"
+  library A: "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert not game_over
+  assert hand A count 1
+}

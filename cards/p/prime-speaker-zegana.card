@@ -1,0 +1,8 @@
+card "Prime Speaker Zegana" {
+  oracle_id 311e9368-696a-47e7-aa2f-3ef1b1a92e2b
+  cost {2}{G}{G}{U}{U}
+  type Legendary Creature — Merfolk Wizard
+  pt 1/1
+  enters with count where greatest power other creature you control +1/+1 counters
+  triggered when this enters: draw count equal power cards
+}

@@ -1,0 +1,6 @@
+token "Angelo, a legendary 1/1 green and white Dog creature" {
+  name "Angelo"
+  type Legendary Creature — Dog
+  pt 1/1
+  color green white
+}

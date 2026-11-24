@@ -1,0 +1,8 @@
+card "Karakyk Guardian" {
+  oracle_id 41129dc1-be88-4198-94f9-032817a79bc7
+  cost {3}{G}{U}{R}
+  type Creature — Dragon
+  pt 6/5
+  keywords flying, vigilance, trample
+  static this: has hexproof as long as this not dealt damage
+}

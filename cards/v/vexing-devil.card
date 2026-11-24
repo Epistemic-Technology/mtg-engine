@@ -1,0 +1,7 @@
+card "Vexing Devil" {
+  oracle_id b582e485-c024-47f0-ad6f-b918d32288ba
+  cost {R}
+  type Creature — Devil
+  pt 4/3
+  triggered whenever this enters: any opponent may deal 4 damage to you; if you do, sacrifice this creature
+}
