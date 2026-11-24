@@ -3277,6 +3277,38 @@ impl GameState {
         }
     }
 
+    /// The state an attack ban's filter asks of `attacker`, for the ban's
+    /// controller `who`: "Each creature that's enchanted by an Aura you
+    /// control can't attack you" (Eriette of the Charmed Apple).
+    fn attack_ban_status_ok(
+        &self,
+        f: &crate::card::ObjFilter,
+        attacker: ObjId,
+        who: PlayerId,
+    ) -> bool {
+        if !f.needs_state() {
+            return true;
+        }
+        if !f.status.aura_yours {
+            return self.status_ok(f, attacker);
+        }
+        let mut g = f.clone();
+        g.status.aura_yours = false;
+        g.status.enchanted = None;
+        self.status_ok(&g, attacker) && self.enchanted_by_aura_of(attacker, who)
+    }
+
+    /// Whether an Aura `p` controls is attached to `id` (CR 303.4).
+    pub fn enchanted_by_aura_of(&self, id: ObjId, p: PlayerId) -> bool {
+        self.battlefield.iter().any(|a| {
+            self.objects[*a].attached_to == Some(id)
+                && self.objects[*a].controller == p
+                && self
+                    .characteristics(*a)
+                    .is_some_and(|c| c.has_subtype(crate::card::Subtype::AURA))
+        })
+    }
+
     /// Whether `attacker` can't attack `at` (a player or a planeswalker):
     /// "Creatures with flying can't attack you [or planeswalkers you
     /// control]." (CR 508.1c).
@@ -3306,14 +3338,10 @@ impl GameState {
                                 .is_some_and(|pc| pc.is_planeswalker())
                     }
                 };
+                let f = self.pool.filter(attackers);
                 protected
-                    && self.pool.filter(attackers).matches(
-                        attacker,
-                        a.controller,
-                        &c,
-                        Some(src),
-                        Some(who),
-                    )
+                    && f.matches(attacker, a.controller, &c, Some(src), Some(who))
+                    && self.attack_ban_status_ok(f, attacker, who)
             })
         }
     }
@@ -4599,9 +4627,24 @@ impl GameState {
         if q.commander.is_some() || q.except_your_tokens {
             return false;
         }
-        // CR 708.2: a face-down permanent.
-        if q.face_down && !self.pool.is_face_down(o.def) {
+        // CR 708.2: a face-down permanent; CR 708.2a: it has no name.
+        if (q.face_down || q.nameless) && !self.pool.is_face_down(o.def) {
             return false;
+        }
+        // "enchanted by an Aura you control": with no player judging,
+        // nothing (`attack_banned` and the layers judge it).
+        if q.aura_yours {
+            return false;
+        }
+        // CR 702.33d: a kicked spell, its kicker (or multikicker) paid; a
+        // promised gift keeps the same flag.
+        if q.kicked {
+            let def = self.pool.get(o.def);
+            if !(o.cast.kicked()
+                && (def.kicker.is_some() || def.kicker_cost.is_some() || def.multikicker.is_some()))
+            {
+                return false;
+            }
         }
         // CR 701.27g: "transformed permanent", a double-faced permanent
         // with its back face up.
@@ -6402,6 +6445,7 @@ impl GameState {
                     yours,
                     single,
                     instant_sorcery,
+                    noncreature,
                     ..
                 } = spec
                 {
@@ -6418,7 +6462,9 @@ impl GameState {
                                 || self.characteristics(id).is_some_and(|c| {
                                     c.types.contains(CardType::Instant)
                                         || c.types.contains(CardType::Sorcery)
-                                }));
+                                }))
+                            && (!noncreature
+                                || self.characteristics(id).is_some_and(|c| !c.is_creature()));
                     };
                     let kind_ok = match self.pool.ability(sa.ability) {
                         crate::card::AbilityDef::Activated(_) => activated,

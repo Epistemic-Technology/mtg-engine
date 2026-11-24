@@ -1,0 +1,12 @@
+card "Hullbreaker Horror" {
+  oracle_id d4a84e78-d9b9-4c67-8a4b-4329e65f0f15
+  cost {5}{U}{U}
+  type Creature — Kraken Horror
+  pt 7/8
+  keywords flash
+  this spell can't be countered
+  triggered whenever you cast spell: choose up to 1 {
+    mode: return target spell you don't control to hand
+    mode: return target nonland permanent to hand
+  }
+}

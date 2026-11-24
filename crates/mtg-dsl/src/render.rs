@@ -2017,15 +2017,12 @@ impl<'a> Ctx<'a> {
         let mut base_filter = spell.clone();
         let targeting = base_filter.targeting.take();
         // "target instant or sorcery spell you control".
-        let yours = base_filter.who == Some(Who::You) && !base_filter.dont_control;
-        if yours {
-            base_filter.who = None;
-        }
+        // "target spell you don't control", "target spell an opponent
+        // controls".
+        let who = crate::format::spell_controller(&mut base_filter);
         let base = card_filter_phrase(&base_filter, self.card);
         let mut out = format!("target {}", spell_noun(&base));
-        if yours {
-            out.push_str(" you control");
-        }
+        out.push_str(who);
         if let Some(what) = targeting {
             // "that targets this creature".
             out.push_str(&crate::format::targeting_suffix(&what, |g| {
@@ -2118,6 +2115,11 @@ impl<'a> Ctx<'a> {
                 let mut g = filter.clone();
                 g.that_player = None;
                 g.their = false;
+                let from = if std::mem::take(&mut g.in_zone) {
+                    "in"
+                } else {
+                    "from"
+                };
                 let tgt = if g.relation == Relation::Other {
                     crate::format::relation_any(&mut g);
                     "another target"
@@ -2128,7 +2130,7 @@ impl<'a> Ctx<'a> {
                 // this turn": after the zone.
                 let there = put_there_suffix(&mut g, false);
                 format!(
-                    "{tgt} {} from {whose}{there}",
+                    "{tgt} {} {from} {whose}{there}",
                     cards_phrase(&g, self.card, false)
                 )
             }
@@ -2370,6 +2372,7 @@ impl<'a> Ctx<'a> {
                 ),
                 None => "each player".to_string(),
             },
+            Recipient::WithoutMaxSpeed => "each player who doesn't have max speed".to_string(),
             Recipient::OpponentsWithout(i) => match self.card.groups.get(usize::from(i)) {
                 Some(f) => format!(
                     "each opponent who doesn't control {}",
@@ -3120,6 +3123,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         yours,
         single,
         instant_sorcery,
+        noncreature,
         listed,
     } = s
     {
@@ -3127,6 +3131,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
             _ if instant_sorcery => {
                 "instant spell, sorcery spell, activated ability, or triggered ability"
             }
+            _ if noncreature => "activated ability, triggered ability, or noncreature spell",
             _ if listed => "spell, activated ability, or triggered ability",
             (true, true) if spells => "spell or ability",
             (true, true) => "activated or triggered ability",
@@ -3607,6 +3612,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.prepared_spell {
         words.push("prepared".to_string());
     }
+    // "Whenever you cast a kicked spell" (CR 702.33d).
+    if f.status.kicked {
+        words.push("kicked".to_string());
+    }
     if f.status.face_down {
         words.push("face-down".to_string());
     }
@@ -3944,6 +3953,11 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.enchanted == Some(true) && f.enchanted_late {
         that(&mut s, " that's enchanted", " that are enchanted");
+        // "enchanted by an Aura you control", "enchanted by Auras you
+        // control".
+        if f.status.aura_yours {
+            that(&mut s, " by an Aura you control", " by Auras you control");
+        }
     }
     if let Some(r) = f.combat_with {
         let this = this_ref(card);
@@ -3958,6 +3972,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             crate::ast::CombatRef::CrewedIt => write!(s, " that crewed it this turn"),
             crate::ast::CombatRef::SaddledIt => write!(s, " that saddled it this turn"),
         };
+    }
+    // "creatures that don't have a name" (CR 708.2a).
+    if f.status.nameless {
+        that(
+            &mut s,
+            " that doesn't have a name",
+            " that don't have a name",
+        );
     }
     if f.status.entered_this_turn {
         s.push_str(" that entered this turn");
@@ -4266,6 +4288,16 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         g.chosen = None;
         mv = of_chosen(c).to_string();
+    }
+    // "target card that has an Adventure" (Edgewall Inn, CR 715.2a).
+    if g.or.is_none() && mv.is_empty() && g.status.adventure {
+        g.status.adventure = false;
+        mv = if plural_form {
+            " that have an Adventure"
+        } else {
+            " that has an Adventure"
+        }
+        .to_string();
     }
     // "a creature card with no abilities" (Fang-Druid Summoner).
     if g.or.is_none() && mv.is_empty() && g.no_abilities {
@@ -10779,8 +10811,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;
+            // "counter target spell an opponent controls unless they pay
+            // {1}" (Hope-Ender Coatl): the controller already named.
+            let named = match to {
+                Recipient::Target(i) => matches!(
+                    ctx.targets.get(*i),
+                    Some(Target::Spell(f))
+                        if f.who == Some(Who::Opponents) && !f.dont_control && !f.your_opponents
+                ),
+                _ => false,
+            };
             let o = ctx.obj(*to);
-            Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
+            let who = if named { "they pay" } else { "its controller pays" };
+            Clause::imperative(format!("counter {o} unless {who} {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
         Effect::ScryEach { who, count, may } => {
@@ -18924,14 +18967,16 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         }
     }
     // "Yuna and enchantment creatures you control have trample, lifelink,
-    // and ward {2}": one "have" for a group's keywords.
+    // and ward {2}": one "have" for a group's keywords. After a new base
+    // power and toughness the second "have" stays: "have base power and
+    // toughness 4/4 and have flying" (Archon of the Wild Rose).
     let mut prev_have = false;
     for part in &mut parts {
         let have = part.starts_with("have ") && !part.starts_with("have \"");
         if have && prev_have {
             *part = part["have ".len()..].to_string();
         }
-        prev_have = have;
+        prev_have = have && !part.starts_with("have base power and toughness ");
     }
     // "is a Golem creature with base power and toughness 5/4 in addition
     // to its other types" (Zoetic Glyph), "are Food artifacts in addition
@@ -22842,7 +22887,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             planeswalkers,
         } => format!(
             "{} can't attack you{}.",
-            capitalize(&filter_phrase(filter, card, true)),
+            // "Each creature that's enchanted by an Aura you control can't
+            // attack you ..." (Eriette of the Charmed Apple).
+            if filter.each {
+                let mut g = filter.clone();
+                g.each = false;
+                format!("Each {}", filter_phrase(&g, card, false))
+            } else {
+                capitalize(&filter_phrase(filter, card, true))
+            },
             if *planeswalkers {
                 " or planeswalkers you control"
             } else {

@@ -10304,6 +10304,18 @@ impl GameState {
                     self.spec_matches(ctx.controller, spec, *t, Some(ctx.source), None, false)
                 }),
         );
+        // "Counter each spell you don't control" (Counterflux): spells on
+        // the stack, the top first; not the resolving spell itself.
+        each.extend(
+            self.stack
+                .iter()
+                .rev()
+                .filter(|id| **id != ctx.source)
+                .map(|id| Target::Object(*id))
+                .filter(|t| {
+                    self.spec_matches(ctx.controller, spec, *t, Some(ctx.source), None, false)
+                }),
+        );
         for t in each {
             ctx.targets = vec![t];
             ctx.legal = vec![true];
@@ -11518,6 +11530,13 @@ impl GameState {
                             .map(|id| Target::Object(*id)),
                     );
                 }
+            }
+            Recipient::WithoutMaxSpeed => {
+                let players: SmallVec<[PlayerId; 4]> = self
+                    .players_in_game()
+                    .filter(|q| self.desig.speed(*q) < 4)
+                    .collect();
+                out.extend(players.into_iter().map(Target::Player));
             }
             Recipient::OpponentsWithout(f) => {
                 let filter = self.pool.filter(f);

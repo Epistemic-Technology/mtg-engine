@@ -1,0 +1,9 @@
+card "Hope-Ender Coatl" {
+  oracle_id 57cf576b-5a03-4c60-a531-544df2638323
+  cost {2}{U}
+  type Creature — Eldrazi Snake
+  pt 2/2
+  keywords devoid, flash
+  triggered when you cast this: counter target spell an opponent controls unless its controller pays {1}
+  keywords flying
+}

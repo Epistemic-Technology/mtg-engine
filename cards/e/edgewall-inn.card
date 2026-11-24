@@ -1,0 +1,8 @@
+card "Edgewall Inn" {
+  oracle_id 4dfd33e8-7e30-493b-8564-f7df5f0257aa
+  type Land
+  enters tapped
+  as this enters choose color
+  mana chosen
+  activated {3}, {T}, sacrifice this: return target adventurer card from your graveyard to hand
+}

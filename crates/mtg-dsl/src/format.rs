@@ -507,6 +507,7 @@ impl Fmt {
                 Some(f) => format!("each player who controls most {}", filter(f)),
                 None => "each player".to_string(),
             },
+            Recipient::WithoutMaxSpeed => "each player who doesn't have max speed".to_string(),
             Recipient::OpponentsWithout(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("each opponent who doesn't control {}", filter(f)),
                 None => "each opponent".to_string(),
@@ -5145,7 +5146,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         Some(_) => " named this",
         None => "",
     };
+    let from = if f.in_zone { "in" } else { "from" };
     let mut g = f.clone();
+    g.in_zone = false;
     if !shares {
         g.same = None;
     }
@@ -5180,7 +5183,7 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         mv = format!(" with power {n}{}", cmp_suffix(cmp));
     }
     if g == Filter::default() {
-        format!("target card{named}{mv} from {whose}")
+        format!("target card{named}{mv} {from} {whose}")
     } else if let Some(c) = g.chosen
         && (Filter {
             chosen: None,
@@ -5188,9 +5191,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         }) == Filter::default()
     {
         // `target of chosen type card`: no "permanent" for a card.
-        format!("target {} card{named}{mv} from {whose}", of_chosen(c))
+        format!("target {} card{named}{mv} {from} {whose}", of_chosen(c))
     } else {
-        format!("target {} card{named}{mv} from {whose}", filter(&g))
+        format!("target {} card{named}{mv} {from} {whose}", filter(&g))
     }
 }
 
@@ -5415,6 +5418,12 @@ fn filter_one(f: &Filter) -> String {
     if f.status.adventure {
         words.push("adventurer".to_string());
     }
+    if f.status.nameless {
+        words.push("nameless".to_string());
+    }
+    if f.status.kicked {
+        words.push("kicked".to_string());
+    }
     if f.status.prepared_spell {
         words.push("prepared".to_string());
     }
@@ -5515,6 +5524,7 @@ fn filter_one(f: &Filter) -> String {
     if let Some(e) = f.status.enchanted {
         words.push(
             match (e, f.enchanted_late) {
+                _ if f.status.aura_yours => "enchanted by aura you control",
                 (true, true) => "with aura late",
                 (true, false) => "with aura",
                 (false, _) => "without aura",
@@ -5799,23 +5809,38 @@ fn spell_target(f: &Filter) -> String {
     let mut g = f.clone();
     let t = g.targeting.take();
     // "target instant or sorcery spell you control".
-    let yours = g.who == Some(Who::You) && !g.dont_control;
-    if yours {
-        g.who = None;
-    }
+    let who = spell_controller(&mut g);
     let base = filter(&g);
     let mut s = if base.is_empty() {
         "target spell".to_string()
     } else {
         format!("target {base} spell")
     };
-    if yours {
-        s.push_str(" you control");
-    }
+    s.push_str(who);
     if let Some(t) = t {
         s.push_str(&targeting_suffix(&t, filter));
     }
     s
+}
+
+/// Who controls a target spell, printed after "spell" (" you control",
+/// " you don't control", " an opponent controls"; DSL text and Oracle text
+/// alike), taken out of `f`; empty for any player's, or a controller
+/// worded otherwise, which stays in the filter.
+pub fn spell_controller(f: &mut Filter) -> &'static str {
+    let who = match (f.who, f.dont_control) {
+        (Some(Who::You), false) => " you control",
+        (Some(Who::Opponents), true) => " you don't control",
+        (Some(Who::Opponents), false)
+            if !f.your_opponents && !f.they_control && !f.defending && !f.per_opponent =>
+        {
+            " an opponent controls"
+        }
+        _ => return "",
+    };
+    f.who = None;
+    f.dont_control = false;
+    who
 }
 
 /// " that targets you or a creature you control", " with a single target",

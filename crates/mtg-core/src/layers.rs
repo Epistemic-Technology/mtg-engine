@@ -118,6 +118,7 @@ impl Work<'_> {
         let rest = if attached {
             let mut g = filter.clone();
             g.status.enchanted = None;
+            g.status.aura_yours = false;
             g.status.equipped = false;
             g.status.modified = false;
             std::borrow::Cow::Owned(g)
@@ -138,7 +139,7 @@ impl Work<'_> {
                     && (!filter.status.you_own
                         || controller.is_some_and(|p| self.state.objects[*id].owner == p))
                     && self.status_ok_working(&rest, *id, c)
-                    && (!attached || self.attached_ok(filter, *id))
+                    && (!attached || self.attached_ok(filter, *id, controller))
             })
             .collect()
     }
@@ -168,12 +169,17 @@ impl Work<'_> {
 
     /// `status.enchanted` and `status.equipped` for `id`, from the working
     /// characteristics of what is attached to it.
-    fn attached_ok(&self, filter: &ObjFilter, id: ObjId) -> bool {
+    /// With `status.aura_yours`, an Aura `controller` controls ("enchanted
+    /// by an Aura you control").
+    fn attached_ok(&self, filter: &ObjFilter, id: ObjId, controller: Option<PlayerId>) -> bool {
         let has = |sub: Subtype| {
             self.ids.iter().any(|a| {
                 self.on_battlefield(*a)
                     && self.state.objects[*a].attached_to == Some(id)
                     && self.chars[self.index[a]].has_subtype(sub)
+                    && (!filter.status.aura_yours
+                        || sub != Subtype::AURA
+                        || controller.is_some_and(|p| self.controller_of(*a) == p))
             })
         };
         let is = |a: ObjId, sub: Subtype| {

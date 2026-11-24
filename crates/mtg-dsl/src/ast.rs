@@ -1374,6 +1374,9 @@ pub struct Filter {
     /// player's graveyard`, which declares it ("target player's
     /// graveyard").
     pub their: bool,
+    /// `target card in a graveyard`: "card in a graveyard" rather than
+    /// "from a graveyard" (Reenact the Crime). Wording only.
+    pub in_zone: bool,
     /// `other than enchanted`: "other than enchanted creature"
     /// (`ObjFilter::not_attached`).
     pub not_attached: bool,
@@ -5030,6 +5033,8 @@ pub enum Recipient {
     /// `each opponent who doesn't control Elf`: "each opponent who doesn't
     /// control an Elf" (the group's filter).
     OpponentsWithout(u16),
+    /// `each player who doesn't have max speed` (CR 702.179e).
+    WithoutMaxSpeed,
     /// `each player who controls most creature`: "each player who controls
     /// the most creatures" (ties included), judged as it happens.
     MostControl(u16),

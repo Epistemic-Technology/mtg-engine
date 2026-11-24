@@ -1,0 +1,9 @@
+card "Sprouting Goblin" {
+  oracle_id b0871e12-b156-4fa6-b01c-acaae222b3a5
+  cost {1}{R}
+  type Creature — Goblin Druid
+  pt 2/2
+  kicker {G}
+  triggered when this enters if kicked: search land card with basic land type reveal to hand
+  activated {R}, {T}, sacrifice land: draw 1 card
+}

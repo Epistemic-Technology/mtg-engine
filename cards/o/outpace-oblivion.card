@@ -1,0 +1,8 @@
+card "Outpace Oblivion" {
+  oracle_id 4d92f48d-c851-4b71-b7fa-916459928d59
+  cost {2}{R}
+  type Enchantment
+  start your engines
+  triggered when this enters: deal 5 damage to up to 1 target creature or planeswalker
+  activated {2}, sacrifice this: deal 2 damage to each player who doesn't have max speed
+}

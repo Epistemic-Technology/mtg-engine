@@ -1539,6 +1539,22 @@ pub struct StatusQuals {
     /// spell on the stack doesn't (its ruling). Judged on the card.
     #[serde(default)]
     pub adventure: bool,
+    /// "creatures that don't have a name" (Pompous Gadabout): a
+    /// face-down permanent, the only object without one here (CR 708.2a;
+    /// a token always has a name, CR 111.4).
+    #[serde(default)]
+    pub nameless: bool,
+    /// "a kicked spell" (CR 702.33d): a spell cast with its kicker or
+    /// multikicker paid (not a promised gift, which shares the flag).
+    #[serde(default)]
+    pub kicked: bool,
+    /// With `enchanted`, "enchanted by an Aura you control" (Archon of
+    /// the Wild Rose, Eriette of the Charmed Apple): one of the Auras
+    /// attached to it is controlled by the player judging, the static
+    /// ability's controller. Judged in a static ability's affected set
+    /// and an attack ban; elsewhere nothing matches.
+    #[serde(default)]
+    pub aura_yours: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1617,6 +1633,9 @@ impl StatusQuals {
             || self.except_your_tokens
             || self.x_in_cost
             || self.adventure
+            || self.nameless
+            || self.kicked
+            || self.aura_yours
             || self.warped
             || self.prepared_spell
     }
@@ -4433,6 +4452,10 @@ pub enum TargetSpec {
         /// triggered ability": a spell only if it is an instant or sorcery.
         #[serde(default)]
         instant_sorcery: bool,
+        /// "target activated ability, triggered ability, or noncreature
+        /// spell": a spell only if it isn't a creature spell.
+        #[serde(default)]
+        noncreature: bool,
         /// Printed as a list: "target spell, activated ability, or
         /// triggered ability" (the same objects as "spell or ability").
         #[serde(default)]
@@ -4639,6 +4662,11 @@ pub enum Recipient {
     /// interned filter ("each opponent who doesn't control an Elf"),
     /// judged as the effect happens.
     OpponentsWithout(u16),
+    /// Each player who doesn't have max speed (CR 702.179e: speed below
+    /// 4; no speed is speed 0), judged as the effect happens: "It deals 2
+    /// damage to each player who doesn't have max speed." (Outpace
+    /// Oblivion).
+    WithoutMaxSpeed,
     /// "the rest" after a choice (`Effect::ChooseFor`, `PlayerChooses`):
     /// the permanents that could have been chosen and weren't
     /// (`ThisWayLog::unchosen`), still on the battlefield ("Destroy the

@@ -1035,7 +1035,9 @@ permanent's controller: "Each creature you control that ..."), and a
 graveyard card target's `... from a graveyard put there this turn`
 (`put there from anywhere this turn`) prints "... from a graveyard that
 was put there this turn" (Night Nurse: "target permanent card in your
-graveyard that was put there from anywhere this turn"). A
+graveyard that was put there from anywhere this turn"; `target nonland
+card in a graveyard put there from anywhere this turn` prints "card in a
+graveyard", Reenact the Crime). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).
@@ -1144,7 +1146,9 @@ land card reveal to hand`, `each player puts 1 creature card from
 graveyard onto battlefield` ("... from their graveyard onto the
 battlefield": each chooses, then the cards enter together). `each opponent
 who doesn't control Elf loses 1 life` ("each opponent who doesn't control
-an Elf", judged as it resolves). After a discard, `for each opponent who
+an Elf", judged as it resolves). `deal 2 damage to each player who
+doesn't have max speed` (Outpace Oblivion: speed below 4, CR 702.179e,
+no speed included). After a discard, `for each opponent who
 can't, you gain 4 life` ("For each opponent who can't, ..."): once for each
 player who had too few cards to discard. Halves counted for each player
 as the effect happens for them (CR 107.1a), written right after the verb:
@@ -1989,7 +1993,14 @@ exactly two colors"), `basic`, `legendary`, `snow`,
 CR 603.10a), `adventurer` (CR 715.2a: a card with an Adventure, used or
 not; `graveyard instant or sorcery or adventurer` counts "cards in your
 graveyard that are instant cards, sorcery cards, and/or have an
-Adventure"),
+Adventure"; on a card, `return target adventurer card from your graveyard
+to hand` prints "Return target card that has an Adventure from your
+graveyard to your hand.", Edgewall Inn), `nameless` ("can't be blocked by
+creatures that don't have a name", Pompous Gadabout: a face-down
+permanent, CR 708.2a; a token always has a name), `kicked` ("Whenever you
+cast a kicked spell", CR 702.33d: cast with its kicker or multikicker
+paid; a promised gift, which the engine keeps as the kicker flag, isn't
+kicked; judged in cast triggers, not in a mana restriction),
 colors joined with `or` or listed (`red or green creature`, `red,
 white, or black creature card`: sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,
@@ -2013,7 +2024,10 @@ less than or equal to the number of creatures you control"), `with
 toughness less than count equal power` ("with toughness less than this
 creature's power"), `with mana value equal to count equal charge
 counters on this` ("with mana value equal to the number of charge
-counters on this artifact", the counters it had once sacrificed),
+counters on this artifact", the counters it had once sacrificed;
+in a cast trigger, `whenever you cast creature with mana value equal to
+count equal power spell` prints "a creature spell with mana value equal
+to Jackal's power", counted as the spell is cast),
 `with mana value at most count where Faerie you
 control` ("with mana value X or less, where X is the number of Faeries you
 control", for a filter that ends the sentence), and `with power at most X`
@@ -2111,7 +2125,14 @@ attacking creature once blockers are declared, CR 509.1h; before then it is
 neither), `with aura` and `without aura` ("target enchanted permanent",
 "creature that isn't enchanted": an Aura is attached to it, CR 303.4; who
 controls the Aura isn't checked, so `with aura you control` is an error; the
-word `enchanted` is the permanent this is attached to), `that entered this
+word `enchanted` is the permanent this is attached to), `enchanted by aura
+you control` ("other creatures you control that are enchanted by Auras you
+control", Archon of the Wild Rose; "Each creature that's enchanted by an
+Aura you control can't attack you", `ban attacking you or planeswalkers
+each creature enchanted by aura you control`, Eriette of the Charmed
+Apple: an Aura the static ability's controller controls is attached to
+it; judged only in a static ability's affected set and an attack ban,
+elsewhere matching nothing), `that entered this
 turn` (its timestamp is from this turn, CR 613.7e; `as long as this is that
 entered this turn` prints "As long as this creature entered this turn"),
 `that dealt damage this turn` (it was the source of damage this turn),
@@ -3061,7 +3082,9 @@ activated or triggered ability you control [from a creature source | from
 an artifact source]` (targets "you control" only the ability's
 controller's; `copy target instant spell, sorcery spell, activated
 ability, or triggered ability` a spell only if it is an instant or
-sorcery), `change target of target spell or ability with a single target`
+sorcery; `counter target activated ability, triggered ability, or
+noncreature spell`, Louisoix's Sacrifice, a spell only if it isn't a
+creature spell), `change target of target spell or ability with a single target`
 ("Change the target of target spell or ability with a single target.",
 CR 115.7a: the effect's controller changes it to another target legal for
 that spell or ability, judged for its controller and source; with none,
@@ -4031,7 +4054,12 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `artifact or enchantment`, `artifact, creature, or land`, `permanent`,
 `another creature`, `another permanent`, `creature card from your graveyard`,
 `spell`, `creature spell`, `noncreature spell`, `<filter> spell`
-("target instant or sorcery spell"), `card from a graveyard`, `<filter>
+("target instant or sorcery spell"), `spell you don't control` and
+`spell an opponent controls` ("Counter target spell you don't control.",
+Counterflux; after "an opponent controls", `counter target spell an
+opponent controls unless its controller pays {1}` prints "unless they pay
+{1}", Hope-Ender Coatl; overloaded, `counter target spell you don't
+control` counters each such spell on the stack, CR 702.96a), `card from a graveyard`, `<filter>
 card from your graveyard` / `from an opponent's graveyard` / `from that
 player's graveyard` (the triggering player's), `opponent`,
 `artifact or creature`, `attacking or blocking creature`, `attacking or

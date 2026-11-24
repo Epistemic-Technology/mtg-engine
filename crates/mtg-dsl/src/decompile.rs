@@ -461,6 +461,7 @@ impl Decompiler<'_> {
             that_player: f.that_player,
             that_opponent: false,
             their: false,
+            in_zone: false,
             not_attached: f.not_attached,
             enchanted_player: f.enchanted_player,
             other_than_this: false,
@@ -984,6 +985,7 @@ impl Decompiler<'_> {
             CoreRecipient::ExiledWith(i) => Recipient::ExiledWith(i),
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
             CoreRecipient::MostControl(i) => Recipient::MostControl(i),
+            CoreRecipient::WithoutMaxSpeed => Recipient::WithoutMaxSpeed,
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
             CoreRecipient::Rest => Recipient::Rest,
             CoreRecipient::Accepted => Recipient::Declined(crate::ast::Declined {

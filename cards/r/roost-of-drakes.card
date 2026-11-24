@@ -1,0 +1,8 @@
+card "Roost of Drakes" {
+  oracle_id 05e73886-8311-4a0d-9c8d-4a03c7f20ea2
+  cost {U}
+  type Enchantment
+  kicker {2}{U}
+  triggered when this enters if kicked: create 1 "2/2 blue Drake creature with flying"
+  triggered whenever you cast kicked spell: create 1 "2/2 blue Drake creature with flying"
+}

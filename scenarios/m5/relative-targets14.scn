@@ -1,0 +1,60 @@
+# "target nonland card in a graveyard that was put there from anywhere
+# this turn" (Reenact the Crime), and a cast trigger's spell "with mana
+# value equal to Jackal's power" (the source's power as the spell is
+# cast).
+
+scenario "Reenact the Crime copies a card put into a graveyard this turn" {
+  battlefield A: "Mountain", 4 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock", "Reenact the Crime"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Reenact the Crime" targeting "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert exile A contains "Shock"
+  assert life B 18
+}
+
+scenario "Reenact the Crime: a card already in a graveyard can't be targeted" {
+  battlefield A: 4 "Island"
+  graveyard B: "Lightning Bolt"
+  hand A: "Reenact the Crime"
+  illegal turn 1 A: cast "Reenact the Crime" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Reenact the Crime: a land card put there this turn can't be targeted" {
+  battlefield A: 4 "Island", 3 "Mountain"
+  battlefield B: "Mishra's Factory"
+  hand A: "Reenact the Crime", "Stone Rain"
+  turn 1 A: cast "Stone Rain" targeting "Mishra's Factory"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Reenact the Crime" targeting "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mishra's Factory"
+}
+
+scenario "Jackal copies a creature spell with mana value equal to its power" {
+  battlefield A: "Jackal, Genius Geneticist", 3 "Forest"
+  hand A: "Llanowar Elves", "Grizzly Bears"
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  # Elves at power 1, then Bears at power 2: each copied, two counters.
+  assert battlefield A contains 2 "Llanowar Elves"
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert counters "Jackal, Genius Geneticist" +1/+1 2
+}
+
+scenario "Jackal doesn't copy a creature spell with another mana value" {
+  battlefield A: "Jackal, Genius Geneticist", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert counters "Jackal, Genius Geneticist" +1/+1 0
+}

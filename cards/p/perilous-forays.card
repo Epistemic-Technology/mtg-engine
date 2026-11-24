@@ -1,0 +1,6 @@
+card "Perilous Forays" {
+  oracle_id d552f5cb-19b6-4def-90d5-6d2d9570f93d
+  cost {3}{G}{G}
+  type Enchantment
+  activated {1}, sacrifice creature: search land card with basic land type to battlefield tapped
+}

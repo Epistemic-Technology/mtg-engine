@@ -320,6 +320,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -344,6 +345,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -357,6 +359,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -370,6 +373,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -396,6 +400,33 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: true,
+            noncreature: false,
+            listed: true,
+        },
+    ),
+    // "target activated ability, triggered ability, or noncreature
+    // spell" (Louisoix's Sacrifice).
+    (
+        &[
+            "activated",
+            "ability",
+            ",",
+            "triggered",
+            "ability",
+            ",",
+            "or",
+            "noncreature",
+            "spell",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: true,
             listed: true,
         },
     ),
@@ -418,6 +449,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: true,
         },
     ),
@@ -431,6 +463,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: true,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -444,6 +477,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: true,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -457,6 +491,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: true,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -470,6 +505,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -483,6 +519,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -496,6 +533,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -509,6 +547,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -522,6 +561,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -2938,7 +2978,11 @@ impl P {
             "ban" if self.at_words(&["ban", "attacking", "you"]) => {
                 self.pos += 3;
                 let planeswalkers = self.eat_words(&["or", "planeswalkers"]);
-                let filter = self.filter()?;
+                // `each creature ...`: "Each creature that's ... can't
+                // attack you" (wording).
+                let each = self.eat_word("each");
+                let mut filter = self.filter()?;
+                filter.each |= each;
                 self.end_stmt()?;
                 Ok(Ability::CantAttackYou {
                     filter,
@@ -16480,6 +16524,10 @@ impl P {
         // "each opponent who didn't", "each player who doesn't", "each
         // opponent who can't": those who didn't do what the last
         // per-player act asked.
+        // "each player who doesn't have max speed" (Outpace Oblivion).
+        if self.eat_words(&["each", "player", "who", "doesn't", "have", "max", "speed"]) {
+            return Ok(Recipient::WithoutMaxSpeed);
+        }
         if self.at_word("each")
             && matches!(self.word_at(1).as_deref(), Some("opponent" | "player"))
             && self.word_at(2).as_deref() == Some("who")
@@ -17388,15 +17436,28 @@ impl P {
         // "card named ~ from your graveyard".
         // "Copy target spell you control." (Slick Imitator): a spell of
         // any kind with only its controller named.
-        let mut f = if self.at_word("card") || self.at_words(&["spell", "you", "control"]) {
+        let mut f = if self.at_word("card")
+            || self.at_words(&["spell", "you", "control"])
+            || self.at_words(&["spell", "you", "don't", "control"])
+            || self.at_words(&["spell", "an", "opponent", "controls"])
+        {
             Filter::default()
         } else {
             self.filter()?
         };
         if self.eat_word("spell") || self.eat_word("spells") {
-            // "target instant or sorcery spell you control".
-            if f.who.is_none() && self.eat_words(&["you", "control"]) {
-                f.who = Some(Who::You);
+            // "target instant or sorcery spell you control"; "target
+            // spell you don't control" (Counterflux), "target spell an
+            // opponent controls" (Hope-Ender Coatl).
+            if f.who.is_none() {
+                if self.eat_words(&["you", "control"]) {
+                    f.who = Some(Who::You);
+                } else if self.eat_words(&["you", "don't", "control"]) {
+                    f.who = Some(Who::Opponents);
+                    f.dont_control = true;
+                } else if self.eat_words(&["an", "opponent", "controls"]) {
+                    f.who = Some(Who::Opponents);
+                }
             }
             f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));
@@ -17477,7 +17538,10 @@ impl P {
             || kw_after
             || self.at_words(&["card", "from"])
             || self.at_words(&["cards", "from"])
+            || self.at_words(&["card", "in", "a", "graveyard"])
         {
+            // "target nonland card in a graveyard" (wording).
+            f.in_zone = !named && !mv_after && !kw_after && self.at_words(&["card", "in"]);
             self.pos += if mv_after || kw_after { 1 } else { 2 };
             // `from graveyards`: several targets from any graveyards.
             if self.eat_word("graveyards") {
@@ -17840,6 +17904,17 @@ impl P {
                 "this" if !matches!(self.word_at(1).as_deref(), Some("turn" | "way")) => {
                     f.relation = Relation::This;
                     self.pos += 1;
+                }
+                // "creatures you control that are enchanted by Auras you
+                // control" (Archon of the Wild Rose).
+                "enchanted"
+                    if self.at_words(&["enchanted", "by", "aura", "you", "control"])
+                        && f.status.enchanted.is_none() =>
+                {
+                    f.status.enchanted = Some(true);
+                    f.status.aura_yours = true;
+                    f.enchanted_late = true;
+                    self.pos += 5;
                 }
                 "enchanted" if self.at_words(&["enchanted", "player", "controls"]) => {
                     f.enchanted_player = true;
@@ -18307,6 +18382,16 @@ impl P {
                 // `adventurer`: "that has an Adventure" (CR 715.2a).
                 "adventurer" if !f.status.adventure => {
                     f.status.adventure = true;
+                    self.pos += 1;
+                }
+                // `nameless`: "that doesn't have a name" (CR 708.2a).
+                "nameless" if !f.status.nameless => {
+                    f.status.nameless = true;
+                    self.pos += 1;
+                }
+                // "Whenever you cast a kicked spell" (CR 702.33d).
+                "kicked" if !f.status.kicked && self.word_at(1).as_deref() != Some("with") => {
+                    f.status.kicked = true;
                     self.pos += 1;
                 }
                 // "Whenever you cast a prepared spell" (CR 722.3c).
