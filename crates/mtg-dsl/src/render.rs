@@ -5346,6 +5346,17 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature that entered the battlefield under your control this turn".to_string(),
             "creatures that entered the battlefield under your control this turn".to_string(),
         ),
+        CountExpr::OpponentsHandAtMost(n) => {
+            let n = if *n == 0 {
+                "no".to_string()
+            } else {
+                format!("{} or fewer", count_words(Num::N(*n), "one"))
+            };
+            (
+                format!("opponent who has {n} cards in hand"),
+                format!("opponents who have {n} cards in hand"),
+            )
+        }
         CountExpr::OpponentsMoreCards => (
             "opponent who has more cards in hand than you".to_string(),
             "opponents who have more cards in hand than you".to_string(),
@@ -5870,6 +5881,19 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .replacen("X damage", &format!("{per} damage"), 1)
                     .replacen("X ", "a ", 1)
                     .replacen("a cards", "a card", 1);
+                // "At the beginning of your draw step, draw an additional
+                // card for each opponent who ..." (Bandit's Talent).
+                if matches!(e, Effect::DrawCards { who: None, .. })
+                    && matches!(
+                        ctx.trigger,
+                        Some(Trigger::BeginningOfStep {
+                            step: Step::Draw,
+                            ..
+                        })
+                    )
+                {
+                    c.text = c.text.replacen("a card", "an additional card", 1);
+                }
                 // "create a 2/2 black Zombie creature token for each ...".
                 if matches!(e, Effect::CreateToken { .. }) {
                     c.text = c.text.replacen(" tokens", " token", 1);
@@ -9562,9 +9586,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ExileWithThisSpell => {
                     format!("exile this spell and {} from your graveyard", cards())
                 }
-                ChooseAct::GraveyardToTop => {
-                    format!("put {} from your graveyard on top of your library", cards())
-                }
+                // "put five cards from your graveyard on top of your
+                // library in any order" (Stillness in Motion).
+                ChooseAct::GraveyardToTop => format!(
+                    "put {} from your graveyard on top of your library{}",
+                    cards(),
+                    if one { "" } else { " in any order" }
+                ),
                 // CR 400.3: to the owner's graveyard. "a card an opponent
                 // owns from exile into that player's graveyard"; "two cards
                 // your opponents own from exile into their owners'
@@ -16172,6 +16200,24 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{} creatures died this turn", or_more(*n))
         }
         StaticCond::OpponentMoreLands => "an opponent controls more lands than you".to_string(),
+        StaticCond::PlayerHand { who, n, at_most } => {
+            let p = hand_player_text(*who);
+            match (n, at_most) {
+                (0, true) => format!("{p} has no cards in hand"),
+                (n, true) => format!(
+                    "{p} has {} or fewer cards in hand",
+                    count_words(Num::N(*n), "one")
+                ),
+                (n, false) => format!(
+                    "{p} has {} or more cards in hand",
+                    count_words(Num::N(*n), "one")
+                ),
+            }
+        }
+        StaticCond::PlayerMoreHand(w) => {
+            format!("{} has more cards in hand than you", hand_player_text(*w))
+        }
+        StaticCond::LibraryEmpty => "your library has no cards in it".to_string(),
         StaticCond::OpponentHasMore(w) => match w {
             mtg_core::card::MoreWhat::Creatures => "an opponent controls more creatures than you",
             mtg_core::card::MoreWhat::Life => "an opponent has more life than you",
@@ -19932,5 +19978,15 @@ fn rule_players_text(ps: mtg_core::card::RulePlayers, plural: bool) -> &'static 
         mtg_core::card::RulePlayers::Opponents if plural => "your opponents",
         mtg_core::card::RulePlayers::Opponents => "each opponent",
         mtg_core::card::RulePlayers::Enchanted => "enchanted player",
+    }
+}
+
+/// The player a `PlayerHand` condition reads, as Oracle names them.
+fn hand_player_text(w: mtg_core::card::HandPlayer) -> &'static str {
+    match w {
+        mtg_core::card::HandPlayer::That => "that player",
+        mtg_core::card::HandPlayer::Defending => "defending player",
+        mtg_core::card::HandPlayer::Opponent => "an opponent",
+        mtg_core::card::HandPlayer::Anyone => "a player",
     }
 }

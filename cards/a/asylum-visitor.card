@@ -1,0 +1,8 @@
+card "Asylum Visitor" {
+  oracle_id 870deab4-8570-40e9-aeda-ac3726cebb84
+  cost {1}{B}
+  type Creature — Vampire Wizard
+  pt 3/1
+  triggered at beginning of each upkeep if that player hand 0 or less: you draw 1 card, and you lose 1 life
+  madness {1}{B}
+}

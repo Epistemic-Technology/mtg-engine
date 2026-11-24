@@ -714,6 +714,13 @@ impl Decompiler<'_> {
             }
             StaticCondition::OpponentMoreLands => StaticCond::OpponentMoreLands,
             StaticCondition::OpponentHasMore(w) => StaticCond::OpponentHasMore(*w),
+            StaticCondition::PlayerHand { who, n, at_most } => StaticCond::PlayerHand {
+                who: *who,
+                n: *n,
+                at_most: *at_most,
+            },
+            StaticCondition::PlayerMoreHand(w) => StaticCond::PlayerMoreHand(*w),
+            StaticCondition::LibraryEmpty => StaticCond::LibraryEmpty,
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
             StaticCondition::WasCast => StaticCond::WasCast,

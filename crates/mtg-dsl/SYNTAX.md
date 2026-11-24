@@ -600,6 +600,19 @@ the shorthands `threshold`, `delirium`, `metalcraft`; also `land entered
 this turn` (landfall: "you had a land enter the battlefield under your
 control this turn") and `drew 2 cards this turn` ("you've drawn two or
 more cards this turn").
+Another player's hand: `that player hand 2 or less` ("that player has
+two or fewer cards in hand"; `or more` for "two or more"), read for the
+player the ability triggered for (at the beginning of each opponent's
+upkeep: the active player) or, in a spell, its targeted player;
+`defending player hand 2 or less` ("defending player has two or fewer
+cards in hand", the player the source is attacking); `opponent hand 0 or
+less` ("an opponent has no cards in hand", any one opponent; also in a
+static ability, Guul Draz Specter); `any player hand 0 or less` ("a
+player has no cards in hand", Lupine Prototype); `that player more
+cards in hand than you` ("then if that player has more cards in hand than
+you", Pulse of the Dross); `library empty` ("your library has no cards in
+it", Stillness in Motion). As intervening "if" clauses they are judged as
+the ability triggers and again as it resolves (CR 603.4).
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `2 instant or sorcery cards in your graveyard` ("there are two or more
 instant and/or sorcery cards in your graveyard"; any card filter, `4 permanent
@@ -2142,7 +2155,9 @@ prints "2ˣ": "Target player draws 2ˣ cards."), `creature attacked this
 turn` ("for each creature that attacked this turn": any player's
 attackers), `opponents lost life this turn` ("for each opponent who lost
 life this turn"), `opponents more cards in hand` ("... who has more cards in
-hand than you"), `total power creature you control` ("the total power of
+hand than you"), `opponents hand 1 or less` ("for each opponent who has one or fewer
+cards in hand"; in a "your draw step" trigger `draw count each opponents
+hand 1 or less cards` prints "draw an additional card for each ..."), `total power creature you control` ("the total power of
 creatures you control"; also `total toughness` and `total mana value`; a
 negative total is 0, CR 107.1b; in a static ability only `total mana value`
 counts, power and toughness reading 0), or `andor <expr>` (the same count, printed "artifact and/or

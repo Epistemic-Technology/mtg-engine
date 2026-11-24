@@ -2216,6 +2216,9 @@ pub enum CountExpr {
     TwoToX,
     /// Opponents who have more cards in hand than you.
     OpponentsMoreCards,
+    /// Opponents who have at most this many cards in hand ("for each
+    /// opponent who has one or fewer cards in hand", Bandit's Talent).
+    OpponentsHandAtMost(u32),
     /// The total power, toughness, or mana value of the battlefield
     /// permanents matching the filter ("the total power of creatures you
     /// control"): the values as they are, negative ones included, and 0
@@ -2373,6 +2376,7 @@ impl CountExpr {
             | CountExpr::CardTypesInGraveyard
             | CountExpr::SourceAllCounters
             | CountExpr::OpponentsMoreCards
+            | CountExpr::OpponentsHandAtMost(_)
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
             | CountExpr::Speed
@@ -3220,6 +3224,21 @@ pub enum StaticCondition {
     /// "an opponent controls more creatures than you", "an opponent has
     /// more life than you", "an opponent has more cards in hand than you".
     OpponentHasMore(MoreWhat),
+    /// "if that player has two or fewer cards in hand" (Lavaborn Muse, at
+    /// the beginning of each opponent's upkeep), "if defending player has
+    /// two or fewer cards in hand" (Reaper of Night): another player's
+    /// hand size, at most `n` (`at_most`) or at least `n`. Which player is
+    /// `who`; see `HandPlayer`.
+    PlayerHand {
+        who: HandPlayer,
+        n: u32,
+        at_most: bool,
+    },
+    /// "if that player has more cards in hand than you" (Pulse of the
+    /// Dross).
+    PlayerMoreHand(HandPlayer),
+    /// "if your library has no cards in it" (Stillness in Motion).
+    LibraryEmpty,
     /// "it isn't your main phase" (CR 505.1).
     NotYourMainPhase,
     /// "this spell was cast from anywhere other than your hand": the
@@ -3308,6 +3327,25 @@ pub struct SpentUse {
     pub converge: bool,
     /// Anything is read, so the cast records what was spent.
     pub record: bool,
+}
+
+/// The player whose hand a `StaticCondition::PlayerHand` reads.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum HandPlayer {
+    /// "that player": the player the ability triggered for ("At the
+    /// beginning of each opponent's upkeep"), else the resolving spell's
+    /// first targeted player ("Target player reveals ... Then if that
+    /// player has more cards in hand than you").
+    That,
+    /// "defending player" (CR 506.2): the player the source is attacking,
+    /// or the controller of the planeswalker (the protector of the battle)
+    /// it is attacking.
+    Defending,
+    /// "an opponent has no cards in hand" (Rekindled Flame): any one
+    /// opponent.
+    Opponent,
+    /// "a player has no cards in hand" (Lupine Prototype): any one player.
+    Anyone,
 }
 
 /// What `StaticCondition::OpponentHasMore` compares.
@@ -11383,6 +11421,8 @@ impl CardPool {
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
                     | StaticCondition::MoreCardsInHand
+                    | StaticCondition::PlayerHand { .. }
+                    | StaticCondition::PlayerMoreHand(_)
             )) || matches!(&sa.condition, Some(StaticCondition::Happened { count, .. })
                 if count.kind.with_hand()))
         };

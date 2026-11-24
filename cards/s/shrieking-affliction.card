@@ -1,0 +1,6 @@
+card "Shrieking Affliction" {
+  oracle_id 9e3f5d0b-103f-40e2-beb5-26b1fcb136f3
+  cost {B}
+  type Enchantment
+  triggered at beginning of each opponent's upkeep step if that player hand 1 or less: they lose 3 life
+}

@@ -77,7 +77,7 @@ impl GameState {
                     && !(matches!(cond, Condition::WhileSecond(_))
                         && matches!(&t.trigger, TriggerSpec::Either(pair)
                             if self.fires(&pair.0, event, w).is_some()))
-                    && !self.condition_holds_for(cond, w, trigger_obj)
+                    && !self.condition_holds_for(cond, w, trigger_obj, trigger_player)
                 {
                     continue;
                 }
@@ -2368,7 +2368,7 @@ impl GameState {
         let effects = crate::state::effects_in(&pool, &obj);
         let split = self.mode_splits_of(id);
         if let Some(cond) = condition
-            && !self.condition_holds(cond, sa.source, sa.trigger_obj)
+            && !self.condition_holds(cond, sa.source, sa.trigger_obj, sa.trigger_player)
         {
             // A Saga whose last chapter ability is removed for want of
             // a target is sacrificed (CR 714.4): the state-based check
@@ -2487,7 +2487,13 @@ impl GameState {
     }
 
     /// An ability's intervening "if", evaluated against the current state.
-    fn condition_holds(&self, cond: Condition, source: ObjId, trigger_obj: Option<ObjId>) -> bool {
+    fn condition_holds(
+        &self,
+        cond: Condition,
+        source: ObjId,
+        trigger_obj: Option<ObjId>,
+        trigger_player: Option<PlayerId>,
+    ) -> bool {
         match cond {
             Condition::SourceUntapped => self
                 .objects
@@ -2544,7 +2550,13 @@ impl GameState {
                     .map(|o| o.controller)
                     .or_else(|| self.lki.get(&source).map(|l| l.object.controller));
                 you.is_some_and(|p| {
-                    self.condition_for(self.pool.condition(i), p, source, trigger_obj)
+                    self.condition_about(
+                        self.pool.condition(i),
+                        p,
+                        source,
+                        trigger_obj,
+                        trigger_player,
+                    )
                 })
             }
         }
@@ -2557,6 +2569,7 @@ impl GameState {
         cond: Condition,
         w: &Watcher,
         trigger_obj: Option<ObjId>,
+        trigger_player: Option<PlayerId>,
     ) -> bool {
         match cond {
             Condition::SourceUntapped => !w.tapped,
@@ -2578,9 +2591,14 @@ impl GameState {
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
-            Condition::Static(i) | Condition::While(i) | Condition::WhileSecond(i) => {
-                self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
-            }
+            Condition::Static(i) | Condition::While(i) | Condition::WhileSecond(i) => self
+                .condition_about(
+                    self.pool.condition(i),
+                    w.controller,
+                    w.source,
+                    trigger_obj,
+                    trigger_player,
+                ),
             Condition::Trains => self.trains(w),
             Condition::Blitzed => self.blitzed(w.source),
             Condition::TributeNotPaid => !self.tribute_paid(w.source),

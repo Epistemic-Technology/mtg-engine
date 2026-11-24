@@ -4930,6 +4930,47 @@ impl P {
         if self.eat_words(&["opponent", "controls", "more", "lands"]) {
             return Ok(StaticCond::OpponentMoreLands);
         }
+        // `that player hand 2 or less`, `defending player hand 2 or less`,
+        // `that player more cards in hand than you`.
+        // `opponent hand 0 or less`, `any player hand 0 or less`.
+        let who = if self.at_words(&["that", "player"]) {
+            Some((mtg_core::card::HandPlayer::That, 2))
+        } else if self.at_words(&["defending", "player"]) {
+            Some((mtg_core::card::HandPlayer::Defending, 2))
+        } else if self.at_words(&["any", "player"]) {
+            Some((mtg_core::card::HandPlayer::Anyone, 2))
+        } else if self.at_word("opponent") {
+            Some((mtg_core::card::HandPlayer::Opponent, 1))
+        } else {
+            None
+        };
+        if let Some((who, words)) = who
+            && ((self.word_at(words).as_deref() == Some("hand")
+                && matches!(self.peek_at(words + 1), Some(Tok::Num(_))))
+                // "an opponent has more cards in hand than you" is
+                // `opponent has more cards in hand`.
+                || (words == 2
+                    && self.word_at(words).as_deref() == Some("more")
+                    && self.word_at(words + 1).as_deref() == Some("cards")))
+        {
+            self.pos += words;
+            if self.eat_words(&["more", "cards", "in", "hand", "than", "you"]) {
+                return Ok(StaticCond::PlayerMoreHand(who));
+            }
+            self.expect_word("hand")?;
+            let n = self.number()?;
+            self.expect_word("or")?;
+            let at_most = if self.eat_word("less") {
+                true
+            } else {
+                self.expect_word("more")?;
+                false
+            };
+            return Ok(StaticCond::PlayerHand { who, n, at_most });
+        }
+        if self.eat_words(&["library", "empty"]) {
+            return Ok(StaticCond::LibraryEmpty);
+        }
         if self.eat_words(&["opponent", "controls", "more", "creatures"]) {
             return Ok(StaticCond::OpponentHasMore(
                 mtg_core::card::MoreWhat::Creatures,
@@ -12562,6 +12603,12 @@ impl P {
 
         if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
             return Ok(CountExpr::OpponentsMoreCards);
+        }
+        if self.at_words(&["opponents", "hand"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let n = self.number()?;
+            self.expect_words(&["or", "less"])?;
+            return Ok(CountExpr::OpponentsHandAtMost(n));
         }
         // `their hand`, `their library`, `their life`: the acting
         // player's.

@@ -1,0 +1,7 @@
+card "Lupine Prototype" {
+  oracle_id 303f91ae-1acb-4250-a4a5-71207c228dcc
+  cost {2}
+  type Artifact Creature — Wolf Construct
+  pt 5/5
+  can't attack or block unless any player hand 0 or less
+}

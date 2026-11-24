@@ -1,0 +1,6 @@
+card "Stillness in Motion" {
+  oracle_id d73913ea-44d0-408f-9f8b-8e91843f2826
+  cost {1}{U}
+  type Enchantment
+  triggered at beginning of your upkeep: mill 3 cards; then if library empty, exile this and put 5 cards from your graveyard on top of library chosen
+}

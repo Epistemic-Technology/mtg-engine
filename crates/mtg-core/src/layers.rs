@@ -1345,6 +1345,10 @@ fn per_count(
             .and_then(|s| state.objects.get(s))
             .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
         CountExpr::Happened(c) => state.turn_count(c, you, source.unwrap_or_default()) as usize,
+        CountExpr::OpponentsHandAtMost(n) => state
+            .players_in_game()
+            .filter(|p| *p != you && state.player(*p).hand.len() <= *n as usize)
+            .count(),
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state

@@ -1,0 +1,333 @@
+# Conditions about another player's hand and the library: "if that player
+# has two or fewer cards in hand" at the beginning of each opponent's
+# upkeep (checked as it triggers and again on resolution, CR 603.4),
+# "if defending player has two or fewer cards in hand", "Then if that
+# player has more cards in hand than you", "for each opponent who has one
+# or fewer cards in hand", and "if your library has no cards in it".
+
+scenario "hand conditions: Hellfire Mongrel deals 2 to an opponent with two cards" {
+  battlefield A: "Hellfire Mongrel"
+  hand B: "Plains", "Island"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 18
+  assert life A 20
+}
+
+scenario "hand conditions: Hellfire Mongrel doesn't trigger for three cards" {
+  battlefield A: "Hellfire Mongrel"
+  hand B: "Plains", "Island", "Forest"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 20
+}
+
+scenario "hand conditions: Hellfire Mongrel doesn't trigger on its controller's upkeep" {
+  battlefield A: "Hellfire Mongrel"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert life A 20
+  assert life B 20
+}
+
+scenario "hand conditions: Lavaborn Muse deals 3 to an opponent with no cards" {
+  battlefield A: "Lavaborn Muse"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 17
+}
+
+scenario "hand conditions: Lavaborn Muse checks again as it resolves" {
+  battlefield A: "Lavaborn Muse"
+  battlefield B: "Island"
+  hand B: "Ancestral Recall", "Plains"
+  start turn 2 A
+  turn 3 upkeep B: cast "Ancestral Recall" targeting player B
+  run_to turn 3 draw
+  assert hand B count 5
+  assert life B 20
+}
+
+scenario "hand conditions: Shrieking Affliction with one card" {
+  battlefield A: "Shrieking Affliction"
+  hand B: "Plains"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 17
+}
+
+scenario "hand conditions: Shrieking Affliction with two cards" {
+  battlefield A: "Shrieking Affliction"
+  hand B: "Plains", "Island"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 20
+}
+
+scenario "hand conditions: Davriel deals 2 to an opponent with one card" {
+  battlefield A: "Davriel, Rogue Shadowmage" with 3 loyalty
+  hand B: "Plains"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 18
+}
+
+scenario "hand conditions: Davriel with two cards in that player's hand" {
+  battlefield A: "Davriel, Rogue Shadowmage" with 3 loyalty
+  hand A: "Swamp"
+  hand B: "Plains", "Island"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 20
+}
+
+scenario "hand conditions: Prickle Faeries after its Siege is defeated" {
+  battlefield A: "Invasion of Eldraine" with 1 defense, "Portent Tracker"
+  hand B: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Portent Tracker" ability 2 targeting "Invasion of Eldraine"
+  run_to turn 3 draw
+  assert battlefield A contains "Prickle Faeries"
+  assert has "Prickle Faeries" flying
+  assert life B 18
+}
+
+scenario "hand conditions: Prickle Faeries with three cards in that player's hand" {
+  battlefield A: "Invasion of Eldraine" with 1 defense, "Portent Tracker"
+  hand B: "Plains", "Island", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Portent Tracker" ability 2 targeting "Invasion of Eldraine"
+  run_to turn 3 draw
+  assert battlefield A contains "Prickle Faeries"
+  assert life B 20
+}
+
+scenario "hand conditions: Reaper of Night gains flying against two cards" {
+  battlefield A: "Reaper of Night"
+  hand A: "Swamp", "Swamp", "Swamp", "Swamp"
+  hand B: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Reaper of Night"
+  run_to turn 2 declare_blockers
+  assert has "Reaper of Night" flying
+  run_to turn 3 upkeep
+  assert has not "Reaper of Night" flying
+}
+
+scenario "hand conditions: Reaper of Night reads the defending player's hand" {
+  battlefield A: "Reaper of Night"
+  hand B: "Plains", "Island", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Reaper of Night"
+  run_to turn 2 declare_blockers
+  assert has not "Reaper of Night" flying
+}
+
+scenario "hand conditions: Pulse of the Dross returns when that player has more cards" {
+  battlefield A: 3 "Swamp"
+  hand A: "Pulse of the Dross"
+  hand B: "Plains", "Shock", "Island"
+  turn 1 A: cast "Pulse of the Dross" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert hand B count 2
+  assert hand A contains "Pulse of the Dross"
+}
+
+scenario "hand conditions: Pulse of the Dross stays in the graveyard otherwise" {
+  battlefield A: 3 "Swamp"
+  hand A: "Pulse of the Dross", "Swamp", "Swamp"
+  hand B: "Plains", "Shock"
+  turn 1 A: cast "Pulse of the Dross" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard A contains "Pulse of the Dross"
+  assert hand A lacks "Pulse of the Dross"
+}
+
+scenario "hand conditions: Stillness in Motion with an emptied library" {
+  battlefield A: "Stillness in Motion"
+  library A: "Island", "Island", "Island"
+  graveyard A: "Forest", "Forest", "Forest", "Forest"
+  run_to turn 1 precombat_main
+  assert exile A contains "Stillness in Motion"
+  assert library A count 5
+  assert graveyard A count 2
+}
+
+scenario "hand conditions: Stillness in Motion with cards left" {
+  battlefield A: "Stillness in Motion"
+  library A: "Island", "Island", "Island", "Swamp"
+  graveyard A: "Forest", "Forest", "Forest", "Forest"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Stillness in Motion"
+  assert library A count 1
+  assert graveyard A count 7
+}
+
+scenario "hand conditions: Bandit's Talent enters and opponents discard" {
+  battlefield A: 2 "Swamp"
+  hand A: "Bandit's Talent"
+  hand B: "Shock", "Plains", "Island"
+  turn 1 A: cast "Bandit's Talent"
+  turn 1 precombat_main B: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert hand B count 2
+}
+
+scenario "hand conditions: Bandit's Talent level 2 and level 3" {
+  battlefield A: "Bandit's Talent", 5 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bandit's Talent"
+  turn 1 A: activate "Bandit's Talent"
+  run_to turn 2 draw
+  assert life B 18
+  run_to turn 3 precombat_main
+  assert hand B count 1
+  assert hand A count 2
+}
+
+scenario "hand conditions: Bandit's Talent with two cards in the opponent's hand" {
+  battlefield A: "Bandit's Talent", 5 "Swamp"
+  hand B: "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bandit's Talent"
+  turn 1 A: activate "Bandit's Talent"
+  run_to turn 2 draw
+  assert life B 20
+  run_to turn 3 precombat_main
+  assert hand A count 1
+}
+
+scenario "hand conditions: Ebony Owl Netsuke against seven cards" {
+  battlefield A: "Ebony Owl Netsuke"
+  hand B: 7 "Plains"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 16
+}
+
+scenario "hand conditions: Ebony Owl Netsuke against six cards" {
+  battlefield A: "Ebony Owl Netsuke"
+  hand B: 6 "Plains"
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 20
+}
+
+scenario "hand conditions: Hollowborn Barghest on both upkeeps" {
+  battlefield A: "Hollowborn Barghest"
+  start turn 1 A
+  run_to turn 2 draw
+  assert life B 16
+  assert life A 20
+}
+
+scenario "hand conditions: Hollowborn Barghest with cards in hands" {
+  battlefield A: "Hollowborn Barghest"
+  hand A: "Swamp"
+  hand B: "Plains"
+  start turn 1 A
+  run_to turn 2 draw
+  assert life B 20
+}
+
+scenario "hand conditions: Asylum Visitor on each player's upkeep" {
+  battlefield A: "Asylum Visitor"
+  hand B: "Plains"
+  start turn 1 A
+  run_to turn 1 draw
+  assert hand A count 1
+  assert life A 19
+  run_to turn 2 draw
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "hand conditions: Ghirapur Orrery refills an empty hand" {
+  battlefield A: "Ghirapur Orrery"
+  hand A: "Plains"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert hand A count 2
+  run_to turn 3 precombat_main
+  assert hand B count 4
+}
+
+scenario "hand conditions: Quest for the Nihil Stone with two quest counters" {
+  battlefield A: "Quest for the Nihil Stone" with 2 quest
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 15
+}
+
+scenario "hand conditions: Quest for the Nihil Stone declined" {
+  battlefield A: "Quest for the Nihil Stone" with 2 quest
+  start turn 2 A
+  turn 3 upkeep A: decline "Quest for the Nihil Stone"
+  run_to turn 3 draw
+  assert life B 20
+}
+
+scenario "hand conditions: Quest for the Nihil Stone with one quest counter" {
+  battlefield A: "Quest for the Nihil Stone" with 1 quest
+  start turn 2 A
+  run_to turn 3 draw
+  assert life B 20
+}
+
+scenario "hand conditions: Guul Draz Specter with an opponent's empty hand" {
+  battlefield A: "Guul Draz Specter"
+  hand A: "Swamp"
+  run_to turn 1 precombat_main
+  assert power "Guul Draz Specter" 5
+  assert toughness "Guul Draz Specter" 5
+}
+
+scenario "hand conditions: Guul Draz Specter grows as the hand empties" {
+  battlefield A: "Guul Draz Specter"
+  hand B: "Plains"
+  start turn 2 A precombat_main
+  assert power "Guul Draz Specter" 2
+  turn 2 A: attack "Guul Draz Specter"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Plains"
+  assert power "Guul Draz Specter" 5
+  assert life B 18
+}
+
+scenario "hand conditions: Rekindled Flame returns when an opponent has no cards" {
+  graveyard A: "Rekindled Flame"
+  hand A: "Swamp"
+  run_to turn 1 precombat_main
+  assert hand A contains "Rekindled Flame"
+}
+
+scenario "hand conditions: Rekindled Flame stays while the opponent has cards" {
+  graveyard A: "Rekindled Flame"
+  hand B: "Plains"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Rekindled Flame"
+}
+
+scenario "hand conditions: Lupine Prototype attacks once a hand is empty" {
+  battlefield A: "Lupine Prototype"
+  hand A: "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lupine Prototype"
+  run_to turn 2 end
+  assert life B 15
+}
+
+scenario "hand conditions: Lupine Prototype can't attack while every player has cards" {
+  battlefield A: "Lupine Prototype"
+  hand A: "Swamp"
+  hand B: "Plains"
+  start turn 2 A precombat_main
+  illegal turn 2 A: attack "Lupine Prototype"
+  run_to turn 2 end
+  assert life B 20
+}

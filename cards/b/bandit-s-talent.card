@@ -1,0 +1,10 @@
+card "Bandit's Talent" {
+  oracle_id bcbe879a-4609-4493-bd7d-47c26d27e83c
+  cost {1}{B}
+  type Enchantment — Class
+  triggered when this enters: each opponent discards 2 cards unless they discard nonland card
+  level 2 {B}
+  triggered at beginning of each opponent's upkeep step if that player hand 1 or less: they lose 2 life
+  level 3 {3}{B}
+  triggered at beginning of your draw step: draw count each opponents hand 1 or less cards
+}

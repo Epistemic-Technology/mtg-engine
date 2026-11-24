@@ -1,0 +1,7 @@
+card "Quest for the Nihil Stone" {
+  oracle_id 7f65178e-dd2e-44aa-a68f-f8694e0b250a
+  cost {B}
+  type Enchantment
+  triggered whenever an opponent discards a card: you may put 1 quest counter on this
+  triggered at beginning of each opponent's upkeep step if that player hand 0 or less and this has 2 or more quest counters: you may that player loses 5 life
+}
