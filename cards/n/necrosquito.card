@@ -1,0 +1,10 @@
+card "Necrosquito" {
+  oracle_id 41dd7ec7-a238-4723-a244-9a112d4fbfd2
+  cost {3}{B}
+  type Creature — Phyrexian Insect
+  pt 0/0
+  keywords flying
+  enters with 2 oil counters
+  static this: +1/+1 count each oil counter on it
+  triggered whenever other creature or artifact you control is put into a graveyard from the battlefield: put 1 oil counter on this
+}

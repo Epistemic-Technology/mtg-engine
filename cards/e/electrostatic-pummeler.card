@@ -1,0 +1,8 @@
+card "Electrostatic Pummeler" {
+  oracle_id 79676f10-9fca-4bca-acc5-6994955142b4
+  cost {3}
+  type Artifact Creature — Construct
+  pt 1/1
+  triggered when this enters: you get 3 energy
+  activated pay 3 energy: this gets +1/+1 count where power
+}

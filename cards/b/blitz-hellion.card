@@ -1,0 +1,8 @@
+card "Blitz Hellion" {
+  oracle_id 7ef3f240-05a5-4fc9-a977-a729010a53c2
+  cost {3}{R}{G}
+  type Creature — Hellion
+  pt 7/7
+  keywords trample, haste
+  triggered at beginning of each end step: owner shuffles this into library
+}

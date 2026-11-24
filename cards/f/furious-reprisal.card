@@ -1,0 +1,6 @@
+card "Furious Reprisal" {
+  oracle_id 38e1ab26-95f9-43dd-9bda-13c7d8ba47ea
+  cost {3}{R}
+  type Sorcery
+  spell: deal 2 damage to 2 target any
+}

@@ -1,0 +1,6 @@
+card "Molting Skin" {
+  oracle_id 8262dbb3-7abb-4de8-9a1d-edee71906a10
+  cost {2}{G}
+  type Enchantment
+  activated return this: regenerate target creature
+}

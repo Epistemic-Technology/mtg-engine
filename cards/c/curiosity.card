@@ -1,0 +1,7 @@
+card "Curiosity" {
+  oracle_id 223fa044-d387-4884-bf4e-75f1b61c6a46
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature deals damage to opponent: you may draw 1 card
+}

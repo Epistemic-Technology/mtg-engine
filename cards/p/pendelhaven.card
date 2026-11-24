@@ -1,0 +1,6 @@
+card "Pendelhaven" {
+  oracle_id f70e72e1-9abe-485b-9fea-e8b35352f5b3
+  type Legendary Land
+  mana {G}
+  activated {T}: target 1/1 creature gets +1/+2
+}

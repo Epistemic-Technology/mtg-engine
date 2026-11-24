@@ -15468,6 +15468,23 @@ impl P {
                 }
                 break;
             }
+            // `1/1 creature`: exactly that power and toughness.
+            if let Some(&Tok::Pt {
+                power,
+                toughness,
+                signed: false,
+            }) = self.peek()
+                && f.power.is_none()
+                && f.toughness.is_none()
+                && self.word_at(1).is_some()
+            {
+                f.power = Some((Cmp::Exactly, i16::try_from(power).unwrap_or(i16::MAX)));
+                f.toughness = Some((Cmp::Exactly, i16::try_from(toughness).unwrap_or(i16::MAX)));
+                f.pt_word = true;
+                self.pos += 1;
+                consumed += 1;
+                continue;
+            }
             let Some(w) = self.word_at(0) else {
                 break;
             };

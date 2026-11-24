@@ -1,0 +1,10 @@
+card "Tajic, Legion's Edge" {
+  oracle_id ae6f21a2-e6b6-4793-8343-e27310c0bea1
+  cost {1}{R}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/2
+  keywords haste
+  mentor
+  replace noncombat damage to other creature you control: prevent
+  activated {R}{W}: this gains first strike
+}

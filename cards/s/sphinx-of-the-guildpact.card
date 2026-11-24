@@ -1,0 +1,9 @@
+card "Sphinx of the Guildpact" {
+  oracle_id 5b410473-1df9-4d16-9b4d-c3ca8e4635b7
+  cost {7}
+  type Artifact Creature — Sphinx
+  pt 5/5
+  static this: cda color all
+  keyword flying
+  hexproof from monocolored
+}

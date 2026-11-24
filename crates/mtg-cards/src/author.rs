@@ -2168,6 +2168,19 @@ impl Templates {
                     // "where X is the number of lands you control": the
                     // count in place of X.
                     let x = match c.get(6) {
+                        // "This creature gets +X/+X until end of turn,
+                        // where X is its power": the creature's own power
+                        // as the ability resolves.
+                        Some(w) if matches!(w.as_str(), "its power" | "its toughness") => {
+                            let stat = &w.as_str()[4..];
+                            if who == "this" {
+                                format!("count where {stat}")
+                            } else if who.starts_with("target ") && *t == 1 {
+                                format!("count where {stat} of target 1")
+                            } else {
+                                return None;
+                            }
+                        }
                         Some(w) => {
                             let w = w.as_str();
                             let e = bound_amount(w)
@@ -9461,6 +9474,112 @@ impl Builder<'_> {
 /// word, with rules meaning: never a bare label.
 const DASH_KEYWORDS: &[&str] = &["Exhaust", "Power-up", "Boast", "Solved", "Companion", "Forecast"];
 
+/// Lines of the corpus's cards and the statement that prints each: a line
+/// no template covers but an accepted card already says is written as
+/// that card writes it ("Creatures entering don't cause abilities to
+/// trigger." from Torpor Orb). The key is the line as the author reads
+/// Oracle text (reminder text dropped, the card's name as `~`).
+fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, String> {
+    use std::collections::HashMap;
+    use std::sync::OnceLock;
+    static LINES: OnceLock<HashMap<String, String>> = OnceLock::new();
+    LINES.get_or_init(|| {
+        let by_name: HashMap<&str, &Card> = corpus.iter().map(|c| (c.name.as_str(), c)).collect();
+        let lookup: &dyn Lookup = &by_name;
+        let mut out = HashMap::new();
+        // A double-faced card's front (the card's own abilities) and each
+        // face, each read as a card of its own.
+        let fronts = corpus
+            .iter()
+            .filter(|c| c.kind == Kind::Card && c.mismatch.is_none())
+            .flat_map(|c| {
+                let mut front = c.clone();
+                front.faces.clear();
+                front.layout = mtg_core::card::Layout::Normal;
+                let faces = c.faces.iter().map(|f| {
+                    let mut f = f.clone();
+                    f.kind = Kind::Card;
+                    f
+                });
+                std::iter::once(front).chain(faces).collect::<Vec<_>>()
+            });
+        for c in fronts {
+            let c = &c;
+            // The card with nothing but its frame: what its file says
+            // besides the one ability.
+            let mut bare = c.clone();
+            bare.abilities.clear();
+            bare.keywords.clear();
+            bare.pronoun = None;
+            bare.additional = None;
+            bare.additional_or = None;
+            bare.optional_cost = None;
+            bare.alt_cost = None;
+            bare.kicker = None;
+            bare.kicker_cost = None;
+            bare.flashback = None;
+            bare.graveyard_cast = None;
+            bare.cast_only = None;
+            bare.flash_if = None;
+            bare.except = None;
+            let frame: Vec<String> = mtg_dsl::format::format(&bare)
+                .lines()
+                .map(str::to_string)
+                .collect();
+            let mut names = vec![c.name.clone()];
+            if let Some(s) = &c.short_name {
+                names.push(s.clone());
+            }
+            if let Some((short, _)) = c.name.split_once(", ") {
+                names.push(short.to_string());
+            }
+            for a in &c.abilities {
+                let mut one = bare.clone();
+                one.abilities = vec![a.clone()];
+                let text = strip_reminder(&render::oracle_text(&one, lookup));
+                if text.contains('\n') || text.is_empty() {
+                    continue;
+                }
+                let mut key = text;
+                for n in &names {
+                    key = key.replace(n.as_str(), "~");
+                }
+                for noun in ["Saga", "Class", "Case"] {
+                    key = key
+                        .replace(&format!("this {noun}"), "this enchantment")
+                        .replace(&format!("This {noun}"), "This enchantment");
+                }
+                if out.contains_key(&key) {
+                    continue;
+                }
+                let dsl = mtg_dsl::format::format(&one);
+                let mut rest = frame.clone();
+                let lines: Vec<&str> = dsl
+                    .lines()
+                    .filter(|l| {
+                        if let Some(i) = rest.iter().position(|f| f == l) {
+                            rest.remove(i);
+                            false
+                        } else {
+                            true
+                        }
+                    })
+                    .collect();
+                let Some((first, more)) = lines.split_first() else {
+                    continue;
+                };
+                let mut st = first.trim_start().to_string();
+                for l in more {
+                    st.push('\n');
+                    st.push_str(l);
+                }
+                out.insert(key, st);
+            }
+        }
+        out
+    })
+}
+
 /// The card's flavor words and mode names (CR 207.2d, 700.2): Scryfall
 /// tags each as a keyword; the text prints it at the start of a line or a
 /// mode, before an em dash. A real keyword printed so ("Forecast —") is
@@ -9683,7 +9802,32 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
             "exile graveyard of each opponent",
         )
         .replace("exile each graveyards", "exile all graveyards")
-        .replace("to each of two targets", "to 2 targets");
+        .replace("to each of two targets", "to 2 target any");
+    // "Destroy target creature. ~ deals 3 damage to that creature's
+    // controller.": in a spell or an ability without a triggering
+    // creature, the creature is the line's one target.
+    s = s
+        .lines()
+        .map(|l| {
+            if l.matches("target ").count() == 1
+                && l.contains("target creature")
+                && !l.starts_with("triggered")
+            {
+                l.replace("controller of that creature", "controller of that target 1")
+            } else {
+                l.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    // "deals X damage to each of up to two [other] targets": separate
+    // targets, any target each (CR 115.4).
+    s = re(r"\bup to (\d) (another )?targets\b")
+        .replace_all(&s, "up to $1 ${2}target any")
+        .into_owned();
+    s = re(r"\bdamage to (\d) targets\b")
+        .replace_all(&s, "damage to $1 target any")
+        .into_owned();
     // "Radiance — {T}: This creature deals 1 damage to target creature and
     // each other creature that shares a color with it." (Wojek
     // Embermage): "it" is the line's one target.
@@ -10578,7 +10722,44 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             }
             continue;
         }
-        b.line(line)?;
+        let mark = (
+            b.statements.len(),
+            b.keywords.len(),
+            b.spell_paragraphs.len(),
+            b.spell_at,
+            b.spell_targets,
+        );
+        if let Err(e) = b.line(line) {
+            // A line an accepted card already says: its statement.
+            b.statements.truncate(mark.0);
+            b.keywords.truncate(mark.1);
+            b.spell_paragraphs.truncate(mark.2);
+            b.spell_at = mark.3;
+            b.spell_targets = mark.4;
+            let Some(st) = corpus_lines(corpus).get(line) else {
+                return Err(e);
+            };
+            // A spell's paragraph numbers its targets from the spell's
+            // first: only a first paragraph with targets is the corpus's.
+            let ability = ["static", "triggered", "activated", "mana"]
+                .iter()
+                .any(|w| st.starts_with(w));
+            match st.strip_prefix("spell: ") {
+                Some(p)
+                    if b.is_spell
+                        && !p.contains('\n')
+                        && (b.spell_targets == 0 || !p.contains("target")) =>
+                {
+                    b.spell_at.get_or_insert(b.statements.len());
+                    b.spell_paragraphs.push(p.to_string());
+                    if p.contains("target") {
+                        b.spell_targets = 1;
+                    }
+                }
+                _ if st.starts_with("spell") || (b.is_spell && ability) => return Err(e),
+                _ => b.statements.push(st.clone()),
+            }
+        }
         i += 1;
     }
     // A copy effect's exceptions (`token_copy`): the card's one `except`

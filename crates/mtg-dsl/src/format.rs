@@ -4671,6 +4671,11 @@ fn filter_one(f: &Filter) -> String {
         Relation::This => words.push("this".to_string()),
         Relation::Any => {}
     }
+    if f.pt_word
+        && let (Some((_, p)), Some((_, t))) = (f.power, f.toughness)
+    {
+        words.push(format!("{p}/{t}"));
+    }
     if f.enchanted {
         words.push("enchanted".to_string());
         if f.enchanted_permanent {
@@ -4813,7 +4818,9 @@ fn filter_one(f: &Filter) -> String {
         words.push("with toughness greater than power".to_string());
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
-        if let Some((cmp, n)) = v {
+        if let Some((cmp, n)) = v
+            && !f.pt_word
+        {
             if f.status.pt_either {
                 if name == "power" {
                     words.push(format!("with power or toughness {n}{}", cmp_suffix(cmp)));

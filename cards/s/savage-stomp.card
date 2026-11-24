@@ -1,0 +1,7 @@
+card "Savage Stomp" {
+  oracle_id 2ecda58d-9aa9-4857-bdc5-b6b7b70a79c0
+  cost {2}{G}
+  type Sorcery
+  this spell costs {2} less if it targets Dinosaur you control
+  spell: put 1 +1/+1 counter on target creature you control; then that target 1 fights target creature you don't control
+}

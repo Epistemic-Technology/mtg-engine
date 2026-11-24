@@ -1,0 +1,7 @@
+card "Yarok's Wavecrasher" {
+  oracle_id 30868d69-2ba3-4373-9d47-4bc8978f35d1
+  cost {3}{U}
+  type Creature — Elemental
+  pt 4/4
+  triggered whenever this enters: return 1 other creature you control chosen
+}

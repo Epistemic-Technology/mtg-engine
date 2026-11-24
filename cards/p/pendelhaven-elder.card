@@ -1,0 +1,7 @@
+card "Pendelhaven Elder" {
+  oracle_id 867379cb-a084-4c84-97ee-557fb60814cd
+  cost {1}{G}
+  type Creature — Elf Shaman
+  pt 1/1
+  activated {T}: each single 1/1 creature you control gets +1/+2
+}

@@ -1,0 +1,7 @@
+card "Feral Animist" {
+  oracle_id beebed34-3a9b-4b51-aacb-1e85d76cf326
+  cost {1}{R}{G}
+  type Creature — Goblin Shaman
+  pt 2/1
+  activated {3}: this gets +1/+0 count where power
+}

@@ -1,0 +1,9 @@
+card "Exava, Rakdos Blood Witch" {
+  oracle_id 524249cd-68d9-472a-89cd-5872641ca6de
+  cost {2}{B}{R}
+  type Legendary Creature — Human Cleric
+  pt 3/3
+  keywords first strike, haste
+  unleash
+  static each other creature with +1/+1 counter you control: has haste
+}

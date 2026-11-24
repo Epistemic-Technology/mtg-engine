@@ -1,0 +1,7 @@
+card "The Seedcore" {
+  oracle_id 249fdd3e-376c-4ec2-a612-4353e0e61ee2
+  type Land — Sphere
+  mana {C}
+  activated {T}: add any only to cast Phyrexian creature spells
+  label "Corrupted" activated {T}, if opponent poison 3 or more: target 1/1 creature gets +2/+1
+}

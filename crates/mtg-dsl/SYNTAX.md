@@ -1789,7 +1789,9 @@ enchantment, or land`: at least one), negations listed with commas
 (`nonartifact, nonblack creature`), and `with
 power 2 or less`, `with toughness 4 or greater`, `with mana value 3`,
 `with power or toughness 1 or less` (either is enough: "creatures you
-control with power or toughness 1 or less"), `with toughness greater
+control with power or toughness 1 or less"), `1/1 creature` (exactly that
+power and toughness, printed before the noun: "Target 1/1 creature gets
++1/+2"), `with toughness greater
 than power` ("with toughness greater than its power", "their power" in
 the plural; `attached is with toughness greater than power` prints
 "equipped creature's toughness is greater than its power"), `with mana value at most
@@ -3483,7 +3485,9 @@ CR 400.7), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of
 targets` for "any target" (`deal 1 damage to 1 to 2 targets`: "deals 1
-damage to each of one or two targets"). Later mentions (`target 1`) print "them" or
+damage to each of one or two targets"); `2 target any` and `up to 2
+another target any` are separate any-targets ("deals 2 damage to each of
+two targets", "each of up to two other targets"). Later mentions (`target 1`) print "them" or
 "they", and a group as subject takes "each" where Oracle has it ("One or
 two target creatures each get +2/+1", "Any number of target players each
 gain 6 life"). "X target cards from a single graveyard" (`X target card

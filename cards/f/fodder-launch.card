@@ -1,0 +1,7 @@
+card "Fodder Launch" {
+  oracle_id bec0127a-ab3c-4923-93c2-c43ba8998091
+  cost {3}{B}
+  type Kindred Sorcery — Goblin
+  additional cost sacrifice Goblin
+  spell: target creature gets -5/-5; deal 5 damage to controller of that target 1
+}

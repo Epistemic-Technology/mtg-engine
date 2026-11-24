@@ -1,0 +1,9 @@
+card "Veteran Adventurer" {
+  oracle_id ea3401a9-76db-4f38-b973-2b7754087b97
+  cost {5}{G}
+  type Creature — Human
+  pt 5/5
+  static this: add subtype Cleric, add subtype Rogue, add subtype Warrior, add subtype Wizard
+  this spell costs {1} less count each party
+  keyword vigilance
+}

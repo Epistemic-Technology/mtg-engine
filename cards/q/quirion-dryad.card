@@ -1,0 +1,7 @@
+card "Quirion Dryad" {
+  oracle_id f42b6510-7322-4733-85ea-7ae6bd6ca8fc
+  cost {1}{G}
+  type Creature — Dryad
+  pt 1/1
+  triggered whenever you cast white or blue or black or red permanent spell: put 1 +1/+1 counter on this
+}

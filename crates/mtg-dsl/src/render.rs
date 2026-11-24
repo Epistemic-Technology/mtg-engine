@@ -2606,10 +2606,15 @@ impl<'a> Ctx<'a> {
                 Some(rest) => ("other ", rest.to_string()),
                 None => ("", noun),
             };
-            return format!(
-                "{up_to}{} {other}target {noun}",
-                count_words(Num::N(u32::try_from(fresh.len()).expect("small")), "a")
-            );
+            // "each of two targets", "up to two other targets": any
+            // target (CR 115.4), several of them.
+            let count = count_words(Num::N(u32::try_from(fresh.len()).expect("small")), "a");
+            match noun.as_str() {
+                "any targets" => return format!("{up_to}{count} {other}targets"),
+                "any other targets" => return format!("{up_to}{count} other targets"),
+                _ => {}
+            }
+            return format!("{up_to}{count} {other}target {noun}");
         }
         let items: Vec<String> = rs
             .iter()
@@ -3325,6 +3330,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.nonattacking {
         words.push("nonattacking".to_string());
     }
+    // "Target 1/1 creature".
+    if f.pt_word
+        && let (Some((_, p)), Some((_, t))) = (f.power, f.toughness)
+    {
+        words.push(format!("{p}/{t}"));
+    }
     // "a nontoken modified creature".
     let nontoken_first = f.status.modified && f.status.token == Some(false);
     if nontoken_first {
@@ -3502,7 +3513,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         let _ = write!(s, " with toughness greater than {its} power");
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
-        if let Some((cmp, n)) = v {
+        if let Some((cmp, n)) = v
+            && !f.pt_word
+        {
             if f.status.pt_either {
                 // "with power or toughness 1 or less".
                 if name == "power" {
