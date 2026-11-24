@@ -3035,3 +3035,39 @@ not found). Coverage: 95.8% of Pauper, 82.6% of Standard (4,267 of
 18,938 match; 13,339 scenarios pass in release and debug builds; 4,159
 games/s on the mono-red mirror (3,921 at the wave's start, 4,265 at
 the earlier peak), random decks 613 a core from 529.
+
+Status 2026-11-25, the thirteenth wave: twenty Opus agents from a
+partition made by reading the notes on all 892 uncovered Standard
+cards, so every list was Standard first. Before launch `DefFlags`
+became a u64 and `GameObject::marks` a u16 (`skip_untap` folded into
+it, so the object stays 136 bytes) and each agent was given its own
+bits; fourteen agents started at once and six as disk space freed (a
+build tree is 8 to 10 GB). 467 cards by the gate (484 card files
+with tokens; the agents' own counts overlap): the template author 133 (flavor
+words before a dash, and an index of accepted cards' lines that writes
+any card printing the same line, 17 of them Standard), wording 38,
+put and return 29, counts 28, spell grants 25, set mechanics 25,
+crossover-set mechanics 24, costs and mana 22, turn tallies 20,
+conditions on "it" 20, relative filters 20, dig variants 19, copies
+and becomes 16, transform and phases 16, players 15, casting from
+exile 12, triggers 10, linked exile 6, graveyard permissions 6, and a
+bug-fix agent 3 cards and thirteen faults. Most agents left more than
+half their list: what remains in Standard needs a rule a card. Two
+pairs of agents built the same thing ("three times that many tokens";
+"no maximum hand size for the rest of the game") and two cards were
+written twice. A debug-only panic from before the wave (a regeneration
+shield spent on an indestructible creature) failed every agent's debug
+test run and was fixed twice; the lead's test runs had been release
+only and now include a debug run. Sixteen of twenty merges conflicted,
+all keep-both except the last two (21 and 6 hunks); a word-level
+three-way merge resolves SYNTAX.md's long table lines. The first
+verification found two faults, both old: a legend that the legend rule
+and another state-based action remove at once was moved twice, and a
+"tap another artifact" cost was offered with the artifact whose
+activated mana ability the cost's mana needed. After the fixes:
+release and debug tests, 14,234 scenarios in both builds, both fuzzes
+and all 400 sweep pairs are clean. Coverage: 96.0% of Pauper (10,441
+of 10,881), 89.2% of Standard (4,608 of 5,164), 73.3% of Modern
+(16,660 of 22,718); 19,811 card files, gate 19,405 match. Throughput
+fell: 3,967 games/s on the mono-red mirror against 4,148 at the wave's
+start, and about 15% a decision on random decks; not profiled.
