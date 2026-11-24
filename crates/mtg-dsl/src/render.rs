@@ -1987,9 +1987,8 @@ impl<'a> Ctx<'a> {
             out.push_str(" you control");
         }
         if let Some(what) = targeting {
-            out.push_str(" that targets ");
             // "that targets this creature".
-            out.push_str(&crate::format::targeting(&what, |g| {
+            out.push_str(&crate::format::targeting_suffix(&what, |g| {
                 if g.relation == Relation::This {
                     this_ref(self.card)
                 } else {
@@ -5602,6 +5601,40 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "card in your graveyard".to_string(),
                 "cards in your graveyard".to_string(),
             ),
+            // "cards in your graveyard that are instant cards, sorcery
+            // cards, and/or have an Adventure" (Frantic Firebolt): types
+            // and an alternative that is only "has an Adventure".
+            Some(f)
+                if f.or.as_ref().is_some_and(|a| {
+                    a.status.adventure
+                        && **a
+                            == Filter {
+                                status: mtg_core::card::StatusQuals {
+                                    adventure: true,
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }
+                }) && !f.any_types.is_empty()
+                    && (Filter {
+                        any_types: Vec::new(),
+                        or: None,
+                        ..f.clone()
+                    }) == Filter::default() =>
+            {
+                let mut items: Vec<String> = f
+                    .any_types
+                    .iter()
+                    .map(|t| format!("{} cards", type_noun(*t)))
+                    .collect();
+                items.push("have an Adventure".to_string());
+                let final_item = items.pop().unwrap_or_default();
+                let joined = format!("{}, and/or {final_item}", items.join(", "));
+                (
+                    format!("card in your graveyard that's {joined}"),
+                    format!("cards in your graveyard that are {joined}"),
+                )
+            }
             Some(f) => {
                 let (mut one, mut many) =
                     (cards_phrase(f, card, false), cards_phrase(f, card, true));
@@ -9483,6 +9516,78 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::NextSpellUncounterable => {
             Clause::imperative("the next spell you cast this turn can't be countered".to_string())
         }
+        // "That spell gains deathtouch and lifelink."
+        Effect::SpellGains { keywords, .. } => Clause::imperative(format!(
+            "that spell gains {}",
+            list(
+                &keywords
+                    .iter()
+                    .map(|k| keyword_name(*k).to_string())
+                    .collect::<Vec<_>>()
+            )
+        )),
+        Effect::SpellsThisTurn {
+            filter,
+            less,
+            affinity,
+            next,
+        } => {
+            if *next {
+                let a = affinity
+                    .as_ref()
+                    .map(|f| filter_phrase(f, ctx.card, true))
+                    .unwrap_or_default();
+                let spell = a_spell(filter, ctx.card);
+                let spell = spell
+                    .strip_prefix("an ")
+                    .or_else(|| spell.strip_prefix("a "))
+                    .unwrap_or(&spell);
+                return Clause::imperative(format!(
+                    "the next {spell} you cast this turn has affinity for {a}"
+                ));
+            }
+            let (amount, tail) = match less {
+                Num::N(n) => (n.to_string(), String::new()),
+                Num::Count(i) => (
+                    "X".to_string(),
+                    ctx.card
+                        .counts
+                        .get(usize::from(*i))
+                        .map(|c| {
+                            // Rowan, Scion of War: "the amount of life you
+                            // lost this turn" (as Will's gained).
+                            let p = if c.expr == crate::ast::CountExpr::LifeLostThisTurn {
+                                "the amount of life you lost this turn".to_string()
+                            } else {
+                                count_phrase(&c.expr, ctx.card, false)
+                            };
+                            format!(", where X is {p}")
+                        })
+                        .unwrap_or_default(),
+                ),
+                _ => ("X".to_string(), String::new()),
+            };
+            // "Spells you cast this turn that are black and/or red".
+            let subject = match &filter.colors {
+                Some(cs)
+                    if Filter {
+                        colors: None,
+                        ..filter.clone()
+                    } == Filter::default() =>
+                {
+                    let names: Vec<String> =
+                        cs.iter().map(|c| color_name(*c).to_string()).collect();
+                    format!("spells you cast this turn that are {}", names.join(" and/or "))
+                }
+                _ => format!(
+                    "{} you cast this turn",
+                    lowercase_first(&cost_spells_subject(filter, ctx.card))
+                ),
+            };
+            Clause::imperative(format!(
+                "{subject} cost {{{amount}}} less to cast{tail}"
+            ))
+        }
         Effect::NextSpellFree(f) => Clause::imperative(format!(
             "the next {} you cast this turn can be cast without paying its mana cost",
             a_spell(f, ctx.card)
@@ -10192,6 +10297,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::ChangeTarget { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("change the target of {o}"))
+        }
+        Effect::NewTargets { what } => {
+            // A cast trigger's spell is "that spell" (Speedball's trigger
+            // calls the creature "it").
+            let o = if *what == Recipient::TriggeringObject {
+                "that spell".to_string()
+            } else {
+                ctx.obj(*what)
+            };
+            Clause::imperative(format!("you may choose new targets for {o}"))
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;
@@ -15445,20 +15560,36 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             // "a spell with mana value, power, or toughness equal to the
             // chosen number" (Talion): after the noun.
             let eq = equal_chosen_phrase(base.status.equal_chosen.take());
+            // "a spell with {X} in its mana cost", "a spell that has an
+            // Adventure": after the noun.
+            let x = if std::mem::take(&mut base.status.x_in_cost) {
+                " with {X} in its mana cost"
+            } else {
+                ""
+            };
+            let adventure = if std::mem::take(&mut base.status.adventure) {
+                " that has an Adventure"
+            } else if base.color_count == Some(mtg_core::card::ColorCount::Colored) {
+                // "a spell that's one or more colors" (Ancient Cornucopia).
+                base.color_count = None;
+                " that's one or more colors"
+            } else {
+                ""
+            };
+            let target_text = |t: &crate::ast::Targeting| {
+                crate::format::targeting_suffix(t, |g| {
+                    if g.relation == Relation::This {
+                        this_ref(ctx.card)
+                    } else {
+                        filter_phrase(g, ctx.card, false)
+                    }
+                })
+            };
             // Heroic: "a spell that targets this creature".
             let that = eq.to_string()
-                + &targeting.map_or(String::new(), |t| {
-                    format!(
-                        " that targets {}",
-                        crate::format::targeting(&t, |g| {
-                            if g.relation == Relation::This {
-                                this_ref(ctx.card)
-                            } else {
-                                filter_phrase(g, ctx.card, false)
-                            }
-                        })
-                    )
-                });
+                + x
+                + adventure
+                + &targeting.as_deref().map_or(String::new(), target_text);
             if base == Filter::default() {
                 return format!("whenever {who} a spell{that}");
             }
@@ -15528,6 +15659,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 one.or = None;
                 one.alt_article = false;
                 let side = |g: &Filter| {
+                    // "an Equipment spell or a spell that targets a
+                    // creature you control" (Danitha, Sword of Hope).
+                    if let Some(t) = &g.targeting
+                        && (Filter {
+                            targeting: None,
+                            ..g.clone()
+                        }) == Filter::default()
+                    {
+                        return format!("a spell{}", target_text(t));
+                    }
                     let w = spells_subject(g, ctx.card);
                     let w = w.strip_suffix(" spells").unwrap_or(&w).to_string();
                     let w = if lower_spell_subject(g) {
@@ -20368,8 +20509,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 } else {
                     " each turn"
                 };
+                // "The first instant or sorcery spell" (one spell).
                 let subject = lowercase_first(&cost_spells_subject(filter, card))
-                    .replacen("spells", "spell", 1);
+                    .replacen("spells", "spell", 1)
+                    .replacen("instant and sorcery", "instant or sorcery", 1);
                 // "non-Lemur creature spell" (a subtype keeps its case).
                 let subject = match subject.strip_prefix("Non-") {
                     Some(rest) => format!("non-{rest}"),
@@ -20503,6 +20646,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             affinity,
             uncounterable,
             spend,
+            control,
+            conspire,
+            casualty,
         } => {
             // CR 609.4b: "You may spend mana as though it were mana of any
             // color to cast planeswalker spells.", "You can spend mana of
@@ -20560,8 +20706,27 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             if let Some(a) = affinity {
                 items.push(format!("affinity for {}", filter_phrase(a, card, true)));
             }
+            if *conspire {
+                items.push("conspire".to_string());
+            }
+            if *casualty > 0 {
+                items.push(format!("casualty {casualty}"));
+            }
+            let whose = if *control { "you control" } else { "you cast" };
+            // "Each noncreature spell you cast has conspire."
+            if filter.each {
+                let mut f = filter.clone();
+                f.each = false;
+                let subject = cost_spells_subject(&f, card);
+                let one = subject.strip_suffix('s').unwrap_or(&subject);
+                return format!(
+                    "Each {} {whose}{from} has {}.",
+                    lowercase_first(one),
+                    list(&items)
+                );
+            }
             format!(
-                "{} you cast{from} have {}.",
+                "{} {whose}{from} have {}.",
                 cost_spells_subject(filter, card),
                 list(&items)
             )
@@ -20598,11 +20763,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         ),
         Ability::TargetCost {
             delta,
+            colors,
             filter,
             noun,
         } => format!(
-            "This spell costs {{{}}} {} to cast if it targets {}.",
-            delta.unsigned_abs(),
+            "This spell costs {} {} to cast if it targets {}.",
+            crate::format::target_cost_mana(*delta, colors),
             if *delta < 0 { "less" } else { "more" },
             match noun {
                 crate::ast::TargetNoun::Permanent => filter_a(filter, card),

@@ -1457,6 +1457,15 @@ pub struct StatusQuals {
     /// one, or one the other player controls); unfilled, nothing matches.
     #[serde(default)]
     pub except_your_tokens: bool,
+    /// "a spell with {X} in its mana cost" (CR 107.3): the card's mana
+    /// cost has an {X}. Judged on the card (`GameState::card_quals_ok`).
+    #[serde(default)]
+    pub x_in_cost: bool,
+    /// "that has an Adventure" (CR 715.2a):
+    /// the card or permanent has an Adventure, used or not; an Adventure
+    /// spell on the stack doesn't (its ruling). Judged on the card.
+    #[serde(default)]
+    pub adventure: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1533,6 +1542,8 @@ impl StatusQuals {
             || self.mana_value_range.is_some()
             || self.greatest.is_some()
             || self.except_your_tokens
+            || self.x_in_cost
+            || self.adventure
     }
 }
 
@@ -1621,6 +1632,7 @@ pub enum SameWhat {
 /// What a spell must target ("that targets a creature", "that targets you
 /// or a permanent you control").
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed qualifier
 pub struct SpellTargets {
     /// "you" (the player judging).
     pub you: bool,
@@ -1628,6 +1640,16 @@ pub struct SpellTargets {
     pub player: bool,
     /// "a creature", "a permanent you control".
     pub filter: Option<ObjFilter>,
+    /// "an opponent" (of the player judging).
+    #[serde(default)]
+    pub opponent: bool,
+    /// "with a single target" (nothing else set), "that targets only a
+    /// single creature you control": the spell has one target, or every
+    /// one of its targets is the same object or player (CR 115.3: one
+    /// object may be chosen for each instance of "target"), and that
+    /// matches.
+    #[serde(default)]
+    pub single: bool,
 }
 
 /// A comparison in a filter.
@@ -4753,6 +4775,12 @@ pub enum Effect {
     ChangeTarget {
         what: Recipient,
     },
+    /// "You may choose new targets for that spell" (CR 115.7d): the
+    /// effect's controller may change any of the recipient spell's or
+    /// ability's targets to others legal for it.
+    NewTargets {
+        what: Recipient,
+    },
     /// "Counter target spell unless its controller pays {N}" (CR 701.5?):
     /// the controller may pay; if they do not, it is countered. An {X} in
     /// `mana` is `x` as the effect resolves ("unless its controller pays
@@ -5165,6 +5193,26 @@ pub enum Effect {
     /// "The next spell you cast this turn can't be countered" (CR 101.2):
     /// the controller's next spell this turn is uncounterable.
     NextSpellUncounterable,
+    /// "That spell gains deathtouch and lifelink" (CR 611.2a): each
+    /// recipient spell has these keywords for as long as it is on the
+    /// stack (`GameState::spell_gains`).
+    SpellGains {
+        what: Recipient,
+        keywords: KeywordSet,
+    },
+    /// "Artifact spells you cast this turn cost {1} less to cast", "Spells
+    /// you cast this turn that are black and/or red cost {X} less to cast,
+    /// where X is the amount of life you lost this turn" (X fixed as it
+    /// resolves), "The next noncreature spell you cast this turn has
+    /// affinity for artifacts" (`next`: the first matching spell the
+    /// controller casts uses it up). CR 601.2f, 611.2a;
+    /// `state::TurnSpellChange`.
+    SpellsThisTurn {
+        spells: ObjFilter,
+        less: Num,
+        grant: Option<Box<SpellGrant>>,
+        next: bool,
+    },
     /// "You may play an additional land this turn." (CR 305.2): the
     /// controller may play `n` more lands this turn ("up to two additional
     /// lands").
@@ -6681,6 +6729,7 @@ impl Effect {
                 | Effect::CopySpell
                 | Effect::CopySpells { .. }
                 | Effect::ChangeTarget { .. }
+                | Effect::NewTargets { .. }
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
                 | Effect::ShuffleIntoLibrary { .. }
@@ -9643,10 +9692,12 @@ impl SpellFrom {
 /// 702.40 storm, 702.41 affinity): "Instant and sorcery spells you cast
 /// have storm", "... from your hand have cascade", "Spells you cast have
 /// affinity for artifacts".
-#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 #[allow(clippy::struct_excessive_bools)] // independent grants
 pub struct SpellGrant {
-    /// Convoke, improvise, delve, cascade.
+    /// Convoke, improvise, delve, cascade; lifelink, deathtouch, wither
+    /// and split second the spell has on the stack ("Instant and sorcery
+    /// spells you control have lifelink", CR 702.15, 702.61).
     pub keywords: KeywordSet,
     pub storm: bool,
     /// Affinity for these: {1} less for each such permanent the caster
@@ -9665,6 +9716,13 @@ pub struct SpellGrant {
     /// were mana of any color.").
     #[serde(default)]
     pub spend_abilities: bool,
+    /// "Each noncreature spell you cast has conspire." (CR 702.78).
+    #[serde(default)]
+    pub conspire: bool,
+    /// "Each instant and sorcery spell you cast has casualty 1." (CR
+    /// 702.153): N, 0 for none.
+    #[serde(default)]
+    pub casualty: u8,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -10316,6 +10374,12 @@ pub struct CardDef {
     /// creature" (negative) or "{2} more ... a Dragon": generic mana, and
     /// what the first target must match.
     pub target_cost: Option<Box<(i32, ObjFilter)>>,
+    /// With `target_cost`: one mana of each of these colors less too
+    /// ("This spell costs {1}{U} less to cast if it targets an instant or
+    /// sorcery spell", CR 118.7b: generic mana instead where the cost has
+    /// none of that color).
+    #[serde(default)]
+    pub target_cost_colors: crate::mana::ColorSet,
     /// "This spell costs {3} less to cast if a creature died this turn":
     /// generic mana, and the pool's condition index.
     pub cond_cost: Option<(i32, u16)>,
@@ -11560,6 +11624,10 @@ pub struct CardPool {
     /// Whether some card lets mana be spent as though it were of any color
     /// for a class of spells (`SpellGrant::spend`).
     pub spend_grants: bool,
+    /// Whether some card gives spells on the stack a keyword that acts
+    /// there ("Instant and sorcery spells you control have lifelink",
+    /// "... split second"; `SpellGrant::keywords`).
+    pub stack_grants: bool,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -11664,6 +11732,7 @@ impl CardPool {
             equip_discounts: false,
             card_grants: false,
             spend_grants: false,
+            stack_grants: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -12448,6 +12517,15 @@ impl CardPool {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
         });
+        self.stack_grants |= def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::CostChange(cc)
+            if cc.grant.as_ref().is_some_and(|g| g.keywords.intersects(KeywordSet::of([
+                Keyword::Lifelink,
+                Keyword::Deathtouch,
+                Keyword::Wither,
+                Keyword::SplitSecond,
+            ]))))
+        });
         // CR 702.103b: the Aura a bestowed spell is, registered first so
         // the card's own definition keeps its name.
         if def.bestow.is_some() && def.types.contains(CardType::Creature) {
@@ -13196,6 +13274,7 @@ impl Builder {
             aura_stays: false,
             strive: None,
             target_cost: None,
+            target_cost_colors: crate::mana::ColorSet::default(),
             uncounterable: false,
             uncounterable_if: None,
             cond_cost: None,
@@ -13759,6 +13838,14 @@ impl Builder {
     #[must_use]
     pub fn target_cost(mut self, delta: i32, filter: ObjFilter) -> Self {
         self.0.target_cost = Some(Box::new((delta, filter)));
+        self
+    }
+
+    /// The colored part of a target cost reduction (see
+    /// `CardDef::target_cost_colors`).
+    #[must_use]
+    pub fn target_cost_colors(mut self, colors: crate::mana::ColorSet) -> Self {
+        self.0.target_cost_colors = colors;
         self
     }
 

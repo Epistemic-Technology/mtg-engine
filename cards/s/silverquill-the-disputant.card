@@ -1,0 +1,8 @@
+card "Silverquill, the Disputant" {
+  oracle_id 66deb3f3-0314-427e-9cb8-6befa365ae94
+  cost {2}{W}{B}
+  type Legendary Creature — Elder Dragon
+  pt 4/4
+  keywords flying, vigilance
+  spells each instant or sorcery you cast have casualty 1
+}

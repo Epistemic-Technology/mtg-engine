@@ -1,0 +1,9 @@
+card "Don & Raph, Hard Science" {
+  oracle_id 01758a4a-ac29-47ad-8e88-158374f1ae4c
+  cost {1}{U/R}{U/R}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 2/4
+  pronoun they
+  keywords menace
+  triggered whenever this attacks: next noncreature spell has affinity for artifact
+}

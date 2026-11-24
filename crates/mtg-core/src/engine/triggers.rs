@@ -1633,12 +1633,28 @@ impl GameState {
                 let filter = &*self.with_source_chosen(filter, w.source);
                 // Heroic (CR 207.2c): "a spell that targets this creature",
                 // judged with the targets chosen as it was cast (CR 601.2c).
-                let targets_ok = filter.targeting.as_ref().is_none_or(|t| {
-                    self.objects
-                        .get(*spell)
-                        .is_some_and(|o| self.spell_targets(o, t, w.controller, Some(w.source)))
-                });
-                (targets_ok
+                let targets_ok = |f: &crate::card::ObjFilter| {
+                    f.targeting.as_ref().is_none_or(|t| {
+                        self.objects
+                            .get(*spell)
+                            .is_some_and(|o| self.spell_targets(o, t, w.controller, Some(w.source)))
+                    })
+                };
+                // "an Equipment spell or a spell that targets a creature
+                // you control": each side with its own targets.
+                if let Some(alt) = &filter.or
+                    && (filter.targeting.is_some() || alt.targeting.is_some())
+                {
+                    let mut base = filter.clone();
+                    base.or = None;
+                    let side = |f: &crate::card::ObjFilter| {
+                        targets_ok(f)
+                            && f.matches(*spell, *player, &c, Some(w.source), Some(w.controller))
+                            && self.status_ok(f, *spell)
+                    };
+                    return (side(&base) || side(alt)).then_some((Some(*spell), Some(*player)));
+                }
+                (targets_ok(filter)
                     && filter.matches(*spell, *player, &c, Some(w.source), Some(w.controller))
                     && self.status_ok(filter, *spell))
                 .then_some((Some(*spell), Some(*player)))

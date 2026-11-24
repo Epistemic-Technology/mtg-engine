@@ -746,6 +746,13 @@ impl GameState {
                         .get(o.def)
                         .keywords
                         .contains(crate::card::Keyword::SplitSecond)
+                        // "Instant and sorcery spells you control have
+                        // split second."
+                        || (((self.pool.stack_grants && self.cost_change_sources > 0)
+                            || !self.spell_gains.is_empty())
+                            && self
+                                .stack_spell_keywords(*s)
+                                .contains(crate::card::Keyword::SplitSecond))
                 })
             })
         {
@@ -3713,8 +3720,11 @@ impl GameState {
         if self.cost_change_sources == 0 {
             return SmallVec::new();
         }
+        // An emblem's static ability (CR 114.4): "You get an emblem with
+        // \"Instant and sorcery spells you cast have storm.\"".
         self.battlefield
             .iter()
+            .chain(self.emblems.iter())
             .copied()
             .filter(|id| self.flags_of(&self.objects[*id]).has_cost_change())
             .collect()
@@ -3731,6 +3741,9 @@ impl GameState {
         changers: &[ObjId],
     ) -> i32 {
         let mut d = -i32::from(self.next_spell_less[p.index().min(3)]);
+        if !self.turn_spell_changes.is_empty() {
+            d -= self.turn_spell_less(p, def, id);
+        }
         if let Some((delta, cond)) = def.cond_cost {
             let cond = self.pool.condition(cond);
             // "If you've cast another instant or sorcery spell this turn":
@@ -3810,6 +3823,49 @@ impl GameState {
         d
     }
 
+    /// Whether the turn's change `tc` (`Effect::SpellsThisTurn`) applies
+    /// to `def`, the card or spell `id` that `p` casts.
+    fn turn_change_applies(
+        tc: &crate::state::TurnSpellChange,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+    ) -> bool {
+        tc.player == p
+            && def.printed.as_ref().is_some_and(|c| {
+                tc.spells
+                    .mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)))
+                    && tc.spells.matches(id, p, c, None, Some(p))
+            })
+    }
+
+    /// How much less generic mana the turn's changes make `def`'s card
+    /// `id` cost `p` (`Effect::SpellsThisTurn`): their amounts, and
+    /// affinity they give it (CR 702.41a).
+    #[cold]
+    #[inline(never)]
+    fn turn_spell_less(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> i32 {
+        let mut d = 0i32;
+        for tc in &self.turn_spell_changes {
+            if !Self::turn_change_applies(tc, p, def, id) {
+                continue;
+            }
+            d = d.saturating_add(i32::try_from(tc.less).unwrap_or(i32::MAX));
+            if let Some(f) = tc.grant.as_ref().and_then(|g| g.affinity.as_ref()) {
+                let n = self
+                    .permanents_of(p)
+                    .filter(|q| {
+                        self.characteristics(*q)
+                            .is_some_and(|c| f.matches(*q, p, &c, None, Some(p)))
+                    })
+                    .count();
+                d = d.saturating_add(i32::try_from(n).unwrap_or(i32::MAX));
+            }
+        }
+        d
+    }
+
     /// Whether the cost change (or grant) `cc` of `src` applies to `def`,
     /// the card or spell `id` that `p` casts.
     fn cost_change_applies(
@@ -3860,10 +3916,14 @@ impl GameState {
                     })
                 }
             });
+        // "Permanent spells you cast that have an Adventure".
+        let card_ok = !(cc.spells.status.x_in_cost || cc.spells.status.adventure)
+            || GameState::card_quals_ok(&cc.spells.status, def);
         whose
             && from_ok
             && mv_ok
             && first_ok
+            && card_ok
             && cc
                 .spells
                 .matches(id, p, chars, Some(src), Some(o.controller))
@@ -3883,6 +3943,16 @@ impl GameState {
     ) -> (KeywordSet, bool) {
         let mut kw = def.keywords;
         let mut storm = def.storm;
+        if !self.turn_spell_changes.is_empty() {
+            for tc in &self.turn_spell_changes {
+                if let Some(g) = &tc.grant
+                    && Self::turn_change_applies(tc, p, def, id)
+                {
+                    kw = kw.union(g.keywords);
+                    storm |= g.storm;
+                }
+            }
+        }
         if self.cost_change_sources == 0 {
             return (kw, storm);
         }
@@ -3899,6 +3969,81 @@ impl GameState {
             }
         }
         (kw, storm)
+    }
+
+    /// The keywords the spell `id` on the stack has beyond its card's: what
+    /// static abilities give it ("Instant and sorcery spells you control
+    /// have lifelink", "... have split second"; CR 702.15, 702.61) and
+    /// what an effect gave it ("That spell gains deathtouch and
+    /// lifelink"). The callers gate it on `cost_change_sources` and
+    /// `spell_gains`.
+    #[cold]
+    #[inline(never)]
+    pub(crate) fn stack_spell_keywords(&self, id: ObjId) -> KeywordSet {
+        let Some(o) = self.objects.get(id) else {
+            return KeywordSet::default();
+        };
+        if o.zone != Zone::Stack || o.kind == ObjKind::Ability {
+            return KeywordSet::default();
+        }
+        let mut kw = KeywordSet::default();
+        for (s, k) in &self.spell_gains {
+            if *s == id {
+                kw = kw.union(*k);
+            }
+        }
+        if self.pool.stack_grants && self.cost_change_sources > 0 {
+            let def = self.pool.get(o.def);
+            kw = kw.union(self.spell_keywords(o.controller, def, id).0);
+        }
+        kw
+    }
+
+    /// Casualty N (CR 702.153a) the spell `spell` being cast has: its own,
+    /// or the greatest a static ability gives it ("Each instant and
+    /// sorcery spell you cast has casualty 1"); 0 for none.
+    pub(super) fn spell_casualty(&self, spell: ObjId) -> u8 {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let mut n = def.casualty;
+        if self.cost_change_sources > 0 {
+            self.for_spell_grants(o.controller, def, spell, |g| n = n.max(g.casualty));
+        }
+        n
+    }
+
+    /// Whether the spell `spell` being cast has conspire (CR 702.78a): its
+    /// own, or given ("Each noncreature spell you cast has conspire").
+    pub(super) fn spell_conspire(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let mut on = def.conspire;
+        if !on && self.cost_change_sources > 0 {
+            self.for_spell_grants(o.controller, def, spell, |g| on |= g.conspire);
+        }
+        on
+    }
+
+    /// Calls `f` with each grant of a static ability that applies to the
+    /// spell `id` that `p` casts or controls.
+    fn for_spell_grants(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        mut f: impl FnMut(&crate::card::SpellGrant),
+    ) {
+        for src in self.cost_changers() {
+            let o = &self.objects[src];
+            for a in &self.pool.get(o.def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && let Some(g) = &cc.grant
+                    && self.cost_change_applies(cc, p, def, id, src)
+                {
+                    f(g);
+                }
+            }
+        }
     }
 
     /// Whether `p` may cast `def`'s card `id` as though it had flash: the
@@ -7199,6 +7344,7 @@ impl GameState {
                     })))
         {
             adjust_generic(&mut req, tc.0);
+            ways::reduce_colors(&mut req, def.target_cost_colors);
         }
         let sources = self.spell_sources(spell);
         let ps = self.player(o.controller);
@@ -9063,6 +9209,25 @@ impl GameState {
         // "The next spell you cast this turn costs {1} less": used up by
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
+        // "The next noncreature spell you cast this turn has affinity for
+        // artifacts": used up by this spell, if it matches; keywords it
+        // gave stay with the spell (`spell_gains`).
+        if self.turn_spell_changes.iter().any(|t| t.next) {
+            let def = self.pool.get(self.objects[spell].def);
+            let mut kept = Vec::new();
+            for tc in std::mem::take(&mut self.turn_spell_changes) {
+                if tc.next && Self::turn_change_applies(&tc, caster, def, spell) {
+                    if let Some(g) = &tc.grant
+                        && !g.keywords.is_empty()
+                    {
+                        self.spell_gains.push((spell, g.keywords));
+                    }
+                } else {
+                    kept.push(tc);
+                }
+            }
+            self.turn_spell_changes = kept;
+        }
         // "The next red or green creature spell you cast this turn can be
         // cast without paying its mana cost": used up by the next such
         // spell, however it was cast.
@@ -9130,7 +9295,9 @@ impl GameState {
         // before it this turn; CR 702.56a: replicate once for each time
         // its cost was paid. (Each copy is its own trigger here.)
         let mut copies = self.objects.get(spell).map_or(0, |o| {
-            usize::from(o.cast.conspired() || o.cast.casualty()) + o.cast.replicated() as usize
+            usize::from(o.cast.conspired())
+                + usize::from(o.cast.casualty())
+                + o.cast.replicated() as usize
         });
         if storm {
             copies += self.cast_this_turn.len().saturating_sub(1);
@@ -9794,6 +9961,66 @@ impl GameState {
 
     /// CR 707.10c: the copy's controller may change each of its targets to
     /// another one legal for its spec (judged from `source`), or keep it.
+    /// CR 115.7d: `chooser` may choose new targets for `obj` on the stack:
+    /// each target may stay or become another legal for it (judged for its
+    /// controller and source; not `obj` itself, nor a target it already
+    /// has). New targets become targeted anew (CR 115.7).
+    #[cold]
+    #[inline(never)]
+    fn choose_new_targets(&mut self, obj: ObjId, chooser: PlayerId) {
+        let Some(o) = self.objects.get(obj).filter(|o| o.zone == Zone::Stack) else {
+            return;
+        };
+        let (controller, kind) = (o.controller, o.kind);
+        let source = match (kind, o.ability) {
+            (ObjKind::Ability, Some(sa)) => sa.source,
+            _ => obj,
+        };
+        let specs: Vec<TargetSpec> = crate::state::targets_in(&self.pool, o).to_vec();
+        let mut changed = false;
+        for i in 0..self.objects[obj].targets.len() {
+            let Some(spec) = crate::card::spec_for(&specs, i) else {
+                break;
+            };
+            let current = self.objects[obj].targets[i];
+            if current.is_none() {
+                continue;
+            }
+            let mut options = vec![Choice::Target(current)];
+            options.extend(
+                self.legal_targets(controller, spec, Some(source))
+                    .into_iter()
+                    .filter(|t| {
+                        *t != current
+                            && *t != Target::Object(obj)
+                            && !self.objects[obj].targets.contains(t)
+                    })
+                    .map(Choice::Target),
+            );
+            if options.len() < 2 {
+                continue;
+            }
+            let k = self.choose_mid(
+                chooser,
+                DecisionKind::CopyTarget {
+                    spell: obj,
+                    index: i,
+                },
+                options.clone(),
+            );
+            if let Some(Choice::Target(t)) = options.get(k)
+                && *t != current
+            {
+                self.objects[obj].targets[i] = *t;
+                changed = true;
+            }
+        }
+        if changed {
+            self.cbump();
+            self.emit_targeted_objects(obj);
+        }
+    }
+
     fn choose_copy_targets(&mut self, copy: ObjId, controller: PlayerId, source: ObjId) {
         let specs: Vec<TargetSpec> =
             crate::state::targets_in(&self.pool, &self.objects[copy]).to_vec();
@@ -12398,6 +12625,13 @@ impl GameState {
                     }
                 }
             }
+            Effect::NewTargets { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.choose_new_targets(id, ctx.controller);
+                    }
+                }
+            }
             Effect::CounterUnlessPays { to, mana, x, dest } => {
                 // "{1} for each card in your hand": counted as it resolves.
                 let x = self.eval_num(*x, ctx);
@@ -13013,6 +13247,32 @@ impl GameState {
                 // CR 305.2: additional land plays this turn.
                 let p = ctx.controller;
                 self.player_mut(p).extra_land_plays += *n;
+            }
+            Effect::SpellGains { what, keywords } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t
+                        && self.objects.get(id).is_some_and(|o| o.zone == Zone::Stack)
+                    {
+                        self.spell_gains.push((id, *keywords));
+                    }
+                }
+            }
+            Effect::SpellsThisTurn {
+                spells,
+                less,
+                grant,
+                next,
+            } => {
+                // CR 611.2a: X is fixed as the effect begins (Rowan, Scion
+                // of War's ruling).
+                let less = self.eval_num(*less, ctx);
+                self.turn_spell_changes.push(crate::state::TurnSpellChange {
+                    player: ctx.controller,
+                    spells: spells.clone(),
+                    less,
+                    grant: grant.clone(),
+                    next: *next,
+                });
             }
             Effect::NextSpellUncounterable => {
                 self.next_uncounterable |= 1 << ctx.controller.index().min(7);

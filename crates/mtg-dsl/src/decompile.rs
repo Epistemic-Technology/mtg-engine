@@ -480,6 +480,8 @@ impl Decompiler<'_> {
                     you: t.you,
                     player: t.player,
                     filter: t.filter.as_ref().map(|g| self.filter(g)),
+                    opponent: t.opponent,
+                    single: t.single,
                 })
             }),
         }
@@ -1265,6 +1267,24 @@ impl Decompiler<'_> {
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::NextSpellFree(f) => Effect::NextSpellFree(self.filter(f)),
             CoreEffect::NextSpellUncounterable => Effect::NextSpellUncounterable,
+            CoreEffect::SpellGains { what, keywords: k } => Effect::SpellGains {
+                what: r(*what),
+                keywords: keywords(*k),
+            },
+            CoreEffect::SpellsThisTurn {
+                spells,
+                less,
+                grant,
+                next,
+            } => Effect::SpellsThisTurn {
+                filter: self.filter(spells),
+                less: *less,
+                affinity: grant
+                    .as_ref()
+                    .and_then(|g| g.affinity.as_ref())
+                    .map(|f| self.filter(f)),
+                next: *next,
+            },
             CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
@@ -1367,6 +1387,7 @@ impl Decompiler<'_> {
                 dest: *dest,
             },
             CoreEffect::ChangeTarget { what } => Effect::ChangeTarget { what: r(*what) },
+            CoreEffect::NewTargets { what } => Effect::NewTargets { what: r(*what) },
             CoreEffect::CounterUnlessPays { to, mana, x, dest } => Effect::CounterUnlessPays {
                 to: r(*to),
                 mana: mana.clone(),
@@ -3274,6 +3295,13 @@ impl Decompiler<'_> {
                         false,
                         g.spend_abilities,
                     )),
+                    // "you control": the stack keywords.
+                    control: g.keywords.contains(mtg_core::card::Keyword::Lifelink)
+                        || g.keywords.contains(mtg_core::card::Keyword::SplitSecond)
+                        || g.keywords.contains(mtg_core::card::Keyword::Deathtouch)
+                        || g.keywords.contains(mtg_core::card::Keyword::Wither),
+                    conspire: g.conspire,
+                    casualty: g.casualty,
                 }
             }
             AbilityDef::CostChange(c) => Ability::CostChange {

@@ -1,0 +1,311 @@
+# Abilities static abilities and effects give spells (CR 611.3, 702.15,
+# 702.61, 702.78, 702.153, 702.40, 702.41): "Instant and sorcery spells you
+# control have lifelink", "... have split second", "Each noncreature spell
+# you cast has conspire", "Each instant and sorcery spell you cast has
+# casualty 1", an emblem's "Instant and sorcery spells you cast have
+# storm", "That spell gains deathtouch and lifelink", and the turn's
+# changes to spells ("Artifact spells you cast this turn cost {1} less",
+# "the next noncreature spell you cast this turn has affinity for
+# artifacts").
+
+scenario "spell lifelink: an instant you control gains you the damage it deals" {
+  battlefield A: "Heartflame Duelist", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "spell lifelink: an opponent's instant doesn't" {
+  battlefield A: "Heartflame Duelist"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 20
+}
+
+scenario "spell lifelink: the Adventure half of a second Duelist has it too" {
+  battlefield A: "Heartflame Duelist", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Heartflame Duelist"
+  turn 1 A: cast "Heartflame Slash" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+}
+
+scenario "spell lifelink: a creature's damage isn't a spell's" {
+  battlefield A: "Heartflame Duelist", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "given split second: no response to an instant Samut's controller casts" {
+  battlefield A: "Samut, Tyrant of Naktamun", "Mountain"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Shock"
+  hand B: "Giant Growth"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  illegal turn 1 precombat_main B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "given split second: an opponent's instant can be answered" {
+  battlefield A: "Samut, Tyrant of Naktamun", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Giant Growth"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Samut, Tyrant of Naktamun"
+  turn 2 precombat_main A: cast "Giant Growth" targeting "Samut, Tyrant of Naktamun"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Samut, Tyrant of Naktamun"
+}
+
+scenario "given split second: a creature spell can be answered" {
+  battlefield A: "Samut, Tyrant of Naktamun", 2 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Grizzly Bears"
+  hand B: "Shock"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 precombat_main B: cast "Shock" targeting "Samut, Tyrant of Naktamun" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Samut, Tyrant of Naktamun"
+}
+
+scenario "given conspire: a noncreature spell tapping two red creatures is copied" {
+  battlefield A: "Raiding Schemes", "Mountain", "Raging Goblin", "Goblin Piker"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" conspired targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert tapped "Raging Goblin"
+  assert tapped "Goblin Piker"
+}
+
+scenario "given conspire: not conspired, one Bolt" {
+  battlefield A: "Raiding Schemes", "Mountain", "Raging Goblin", "Goblin Piker"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert untapped "Raging Goblin"
+}
+
+scenario "given conspire: a creature spell doesn't have it" {
+  battlefield A: "Raiding Schemes", 2 "Mountain", "Raging Goblin", "Goblin Piker"
+  hand A: "Raging Goblin"
+  turn 1 A: cast "Raging Goblin" conspired
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Raging Goblin"
+  assert untapped "Goblin Piker"
+}
+
+scenario "given casualty 1: an instant sacrificing a creature is copied" {
+  battlefield A: "Silverquill, the Disputant", "Mountain", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "given casualty 1: not paid, no copy" {
+  battlefield A: "Silverquill, the Disputant", "Mountain", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "given casualty 1: a creature spell doesn't have it" {
+  battlefield A: "Silverquill, the Disputant", 2 "Forest", "Raging Goblin"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears" sacrificing "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Raging Goblin"
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "emblem storm: Ral's emblem copies the second instant" {
+  battlefield A: "Ral, Crackling Wit" with 10 loyalty, 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: activate "Ral, Crackling Wit" ability 3
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 12
+  assert hand A count 3
+}
+
+scenario "emblem storm: without the emblem, no copy" {
+  battlefield A: "Ral, Crackling Wit" with 10 loyalty, 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert counters "Ral, Crackling Wit" loyalty 12
+}
+
+scenario "spell gains: Judith's first mode gives the instant deathtouch and lifelink" {
+  battlefield A: "Judith, Carnage Connoisseur", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: trigger "Judith, Carnage Connoisseur" mode 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 22
+}
+
+scenario "spell gains: Judith's second mode makes an Imp instead" {
+  battlefield A: "Judith, Carnage Connoisseur", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: trigger "Judith, Carnage Connoisseur" mode 2
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Imp"
+  assert life A 20
+}
+
+scenario "spell gains: the Imp deals 2 damage to each opponent when it dies" {
+  battlefield A: "Judith, Carnage Connoisseur", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Judith, Carnage Connoisseur" mode 2
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Imp"
+}
+
+scenario "spell gains: the keywords don't outlast the spell" {
+  battlefield A: "Judith, Carnage Connoisseur", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Judith, Carnage Connoisseur" mode 1
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: trigger "Judith, Carnage Connoisseur" mode 2
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 22
+}
+
+scenario "next spell affinity: after Don & Raph attack, a noncreature spell costs {1} less for each artifact" {
+  battlefield A: "Don & Raph, Hard Science", 2 "Ornithopter", "Island"
+  hand A: "Divination"
+  turn 1 A: attack "Don & Raph, Hard Science"
+  turn 1 postcombat_main A: cast "Divination"
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "next spell affinity: without the attack, no reduction" {
+  battlefield A: "Don & Raph, Hard Science", 2 "Ornithopter", "Island"
+  hand A: "Divination"
+  illegal turn 1 postcombat_main A: cast "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+}
+
+scenario "next spell affinity: the first noncreature spell uses it up" {
+  battlefield A: "Don & Raph, Hard Science", 2 "Ornithopter", 2 "Island"
+  hand A: "Divination", "Opt"
+  turn 1 A: attack "Don & Raph, Hard Science"
+  turn 1 postcombat_main A: cast "Opt"
+  turn 1 postcombat_main A: wait
+  illegal turn 1 postcombat_main A: cast "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+}
+
+scenario "next spell affinity: a creature spell doesn't use it up" {
+  battlefield A: "Don & Raph, Hard Science", 2 "Ornithopter", "Island"
+  hand A: "Divination", "Ornithopter"
+  turn 1 A: attack "Don & Raph, Hard Science"
+  turn 1 postcombat_main A: cast "Ornithopter"
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: cast "Divination"
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+}
+
+scenario "spells this turn: Armor Wars II makes artifact spells cost {1} less" {
+  battlefield A: "Armor Wars" with 1 lore, "Mountain"
+  hand A: "Millstone"
+  turn 1 A: cast "Millstone"
+  run_to turn 1 end
+  assert battlefield A contains "Millstone"
+}
+
+scenario "spells this turn: Armor Wars II doesn't reduce a nonartifact spell" {
+  battlefield A: "Armor Wars" with 1 lore, 2 "Island"
+  hand A: "Divination"
+  illegal turn 1 precombat_main A: cast "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+}
+
+scenario "spells this turn: Armor Wars III deals the greatest mana value among artifacts" {
+  battlefield A: "Armor Wars" with 2 lore, "Millstone", "Ornithopter"
+  turn 1 A: trigger "Armor Wars" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "spells this turn: Rowan's X is the life lost this turn, for black and red spells" {
+  battlefield A: "Rowan, Scion of War", "Mountain", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt", "Murder"
+  turn 1 A: cast "Lightning Bolt" targeting player A
+  turn 1 A: wait
+  turn 1 A: activate "Rowan, Scion of War"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 17
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "spells this turn: Rowan's reduction is fixed as it resolves" {
+  battlefield A: "Rowan, Scion of War", "Mountain", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt", "Murder"
+  turn 1 A: activate "Rowan, Scion of War"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player A
+  turn 1 A: wait
+  illegal turn 1 precombat_main A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "spells this turn: Will's X is the life gained this turn, for white and blue spells" {
+  battlefield A: "Will, Scion of Peace", "Island", "Plains"
+  hand A: "Divination", "Healing Salve"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: activate "Will, Scion of Peace"
+  turn 1 A: wait
+  turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+  assert life A 23
+}

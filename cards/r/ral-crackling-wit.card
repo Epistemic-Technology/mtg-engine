@@ -1,0 +1,10 @@
+card "Ral, Crackling Wit" {
+  oracle_id 3c970f43-17da-4187-a084-efd53b579067
+  cost {2}{U}{R}
+  type Legendary Planeswalker — Ral
+  loyalty 4
+  triggered whenever you cast noncreature spell: put 1 loyalty counter on this
+  loyalty +1: create 1 "1/1 blue and red Otter creature with prowess"
+  loyalty -3: draw 3 cards then discard 2 cards
+  loyalty -10: draw 3 cards; emblem "Ral, Crackling Wit emblem"
+}

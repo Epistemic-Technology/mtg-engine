@@ -1266,6 +1266,21 @@ pub struct NameRule {
     pub lands: bool,
 }
 
+/// What spells a player casts this turn cost or have, from a resolved
+/// effect (`Effect::SpellsThisTurn`, CR 601.2f, 611.2a): "Spells you cast
+/// this turn that are black and/or red cost {X} less to cast" (`less`
+/// fixed as it resolved), "The next noncreature spell you cast this turn
+/// has affinity for artifacts" (`next`: the first matching spell cast uses
+/// it up).
+#[derive(Clone, Debug)]
+pub struct TurnSpellChange {
+    pub player: PlayerId,
+    pub spells: crate::card::ObjFilter,
+    pub less: u32,
+    pub grant: Option<Box<crate::card::SpellGrant>>,
+    pub next: bool,
+}
+
 /// A "can't" effect on one player from a resolved spell (CR 614.17),
 /// until end of turn: "Target player can't play lands this turn."
 #[derive(Copy, Clone, Debug)]
@@ -2212,6 +2227,14 @@ pub struct GameState {
     /// Players (by index bit) whose next spell this turn can't be
     /// countered (`Effect::NextSpellUncounterable`); zero in most games.
     pub next_uncounterable: u8,
+    /// Keywords spells on the stack gained ("That spell gains deathtouch
+    /// and lifelink", `Effect::SpellGains`): the spell and what it gained,
+    /// for as long as it is that object (CR 400.7); emptied each turn.
+    pub spell_gains: Vec<(ObjId, crate::card::KeywordSet)>,
+    /// "Artifact spells you cast this turn cost {1} less to cast", "The
+    /// next noncreature spell you cast this turn has affinity for
+    /// artifacts" (`Effect::SpellsThisTurn`); empty in most games.
+    pub turn_spell_changes: Vec<TurnSpellChange>,
     /// Total mana each player has spent to cast spells this turn (expend,
     /// CR 700.14), and what it was before their latest spell was paid
     /// for: "Whenever you expend 4" triggers on the spell that crosses 4.
@@ -4211,9 +4234,21 @@ impl GameState {
         })
     }
 
+    /// The qualifiers of `StatusQuals` about the card `o` itself: "with
+    /// {X} in its mana cost" (CR 107.3), "that has an Adventure" (CR
+    /// 715.2a; not an Adventure spell on the stack, whose definition is
+    /// the Adventure's own).
+    pub fn card_quals_ok(q: &crate::card::StatusQuals, def: &crate::card::CardDef) -> bool {
+        (!q.x_in_cost || def.mana_cost.has_x())
+            && (!q.adventure || def.layout == crate::card::Layout::Adventure)
+    }
+
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
     #[allow(clippy::too_many_lines)] // one check per qualifier
     fn status_quals_ok(&self, q: crate::card::StatusQuals, id: ObjId, o: &GameObject) -> bool {
+        if (q.x_in_cost || q.adventure) && !Self::card_quals_ok(&q, self.pool.get(o.def)) {
+            return false;
+        }
         if let Some(b) = q.blocked {
             // CR 509.1h: blocked or unblocked only once blockers are
             // declared, and only while attacking.
@@ -4377,8 +4412,21 @@ impl GameState {
         you: PlayerId,
         source: Option<ObjId>,
     ) -> bool {
+        // "with a single target", "that targets only a single creature
+        // you control": one target, however many times it was chosen.
+        if t.single {
+            let Some(first) = obj.targets.first() else {
+                return false;
+            };
+            if obj.targets.iter().any(|x| x != first) {
+                return false;
+            }
+            if !t.player && !t.you && !t.opponent && t.filter.is_none() {
+                return true;
+            }
+        }
         obj.targets.iter().any(|x| match *x {
-            Target::Player(p) => t.player || (t.you && p == you),
+            Target::Player(p) => t.player || (t.you && p == you) || (t.opponent && p != you),
             Target::Object(o) => t.filter.as_ref().is_some_and(|f| {
                 self.objects
                     .get(o)

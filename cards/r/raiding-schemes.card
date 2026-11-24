@@ -1,0 +1,6 @@
+card "Raiding Schemes" {
+  oracle_id 854cac11-9a22-4dea-8c1b-c49a4858a754
+  cost {3}{R}{G}
+  type Enchantment
+  spells each noncreature you cast have conspire
+}

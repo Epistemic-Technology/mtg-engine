@@ -1,0 +1,13 @@
+card "Heartflame Duelist // Heartflame Slash" {
+  oracle_id 3ca07da2-29a1-40ce-a7f3-4838e95ca1d9
+  layout adventure
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 3/1
+  spells instant or sorcery you control have lifelink
+  face "Heartflame Slash" {
+    cost {2}{R}
+    type Instant — Adventure
+    spell: deal 3 damage to any target
+  }
+}

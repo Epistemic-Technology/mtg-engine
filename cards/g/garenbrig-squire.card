@@ -1,0 +1,7 @@
+card "Garenbrig Squire" {
+  oracle_id 2a95ebaa-543e-4407-8050-adf6d8319fc1
+  cost {1}{G}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever you cast creature spell that has adventure: this gets +1/+1 until end of turn
+}

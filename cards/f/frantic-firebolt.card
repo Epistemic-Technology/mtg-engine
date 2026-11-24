@@ -1,0 +1,6 @@
+card "Frantic Firebolt" {
+  oracle_id f1882cc8-c81a-4131-b639-1bd6e083f8ba
+  cost {2}{R}
+  type Instant
+  spell: deal count where plus 2 graveyard instant or sorcery or adventurer damage to target creature
+}

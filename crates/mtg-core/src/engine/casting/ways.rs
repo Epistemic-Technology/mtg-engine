@@ -234,6 +234,7 @@ impl GameState {
             || def.cond_cost.is_some()
             || !changers.is_empty()
             || self.next_spell_less[b.p.index().min(3)] > 0
+            || !self.turn_spell_changes.is_empty()
         {
             adjust_generic(&mut req, self.cost_delta(b.p, def, b.id, changers));
         }
@@ -245,9 +246,11 @@ impl GameState {
                     .any(|t| self.target_fits(&tc.1, *t, b.p, b.id))
                 {
                     adjust_generic(&mut req, tc.0);
+                    reduce_colors(&mut req, def.target_cost_colors);
                 }
             } else if self.offer_target_cost(b, tc) {
                 adjust_generic(&mut req, tc.0);
+                reduce_colors(&mut req, def.target_cost_colors);
             }
         }
         // CR 702.180a: reduced by the tapped creature's power.
@@ -655,5 +658,21 @@ impl GameState {
             });
         }
         true
+    }
+}
+
+/// CR 118.7b, 118.7c: one mana of each of `colors` off `req`'s colored
+/// requirement of that color, or off its generic mana where it has none.
+pub(in crate::engine) fn reduce_colors(
+    req: &mut crate::mana::ManaRequirement,
+    colors: crate::mana::ColorSet,
+) {
+    for c in colors.iter() {
+        let i = c as usize;
+        if req.colored[i] > 0 {
+            req.colored[i] -= 1;
+        } else {
+            req.generic = req.generic.saturating_sub(1);
+        }
     }
 }

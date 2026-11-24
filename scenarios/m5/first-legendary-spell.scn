@@ -1,0 +1,44 @@
+# "The first legendary creature spell you cast each turn costs {2} less to
+# cast" (CR 601.2f) and Serah Farron's transform.
+
+scenario "first legendary creature spell: Samut costs {U} with Serah out" {
+  battlefield A: "Serah Farron", "Island"
+  hand A: "Samut, Tyrant of Naktamun"
+  turn 1 A: cast "Samut, Tyrant of Naktamun"
+  run_to turn 1 end
+  assert battlefield A contains "Samut, Tyrant of Naktamun"
+}
+
+scenario "first legendary creature spell: only the first each turn" {
+  battlefield A: "Serah Farron", 3 "Island"
+  hand A: "Samut, Tyrant of Naktamun", "Matterbending Mage"
+  turn 1 A: cast "Samut, Tyrant of Naktamun"
+  turn 1 A: wait
+  illegal turn 1 precombat_main A: cast "Matterbending Mage"
+  run_to turn 1 end
+  assert hand A contains "Matterbending Mage"
+}
+
+scenario "first legendary creature spell: a nonlegendary creature costs full" {
+  battlefield A: "Serah Farron", "Island"
+  hand A: "Matterbending Mage"
+  illegal turn 1 precombat_main A: cast "Matterbending Mage"
+  run_to turn 1 end
+  assert hand A contains "Matterbending Mage"
+}
+
+scenario "Serah Farron transforms with two other legends, and they get +2/+2" {
+  battlefield A: "Serah Farron", "Samut, Tyrant of Naktamun", "Rowan, Scion of War"
+  turn 1 begin_combat A: accept "Serah Farron"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Crystallized Serah"
+  assert power "Samut, Tyrant of Naktamun" 4
+  assert power "Rowan, Scion of War" 6
+}
+
+scenario "Serah Farron doesn't transform with one other legend" {
+  battlefield A: "Serah Farron", "Samut, Tyrant of Naktamun", "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Serah Farron"
+  assert power "Samut, Tyrant of Naktamun" 2
+}

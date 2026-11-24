@@ -1,0 +1,10 @@
+card "Judith, Carnage Connoisseur" {
+  oracle_id e86c965b-ac10-4fff-b682-dddd6d9747c6
+  cost {3}{B}{R}
+  type Legendary Creature — Human Shaman
+  pt 3/4
+  triggered whenever you cast instant or sorcery spell: choose one {
+  mode: that spell gains deathtouch and lifelink
+  mode: create 1 "2/2 red Imp creature that deals 2 damage when it dies"
+  }
+}
