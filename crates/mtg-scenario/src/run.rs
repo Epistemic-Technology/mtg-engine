@@ -1179,8 +1179,14 @@ impl Runner {
             self.pending_targets = None;
         }
         // `illegal trigger ... targeting X`: X must be refused; the first
-        // legal target is taken instead.
+        // legal target is taken instead. With several (`targeting X, Y`),
+        // one of them must be: a legal one is taken and the next checked.
         if self.pending_illegal {
+            if let Some(i) = index_of(d, &Choice::Target(t))
+                && index + 1 < targets.len()
+            {
+                return Ok(i);
+            }
             self.pending_illegal = false;
             if index_of(d, &Choice::Target(t)).is_some() {
                 return fail(
