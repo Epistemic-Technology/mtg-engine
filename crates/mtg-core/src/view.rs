@@ -531,6 +531,37 @@ impl GameState {
                     .filter(|(_, s)| !**s)
                     .map(|(id, _)| *id),
             );
+            // CR 406.3: the cards this player owns exiled face down that
+            // the viewer may not look at are as unknown as the rest: each
+            // takes the card of a slot drawn from among them and the
+            // hidden cards (the object stays in exile; only which card it
+            // is changes).
+            let face_down: Vec<ObjId> = self.players[i]
+                .exile
+                .iter()
+                .copied()
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    o.exiled_face_down() && !Self::seen_by(o, viewer)
+                })
+                .collect();
+            if !face_down.is_empty() {
+                let mut slots: Vec<ObjId> = face_down.clone();
+                slots.extend(unknown.iter().copied());
+                for k in 0..face_down.len() {
+                    let j = rand::Rng::random_range(&mut rng, k..slots.len());
+                    let (a, b) = (slots[k], slots[j]);
+                    if a != b {
+                        let (da, ca) = (self.objects[a].def, self.objects[a].card);
+                        let (db, cb) = (self.objects[b].def, self.objects[b].card);
+                        self.objects[a].def = db;
+                        self.objects[a].card = cb;
+                        self.objects[b].def = da;
+                        self.objects[b].card = ca;
+                    }
+                    slots.swap(k, j);
+                }
+            }
             unknown.shuffle(&mut rng);
             let mut drawn = unknown.into_iter();
             let hand: Vec<ObjId> = hand
@@ -632,6 +663,83 @@ mod tests {
         );
         assert!(s.visible_to(me, card));
         assert!(!s.visible_to(PlayerId(1), card));
+    }
+
+    /// CR 406.3a: a card exiled face down has no characteristics for the
+    /// counts and filters that look at it; the player who may look at it
+    /// casts it as the card it is (406.3b). Turned face up, it has them.
+    #[test]
+    fn face_down_exiled_card_has_no_characteristics() {
+        let pool = Arc::new(test_pool());
+        let bears = pool.lookup("Grizzly Bears").unwrap();
+        let cfg = GameConfig {
+            decks: vec![vec![bears; 20], vec![bears; 20]],
+            starting_life: 20,
+            seed: 1,
+            logging: false,
+        };
+        let e = Engine::new(pool, &cfg);
+        let mut s = e.state().clone();
+        let me = PlayerId(0);
+        let card = s.player_mut(me).library.pop().unwrap();
+        s.objects[card].zone = Zone::Exile;
+        s.player_mut(me).exile.push(card);
+        assert!(s.characteristics(card).unwrap().is_creature());
+        s.objects[card].marks |= crate::state::OBJ_FACE_DOWN_EXILE;
+        let c = s.characteristics(card).unwrap();
+        assert!(!c.is_creature() && c.subtypes.is_empty() && c.power == 0);
+        assert!(s.card_characteristics(&s.objects[card]).is_creature());
+    }
+
+    /// A search's resampling hides a card exiled face down from a viewer
+    /// who may not look at it: it may come up as any hidden card.
+    #[test]
+    fn determinize_resamples_face_down_exiled_cards() {
+        let pool = Arc::new(test_pool());
+        let forest = pool.lookup("Forest").unwrap();
+        let bears = pool.lookup("Grizzly Bears").unwrap();
+        let mut deck = vec![forest; 19];
+        deck.push(bears);
+        let cfg = GameConfig {
+            decks: vec![deck.clone(), deck],
+            starting_life: 20,
+            seed: 1,
+            logging: false,
+        };
+        let real = Engine::new(pool, &cfg);
+        let mut s = real.state().clone();
+        let them = PlayerId(1);
+        let lib = s.player(them).library.clone();
+        let card = lib
+            .iter()
+            .copied()
+            .find(|id| s.objects[*id].def == bears)
+            .or_else(|| {
+                s.player(them)
+                    .hand
+                    .iter()
+                    .copied()
+                    .find(|id| s.objects[*id].def == bears)
+            })
+            .unwrap();
+        s.player_mut(them).library.retain(|x| *x != card);
+        s.player_mut(them).hand.retain(|x| *x != card);
+        s.objects[card].zone = Zone::Exile;
+        s.player_mut(them).exile.push(card);
+        s.objects[card].marks |= crate::state::OBJ_FACE_DOWN_EXILE;
+        s.objects[card].revealed = 1 << them.index();
+        let mut moved = false;
+        for seed in 0..20 {
+            let mut d = s.clone();
+            d.determinize(PlayerId(0), seed);
+            assert!(d.objects[card].exiled_face_down());
+            moved |= d.objects[card].def != bears;
+            // The owner, who may look at it, keeps knowing it.
+            let mut o = s.clone();
+            o.determinize(them, seed);
+            assert_eq!(o.objects[card].def, bears);
+        }
+        assert!(moved, "the face-down card is resampled for the opponent");
     }
 
     /// A search mustn't know the real game's next die roll or coin flip:

@@ -1,0 +1,229 @@
+# M5: more face-down exile (CR 406.3): a dig that exiles one card face
+# down, "You may look at cards exiled with this", a hand or a library
+# exiled face down, a face-down card turned face up, and who may look at
+# a hideaway card when its permanent changes control.
+
+scenario "Discover the Impossible: an instant with mana value 2 or less is cast free" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  hand A: "Discover the Impossible"
+  library A: "Island", "Opt", "Forest", "Plains", "Swamp", "Shock", 2 "Mountain"
+  turn 1 A: cast "Discover the Impossible"
+  turn 1 A: choose "Opt"
+  run_to turn 1 end
+  assert graveyard A contains "Opt"
+  # Opt drew the Shock: the other four went to the bottom.
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert exile A count 0
+  assert library A count 6
+}
+
+scenario "Discover the Impossible: a sorcery goes to the hand instead" {
+  battlefield A: 3 "Island"
+  hand A: "Discover the Impossible"
+  library A: "Island", "Divination", "Forest", "Plains", "Swamp", 3 "Mountain"
+  turn 1 A: cast "Discover the Impossible"
+  turn 1 A: choose "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+  assert hand A count 1
+  assert exile A count 0
+  assert library A count 7
+}
+
+scenario "Discover the Impossible: an instant with mana value 3 goes to the hand" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Discover the Impossible"
+  library A: "Murder", "Island", "Forest", "Plains", "Swamp", 3 "Mountain"
+  turn 1 A: cast "Discover the Impossible"
+  turn 1 A: choose "Murder"
+  run_to turn 1 end
+  assert hand A contains "Murder"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Doomsday Excruciator: each player exiles all but the bottom six cards of their library face down" {
+  battlefield A: 6 "Swamp"
+  hand A: "Doomsday Excruciator"
+  library A: "Shock", "Island", "Island", 6 "Forest"
+  library B: "Hill Giant", "Serra Angel", 2 "Plains", 6 "Mountain"
+  turn 1 A: cast "Doomsday Excruciator"
+  run_to turn 1 end
+  assert library A count 6
+  assert library B count 6
+  assert exile A count 3
+  assert exile B count 4
+  assert face_down "Shock"
+  assert face_down "Hill Giant"
+  # Nobody may look at them, their owners included.
+  assert unknown A "Shock"
+  assert unknown B "Shock"
+  assert unknown A "Hill Giant"
+  assert unknown B "Hill Giant"
+}
+
+scenario "Doomsday Excruciator: a library of six or fewer cards loses none" {
+  battlefield A: 6 "Swamp"
+  hand A: "Doomsday Excruciator"
+  library A: 5 "Forest"
+  library B: 6 "Mountain"
+  turn 1 A: cast "Doomsday Excruciator"
+  run_to turn 1 end
+  assert library A count 5
+  assert library B count 6
+  assert exile A count 0
+  assert exile B count 0
+}
+
+scenario "Doomsday Excruciator: put onto the battlefield, not cast, it exiles nothing" {
+  battlefield A: "Doomsday Excruciator"
+  library A: 9 "Forest"
+  library B: 9 "Mountain"
+  run_to turn 3 begin_combat
+  # Its upkeep trigger draws on turns 1 and 3, besides turn 3's draw.
+  assert library A count 6
+  assert exile A count 0
+  assert exile B count 0
+}
+
+scenario "Inverter of Truth: the library is exiled face down and the graveyard becomes the library" {
+  battlefield A: 2 "Swamp", 2 "Plains"
+  hand A: "Inverter of Truth"
+  graveyard A: "Shock", "Grizzly Bears"
+  library A: "Hill Giant", "Serra Angel", "Island"
+  turn 1 A: cast "Inverter of Truth"
+  run_to turn 1 end
+  assert library A count 2
+  assert graveyard A count 0
+  assert exile A count 3
+  assert face_down "Hill Giant"
+  assert unknown A "Hill Giant"
+}
+
+scenario "Clone Shell: the exiled creature card enters under your control when it dies" {
+  battlefield A: 5 "Island"
+  battlefield B: 2 "Mountain"
+  hand A: "Clone Shell"
+  hand B: "Lightning Bolt", "Shock"
+  library A: "Forest", "Serra Angel", "Island", "Plains", 4 "Swamp"
+  library B: 3 "Mountain"
+  turn 1 A: cast "Clone Shell"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 end
+  assert face_down "Serra Angel"
+  assert known A "Serra Angel"
+  assert unknown B "Serra Angel"
+  turn 2 B: cast "Lightning Bolt" targeting "Clone Shell"
+  run_to turn 2 end
+  assert graveyard A contains "Clone Shell"
+  assert battlefield A contains "Serra Angel"
+  assert exile A count 0
+}
+
+scenario "Clone Shell: a noncreature card is turned face up and stays in exile" {
+  battlefield A: 5 "Island"
+  battlefield B: 2 "Mountain"
+  hand A: "Clone Shell"
+  hand B: "Lightning Bolt"
+  library A: "Forest", "Divination", "Island", "Plains", 4 "Swamp"
+  library B: 3 "Mountain"
+  turn 1 A: cast "Clone Shell"
+  turn 1 A: choose "Divination"
+  turn 2 B: cast "Lightning Bolt" targeting "Clone Shell"
+  run_to turn 2 end
+  assert exile A contains "Divination"
+  assert face_up "Divination"
+}
+
+scenario "Summoner's Egg: the card exiled from the hand face down enters when it dies" {
+  battlefield A: 4 "Plains"
+  battlefield B: 2 "Mountain"
+  hand A: "Summoner's Egg", "Craw Wurm"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  library A: 3 "Swamp"
+  library B: 3 "Mountain"
+  turn 1 A: cast "Summoner's Egg"
+  turn 1 A: choose "Craw Wurm"
+  run_to turn 1 end
+  assert face_down "Craw Wurm"
+  assert unknown B "Craw Wurm"
+  assert hand A count 0
+  turn 2 B: cast "Lightning Bolt" targeting "Summoner's Egg"
+  turn 2 B: cast "Lightning Bolt" targeting "Summoner's Egg"
+  run_to turn 2 end
+  assert battlefield A contains "Craw Wurm"
+  assert graveyard A contains "Summoner's Egg"
+}
+
+scenario "Ignorant Bliss: the hand is exiled face down and comes back at the end step, then a draw" {
+  battlefield A: 2 "Mountain"
+  hand A: "Ignorant Bliss", "Shock", "Hill Giant"
+  library A: "Forest", 3 "Island"
+  turn 1 A: cast "Ignorant Bliss"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert exile A count 2
+  assert face_down "Shock"
+  assert unknown A "Shock"
+  assert unknown B "Shock"
+  # Nothing exiled face down can be cast meanwhile.
+  illegal turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert hand A contains "Shock"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Forest"
+  assert hand A count 3
+  assert exile A count 0
+}
+
+scenario "Mesmeric Fiend: the chosen nonland card is exiled, face up" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Mesmeric Fiend"
+  hand B: "Shock", "Forest"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Mesmeric Fiend"
+  run_to turn 1 end
+  assert exile B contains "Shock"
+  assert face_up "Shock"
+  assert hand B count 1
+  assert hand B contains "Forest"
+}
+
+scenario "Watcher for Tomorrow: a new controller may look at the hideaway card, and keeps knowing it" {
+  battlefield A: 2 "Island", "Mountain"
+  battlefield B: 3 "Mountain"
+  hand A: "Watcher for Tomorrow"
+  hand B: "Act of Treason"
+  library A: "Forest", "Hill Giant", "Island", "Plains", 6 "Plains"
+  library B: 3 "Mountain"
+  turn 1 A: cast "Watcher for Tomorrow"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 end
+  assert known A "Hill Giant"
+  assert unknown B "Hill Giant"
+  turn 2 B: cast "Act of Treason" targeting "Watcher for Tomorrow"
+  run_to turn 2 postcombat_main
+  assert known B "Hill Giant"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Watcher for Tomorrow"
+  assert known B "Hill Giant"
+  assert known A "Hill Giant"
+}
+
+scenario "Mesmeric Fiend: dying returns the exiled card to its owner's hand" {
+  battlefield A: 2 "Swamp"
+  battlefield B: 2 "Mountain"
+  hand A: "Mesmeric Fiend"
+  hand B: "Shock"
+  library A: 3 "Island"
+  library B: "Lightning Bolt", 3 "Island"
+  turn 1 A: cast "Mesmeric Fiend"
+  turn 2 B: cast "Lightning Bolt" targeting "Mesmeric Fiend"
+  run_to turn 2 end
+  assert hand B contains "Shock"
+  assert exile B count 0
+  assert graveyard A contains "Mesmeric Fiend"
+}

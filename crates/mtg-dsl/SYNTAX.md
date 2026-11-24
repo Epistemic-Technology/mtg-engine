@@ -307,7 +307,7 @@ like the card; either half may still be cast alone.
 | `trigger never permanent when creature enters`, `trigger never permanent when andlist artifact or creature enters the battlefield` | CR 603.6a (Torpor Orb): "Creatures entering don't cause abilities to trigger.", "Artifacts and creatures entering the battlefield don't cause abilities to trigger.": an enters trigger (`when this enters`, `whenever other creature enters`, `whenever one or more ... enter`, either event of two) of a permanent matching the first filter (any player's) doesn't trigger at all on a permanent matching the second entering, whatever would make it trigger more. Replacement effects on entering (counters, tapped) still apply |
 | `opening hand` | "If this card is in your opening hand, you may begin the game with it on the battlefield." (CR 103.6a; a legendary card names itself: "If Quicksilver is in your opening hand, ..."). After mulligans, starting with the starting player, each player is asked about each such card in their hand. |
 | `opening hand reveal first upkeep: create 1 "Phyrexian Goblin"`, `opening hand reveal your first upkeep: ...`, `opening hand reveal your first main: add {G}`, `opening hand reveal your first upkeep after: scry 3` | "You may reveal this card from your opening hand. If you do, at the beginning of the first upkeep, create ..." (the Chancellors; "at the beginning of your first upkeep, ...", "at the beginning of your first main phase of the game, ..."; `after` puts the time last: "If you do, scry 3 at the beginning of your first upkeep."). Asked with the opening-hand cards; the revealed card stays in hand, known to every player, and leaves a delayed trigger for the next such step (CR 603.7), which happens once, controlled by the card's owner. |
-| `play exiled spells`, `play exiled lands and spells`, `play exiled your turn lands and spells`, `play exiled owned spells Dinosaur creature` | "You may cast spells from among cards exiled with Rona.", "You may play lands and cast spells from among cards exiled with this creature.", "During your turn, you may play cards exiled with this artifact.", "You may cast Dinosaur creature spells from among cards you own exiled with this creature." (CR 607.2a, 601.3): the controller may play the cards this permanent's abilities exiled while they stay in exile, paying their costs with the usual timing and land plays. |
+| `play exiled spells`, `play exiled lands and spells`, `play exiled your turn lands and spells`, `play exiled owned spells Dinosaur creature` | "You may cast spells from among cards exiled with Rona.", "You may play lands and cast spells from among cards exiled with this creature.", "During your turn, you may play cards exiled with this artifact.", "You may cast Dinosaur creature spells from among cards you own exiled with this creature." (CR 607.2a, 601.3): the controller may play the cards this permanent's abilities exiled while they stay in exile, paying their costs with the usual timing and land plays. `may look exiled` is "You may look at cards exiled with this creature." and `play exiled look lands and spells` "You may look at the cards exiled with this enchantment, and you may play lands and cast spells from among those cards.": the permanent's controller may look at the face-down ones (CR 406.3), as with hideaway's card (CR 702.75a): a new controller of the permanent may look at them from then on, and a player who looked keeps knowing them while they stay exiled. |
 | `cast free from hand spells`, `cast free spells Dragon`, `cast free from hand spells max count creature you control`, `cast free once your turns from hand spells instant or sorcery`, `cast free first each player spells` | "You may cast spells from your hand without paying their mana costs." (Omniscience), "You may cast Dragon spells without paying their mana costs." (no zone named: the hand is offered), "You may cast spells with mana value less than or equal to the number of creatures you control from your hand ...", "Once during each of your turns, you may cast an instant or sorcery spell from your hand without paying its mana cost.", "The first spell each player casts during each of their turns may be cast without paying its mana cost." (CR 118.9): the player may cast a matching card from their hand without paying its mana cost, with its usual timing (a separate option from paying; the scenario line is `cast "X" free`). `max` takes a count; `first each player` applies to every player, the first spell in each of their own turns. |
 | `play from top lands`, `play from top spells creature`, `play from top lands and spells`, `play from top once spells instant or sorcery` | "You may play lands from the top of your library.", "You may cast creature spells from the top of your library.", "You may play lands and cast spells from the top of your library.", "Once each turn, you may cast an instant or sorcery spell from the top of your library." (CR 601.3, 305.1): the controller may play the top card of their library, paying its costs, with the usual timing and a land only with a land play left. The spells' filter is any filter (`Spider or noncreature`: "Spider spells and noncreature spells"; `with mana value 4 or greater`: "spells with mana value 4 or greater"; `with flash or flying`); `once` allows one spell a turn by that permanent's permission. |
 | `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
@@ -2180,7 +2180,24 @@ spell's mana value is 4 or less" (hideaway's `cast free exiled card` with
 a cap; `search card to exile face down` links its card to the spell, CR
 607.2a, so it is "the exiled card"), and `put exiled card into hand unless
 cast` "Put the exiled card into your hand if it wasn't cast this way."
-(unless its controller chose to cast it; Beseech the Mirror).
+(unless its controller chose to cast it; Beseech the Mirror). `cast free
+exiled card that is instant spell with mana value up to 2` is "you may
+cast the exiled card without paying its mana cost if it's an instant
+spell with mana value 2 or less" (judged on the spell it would be, even
+face down, CR 406.3b), and `put exiled card into hand if not cast` "If
+you don't, put that card into your hand." (Discover the Impossible).
+`dig face down 5 them` is hideaway's body as an effect: "Look at the top
+five cards of your library. Exile one of them face down and put the rest
+on the bottom of your library in a random order." (the controller
+chooses, scenarios `choose "Shock"`, and may look at it; it is "the
+exiled card", linked to the source); `dig face down 4 then any order`
+prints "look at the top four cards of your library, exile one face down,
+then put the rest on the bottom of your library in any order" (Clone
+Shell; a random order is one of its orders). `turn face up exiled card
+put creature onto battlefield` is "turn the exiled card face up. If it's
+a creature card, put it onto the battlefield under your control." (a
+face-down exiled card turned face up stays in exile, known to every
+player, CR 406.3).
 
 Other durations (CR 611.2b) end a sentence, and whatever in it would last
 until end of turn (or "this turn") lasts that long instead: `until your
@@ -2527,7 +2544,18 @@ count each ...`: "investigate once for each ..."; `target player
 investigates`: that player creates it), `<who>
 exiles 2 cards from hand` ("Target opponent exiles two cards from their
 hand"; `from graveyard`: "a card from their graveyard"; the player
-chooses), `<who> chooses creature they control; destroy that created creature`
+chooses; `exile 1 card from hand face down` is "exile a card from your
+hand face down" and `exile hand face down` "Exile all cards from your
+hand face down." (`target player exiles hand face down`: "Target player
+exiles all cards from their hand face down."): exiled face down, nobody
+may look at the cards (CR 406.3) unless the source lets its controller
+(`may look exiled`), and they are linked to the source (CR 607.2a), so
+"the exiled card", "cards exiled with this", and in a delayed trigger
+`return those exiled cards to hand` ("return those cards to your hand",
+Ignorant Bliss) find them), `exile library face down` ("Exile all cards
+from your library face down.") and `each player exiles library but bottom
+6 face down` ("each player exiles all but the bottom six cards of their
+library face down": a library of six or fewer loses none), `<who> chooses creature they control; destroy that created creature`
 ("Target opponent chooses a creature they control. Destroy that
 creature.": not targeted, the player chooses as it resolves; the chosen
 permanent is `that created creature`), `<who> exiles 1 creature they control` ("Target opponent

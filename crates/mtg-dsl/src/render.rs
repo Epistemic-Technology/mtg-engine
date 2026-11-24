@@ -6252,6 +6252,31 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
+        Effect::TurnFaceUpExiled => Clause::imperative(
+            "turn the exiled card face up. If it's a creature card, put it onto the battlefield under your control"
+                .to_string(),
+        ),
+        Effect::ReturnThoseExiled => {
+            Clause::imperative("return those cards to your hand".to_string())
+        }
+        // Hideaway's body (CR 702.75a): "Look at the top five cards of your
+        // library. Exile one of them face down and put the rest ...".
+        Effect::DigFaceDown {
+            count,
+            then,
+            them,
+            any_order,
+        } => {
+            let n = count_words(Num::N(*count), "one");
+            let order = if *any_order { "any" } else { "a random" };
+            let one = if *them { "one of them" } else { "one" };
+            let rest = format!("put the rest on the bottom of your library in {order} order");
+            Clause::imperative(if *then {
+                format!("look at the top {n} cards of your library, exile {one} face down, then {rest}")
+            } else {
+                format!("look at the top {n} cards of your library. Exile {one} face down and {rest}")
+            })
+        }
         Effect::EndTurn => Clause::imperative("end the turn".to_string()),
         Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
         Effect::CloakTop => Clause::imperative("cloak the top card of your library".to_string()),
@@ -6814,6 +6839,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardWords::ExiledUnlessCast => {
                     return Clause::imperative(
                         "put the exiled card into your hand if it wasn't cast this way".to_string(),
+                    );
+                }
+                CardWords::ExiledIfNotCast => {
+                    return Clause::imperative(
+                        "if you don't, put that card into your hand".to_string(),
                     );
                 }
             };
@@ -9058,6 +9088,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "you may cast the exiled card without paying its mana cost if
             // that spell's mana value is 4 or less" (Beseech the Mirror).
             let tail = match (what_r, max) {
+                // "if it's an instant spell with mana value 2 or less"
+                // (Discover the Impossible).
+                (Some(_), max) if filter.is_some() => {
+                    let f = filter.as_ref().expect("checked");
+                    let noun = format!("{} spell", card_filter_phrase(f, ctx.card).trim());
+                    let mv = max.map_or(String::new(), |n| {
+                        format!(" with mana value {} or less", digits(n))
+                    });
+                    format!("{tail} if it's {}{mv}", with_article(&noun))
+                }
                 (Some(_), Some(n)) => {
                     format!(
                         "{tail} if that spell's mana value is {} or less",
@@ -9198,18 +9238,60 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             count,
             who,
             graveyard,
+            face,
+            all,
         } => {
+            let what = if *all {
+                "all cards".to_string()
+            } else {
+                format!("{} {}", count_words(*count, "a"), plural(*count, "card"))
+            };
+            let face = if *face == mtg_core::card::ExileFace::Up {
+                ""
+            } else {
+                " face down"
+            };
+            let zone = if *graveyard { "graveyard" } else { "hand" };
+            // "exile a card from your hand face down" (the controller).
+            if *who == Recipient::You {
+                return Clause::imperative(format!("exile {what} from your {zone}{face}"));
+            }
             let s = ctx.subj(*who);
-            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
             Clause::with_subject(
                 *who,
                 s,
                 format!(
-                    "{} {what} from their {}",
+                    "{} {what} from their {zone}{face}",
                     ctx.verb(*who, "exiles", "exile"),
-                    if *graveyard { "graveyard" } else { "hand" }
                 ),
             )
+        }
+        Effect::ExileLibrary { who, keep, face } => {
+            let face = if *face == mtg_core::card::ExileFace::Up {
+                ""
+            } else {
+                " face down"
+            };
+            let what = if *keep > 0 {
+                format!("all but the bottom {} cards", count_words(Num::N(*keep), "one"))
+            } else {
+                "all cards".to_string()
+            };
+            match who {
+                None | Some(Recipient::You) => {
+                    Clause::imperative(format!("exile {what} from your library{face}"))
+                }
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    let verb = ctx.verb(*w, "exiles", "exile");
+                    let what = if *keep > 0 {
+                        format!("{what} of their library")
+                    } else {
+                        format!("{what} from their library")
+                    };
+                    Clause::with_subject(*w, s, format!("{verb} {what}{face}"))
+                }
+            }
         }
         Effect::DrawDiscardDrawn { draw, discard } => Clause::imperative(format!(
             "draw {} {}, then discard {} of them",
@@ -18549,10 +18631,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("{once} may {what} from the top of your library.")
         }
         Ability::PlayExiled {
+            look: true,
+            lands: false,
+            spells: None,
+            ..
+        } => format!("You may look at cards exiled with {}.", this_ref(card)),
+        Ability::PlayExiled {
             lands,
             spells,
             your_turn,
             owned,
+            look,
         } => {
             // CR 607.2a: "You may cast spells from among cards exiled with
             // Rona.", "During your turn, you may play cards exiled with
@@ -18580,6 +18669,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             } else {
                 "You"
             };
+            // "You may look at the cards exiled with this enchantment, and
+            // you may play lands and cast spells from among those cards."
+            // (Colfenor's Plans).
+            if *look {
+                let what = what.replace(&format!("{whose} exiled with {with}"), "those cards");
+                return format!(
+                    "You may look at the {whose} exiled with {with}, and you may {what}."
+                );
+            }
             format!("{lead} may {what}.")
         }
         Ability::TopRevealed { hands: true, .. } => {

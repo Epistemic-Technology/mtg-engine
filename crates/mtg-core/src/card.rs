@@ -4390,6 +4390,25 @@ pub enum Effect {
         count: Num,
         who: Recipient,
         graveyard: bool,
+        /// "... from your hand face down" (CR 406.3): linked to the
+        /// source (CR 607.2a), for "cards exiled with this creature" and
+        /// "those cards".
+        #[serde(default)]
+        face: ExileFace,
+        /// "Exile all cards from your hand face down.": every card, no
+        /// choice (`count` is unused).
+        #[serde(default)]
+        all: bool,
+    },
+    /// "Exile all cards from your library face down." (Inverter of
+    /// Truth), "each player exiles all but the bottom six cards of their
+    /// library face down" (Doomsday Excruciator): each recipient player
+    /// exiles their library from the top down, leaving the bottom `keep`
+    /// cards (none with as many or fewer).
+    ExileLibrary {
+        who: Recipient,
+        keep: u32,
+        face: ExileFace,
     },
     /// "Draw two cards, then discard one of them.": the controller draws
     /// `draw` cards, then discards `discard` of the cards drawn this way.
@@ -8878,6 +8897,12 @@ pub enum AbilityDef {
         spells: Option<ObjFilter>,
         your_turn: bool,
         owned: bool,
+        /// "You may look at cards exiled with this creature." (CR 406.3):
+        /// the controller may look at the face-down ones, and keeps
+        /// knowing them while they stay exiled (also with neither lands
+        /// nor spells, a permission to look only).
+        #[serde(default)]
+        look: bool,
     },
     /// "Play with the top card of your library revealed." (`players`:
     /// "Players play with the top card of their libraries revealed."):

@@ -2816,8 +2816,20 @@ impl P {
                     limit,
                 })
             }
+            "may" if self.at_words(&["may", "look", "exiled"]) => {
+                self.pos += 3;
+                self.end_stmt()?;
+                Ok(Ability::PlayExiled {
+                    lands: false,
+                    spells: None,
+                    your_turn: false,
+                    owned: false,
+                    look: true,
+                })
+            }
             "play" if self.at_words(&["play", "exiled"]) => {
                 self.pos += 2;
+                let look = self.eat_word("look");
                 let your_turn = self.eat_words(&["your", "turn"]);
                 let owned = self.eat_word("owned");
                 let lands = self.eat_word("lands");
@@ -2839,6 +2851,7 @@ impl P {
                     spells,
                     your_turn,
                     owned,
+                    look,
                 })
             }
             "top" if self.at_words(&["top", "revealed"]) => {
@@ -6165,6 +6178,17 @@ impl P {
             (Some(Recipient::ExiledWith(i)), None, None)
         } else if self.at_word("target") || self.at_words(&["exiled", "card"]) {
             let what = self.recipient()?;
+            // `cast free exiled card that is instant spell with mana value
+            // up to 2`: "if it's an instant spell with mana value 2 or
+            // less" (Discover the Impossible; CR 406.3b, the spell's
+            // qualities).
+            let filter = if self.eat_words(&["that", "is"]) {
+                let f = self.filter()?;
+                self.expect_word("spell")?;
+                Some(f)
+            } else {
+                None
+            };
             // `cast free exiled card with mana value up to 4`: "if that
             // spell's mana value is 4 or less" (Beseech the Mirror).
             let max = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
@@ -6172,7 +6196,7 @@ impl P {
             } else {
                 None
             };
-            (Some(what), None, max)
+            (Some(what), filter, max)
         } else {
             let filter = if self.at_word("spell") {
                 None
@@ -7333,9 +7357,17 @@ impl P {
             self.expect_words(&["into", "hand"])?;
             // "Put the exiled card into your hand if it wasn't cast this
             // way." (Beseech the Mirror).
-            if what == [Recipient::ExiledCard] && self.eat_words(&["unless", "cast"]) {
+            let not_cast = what == [Recipient::ExiledCard] && self.at_words(&["if", "not", "cast"]);
+            if not_cast {
+                self.pos += 3;
+            }
+            if not_cast || what == [Recipient::ExiledCard] && self.eat_words(&["unless", "cast"]) {
                 return Ok(Effect::PutCard {
-                    what: crate::ast::CardWords::ExiledUnlessCast,
+                    what: if not_cast {
+                        crate::ast::CardWords::ExiledIfNotCast
+                    } else {
+                        crate::ast::CardWords::ExiledUnlessCast
+                    },
                     to: mtg_core::card::CardDest::Hand,
                     who: None,
                     that_player: false,
@@ -8860,6 +8892,34 @@ impl P {
                     face,
                 })
             }
+            // `each player exiles library but bottom 6 face down`.
+            "exiles" if self.at_word("library") => {
+                self.pos += 1;
+                let keep = if self.eat_words(&["but", "bottom"]) {
+                    self.number()?
+                } else {
+                    0
+                };
+                let face = self.exile_face();
+                Ok(Effect::ExileLibrary {
+                    who: Some(subject),
+                    keep,
+                    face,
+                })
+            }
+            // `target player exiles hand face down`.
+            "exiles" if self.at_word("hand") || self.at_words(&["graveyard", "face"]) => {
+                let graveyard = self.at_word("graveyard");
+                self.pos += 1;
+                let face = self.exile_face();
+                Ok(Effect::ExileFromHand {
+                    count: Num::N(1),
+                    who: subject,
+                    graveyard,
+                    face,
+                    all: true,
+                })
+            }
             "exiles" => {
                 let count = if self.eat_word("a") || self.eat_word("an") {
                     Num::N(1)
@@ -8874,10 +8934,13 @@ impl P {
                     if !graveyard {
                         self.expect_word("hand")?;
                     }
+                    let face = self.exile_face();
                     return Ok(Effect::ExileFromHand {
                         count,
                         who: subject,
                         graveyard,
+                        face,
+                        all: false,
                     });
                 }
                 let mut filter = self.filter()?;
@@ -9984,7 +10047,9 @@ impl P {
         }
         let mut filter = None;
         let mut cards = false;
-        if self.eat_word("all") {
+        if self.eat_words(&["all", "card", "from"]) {
+            filter = Some(Filter::default());
+        } else if self.eat_word("all") {
             filter = Some(self.filter()?);
             self.expect_word("card")?;
             self.expect_word("from")?;
@@ -10768,6 +10833,10 @@ impl P {
                 let tapped = self.eat_word("tapped");
                 Ok(Effect::GraveyardToBattlefield { filter, tapped })
             }
+            "return" if self.at_words(&["those", "exiled", "cards", "to", "hand"]) => {
+                self.pos += 5;
+                Ok(Effect::ReturnThoseExiled)
+            }
             "return" => {
                 let all = self.recipients()?;
                 let what = all[0];
@@ -10813,6 +10882,45 @@ impl P {
             "exile" => {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
+                }
+                // `exile library face down`, `exile hand face down`, `exile
+                // 1 card from hand face down` (CR 406.3).
+                if self.at_word("library") && self.word_at(1).as_deref() != Some("from") {
+                    self.pos += 1;
+                    let face = self.exile_face();
+                    return Ok(Effect::ExileLibrary {
+                        who: None,
+                        keep: 0,
+                        face,
+                    });
+                }
+                if self.at_words(&["hand", "face", "down"]) {
+                    self.pos += 1;
+                    let face = self.exile_face();
+                    return Ok(Effect::ExileFromHand {
+                        count: Num::N(1),
+                        who: Recipient::You,
+                        graveyard: false,
+                        face,
+                        all: true,
+                    });
+                }
+                if matches!(self.peek(), Some(Tok::Num(_)))
+                    && matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                    && self.word_at(2).as_deref() == Some("from")
+                    && self.word_at(3).as_deref() == Some("hand")
+                    && self.word_at(4).as_deref() == Some("face")
+                {
+                    let count = self.num()?;
+                    self.pos += 3;
+                    let face = self.exile_face();
+                    return Ok(Effect::ExileFromHand {
+                        count,
+                        who: Recipient::You,
+                        graveyard: false,
+                        face,
+                        all: false,
+                    });
                 }
                 // `exile same name as target 1 from its controller zones`:
                 // "Search its controller's graveyard, hand, and library for
@@ -11039,6 +11147,18 @@ impl P {
                     cond,
                 })
             }
+            "dig" if self.eat_words(&["face", "down"]) => {
+                let count = self.number()?;
+                let then = self.eat_word("then");
+                let any_order = self.eat_words(&["any", "order"]);
+                let of_them = self.eat_word("them");
+                Ok(Effect::DigFaceDown {
+                    count,
+                    then,
+                    them: of_them,
+                    any_order,
+                })
+            }
             "dig" => {
                 let count = self.num()?;
                 let then = self.eat_word("then");
@@ -11219,6 +11339,21 @@ impl P {
                 Ok(Effect::LookAtFaceDown {
                     what: self.recipient()?,
                 })
+            }
+            "turn"
+                if self.at_words(&[
+                    "face",
+                    "up",
+                    "exiled",
+                    "card",
+                    "put",
+                    "creature",
+                    "onto",
+                    "battlefield",
+                ]) =>
+            {
+                self.pos += 8;
+                Ok(Effect::TurnFaceUpExiled)
             }
             "turn" if self.at_words(&["face", "up"]) || self.at_words(&["face", "down"]) => {
                 self.pos += 1;

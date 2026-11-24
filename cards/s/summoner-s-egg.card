@@ -1,0 +1,8 @@
+card "Summoner's Egg" {
+  oracle_id 2209ebd4-1131-4b8e-b0f5-aa9506dc0057
+  cost {4}
+  type Artifact Creature — Egg
+  pt 0/4
+  label "Imprint" triggered when this enters: you may exile 1 card from hand face down
+  triggered when this dies: turn face up exiled card put creature onto battlefield
+}

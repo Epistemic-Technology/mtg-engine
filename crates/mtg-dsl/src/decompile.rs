@@ -1337,10 +1337,22 @@ impl Decompiler<'_> {
                 count,
                 who,
                 graveyard,
+                face,
+                all,
             } => Effect::ExileFromHand {
                 count: *count,
                 who: r(*who),
                 graveyard: *graveyard,
+                face: *face,
+                all: *all,
+            },
+            CoreEffect::ExileLibrary { who, keep, face } => Effect::ExileLibrary {
+                who: match who {
+                    CoreRecipient::You => None,
+                    w => Some(r(*w)),
+                },
+                keep: *keep,
+                face: *face,
             },
             CoreEffect::DrawDiscardDrawn { draw, discard } => Effect::DrawDiscardDrawn {
                 draw: *draw,
@@ -1859,9 +1871,13 @@ impl Decompiler<'_> {
                 what: vec![r(*what)],
             },
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
-            CoreEffect::Fabricate { .. }
-            | CoreEffect::Hideaway { .. }
-            | CoreEffect::BecomeRenowned => {
+            CoreEffect::Hideaway { count } => Effect::DigFaceDown {
+                count: *count,
+                then: false,
+                them: true,
+                any_order: false,
+            },
+            CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
             CoreEffect::ExileTop { who, count, face } => Effect::ExileTop {
@@ -2821,11 +2837,13 @@ impl Decompiler<'_> {
                 spells,
                 your_turn,
                 owned,
+                look,
             } => Ability::PlayExiled {
                 lands: *lands,
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 your_turn: *your_turn,
                 owned: *owned,
+                look: *look,
             },
             AbilityDef::TopRevealed { players, hands } => Ability::TopRevealed {
                 players: *players,
