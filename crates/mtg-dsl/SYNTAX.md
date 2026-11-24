@@ -1012,7 +1012,9 @@ permanent's controller: "Each creature you control that ..."), and a
 graveyard card target's `... from a graveyard put there this turn`
 (`put there from anywhere this turn`) prints "... from a graveyard that
 was put there this turn" (Night Nurse: "target permanent card in your
-graveyard that was put there from anywhere this turn"). A
+graveyard that was put there from anywhere this turn"; `target nonland
+card in a graveyard put there from anywhere this turn` prints "card in a
+graveyard", Reenact the Crime). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).
@@ -1988,7 +1990,10 @@ less than or equal to the number of creatures you control"), `with
 toughness less than count equal power` ("with toughness less than this
 creature's power"), `with mana value equal to count equal charge
 counters on this` ("with mana value equal to the number of charge
-counters on this artifact", the counters it had once sacrificed),
+counters on this artifact", the counters it had once sacrificed;
+in a cast trigger, `whenever you cast creature with mana value equal to
+count equal power spell` prints "a creature spell with mana value equal
+to Jackal's power", counted as the spell is cast),
 `with mana value at most count where Faerie you
 control` ("with mana value X or less, where X is the number of Faeries you
 control", for a filter that ends the sentence), and `with power at most X`

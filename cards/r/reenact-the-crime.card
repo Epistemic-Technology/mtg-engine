@@ -1,0 +1,6 @@
+card "Reenact the Crime" {
+  oracle_id ebb88893-427f-496c-82a8-94d2bafb5e4c
+  cost {1}{U}{U}{U}
+  type Instant
+  spell: exile target nonland card in a graveyard put there from anywhere this turn; copy target 1 may cast free
+}

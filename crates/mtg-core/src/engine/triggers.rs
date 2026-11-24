@@ -1662,6 +1662,21 @@ impl GameState {
                 // "Whenever you cast a spell of the chosen color" (Diamond
                 // Mare): what the source chose as it entered.
                 let filter = &*self.with_source_chosen(filter, w.source);
+                // "a creature spell with mana value equal to Jackal's
+                // power": the count, for the source's controller, as the
+                // spell is cast.
+                let bounded;
+                let filter = if let Some(b) = filter.status.bound
+                    && b.n != crate::card::Num::X
+                {
+                    let v = self.eval_num_of(b.n, w.source, w.controller);
+                    let mut g = filter.clone();
+                    Self::fill_bound(&mut g, v);
+                    bounded = g;
+                    &bounded
+                } else {
+                    filter
+                };
                 // Heroic (CR 207.2c): "a spell that targets this creature",
                 // judged with the targets chosen as it was cast (CR 601.2c).
                 let targets_ok = |f: &crate::card::ObjFilter| {

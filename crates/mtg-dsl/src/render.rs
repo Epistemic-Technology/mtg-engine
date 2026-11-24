@@ -2095,6 +2095,11 @@ impl<'a> Ctx<'a> {
                 let mut g = filter.clone();
                 g.that_player = None;
                 g.their = false;
+                let from = if std::mem::take(&mut g.in_zone) {
+                    "in"
+                } else {
+                    "from"
+                };
                 let tgt = if g.relation == Relation::Other {
                     crate::format::relation_any(&mut g);
                     "another target"
@@ -2105,7 +2110,7 @@ impl<'a> Ctx<'a> {
                 // this turn": after the zone.
                 let there = put_there_suffix(&mut g, false);
                 format!(
-                    "{tgt} {} from {whose}{there}",
+                    "{tgt} {} {from} {whose}{there}",
                     cards_phrase(&g, self.card, false)
                 )
             }

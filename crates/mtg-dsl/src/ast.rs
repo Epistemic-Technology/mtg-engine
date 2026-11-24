@@ -1327,6 +1327,9 @@ pub struct Filter {
     /// player's graveyard`, which declares it ("target player's
     /// graveyard").
     pub their: bool,
+    /// `target card in a graveyard`: "card in a graveyard" rather than
+    /// "from a graveyard" (Reenact the Crime). Wording only.
+    pub in_zone: bool,
     /// `other than enchanted`: "other than enchanted creature"
     /// (`ObjFilter::not_attached`).
     pub not_attached: bool,

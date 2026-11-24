@@ -17178,7 +17178,10 @@ impl P {
             || kw_after
             || self.at_words(&["card", "from"])
             || self.at_words(&["cards", "from"])
+            || self.at_words(&["card", "in", "a", "graveyard"])
         {
+            // "target nonland card in a graveyard" (wording).
+            f.in_zone = !named && !mv_after && !kw_after && self.at_words(&["card", "in"]);
             self.pos += if mv_after || kw_after { 1 } else { 2 };
             // `from graveyards`: several targets from any graveyards.
             if self.eat_word("graveyards") {

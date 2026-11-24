@@ -5038,7 +5038,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         Some(_) => " named this",
         None => "",
     };
+    let from = if f.in_zone { "in" } else { "from" };
     let mut g = f.clone();
+    g.in_zone = false;
     if !shares {
         g.same = None;
     }
@@ -5073,7 +5075,7 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         mv = format!(" with power {n}{}", cmp_suffix(cmp));
     }
     if g == Filter::default() {
-        format!("target card{named}{mv} from {whose}")
+        format!("target card{named}{mv} {from} {whose}")
     } else if let Some(c) = g.chosen
         && (Filter {
             chosen: None,
@@ -5081,9 +5083,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         }) == Filter::default()
     {
         // `target of chosen type card`: no "permanent" for a card.
-        format!("target {} card{named}{mv} from {whose}", of_chosen(c))
+        format!("target {} card{named}{mv} {from} {whose}", of_chosen(c))
     } else {
-        format!("target {} card{named}{mv} from {whose}", filter(&g))
+        format!("target {} card{named}{mv} {from} {whose}", filter(&g))
     }
 }
 
