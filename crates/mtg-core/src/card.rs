@@ -2050,8 +2050,12 @@ impl ObjFilter {
     /// Whether the filter has conditions on game state beyond
     /// characteristics (see `GameState::status_ok`) or the mana value.
     pub const fn needs_state(&self) -> bool {
-        self.or.is_some()
-            || self.tapped.is_some()
+        self.or.is_some() || self.needs_state_own()
+    }
+
+    /// `needs_state` of this side alone, its alternative (`or`) aside.
+    pub const fn needs_state_own(&self) -> bool {
+        self.tapped.is_some()
             || self.attacking
             || self.blocking
             || self.damaged

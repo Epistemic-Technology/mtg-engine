@@ -4293,6 +4293,11 @@ impl GameState {
             let Some(c) = self.characteristics(id) else {
                 return false;
             };
+            // Neither side has state to judge ("a Swamp or a Mountain"):
+            // the sides' characteristics, without a copy of the filter.
+            if !f.needs_state_own() && !alt.needs_state() {
+                return f.matches(id, o.controller, &c, None, None);
+            }
             let mut base = f.clone();
             base.or = None;
             let side = |g: &crate::card::ObjFilter| {

@@ -151,6 +151,11 @@ impl Work<'_> {
         let Some(alt) = &f.or else {
             return self.state.status_ok(f, id);
         };
+        // Neither side has state to judge: the sides' characteristics,
+        // without a copy of the filter.
+        if !f.needs_state_own() && !alt.needs_state() {
+            return f.matches(id, self.controller_of(id), c, None, None);
+        }
         let base = ObjFilter {
             or: None,
             ..f.clone()
