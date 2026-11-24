@@ -312,3 +312,41 @@ scenario "Ninja Teen: a creature leaving the battlefield costs each opponent 1 l
   run_to turn 1 postcombat_main
   assert life B 19
 }
+
+scenario "Satoru Umezawa: a creature card in hand has ninjutsu; activating it digs three" {
+  battlefield A: "Satoru Umezawa", "Grizzly Bears", 2 "Island", 2 "Swamp"
+  hand A: "Hill Giant"
+  library A: "Forest", "Mountain", "Plains", "Island"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Hill Giant" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+  assert library A count 3
+  assert life B 17
+}
+
+scenario "Satoru Umezawa: the dig triggers only once each turn" {
+  battlefield A: "Satoru Umezawa", 2 "Grizzly Bears", 4 "Island", 4 "Swamp"
+  hand A: "Hill Giant", "Gray Ogre"
+  library A: "Forest", "Mountain", "Plains", "Island", "Swamp"
+  turn 1 A: attack "Grizzly Bears", "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Hill Giant" sacrificing "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Gray Ogre" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Gray Ogre"
+  assert hand A count 3
+  assert library A count 4
+  assert life B 15
+}
+
+scenario "without Satoru Umezawa a creature card has no ninjutsu" {
+  battlefield A: "Grizzly Bears", 2 "Island", 2 "Swamp"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers A: activate "Hill Giant" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}

@@ -1,0 +1,8 @@
+card "Satoru Umezawa" {
+  oracle_id ed1d21ba-ddfe-4f82-9e37-93f9e2c7ba33
+  cost {1}{U}{B}
+  type Legendary Creature — Human Ninja
+  pt 2/4
+  triggered once each turn whenever you activate a ninjutsu ability: dig 3 take card rest bottom
+  static each creature card in your hand: has ninjutsu {2}{U}{B}
+}

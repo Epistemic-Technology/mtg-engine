@@ -4951,6 +4951,7 @@ pub fn activates_words(whose: Who, kind: mtg_core::card::ActivationKind) -> Stri
         K::OfCreature => "an ability of a creature",
         K::Exhaust => "an exhaust ability",
         K::Loyalty => "a loyalty ability",
+        K::Ninjutsu => "a ninjutsu ability",
     };
     format!("{who} {what}")
 }

@@ -7466,6 +7466,9 @@ pub enum ActivationKind {
     Exhaust,
     /// "a loyalty ability" (CR 606.3).
     Loyalty,
+    /// "a ninjutsu ability" (CR 702.49), the card's own or one a
+    /// permanent gives it (Satoru Umezawa).
+    Ninjutsu,
 }
 
 /// Which of a player's spells this turn a cast trigger wants.

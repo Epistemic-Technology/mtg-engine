@@ -15882,9 +15882,11 @@ impl P {
                 ActivationKind::Exhaust
             } else if self.eat_words(&["a", "loyalty", "ability"]) {
                 ActivationKind::Loyalty
+            } else if self.eat_words(&["a", "ninjutsu", "ability"]) {
+                ActivationKind::Ninjutsu
             } else {
                 return self.unexpected(
-                    "`an ability of a creature`, `an exhaust ability`, or `a loyalty ability`",
+                    "`an ability of a creature`, `an exhaust ability`, `a loyalty ability`, or `a ninjutsu ability`",
                 );
             };
             return Ok(Trigger::Activates { whose, kind });
