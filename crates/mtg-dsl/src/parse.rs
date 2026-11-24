@@ -7326,7 +7326,6 @@ impl P {
         Ok(None)
     }
 
-    #[allow(clippy::too_many_lines)] // one branch per clause form
     /// After `<who> chooses` or `for each player, [you] choose`: what is
     /// chosen among each player's permanents (`Effect::ChooseFor`; one
     /// permanent by each player is `Effect::PlayerChooses`).
@@ -7418,6 +7417,7 @@ impl P {
         })
     }
 
+    #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
         // "For each player, you choose a creature that player controls."
         if self.at_words(&["for", "each", "player"]) && self.peek_at(3) == Some(&Tok::Comma) {

@@ -540,7 +540,30 @@ impl Fmt {
     }
 
     fn recipients(&mut self, rs: &[Recipient], targets: &[Target]) -> String {
-        rs.iter()
+        // "for each player, destroy up to 1 target creature that player
+        // controls": the second target is the first's twin, written once.
+        let twin = |k: usize| match (rs[k], k.checked_sub(1).map(|j| rs[j])) {
+            (Recipient::Target(i), Some(Recipient::Target(p))) => {
+                p + 1 == i
+                    && matches!(targets.get(i).map(Target::base),
+                        Some(Target::Filter(f)) if f.per_player)
+            }
+            _ => false,
+        };
+        let keep: Vec<Recipient> = (0..rs.len())
+            .filter(|k| {
+                if twin(*k) {
+                    if let Recipient::Target(i) = rs[*k] {
+                        self.mentioned[i] = true;
+                    }
+                    false
+                } else {
+                    true
+                }
+            })
+            .map(|k| rs[k])
+            .collect();
+        keep.iter()
             .map(|r| self.recipient(*r, targets))
             .collect::<Vec<_>>()
             .join(" and ")
