@@ -5099,6 +5099,24 @@ fn token_description_plain(
             plural(count, "token")
         );
     }
+    // "a tapped colorless land token named Everywhere that is every basic
+    // land type" (Overlord of the Hauntwoods).
+    if token.types == [CardType::Land]
+        && token.pt.is_none()
+        && token.abilities.is_empty()
+        && token.keywords.is_empty()
+        && token.subtypes.len() == 5
+        && ["Plains", "Island", "Swamp", "Mountain", "Forest"]
+            .iter()
+            .all(|b| token.subtypes.iter().any(|s| s == b))
+    {
+        let shown = token.display_name.as_deref().unwrap_or(&token.name);
+        return format!(
+            "{} {tap}colorless land {} named {shown} that is every basic land type",
+            count_words(count, "a"),
+            plural(count, "token")
+        );
+    }
     let mut words: Vec<String> = Vec::new();
     if tapped {
         words.push("tapped".to_string());
@@ -6023,9 +6041,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::TriggerCounters(mtg_core::card::CounterKind::Any) => {
             ("counter on it".to_string(), "counters on it".to_string())
         }
+        // "the number of +1/+1 counters on him" (Red Hulk, a trigger about
+        // the character itself).
         CountExpr::TriggerCounters(kind) => (
-            format!("{} counter on it", counter_name(*kind)),
-            format!("{} counters on it", counter_name(*kind)),
+            format!("{} counter on {}", counter_name(*kind), it_obj(card)),
+            format!("{} counters on {}", counter_name(*kind), it_obj(card)),
         ),
         // "for each of those creatures".
         CountExpr::Those(t) => {
@@ -6037,8 +6057,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             };
         }
         CountExpr::SourceCounters { kind, it } => {
+            // "the number of +1/+1 counters on him" (Red Hulk).
             let on = if *it {
-                "it".to_string()
+                it_obj(card).to_string()
             } else {
                 this_ref(card)
             };
@@ -11584,7 +11605,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::DiscardUnless { who, count, filter } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
-            let alt = with_article(&cards_phrase(filter, ctx.card, false));
+            // "unless you discard an instant or sorcery card or a creature
+            // card with flying" (Steamcore Scholar): the alternative with
+            // its own article.
+            let alt = match &filter.or {
+                Some(other) if filter.alt_article => {
+                    let mut main = filter.clone();
+                    main.or = None;
+                    main.alt_article = false;
+                    format!(
+                        "{} or {}",
+                        with_article(&cards_phrase(&main, ctx.card, false)),
+                        with_article(&cards_phrase(other, ctx.card, false))
+                    )
+                }
+                _ => with_article(&cards_phrase(filter, ctx.card, false)),
+            };
             match who {
                 None => Clause::imperative(format!("discard {what} unless you discard {alt}")),
                 Some(w) => {
@@ -12791,6 +12827,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "If this spell was kicked, those creatures also gain trample".
             let cond = if kicked {
                 format!("this {} was kicked", kicked_noun(ctx.card))
+            } else if let StaticCond::ManaSpent {
+                kind: mtg_core::card::SpentKind::Total,
+                at_least,
+                that: true,
+            } = c
+                && ctx.card.counts.iter().any(|k| {
+                    k.style == crate::ast::CountStyle::Where
+                        && k.expr == crate::ast::CountExpr::ManaSpent { that: true }
+                })
+            {
+                // "..., where X is the amount of mana spent to cast that
+                // spell. If X is 4 or more, draw a card." (Shantotto): the
+                // X named before.
+                format!("X is {at_least} or more")
             } else if matches!(c, StaticCond::Suspected(_))
                 && !is_spell(ctx.card)
                 && !ctx.source_mentioned
@@ -16179,6 +16229,26 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
 /// or greater" (elsewhere "a creature with power 4 or greater you
 /// control").
 fn trigger_filter_a(f: &Filter, card: &Card) -> String {
+    // "another creature you control or a land you control" (Long Feng):
+    // each alternative with its own article names its controller too.
+    if f.relation == Relation::Other
+        && f.who == Some(Who::You)
+        && f.or
+            .as_ref()
+            .is_some_and(|a| a.who == Some(Who::You) && a.relation == Relation::Any)
+        && let Some(alt) = &f.or
+    {
+        let base = Filter {
+            or: None,
+            alt_article: false,
+            ..f.clone()
+        };
+        return format!(
+            "{} or {}",
+            with_article(&filter_phrase(&base, card, false)),
+            with_article(&filter_phrase(alt, card, false))
+        );
+    }
     let s = controller_first(f, filter_a(f, card));
     if f.and_or {
         return s.replacen(" or ", " and/or ", 1);
@@ -20365,7 +20435,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     if *cond == StaticCond::Kicked {
                         "this spell was kicked".to_string()
                     } else {
-                        static_cond_text(cond, card)
+                        // "Descend 8 — Choose one. If there are eight or
+                        // more permanent cards in your graveyard as you cast
+                        // this spell, choose one or more instead." (Wail of
+                        // the Forgotten): judged as it is cast.
+                        let t = static_cond_text(cond, card);
+                        if t.ends_with(" permanent cards in your graveyard") {
+                            format!("{t} as you cast this spell")
+                        } else {
+                            t
+                        }
                     },
                     if *may { "you may " } else { "" },
                     if *any_number {

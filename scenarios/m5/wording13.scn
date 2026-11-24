@@ -606,3 +606,197 @@ scenario "Survey Mechan: five Plains count once" {
   run_to turn 1 postcombat_main
   assert life B 20
 }
+
+# "this land becomes a 2/1 blue and red Elemental creature with \"During
+# your turn, this creature has first strike.\" It's still a land."
+scenario "Restless Spire: animated with first strike during its controller's turn" {
+  battlefield A: "Restless Spire", "Island", "Mountain"
+  library A: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Restless Spire" ability 2
+  turn 2 A: attack "Restless Spire"
+  run_to turn 2 declare_blockers
+  assert power "Restless Spire" 2
+  assert is "Restless Spire" creature
+  assert is "Restless Spire" land
+  assert is "Restless Spire" elemental
+  assert has "Restless Spire" first_strike
+  run_to turn 2 postcombat_main
+  assert life B 18
+  run_to turn 3 upkeep
+  assert is not "Restless Spire" creature
+}
+
+# "Drakuseth deals 4 damage to any target and 3 damage to each of up to
+# two other targets."
+scenario "Drakuseth: 4 to one target, 3 to each of two others" {
+  battlefield A: "Drakuseth, Maw of Flames"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Drakuseth, Maw of Flames"
+  turn 2 declare_attackers A: trigger "Drakuseth, Maw of Flames" targeting player B, "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert life B 9
+}
+
+scenario "Drakuseth: the other targets can't repeat the first" {
+  battlefield A: "Drakuseth, Maw of Flames"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Drakuseth, Maw of Flames"
+  illegal turn 2 declare_attackers A: trigger "Drakuseth, Maw of Flames" targeting "Hill Giant", "Hill Giant"
+  run_to turn 2 postcombat_main
+}
+
+# "put a +1/+1 counter on him. When you do, he deals damage equal to the
+# number of +1/+1 counters on him to any other target."
+scenario "Red Hulk: dealt damage, a counter, then damage equal to his counters" {
+  battlefield A: "Red Hulk" with 1 +1/+1, "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Red Hulk"
+  turn 1 A: trigger "Red Hulk" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Red Hulk" +1/+1 2
+  assert life B 18
+}
+
+# "If there are eight or more permanent cards in your graveyard as you cast
+# this spell, choose one or more instead."
+scenario "Wail of the Forgotten: descended, two modes" {
+  battlefield A: "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: 8 "Forest"
+  hand A: "Wail of the Forgotten"
+  hand B: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wail of the Forgotten" mode 3 targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert graveyard B contains "Island"
+}
+
+scenario "Wail of the Forgotten: seven permanent cards, one mode only" {
+  battlefield A: "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: 7 "Forest"
+  hand A: "Wail of the Forgotten"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wail of the Forgotten" mode 3 targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+}
+
+# "Whenever another creature you control or a land you control is put into
+# a graveyard from the battlefield, put a +1/+1 counter on target creature
+# you control."
+scenario "Long Feng: a creature and a land of yours going to the graveyard" {
+  battlefield A: "Long Feng, Grand Secretariat", "Grizzly Bears", "Evolving Wilds", "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert counters "Long Feng, Grand Secretariat" +1/+1 2
+}
+
+scenario "Long Feng: an opponent's creature dying does nothing" {
+  battlefield A: "Long Feng, Grand Secretariat", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Long Feng, Grand Secretariat" +1/+1 0
+}
+
+# "Shantotto gets +X/+0 until end of turn, where X is the amount of mana
+# spent to cast that spell. If X is 4 or more, draw a card."
+scenario "Shantotto: four mana spent, +4/+0 and a card" {
+  battlefield A: "Shantotto, Tactician Magician", 4 "Mountain"
+  hand A: "Blaze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blaze" x 3 targeting player B
+  run_to turn 1 begin_combat
+  assert power "Shantotto, Tactician Magician" 4
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Shantotto: three mana spent, no card" {
+  battlefield A: "Shantotto, Tactician Magician", 3 "Island"
+  hand A: "Divination"
+  library A: "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 begin_combat
+  assert power "Shantotto, Tactician Magician" 3
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+# "Then discard two cards unless you discard an instant or sorcery card or
+# a creature card with flying."
+scenario "Steamcore Scholar: an instant discarded alone" {
+  battlefield A: 3 "Island"
+  hand A: "Steamcore Scholar"
+  library A: "Shock", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steamcore Scholar"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert hand A count 1
+}
+
+scenario "Steamcore Scholar: no instant, sorcery, or flier, two cards go" {
+  battlefield A: 3 "Island"
+  hand A: "Steamcore Scholar"
+  library A: "Grizzly Bears", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steamcore Scholar"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 2
+}
+
+# "create a tapped colorless land token named Everywhere that is every
+# basic land type"
+scenario "Overlord of the Hauntwoods: a tapped Everywhere of every basic land type" {
+  battlefield A: 5 "Forest"
+  hand A: "Overlord of the Hauntwoods"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overlord of the Hauntwoods"
+  run_to turn 1 postcombat_main
+  assert tapped "Everywhere"
+  assert is "Everywhere" island
+  assert is "Everywhere" swamp
+  assert is "Everywhere" colorless
+  run_to turn 3 precombat_main
+  assert untapped "Everywhere"
+}
+
+# "distribute two +1/+1 counters among one or two other target Vehicles
+# and/or creatures you control"
+scenario "Cloudspire Skycycle: two counters split between a creature and a Vehicle" {
+  battlefield A: "Grizzly Bears", "Cloudspire Skycycle", "Mountain", 3 "Plains"
+  hand A: "Cloudspire Skycycle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cloudspire Skycycle"
+  turn 1 A: trigger "Cloudspire Skycycle" targeting "Grizzly Bears", oldest "Cloudspire Skycycle" dividing 1, 1
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters oldest "Cloudspire Skycycle" +1/+1 1
+  assert counters newest "Cloudspire Skycycle" +1/+1 0
+}
+
+scenario "Cloudspire Skycycle: not itself" {
+  battlefield A: "Mountain", 3 "Plains"
+  hand A: "Cloudspire Skycycle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cloudspire Skycycle"
+  run_to turn 1 postcombat_main
+  assert counters "Cloudspire Skycycle" +1/+1 0
+}

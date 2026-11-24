@@ -15456,7 +15456,9 @@ impl P {
             || (matches!(self.peek(), Some(Tok::Num(_)))
                 && self.word_at(1).as_deref() == Some("to")
                 && matches!(self.peek_at(2), Some(Tok::Num(_)))
-                && target(3))
+                // "one or two other target Vehicles and/or creatures you
+                // control" (Cloudspire Skycycle): `1 to 2 another target`.
+                && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
     }
 
     /// A variable target group (see `at_many`), declared as one target.

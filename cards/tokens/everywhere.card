@@ -1,0 +1,3 @@
+token "Everywhere" {
+  type Land — Plains Island Swamp Mountain Forest
+}

@@ -1,0 +1,7 @@
+card "Shantotto, Tactician Magician" {
+  oracle_id 381df197-5fb7-44ab-a31f-96c4993a0e53
+  cost {1}{U}{R}
+  type Legendary Creature — Dwarf Wizard
+  pt 0/4
+  triggered whenever you cast noncreature spell: this gets +1/+0 count where mana spent that spell until end of turn; if that spell spent 4 mana, draw 1 card
+}

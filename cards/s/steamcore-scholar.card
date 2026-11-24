@@ -1,0 +1,8 @@
+card "Steamcore Scholar" {
+  oracle_id 0fb9a928-9adb-4dc1-9761-857df7e6c643
+  cost {2}{U}
+  type Creature — Weird Detective
+  pt 2/2
+  keywords flying, vigilance
+  triggered when this enters: draw 2 cards; then discard 2 cards unless you discard instant or sorcery or a creature with flying card
+}

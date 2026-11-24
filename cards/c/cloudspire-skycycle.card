@@ -1,0 +1,9 @@
+card "Cloudspire Skycycle" {
+  oracle_id f7467fce-61e4-401a-8a3d-b0a2bc347088
+  cost {2}{R}{W}
+  type Artifact — Vehicle
+  pt 2/3
+  keywords flying
+  triggered when this enters: distribute 2 +1/+1 counters among 1 to 2 another target andor Vehicle or creature you control
+  crew 1
+}
