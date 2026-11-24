@@ -3956,6 +3956,12 @@ pub enum Trigger {
     DiscardsThis,
     /// `whenever this is dealt 3 or more damage`.
     DealtDamageAtLeast(TriggerObj, u32),
+    /// `whenever this deals 4 or more damage`: one damage event of at
+    /// least that much.
+    DealsDamageAtLeast(TriggerObj, u32),
+    /// `when that creature dies under your control this turn` (a delayed
+    /// trigger about an object).
+    DiesUnderYourControl,
     /// `whenever this is dealt combat damage`.
     DealtCombatDamage(TriggerObj),
     /// `whenever this deals damage to creature`, `... to player`, `... to
@@ -4134,6 +4140,9 @@ pub enum Trigger {
     AttacksWithFilter {
         filter: Filter,
         player: bool,
+        /// `whenever you attack with 2 or more Spider` (0 for "one or
+        /// more").
+        min: u8,
     },
     /// `whenever you gain or lose life`, `... during your turn`.
     GainsOrLosesLife {

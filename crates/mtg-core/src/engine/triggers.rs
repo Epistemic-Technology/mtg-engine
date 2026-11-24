@@ -327,6 +327,7 @@ impl GameState {
                 TriggerSpec::BeginningOfStep { .. }
                     | TriggerSpec::OnNextTurn(_)
                     | TriggerSpec::Dies(TriggerObj::This)
+                    | TriggerSpec::DiesUnderYourControl
                     | TriggerSpec::Leaves(TriggerObj::This)
                     | TriggerSpec::DiesOrExiled(TriggerObj::This)
             ) {
@@ -358,6 +359,10 @@ impl GameState {
             let Some((trigger_obj, trigger_player)) = self.fires(spec, event, &w) else {
                 continue;
             };
+            // "Whenever that creature deals combat damage this turn, you
+            // may exile it": an event with no object of its own (damage to
+            // a player) leaves "it" the object the trigger is about.
+            let trigger_obj = trigger_obj.or(dt.ability.trigger_obj);
             fired.push(PendingTrigger {
                 controller: dt.controller,
                 ability: StackAbility {
@@ -407,6 +412,17 @@ impl GameState {
                     }
                     AbilityDef::Triggered(t) => match &t.trigger {
                         TriggerSpec::Dies(TriggerObj::This) => to == Zone::Graveyard,
+                        // "When it dies under your control this turn": its
+                        // controller as it last existed (CR 603.10a); dying
+                        // under another player's control ends it.
+                        TriggerSpec::DiesUnderYourControl => {
+                            gone = true;
+                            to == Zone::Graveyard
+                                && self
+                                    .lki
+                                    .get(&old)
+                                    .is_some_and(|l| l.object.controller == dt.controller)
+                        }
                         TriggerSpec::Leaves(TriggerObj::This) => true,
                         // CR 701.66a: to a graveyard or exile; leaving for
                         // anywhere else, it is a new object that can never
@@ -1407,8 +1423,10 @@ impl GameState {
             }
             // CR 122.1: "Whenever one or more +1/+1 counters are put on
             // this creature": once per event, however many counters.
+            // `CounterKind::Any`: "Whenever a counter is put on a creature
+            // you control", of any kind.
             (TriggerSpec::CountersPut { what, kind }, Event::CountersAdded { obj, kind: k, .. }) => {
-                if k != kind {
+                if *kind != crate::card::CounterKind::Any && k != kind {
                     return None;
                 }
                 let p = on_battlefield(what, *obj)?;
@@ -1500,6 +1518,31 @@ impl GameState {
             ) if amount >= n => {
                 let p = on_battlefield(what, *obj)?;
                 Some((Some(*obj), Some(p)))
+            }
+            // The source as it last existed, if it has left (CR 603.10a).
+            (
+                TriggerSpec::DealsDamageAtLeast(what, n),
+                Event::Damage {
+                    source,
+                    target,
+                    amount,
+                    ..
+                },
+            ) if amount >= n => {
+                let ok = match what {
+                    TriggerObj::This => *source == w.source,
+                    TriggerObj::Filter(_) => on_battlefield(what, *source).is_some(),
+                };
+                if !ok {
+                    return None;
+                }
+                match target {
+                    Target::Player(p) => Some((None, Some(*p))),
+                    Target::Object(o) => {
+                        let c = self.objects.get(*o).map(|o| o.controller);
+                        Some((Some(*o), c))
+                    }
+                }
             }
             (
                 TriggerSpec::DealsDamage { what, to, combat },
@@ -1989,17 +2032,26 @@ impl GameState {
             // so the first matching attacker (attacking that player)
             // stands for it.
             (
-                TriggerSpec::AttacksWithFilter { filter, player },
+                TriggerSpec::AttacksWithFilter {
+                    filter,
+                    player,
+                    min,
+                },
                 Event::Attack { attacker, target },
             ) => {
                 if self.objects.get(*attacker)?.controller != w.controller {
                     return None;
                 }
                 let c = self.combat.as_ref()?;
-                let first = c.attackers.iter().find(|a| {
+                let qualifies = |a: &&crate::state::Attacker| {
                     (!*player || a.attacking == *target) && matches_now(filter, a.id).is_some()
-                })?;
+                };
+                let first = c.attackers.iter().find(qualifies)?;
                 if first.id != *attacker {
+                    return None;
+                }
+                // "two or more Spiders".
+                if *min > 1 && c.attackers.iter().filter(qualifies).count() < usize::from(*min) {
                     return None;
                 }
                 match (player, target) {

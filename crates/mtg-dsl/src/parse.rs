@@ -12871,30 +12871,43 @@ impl P {
                 let targets_before = self.targets.len();
                 // "When that creature dies this turn, ..." (CR 603.7c).
                 let mut it = false;
-                let this_turn =
-                    if self.at_words(&["when", "that", "creature", "dies", "this", "turn"]) {
-                        self.pos += 6;
-                        Some(Trigger::Dies(TriggerObj::This))
-                    } else if self.at_words(&["when", "it", "dies", "this", "turn"]) {
-                        // "When it dies this turn, manifest dread."
-                        self.pos += 5;
-                        it = true;
-                        Some(Trigger::Dies(TriggerObj::This))
-                    } else if self.at_words(&[
-                        "when",
-                        "that",
-                        "creature",
-                        "leaves",
-                        "the",
-                        "battlefield",
-                        "this",
-                        "turn",
-                    ]) {
-                        self.pos += 8;
-                        Some(Trigger::Leaves(TriggerObj::This))
-                    } else {
-                        None
-                    };
+                let this_turn = if self
+                    .at_words(&["when", "that", "creature", "dies", "this", "turn"])
+                {
+                    self.pos += 6;
+                    Some(Trigger::Dies(TriggerObj::This))
+                } else if self.at_words(&["when", "it", "dies", "this", "turn"]) {
+                    // "When it dies this turn, manifest dread."
+                    self.pos += 5;
+                    it = true;
+                    Some(Trigger::Dies(TriggerObj::This))
+                } else if self.at_words(&[
+                    "when", "that", "creature", "dies", "under", "your", "control", "this", "turn",
+                ]) {
+                    self.pos += 9;
+                    Some(Trigger::DiesUnderYourControl)
+                } else if self.at_words(&[
+                    "when", "it", "dies", "under", "your", "control", "this", "turn",
+                ]) {
+                    // "When it dies under your control this turn, ..."
+                    self.pos += 8;
+                    it = true;
+                    Some(Trigger::DiesUnderYourControl)
+                } else if self.at_words(&[
+                    "when",
+                    "that",
+                    "creature",
+                    "leaves",
+                    "the",
+                    "battlefield",
+                    "this",
+                    "turn",
+                ]) {
+                    self.pos += 8;
+                    Some(Trigger::Leaves(TriggerObj::This))
+                } else {
+                    None
+                };
                 // "Whenever a creature blocks this turn, ...": a delayed
                 // trigger that triggers each time until the turn ends.
                 let mut turn_long = false;
@@ -17066,9 +17079,12 @@ impl P {
         // "you draw your second card each turn".
         if self.at_words(&["you", "draw", "your"])
             || self.at_words(&["an", "opponent", "draws", "their"])
+            || self.at_words(&["a", "player", "draws", "their"])
         {
             let whose = if self.eat_words(&["you", "draw", "your"]) {
                 Who::You
+            } else if self.eat_words(&["a", "player", "draws", "their"]) {
+                Who::Any
             } else {
                 self.pos += 4;
                 Who::Opponents
@@ -17337,6 +17353,24 @@ impl P {
             }
             self.pos = before;
         }
+        // "a counter is put on a creature you control", "one or more
+        // counters are put on ...": of any kind.
+        if self.at_words(&["counter", "put", "on"])
+            || self.at_words(&["one", "or", "more", "counters", "put", "on"])
+        {
+            let each = self.at_word("counter");
+            self.pos += if each { 3 } else { 6 };
+            let obj = if self.eat_word("this") {
+                TriggerObj::This
+            } else {
+                TriggerObj::Filter(self.filter()?)
+            };
+            let t = Trigger::CountersPut {
+                obj,
+                kind: CounterKind::Any,
+            };
+            return Ok(if each { Trigger::Each(Box::new(t)) } else { t });
+        }
         if self.at_words(&["one", "or", "more"]) && matches!(self.peek_at(3), Some(Tok::Pt { .. }))
         {
             self.pos += 3;
@@ -17356,6 +17390,17 @@ impl P {
             return Ok(Trigger::Each(Box::new(Trigger::LeavesGraveyard(
                 Filter::default(),
             ))));
+        }
+        // "a creature card leaves your graveyard": once for each such card.
+        if self.at_word("a") && self.word_at(1).as_deref() != Some("card") {
+            let before = self.pos;
+            self.pos += 1;
+            if let Ok(f) = self.filter()
+                && self.eat_words(&["card", "leaves", "your", "graveyard"])
+            {
+                return Ok(Trigger::Each(Box::new(Trigger::LeavesGraveyard(f))));
+            }
+            self.pos = before;
         }
         // "one or more players discard one or more cards".
         if self.eat_words(&[
@@ -17536,7 +17581,29 @@ impl P {
             if player || self.at_words(&["with", "one", "or", "more"]) {
                 self.expect_words(&["with", "one", "or", "more"])?;
                 let filter = self.filter()?;
-                return Ok(Trigger::AttacksWithFilter { filter, player });
+                return Ok(Trigger::AttacksWithFilter {
+                    filter,
+                    player,
+                    min: 0,
+                });
+            }
+            // "you attack with two or more Spiders": a filter other than
+            // `creatures` after the number.
+            if self.at_word("with")
+                && matches!(self.peek_at(1), Some(Tok::Num(_)))
+                && self.word_at(2).as_deref() == Some("or")
+                && self.word_at(3).as_deref() == Some("more")
+                && self.word_at(4).as_deref() != Some("creatures")
+            {
+                self.pos += 1;
+                let n = self.number()?;
+                self.expect_words(&["or", "more"])?;
+                let filter = self.filter()?;
+                return Ok(Trigger::AttacksWithFilter {
+                    filter,
+                    player: false,
+                    min: u8::try_from(n).unwrap_or(u8::MAX).max(2),
+                });
             }
             let min = if self.eat_word("with") {
                 let n = self.number()?;
@@ -17795,6 +17862,14 @@ impl P {
                 self.block_pair(obj, true, false)
             }
             "blocks" => Ok(Trigger::Blocks(obj)),
+            "deals"
+                if matches!(self.peek(), Some(Tok::Num(_)))
+                    && self.word_at(1).as_deref() == Some("or") =>
+            {
+                let n = self.number()?;
+                self.expect_words(&["or", "more", "damage"])?;
+                Ok(Trigger::DealsDamageAtLeast(obj, n))
+            }
             "deals" => {
                 if self.at_words(&["combat", "damage", "to", "a", "player", "or", "battle"]) {
                     self.pos += 7;

@@ -10228,6 +10228,15 @@ impl GameState {
             Recipient::SameObject => {
                 if let Some(id) = ctx.trigger_obj.filter(|id| self.objects.contains_key(*id)) {
                     out.push(Target::Object(id));
+                } else if let Some(id) = ctx.trigger_obj.and_then(|o| {
+                    // "You may exile it. If you do, return it to the
+                    // battlefield": the card this resolution moved it to
+                    // (CR 400.7 exceptions), not a card it became otherwise.
+                    let log = self.this_way.as_ref()?;
+                    log.moved.iter().find(|m| m.old == o).map(|m| m.new)
+                }) && self.objects.contains_key(id)
+                {
+                    out.push(Target::Object(id));
                 }
             }
             Recipient::CreatedObject => {

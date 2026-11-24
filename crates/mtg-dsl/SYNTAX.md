@@ -538,6 +538,11 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever land card is put into your graveyard from anywhere` | "Whenever a land card is put into your graveyard from anywhere": a card the controller owns, matching as it is in the graveyard (milled, discarded, dying, ...) |
 | `whenever creature enters from your graveyard` | "Whenever a creature enters from your graveyard": a permanent the controller owns entering from their graveyard is "it" |
 | `when this enters from graveyard`, `whenever this or permanent enters from graveyard`, `whenever this or creature enters from your graveyard`, `whenever permanent you control enters from exile` | "When this creature enters from a graveyard" (any player's), "Whenever this creature or another permanent enters from a graveyard", "... enters from your graveyard" (one its controller owns), "Whenever a permanent you control enters from exile": a matching permanent put onto the battlefield from that zone (CR 400.7: returned by undying or persist, reanimated, flickered); one cast from there enters from the stack and doesn't count. It is the triggering object |
+| `whenever a creature card leaves your graveyard` | "Whenever a creature card leaves your graveyard" (Along the Crooked Way): the per-card form of `one or more ... leave your graveyard` with any card filter, once for each matching card, however it leaves |
+| `whenever a player draws their second card each turn` | any player's second card drawn in a turn (King T'Challa); the drawing player is `that player`. `you draw your second card each turn` and `an opponent draws their ...` are the controller's and the opponents' |
+| `whenever you attack with 2 or more Spider` | "Whenever you attack with two or more Spiders": once as you declare attackers if at least that many matching creatures attack (CR 508.1m); `with 3 or more creatures` is the unfiltered form |
+| `whenever this deals 4 or more damage` | "Whenever Spinneret and Spiderling deals 4 or more damage": one damage event of at least that much from the source (as it last existed, if it has left) to one creature, player, or other permanent; damage to different recipients at once doesn't add up. The recipient is `that creature` or `that player` |
+| `whenever counter put on creature you control`, `whenever one or more counters put on creature you control` | "Whenever a counter is put on a creature you control", "Whenever one or more counters are put on ...": counters of any kind put on a matching permanent, by anyone; once per instruction putting counters on it (the first form is the older wording, the same trigger) |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
 | `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; wording only) |
 
@@ -3325,7 +3330,14 @@ battlefield under their owner's control ...", each in turn); in one about `that 
 creature` is the object too. `delayed target 1: when that creature dies
 this turn, <effects>` (and `when that creature leaves the battlefield this
 turn`) triggers once if that object dies (leaves) and ends unfired at the
-cleanup step (CR 603.7c). Every sentence after a trigger-first delayed
+cleanup step (CR 603.7c); `when it dies under your control this turn`
+("When it dies under your control this turn, draw two cards.", Desperate
+Measures) only if its controller as it last existed is the delayed
+trigger's controller. In a delayed trigger about an object, `it` after an
+event with no object of its own ("Whenever that creature deals combat
+damage this turn, you may exile it") is still that object, and after
+`exile it; if you do,` `return it` finds the card this resolution
+exiled. Every sentence after a trigger-first delayed
 trigger is its own; braces close it, so the sentences after them are the
 spell's: `delayed target 1: { when that creature dies this turn, you gain
 3 life }; target creature you control fights that target 1` ("When that

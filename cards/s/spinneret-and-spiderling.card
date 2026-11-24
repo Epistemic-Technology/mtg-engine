@@ -1,0 +1,8 @@
+card "Spinneret and Spiderling" {
+  oracle_id daca1d5e-349d-4e8a-abc7-427dab43fb0c
+  cost {R}
+  type Legendary Creature — Spider Human Hero
+  pt 1/2
+  triggered whenever you attack with 2 or more Spider: put 1 +1/+1 counter on this
+  triggered whenever this deals 4 or more damage: impulse 1 next turn first
+}

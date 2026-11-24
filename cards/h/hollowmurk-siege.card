@@ -1,0 +1,8 @@
+card "Hollowmurk Siege" {
+  oracle_id 31061e34-042e-40c3-99ab-752795ab4324
+  cost {B}{G}
+  type Enchantment
+  as this enters choose "Sultai" or "Abzan"
+  label "Sultai" triggered once each turn whenever counter put on creature you control: draw 1 card
+  label "Abzan" triggered whenever you attack: put 1 +1/+1 counter on target attacking creature; it gains menace until end of turn
+}

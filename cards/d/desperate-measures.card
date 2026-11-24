@@ -1,0 +1,6 @@
+card "Desperate Measures" {
+  oracle_id f1f3df1c-5c51-445a-b66d-eee4aab23691
+  cost {B}
+  type Instant
+  spell: target creature gets +1/-1; delayed target 1: when it dies under your control this turn, draw 2 cards
+}

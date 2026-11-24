@@ -5317,6 +5317,7 @@ pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool) -> String {
     let turn = if in_a_turn { "in a turn" } else { "each turn" };
     match whose {
         Who::Opponents => format!("whenever an opponent draws their {nth} card {turn}"),
+        Who::Any => format!("whenever a player draws their {nth} card {turn}"),
         _ => format!("whenever you draw your {nth} card {turn}"),
     }
 }
@@ -5498,6 +5499,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 kind.map_or(String::new(), |k| format!("{} ", k.name())),
                 trigger_obj(obj)
             ),
+            Trigger::CountersPut {
+                obj,
+                kind: CounterKind::Any,
+            } => format!("whenever counter put on {}", trigger_obj(obj)),
             t => unreachable!("no per-object form of {t:?}"),
         },
         Trigger::State(c) => format!("when {}", static_cond(c)),
@@ -5742,6 +5747,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             trigger_obj(what)
         ),
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
+        Trigger::CountersPut {
+            obj,
+            kind: CounterKind::Any,
+        } => format!("whenever one or more counters put on {}", trigger_obj(obj)),
         Trigger::CountersPut { obj, kind } => format!(
             "whenever one or more {} counters put on {}",
             kind.name(),
@@ -5778,6 +5787,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::DealtDamageAtLeast(o, n) => {
             format!("whenever {} is dealt {n} or more damage", trigger_obj(o))
         }
+        Trigger::DealsDamageAtLeast(o, n) => {
+            format!("whenever {} deals {n} or more damage", trigger_obj(o))
+        }
+        Trigger::DiesUnderYourControl => this_turn_trigger(t).to_string(),
         Trigger::DealtCombatDamage(o) => {
             format!("whenever {} is dealt combat damage", trigger_obj(o))
         }
@@ -5920,9 +5933,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} one or more cards", discards_words(*whose))
         }
         Trigger::SacrificesBatch(f) => format!("whenever you sacrifice one or more {}", filter(f)),
-        Trigger::AttacksWithFilter { filter: f, player } => format!(
-            "whenever you attack{} with one or more {}",
+        Trigger::AttacksWithFilter {
+            filter: f,
+            player,
+            min,
+        } => format!(
+            "whenever you attack{} with {} {}",
             if *player { " a player" } else { "" },
+            if *min > 1 {
+                format!("{min} or more")
+            } else {
+                "one or more".to_string()
+            },
             filter(f)
         ),
         Trigger::GainsOrLosesLife { your_turn } => format!(
@@ -8643,13 +8665,16 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
 pub(crate) fn about_that_creature(t: &Trigger) -> bool {
     matches!(
         t,
-        Trigger::Dies(TriggerObj::This) | Trigger::Leaves(TriggerObj::This)
+        Trigger::Dies(TriggerObj::This)
+            | Trigger::Leaves(TriggerObj::This)
+            | Trigger::DiesUnderYourControl
     )
 }
 
 pub(crate) fn this_turn_trigger(t: &Trigger) -> &'static str {
     match t {
         Trigger::Leaves(_) => "when that creature leaves the battlefield this turn",
+        Trigger::DiesUnderYourControl => "when that creature dies under your control this turn",
         _ => "when that creature dies this turn",
     }
 }

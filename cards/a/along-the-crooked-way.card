@@ -1,0 +1,8 @@
+card "Along the Crooked Way" {
+  oracle_id f4437cb3-85f7-49b5-bb41-6a948549d987
+  cost {2}{B}
+  type Enchantment
+  triggered when this enters: return target creature card from your graveyard to hand
+  triggered whenever a creature card leaves your graveyard: amass Goblins 1
+  activated {1}{B}: each Goblin or Orc you control gains menace until end of turn
+}

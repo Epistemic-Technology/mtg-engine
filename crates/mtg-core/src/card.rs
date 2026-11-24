@@ -7708,6 +7708,16 @@ pub enum TriggerSpec {
     DealtDamageAtLeast(TriggerObj, u32),
     /// "Whenever this creature is dealt combat damage" (CR 510.2).
     DealtCombatDamage(TriggerObj),
+    /// "Whenever Spinneret and Spiderling deals 4 or more damage": one
+    /// damage event of at least that much from a matching source, to any
+    /// one recipient (damage to different recipients doesn't add up). The
+    /// recipient, a permanent or a player, is the triggering object or
+    /// player.
+    DealsDamageAtLeast(TriggerObj, u32),
+    /// "When it dies under your control this turn" (a delayed trigger,
+    /// CR 603.7c): the object it is about dies while its controller, as it
+    /// last existed, is the delayed trigger's controller.
+    DiesUnderYourControl,
     /// "Whenever this creature deals damage to a creature / an opponent /
     /// a player": the damaged creature (or player) is the triggering
     /// object (player); `combat` only for combat damage.
@@ -7909,8 +7919,14 @@ pub enum TriggerSpec {
     /// creature attacks; with `player`, "Whenever you attack a player with
     /// one or more creatures with power 4 or greater", once for each
     /// player a matching creature attacks (that player is the triggering
-    /// player).
-    AttacksWithFilter { filter: ObjFilter, player: bool },
+    /// player). `min` (0 or 1 for "one or more"): "Whenever you attack
+    /// with two or more Spiders", at least that many matching attackers.
+    AttacksWithFilter {
+        filter: ObjFilter,
+        player: bool,
+        #[serde(default)]
+        min: u8,
+    },
     /// "Whenever you gain or lose life" (CR 119.3, 119.9), `your_turn`:
     /// "... during your turn".
     GainsOrLosesLife { your_turn: bool },
@@ -8126,6 +8142,7 @@ impl TriggerSpec {
         match self {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
+            | TriggerSpec::DiesUnderYourControl
             | TriggerSpec::Leaves(_)
             | TriggerSpec::LeavesWithoutDying(_)
             | TriggerSpec::ReturnedToHand(_)
@@ -8163,6 +8180,7 @@ impl TriggerSpec {
             | TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtDamageAtLeast(..)
+            | TriggerSpec::DealsDamageAtLeast(..)
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,

@@ -13399,6 +13399,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                     format!("{} card", card_filter_phrase(f, ctx.card))
                 })
             ),
+            Trigger::CountersPut {
+                obj,
+                kind: CounterKind::Any,
+            } => format!("whenever a counter is put on {}", trigger_subject(obj, ctx)),
             Trigger::YouPutCounters { obj, kind } => format!(
                 "whenever you put {} on {}",
                 with_article(&format!(
@@ -13580,9 +13584,18 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever you sacrifice one or more {}",
             filter_phrase(f, ctx.card, true)
         ),
-        Trigger::AttacksWithFilter { filter: f, player } => format!(
-            "whenever you attack{} with one or more {}",
+        Trigger::AttacksWithFilter {
+            filter: f,
+            player,
+            min,
+        } => format!(
+            "whenever you attack{} with {} {}",
             if *player { " a player" } else { "" },
+            if *min > 1 {
+                format!("{} or more", number_word(u32::from(*min)))
+            } else {
+                "one or more".to_string()
+            },
             controller_first(f, filter_phrase(f, ctx.card, true))
         ),
         Trigger::GainsOrLosesLife { your_turn } => format!(
@@ -14069,6 +14082,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
+        Trigger::CountersPut {
+            obj,
+            kind: CounterKind::Any,
+        } => format!(
+            "whenever one or more counters are put on {}",
+            trigger_subject(obj, ctx)
+        ),
         Trigger::CountersPut { obj, kind } => format!(
             "whenever one or more {} counters are put on {}",
             counter_name(*kind),
@@ -14115,6 +14135,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 trigger_subject(o, ctx)
             )
         }
+        Trigger::DealsDamageAtLeast(o, n) => {
+            format!(
+                "whenever {} deals {n} or more damage",
+                trigger_subject(o, ctx)
+            )
+        }
+        Trigger::DiesUnderYourControl => crate::format::this_turn_trigger(t).to_string(),
         Trigger::DealtCombatDamage(o) => {
             format!(
                 "whenever {} is dealt combat damage",

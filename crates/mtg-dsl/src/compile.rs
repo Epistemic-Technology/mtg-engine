@@ -5456,6 +5456,7 @@ impl Compiler<'_> {
             Trigger::OneOrMoreAttack(f) => TriggerSpec::AttacksWithFilter {
                 filter: self.filter(f),
                 player: false,
+                min: 0,
             },
             Trigger::CreaturesYouControlAttack => TriggerSpec::AttacksWith {
                 this: false,
@@ -5573,6 +5574,10 @@ impl Compiler<'_> {
             Trigger::DealtDamageAtLeast(o, n) => {
                 TriggerSpec::DealtDamageAtLeast(self.trigger_obj(o), *n)
             }
+            Trigger::DealsDamageAtLeast(o, n) => {
+                TriggerSpec::DealsDamageAtLeast(self.trigger_obj(o), *n)
+            }
+            Trigger::DiesUnderYourControl => TriggerSpec::DiesUnderYourControl,
             Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
                 what: self.trigger_obj(obj),
@@ -5661,9 +5666,14 @@ impl Compiler<'_> {
             )),
             Trigger::DiscardsBatch { whose } => TriggerSpec::DiscardsBatch { whose: *whose },
             Trigger::SacrificesBatch(f) => TriggerSpec::SacrificesBatch(self.filter(f)),
-            Trigger::AttacksWithFilter { filter, player } => TriggerSpec::AttacksWithFilter {
+            Trigger::AttacksWithFilter {
+                filter,
+                player,
+                min,
+            } => TriggerSpec::AttacksWithFilter {
                 filter: self.filter(filter),
                 player: *player,
+                min: *min,
             },
             Trigger::GainsOrLosesLife { your_turn } => TriggerSpec::GainsOrLosesLife {
                 your_turn: *your_turn,

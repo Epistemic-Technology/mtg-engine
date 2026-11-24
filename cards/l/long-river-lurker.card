@@ -1,0 +1,9 @@
+card "Long River Lurker" {
+  oracle_id c65c4d01-29da-47e6-993c-a265cf1f198c
+  cost {2}{U}
+  type Creature — Frog Scout
+  pt 2/3
+  ward {1}
+  static other Frog you control: has ward {1}
+  triggered when this enters: target creature you control can't be blocked this turn; delayed target 1: whenever that creature deals combat damage this turn, you may exile it; if you do, return it to battlefield under its owner's control
+}

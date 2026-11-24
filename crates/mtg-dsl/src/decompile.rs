@@ -2487,6 +2487,10 @@ impl Decompiler<'_> {
             TriggerSpec::DealtDamageAtLeast(o, n) => {
                 Trigger::DealtDamageAtLeast(self.trigger_obj(o), *n)
             }
+            TriggerSpec::DealsDamageAtLeast(o, n) => {
+                Trigger::DealsDamageAtLeast(self.trigger_obj(o), *n)
+            }
+            TriggerSpec::DiesUnderYourControl => Trigger::DiesUnderYourControl,
             TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
             TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
                 obj: self.trigger_obj(what),
@@ -2565,9 +2569,14 @@ impl Decompiler<'_> {
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
             TriggerSpec::DiscardsBatch { whose } => Trigger::DiscardsBatch { whose: *whose },
             TriggerSpec::SacrificesBatch(f) => Trigger::SacrificesBatch(self.filter(f)),
-            TriggerSpec::AttacksWithFilter { filter, player } => Trigger::AttacksWithFilter {
+            TriggerSpec::AttacksWithFilter {
+                filter,
+                player,
+                min,
+            } => Trigger::AttacksWithFilter {
                 filter: self.filter(filter),
                 player: *player,
+                min: *min,
             },
             TriggerSpec::GainsOrLosesLife { your_turn } => Trigger::GainsOrLosesLife {
                 your_turn: *your_turn,
