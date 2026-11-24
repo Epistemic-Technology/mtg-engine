@@ -1,0 +1,7 @@
+card "Great Hall of the Biblioplex" {
+  oracle_id a8c70dab-1e27-4a9c-bd2d-910d5720d02d
+  type Land
+  mana {C}
+  activated {T}, pay 1 life: add any only to cast instant or sorcery spell
+  activated {5}: if this isnt creature, this becomes 2/4 Wizard creature with ability { triggered whenever you cast instant or sorcery spell: this gets +1/+0 } indefinitely
+}

@@ -1610,6 +1610,7 @@ impl Decompiler<'_> {
                 loses_abilities: *loses_abilities,
                 in_addition: *in_addition,
                 is_word: false,
+                ability: None,
             },
             CoreEffect::BecomeColor {
                 to,

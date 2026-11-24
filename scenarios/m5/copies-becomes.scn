@@ -226,3 +226,75 @@ scenario "echocasting symposium: only a creature you control can be copied" {
   run_to turn 1 postcombat_main
   assert hand A contains "Echocasting Symposium"
 }
+
+scenario "great hall of the biblioplex: a 2/4 Wizard land creature that grows with each instant" {
+  battlefield A: "Great Hall of the Biblioplex", 5 "Island", "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Great Hall of the Biblioplex" ability 2
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert is "Great Hall of the Biblioplex" creature
+  assert is "Great Hall of the Biblioplex" land
+  assert is "Great Hall of the Biblioplex" Wizard
+  assert power "Great Hall of the Biblioplex" 3
+  assert toughness "Great Hall of the Biblioplex" 4
+  run_to turn 2 precombat_main
+  assert is "Great Hall of the Biblioplex" creature
+  assert power "Great Hall of the Biblioplex" 2
+}
+
+scenario "down in the valley: the Saga gains landfall, then Elves get +1/+0 and vigilance" {
+  battlefield A: "Down in the Valley" with 1 lore
+  hand A: "Forest"
+  start turn 2 A upkeep
+  turn 2 A: play "Forest"
+  run_to turn 2 begin_combat
+  assert battlefield A contains 1 "Elf"
+  run_to turn 4 begin_combat
+  assert power "Elf" 2
+  assert has "Elf" vigilance
+}
+
+scenario "retched wretch: with a -1/-1 counter it returns without abilities" {
+  battlefield A: "Retched Wretch" with 1 -1/-1
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Retched Wretch"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Retched Wretch"
+  assert no_abilities "Retched Wretch"
+  assert power "Retched Wretch" 4
+}
+
+scenario "retched wretch: with no -1/-1 counter it stays dead" {
+  battlefield A: "Retched Wretch"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Retched Wretch"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Retched Wretch"
+}
+
+scenario "the notary hobbits: two nonlegendary token copies, the legend rule leaves all three" {
+  battlefield A: 5 "Forest"
+  hand A: "The Notary Hobbits"
+  turn 1 A: cast "The Notary Hobbits"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "The Notary Hobbits"
+  assert is oldest A "The Notary Hobbits" legendary
+  assert is not newest A "The Notary Hobbits" legendary
+}
+
+scenario "iron man armor: an artifact creature with flying, +1/+1 for each artifact, until end of turn" {
+  battlefield A: "Iron Man Armor", "Darksteel Relic", 2 "Island"
+  turn 1 A: activate "Iron Man Armor" ability 1
+  run_to turn 1 begin_combat
+  assert is "Iron Man Armor" creature
+  assert is "Iron Man Armor" Construct
+  assert has "Iron Man Armor" flying
+  assert power "Iron Man Armor" 2
+  assert toughness "Iron Man Armor" 2
+  run_to turn 2 precombat_main
+  assert is not "Iron Man Armor" creature
+}

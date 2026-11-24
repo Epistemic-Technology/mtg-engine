@@ -8782,6 +8782,7 @@ impl P {
                     loses_abilities,
                     in_addition: true,
                     is_word: true,
+                    ability: None,
                 })
             }
             // "It's an enchantment." (indefinitely, layer 4).
@@ -9132,6 +9133,7 @@ impl P {
                         loses_abilities: true,
                         in_addition: false,
                         is_word: false,
+                        ability: None,
                     });
                 }
                 if !(self.at_word("becomes") || self.at_word("become")) {
@@ -9148,6 +9150,7 @@ impl P {
                         keywords,
                         indefinite,
                         in_addition,
+                        ability,
                         ..
                     } => Ok(Effect::Animate {
                         to,
@@ -9161,6 +9164,7 @@ impl P {
                         loses_abilities: true,
                         in_addition,
                         is_word: false,
+                        ability,
                     }),
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
@@ -10118,13 +10122,25 @@ impl P {
                     base = true;
                 }
                 let mut keywords = Vec::new();
+                let mut ability = None;
                 if self.eat_word("with") {
                     loop {
+                        // `with ability { ... }`, `with flying and ability
+                        // { ... }`: a quoted ability it gains.
+                        if self.at_word("ability") && self.peek_at(1) == Some(&Tok::LBrace) {
+                            self.pos += 1;
+                            ability = Some(Box::new(self.nested_ability()?));
+                            break;
+                        }
                         let Some(k) = self.keyword() else {
                             return self.fail("expected a keyword after `with`");
                         };
                         keywords.push(k);
                         if self.peek() == Some(&Tok::Comma) {
+                            self.pos += 1;
+                        } else if self.at_word("and")
+                            && self.word_at(1).as_deref() == Some("ability")
+                        {
                             self.pos += 1;
                         } else {
                             break;
@@ -10157,6 +10173,7 @@ impl P {
                     loses_abilities: false,
                     in_addition,
                     is_word: false,
+                    ability,
                 })
             }
             // "and you create a 1/1 ... token", "Its controller creates a

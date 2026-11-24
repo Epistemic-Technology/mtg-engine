@@ -4371,6 +4371,7 @@ impl Compiler<'_> {
                 indefinite,
                 loses_abilities,
                 in_addition,
+                ability,
                 ..
             } => {
                 let subtypes = self.subtypes(subtypes);
@@ -4385,6 +4386,24 @@ impl Compiler<'_> {
                     loses_abilities: *loses_abilities,
                     in_addition: *in_addition,
                 });
+                // "becomes a 2/4 Wizard creature with \"...\"": the
+                // ability for as long as the animation lasts (layer 6).
+                if let Some(a) = ability {
+                    let def = self.ability(a)?;
+                    let id = self.pool.register_ability(def);
+                    let grant = CoreEffect::GrantAbility {
+                        ability: id,
+                        to: r(*to),
+                    };
+                    out.push(if *indefinite {
+                        CoreEffect::Lasting {
+                            lasting: mtg_core::card::Lasting::Forever,
+                            effects: vec![grant],
+                        }
+                    } else {
+                        grant
+                    });
+                }
             }
             Effect::BecomeColor {
                 to,
@@ -8402,6 +8421,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     loses_abilities: false,
                     in_addition: false,
                     is_word: false,
+                    ability: None,
                 }),
                 equip: false,
                 cycling: false,

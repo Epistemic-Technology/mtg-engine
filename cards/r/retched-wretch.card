@@ -1,0 +1,7 @@
+card "Retched Wretch" {
+  oracle_id 0d3b6e27-2f8b-42e0-9490-7b134e84bb6b
+  cost {2}{B}
+  type Creature — Goblin
+  pt 4/2
+  triggered when this dies if it had -1/-1 counter: return this to battlefield under its owner's control and it loses all abilities indefinitely
+}

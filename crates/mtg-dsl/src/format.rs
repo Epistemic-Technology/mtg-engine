@@ -3148,6 +3148,7 @@ impl Fmt {
                 loses_abilities,
                 in_addition,
                 is_word,
+                ability,
             } => {
                 // `target 1 is Spirit in addition and has no abilities`.
                 if *is_word {
@@ -3201,6 +3202,13 @@ impl Fmt {
                 }
                 if !ks.is_empty() {
                     words.push(format!("with {}", keywords(ks)));
+                }
+                if let Some(a) = ability {
+                    words.push(format!(
+                        "{} ability {{ {} }}",
+                        if ks.is_empty() { "with" } else { "and" },
+                        nested(a, &self.groups)
+                    ));
                 }
                 if every {
                     words.push(

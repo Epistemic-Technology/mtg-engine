@@ -1,0 +1,9 @@
+card "Iron Man Armor" {
+  oracle_id 958d81c2-ca09-4275-890e-3bb595317325
+  cost {3}
+  type Artifact — Equipment
+  triggered when this enters: attach this to target creature you control
+  static equipped: +2/+1, has flying
+  activated {2}: if this isnt creature, this becomes 0/0 Construct Hero artifact creature with flying and ability { static this: +1/+1 count each artifact you control }
+  equip {2}
+}

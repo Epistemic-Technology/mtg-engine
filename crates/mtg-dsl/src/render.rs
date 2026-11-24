@@ -3204,16 +3204,11 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "non-" qualifier on the first of such types stays with it.
     let one_word_or_non = |s: &str| {
         s.split(" or ").enumerate().all(|(i, w)| {
-            !w.contains(' ')
-                || (i == 0
-                    && w.split(' ').count() == 2
-                    && w.starts_with("non-"))
+            !w.contains(' ') || (i == 0 && w.split(' ').count() == 2 && w.starts_with("non-"))
         })
     };
     if !plural_form
-        && sides
-            .iter()
-            .all(|s| !s.contains(' ') || one_word_or_non(s))
+        && sides.iter().all(|s| !s.contains(' ') || one_word_or_non(s))
         && sides.iter().any(|s| s.contains(" or "))
     {
         sides = sides
@@ -4948,7 +4943,8 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     }
     // "he's a legendary 4/4 Human Villain creature in addition to his
     // other types": the supertype joins the added types.
-    let legendary_joined = x.legendary && !x.exactly && (!x.subtypes.is_empty() || !x.types.is_empty());
+    let legendary_joined =
+        x.legendary && !x.exactly && (!x.subtypes.is_empty() || !x.types.is_empty());
     if x.not_legendary {
         parts.push(
             if x.the_token {
@@ -9270,7 +9266,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             ctx.last_token = Some(key);
             ctx.last_token_tapped = false;
-            let o = ctx.obj(*of);
+            let mut o = ctx.obj(*of);
+            // "create two tokens that are copies of them" (The Notary
+            // Hobbits): a character's pronoun.
+            if matches!(of, Recipient::SourceIt | Recipient::TriggeringIt)
+                && ctx.card.pronoun == Some(crate::ast::Pronoun::They)
+                && o == "it"
+            {
+                o = it_obj(ctx.card).to_string();
+            }
             // "create a token that's a copy of", "create two tokens that are
             // copies of", "Create X tokens that are copies of"; "a tapped
             // [and attacking] token that's a copy of".
@@ -9317,7 +9321,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 },
             };
             if *except {
-                let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
+                let mut x = except_text(ctx.card, ctx.current);
+                // "create two tokens that are copies of them, except the
+                // tokens aren't legendary" (The Notary Hobbits).
+                if *count != Num::N(1) {
+                    x = x.replace("the token isn't", "the tokens aren't");
+                }
+                let _ = write!(text, ", except {x}");
             }
             // "... and that's tapped and attacking" (Flamerush Rider).
             if *trailing {
@@ -11009,6 +11019,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             loses_abilities,
             in_addition,
             is_word,
+            ability,
         } => {
             let s = ctx.subj(*to);
             // "It's a Spirit in addition to its other types", "That
@@ -11119,6 +11130,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let _ = write!(text, " with {}", keywords_list(keywords));
                 }
             }
+            // "a 2/4 Wizard creature with \"Whenever you cast ...\"" (Great
+            // Hall of the Biblioplex), "... with flying and \"This creature
+            // gets ...\"" (Iron Man Armor).
+            if let Some(a) = ability {
+                let q = quoted(a, ctx.card, CardType::Creature, ctx.lookup);
+                let join = if keywords.is_empty() { " with" } else { " and" };
+                let _ = write!(text, "{join} {q}");
+            }
             // "a 3/3 creature with vigilance and all creature types".
             if every {
                 text.push_str(if keywords.is_empty() {
@@ -11166,6 +11185,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     // creature that's still a land" (Lifespark Spellbomb):
                     // with no duration after it.
                     clause.text.push_str(" that's still a land");
+                } else if clause.text.ends_with(".\"") {
+                    // "... with \"... until end of turn.\" It's still a
+                    // land." (Great Hall of the Biblioplex).
+                    clause.tail.push_str(" It's still a land");
                 } else {
                     clause.tail.push_str(". It's still a land");
                 }
@@ -16153,14 +16176,21 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         words.push(if colors.is_empty() {
             "colorless".to_string()
         } else {
-            list(&colors.iter().map(|c| color_name(*c).to_string()).collect::<Vec<_>>())
+            list(
+                &colors
+                    .iter()
+                    .map(|c| color_name(*c).to_string())
+                    .collect::<Vec<_>>(),
+            )
         });
         if let [Mod::SetSubtype(sub)] = rest {
             words.push(sub.clone());
         }
         words.extend(types.iter().map(|t| type_noun(*t).to_string()));
         let ability = quoted(a, card, noun, lookup);
-        let ability = ability.strip_suffix(".\"").map_or(ability.clone(), |q| format!("{q}\""));
+        let ability = ability
+            .strip_suffix(".\"")
+            .map_or(ability.clone(), |q| format!("{q}\""));
         return format!(
             "{subject} is {} with {ability} and loses all other card types and abilities.",
             with_article(&words.join(" "))
@@ -17589,7 +17619,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                     ..Filter::default()
                 }) =>
         {
-            "it's not a token".to_string()
+            // "if they're not a token" (The Notary Hobbits).
+            let its = its_is(card);
+            if its == "they're" {
+                "they're not a token".to_string()
+            } else {
+                "it's not a token".to_string()
+            }
         }
         // "its power is 5 or greater".
         StaticCond::Is(f)

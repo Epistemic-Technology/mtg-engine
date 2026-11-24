@@ -5537,6 +5537,11 @@ pub enum Effect {
         /// flying and is an Angel ...", `and has no abilities` loses them
         /// last). Wording only.
         is_word: bool,
+        /// `this becomes 2/4 Wizard creature with ability { ... }`: "it
+        /// becomes a 2/4 Wizard creature with \"Whenever ...\"" (Great
+        /// Hall of the Biblioplex): it gains the ability for as long as the
+        /// rest lasts (layer 6).
+        ability: Option<Box<Ability>>,
     },
     /// `this becomes blue`, `becomes colorless` (until end of turn).
     BecomeColor {
