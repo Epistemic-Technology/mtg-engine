@@ -7170,9 +7170,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::AsEntersChoose { kind, joined } => {
             let who = if *joined { "it" } else { "this" };
+            let look = if matches!(kind, ChoiceKind::CardName { look: true, .. }) {
+                "look at opponent's hand then "
+            } else {
+                ""
+            };
             let _ = writeln!(
                 out,
-                "{indent}as {who} enters choose {}",
+                "{indent}as {who} enters {look}choose {}",
                 choice_kind(kind, false)
             );
         }
@@ -7857,16 +7862,47 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             );
         }
         Ability::ActivationCost {
-            filter: f,
+            sources,
             by,
+            more,
             min_one,
-            keyword,
+            class,
+            activator,
         } => {
+            use mtg_core::card::{AbilityClass, RulePlayers};
+            let head = match class {
+                AbilityClass::All | AbilityClass::NonMana if activator.is_some() => "abilities",
+                AbilityClass::All | AbilityClass::NonMana => "activated abilities",
+                AbilityClass::Keyword(k) => match k {
+                    mtg_core::card::ActivatedKeyword::Boast => "boast abilities",
+                    mtg_core::card::ActivatedKeyword::Exhaust => "exhaust abilities",
+                    mtg_core::card::ActivatedKeyword::PowerUp => "power-up abilities",
+                    mtg_core::card::ActivatedKeyword::Ninjutsu => "ninjutsu abilities",
+                },
+                AbilityClass::Equip => "equip abilities",
+                AbilityClass::Loyalty => "loyalty abilities",
+            };
+            let who = match activator {
+                Some(RulePlayers::You) => " you activate",
+                Some(_) => " your opponents activate",
+                None => "",
+            };
+            let of = match sources {
+                crate::ast::ActivationSources::Filter(f) => format!(" of {}", filter(f)),
+                crate::ast::ActivationSources::Any => String::new(),
+                crate::ast::ActivationSources::ChosenName => {
+                    " of sources with chosen name".to_string()
+                }
+            };
             let _ = writeln!(
                 out,
-                "{indent}{} abilities of {} cost {{{by}}} less{}",
-                keyword.map_or("activated", activated_keyword_word),
-                filter(f),
+                "{indent}{head}{who}{of} cost {{{by}}} {}{}{}",
+                if *more { "more" } else { "less" },
+                if *class == AbilityClass::NonMana {
+                    " unless mana"
+                } else {
+                    ""
+                },
                 if *min_one { " min one" } else { "" }
             );
         }
@@ -7992,8 +8028,20 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
             .map(|n| format!("\"{n}\""))
             .collect::<Vec<_>>()
             .join(" or "),
-        ChoiceKind::CardName { nonland: false } => "card name".to_string(),
-        ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
+        ChoiceKind::CardName {
+            nonland: false,
+            look: false,
+        } => "card name".to_string(),
+        ChoiceKind::CardName {
+            nonland: true,
+            look: false,
+        } => "nonland card name".to_string(),
+        ChoiceKind::CardName {
+            nonland,
+            look: true,
+        } => {
+            format!("{}card name", if *nonland { "nonland " } else { "" })
+        }
         ChoiceKind::Parity => "odd or even".to_string(),
         ChoiceKind::Number { min, max } => format!("number between {min} and {max}"),
         ChoiceKind::CreatureTypeIn(types) => format!("creature type among {}", types.join(", ")),

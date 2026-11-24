@@ -1,0 +1,7 @@
+card "Collector Ouphe" {
+  oracle_id 0c4bc9ea-a5fd-4f44-96a1-5448eee228c4
+  cost {1}{G}
+  type Creature — Ouphe
+  pt 2/2
+  static artifact: has can't activate
+}

@@ -4846,7 +4846,7 @@ impl GameState {
                 if ab.cost.untap && (!o.tapped || sick) {
                     continue;
                 }
-                let mut req = self.activation_mana(id, ab);
+                let mut req = self.activation_mana(id, ab, p);
                 // A cost that depends on the target: the cheapest target.
                 if self.target_reduces(ab) {
                     req = self.cheapest_target_mana(p, id, ab, req);
@@ -5044,7 +5044,7 @@ impl GameState {
             return Vec::new();
         };
         let n = ab.cost.chosen_count();
-        let req = self.activation_mana(source, ab);
+        let req = self.activation_mana(source, ab, p);
         let mut cands = self.sacrifice_candidates(p, f, source);
         if ab.cost.tap {
             cands.retain(|c| *c != source);
@@ -5130,11 +5130,16 @@ impl GameState {
         }
     }
 
-    /// The mana an activated ability of `source` costs: CR 702.193a, a
-    /// power-up ability of a permanent that entered this turn costs its
-    /// mana cost less (702.193b, 118.7).
-    pub(super) fn activation_mana(&self, source: ObjId, ab: &ActivatedAbility) -> ManaRequirement {
-        self.activation_mana_x(source, ab, 0)
+    /// The mana an activated ability of `source` costs `p`, its
+    /// activator: CR 702.193a, a power-up ability of a permanent that
+    /// entered this turn costs its mana cost less (702.193b, 118.7).
+    pub(super) fn activation_mana(
+        &self,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        p: PlayerId,
+    ) -> ManaRequirement {
+        self.activation_mana_x(source, ab, 0, p)
     }
 
     /// `activation_mana` with X as `x` (CR 107.3); "Spend only black mana
@@ -5144,6 +5149,7 @@ impl GameState {
         source: ObjId,
         ab: &ActivatedAbility,
         x: u32,
+        p: PlayerId,
     ) -> ManaRequirement {
         let mut req = ab.cost.mana.requirements(x);
         if x > 0
@@ -5162,6 +5168,10 @@ impl GameState {
             req.generic -= x;
             req.colored[c as usize] += x;
         }
+        // CR 601.2f (by way of 602.2b): increases first, then reductions.
+        if self.player_static_sources > 0 {
+            self.static_activation_cost(source, ab, p, true, &mut req);
+        }
         if ab.keyword == Some(ActivatedKeyword::PowerUp)
             && let Some(o) = self.objects.get(source)
             && o.zone == Zone::Battlefield
@@ -5173,51 +5183,52 @@ impl GameState {
             self.reduce_activation(source, r, &mut req);
         }
         if self.player_static_sources > 0 {
-            self.static_activation_cost(source, ab, &mut req);
+            self.static_activation_cost(source, ab, p, false, &mut req);
         }
         req
     }
 
     /// "Activated abilities of artifacts you control cost {1} less to
-    /// activate" (`PlayerStaticKind::ActivationCost`; CR 601.2f by way of
-    /// 602.2b): the static abilities of its controller's permanents that
-    /// reduce `ab`, an ability of the permanent `source`.
+    /// activate", "Activated abilities cost {2} more to activate unless
+    /// they're mana abilities" (`PlayerStaticKind::ActivationCost`; CR
+    /// 601.2f by way of 602.2b): the static abilities on the battlefield
+    /// that raise (`more_pass`) or reduce `ab`, an ability of `source`
+    /// activated by `p`.
     #[cold]
     #[inline(never)]
     fn static_activation_cost(
         &self,
         source: ObjId,
         ab: &ActivatedAbility,
+        p: PlayerId,
+        more_pass: bool,
         req: &mut ManaRequirement,
     ) {
+        use crate::card::{AbilitySources, PlayerStaticKind, RulePlayers};
         let Some(obj) = self.objects.get(source) else {
-            return;
-        };
-        if obj.zone != Zone::Battlefield {
-            return;
-        }
-        let p = obj.controller;
-        let Some(chars) = self.characteristics(source) else {
             return;
         };
         for id in &self.battlefield {
             let holder = &self.objects[*id];
-            if holder.controller != p || !self.pool.get(holder.def).flags().has_player_static() {
+            if !self.pool.get(holder.def).flags().has_player_static() {
                 continue;
             }
             for a in &self.pool.get(holder.def).ability_ids {
                 // "You may pay {0} rather than pay the equip cost of the
                 // first equip ability you activate each turn."
                 if let AbilityDef::PlayerStatic {
-                    kind: crate::card::PlayerStaticKind::FirstEquipFree { your_turns },
+                    kind: PlayerStaticKind::FirstEquipFree { your_turns },
                     condition,
                 } = self.pool.ability(*a)
                 {
-                    if ab.is_equip()
-                        && self.tallied(crate::card::TurnEvent::Equipped, p) == 0
-                        && (!*your_turns || self.active_player == p)
-                        && condition
-                            .is_none_or(|i| self.condition_now(self.pool.condition(i), p, *id))
+                    if !more_pass
+                        && holder.controller == obj.controller
+                        && ab.is_equip()
+                        && self.tallied(crate::card::TurnEvent::Equipped, obj.controller) == 0
+                        && (!*your_turns || self.active_player == obj.controller)
+                        && condition.is_none_or(|i| {
+                            self.condition_now(self.pool.condition(i), obj.controller, *id)
+                        })
                     {
                         *req = ManaRequirement::default();
                     }
@@ -5225,28 +5236,50 @@ impl GameState {
                 }
                 let AbilityDef::PlayerStatic {
                     kind:
-                        crate::card::PlayerStaticKind::ActivationCost {
+                        PlayerStaticKind::ActivationCost {
                             sources,
                             by,
+                            more,
                             min_one,
-                            keyword,
+                            class,
+                            activator,
                         },
                     condition,
                 } = self.pool.ability(*a)
                 else {
                     continue;
                 };
-                if keyword.is_some_and(|k| ab.keyword != Some(k))
-                    || !self
-                        .pool
-                        .filter(*sources)
-                        .matches(source, p, &chars, Some(*id), Some(p))
+                let you = holder.controller;
+                if *more != more_pass
+                    || !class.includes(ab)
+                    || match activator {
+                        Some(RulePlayers::You) => p != you,
+                        Some(RulePlayers::Opponents) => p == you,
+                        _ => false,
+                    }
+                    || !match sources {
+                        AbilitySources::Any => true,
+                        // Only permanents' abilities ("of artifacts you
+                        // control").
+                        AbilitySources::Filter(f) => {
+                            self.filter_matches(self.pool.filter(*f), source, *id, you)
+                        }
+                        // CR 201.3: the chosen name, in any zone.
+                        AbilitySources::ChosenName => holder
+                            .chosen
+                            .card_ref()
+                            .is_some_and(|d| self.pool.get(d).name == self.pool.get(obj.def).name),
+                    }
                     || condition
-                        .is_some_and(|i| !self.condition_now(self.pool.condition(i), p, *id))
+                        .is_some_and(|i| !self.condition_now(self.pool.condition(i), you, *id))
                 {
                     continue;
                 }
                 let mut off = u32::from(*by);
+                if *more {
+                    req.generic += off;
+                    continue;
+                }
                 // "This effect can't reduce the mana in that cost to less
                 // than one mana."
                 if *min_one {
@@ -5345,7 +5378,7 @@ impl GameState {
         let AbilityDef::Activated(ab) = self.pool.ability(sa.ability) else {
             return true;
         };
-        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj), o.controller);
         self.reduce_for_target(o.controller, sa.source, ab, t, &mut req);
         let mut sources = self.ability_sources(o.controller, sa.source, ab);
         if ab.cost.tap {
@@ -5709,7 +5742,7 @@ impl GameState {
         (0..=max_x.min(MAX_X))
             .take_while(|x| {
                 let req = match ability {
-                    Some((source, a)) => self.activation_mana_x(source, a, *x),
+                    Some((source, a)) => self.activation_mana_x(source, a, *x, caster),
                     None => self.spell_requirements(spell, *x),
                 };
                 self.payable(
@@ -6352,7 +6385,7 @@ impl GameState {
             sacrifice = None;
         }
         let mut sources = self.ability_sources(controller, sa.source, ab);
-        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj), controller);
         if self.target_reduces(ab)
             && let Some(t) = self.objects[obj].targets.first().copied()
         {
@@ -9198,7 +9231,13 @@ impl GameState {
             ),
             // "choose a card name": the names of the cards in the game, in
             // name order (`choose "Lightning Bolt"` in a scenario).
-            ChoiceKind::CardName { nonland } => {
+            ChoiceKind::CardName { nonland, look } => {
+                if look {
+                    let opp = self.next_player(p);
+                    if opp != p {
+                        self.reveal_hand(opp);
+                    }
+                }
                 let mut seen: Vec<(&str, ObjId, crate::card::CardRef)> = Vec::new();
                 for (id, o) in &self.objects {
                     if o.kind != ObjKind::Card {

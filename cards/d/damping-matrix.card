@@ -1,0 +1,6 @@
+card "Damping Matrix" {
+  oracle_id 10403a8c-2534-421e-8809-5fc019623452
+  cost {3}
+  type Artifact
+  static artifact or creature: has can't activate except mana
+}

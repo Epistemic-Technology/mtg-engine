@@ -3694,8 +3694,22 @@ fn choice_noun(k: &ChoiceKind) -> String {
         ChoiceKind::Parity => "odd or even".to_string(),
         ChoiceKind::Number { min, max } => format!("a number between {min} and {max}"),
         ChoiceKind::CreatureTypeIn(types) => or_list(types),
-        ChoiceKind::CardName { nonland: false } => "a card name".to_string(),
-        ChoiceKind::CardName { nonland: true } => "a nonland card name".to_string(),
+        ChoiceKind::CardName {
+            nonland: false,
+            look: false,
+        } => "a card name".to_string(),
+        ChoiceKind::CardName {
+            nonland: true,
+            look: false,
+        } => "a nonland card name".to_string(),
+        // "look at an opponent's hand, then choose any card name"
+        // (`Ability::AsEntersChoose` prints the look).
+        ChoiceKind::CardName {
+            nonland,
+            look: true,
+        } => {
+            format!("any {}card name", if *nonland { "nonland " } else { "" })
+        }
         ChoiceKind::LandType(lands) => or_list(
             &lands
                 .iter()
@@ -17194,10 +17208,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::AsEntersChoose { kind, joined } => {
             let what = choice_noun(kind);
-            if *joined {
-                format!("As it enters, choose {what}.")
+            let look = if matches!(kind, ChoiceKind::CardName { look: true, .. }) {
+                "look at an opponent's hand, then "
             } else {
-                format!("As {} enters, choose {what}.", this_ref(card))
+                ""
+            };
+            if *joined {
+                format!("As it enters, {look}choose {what}.")
+            } else {
+                format!("As {} enters, {look}choose {what}.", this_ref(card))
             }
         }
         Ability::Mana(m) => {
@@ -18834,20 +18853,56 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // "Activated abilities of artifacts you control cost {1} less to
         // activate."
         Ability::ActivationCost {
-            filter,
+            sources,
             by,
+            more,
             min_one,
-            keyword,
+            class,
+            activator,
         } => {
-            let what = keyword.map_or("Activated", mtg_core::card::ActivatedKeyword::name);
+            use mtg_core::card::{AbilityClass, RulePlayers};
+            let nonmana = *class == AbilityClass::NonMana;
+            let what = match class {
+                AbilityClass::All | AbilityClass::NonMana if activator.is_some() => "Abilities",
+                AbilityClass::All | AbilityClass::NonMana => "Activated abilities",
+                AbilityClass::Keyword(k) => match k {
+                    mtg_core::card::ActivatedKeyword::Boast => "Boast abilities",
+                    mtg_core::card::ActivatedKeyword::Exhaust => "Exhaust abilities",
+                    mtg_core::card::ActivatedKeyword::PowerUp => "Power-up abilities",
+                    mtg_core::card::ActivatedKeyword::Ninjutsu => "Ninjutsu abilities",
+                },
+                AbilityClass::Equip => "Equip abilities",
+                AbilityClass::Loyalty => "Loyalty abilities",
+            };
+            let who = match activator {
+                Some(RulePlayers::You) => " you activate",
+                Some(_) => " your opponents activate",
+                None => "",
+            };
+            let of = match sources {
+                crate::ast::ActivationSources::Filter(f) => {
+                    format!(" of {}", filter_phrase(f, card, true))
+                }
+                crate::ast::ActivationSources::Any => String::new(),
+                crate::ast::ActivationSources::ChosenName => {
+                    " of sources with the chosen name".to_string()
+                }
+            };
+            // "Abilities you activate that aren't mana abilities ...";
+            // otherwise "... to activate unless they're mana abilities."
+            let (pre, post) = match (nonmana, activator) {
+                (false, _) => ("", ""),
+                (true, Some(RulePlayers::You)) => (" that aren't mana abilities", ""),
+                (true, _) => ("", " unless they're mana abilities"),
+            };
             let min = if *min_one {
                 " This effect can't reduce the mana in that cost to less than one mana."
             } else {
                 ""
             };
             format!(
-                "{what} abilities of {} cost {{{by}}} less to activate.{min}",
-                filter_phrase(filter, card, true)
+                "{what}{who}{of}{pre} cost {{{by}}} {} to activate{post}.{min}",
+                if *more { "more" } else { "less" }
             )
         }
         Ability::PlayerStatic { kind, cond } => {

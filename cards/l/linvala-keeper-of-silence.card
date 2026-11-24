@@ -1,0 +1,8 @@
+card "Linvala, Keeper of Silence" {
+  oracle_id 88dadc31-dfac-41b3-bf2a-65fa89e3c16d
+  cost {2}{W}{W}
+  type Legendary Creature — Angel
+  pt 3/4
+  keywords flying
+  static creature your opponents control: has can't activate
+}

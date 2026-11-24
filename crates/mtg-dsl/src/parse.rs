@@ -11,10 +11,10 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, AttachedRef, BlockRule, Card, ChoiceKind, Cost, CostItem, DamageWording,
-    DieRow, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, LibraryPlace,
-    LibraryWording, Mechanic, Mod, Mode, ModeHead, OfChosen, Recipient, Replacement, Replaces,
-    Restrict, SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, ActivationSources, Affects, AttachedRef, BlockRule, Card, ChoiceKind, Cost, CostItem,
+    DamageWording, DieRow, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind,
+    LibraryPlace, LibraryWording, Mechanic, Mod, Mode, ModeHead, OfChosen, Recipient, Replacement,
+    Replaces, Restrict, SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -1004,10 +1004,16 @@ impl P {
         }
         // "choose a card name", "choose a nonland card name".
         if self.eat_words(&["card", "name"]) {
-            return Ok(ChoiceKind::CardName { nonland: false });
+            return Ok(ChoiceKind::CardName {
+                nonland: false,
+                look: false,
+            });
         }
         if self.eat_words(&["nonland", "card", "name"]) {
-            return Ok(ChoiceKind::CardName { nonland: true });
+            return Ok(ChoiceKind::CardName {
+                nonland: true,
+                look: false,
+            });
         }
         // `"Khans" or "Dragons"`.
         if let Some(Tok::Str(_)) = self.peek() {
@@ -2208,6 +2214,54 @@ impl P {
         Ok(Ability::PlayerStatic { kind, cond })
     }
 
+    /// The rest of `<class> abilities [you activate | your opponents
+    /// activate] [of <filter> | of sources with chosen name] cost {N}
+    /// less|more [unless mana] [min one]` (`Ability::ActivationCost`),
+    /// after `abilities`.
+    fn activation_cost(&mut self, class: mtg_core::card::AbilityClass) -> R<Ability> {
+        use mtg_core::card::RulePlayers;
+        let activator = if self.eat_words(&["you", "activate"]) {
+            Some(RulePlayers::You)
+        } else if self.eat_words(&["your", "opponents", "activate"]) {
+            Some(RulePlayers::Opponents)
+        } else {
+            None
+        };
+        let sources = if self.eat_words(&["of", "sources", "with", "chosen", "name"]) {
+            ActivationSources::ChosenName
+        } else if self.eat_word("of") {
+            ActivationSources::Filter(Box::new(self.filter()?))
+        } else {
+            ActivationSources::Any
+        };
+        self.expect_word("cost")?;
+        let by = u8::try_from(self.mana_cost()?.mana_value()).unwrap_or(u8::MAX);
+        let more = if self.eat_word("more") {
+            true
+        } else {
+            self.expect_word("less")?;
+            false
+        };
+        let class = if self.eat_words(&["unless", "mana"]) {
+            if class != mtg_core::card::AbilityClass::All {
+                return self.fail("`unless mana` needs `activated abilities`");
+            }
+            mtg_core::card::AbilityClass::NonMana
+        } else {
+            class
+        };
+        let min_one = self.eat_words(&["min", "one"]);
+        self.end_stmt()?;
+        Ok(Ability::ActivationCost {
+            sources,
+            by,
+            more,
+            min_one,
+            class,
+            activator,
+        })
+    }
+
     #[allow(clippy::too_many_lines)]
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
@@ -2343,31 +2397,38 @@ impl P {
                 };
                 self.player_static(mtg_core::card::PlayerStaticKind::ChosenName(ban))
             }
-            "activated" | "power-up" | "exhaust" | "boast" | "ninjutsu"
+            "activated" | "power-up" | "exhaust" | "boast" | "ninjutsu" | "equip" | "loyalty"
                 if self.word_at(1).as_deref() == Some("abilities")
-                    && self.word_at(2).as_deref() == Some("of") =>
+                    && matches!(
+                        self.word_at(2).as_deref(),
+                        Some("of" | "you" | "your" | "cost")
+                    ) =>
             {
+                use mtg_core::card::AbilityClass as C;
                 use mtg_core::card::ActivatedKeyword as K;
-                let keyword = match w.as_str() {
-                    "power-up" => Some(K::PowerUp),
-                    "exhaust" => Some(K::Exhaust),
-                    "boast" => Some(K::Boast),
-                    "ninjutsu" => Some(K::Ninjutsu),
-                    _ => None,
+                let class = match w.as_str() {
+                    "power-up" => C::Keyword(K::PowerUp),
+                    "exhaust" => C::Keyword(K::Exhaust),
+                    "boast" => C::Keyword(K::Boast),
+                    "ninjutsu" => C::Keyword(K::Ninjutsu),
+                    "equip" => C::Equip,
+                    "loyalty" => C::Loyalty,
+                    _ => C::All,
                 };
-                self.pos += 3;
-                let filter = self.filter()?;
-                self.expect_word("cost")?;
-                let by = u8::try_from(self.mana_cost()?.mana_value()).unwrap_or(u8::MAX);
-                self.expect_word("less")?;
-                let min_one = self.eat_words(&["min", "one"]);
-                self.end_stmt()?;
-                Ok(Ability::ActivationCost {
-                    filter,
-                    by,
-                    min_one,
-                    keyword,
-                })
+                self.pos += 2;
+                self.activation_cost(class)
+            }
+            // "Abilities you activate that aren't mana abilities cost {2}
+            // less to activate." (Zirda)
+            "abilities"
+                if matches!(self.word_at(1).as_deref(), Some("you" | "your"))
+                    && self.word_at(2).as_deref().is_some_and(|w| {
+                        w == "activate"
+                            || (w == "opponents" && self.word_at(3).as_deref() == Some("activate"))
+                    }) =>
+            {
+                self.pos += 1;
+                self.activation_cost(mtg_core::card::AbilityClass::All)
             }
             // "Enchanted creature can't be the target of spells or
             // abilities your opponents control.", "... of spells."
@@ -4004,11 +4065,23 @@ impl P {
                 Ok(Ability::BecomesChoice { forms, in_addition })
             }
             "as" if self.at_words(&["as", "this", "enters", "choose"])
-                || self.at_words(&["as", "it", "enters", "choose"]) =>
+                || self.at_words(&["as", "it", "enters", "choose"])
+                || self.at_words(&["as", "this", "enters", "look", "at", "opponent's"]) =>
             {
                 let joined = self.at_words(&["as", "it"]);
-                self.pos += 4;
-                let kind = self.choice_kind(false)?;
+                self.pos += 3;
+                // "look at an opponent's hand, then choose any card name"
+                // (Sorcerous Spyglass).
+                let look = self.eat_words(&["look", "at", "opponent's", "hand", "then"]);
+                self.expect_word("choose")?;
+                let mut kind = self.choice_kind(false)?;
+                if look {
+                    let ChoiceKind::CardName { look: l, .. } = &mut kind else {
+                        return self
+                            .fail("`look at opponent's hand then` needs `choose card name`");
+                    };
+                    *l = true;
+                }
                 self.end_stmt()?;
                 Ok(Ability::AsEntersChoose { kind, joined })
             }

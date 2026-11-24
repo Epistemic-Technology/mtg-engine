@@ -6334,8 +6334,14 @@ pub enum ChoiceKind {
     /// "choose a card name", "choose a nonland card name" (CR 201.3):
     /// `Chosen::Card`. The names offered are those of the cards in the
     /// game (any zone, either player's), since naming another card has no
-    /// effect on play.
-    CardName { nonland: bool },
+    /// effect on play. With `look`, "look at an opponent's hand, then
+    /// choose any card name" (Sorcerous Spyglass): that hand is revealed
+    /// first.
+    CardName {
+        nonland: bool,
+        #[serde(default)]
+        look: bool,
+    },
     /// One of these creature types ("choose Elemental, Elf, Faerie, Giant,
     /// Goblin, Kithkin, Merfolk, or Treefolk"): the first `len`.
     CreatureTypeIn { types: [Subtype; 8], len: u8 },
@@ -6399,17 +6405,22 @@ pub enum PlayerStaticKind {
     /// 614.17; `GameState::rule_in_force`).
     Rule(RuleKind),
     /// "Activated abilities of artifacts you control cost {1} less to
-    /// activate." (CR 602.2b, 601.2f): the generic mana of the activated
-    /// abilities (of that `keyword`, if any: "Power-up abilities of other
-    /// creatures you control ...") of permanents matching the pooled
-    /// filter `sources` (judged for this source) is reduced by `by`; with
-    /// `min_one`, "This effect can't reduce the mana in that cost to less
-    /// than one mana."
+    /// activate.", "Activated abilities cost {2} more to activate unless
+    /// they're mana abilities.", "Abilities you activate that aren't mana
+    /// abilities cost {2} less to activate." (CR 602.2b, 601.2f): the
+    /// generic mana of the activated abilities of that `class` ("Power-up
+    /// abilities of other creatures you control ...") of the `sources`,
+    /// activated by the `activator` (relative to this source's
+    /// controller; `None`, anyone), is raised (`more`) or reduced by
+    /// `by`; with `min_one`, "This effect can't reduce the mana in that
+    /// cost to less than one mana."
     ActivationCost {
-        sources: u16,
+        sources: AbilitySources,
         by: u8,
+        more: bool,
         min_one: bool,
-        keyword: Option<ActivatedKeyword>,
+        class: AbilityClass,
+        activator: Option<RulePlayers>,
     },
     /// "You may pay {0} rather than pay the equip cost of the first equip
     /// ability you activate each turn" (CR 118.9; `your_turns`: "during
@@ -6453,6 +6464,53 @@ pub enum PlayerStaticKind {
     /// "Permanents your opponents control can't be turned face up during
     /// your turn."
     FaceUpBan(FaceUpBan),
+}
+
+/// Whose activated abilities a `PlayerStaticKind::ActivationCost` changes.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum AbilitySources {
+    /// Those of the permanents matching this pooled filter, judged for
+    /// the static's source ("of artifacts you control", "of enchanted
+    /// creature").
+    Filter(u16),
+    /// Every activated ability, of an object in any zone ("Activated
+    /// abilities cost {2} more ...", "Abilities you activate ...": a
+    /// cycling ability too).
+    Any,
+    /// Those of objects, in any zone, with the name the source chose
+    /// (CR 201.3: "Activated abilities of sources with the chosen name
+    /// cost {2} more to activate.").
+    ChosenName,
+}
+
+/// Which activated abilities a `PlayerStaticKind::ActivationCost`
+/// changes.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum AbilityClass {
+    /// "Activated abilities", "Abilities you activate".
+    All,
+    /// "... unless they're mana abilities", "... that aren't mana
+    /// abilities" (CR 605.1a).
+    NonMana,
+    /// "Power-up abilities", "Ninjutsu abilities you activate".
+    Keyword(ActivatedKeyword),
+    /// "Equip abilities you activate" (CR 702.6a).
+    Equip,
+    /// "Loyalty abilities" (CR 606.3).
+    Loyalty,
+}
+
+impl AbilityClass {
+    /// Whether `ab` is of this class.
+    pub fn includes(self, ab: &ActivatedAbility) -> bool {
+        match self {
+            AbilityClass::All => true,
+            AbilityClass::NonMana => !ab.is_mana_ability(),
+            AbilityClass::Keyword(k) => ab.keyword == Some(k),
+            AbilityClass::Equip => ab.is_equip(),
+            AbilityClass::Loyalty => ab.is_loyalty(),
+        }
+    }
 }
 
 /// Which players a player-level "can't" applies to, relative to the
@@ -8445,6 +8503,12 @@ impl ActivatedAbility {
                 to: Recipient::Target(0),
             })
         ) && self.sorcery_speed
+    }
+
+    /// A loyalty ability (CR 606.3). A "0:" ability has no loyalty in its
+    /// cost and isn't told apart (as with `ActivationKind::Loyalty`).
+    pub fn is_loyalty(&self) -> bool {
+        self.cost.loyalty != 0
     }
 }
 

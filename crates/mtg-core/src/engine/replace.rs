@@ -879,7 +879,7 @@ impl GameState {
     }
 
     /// Whether battlefield object `id` matches `f`, judged for `source`.
-    fn filter_matches(
+    pub(super) fn filter_matches(
         &self,
         f: &ObjFilter,
         id: ObjId,

@@ -1,0 +1,8 @@
+card "Bureau Headmaster" {
+  oracle_id c022b5df-1d85-44c0-94a1-d01b345b845b
+  cost {R}{W}
+  type Creature — Human Assassin
+  pt 2/2
+  spells Equipment you cast cost {1} less
+  equip abilities you activate cost {1} less
+}

@@ -1,0 +1,8 @@
+card "Eidolon of Obstruction" {
+  oracle_id 15d38195-b661-42c1-82c9-1af2a3ba2ea5
+  cost {1}{W}
+  type Enchantment Creature — Spirit
+  pt 2/1
+  keywords first strike
+  loyalty abilities of planeswalker your opponents control cost {1} more
+}

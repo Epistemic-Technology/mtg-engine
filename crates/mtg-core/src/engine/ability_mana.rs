@@ -477,7 +477,7 @@ impl GameState {
         {
             return None;
         }
-        let req = cost.mana.requirements(0);
+        let req = self.activation_mana(id, ab, p);
         if !req.is_plain() || !self.activation_allowed(ab, a, p, id) {
             return None;
         }

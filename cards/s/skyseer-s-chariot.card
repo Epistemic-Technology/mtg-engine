@@ -1,0 +1,10 @@
+card "Skyseer's Chariot" {
+  oracle_id 92d28545-4403-4c24-8547-efab4dde6a53
+  cost {1}{W}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords flying
+  as this enters choose nonland card name
+  activated abilities of sources with chosen name cost {2} more
+  crew 2
+}

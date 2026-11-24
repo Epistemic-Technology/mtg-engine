@@ -1,0 +1,6 @@
+card "Cursed Totem" {
+  oracle_id 6225a704-430a-4f56-ad87-0e8d87f285f5
+  cost {2}
+  type Artifact
+  static creature: has can't activate
+}
