@@ -1,0 +1,9 @@
+card "Chandra Nalaar" {
+  oracle_id f4da7a43-e9d5-47ea-b2f0-3cf55a156f4a
+  cost {3}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 6
+  loyalty +1: deal 1 damage to target player or planeswalker
+  loyalty -X: deal X damage to target creature
+  loyalty -8: deal 10 damage to target player or planeswalker and each creature that player or planeswalker 1 controls
+}

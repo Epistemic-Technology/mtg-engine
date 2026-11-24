@@ -1,0 +1,6 @@
+card "Sanguine Bond" {
+  oracle_id 73089a39-a2f6-4aa2-a058-e6551475153d
+  cost {3}{B}{B}
+  type Enchantment
+  triggered whenever you gain life: target opponent loses that much life
+}

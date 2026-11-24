@@ -1,0 +1,6 @@
+card "Blot Out" {
+  oracle_id 9609cd5c-b537-4cb2-9dde-4b12795531f7
+  cost {2}{B}
+  type Instant
+  spell: target opponent exiles 1 creature or planeswalker with greatest mana value they control
+}

@@ -1,0 +1,7 @@
+card "Cho-Manno, Revolutionary" {
+  oracle_id 91af5e35-b3b8-43ce-b1ea-997ed74e4ad2
+  cost {2}{W}{W}
+  type Legendary Creature — Human Rebel
+  pt 2/2
+  replace damage to this: prevent
+}

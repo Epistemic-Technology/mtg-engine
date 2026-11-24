@@ -1,0 +1,6 @@
+card "Riveteers Ascendancy" {
+  oracle_id 71f3168d-9eeb-4570-8437-a3ffc39667e9
+  cost {B}{R}{G}
+  type Enchantment
+  triggered do once each turn whenever you sacrifice creature: you may return target creature card with lesser mana value from your graveyard to battlefield tapped
+}

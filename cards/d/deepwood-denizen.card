@@ -1,0 +1,8 @@
+card "Deepwood Denizen" {
+  oracle_id 4a6887e3-7a65-4f24-be71-183b00a0ad56
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 3/2
+  keywords vigilance
+  activated {5}{G}, {T}, reduced {1} each +1/+1 counter on creature you control: draw 1 cards
+}
