@@ -4174,6 +4174,11 @@ pub enum Recipient {
     /// creature card from your graveyard. If you do, create a token that's
     /// a copy of that card", God-Pharaoh's Gift).
     CreatedThatCard,
+    /// `that exiled card`: `CreatedThatCard` printed "the exiled card"
+    /// ("Then you may exile an artifact or creature card from your hand.
+    /// If you do, create a token that's a copy of the exiled card", Nexus
+    /// of Becoming); `exiled card` is a linked ability's (CR 607.2a).
+    CreatedExiledCard,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).

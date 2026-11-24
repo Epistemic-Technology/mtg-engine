@@ -6252,6 +6252,12 @@ pub enum ChooseAct {
     Discard,
     /// "exile two creature cards from your graveyard".
     ExileFromGraveyard,
+    /// "exile a card from a graveyard": a card in any graveyard, not
+    /// targeted (Lazav, Familiar Stranger).
+    ExileFromAnyGraveyard,
+    /// "exile an artifact or creature card from your hand" (Nexus of
+    /// Becoming).
+    ExileFromHand,
     /// "exile the top creature card of your graveyard" (CR 404.2: the
     /// most recent matching cards; nothing is chosen).
     ExileTopOfGraveyard,

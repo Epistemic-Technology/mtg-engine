@@ -157,3 +157,113 @@ scenario "clone returned from a graveyard still enters as a copy" {
   assert power A "Serra Angel" 4
   assert has A "Serra Angel" flying
 }
+
+scenario "likeness looter: becomes a copy of a creature card in your graveyard, with flying" {
+  battlefield A: "Likeness Looter", 4 "Island"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Likeness Looter" ability 2 x 4 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A lacks "Likeness Looter"
+  assert graveyard A contains "Hill Giant"
+  assert power A "Hill Giant" 3
+  assert toughness A "Hill Giant" 3
+  assert has A "Hill Giant" flying
+}
+
+scenario "likeness looter: keeps the ability after copying" {
+  battlefield A: "Likeness Looter", 6 "Island"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  turn 1 A: activate "Likeness Looter" ability 2 x 4 targeting "Hill Giant"
+  turn 3 A: activate A "Hill Giant" x 2 targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Hill Giant"
+  assert has A "Grizzly Bears" flying
+}
+
+scenario "lazav, familiar stranger: a crime, a counter, and a copy of an exiled creature card until end of turn" {
+  battlefield A: "Lazav, Familiar Stranger", "Mountain"
+  graveyard B: "Grizzly Bears", "Serra Angel"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: accept "Lazav, Familiar Stranger"
+  turn 1 A: choose "Serra Angel"
+  turn 1 A: accept "Lazav, Familiar Stranger"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 5
+  assert toughness A "Serra Angel" 5
+  assert has A "Serra Angel" flying
+  run_to turn 2 upkeep
+  assert battlefield A contains "Lazav, Familiar Stranger"
+  assert power "Lazav, Familiar Stranger" 2
+  assert toughness "Lazav, Familiar Stranger" 5
+}
+
+scenario "lazav, familiar stranger: a noncreature card exiled, no copy" {
+  battlefield A: "Lazav, Familiar Stranger", "Mountain"
+  graveyard B: "Lightning Bolt"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: accept "Lazav, Familiar Stranger"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Lightning Bolt"
+  assert battlefield A contains "Lazav, Familiar Stranger"
+  assert power "Lazav, Familiar Stranger" 2
+}
+
+scenario "lazav, familiar stranger: triggers only once each turn" {
+  battlefield A: "Lazav, Familiar Stranger", 2 "Mountain"
+  hand A: "Lightning Bolt", "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: decline "Lazav, Familiar Stranger"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert graveyard A contains 2 "Lightning Bolt"
+  assert power "Lazav, Familiar Stranger" 2
+}
+
+scenario "nexus of becoming: draw, then a 3/3 Golem artifact creature copy of a card exiled from hand" {
+  battlefield A: "Nexus of Becoming"
+  hand A: "Darksteel Relic", "Lightning Bolt"
+  library A: "Island"
+  turn 1 A: accept "Nexus of Becoming"
+  run_to turn 1 declare_attackers
+  assert hand A contains "Island"
+  assert hand A contains "Lightning Bolt"
+  assert exile A contains "Darksteel Relic"
+  assert battlefield A contains "Darksteel Relic"
+  assert is A "Darksteel Relic" creature
+  assert is A "Darksteel Relic" artifact
+  assert is A "Darksteel Relic" Golem
+  assert power A "Darksteel Relic" 3
+  assert toughness A "Darksteel Relic" 3
+  assert has A "Darksteel Relic" indestructible
+}
+
+scenario "nexus of becoming: a creature card keeps its types and is an artifact too" {
+  battlefield A: "Nexus of Becoming"
+  hand A: "Serra Angel", "Grizzly Bears"
+  library A: "Island"
+  turn 1 A: accept "Nexus of Becoming"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Serra Angel"
+  assert is A "Serra Angel" Angel
+  assert is A "Serra Angel" Golem
+  assert is A "Serra Angel" artifact
+  assert power A "Serra Angel" 3
+  assert has A "Serra Angel" flying
+}
+
+scenario "nexus of becoming: an instant card can't be exiled" {
+  battlefield A: "Nexus of Becoming"
+  hand A: "Lightning Bolt"
+  library A: "Island"
+  run_to turn 1 declare_attackers
+  assert hand A contains "Lightning Bolt"
+  assert exile A count 0
+}

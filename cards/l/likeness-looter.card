@@ -1,0 +1,13 @@
+card "Likeness Looter" {
+  oracle_id e04560ea-f2bd-4cb7-8f65-3aa0dd58fbdf
+  cost {U}{B}
+  type Creature — Faerie Shapeshifter
+  pt 1/1
+  keywords flying
+  activated {T}: draw 1 card, then discard 1 card
+  activated {X}, sorcery: this becomes a copy of target creature card with mana value X from your graveyard with exceptions
+  except {
+    keywords flying
+    activated {X}, sorcery: this becomes a copy of target creature card with mana value X from your graveyard with exceptions
+  }
+}

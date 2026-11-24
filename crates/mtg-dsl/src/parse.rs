@@ -577,6 +577,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "created", "token"], Recipient::CreatedThatToken),
     (&["that", "created", "land"], Recipient::CreatedThatLand),
     (&["that", "created", "card"], Recipient::CreatedThatCard),
+    (&["that", "exiled", "card"], Recipient::CreatedExiledCard),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
@@ -9682,7 +9683,27 @@ impl P {
                 let graveyard =
                     card_filter(self).is_ok() && self.at_words(&["from", "your", "graveyard"]);
                 self.pos = at;
-                if graveyard || top || with_spell {
+                let any_graveyard = !graveyard
+                    && !top
+                    && !with_spell
+                    && card_filter(self).is_ok()
+                    && self.at_words(&["from", "a", "graveyard"]);
+                self.pos = at;
+                let hand = !graveyard
+                    && !top
+                    && !with_spell
+                    && card_filter(self).is_ok()
+                    && self.at_words(&["from", "your", "hand"]);
+                self.pos = at;
+                if hand {
+                    let f = card_filter(self)?;
+                    self.expect_words(&["from", "your", "hand"])?;
+                    (ChooseAct::ExileFromHand, f)
+                } else if any_graveyard {
+                    let f = card_filter(self)?;
+                    self.expect_words(&["from", "a", "graveyard"])?;
+                    (ChooseAct::ExileFromAnyGraveyard, f)
+                } else if graveyard || top || with_spell {
                     let f = card_filter(self)?;
                     self.expect_words(&["from", "your", "graveyard"])?;
                     if top {

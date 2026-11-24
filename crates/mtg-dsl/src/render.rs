@@ -1975,6 +1975,7 @@ impl<'a> Ctx<'a> {
             Recipient::CreatedThat => "that creature".to_string(),
             Recipient::CreatedThatLand => "that land".to_string(),
             Recipient::CreatedThatCard => "that card".to_string(),
+            Recipient::CreatedExiledCard => "the exiled card".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -8700,7 +8701,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 who,
                 Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
             );
-            let s = if source {
+            // `this creature`: named in full even after a mention ("...
+            // you may have Lazav become a copy of that card").
+            let s = if *who == Recipient::SourceNamed {
+                ctx.source_mentioned = true;
+                ctx.source_name()
+            } else if source {
                 ctx.source_subj()
             } else {
                 ctx.subj(*who)
@@ -8715,6 +8721,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 && o.starts_with("target ")
             {
                 o = format!("a second {o}");
+            }
+            // "a copy of target creature card in your graveyard with mana
+            // value X" (Likeness Looter): a copy doesn't move the card, so
+            // "in", right after "card".
+            if let Some(rest) = o.strip_suffix(" from your graveyard")
+                && let Some((head, tail)) = rest.split_once(" card")
+                && !tail.starts_with('s')
+            {
+                o = format!("{head} card in your graveyard{tail}");
             }
             let mut text = format!("becomes a copy of {o}");
             match until {
@@ -9534,6 +9549,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
                 ChooseAct::ExileFromGraveyard => {
                     format!("exile {} from your graveyard", cards())
+                }
+                ChooseAct::ExileFromHand => {
+                    format!("exile {} from your hand", cards())
+                }
+                ChooseAct::ExileFromAnyGraveyard => {
+                    format!("exile {} from a graveyard", cards())
                 }
                 // CR 404.2: "exile the top creature card of your graveyard".
                 ChooseAct::ExileTopOfGraveyard => {
@@ -11528,14 +11549,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Effect::BecomeCopy {
                         of,
                         except,
-                        who: Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt,
-                        until: mtg_core::card::CopyUntil::Permanent,
+                        who:
+                            who @ (Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt),
+                        until,
                     },
                 ] = one.effects.as_slice()
             {
-                let s = ctx.source();
+                let s = if *who == Recipient::SourceNamed {
+                    ctx.source_name()
+                } else {
+                    ctx.source()
+                };
                 let o = ctx.obj(*of);
-                let mut text = format!("you may have {s} become a copy of {o}");
+                // "... you may have Lazav become a copy of that card until
+                // end of turn".
+                let until = match until {
+                    mtg_core::card::CopyUntil::Permanent => "",
+                    mtg_core::card::CopyUntil::EndOfTurn => " until end of turn",
+                    mtg_core::card::CopyUntil::YourNextTurn => " until your next turn",
+                };
+                let mut text = format!("you may have {s} become a copy of {o}{until}");
                 if *except {
                     let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
                 }

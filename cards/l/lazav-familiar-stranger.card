@@ -1,0 +1,7 @@
+card "Lazav, Familiar Stranger" {
+  oracle_id ca60623a-1a98-4153-a0ee-2f34981de5cb
+  cost {1}{U}{B}
+  type Legendary Creature — Shapeshifter
+  pt 1/4
+  triggered once each turn whenever you commit a crime: put 1 +1/+1 counter on this; then you may exile 1 card from a graveyard chosen; if creature card was exiled this way, you may this creature becomes a copy of that created card until end of turn
+}

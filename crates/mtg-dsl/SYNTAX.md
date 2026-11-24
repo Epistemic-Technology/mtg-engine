@@ -2282,7 +2282,12 @@ turn`, prints "... a copy of a second target artifact you control ...",
 two different artifacts), the permanent getting back what it
 was unless it has become a copy of something else since; a card in a
 graveyard or face up in exile can be copied too, with its printed
-values, CR 707.2), `<what> bites <what>` ("deals damage
+values, CR 707.2: `this becomes a copy of target creature card with mana
+value X from your graveyard` prints "a copy of target creature card in
+your graveyard with mana value X", Likeness Looter; `you may this
+creature becomes a copy of that created card until end of turn` prints
+"you may have Lazav become a copy of that card until end of turn", the
+name in full), `<what> bites <what>` ("deals damage
 equal to its power to"; the creature is the damage's source, so its
 deathtouch, lifelink, infect, and wither apply, and it deals none if
 either target is illegal as the spell resolves), `<what> bites itself`
@@ -3422,6 +3427,12 @@ do` then sees:
   this spell and four cards named Dragon's Approach from your
   graveyard": the cards, then the resolving spell, only if all four can
   be)
+- `exile 1 card from a graveyard chosen` ("exile a card from a
+  graveyard": a card in any graveyard, not targeted, so no crime; Lazav,
+  Familiar Stranger); `exile 1 artifact or creature card from your hand
+  chosen` ("exile an artifact or creature card from your hand", Nexus of
+  Becoming). After either, `that created card` is the card exiled
+  ("that card"), `that exiled card` the same printed "the exiled card"
 - `exile 1 land you control chosen` ("exile a land you control"; `exile 1
   other creature you control chosen`: "exile a creature you control other
   than this creature"): on a card whose other ability says `return

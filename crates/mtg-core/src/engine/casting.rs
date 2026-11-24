@@ -1545,7 +1545,10 @@ impl GameState {
                         && self.status_ok(filter, *id)
                 })
                 .collect(),
-            ChooseAct::Discard | ChooseAct::HandToBottom | ChooseAct::RevealFromHand => self
+            ChooseAct::Discard
+            | ChooseAct::HandToBottom
+            | ChooseAct::RevealFromHand
+            | ChooseAct::ExileFromHand => self
                 .player(p)
                 .hand
                 .iter()
@@ -1562,6 +1565,11 @@ impl GameState {
                 .graveyard
                 .iter()
                 .copied()
+                .filter(|id| card_ok(*id))
+                .collect(),
+            ChooseAct::ExileFromAnyGraveyard => self
+                .players_in_game()
+                .flat_map(|q| self.player(q).graveyard.iter().copied())
                 .filter(|id| card_ok(*id))
                 .collect(),
             // CR 404.2: the most recent matching cards first.
@@ -1755,6 +1763,8 @@ impl GameState {
                     ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
                 ChooseAct::ExileFromGraveyard
+                | ChooseAct::ExileFromAnyGraveyard
+                | ChooseAct::ExileFromHand
                 | ChooseAct::ExileTopOfGraveyard
                 | ChooseAct::ExileWithThisSpell => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));

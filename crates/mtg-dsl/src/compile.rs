@@ -3101,7 +3101,8 @@ impl Compiler<'_> {
             | Recipient::CreatedThat
             | Recipient::CreatedThatToken
             | Recipient::CreatedThatLand
-            | Recipient::CreatedThatCard => CoreRecipient::CreatedObject,
+            | Recipient::CreatedThatCard
+            | Recipient::CreatedExiledCard => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,

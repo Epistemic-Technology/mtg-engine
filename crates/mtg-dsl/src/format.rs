@@ -436,6 +436,7 @@ impl Fmt {
             Recipient::CreatedThatToken => "that created token".to_string(),
             Recipient::CreatedThatLand => "that created land".to_string(),
             Recipient::CreatedThatCard => "that created card".to_string(),
+            Recipient::CreatedExiledCard => "that exiled card".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
@@ -3155,6 +3156,18 @@ impl Fmt {
                     }
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::ExileFromHand if unfiltered => {
+                        format!("exile {n} {cs} from your hand chosen")
+                    }
+                    ChooseAct::ExileFromHand => {
+                        format!("exile {n} {f} {cs} from your hand chosen")
+                    }
+                    ChooseAct::ExileFromAnyGraveyard if unfiltered => {
+                        format!("exile {n} {cs} from a graveyard chosen")
+                    }
+                    ChooseAct::ExileFromAnyGraveyard => {
+                        format!("exile {n} {f} {cs} from a graveyard chosen")
                     }
                     ChooseAct::ExileTopOfGraveyard if unfiltered => {
                         format!("exile top {n} {cs} from your graveyard chosen")
