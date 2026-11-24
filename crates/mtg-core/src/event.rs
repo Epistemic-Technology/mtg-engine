@@ -73,6 +73,11 @@ pub enum Event {
         stage: u8,
     },
     /// A player collected evidence (CR 701.59a).
+    /// A player discovered (CR 701.57), for this value.
+    Discovered {
+        player: PlayerId,
+        value: u32,
+    },
     /// A player gave a gift (CR 702.174: as the spell resolves, or as the
     /// permanent's gift trigger resolves).
     GaveGift {
@@ -449,6 +454,7 @@ impl Event {
             | Event::CollectedEvidence { .. }
             | Event::ManifestedDread { .. }
             | Event::GaveGift { .. }
+            | Event::Discovered { .. }
             | Event::Foraged { .. }
             | Event::ControlChanged { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,

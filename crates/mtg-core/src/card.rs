@@ -6021,7 +6021,7 @@ pub enum Effect {
     Cascade,
     /// Discover N (CR 701.57): like cascade, mana value N or less; the card
     /// is cast free or put into the hand.
-    Discover(u32),
+    Discover(Num),
     /// Exploit (CR 702.110): the controller may sacrifice a creature; if
     /// they do, the source's "when this exploits a creature" triggers.
     Exploit,
@@ -7686,6 +7686,9 @@ pub enum TriggerSpec {
     /// "Whenever you manifest dread" (CR 701.62): the card put into the
     /// graveyard this way, if any, is the triggering object.
     ManifestsDread { whose: Who },
+    /// "Whenever you discover" (CR 701.57): the value discovered is the
+    /// trigger's amount ("discover again for the same value").
+    Discovers { whose: Who },
     /// "Whenever you give a gift" (CR 702.174).
     GivesGift { whose: Who },
     /// "Whenever you solve a Case" (CR 719.3a): a Case the player controls
@@ -8289,6 +8292,7 @@ impl TriggerSpec {
             | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::ManifestsDread { .. }
             | TriggerSpec::GivesGift { .. }
+            | TriggerSpec::Discovers { .. }
             | TriggerSpec::SolvesCase { .. }
             | TriggerSpec::Forages { .. }
             | TriggerSpec::OpponentGainsControl

@@ -1977,6 +1977,7 @@ impl Decompiler<'_> {
                 },
                 face: *face,
             },
+            CoreEffect::Discover(mtg_core::card::Num::ThatMuch) => Effect::DiscoverAgain,
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Soulbond { triggering } => Effect::Soulbond {
                 triggering: *triggering,
@@ -2565,6 +2566,7 @@ impl Decompiler<'_> {
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::ManifestsDread { .. } => Trigger::ManifestsDread,
             TriggerSpec::GivesGift { .. } => Trigger::GivesGift,
+            TriggerSpec::Discovers { .. } => Trigger::Discovers,
             TriggerSpec::SolvesCase { .. } => Trigger::SolvesCase,
             TriggerSpec::Forages { .. } => Trigger::Forages,
             TriggerSpec::CreaturesDealDamage(f) => Trigger::CreaturesDealDamage(self.filter(f)),

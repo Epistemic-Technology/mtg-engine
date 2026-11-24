@@ -4110,6 +4110,8 @@ pub enum Trigger {
     CollectsEvidence,
     /// `whenever you manifest dread` (CR 701.62).
     ManifestsDread,
+    /// `whenever you discover` (CR 701.57).
+    Discovers,
     /// `whenever you give a gift` (CR 702.174).
     GivesGift,
     /// `whenever you solve a Case` (CR 719.3a).
@@ -5974,7 +5976,10 @@ pub enum Effect {
         you: bool,
     },
     /// `discover 4` (CR 701.57).
-    Discover(u32),
+    Discover(Num),
+    /// `discover again`: "discover again for the same value" in a
+    /// "whenever you discover" trigger (the trigger's amount).
+    DiscoverAgain,
     /// Modular's "put its +1/+1 counters on [recipient]" (internal).
     /// Soulbond's pairing (internal; CR 702.95a).
     Soulbond {

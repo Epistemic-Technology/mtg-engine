@@ -1017,7 +1017,8 @@ impl Fmt {
             Effect::Recruit { you: true } => "you recruit".to_string(),
             Effect::Incubate { count, you: false } => format!("incubate {}", num(*count)),
             Effect::Incubate { count, you: true } => format!("you incubate {}", num(*count)),
-            Effect::Discover(n) => format!("discover {n}"),
+            Effect::Discover(n) => format!("discover {}", num(*n)),
+            Effect::DiscoverAgain => "discover again".to_string(),
             Effect::MoveSourceCounters { .. }
             | Effect::CumulativeUpkeep(_)
             | Effect::Soulbond { .. } => {
@@ -5945,6 +5946,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::ManifestsDread => "whenever you manifest dread".to_string(),
         Trigger::GivesGift => "whenever you give a gift".to_string(),
+        Trigger::Discovers => "whenever you discover".to_string(),
         Trigger::SolvesCase => "whenever you solve a Case".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
         Trigger::CreaturesDealCombatDamage(f) => format!(

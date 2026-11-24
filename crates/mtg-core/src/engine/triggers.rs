@@ -48,6 +48,8 @@ impl GameState {
             Event::CountersAdded { n, .. } | Event::CountersRemoved { n, .. } => *n,
             // "you gain that much life" after a player loses or gains life.
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
+            // "discover again for the same value".
+            Event::Discovered { value, .. } => *value,
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
@@ -1381,7 +1383,8 @@ impl GameState {
             | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
-            (TriggerSpec::GivesGift { whose }, Event::GaveGift { player }) => {
+            (TriggerSpec::Discovers { whose }, Event::Discovered { player, .. })
+            | (TriggerSpec::GivesGift { whose }, Event::GaveGift { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
             // CR 719.3a: a Case becomes solved (its second stage).

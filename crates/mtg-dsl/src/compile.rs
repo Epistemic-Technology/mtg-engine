@@ -4969,6 +4969,7 @@ impl Compiler<'_> {
                 });
             }
             Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
+            Effect::DiscoverAgain => out.push(CoreEffect::Discover(Num::ThatMuch)),
             Effect::Soulbond { triggering } => {
                 out.push(CoreEffect::Soulbond {
                     triggering: *triggering,
@@ -5678,6 +5679,7 @@ impl Compiler<'_> {
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
             Trigger::ManifestsDread => TriggerSpec::ManifestsDread { whose: Who::You },
             Trigger::GivesGift => TriggerSpec::GivesGift { whose: Who::You },
+            Trigger::Discovers => TriggerSpec::Discovers { whose: Who::You },
             Trigger::SolvesCase => TriggerSpec::SolvesCase { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
             Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),

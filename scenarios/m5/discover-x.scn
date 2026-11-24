@@ -1,0 +1,30 @@
+# "Discover X, where X is that spell's mana value" and "Whenever you
+# discover, discover again for the same value." (CR 701.57).
+
+scenario "Hurl into History: discover X for the countered spell's mana value" {
+  battlefield A: 3 "Island", 2 "Plains"
+  battlefield B: 2 "Forest"
+  hand A: "Hurl into History"
+  hand B: "Grizzly Bears"
+  library A: "Hill Giant", "Llanowar Elves", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Hurl into History" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Llanowar Elves"
+  assert battlefield A lacks "Hill Giant"
+  assert library A contains "Hill Giant"
+}
+
+scenario "Curator of Sun's Creation: discover again for the same value, once each turn" {
+  battlefield A: "Curator of Sun's Creation", 5 "Forest"
+  graveyard A: "Llanowar Elves"
+  hand A: "Walk with the Ancestors"
+  library A: "Hill Giant", "Grizzly Bears", "Serra Angel", "Wind Drake"
+  turn 1 A: cast "Walk with the Ancestors" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Wind Drake"
+}

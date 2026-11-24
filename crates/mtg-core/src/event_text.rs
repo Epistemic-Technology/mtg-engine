@@ -69,6 +69,9 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         Event::BecameSaddled { obj } => {
             format!("{} becomes saddled.", state.name_of_or_lki(*obj))
         }
+        Event::Discovered { player, value } => {
+            format!("{} discovers {value}.", who(*player, viewer))
+        }
         Event::GaveGift { player } => format!("{} gives a gift.", who(*player, viewer)),
         Event::ManifestedDread { player, .. } => {
             format!("{} manifests dread.", who(*player, viewer))

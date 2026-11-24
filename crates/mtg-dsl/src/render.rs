@@ -5053,6 +5053,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Earthbend { count, .. }
         | Effect::Search { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
+        Effect::Discover(n) => vec![*n],
         Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
@@ -6782,7 +6783,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "you".to_string(),
             format!("incubate {}", digits(*count)),
         ),
-        Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
+        Effect::Discover(n) => Clause::imperative(format!("discover {}", digits(*n))),
+        Effect::DiscoverAgain => {
+            Clause::imperative("discover again for the same value".to_string())
+        }
         Effect::Soulbond { .. } => Clause::imperative("pair them".to_string()),
         Effect::MoveSourceCounters { to } => {
             let o = ctx.obj(*to);
@@ -13606,6 +13610,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::ManifestsDread => "whenever you manifest dread".to_string(),
         Trigger::GivesGift => "whenever you give a gift".to_string(),
+        Trigger::Discovers => "whenever you discover".to_string(),
         Trigger::SolvesCase => "whenever you solve a Case".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
         Trigger::CreaturesDealCombatDamage(f) => format!(

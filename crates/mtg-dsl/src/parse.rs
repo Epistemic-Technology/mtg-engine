@@ -11953,7 +11953,9 @@ impl P {
                 }
                 Ok(Effect::Support(to))
             }
-            "discover" => Ok(Effect::Discover(self.count()?)),
+            "discover" if self.eat_word("again") => Ok(Effect::DiscoverAgain),
+            // "Discover X, where X is that spell's mana value."
+            "discover" => Ok(Effect::Discover(self.num()?)),
             "impulse" => {
                 let count = self.num()?;
                 // `remains`: `forever`, printed "for as long as they remain
@@ -17254,6 +17256,9 @@ impl P {
         if self.eat_words(&["you", "manifest", "dread"]) {
             return Ok(Trigger::ManifestsDread);
         }
+        if self.eat_words(&["you", "discover"]) {
+            return Ok(Trigger::Discovers);
+        }
         if self.eat_words(&["you", "give", "a", "gift"]) {
             return Ok(Trigger::GivesGift);
         }
@@ -19544,6 +19549,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::CollectsEvidence
         | Trigger::ManifestsDread
         | Trigger::GivesGift
+        | Trigger::Discovers
         | Trigger::SolvesCase
         | Trigger::Forages
         | Trigger::CreaturesDealCombatDamage(_)

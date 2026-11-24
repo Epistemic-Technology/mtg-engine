@@ -15968,7 +15968,15 @@ impl GameState {
             }
             Effect::Cascade => self.cascade(ctx, None),
             Effect::Ripple => self.ripple(ctx),
-            Effect::Discover(n) => self.cascade(ctx, Some(*n)),
+            Effect::Discover(n) => {
+                let n = self.eval_num(*n, ctx);
+                self.cascade(ctx, Some(n));
+                // "Whenever you discover" (CR 701.57).
+                self.emit(Event::Discovered {
+                    player: ctx.controller,
+                    value: n,
+                });
+            }
             Effect::Exploit => self.exploit(ctx),
             Effect::MoveSourceCounters { to } => {
                 let n = self
