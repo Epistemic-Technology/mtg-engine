@@ -982,7 +982,15 @@ trample"). `if you controlled target 1, draw 1 card`: "If you controlled
 that permanent, draw a card.", its controller as it last existed (CR
 608.2h); the target's own noun prints ("If you controlled that
 artifact"), and `if you controlled that target 1, ...` prints "that
-permanent" whatever the target is (Kellan, Inquisitive Prodigy). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
+permanent" whatever the target is (Kellan, Inquisitive Prodigy).
+`choose target battle; if an opponent protects target 1, remove 1
+defense counter from target 1; otherwise, put 1 defense counter on
+target 1`: "Choose target battle. If an opponent protects it, remove a
+defense counter from it. Otherwise, put a defense counter on it."
+(Portent Tracker); `if you protect target 1, ...` prints "If you protect
+it". The battle's protector (CR 310.8; a Siege's is its controller's
+opponent) is judged from the ability's controller as it resolves; a
+target no longer on the battlefield matches neither. `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
 unless opponent life 10 or less` prints "you lose 1 life unless an
 opponent has 10 or less life": the clause happens only if the condition
 doesn't hold as it resolves; `you lose 2 life unless you control Villain`

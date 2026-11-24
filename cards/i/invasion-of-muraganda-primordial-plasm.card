@@ -1,0 +1,14 @@
+card "Invasion of Muraganda // Primordial Plasm" {
+  oracle_id 2e0d12dc-55fa-4363-b28f-612e7cfa12c6
+  layout transform
+  cost {4}{G}
+  type Battle — Siege
+  defense 6
+  triggered when this enters: put 1 +1/+1 counter on target creature you control; then that target 1 fights up to one target creature you don't control
+  face "Primordial Plasm" {
+    type Creature — Ooze
+    pt 4/4
+    color green
+    triggered at beginning of your combat: another target creature gets +2/+2 and loses all abilities until end of turn
+  }
+}

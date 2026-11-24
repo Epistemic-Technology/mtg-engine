@@ -7183,6 +7183,30 @@ impl P {
                 },
             ));
         }
+        // `if an opponent protects target 1, ...`, `if you protect target
+        // 1, ...`: "If an opponent protects it" (CR 310.8, Portent
+        // Tracker).
+        let opp = self.at_words(&["if", "an", "opponent", "protects", "target"]);
+        if opp || self.at_words(&["if", "you", "protect", "target"]) {
+            self.pos += if opp { 5 } else { 4 };
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                n - 1,
+                Filter::protected_by(if opp { Who::Opponents } else { Who::You }),
+                vec![s],
+                crate::ast::TargetCheck {
+                    tense: crate::ast::TargetTense::Is,
+                    ..crate::ast::TargetCheck::default()
+                },
+            ));
+        }
         let permanent = self.at_words(&["if", "you", "controlled", "that", "target"]);
         if permanent || self.at_words(&["if", "you", "controlled", "target"]) {
             self.pos += if permanent { 5 } else { 4 };

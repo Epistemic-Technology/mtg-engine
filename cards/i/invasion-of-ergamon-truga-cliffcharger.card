@@ -1,0 +1,15 @@
+card "Invasion of Ergamon // Truga Cliffcharger" {
+  oracle_id fe84933e-d98f-4cbc-b272-387a80894e31
+  layout transform
+  cost {R}{G}
+  type Battle — Siege
+  defense 5
+  triggered when this enters: create 1 "Treasure"; then you may discard 1 card; if you do, draw 1 card
+  face "Truga Cliffcharger" {
+    type Creature — Rhino
+    pt 3/4
+    color red green
+    keywords trample
+    triggered when this enters: you may discard 1 card; if you do, search land or battle card reveal to hand
+  }
+}

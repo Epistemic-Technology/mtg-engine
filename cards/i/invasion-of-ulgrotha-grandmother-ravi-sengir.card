@@ -1,0 +1,15 @@
+card "Invasion of Ulgrotha // Grandmother Ravi Sengir" {
+  oracle_id f1acb469-9d02-44e6-8c09-8b4157551b2c
+  layout transform
+  cost {4}{B}
+  type Battle — Siege
+  defense 5
+  triggered when this enters: deal 3 damage to any other target and you gain 3 life
+  face "Grandmother Ravi Sengir" {
+    type Legendary Creature — Human Wizard
+    pt 3/3
+    color black
+    keywords flying
+    triggered whenever a creature an opponent controls dies: put 1 +1/+1 counter on this and you gain 1 life
+  }
+}

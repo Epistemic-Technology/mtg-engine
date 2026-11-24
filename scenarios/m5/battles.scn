@@ -1,0 +1,259 @@
+# M5: battles (CR 310): "If an opponent protects it" (CR 310.8), and
+# Sieges whose faces the card language covers.
+
+scenario "protects: Portent Tracker removes a counter from a Siege an opponent protects" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Portent Tracker"
+  turn 1 A: activate "Portent Tracker" ability 2 targeting "Invasion of Dominaria"
+  run_to turn 1 end
+  assert counters "Invasion of Dominaria" defense 4
+}
+
+scenario "protects: Portent Tracker adds a counter to a Siege you protect" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: "Portent Tracker"
+  start turn 2 B
+  turn 2 B: activate "Portent Tracker" ability 2 targeting "Invasion of Dominaria"
+  run_to turn 2 end
+  assert counters "Invasion of Dominaria" defense 6
+}
+
+scenario "protects: Portent Tracker only as a sorcery" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Portent Tracker"
+  illegal turn 1 upkeep A: activate "Portent Tracker" ability 2 targeting "Invasion of Dominaria"
+  run_to turn 1 end
+  assert counters "Invasion of Dominaria" defense 5
+}
+
+scenario "protects: Portent Tracker targets only a battle" {
+  battlefield A: "Portent Tracker", "Grizzly Bears"
+  illegal turn 1 A: activate "Portent Tracker" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "protects: removing the last defense counter defeats the Siege" {
+  battlefield A: "Invasion of Dominaria" with 1 defense, "Portent Tracker"
+  turn 1 A: activate "Portent Tracker" ability 2 targeting "Invasion of Dominaria"
+  run_to turn 1 end
+  assert battlefield A lacks "Invasion of Dominaria"
+  assert battlefield A contains "Serra Faithkeeper"
+}
+
+scenario "protects: Portent Tracker's first ability untaps a land" {
+  battlefield A: "Portent Tracker", "Forest" tapped
+  turn 1 A: activate "Portent Tracker" ability 1 targeting "Forest"
+  run_to turn 1 end
+  assert untapped "Forest"
+}
+
+scenario "protects: Etched Host Doombringer removes three from a Siege an opponent protects" {
+  battlefield A: 5 "Swamp", "Invasion of Dominaria" with 5 defense
+  hand A: "Etched Host Doombringer"
+  turn 1 A: cast "Etched Host Doombringer"
+  turn 1 A: trigger "Etched Host Doombringer" mode 2 targeting "Invasion of Dominaria"
+  run_to turn 1 end
+  assert counters "Invasion of Dominaria" defense 2
+}
+
+scenario "protects: Etched Host Doombringer adds three to a Siege you protect" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: 5 "Swamp"
+  hand B: "Etched Host Doombringer"
+  start turn 2 B
+  turn 2 B: cast "Etched Host Doombringer"
+  turn 2 B: trigger "Etched Host Doombringer" mode 2 targeting "Invasion of Dominaria"
+  run_to turn 2 end
+  assert counters "Invasion of Dominaria" defense 8
+}
+
+scenario "protects: Etched Host Doombringer drains" {
+  battlefield A: 5 "Swamp"
+  hand A: "Etched Host Doombringer"
+  turn 1 A: cast "Etched Host Doombringer"
+  turn 1 A: trigger "Etched Host Doombringer" mode 1 targeting player B
+  run_to turn 1 end
+  assert life A 22
+  assert life B 18
+}
+
+scenario "Siege: Invasion of Ulgrotha deals 3 and gains 3" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Invasion of Ulgrotha"
+  turn 1 A: cast "Invasion of Ulgrotha"
+  turn 1 A: trigger "Invasion of Ulgrotha" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+  assert counters "Invasion of Ulgrotha" defense 5
+}
+
+scenario "Siege: Invasion of Ulgrotha can't target itself" {
+  battlefield A: 5 "Swamp"
+  hand A: "Invasion of Ulgrotha"
+  turn 1 A: cast "Invasion of Ulgrotha"
+  illegal turn 1 A: trigger "Invasion of Ulgrotha" targeting "Invasion of Ulgrotha"
+  turn 1 A: trigger "Invasion of Ulgrotha" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert counters "Invasion of Ulgrotha" defense 5
+}
+
+scenario "Siege: Grandmother Ravi Sengir grows when an opponent's creature dies" {
+  battlefield A: "Invasion of Ulgrotha" with 2 defense, "Hill Giant", "Mountain"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Lightning Bolt", "Shock"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Ulgrotha"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grandmother Ravi Sengir"
+  assert has "Grandmother Ravi Sengir" flying
+  turn 3 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 3 end
+  assert counters "Grandmother Ravi Sengir" +1/+1 1
+  assert life A 21
+}
+
+scenario "Siege: Grandmother Ravi Sengir ignores your own creatures" {
+  battlefield A: "Invasion of Ulgrotha" with 2 defense, "Hill Giant", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Ulgrotha"
+  run_to turn 3 postcombat_main
+  turn 3 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 3 end
+  assert counters "Grandmother Ravi Sengir" +1/+1 0
+  assert life A 20
+}
+
+scenario "Siege: Invasion of Kamigawa taps and stuns" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Invasion of Kamigawa"
+  library B: 10 "Island"
+  turn 1 A: cast "Invasion of Kamigawa"
+  turn 1 A: trigger "Invasion of Kamigawa" targeting "Hill Giant"
+  run_to turn 2 draw
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}
+
+scenario "Siege: Invasion of Kamigawa refuses your own creature" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Invasion of Kamigawa"
+  turn 1 A: cast "Invasion of Kamigawa"
+  illegal turn 1 A: trigger "Invasion of Kamigawa" targeting "Grizzly Bears"
+  turn 1 A: trigger "Invasion of Kamigawa" targeting "Hill Giant"
+  run_to turn 1 end
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Siege: Rooftop Saboteurs draws on combat damage to a battle" {
+  battlefield A: "Invasion of Kamigawa" with 2 defense, "Hill Giant", "Invasion of Dominaria" with 9 defense
+  library A: 10 "Island"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Kamigawa"
+  run_to turn 5 declare_attackers
+  turn 5 A: attack "Rooftop Saboteurs" at "Invasion of Dominaria"
+  run_to turn 5 postcombat_main
+  assert counters "Invasion of Dominaria" defense 7
+  assert hand A count 3
+}
+
+scenario "Siege: Invasion of Innistrad shrinks with flash" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Invasion of Innistrad"
+  start turn 2 B
+  turn 2 upkeep A: cast "Invasion of Innistrad"
+  turn 2 upkeep A: trigger "Invasion of Innistrad" targeting "Hill Giant"
+  run_to turn 2 draw
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Invasion of Innistrad"
+}
+
+scenario "Siege: Deluge of the Dead makes Zombies and exiles cards" {
+  battlefield A: "Invasion of Innistrad" with 2 defense, "Hill Giant", 3 "Swamp"
+  graveyard B: "Grizzly Bears", "Lightning Bolt"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Innistrad"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Deluge of the Dead"
+  assert battlefield A contains 2 "Zombie"
+  turn 3 postcombat_main A: activate "Deluge of the Dead" targeting "Grizzly Bears"
+  run_to turn 3 end
+  assert exile B contains "Grizzly Bears"
+  assert battlefield A contains 3 "Zombie"
+}
+
+scenario "Siege: Deluge of the Dead makes no Zombie for a noncreature card" {
+  battlefield A: "Invasion of Innistrad" with 2 defense, "Hill Giant", 3 "Swamp"
+  graveyard B: "Lightning Bolt"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Innistrad"
+  run_to turn 3 postcombat_main
+  turn 3 postcombat_main A: activate "Deluge of the Dead" targeting "Lightning Bolt"
+  run_to turn 3 end
+  assert exile B contains "Lightning Bolt"
+  assert battlefield A contains 2 "Zombie"
+}
+
+scenario "Siege: Invasion of Muraganda counters then fights" {
+  battlefield A: 5 "Forest", "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Invasion of Muraganda"
+  turn 1 A: cast "Invasion of Muraganda"
+  turn 1 A: trigger "Invasion of Muraganda" targeting "Serra Angel", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Serra Angel" +1/+1 1
+  assert damage "Serra Angel" 3
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Siege: Invasion of Muraganda's fight is optional" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Invasion of Muraganda"
+  turn 1 A: cast "Invasion of Muraganda"
+  turn 1 A: trigger "Invasion of Muraganda" targeting "Grizzly Bears", none
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Siege: Primordial Plasm pumps another creature and strips it" {
+  battlefield A: "Invasion of Muraganda" with 2 defense, "Hill Giant", "Serra Angel"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Muraganda"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Primordial Plasm"
+  turn 5 begin_combat A: trigger "Primordial Plasm" targeting "Serra Angel"
+  run_to turn 5 declare_attackers
+  assert power "Serra Angel" 6
+  assert has not "Serra Angel" flying
+}
+
+scenario "Siege: Invasion of Ergamon makes a Treasure and loots" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Invasion of Ergamon", "Island"
+  library A: 10 "Plains"
+  turn 1 A: cast "Invasion of Ergamon"
+  turn 1 A: accept "Invasion of Ergamon"
+  run_to turn 1 end
+  assert battlefield A contains "Treasure"
+  assert graveyard A contains "Island"
+  assert hand A contains "Plains"
+}
+
+scenario "Siege: Truga Cliffcharger finds a battle card" {
+  battlefield A: "Invasion of Ergamon" with 2 defense, "Hill Giant"
+  hand A: "Island"
+  library A: "Grizzly Bears", "Invasion of Dominaria", 4 "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Ergamon"
+  turn 3 A: accept "Truga Cliffcharger"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Truga Cliffcharger"
+  assert hand A contains "Invasion of Dominaria"
+  assert graveyard A contains "Island"
+}
