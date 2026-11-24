@@ -6112,6 +6112,10 @@ impl Compiler<'_> {
                 step: mtg_core::turn::Step::End,
                 whose: Who::Any,
             },
+            Trigger::NextUpkeep => TriggerSpec::BeginningOfStep {
+                step: mtg_core::turn::Step::Upkeep,
+                whose: Who::Any,
+            },
             Trigger::BeginningOfStep { step, whose } => TriggerSpec::BeginningOfStep {
                 step: *step,
                 whose: *whose,

@@ -15785,6 +15785,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             step_name(*step, Who::You).trim_start_matches("your "),
             enchanted_noun(ctx.card)
         ),
+        Trigger::NextUpkeep => "at the beginning of the next upkeep".to_string(),
         Trigger::BeginningOfStep { step, whose } => {
             if next && *step == Step::Upkeep && *whose == Who::Any {
                 "at the beginning of the next turn's upkeep".to_string()

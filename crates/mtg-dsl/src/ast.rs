@@ -4210,6 +4210,10 @@ pub enum Trigger {
         step: Step,
         whose: Who,
     },
+    /// `at beginning of next upkeep`: a delayed trigger's "at the beginning
+    /// of the next upkeep" (Aang, at the Crossroads), the same as `at
+    /// beginning of the next turn's upkeep` printed without "turn's".
+    NextUpkeep,
     /// `at beginning of enchanted controller's upkeep`: "At the beginning
     /// of the upkeep of enchanted creature's controller".
     AttachedStep(Step),

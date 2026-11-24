@@ -18852,6 +18852,10 @@ impl P {
                 self.eat_word("step");
                 return Ok(Trigger::EachPlayersEndStep);
             }
+            // `next upkeep`: "at the beginning of the next upkeep".
+            if self.eat_words(&["next", "upkeep"]) {
+                return Ok(Trigger::NextUpkeep);
+            }
             let whose = if self.eat_word("your") {
                 // "your next upkeep" (a delayed trigger).
                 self.eat_word("next");
@@ -21701,6 +21705,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::EveryStep(_)
         | Trigger::EachPlayersEndStep
         | Trigger::BeginningOfStep { .. }
+        | Trigger::NextUpkeep
         | Trigger::CreaturesYouControlAttack
         | Trigger::OpponentCreaturesAttack(_)
         | Trigger::ThisToGraveyard

@@ -1,0 +1,39 @@
+# A delayed trigger made by a leaves-the-battlefield trigger (fourteenth
+# wave): "transform Aang at the beginning of the next upkeep".
+
+scenario "Aang, at the Crossroads: entering puts a creature with mana value 4 or less onto the battlefield" {
+  battlefield A: "Forest", "Plains", "Island", 2 "Mountain"
+  hand A: "Aang, at the Crossroads"
+  library A: "Hill Giant", "Serra Angel", "Grizzly Bears", 3 "Island"
+  turn 1 A: cast "Aang, at the Crossroads"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A lacks "Serra Angel"
+}
+
+scenario "Aang, at the Crossroads: another creature leaving transforms it at the next upkeep" {
+  battlefield A: "Aang, at the Crossroads", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 3 begin_combat A: trigger "Aang, Destined Savior" targeting "Mountain"
+  run_to turn 1 end
+  assert battlefield A contains "Aang, at the Crossroads"
+  run_to turn 2 draw
+  assert battlefield A contains "Aang, Destined Savior"
+  assert power "Aang, Destined Savior" 4
+  run_to turn 3 declare_attackers
+  assert is "Mountain" creature
+  assert power "Mountain" 2
+  assert has "Mountain" vigilance
+}
+
+scenario "Aang, at the Crossroads: an opponent's creature leaving doesn't transform it" {
+  battlefield A: "Aang, at the Crossroads", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 draw
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Aang, at the Crossroads"
+}

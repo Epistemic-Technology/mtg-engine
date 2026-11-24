@@ -5979,6 +5979,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
+            | Trigger::NextUpkeep
             | Trigger::OnNextTurn(_)
             | Trigger::AttachedStep(_)
             | Trigger::State(_)
@@ -6161,6 +6162,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             step: Step::EndOfCombat,
             ..
         } => "at end of combat".to_string(),
+        Trigger::NextUpkeep => "at beginning of next upkeep".to_string(),
         Trigger::BeginningOfStep { step, whose } => {
             let whose = match whose {
                 Who::You if next => "your next",
