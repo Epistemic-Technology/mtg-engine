@@ -6641,6 +6641,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*who);
             Clause::with_subject(*who, s, "manifests dread".to_string())
         }
+        Effect::Behold { filter, n } => {
+            let what = if *n == 1 {
+                filter_a(filter, ctx.card)
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(Num::N(*n), "one"),
+                    filter_phrase(filter, ctx.card, true)
+                )
+            };
+            Clause::imperative(format!("behold {what}"))
+        }
         Effect::DreadCardToHand => Clause::imperative(
             "put a card you put into your graveyard this way into your hand".to_string(),
         ),
@@ -11077,7 +11089,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 });
             }
             if *in_addition {
-                let their = if plural { "their" } else { "its" };
+                // "Sarkhan becomes a Dragon in addition to his other types".
+                let their = if plural {
+                    "their"
+                } else if matches!(to, Recipient::Source | Recipient::SourceNamed) {
+                    its_poss(ctx.card)
+                } else {
+                    "its"
+                };
                 let what = if colors.is_empty() {
                     "types"
                 } else {
@@ -19443,7 +19462,18 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         ),
         // "As this land enters, you may reveal a Mountain or Forest card
         // from your hand. If you don't, this land enters tapped."
-        Ability::EntersTappedUnlessReveal { filter, or } => {
+        Ability::EntersTappedUnlessReveal {
+            filter,
+            behold: true,
+            ..
+        } => {
+            let this = this_ref(card);
+            format!(
+                "As {this} enters, you may behold {}. If you don't, {this} enters tapped.",
+                filter_a(filter, card)
+            )
+        }
+        Ability::EntersTappedUnlessReveal { filter, or, .. } => {
             let this = this_ref(card);
             let what = with_article(&cards_phrase(filter, card, false));
             let rest = match or {

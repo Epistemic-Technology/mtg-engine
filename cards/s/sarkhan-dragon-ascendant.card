@@ -1,0 +1,9 @@
+card "Sarkhan, Dragon Ascendant" {
+  oracle_id 71cb48e2-2328-471c-a04a-7b6461f378f4
+  cost {1}{R}
+  type Legendary Creature — Human Druid
+  pt 2/2
+  pronoun he
+  triggered when this enters: you may behold Dragon; if you do, create 1 "Treasure"
+  triggered whenever Dragon you control enters: put 1 +1/+1 counter on this; until end of turn, this creature becomes Dragon in addition and gains flying
+}

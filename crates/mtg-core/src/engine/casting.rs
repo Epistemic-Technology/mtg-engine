@@ -2136,6 +2136,9 @@ impl GameState {
                 who: crate::card::Recipient::You,
                 ..
             } => !self.player(ctx.controller).hand.is_empty(),
+            Effect::Behold(b) => {
+                self.behold_candidates(ctx.controller, b, ctx.source).len() >= b.n as usize
+            }
             // "or unlock a locked door of a Room you control".
             Effect::Door {
                 own: true,
@@ -16949,6 +16952,13 @@ impl GameState {
             Effect::ManifestDread => {
                 if let Some(new) = self.manifest_dread(ctx.controller) {
                     ctx.created = Some(new);
+                }
+            }
+            Effect::Behold(b) => {
+                if self.behold_candidates(ctx.controller, b, ctx.source).len() < b.n as usize {
+                    ctx.did = false;
+                } else {
+                    self.pay_behold(ctx.controller, b, ctx.source);
                 }
             }
             Effect::GaveGift => self.emit(Event::GaveGift {

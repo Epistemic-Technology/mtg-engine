@@ -1519,7 +1519,14 @@ behold cost exiles is linked to the permanent the spell becomes (CR
 607.2a): `triggered when this leaves the battlefield: return exiled card
 to hand` ("return the exiled card to its owner's hand"). The condition
 `beheld` (`if beheld, you gain 2 life`) prints "If a Dragon was beheld"
-with the card's behold filter: the behold cost was paid.
+with the card's behold filter: the behold cost was paid. Behold is also
+an effect: `you may behold Dragon; if you do, create 1 "Treasure"` ("you
+may behold a Dragon. If you do, create a Treasure token."; `behold 2
+Elf`, "behold two Elves"): with too few matching permanents and cards in
+hand nothing happens and `if you do` sees that. `enters tapped unless
+behold Jace` prints "As this land enters, you may behold a Jace. If you
+don't, this land enters tapped." (a Jace card in hand or a Jace it
+controls).
 
 The older wording reveals from the hand only: `additional cost reveal
 Kithkin card` with `additional cost or {3}` prints "As an additional cost

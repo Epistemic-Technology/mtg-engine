@@ -2033,6 +2033,9 @@ pub enum Ability {
     EntersTappedUnlessReveal {
         filter: Filter,
         or: Option<StaticCond>,
+        /// `enters tapped unless behold Jace`: "As this land enters, you
+        /// may behold a Jace. If you don't, this land enters tapped."
+        behold: bool,
     },
     /// `enters tapped if not your turn`: "This creature enters tapped if
     /// it's not your turn." (the same replacement as `enters tapped unless
@@ -5830,6 +5833,12 @@ pub enum Effect {
     /// the controller manifests dread.
     ManifestDreadBy {
         who: Recipient,
+    },
+    /// `behold Dragon`, `behold 2 Elf`: behold as an effect (CR 701.69a),
+    /// "you may behold a Dragon. If you do, ...".
+    Behold {
+        filter: Filter,
+        n: u32,
     },
     /// `dread card to hand`: "put a card you put into your graveyard
     /// this way into your hand" in a "whenever you manifest dread" trigger

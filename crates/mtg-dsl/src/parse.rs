@@ -4316,6 +4316,18 @@ impl P {
             }
             // "As this land enters, you may reveal a Mountain or Forest
             // card from your hand. If you don't, this land enters tapped."
+            // "As this land enters, you may behold a Jace. If you don't,
+            // this land enters tapped." (CR 701.69a).
+            "enters" if self.at_words(&["enters", "tapped", "unless", "behold"]) => {
+                self.pos += 4;
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedUnlessReveal {
+                    filter,
+                    or: None,
+                    behold: true,
+                })
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless", "reveal"]) => {
                 self.pos += 4;
                 let filter = self.filter()?;
@@ -4328,7 +4340,11 @@ impl P {
                     None
                 };
                 self.end_stmt()?;
-                Ok(Ability::EntersTappedUnlessReveal { filter, or })
+                Ok(Ability::EntersTappedUnlessReveal {
+                    filter,
+                    or,
+                    behold: false,
+                })
             }
             "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
                 self.pos += 6;
@@ -11548,6 +11564,16 @@ impl P {
                 })
             }
 
+            // "you may behold a Dragon. If you do, ..." (CR 701.69a).
+            "behold" => {
+                let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.count()?
+                } else {
+                    1
+                };
+                let filter = self.filter()?;
+                Ok(Effect::Behold { filter, n })
+            }
             "dread" if self.at_words(&["card", "to", "hand"]) => {
                 self.pos += 3;
                 Ok(Effect::DreadCardToHand)

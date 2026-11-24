@@ -979,6 +979,8 @@ impl Fmt {
                 format!("{} manifests dread", self.recipient(*who, t))
             }
             Effect::DreadCardToHand => "dread card to hand".to_string(),
+            Effect::Behold { filter: f, n: 1 } => format!("behold {}", filter(f)),
+            Effect::Behold { filter: f, n } => format!("behold {n} {}", filter(f)),
             Effect::Blight(n) => format!("blight {n}"),
             Effect::CollectEvidence(n) => format!("collect evidence {n}"),
             Effect::Forage => "forage".to_string(),
@@ -8070,7 +8072,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
         }
-        Ability::EntersTappedUnlessReveal { filter: f, or } => {
+        Ability::EntersTappedUnlessReveal {
+            filter: f,
+            behold: true,
+            ..
+        } => {
+            let _ = writeln!(out, "{indent}enters tapped unless behold {}", filter(f));
+        }
+        Ability::EntersTappedUnlessReveal { filter: f, or, .. } => {
             let _ = write!(
                 out,
                 "{indent}enters tapped unless reveal {} card",

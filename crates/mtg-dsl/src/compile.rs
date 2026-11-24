@@ -4887,6 +4887,15 @@ impl Compiler<'_> {
             Effect::ManifestDreadBy { who } => {
                 out.push(CoreEffect::ManifestDreadBy { who: r(*who) });
             }
+            Effect::Behold { filter, n } => {
+                out.push(CoreEffect::Behold(Box::new(mtg_core::card::Behold {
+                    filter: self.filter(filter),
+                    n: *n,
+                    exile: false,
+                    hand: false,
+                    x: false,
+                })));
+            }
             Effect::DreadCardToHand => out.push(CoreEffect::ReturnToHand {
                 what: CoreRecipient::TriggeringObject,
             }),
@@ -6450,7 +6459,7 @@ impl Compiler<'_> {
                     joined: false,
                 })
             }
-            Ability::EntersTappedUnlessReveal { filter, or } => {
+            Ability::EntersTappedUnlessReveal { filter, or, behold } => {
                 let f = self.filter(filter);
                 let filter = self.pool.intern_filter(f);
                 let or = or.as_ref().map(|c| {
@@ -6462,6 +6471,7 @@ impl Compiler<'_> {
                     replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal {
                         filter,
                         or,
+                        behold: *behold,
                     },
                     then: Vec::new(),
                     condition: None,

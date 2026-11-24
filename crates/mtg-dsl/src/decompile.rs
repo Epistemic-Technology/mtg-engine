@@ -1885,6 +1885,10 @@ impl Decompiler<'_> {
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,
             CoreEffect::ManifestDreadBy { who } => Effect::ManifestDreadBy { who: r(*who) },
+            CoreEffect::Behold(b) => Effect::Behold {
+                filter: self.filter(&b.filter),
+                n: b.n,
+            },
             CoreEffect::Blight(n) => Effect::Blight(*n),
             CoreEffect::CollectEvidence(n) => Effect::CollectEvidence(*n),
             CoreEffect::Forage => Effect::Forage,
@@ -3274,11 +3278,13 @@ impl Decompiler<'_> {
                 c => Ability::EntersTappedUnless(self.static_cond(c)),
             },
             AbilityDef::Replacement(ReplacementAbility {
-                replacement: mtg_core::card::Replacement::EnterTappedUnlessReveal { filter, or },
+                replacement:
+                    mtg_core::card::Replacement::EnterTappedUnlessReveal { filter, or, behold },
                 ..
             }) => Ability::EntersTappedUnlessReveal {
                 filter: self.filter(self.pool.filter(*filter)),
                 or: or.map(|c| self.static_cond(self.pool.condition(c))),
+                behold: *behold,
             },
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, kind },

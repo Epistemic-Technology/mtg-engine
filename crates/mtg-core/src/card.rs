@@ -6083,6 +6083,11 @@ pub enum Effect {
     ManifestDreadBy {
         who: Recipient,
     },
+    /// "You may behold a Dragon. If you do, ..." (CR 701.69a): behold as
+    /// an effect, its controller choosing a matching permanent they
+    /// control or revealing a matching card from their hand; with too
+    /// few, nothing happens and "If you do" sees that.
+    Behold(Box<Behold>),
     /// The gift has been given (CR 702.174): after a gift's effects, for
     /// "Whenever you give a gift".
     GaveGift,
@@ -7421,7 +7426,15 @@ pub enum Replacement {
     /// their hand matches the pool's `filter`th filter (judged as printed).
     /// `or`: "This land enters tapped unless you revealed a Dragon card
     /// this way or you control a Dragon." (the pool's `or`th condition).
-    EnterTappedUnlessReveal { filter: u16, or: Option<u16> },
+    EnterTappedUnlessReveal {
+        filter: u16,
+        or: Option<u16>,
+        /// "As this land enters, you may behold a Jace. If you don't, this
+        /// land enters tapped." (CR 701.69a): a matching permanent its
+        /// controller controls counts too.
+        #[serde(default)]
+        behold: bool,
+    },
     /// Enters tapped unless the pool's `n`th condition holds for its
     /// controller ("unless you control a planeswalker", CR 614.1d).
     EnterTappedUnless(u16),

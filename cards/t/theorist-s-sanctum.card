@@ -1,0 +1,6 @@
+card "Theorist's Sanctum" {
+  oracle_id 37513bd8-7303-4ac6-a7a7-224184faf758
+  type Land — Island
+  enters tapped unless behold Jace
+  activated {2}{U}, {T}: empower jace 2
+}
