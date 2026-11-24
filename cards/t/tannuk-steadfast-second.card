@@ -1,0 +1,8 @@
+card "Tannuk, Steadfast Second" {
+  oracle_id b5ae8016-92ed-4ae8-83a8-65068defc616
+  cost {2}{R}{R}
+  type Legendary Creature — Kavu Pilot
+  pt 3/5
+  static other creature you control: has haste
+  static artifact card or red creature card in your hand: has warp {2}{R}
+}

@@ -1,0 +1,9 @@
+card "Iroh, Grand Lotus" {
+  oracle_id ee8e6ef3-eb96-48bd-8619-8a9112b3d4f0
+  cost {3}{G}{U}{R}
+  type Legendary Creature — Human Noble Ally
+  pt 5/5
+  firebending 2
+  static during your turn, each non-Lesson instant or sorcery card in your graveyard: has flashback
+  static during your turn, each Lesson card in your graveyard: has flashback {1}
+}

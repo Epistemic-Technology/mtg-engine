@@ -6205,6 +6205,49 @@ pub enum PickWording {
     TheirController,
 }
 
+/// A static ability giving cards in a hand or graveyard a way to be cast
+/// or an ability (`AbilityDef::CardGrant`): "Each instant and sorcery
+/// card in your graveyard has flashback.", "Artifact cards and red
+/// creature cards in your hand have warp {2}{R}.", "Each Sliver card in
+/// each player's hand has slivercycling {3}." (CR 113.6b: it functions
+/// only while its source is on the battlefield; the cards have the
+/// ability while they are in that zone.)
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct CardGrant {
+    /// The cards, judged on their characteristics and owner (`you`: the
+    /// source's controller owns them).
+    pub cards: ObjFilter,
+    /// `Zone::Hand` or `Zone::Graveyard`.
+    pub zone: crate::state::Zone,
+    /// "in each player's hand": every player's cards, not only the
+    /// controller's.
+    pub players: bool,
+    /// Worded "Each <card> ... has" rather than "<cards> ... have".
+    pub each: bool,
+    pub grant: GrantedWay,
+    /// "During your turn, ...": a pool condition judged for the source's
+    /// controller (CR 611.3a).
+    pub condition: Option<u16>,
+}
+
+/// What a `CardGrant` gives its cards.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum GrantedWay {
+    /// Flashback (CR 702.34a) for this mana cost, or (`None`) "The
+    /// flashback cost is equal to that card's mana cost."
+    Flashback(Option<crate::mana::ManaCost>),
+    /// Mayhem for this cost, or (`None`) "The mayhem cost is equal to its
+    /// mana cost.": cast from the graveyard if its owner discarded it this
+    /// turn.
+    Mayhem(Option<crate::mana::ManaCost>),
+    /// Warp (CR 702.185a), cast from the hand for this cost.
+    Warp(crate::mana::ManaCost),
+    /// An activated ability of the card, activated from the zone the card
+    /// is in (cycling and typecycling from a hand, unearth from a
+    /// graveyard): a registered `AbilityDef::Activated`.
+    Ability(AbilityId),
+}
+
 /// How often a static free-cast permission may be used
 /// (`AbilityDef::CastFree`).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
@@ -8445,6 +8488,9 @@ pub enum AbilityDef {
         max: Option<CountExpr>,
         limit: FreeCastLimit,
     },
+    /// Cards in a hand or graveyard have a way to be cast or an ability
+    /// (`CardGrant`). Counted with the player-level statics.
+    CardGrant(Box<CardGrant>),
     /// "You may cast spells from among cards exiled with this creature.",
     /// "You may play lands and cast spells from among ...", "During your
     /// turn, you may play cards exiled with this artifact." (`your_turn`):
@@ -8519,6 +8565,7 @@ impl AbilityDef {
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
             | AbilityDef::CastFree { .. }
+            | AbilityDef::CardGrant(_)
             | AbilityDef::PlayExiled { .. }
             | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
@@ -8559,6 +8606,7 @@ impl AbilityDef {
             | AbilityDef::MayLook { .. }
             | AbilityDef::PlayFromTop { .. }
             | AbilityDef::CastFree { .. }
+            | AbilityDef::CardGrant(_)
             | AbilityDef::PlayExiled { .. }
             | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
@@ -9932,6 +9980,10 @@ pub struct CardPool {
     /// Whether some card has `CardDef::equip_discount`, so equip
     /// abilities' costs depend on their targets.
     pub equip_discounts: bool,
+    /// Whether some card gives cards in a hand or graveyard a way to be
+    /// cast or an ability (`AbilityDef::CardGrant`): until one is added,
+    /// nothing looks for such grants.
+    pub card_grants: bool,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -10028,6 +10080,7 @@ impl CardPool {
             names_granter: Vec::new(),
             granter_abilities: false,
             equip_discounts: false,
+            card_grants: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -10754,6 +10807,10 @@ impl CardPool {
         // card's own.
         let slot = self.reserved.remove(&def.name);
         self.equip_discounts |= def.equip_discount > 0;
+        self.card_grants |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::CardGrant(_)));
         // CR 702.103b: the Aura a bestowed spell is, registered first so
         // the card's own definition keeps its name.
         if def.bestow.is_some() && def.types.contains(CardType::Creature) {
@@ -11019,6 +11076,7 @@ impl CardPool {
                     AbilityDef::PlayerStatic { .. }
                         | AbilityDef::TriggerAgain { .. }
                         | AbilityDef::CastFree { .. }
+                        | AbilityDef::CardGrant(_)
                 )
             }),
         );

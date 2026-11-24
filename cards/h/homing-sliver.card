@@ -1,0 +1,8 @@
+card "Homing Sliver" {
+  oracle_id 34b4d137-780b-446c-8cdd-fd1673180971
+  cost {2}{R}
+  type Creature — Sliver
+  pt 2/2
+  static each Sliver card in each player's hand: has slivercycling {3}
+  slivercycling {3}
+}

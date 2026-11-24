@@ -2651,6 +2651,25 @@ impl Decompiler<'_> {
                 kind: *kind,
                 n: *n,
             },
+            AbilityDef::CardGrant(g) => Ability::CardGrant {
+                filter: self.filter(&g.cards),
+                zone: g.zone,
+                players: g.players,
+                each: g.each,
+                grant: match &g.grant {
+                    mtg_core::card::GrantedWay::Flashback(c) => {
+                        crate::ast::Granted::Flashback(c.clone())
+                    }
+                    mtg_core::card::GrantedWay::Mayhem(c) => crate::ast::Granted::Mayhem(c.clone()),
+                    mtg_core::card::GrantedWay::Warp(c) => crate::ast::Granted::Warp(c.clone()),
+                    mtg_core::card::GrantedWay::Ability(a) => {
+                        crate::ast::Granted::Ability(Box::new(self.ability(self.pool.ability(*a))))
+                    }
+                },
+                cond: g
+                    .condition
+                    .map(|c| self.static_cond(self.pool.condition(c))),
+            },
             AbilityDef::CastFree {
                 spells,
                 from_hand,
