@@ -1959,6 +1959,18 @@ pub enum Ability {
         other: Box<Cost>,
         targets: Vec<Target>,
     },
+    /// `activated {3}, {T}, sacrifice artifact or discard nonland card:
+    /// <effects>`: "{3}, {T}, Sacrifice an artifact or discard a nonland
+    /// card: ..." (CR 602.1): an activated ability for each alternative of
+    /// the cost's last part (`cost`, then `cost` with `other` in place of
+    /// that part), the player choosing which to activate. The last part
+    /// and `other` are each a sacrifice, a discard, or life.
+    ActivatedOr {
+        cost: Cost,
+        other: Box<Cost>,
+        targets: Vec<Target>,
+        effects: Vec<Sentence>,
+    },
     Activated {
         cost: Cost,
         targets: Vec<Target>,
@@ -2193,6 +2205,10 @@ pub enum Ability {
     /// `plotting costs {2} less`: "Plotting cards from your hand costs {2}
     /// less." (CR 702.170a).
     PlotLess(u32),
+    /// `spells your opponents cast that target this cost 3 life more`:
+    /// "Spells your opponents cast that target this creature cost an
+    /// additional 3 life to cast." (CR 601.2f, 119.4).
+    TargetedLife(u32),
     /// `opening hand reveal first upkeep: ...`: "You may reveal this card
     /// from your opening hand. If you do, at the beginning of the first
     /// upkeep, ..." (the Chancellors); `your first upkeep` ("at the
@@ -7392,4 +7408,63 @@ impl Declined {
             (DeclinedTense::Does, _) => "does",
         }
     }
+}
+
+/// `Ability::ActivatedOr`'s second cost: `cost` with its last part (a
+/// sacrifice, a discard, or life) replaced by `other` (one such part).
+/// `None` when either isn't of that shape.
+pub fn or_cost_second(cost: &Cost, other: &Cost) -> Option<Cost> {
+    fn part_only(c: &Cost) -> Option<CostItem> {
+        let [item] = c.order.as_slice() else {
+            return None;
+        };
+        let bare = Cost {
+            order: c.order.clone(),
+            sacrifice: c.sacrifice.clone(),
+            chosen: c.chosen,
+            discard: c.discard,
+            discard_filter: c.discard_filter.clone(),
+            discard_random: c.discard_random,
+            life: c.life,
+            ..Cost::default()
+        };
+        (matches!(
+            item,
+            CostItem::Sacrifice | CostItem::Discard | CostItem::Life
+        ) && bare == *c)
+            .then_some(*item)
+    }
+    part_only(other)?;
+    let mut out = cost.clone();
+    match out.order.pop()? {
+        CostItem::Sacrifice => {
+            out.sacrifice = None;
+            out.chosen = mtg_core::card::ChosenCost::default();
+        }
+        CostItem::Discard => {
+            out.discard = 0;
+            out.discard_filter = None;
+            out.discard_random = false;
+        }
+        CostItem::Life => out.life = 0,
+        _ => return None,
+    }
+    if other.sacrifice.is_some() {
+        if out.sacrifice.is_some() {
+            return None;
+        }
+        out.sacrifice.clone_from(&other.sacrifice);
+        out.chosen = other.chosen;
+    }
+    if other.discard > 0 {
+        if out.discard > 0 {
+            return None;
+        }
+        out.discard = other.discard;
+        out.discard_filter.clone_from(&other.discard_filter);
+        out.discard_random = other.discard_random;
+    }
+    out.life += other.life;
+    out.order.extend(other.order.iter().copied());
+    Some(out)
 }

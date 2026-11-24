@@ -8003,6 +8003,27 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 .unwrap_or_default();
             let _ = writeln!(out, "{indent}equip {sub}{mana} or {}", cost_text(other));
         }
+        Ability::ActivatedOr {
+            cost,
+            other,
+            targets,
+            effects,
+        } => {
+            let mut line = String::new();
+            self::ability(
+                &mut line,
+                &Ability::Activated {
+                    cost: cost.clone(),
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    equip: false,
+                    cycling: false,
+                },
+                indent,
+                groups,
+            );
+            out.push_str(&line.replacen(": ", &format!(" or {}: ", cost_text(other)), 1));
+        }
         Ability::Pawprint { limit, modes } => {
             let _ = writeln!(out, "{indent}pawprint {limit} {{");
             for (w, m) in modes {
@@ -9234,6 +9255,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::PlotLess(n) => {
             let _ = writeln!(out, "{indent}plotting costs {{{n}}} less");
+        }
+        Ability::TargetedLife(n) => {
+            let _ = writeln!(
+                out,
+                "{indent}spells your opponents cast that target this cost {n} life more"
+            );
         }
         Ability::OpeningHandReveal {
             step,

@@ -10316,6 +10316,11 @@ pub enum AbilityDef {
     /// 702.170a): the controller's plot costs have this much less generic
     /// mana.
     PlotLess(u32),
+    /// "Spells your opponents cast that target this creature cost an
+    /// additional 3 life to cast." (Terror of the Peaks; CR 601.2f,
+    /// 119.4): an opponent's spell pays this much life for targeting the
+    /// permanent, and can target it only with that much life to pay.
+    TargetedLife(u32),
     /// "You may reveal this card from your opening hand. If you do, at
     /// the beginning of the first upkeep, ..." (the Chancellors; CR
     /// 103.6a's moment): revealed, the card creates the delayed
@@ -10479,6 +10484,7 @@ impl AbilityDef {
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
             | AbilityDef::PlotLess(_)
+            | AbilityDef::TargetedLife(_)
             | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
@@ -10522,6 +10528,7 @@ impl AbilityDef {
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
             | AbilityDef::PlotLess(_)
+            | AbilityDef::TargetedLife(_)
             | AbilityDef::OpeningHandReveal(_)
             | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
@@ -11999,6 +12006,9 @@ pub struct CardPool {
     pub alt_grants: bool,
     /// Whether some card makes plotting cheaper (`AbilityDef::PlotLess`).
     pub plot_discounts: bool,
+    /// Whether some card makes spells that target it cost life
+    /// (`AbilityDef::TargetedLife`).
+    pub targeted_life: bool,
     /// Whether some card gives spells on the stack a keyword that acts
     /// there ("Instant and sorcery spells you control have lifelink",
     /// "... split second"; `SpellGrant::keywords`).
@@ -12112,6 +12122,7 @@ impl CardPool {
             spend_grants: false,
             alt_grants: false,
             plot_discounts: false,
+            targeted_life: false,
             stack_grants: false,
             powerup_again: false,
             prowess: AbilityId(0),
@@ -12902,6 +12913,10 @@ impl CardPool {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
         });
+        self.targeted_life |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::TargetedLife(_)));
         self.plot_discounts |= def
             .abilities
             .iter()

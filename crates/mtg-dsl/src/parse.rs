@@ -4241,6 +4241,24 @@ impl P {
                     "power-up" => Some(mtg_core::card::ActivatedKeyword::PowerUp),
                     _ => None,
                 };
+                // `sacrifice artifact or discard 1 nonland card`: a choice of
+                // the last part (CR 602.1).
+                if w == "activated" && self.eat_word("or") {
+                    let other = Box::new(self.cost()?);
+                    if crate::ast::or_cost_second(&cost, &other).is_none() {
+                        return self.fail(
+                            "`or` joins a last cost part and another, each a sacrifice, \
+                             a discard, or life",
+                        );
+                    }
+                    let effects = self.effects_body()?;
+                    return Ok(Ability::ActivatedOr {
+                        cost,
+                        other,
+                        targets: std::mem::take(&mut self.targets),
+                        effects,
+                    });
+                }
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {
                     cost,
@@ -4929,6 +4947,18 @@ impl P {
         } else {
             Who::Any
         };
+        // "Spells your opponents cast that target this creature cost an
+        // additional 3 life to cast." (CR 601.2f, 119.4).
+        if whose == Who::Opponents
+            && cond.is_none()
+            && filter == Filter::default()
+            && self.eat_words(&["that", "target", "this", "cost"])
+        {
+            let n = self.number()?;
+            self.expect_words(&["life", "more"])?;
+            self.end_stmt()?;
+            return Ok(Ability::TargetedLife(n));
+        }
         // "Spells you control can't be countered." (the filter may have
         // read "you control"); "Spells can't be countered." (Lier).
         let mine = filter.who == Some(Who::You);

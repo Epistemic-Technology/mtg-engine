@@ -20749,6 +20749,28 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let other = lowercase_first(&cost_text(other, &mut ctx));
             format!("Equip {sub}\u{2014}Pay {mana} or {other}.").replace(" \u{2014}", "\u{2014}")
         }
+        // "{3}, {T}, Sacrifice an artifact or discard a nonland card: ..."
+        Ability::ActivatedOr {
+            cost,
+            other,
+            targets,
+            effects,
+        } => {
+            let text = ability_text(
+                card,
+                &Ability::Activated {
+                    cost: cost.clone(),
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    equip: false,
+                    cycling: false,
+                },
+                lookup,
+            );
+            let mut ctx = Ctx::new(card, lookup, targets);
+            let other = lowercase_first(&cost_text(other, &mut ctx));
+            text.replacen(": ", &format!(" or {other}: "), 1)
+        }
         Ability::Pawprint { limit, modes } => {
             let mut out = format!(
                 "Choose up to {} {{P}} worth of modes. You may choose the same mode more than once.",
@@ -22543,6 +22565,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // name (the card in a hand), its pronoun.
         // "Plotting cards from your hand costs {2} less." (CR 702.170a).
         Ability::PlotLess(n) => format!("Plotting cards from your hand costs {{{n}}} less."),
+        // "Spells your opponents cast that target this creature cost an
+        // additional 3 life to cast." (Terror of the Peaks).
+        Ability::TargetedLife(n) => format!(
+            "Spells your opponents cast that target {} cost an additional {n} life to cast.",
+            this_ref(card)
+        ),
         Ability::OpeningHand => format!(
             "If {} is in your opening hand, you may begin the game with {} on the battlefield.",
             if card.supertypes.contains(&Supertype::Legendary) {

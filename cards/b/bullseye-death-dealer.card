@@ -1,0 +1,8 @@
+card "Bullseye, Death Dealer" {
+  oracle_id 10db57b4-f895-4514-b610-2252ba676353
+  cost {2}{B/R}
+  type Legendary Creature — Human Assassin Villain
+  pt 2/3
+  triggered whenever this enters: you may sacrifice 1 artifact chosen or discard 1 nonland card chosen; when you do, deal 2 damage to any target
+  activated {3}, {T}, sacrifice artifact or discard nonland card: deal 2 damage to any target
+}

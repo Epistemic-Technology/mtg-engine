@@ -1498,12 +1498,26 @@ impl GameState {
                     // caster can still pay for (CR 601.2f comes after
                     // 601.2c, but an unpayable choice would be illegal to
                     // finish).
-                    let cost_checked = !is_ability && self.pool.get(def).target_cost.is_some();
+                    // (A target that costs life, `targeted_life`, too: none
+                    // left is an undone cast, not a refill.)
+                    let cost_checked = !is_ability
+                        && (self.pool.get(def).target_cost.is_some() || self.pool.targeted_life);
                     let later = &specs[(next_target + 1).min(specs.len())..];
                     if cost_checked {
                         options.retain(|c| {
                             let Choice::Target(t) = c else { return true };
                             self.target_payable(spell, *t, later)
+                        });
+                    }
+                    // "Spells your opponents cast that target this creature
+                    // cost an additional 3 life to cast.": only with that
+                    // much life (CR 119.4).
+                    if !is_ability && self.pool.targeted_life {
+                        let life = self.player(caster).life;
+                        options.retain(|c| {
+                            let Choice::Target(t) = c else { return true };
+                            let need = self.targets_life(spell, Some(*t));
+                            need == 0 || i64::from(need) <= i64::from(life)
                         });
                     }
                     // An ability whose cost depends on its first target

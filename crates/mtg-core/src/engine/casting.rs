@@ -3278,6 +3278,47 @@ impl GameState {
         }
     }
 
+    /// The life `caster`'s spell pays for targeting `t` (CR 601.2f, 119.4):
+    /// "Spells your opponents cast that target this creature cost an
+    /// additional 3 life to cast." of a permanent an opponent controls.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn targeted_life(&self, caster: PlayerId, t: Target) -> u32 {
+        let Target::Object(id) = t else {
+            return 0;
+        };
+        let Some(o) = self.objects.get(id) else {
+            return 0;
+        };
+        if o.zone != Zone::Battlefield || o.controller == caster {
+            return 0;
+        }
+        self.pool
+            .get(o.def)
+            .ability_ids
+            .iter()
+            .map(|a| match self.pool.ability(*a) {
+                AbilityDef::TargetedLife(n) => *n,
+                _ => 0,
+            })
+            .sum()
+    }
+
+    /// The life `spell`'s targets make it pay (`targeted_life`), each
+    /// permanent once, with `extra` among them.
+    pub(super) fn targets_life(&self, spell: ObjId, extra: Option<Target>) -> u32 {
+        let o = &self.objects[spell];
+        let mut seen: Vec<Target> = Vec::new();
+        for t in o.targets.iter().copied().chain(extra) {
+            if !seen.contains(&t) {
+                seen.push(t);
+            }
+        }
+        seen.into_iter()
+            .map(|t| self.targeted_life(o.controller, t))
+            .sum()
+    }
+
     /// What plotting for `cost` costs `p` (CR 702.170a): less generic mana
     /// by the permanents they control that make plotting cheaper ("Plotting
     /// cards from your hand costs {2} less.").
@@ -9492,11 +9533,15 @@ impl GameState {
         let other = self.objects[spell].cast.other_cost();
         // CR 118.9, 119.4: "pay life equal to its mana value rather than pay
         // its mana cost" (X is 0).
-        let life_cost = if self.objects[spell].alt == AltCast::PayLife {
+        let mut life_cost = if self.objects[spell].alt == AltCast::PayLife {
             def.mana_cost.mana_value()
         } else {
             0
         };
+        // "cost an additional 3 life to cast" for its targets.
+        if self.pool.targeted_life {
+            life_cost += self.targets_life(spell, None);
+        }
         self.pay_costs_recorded(spell, |s| {
             if life_cost > 0 {
                 s.change_life(caster, -i32::try_from(life_cost).unwrap_or(i32::MAX));

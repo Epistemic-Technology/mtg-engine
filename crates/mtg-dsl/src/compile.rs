@@ -1743,6 +1743,27 @@ impl Compiler<'_> {
             if let Ability::EquipOr { other, targets, .. } = a {
                 b = b.ability(self.ability(&equip_ability((**other).clone(), targets))?);
             }
+            // "Sacrifice an artifact or discard a nonland card:": the
+            // second activated ability.
+            if let Ability::ActivatedOr {
+                cost,
+                other,
+                targets,
+                effects,
+            } = a
+            {
+                let Some(second) = crate::ast::or_cost_second(cost, other) else {
+                    return self
+                        .err("an `or` cost needs a last part of a sacrifice, discard, or life");
+                };
+                b = b.ability(self.ability(&Ability::Activated {
+                    cost: second,
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    equip: false,
+                    cycling: false,
+                })?);
+            }
             // CR 702.98a: unleash's second static ability, "This permanent
             // can't block as long as it has a +1/+1 counter on it."
             if let Ability::Mechanic(Mechanic::Unleash) = a {
@@ -6790,6 +6811,22 @@ impl Compiler<'_> {
             }
             // The first of the two equip abilities; the card's ability list
             // gets the second (`equip_or_second`).
+            // The first of the two activated abilities; the card's ability
+            // list gets the second.
+            Ability::ActivatedOr {
+                cost,
+                targets,
+                effects,
+                ..
+            } => {
+                return self.ability(&Ability::Activated {
+                    cost: cost.clone(),
+                    targets: targets.clone(),
+                    effects: effects.clone(),
+                    equip: false,
+                    cycling: false,
+                });
+            }
             Ability::EquipOr { mana, targets, .. } => {
                 return self.ability(&equip_ability(
                     Cost {
@@ -7344,6 +7381,7 @@ impl Compiler<'_> {
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
             Ability::PlotLess(n) => AbilityDef::PlotLess(*n),
+            Ability::TargetedLife(n) => AbilityDef::TargetedLife(*n),
             // The delayed trigger the revealed card leaves (CR 603.7).
             Ability::OpeningHandReveal {
                 step,

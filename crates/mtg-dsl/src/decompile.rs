@@ -3150,6 +3150,7 @@ impl Decompiler<'_> {
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
             AbilityDef::PlotLess(n) => Ability::PlotLess(*n),
+            AbilityDef::TargetedLife(n) => Ability::TargetedLife(*n),
             AbilityDef::OpeningHandReveal(id) => match self.ability(self.pool.ability(*id)) {
                 Ability::Triggered {
                     trigger: crate::ast::Trigger::BeginningOfStep { step, whose },

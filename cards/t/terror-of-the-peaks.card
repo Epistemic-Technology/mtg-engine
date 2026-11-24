@@ -1,0 +1,9 @@
+card "Terror of the Peaks" {
+  oracle_id f8e17f4f-080d-4bba-bd05-ca27e94ccecc
+  cost {3}{R}{R}
+  type Creature — Dragon
+  pt 5/4
+  keywords flying
+  spells your opponents cast that target this cost 3 life more
+  triggered whenever other creature you control enters: this deals damage equal power of that creature to any target
+}
