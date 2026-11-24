@@ -1,0 +1,9 @@
+card "Enduring Tenacity" {
+  oracle_id 98e698ae-1a69-469c-9cfb-0e3fedeb71d4
+  cost {2}{B}{B}
+  type Enchantment Creature — Snake Glimmer
+  pt 4/3
+  short_name "Enduring Tenacity"
+  triggered whenever you gain life: target opponent loses that much life
+  triggered when this dies if this is creature: return this to battlefield; it is now enchantment
+}

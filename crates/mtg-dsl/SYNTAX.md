@@ -2364,6 +2364,51 @@ and may be written or not. A sentence that starts `until end of turn,`
 prints the duration first instead ("Until end of turn, target creature you
 control has base power and toughness 4/4 and gains flying").
 
+Counts over a group of battlefield permanents (judged with their current
+characteristics; in a static ability, as the layers have them): `colors
+among Ally you control` ("for each color among Allies you control", "the
+number of colors among other artifacts you control"; colorless adds
+none), `card types among other nonland permanent you control` ("the
+number of card types among other nonland permanents you control"),
+`+1/+1 counters on land you control` ("the number of +1/+1 counters on
+lands you control"; `counters on creature you control` counts every
+kind), `counter kinds among creature you control` ("different kinds of
+counters among creatures you control"), `different powers among creature
+you control` ("for each different power among creatures you control";
+resolving effects only), and `most sharing type creature you control`
+("the greatest number of creatures you control that have a creature type
+in common": a changeling shares every type). Others: `card types among
+spells cast this turn` ("for each card type among spells you've cast this
+turn", from the cards you cast), `card types among discarded this way`
+("for each card type among cards discarded this way", as they last
+existed), `permanent types in your graveyard` (artifact, battle,
+creature, enchantment, land, planeswalker: "permanent types among cards
+in your graveyard"), `graveyards with 7 cards` ("for each graveyard with
+seven or more cards in it"), `difference of power and toughness` ("where X
+is the difference between its power and toughness": the triggering
+creature's), `2 land you control` with `count where` ("where X is twice
+the number of lands you control"), `greatest power other creature you
+control` ("the greatest power among other creatures you control"), and
+`<count> plus <count>` with `count each` ("for each Artificer you control
+and each Artificer card in your graveyard": `count each Artificer you
+control plus graveyard Artificer`). `half up x` as a number is "half X,
+rounded up" (`create half up x "Food"`: "create half X Food tokens,
+rounded up"; `half down x`, "rounded down"). As a condition, `count 5
+colors among permanents` is the count at least N: "there are five colors
+among permanents you control" (`to solve count 5 ...`; an activation's
+`if count 4 permanent types in your graveyard`: "Activate only if there
+are four or more permanent types among cards in your graveyard"; `if count
+3 other Cave you control plus graveyard Cave`: "if the number of other
+Caves you control plus the number of Cave cards in your graveyard is three
+or greater"), judged as a static ability's counts are. `add chosen count
+each <count>` is "Choose a color. Add one mana of that color for each
+..." (one color, as `add any count ...`). After a trigger with an amount,
+`choose up to that much target creature you control; put 1 +1/+1 counter
+on each of them` is "choose up to that many target creatures you control.
+Put a +1/+1 counter on each of them." (the amount as the group's
+maximum, known as the targets are chosen); "Whenever you gain life,
+target opponent loses that much life" reads the life gained.
+
 Casting as an effect (CR 608.2g: cast as the effect finishes, timing
 restrictions ignored): `cast free noncreature spell from hand` ("you may
 cast a noncreature spell from your hand without paying its mana cost";

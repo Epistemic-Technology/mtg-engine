@@ -1,0 +1,10 @@
+card "Summon: Bahamut" {
+  oracle_id fe9f6825-597b-4d80-ab7c-f4ee4e824b6f
+  cost {9}
+  type Enchantment Creature — Saga Dragon
+  pt 9/9
+  triggered chapter 1, 2: destroy up to 1 target nonland permanent
+  triggered chapter 3: draw 2 cards
+  label "Mega Flare" triggered chapter 4: deal damage equal total mana value other permanent you control to each opponent
+  keywords flying
+}

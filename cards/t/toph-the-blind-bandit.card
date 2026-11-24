@@ -1,0 +1,8 @@
+card "Toph, the Blind Bandit" {
+  oracle_id 2ce20f43-9357-448f-bb40-7315feb08433
+  cost {2}{G}
+  type Legendary Creature — Human Warrior Ally
+  pt */3
+  triggered when this enters: earthbend 2
+  static this: cda power +1/+1 counters on land you control
+}

@@ -2371,6 +2371,50 @@ pub enum CountExpr {
     /// creature has all activated abilities of that card" (Conspicuous
     /// Snoop, `Modification::AddActivatedOf`), its printed abilities.
     LibraryTop,
+    /// Colors among battlefield permanents matching the filter ("for each
+    /// color among Allies you control", "the number of colors among other
+    /// artifacts you control"; CR 105.2: colorless is not a color).
+    ColorsAmong(ObjFilter),
+    /// Card types among battlefield permanents matching the filter ("the
+    /// number of card types among other nonland permanents you control",
+    /// CR 205.2a).
+    CardTypesAmong(ObjFilter),
+    /// Card types among spells you've cast this turn ("for each card type
+    /// among spells you've cast this turn"), from the cards cast.
+    CardTypesCastThisTurn,
+    /// Card types among the cards the resolution moved `verb`'s way ("for
+    /// each card type among cards discarded this way"), as they last
+    /// existed.
+    CardTypesThisWay(ThisWay),
+    /// Permanent types (CR 110.4a: artifact, battle, creature, enchantment,
+    /// land, planeswalker) among cards in your graveyard.
+    PermanentTypesInGraveyard,
+    /// Graveyards with at least this many cards in them ("for each
+    /// graveyard with seven or more cards in it").
+    GraveyardsWithAtLeast(u32),
+    /// Counters of a kind (or of every kind, `CounterKind::Any`) on the
+    /// battlefield permanents matching the filter ("the number of +1/+1
+    /// counters on lands you control").
+    CountersAmong(CounterKind, ObjFilter),
+    /// Different kinds of counters among the battlefield permanents
+    /// matching the filter ("three or more different kinds of counters
+    /// among creatures you control").
+    CounterKindsAmong(ObjFilter),
+    /// Different powers among the battlefield permanents matching the
+    /// filter ("for each different power among creatures you control").
+    DifferentPowers(ObjFilter),
+    /// The greatest number of the battlefield permanents matching the
+    /// filter that share a creature type ("the greatest number of
+    /// creatures you control that have a creature type in common"; a
+    /// changeling shares every one, CR 702.73a).
+    SharingCreatureType(ObjFilter),
+    /// The difference between the triggering object's power and toughness
+    /// ("where X is the difference between its power and toughness"), as
+    /// it last existed (CR 608.2h).
+    TriggerPtDifference,
+    /// X of the resolving spell or of the source (CR 107.3), for a count
+    /// built on it ("half X, rounded up").
+    X,
 }
 
 /// What `CountExpr::Their` counts of a player.
@@ -2382,6 +2426,9 @@ pub enum PlayerCount {
     Library,
     /// Their life total (0 if it is negative).
     Life,
+    /// Cards in their graveyard ("each mill cards equal to the number of
+    /// cards in their graveyard").
+    Graveyard,
 }
 
 impl CountExpr {
@@ -2471,6 +2518,13 @@ impl CountExpr {
             | CountExpr::ExiledWith(_)
             | CountExpr::CardsInExile { .. }
             | CountExpr::Speed
+            | CountExpr::ColorsAmong(_)
+            | CountExpr::CardTypesAmong(_)
+            | CountExpr::PermanentTypesInGraveyard
+            | CountExpr::GraveyardsWithAtLeast(_)
+            | CountExpr::CountersAmong(..)
+            | CountExpr::CounterKindsAmong(_)
+            | CountExpr::SharingCreatureType(_)
             | CountExpr::Life => true,
 
             // Total power and toughness would read the characteristics
@@ -2514,6 +2568,11 @@ impl CountExpr {
             | CountExpr::Their(_)
             | CountExpr::PlayersDidntDiscard { .. }
             | CountExpr::LibraryTop
+            | CountExpr::CardTypesCastThisTurn
+            | CountExpr::CardTypesThisWay(_)
+            | CountExpr::DifferentPowers(_)
+            | CountExpr::TriggerPtDifference
+            | CountExpr::X
             | CountExpr::DamageThisWay { .. } => false,
         }
     }
@@ -3546,6 +3605,12 @@ pub enum StaticCondition {
     /// "an opponent was dealt noncombat damage last turn"
     /// (`GameState::noncombat_last_turn`).
     OpponentNoncombatLastTurn,
+    /// A count is at least `n`: "there are five colors among permanents
+    /// you control", "four or more permanent types among cards in your
+    /// graveyard", "the number of other Caves you control plus the number
+    /// of Cave cards in your graveyard is three or greater". Only counts a
+    /// static ability can read (`CountExpr::in_static`).
+    CountAtLeast(Box<CountExpr>, u32),
 }
 
 impl StaticCondition {

@@ -1,0 +1,9 @@
+card "Borrowed Knowledge" {
+  oracle_id 0d6507b0-c986-49d1-aea3-77b2cf2a7433
+  cost {2}{R}{W}
+  type Sorcery
+  choose one {
+    mode: discard hand, then draw count equal hand of target opponent cards
+    mode: discard hand, then draw count equal discarded this way cards
+  }
+}

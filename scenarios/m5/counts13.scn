@@ -1,0 +1,443 @@
+# Amounts counted over a group or built from other amounts (thirteenth
+# wave): colors, card types, counters, kinds of counters, different
+# powers, and creatures sharing a type among a filtered group; card types
+# among spells cast this turn and cards discarded this way; graveyards
+# with seven or more cards; the difference between a creature's power and
+# toughness; twice and half of a count or of X; a count compared with a
+# number as a condition; and "that much" from a life-gain trigger as a
+# life loss and as a number of targets.
+
+scenario "Earthen Ally: +1/+0 for each color among Allies you control" {
+  battlefield A: "Earthen Ally", "Zada's Commando", "Zulaport Cutthroat", "Serra Angel", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  # Green, red, black: the white and green non-Allies add nothing new.
+  assert power "Earthen Ally" 3
+  assert toughness "Earthen Ally" 2
+}
+
+scenario "Earthen Ally: a lone Ally counts its own green" {
+  battlefield A: "Earthen Ally", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Earthen Ally" 1
+}
+
+scenario "Karn, Gilded Guardian: a card for each color among other artifacts you control" {
+  battlefield A: "Plains", "Island", "Swamp", "Mountain", "Forest", "Zookeeper Mechan", "Sanctum Gargoyle", "Ornithopter"
+  hand A: "Karn, Gilded Guardian"
+  library A: "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Karn, Gilded Guardian"
+  run_to turn 1 postcombat_main
+  # Red and white; the colorless Ornithopter and Karn itself add none.
+  assert hand A count 2
+}
+
+scenario "April O'Neil: a card for each card type among spells you've cast this turn" {
+  battlefield A: "April O'Neil, Hacktivist", "Mountain", 2 "Forest"
+  hand A: "Lightning Bolt", "Grizzly Bears"
+  library A: "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 cleanup
+  # An instant and a creature.
+  assert hand A count 2
+}
+
+scenario "April O'Neil: two spells of one type count once" {
+  battlefield A: "April O'Neil, Hacktivist", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  library A: "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 cleanup
+  assert hand A count 1
+}
+
+scenario "Loot, the Key to Everything: exile one card per card type among other nonland permanents" {
+  battlefield A: "Loot, the Key to Everything", "Grizzly Bears", "Hill Giant", "Ornithopter", "Forest"
+  library A: "Island", "Swamp", "Mountain", "Plains", "Forest"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  # Creature and artifact (Ornithopter is both): the top two, then the
+  # draw.
+  assert exile A contains "Island"
+  assert exile A contains "Swamp"
+  assert exile A lacks "Mountain"
+  assert hand A contains "Mountain"
+}
+
+scenario "Master's Councillors: +2/+0 for each graveyard with seven or more cards" {
+  battlefield A: "Master's Councillors"
+  graveyard A: 7 "Island"
+  graveyard B: 7 "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Master's Councillors" 5
+}
+
+scenario "Master's Councillors: six cards is not seven" {
+  battlefield A: "Master's Councillors"
+  graveyard A: 7 "Island"
+  graveyard B: 6 "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Master's Councillors" 3
+}
+
+scenario "The Master of Lake-town: a player who loses life mills that many; dying draws per full graveyard" {
+  battlefield A: "The Master of Lake-town", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  graveyard A: 7 "Island"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest"
+  library A: "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "The Master of Lake-town"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 3 "Forest"
+  # A's graveyard has seven or more; B's has three.
+  assert hand A count 1
+}
+
+scenario "Toph, the Blind Bandit: power is the +1/+1 counters on lands you control" {
+  battlefield A: "Toph, the Blind Bandit", "Forest" with 3 +1/+1, "Grizzly Bears" with 2 +1/+1
+  battlefield B: "Mountain" with 4 +1/+1
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Toph, the Blind Bandit" 3
+}
+
+scenario "Toph, the Blind Bandit: earthbend 2 as it enters" {
+  battlefield A: 3 "Forest"
+  hand A: "Toph, the Blind Bandit"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toph, the Blind Bandit"
+  run_to turn 1 postcombat_main
+  assert power "Toph, the Blind Bandit" 2
+}
+
+scenario "White Lotus Tile: mana for the most creatures sharing a creature type" {
+  battlefield A: "White Lotus Tile", 2 "Grizzly Bears", "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "White Lotus Tile"
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Grizzly Bears"
+}
+
+scenario "White Lotus Tile: one of each type makes one mana" {
+  battlefield A: "White Lotus Tile", "Grizzly Bears", "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "White Lotus Tile"
+  turn 1 A: choose green
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Case of the Shattered Pact: five colors among permanents solve it" {
+  battlefield A: "Case of the Shattered Pact", "Serra Angel", "Wind Drake", "Zulaport Cutthroat", "Zada's Commando", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 3 begin_combat A: trigger "Case of the Shattered Pact" targeting "Grizzly Bears"
+  run_to turn 3 declare_attackers
+  assert has "Grizzly Bears" double_strike
+}
+
+scenario "Case of the Shattered Pact: four colors leave it unsolved" {
+  battlefield A: "Case of the Shattered Pact", "Serra Angel", "Wind Drake", "Zulaport Cutthroat", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 3 declare_attackers
+  assert has not "Grizzly Bears" double_strike
+}
+
+scenario "Loot, the Nexus: one mana for each different power among creatures you control" {
+  battlefield A: "Loot, the Nexus", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Loot, the Nexus"
+  turn 1 A: choose blue
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  # Powers 2, 2, 3, 4: three different.
+  assert hand A count 2
+}
+
+scenario "Loot, the Nexus: equal powers count once" {
+  battlefield A: "Loot, the Nexus", 2 "Grizzly Bears", "Hill Giant"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Loot, the Nexus"
+  turn 1 A: choose blue
+  illegal turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divination"
+}
+
+scenario "Selvala, Eager Trailblazer: different powers among creatures you control" {
+  battlefield A: "Selvala, Eager Trailblazer", "Grizzly Bears", "Hill Giant"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Selvala, Eager Trailblazer"
+  turn 1 A: choose blue
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Cid, Timeless Artificer: +1/+1 for each Artificer you control and each Artificer card in your graveyard" {
+  battlefield A: "Cid, Timeless Artificer", "Sarinth Steelseeker", "Ornithopter", "Grizzly Bears"
+  graveyard A: "Cid, Timeless Artificer"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  # Two Artificers on the battlefield and one in the graveyard.
+  assert power "Ornithopter" 3
+  assert toughness "Ornithopter" 5
+  assert power "Grizzly Bears" 2
+  assert power "Cid, Timeless Artificer" 4
+}
+
+scenario "Cavernous Maw: other Caves plus Cave cards in the graveyard, three or more" {
+  battlefield A: "Cavernous Maw", "Captivating Cave", "Echoing Deeps", 2 "Forest"
+  graveyard A: "Hidden Volcano"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cavernous Maw"
+  run_to turn 1 declare_attackers
+  assert is "Cavernous Maw" creature
+  assert power "Cavernous Maw" 3
+}
+
+scenario "Cavernous Maw: two are not enough, and it doesn't count itself" {
+  battlefield A: "Cavernous Maw", "Captivating Cave", 2 "Forest"
+  graveyard A: "Hidden Volcano"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Cavernous Maw"
+  run_to turn 1 postcombat_main
+  assert is not "Cavernous Maw" creature
+}
+
+scenario "Doran, Besieged by Time: creature spells with toughness greater than power cost {1} less" {
+  battlefield A: "Doran, Besieged by Time", 2 "Mountain"
+  hand A: "Wall of Stone"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wall of Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wall of Stone"
+}
+
+scenario "Doran, Besieged by Time: a 2/2 is not reduced" {
+  battlefield A: "Doran, Besieged by Time", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Doran, Besieged by Time: an attacker gets +X/+X for the difference between its power and toughness" {
+  battlefield A: "Doran, Besieged by Time", "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Doran, Besieged by Time", "Hill Giant"
+  run_to turn 3 declare_blockers
+  assert power "Doran, Besieged by Time" 5
+  assert toughness "Doran, Besieged by Time" 10
+  assert power "Hill Giant" 3
+}
+
+scenario "Enduring Tenacity: gaining life makes target opponent lose that much" {
+  battlefield A: "Enduring Tenacity", "Food", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Food"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert life B 17
+}
+
+scenario "Professor Dellian Fel: the emblem drains for the life gained" {
+  battlefield A: "Professor Dellian Fel" with 6 loyalty, "Food", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Professor Dellian Fel" ability 4
+  turn 1 A: wait
+  turn 1 A: activate "Food"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert life B 17
+}
+
+scenario "Heroic Feast: up to that many target creatures get a counter each" {
+  battlefield A: "Heroic Feast", "Food", 2 "Plains", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Food"
+  turn 1 A: trigger "Heroic Feast" targeting "Grizzly Bears", "Hill Giant", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Serra Angel" +1/+1 1
+}
+
+scenario "Heroic Feast: gaining 1 life allows one target" {
+  battlefield A: "Heroic Feast", "Grizzly Bears", "Hill Giant"
+  hand A: "Jungle Hollow"
+  start turn 1 A precombat_main
+  turn 1 A: play "Jungle Hollow"
+  turn 1 A: trigger "Heroic Feast" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "The Goose Mother: X counters and half X Food tokens, rounded up" {
+  battlefield A: 3 "Forest", 2 "Island"
+  hand A: "The Goose Mother"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Goose Mother" x 3
+  run_to turn 1 postcombat_main
+  assert counters "The Goose Mother" +1/+1 3
+  assert battlefield A contains 2 "Food"
+}
+
+scenario "Prime Speaker Zegana: counters for the greatest power among other creatures, then cards for its power" {
+  battlefield A: 3 "Forest", 3 "Island", "Hill Giant", "Grizzly Bears"
+  hand A: "Prime Speaker Zegana"
+  library A: "Island", "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prime Speaker Zegana"
+  run_to turn 1 postcombat_main
+  assert counters "Prime Speaker Zegana" +1/+1 3
+  assert hand A count 4
+}
+
+scenario "Sunderflock: costs less by the greatest mana value among Elementals; bounces non-Elementals" {
+  battlefield A: "Air Elemental", 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Sunderflock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sunderflock"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sunderflock"
+  assert battlefield A contains "Air Elemental"
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Kefka, Court Mage: a card for each card type among cards discarded this way" {
+  battlefield A: 2 "Island", "Swamp", 2 "Mountain"
+  hand A: "Kefka, Court Mage", "Ornithopter"
+  hand B: "Grizzly Bears"
+  library A: "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kefka, Court Mage"
+  run_to turn 1 postcombat_main
+  # Ornithopter (artifact, creature) and Grizzly Bears (creature).
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "Pillage the Bog: look at twice the number of lands you control" {
+  battlefield A: "Swamp", "Forest"
+  hand A: "Pillage the Bog"
+  library A: "Island", "Plains", "Mountain", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pillage the Bog"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  # The fifth card stays on top; the other three go to the bottom.
+  assert hand A count 1
+}
+
+scenario "Strength of Will: indestructible, and counters for the damage dealt" {
+  battlefield A: "Grizzly Bears", "Forest", "Island"
+  battlefield B: "Mountain"
+  hand A: "Strength of Will"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Strength of Will" targeting "Grizzly Bears"
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 3
+}
+
+scenario "Summon: Bahamut: IV deals damage equal to the total mana value of other permanents you control" {
+  battlefield A: "Summon: Bahamut" with 3 lore, "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 3 A
+  run_to turn 3 postcombat_main
+  assert life B 14
+}
+
+scenario "Matzalantli: transforms with four permanent types among cards in your graveyard" {
+  battlefield A: "Matzalantli, the Great Door", 4 "Plains"
+  graveyard A: "Ornithopter", "Forest", "Pacifism", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Matzalantli, the Great Door" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "The Core"
+}
+
+scenario "Matzalantli: an instant is not a permanent type" {
+  battlefield A: "Matzalantli, the Great Door", 4 "Plains"
+  graveyard A: "Grizzly Bears", "Forest", "Pacifism", "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Matzalantli, the Great Door" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Matzalantli, the Great Door"
+}
+
+scenario "Borrowed Knowledge: draw as many as target opponent has in hand" {
+  battlefield A: 2 "Mountain", 2 "Plains"
+  hand A: "Borrowed Knowledge", "Forest", "Island"
+  hand B: "Forest", "Forest", "Forest"
+  library A: "Swamp", "Swamp", "Swamp", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Borrowed Knowledge" mode 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert hand A count 3
+  assert hand A contains "Swamp"
+}
+
+scenario "Borrowed Knowledge: draw as many as were discarded this way" {
+  battlefield A: 2 "Mountain", 2 "Plains"
+  hand A: "Borrowed Knowledge", "Forest", "Island"
+  hand B: "Forest", "Forest", "Forest"
+  library A: "Swamp", "Swamp", "Swamp", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Borrowed Knowledge" mode 2
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Riverchurn Monument: exhaust mills each target player by their graveyard's size" {
+  battlefield A: "Riverchurn Monument", 4 "Island"
+  graveyard B: 3 "Forest"
+  library B: "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Riverchurn Monument" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 3 "Plains"
+}
+
+scenario "Prismabasher: up to X targets get +X/+X, X the colors among permanents you control" {
+  battlefield A: 6 "Forest", "Serra Angel", "Wind Drake", "Grizzly Bears"
+  hand A: "Prismabasher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Prismabasher"
+  turn 1 A: trigger "Prismabasher" targeting "Grizzly Bears", "Wind Drake", "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 5
+  assert power "Wind Drake" 5
+  assert power "Serra Angel" 7
+}

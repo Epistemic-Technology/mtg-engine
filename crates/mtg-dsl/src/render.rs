@@ -5960,6 +5960,10 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "card in their library".to_string(),
                 "cards in their library".to_string(),
             ),
+            mtg_core::card::PlayerCount::Graveyard => (
+                "card in their graveyard".to_string(),
+                "cards in their graveyard".to_string(),
+            ),
             mtg_core::card::PlayerCount::Life => return "their life".to_string(),
         },
         // "For each opponent who didn't discard two nonland cards this
@@ -6041,6 +6045,75 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature that left the battlefield under your control this turn".to_string(),
             "creatures that left the battlefield under your control this turn".to_string(),
         ),
+        CountExpr::ColorsAmong(f) => (
+            format!("color among {}", filter_phrase(f, card, true)),
+            format!("colors among {}", filter_phrase(f, card, true)),
+        ),
+        CountExpr::CardTypesAmong(f) => (
+            format!("card type among {}", filter_phrase(f, card, true)),
+            format!("card types among {}", filter_phrase(f, card, true)),
+        ),
+        CountExpr::CardTypesCastThisTurn => (
+            "card type among spells you've cast this turn".to_string(),
+            "card types among spells you've cast this turn".to_string(),
+        ),
+        CountExpr::CardTypesThisWay(verb) => {
+            let verb = crate::ast::this_way_word(*verb);
+            (
+                format!("card type among cards {verb} this way"),
+                format!("card types among cards {verb} this way"),
+            )
+        }
+        CountExpr::PermanentTypesInGraveyard => (
+            "permanent type among cards in your graveyard".to_string(),
+            "permanent types among cards in your graveyard".to_string(),
+        ),
+        CountExpr::GraveyardsWithAtLeast(n) => {
+            let n = count_words(Num::N(*n), "one");
+            (
+                format!("graveyard with {n} or more cards in it"),
+                format!("graveyards with {n} or more cards in them"),
+            )
+        }
+        CountExpr::CountersAmong(kind, f) => {
+            let kind = if *kind == mtg_core::card::CounterKind::Any {
+                String::new()
+            } else {
+                format!("{} ", counter_name(*kind))
+            };
+            (
+                format!("{kind}counter on {}", filter_phrase(f, card, true)),
+                format!("{kind}counters on {}", filter_phrase(f, card, true)),
+            )
+        }
+        CountExpr::CounterKindsAmong(f) => (
+            format!("kind of counter among {}", filter_phrase(f, card, true)),
+            format!(
+                "different kinds of counters among {}",
+                filter_phrase(f, card, true)
+            ),
+        ),
+        CountExpr::DifferentPowers(f) => (
+            format!("different power among {}", filter_phrase(f, card, true)),
+            format!("different powers among {}", filter_phrase(f, card, true)),
+        ),
+        CountExpr::SharingCreatureType(f) => {
+            return format!(
+                "the greatest number of {} that have a creature type in common",
+                filter_phrase(f, card, true)
+            );
+        }
+        CountExpr::TriggerPtDifference => {
+            return "the difference between its power and toughness".to_string();
+        }
+        CountExpr::X => return "X".to_string(),
+        CountExpr::TargetHandDeclared { opponent, .. } => {
+            let who = if *opponent { "opponent" } else { "player" };
+            (
+                format!("card in target {who}'s hand"),
+                format!("cards in target {who}'s hand"),
+            )
+        }
     };
     if each {
         format!("for each {one}")
@@ -6170,6 +6243,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             continue;
         };
         match count.style {
+            // "create half X Food tokens, rounded up".
+            CountStyle::Half
+                if matches!(&count.expr, crate::ast::CountExpr::Divided { by: 2, inner, .. }
+                    if **inner == crate::ast::CountExpr::X) =>
+            {
+                let crate::ast::CountExpr::Divided { up, .. } = &count.expr else {
+                    unreachable!()
+                };
+                c.text = c.text.replacen("X ", "half X ", 1);
+                let _ = write!(c.tail, ", rounded {}", if *up { "up" } else { "down" });
+            }
             // Printed by the verb (`half_text`).
             CountStyle::Half => {}
             // "deals damage equal to that creature's power to ...".
@@ -6467,6 +6551,15 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 };
                 // "put two +1/+1 counters on this creature for each ...",
                 // "put a +1/+1 counter on ... for each ...".
+                if matches!(
+                    e,
+                    Effect::AddManaTimes {
+                        mana: Mana::Chosen,
+                        ..
+                    }
+                ) {
+                    c.text = c.text.replacen("X mana", "one mana", 1);
+                }
                 if matches!(e, Effect::AddCounters { .. }) {
                     c.text =
                         c.text
@@ -6786,8 +6879,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     String::new(),
                 ),
             };
-            // "Up to two target creatures each get +X/+X".
-            let each = if matches!(to, Recipient::Targets(..)) || ctx.is_many(*to) {
+            // "Up to two target creatures each get +X/+X"; "up to X target
+            // creatures you control get +X/+X" (Prismabasher).
+            let up_to_x = matches!(to, Recipient::Target(i)
+                if matches!(ctx.targets.get(*i), Some(Target::Many { max: Some(Num::X), .. })));
+            let each = if !up_to_x && (matches!(to, Recipient::Targets(..)) || ctx.is_many(*to)) {
                 "each "
             } else {
                 ""
@@ -11274,6 +11370,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             count_words(*n, "one"),
             mana_symbols(&[*m], "")
         )),
+        // "Choose a color. Add one mana of that color for each different
+        // power among creatures you control." (Loot, the Nexus).
+        Effect::AddManaTimes {
+            mana: Mana::Chosen,
+            count: Num::Count(_),
+        } => Clause::imperative("choose a color. Add X mana of that color".to_string()),
         // "add that much {R}" (Raphael, after "is dealt damage").
         Effect::AddManaTimes {
             mana,
@@ -11719,6 +11821,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     // "... with \"... until end of turn.\" It's still a
                     // land." (Great Hall of the Biblioplex).
                     clause.tail.push_str(" It's still a land");
+                } else if *to == Recipient::Source
+                    && ctx.card.types == [CardType::Land]
+                    && let [sub] = ctx.card.subtypes.as_slice()
+                    && !matches!(
+                        sub.as_str(),
+                        "Plains" | "Island" | "Swamp" | "Mountain" | "Forest"
+                    )
+                {
+                    // "It's still a Cave land." (Cavernous Maw).
+                    let _ = write!(clause.tail, ". It's still a {sub} land");
                 } else {
                     clause.tail.push_str(". It's still a land");
                 }
@@ -17813,6 +17925,30 @@ fn works_from_graveyard(a: Option<&Ability>) -> bool {
 fn static_cond_text(c: &StaticCond, card: &Card) -> String {
     let or_more = |n: u32| format!("{} or more", count_words(Num::N(n), "one"));
     match c {
+        // "there are five colors among permanents you control" (five is
+        // every color), "there are four or more permanent types among
+        // cards in your graveyard"; a sum: "the number of ... plus the
+        // number of ... is three or greater".
+        StaticCond::CountAtLeast(e, n) => {
+            use crate::ast::CountExpr;
+            let phrase = count_phrase(e, card, false);
+            match &**e {
+                CountExpr::ColorsAmong(_) | CountExpr::ColorsAmongPermanents if *n == 5 => {
+                    let many = phrase.strip_prefix("the number of ").unwrap_or(&phrase);
+                    format!("there are five {many}")
+                }
+                CountExpr::ColorsAmong(_)
+                | CountExpr::ColorsAmongPermanents
+                | CountExpr::CardTypesAmong(_)
+                | CountExpr::PermanentTypesInGraveyard
+                | CountExpr::CounterKindsAmong(_)
+                | CountExpr::DifferentPowers(_) => {
+                    let many = phrase.strip_prefix("the number of ").unwrap_or(&phrase);
+                    format!("there are {} {many}", or_more(*n))
+                }
+                _ => format!("{phrase} is {} or greater", number_word(*n)),
+            }
+        }
         // "the top card of your library is a Goblin card", "... is black".
         StaticCond::TopCard(f) => {
             let what = if f.types.is_empty()
@@ -20072,6 +20208,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 return format!(
                     "{head}Each spell{whose} that's {} costs {{{}}} {more} to cast.",
                     or_list(&names),
+                    generic.unsigned_abs()
+                );
+            }
+            // "Each creature spell you cast with toughness greater than its
+            // power costs {1} less to cast." (Doran, Besieged by Time).
+            if filter.each && filter.status.toughness_over_power && per.is_none() {
+                let mut g = filter.clone();
+                g.each = false;
+                g.status.toughness_over_power = false;
+                let subject =
+                    lowercase_first(&cost_spells_subject(&g, card)).replacen("spells", "spell", 1);
+                return format!(
+                    "{head}Each {subject}{whose} with toughness greater than its power costs \
+                     {{{}}} {more} to cast.",
                     generic.unsigned_abs()
                 );
             }

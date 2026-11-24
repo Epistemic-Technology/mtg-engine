@@ -1,0 +1,16 @@
+card "Kefka, Court Mage // Kefka, Ruler of Ruin" {
+  oracle_id 6d3ca5cb-781d-4608-b7f1-38c020536376
+  layout transform
+  cost {2}{U}{B}{R}
+  type Legendary Creature — Human Wizard
+  pt 4/5
+  triggered whenever this enters or attacks: each player discards 1 cards; then you draw count each card types among discarded this way cards
+  activated {8}, sorcery: each opponent sacrifices 1 permanent; transform this
+  face "Kefka, Ruler of Ruin" {
+    type Legendary Creature — Avatar Wizard
+    pt 5/7
+    color black red blue
+    keywords flying
+    triggered whenever an opponent loses life during your turn: you draw that much cards
+  }
+}

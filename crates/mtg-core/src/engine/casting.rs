@@ -836,6 +836,36 @@ impl GameState {
         self.eval_num(n, &ctx)
     }
 
+    /// A count for `source`'s controller outside any resolution (a
+    /// condition such as "if there are five colors among permanents you
+    /// control").
+    pub(crate) fn eval_count_of(
+        &self,
+        c: &crate::card::CountExpr,
+        source: ObjId,
+        controller: PlayerId,
+    ) -> u32 {
+        let ctx = EffectCtx {
+            source,
+            controller,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: None,
+            trigger_player: None,
+            trigger_amount: 0,
+            created: None,
+            revealed: Vec::new(),
+            x: 0,
+            did: true,
+            chosen: Chosen::None,
+            couldnt: 0,
+            created_tokens: SmallVec::new(),
+            counts: None,
+        };
+        self.eval_count(c, &ctx)
+    }
+
     /// A variable amount's value as an effect happens: X from the spell, or
     /// one of the source card's counts (CR 107.3 for X; "the number of
     /// ..." judged from the effect's controller).
@@ -1000,6 +1030,7 @@ impl GameState {
                 match what {
                     crate::card::PlayerCount::Hand => ps.hand.len(),
                     crate::card::PlayerCount::Library => ps.library.len(),
+                    crate::card::PlayerCount::Graveyard => self.cards_in_graveyard(p),
                     crate::card::PlayerCount::Life => {
                         return u32::try_from(ps.life.max(0)).unwrap_or(0);
                     }
@@ -1434,6 +1465,77 @@ impl GameState {
                     })
                     .len();
             }
+            CountExpr::ColorsAmong(_)
+            | CountExpr::CardTypesAmong(_)
+            | CountExpr::CountersAmong(..)
+            | CountExpr::CounterKindsAmong(_)
+            | CountExpr::DifferentPowers(_)
+            | CountExpr::SharingCreatureType(_) => {
+                let (CountExpr::ColorsAmong(f)
+                | CountExpr::CardTypesAmong(f)
+                | CountExpr::CountersAmong(_, f)
+                | CountExpr::CounterKindsAmong(f)
+                | CountExpr::DifferentPowers(f)
+                | CountExpr::SharingCreatureType(f)) = expr
+                else {
+                    unreachable!()
+                };
+                let f = &*self.chosen_filter(f, ctx);
+                let group: SmallVec<[(ObjId, crate::state::Characteristics); 16]> = self
+                    .battlefield
+                    .iter()
+                    .filter_map(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.characteristics(*id)?;
+                        (f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(f, *id))
+                        .then_some((*id, c))
+                    })
+                    .collect();
+                return self.group_count(expr, &group);
+            }
+            CountExpr::CardTypesCastThisTurn => {
+                return self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(p, _)| *p == you)
+                    .fold(crate::card::TypeSet::default(), |acc, (_, d)| {
+                        acc.union(self.pool.get(*d).types)
+                    })
+                    .len();
+            }
+            // CR 608.2h: the moved cards as they last existed.
+            CountExpr::CardTypesThisWay(verb) => {
+                return self.this_way.as_ref().map_or(0, |log| {
+                    log.moved
+                        .iter()
+                        .filter(|m| m.is(*verb))
+                        .filter_map(|m| {
+                            self.lki
+                                .get(&m.old)
+                                .map(|l| l.characteristics.types)
+                                .or_else(|| {
+                                    self.objects.get(m.new).map(|o| self.pool.get(o.def).types)
+                                })
+                        })
+                        .fold(crate::card::TypeSet::default(), crate::card::TypeSet::union)
+                        .len()
+                });
+            }
+            CountExpr::PermanentTypesInGraveyard => {
+                return self.permanent_types_in_graveyard(you);
+            }
+            CountExpr::GraveyardsWithAtLeast(n) => {
+                return self.graveyards_with_at_least(*n);
+            }
+            // CR 608.2h: the triggering object as it last existed.
+            CountExpr::TriggerPtDifference => {
+                return ctx.trigger_obj.map_or(0, |id| {
+                    self.characteristics_or_lki(id)
+                        .map_or(0, |c| (c.power() - c.toughness()).unsigned_abs())
+                });
+            }
+            CountExpr::X => return ctx.x,
             // CR 107.1b: a negative total is 0.
             CountExpr::Total(stat, f) => {
                 let f = &*self.chosen_filter(f, ctx);
@@ -6331,8 +6433,24 @@ impl GameState {
     pub(super) fn many_bounds(&self, spell: ObjId, i: u16) -> (usize, usize) {
         let m = self.pool.many(i);
         let x = self.x_of(spell);
-        let mut min = m.min.eval(x) as usize;
-        let mut max = m.max.map_or(usize::MAX, |n| n.eval(x) as usize);
+        // "up to that many target creatures": a triggered ability's event
+        // amount (the life gained).
+        // "up to X target creatures ..., where X is ...": the card's count,
+        // judged as the targets are chosen.
+        let eval = |n: crate::card::Num| match n {
+            crate::card::Num::ThatMuch => self
+                .objects
+                .get(spell)
+                .and_then(|o| o.ability)
+                .map_or(0, |a| a.trigger_amount),
+            crate::card::Num::Count(_) => self.objects.get(spell).map_or(0, |o| {
+                let source = o.ability.map_or(spell, |a| a.source);
+                self.eval_num_of(n, source, o.controller)
+            }),
+            n => n.eval(x),
+        };
+        let mut min = eval(m.min) as usize;
+        let mut max = m.max.map_or(usize::MAX, |n| eval(n) as usize);
         if let Some(total) = self.divided_total(spell) {
             max = max.min(total as usize);
             if total > 0 {

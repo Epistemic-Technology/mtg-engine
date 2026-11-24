@@ -1,0 +1,10 @@
+card "The Goose Mother" {
+  oracle_id de595f1b-3f7d-45e0-a31b-ed23e5d1ee48
+  cost {X}{G}{U}
+  type Legendary Creature — Bird Hydra
+  pt 2/2
+  keywords flying
+  enters with X +1/+1 counters
+  triggered when this enters: create half up x "Food"
+  triggered whenever this attacks: you may sacrifice 1 Food chosen; if you do, draw 1 card
+}

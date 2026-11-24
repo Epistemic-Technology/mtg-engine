@@ -1,0 +1,9 @@
+card "Sunderflock" {
+  oracle_id c01b221f-3993-43ab-8cde-b42fb344e2a7
+  cost {7}{U}{U}
+  type Creature — Elemental
+  pt 5/5
+  this spell costs {1} less count where greatest mana value among Elemental you control
+  keywords flying
+  triggered when this enters if you cast it: return all non-Elemental creature to hand
+}

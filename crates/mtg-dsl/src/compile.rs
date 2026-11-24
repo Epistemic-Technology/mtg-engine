@@ -164,6 +164,7 @@ pub fn add_card(
             tmap: TargetMap::default(),
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
+            chose_target: None,
             scavenge: None,
             station: None,
             sunburst: None,
@@ -209,6 +210,7 @@ pub fn add_card(
                 tmap: TargetMap::default(),
                 implied: Vec::new(),
                 implied_used: std::rc::Rc::default(),
+                chose_target: None,
                 scavenge: None,
                 station: None,
                 sunburst: None,
@@ -243,6 +245,7 @@ pub fn add_card(
         tmap: TargetMap::default(),
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
+        chose_target: None,
         scavenge: None,
         station: None,
         sunburst: None,
@@ -342,6 +345,7 @@ fn add_stages(
             tmap: TargetMap::default(),
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
+            chose_target: None,
             scavenge: None,
             station: None,
             extort: None,
@@ -449,6 +453,10 @@ struct Compiler<'a> {
     implied: Vec<Option<CoreChoiceKind>>,
     /// Set as an effect's recipient uses such a group.
     implied_used: std::rc::Rc<std::cell::Cell<Option<CoreChoiceKind>>>,
+    /// The target named by the last `choose up to that much target ...`
+    /// ("Choose up to that many target creatures you control. Put a +1/+1
+    /// counter on each of them."), for "each of them" after it.
+    chose_target: Option<Recipient>,
     /// Scavenge's count (the card's power), once added to the counts.
     scavenge: Option<u8>,
     /// Station's count (the tapped creature's power), likewise.
@@ -2334,6 +2342,9 @@ impl Compiler<'_> {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
             StaticCond::TopCard(f) => StaticCondition::TopCard(self.filter(f)),
+            StaticCond::CountAtLeast(c, n) => {
+                StaticCondition::CountAtLeast(Box::new(self.count_expr(c)), *n)
+            }
             StaticCond::CardTypesInGraveyard(n) => StaticCondition::CardTypesInGraveyard(*n),
             StaticCond::YouControl { filter, at_least }
             | StaticCond::YouControlAtLeast {
@@ -2889,7 +2900,9 @@ impl Compiler<'_> {
                 verb: *verb,
                 stat: *stat,
             },
-            A::TargetHand(n) => C::TargetHand(target_index(self.tmap, *n)),
+            A::TargetHand(n) | A::TargetHandDeclared { n, .. } => {
+                C::TargetHand(target_index(self.tmap, *n))
+            }
             A::GreatestToughness(f) => C::GreatestToughness(self.filter(f)),
             A::Sum(a, b) => C::Sum(Box::new(self.count_expr(a)), Box::new(self.count_expr(b))),
             A::LifeLostThisTurn => C::Happened(TurnCount::of(TurnEvent::LifeLost, TurnWho::You)),
@@ -2937,6 +2950,18 @@ impl Compiler<'_> {
                 C::Happened(TurnCount::of(TurnEvent::CreatureLeft, TurnWho::You))
             }
             A::TargetColors(n) => C::TargetColors(target_index(self.tmap, *n)),
+            A::ColorsAmong(f) => C::ColorsAmong(self.filter(f)),
+            A::CardTypesAmong(f) => C::CardTypesAmong(self.filter(f)),
+            A::CardTypesCastThisTurn => C::CardTypesCastThisTurn,
+            A::CardTypesThisWay(verb) => C::CardTypesThisWay(*verb),
+            A::PermanentTypesInGraveyard => C::PermanentTypesInGraveyard,
+            A::GraveyardsWithAtLeast(n) => C::GraveyardsWithAtLeast(*n),
+            A::CountersAmong(kind, f) => C::CountersAmong(*kind, self.filter(f)),
+            A::CounterKindsAmong(f) => C::CounterKindsAmong(self.filter(f)),
+            A::DifferentPowers(f) => C::DifferentPowers(self.filter(f)),
+            A::SharingCreatureType(f) => C::SharingCreatureType(self.filter(f)),
+            A::TriggerPtDifference => C::TriggerPtDifference,
+            A::X => C::X,
         }
     }
 
@@ -2982,10 +3007,38 @@ impl Compiler<'_> {
                 different,
             } => {
                 let spec = self.target(target);
+                // "up to X target creatures you control get +X/+X ..., where
+                // X is the number of colors among permanents you control"
+                // (Prismabasher): on a card without {X}, the X of its one
+                // "where X is" count.
+                let wheres: Vec<usize> = self
+                    .card
+                    .counts
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, c)| c.style == crate::ast::CountStyle::Where)
+                    .map(|(i, _)| i)
+                    .collect();
+                let x_count = match wheres.as_slice() {
+                    [i] if !self
+                        .card
+                        .cost
+                        .symbols()
+                        .iter()
+                        .any(|s| matches!(s, mtg_core::mana::ManaSymbol::X)) =>
+                    {
+                        u8::try_from(*i).ok().map(Num::Count)
+                    }
+                    _ => None,
+                };
+                let bound = |n: Num| match (n, x_count) {
+                    (Num::X, Some(c)) => c,
+                    (n, _) => n,
+                };
                 self.pool.intern_many(mtg_core::card::ManyTargets {
                     spec,
-                    min: *min,
-                    max: *max,
+                    min: bound(*min),
+                    max: max.map(bound),
                     total_mv: *total,
                     different_names: *different,
                 })
@@ -3413,6 +3466,11 @@ impl Compiler<'_> {
                 })
                 .collect();
             before.reverse();
+            if before.is_empty()
+                && let Some(r) = self.chose_target
+            {
+                before.push(Self::recipient(&self.groups, self.many, self.tmap, r));
+            }
             if before.is_empty() {
                 return self
                     .err("`each of them` needs tokens created, or a tap or pump, before it");
@@ -3947,6 +4005,16 @@ impl Compiler<'_> {
             }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
             Effect::AddManaOneOf(m) => out.push(CoreEffect::AddManaOneOf(m.clone())),
+            // "Choose a color. Add one mana of that color for each ...":
+            // one color chosen as the mana is added, as for "X mana of any
+            // one color".
+            Effect::AddManaTimes {
+                mana: Mana::Chosen,
+                count: count @ Num::Count(_),
+            } => out.push(CoreEffect::AddManaTimes {
+                mana: Mana::Any,
+                count: *count,
+            }),
             Effect::AddManaTimes { mana, count } => out.push(CoreEffect::AddManaTimes {
                 mana: *mana,
                 count: *count,
@@ -4085,7 +4153,7 @@ impl Compiler<'_> {
             }
             // Wording: the target is the ability's, chosen as it is put on
             // the stack.
-            Effect::ChooseTarget(_) => {}
+            Effect::ChooseTarget(r) => self.chose_target = Some(*r),
             Effect::FlipCoin => out.push(CoreEffect::FlipCoin { won: Vec::new() }),
             Effect::Clash => out.push(CoreEffect::Clash { won: Vec::new() }),
             // What winning the clash just before does.

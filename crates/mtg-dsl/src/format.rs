@@ -2919,6 +2919,10 @@ impl Fmt {
                 mana: Mana::Chosen,
                 count: Num::N(n),
             } => format!("add chosen {n}"),
+            Effect::AddManaTimes {
+                mana: Mana::Chosen,
+                count: c @ Num::Count(_),
+            } => format!("add chosen {}", num(*c)),
             Effect::AddManaTimes { mana, count } => {
                 format!(
                     "add {} {}",
@@ -4221,6 +4225,7 @@ fn many_prefix(min: Num, max: Option<Num>) -> String {
         Some(m) if m == min => num(m),
         // `up to X target card`: "up to X target cards" (CR 601.2c).
         Some(Num::X) if min == Num::N(0) => "up to X".to_string(),
+        Some(Num::ThatMuch) if min == Num::N(0) => "up to that much".to_string(),
         Some(m) => format!("{} to {}", num(min), num(m)),
     }
 }
@@ -4350,6 +4355,13 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
 
 fn count_text(c: &crate::ast::Count) -> String {
     use crate::ast::CountStyle;
+    // `half up x`: "half X, rounded up".
+    if c.style == CountStyle::Half
+        && let crate::ast::CountExpr::Divided { by: 2, up, inner } = &c.expr
+        && **inner == crate::ast::CountExpr::X
+    {
+        return format!("half {} x", if *up { "up" } else { "down" });
+    }
     let style = match c.style {
         CountStyle::Where => "where",
         // `Half` is printed by the verb (`half`); elsewhere as `equal`.
@@ -4597,6 +4609,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             mtg_core::card::PlayerCount::Hand => "their hand",
             mtg_core::card::PlayerCount::Library => "their library",
             mtg_core::card::PlayerCount::Life => "their life",
+            mtg_core::card::PlayerCount::Graveyard => "their graveyard",
         }
         .to_string(),
         CountExpr::PlayersDidntDiscard {
@@ -4623,6 +4636,26 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::SourceDamage => "damage dealt to it this turn".to_string(),
         CountExpr::CreaturesLeftThisTurn => "creatures left this turn".to_string(),
         CountExpr::TargetColors(n) => format!("colors of target {}", n + 1),
+        CountExpr::ColorsAmong(f) => format!("colors among {}", filter(f)),
+        CountExpr::CardTypesAmong(f) => format!("card types among {}", filter(f)),
+        CountExpr::CardTypesCastThisTurn => "card types among spells cast this turn".to_string(),
+        CountExpr::CardTypesThisWay(verb) => format!(
+            "card types among {} this way",
+            crate::ast::this_way_word(*verb)
+        ),
+        CountExpr::PermanentTypesInGraveyard => "permanent types in your graveyard".to_string(),
+        CountExpr::GraveyardsWithAtLeast(n) => format!("graveyards with {n} cards"),
+        CountExpr::CountersAmong(CounterKind::Any, f) => format!("counters on {}", filter(f)),
+        CountExpr::CountersAmong(kind, f) => format!("{} counters on {}", kind.name(), filter(f)),
+        CountExpr::CounterKindsAmong(f) => format!("counter kinds among {}", filter(f)),
+        CountExpr::DifferentPowers(f) => format!("different powers among {}", filter(f)),
+        CountExpr::SharingCreatureType(f) => format!("most sharing type {}", filter(f)),
+        CountExpr::TriggerPtDifference => "difference of power and toughness".to_string(),
+        CountExpr::X => "x".to_string(),
+        CountExpr::TargetHandDeclared { opponent, .. } => format!(
+            "hand of target {}",
+            if *opponent { "opponent" } else { "player" }
+        ),
     }
 }
 
@@ -6856,6 +6889,7 @@ fn hand_player(w: mtg_core::card::HandPlayer) -> &'static str {
 fn static_cond(c: &StaticCond) -> String {
     match c {
         StaticCond::TopCard(fl) => format!("top card is {}", filter(fl)),
+        StaticCond::CountAtLeast(c, n) => format!("count {n} {}", count_expr_text(c)),
         StaticCond::CardsInGraveyard(n) => format!("{n} cards in your graveyard"),
         StaticCond::CardTypesInGraveyard(n) => format!("{n} card types in your graveyard"),
         StaticCond::YouControl {

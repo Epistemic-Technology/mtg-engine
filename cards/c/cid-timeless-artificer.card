@@ -1,0 +1,9 @@
+card "Cid, Timeless Artificer" {
+  oracle_id 87050537-99c9-4993-a770-4329b2e749e4
+  cost {2}{W}{U}
+  type Legendary Creature — Human Artificer
+  pt 4/4
+  static artifact creature or Hero you control: +1/+1 count each Artificer you control plus graveyard Artificer
+  deck any number
+  cycling {W}{U}
+}

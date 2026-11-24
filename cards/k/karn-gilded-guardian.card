@@ -1,0 +1,8 @@
+card "Karn, Gilded Guardian" {
+  oracle_id 20b90a18-ff62-4995-b0d6-fbef44dca357
+  cost {2/W}{2/U}{2/B}{2/R}{2/G}
+  type Legendary Artifact Creature — Golem
+  pt 5/5
+  keywords vigilance, trample
+  triggered when this enters: draw count each colors among other artifact you control cards
+}

@@ -597,6 +597,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         }
         StaticCondition::YourTurn => state.active_player == you,
         StaticCondition::TopCard(_) => state.condition_now(cond, you, source),
+        StaticCondition::CountAtLeast(c, n) => {
+            per_count(work, Some(source), None, c) >= i32::try_from(*n).unwrap_or(i32::MAX)
+        }
         StaticCondition::SourceAttackedBattle => state.battle_attackers_this_turn.contains(&source),
         StaticCondition::NotYourTurn => state.active_player != you,
         StaticCondition::YourMainPhase => state.active_player == you && state.step.is_main(),
@@ -1581,6 +1584,23 @@ fn per_count(
                     .devotion(*colors) as usize
             })
             .sum(),
+        // From the characteristics worked out so far (colors, types and
+        // creature types are set before power and toughness, CR 613.4).
+        CountExpr::ColorsAmong(f)
+        | CountExpr::CardTypesAmong(f)
+        | CountExpr::CountersAmong(_, f)
+        | CountExpr::CounterKindsAmong(f)
+        | CountExpr::SharingCreatureType(f) => {
+            let f = same_filled(work, f, source);
+            let group: Vec<(ObjId, Characteristics)> = work
+                .matching(&f, source, Some(you))
+                .iter()
+                .map(|id| (*id, work.chars[work.index[id]]))
+                .collect();
+            return i32::try_from(state.group_count(count, &group)).unwrap_or(i32::MAX);
+        }
+        CountExpr::PermanentTypesInGraveyard => state.permanent_types_in_graveyard(you) as usize,
+        CountExpr::GraveyardsWithAtLeast(n) => state.graveyards_with_at_least(*n) as usize,
         CountExpr::CardsInHand => state.player(you).hand.len(),
         CountExpr::Life => usize::try_from(state.player(you).life.max(0)).unwrap_or(0),
         CountExpr::Speed => usize::from(state.desig.speed(you)),
@@ -1630,6 +1650,11 @@ fn per_count(
         | CountExpr::Their(_)
         | CountExpr::PlayersDidntDiscard { .. }
         | CountExpr::LibraryTop
+        | CountExpr::CardTypesCastThisTurn
+        | CountExpr::CardTypesThisWay(_)
+        | CountExpr::DifferentPowers(_)
+        | CountExpr::TriggerPtDifference
+        | CountExpr::X
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,

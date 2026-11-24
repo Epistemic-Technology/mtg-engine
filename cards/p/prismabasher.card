@@ -1,0 +1,8 @@
+card "Prismabasher" {
+  oracle_id f75be4f2-d1a7-40c7-a0e4-ba8b03556ac6
+  cost {4}{G}{G}
+  type Creature — Elemental
+  pt 6/6
+  keywords trample
+  label "Vivid" triggered when this enters: up to X target creature you control gets +1/+1 count where colors among permanents until end of turn
+}
