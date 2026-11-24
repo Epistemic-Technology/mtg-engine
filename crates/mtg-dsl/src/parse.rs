@@ -12684,7 +12684,16 @@ impl P {
                 })
             }
             "shuffle" if !self.at_word("library") && !self.at_word("your") => {
-                let what = self.recipient()?;
+                let mut what = self.recipient()?;
+                // "Shuffle this creature and target creature with a stun
+                // counter on it into their owners' libraries." (Floodpits
+                // Drowner).
+                if what == Recipient::Source && self.eat_word("and") {
+                    match self.recipient()? {
+                        Recipient::Target(a) => what = Recipient::SourceAndTarget(a),
+                        _ => return self.fail("`shuffle this and target N into library`"),
+                    }
+                }
                 let place = self.library_place(true)?;
                 Ok(Effect::PutInLibrary {
                     what,

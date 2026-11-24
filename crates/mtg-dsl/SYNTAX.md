@@ -2817,7 +2817,10 @@ owner's library second from the top"; fewer cards, the bottom, CR 401.7),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
 owner's library"; `you may shuffle up to 1 target card from your
 graveyard into library`: "You may shuffle up to one target card from
-your graveyard into your library"), `shuffle graveyard into library`
+your graveyard into your library"; `shuffle this and target creature with
+stun counter into library`: "Shuffle this creature and target creature
+with a stun counter on it into their owners' libraries.", each into its
+owner's library, Floodpits Drowner), `shuffle graveyard into library`
 ("Shuffle your graveyard into your library"; `target player shuffles
 graveyard into library`: "Target player shuffles their graveyard into
 their library"; `each player shuffles hand and graveyard into library then draws 7

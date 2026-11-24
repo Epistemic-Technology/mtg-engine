@@ -10890,6 +10890,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let whose = graveyard_of.unwrap_or("their");
                 return Clause::with_subject(*who, s, format!("{v} {o} into {whose} library"));
             }
+            // "Shuffle this creature and target creature with a stun
+            // counter on it into their owners' libraries."
+            if *wording == W::Put
+                && *place == P::Shuffle
+                && matches!(what, Recipient::SourceAndTarget(_))
+            {
+                let o = ctx.obj(*what);
+                return Clause::imperative(format!("shuffle {o} into their owners' libraries"));
+            }
             if *wording == W::Put {
                 let o = ctx.obj(*what);
                 let whose = graveyard_of.unwrap_or("its owner's");

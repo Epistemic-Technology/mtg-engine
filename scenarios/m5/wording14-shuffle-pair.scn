@@ -1,0 +1,34 @@
+# "{1}{U}, {T}: Shuffle this creature and target creature with a stun
+# counter on it into their owners' libraries." (Floodpits Drowner): both
+# go to their owners' libraries.
+
+scenario "Floodpits Drowner: it and the stunned creature are shuffled away" {
+  battlefield A: "Floodpits Drowner", 2 "Island"
+  battlefield B: "Grizzly Bears" with 1 stun
+  library A: "Hill Giant"
+  library B: "Hill Giant"
+  turn 1 A: activate "Floodpits Drowner" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert library A contains "Floodpits Drowner"
+  assert library B contains "Grizzly Bears"
+  assert battlefield A lacks "Floodpits Drowner"
+  assert battlefield B lacks "Grizzly Bears"
+}
+
+scenario "Floodpits Drowner: a creature without a stun counter isn't a target" {
+  battlefield A: "Floodpits Drowner", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Floodpits Drowner" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Floodpits Drowner: entering, it taps and stuns an opponent's creature" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Floodpits Drowner"
+  turn 1 A: cast "Floodpits Drowner"
+  turn 1 A: trigger "Floodpits Drowner" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 1
+}
