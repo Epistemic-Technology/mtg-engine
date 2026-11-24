@@ -3957,6 +3957,9 @@ impl Compiler<'_> {
                     all_graveyards: *all_graveyards,
                 });
             }
+            Effect::GraveyardToHand { filter } => out.push(CoreEffect::GraveyardToHand {
+                filter: self.filter(filter),
+            }),
             Effect::CloakTop => out.push(CoreEffect::CloakTop {
                 of: CoreRecipient::You,
             }),

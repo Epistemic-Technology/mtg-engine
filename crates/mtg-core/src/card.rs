@@ -6367,6 +6367,12 @@ pub enum Effect {
         #[serde(default)]
         all_graveyards: bool,
     },
+    /// "Return all instant and sorcery cards from your graveyard to your
+    /// hand." (Wisdom of Ages): every card in the controller's graveyard
+    /// matching `filter` is put into its owner's hand, together.
+    GraveyardToHand {
+        filter: ObjFilter,
+    },
     /// Cloak (CR 701.58a): the top card of `of`'s library is put onto the
     /// battlefield face down under the controller's control as a 2/2
     /// creature with ward {2}; it may be turned face up for its mana cost

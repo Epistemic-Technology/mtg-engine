@@ -6550,6 +6550,12 @@ pub enum Effect {
         /// graveyard, under the controller's control).
         all_graveyards: bool,
     },
+    /// `return all instant or sorcery card from your graveyard to hand`:
+    /// "Return all instant and sorcery cards from your graveyard to your
+    /// hand."
+    GraveyardToHand {
+        filter: Filter,
+    },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).
     Recruit {

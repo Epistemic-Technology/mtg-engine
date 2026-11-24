@@ -2215,6 +2215,11 @@ impl Fmt {
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
+            Effect::GraveyardToHand { filter: f } => {
+                let f = filter(f);
+                let sep = if f.is_empty() { "" } else { " " };
+                format!("return all {f}{sep}card from your graveyard to hand")
+            }
             Effect::GraveyardToBattlefield {
                 filter: f, tapped, ..
             } => format!(

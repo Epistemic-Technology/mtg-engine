@@ -1556,7 +1556,12 @@ all creature cards from your graveyard to the battlefield."): every card
 in the controller's graveyard matching the filter enters under its owner's
 control; `... to battlefield tapped` ("Return all land cards from your
 graveyard to the battlefield tapped."), and `return all andlist artifact
-or enchantment card ...` ("all artifact and enchantment cards"). A
+or enchantment card ...` ("all artifact and enchantment cards"). `...
+to hand` puts them into their owner's hand instead (`return all andlist
+instant or sorcery card from your graveyard to hand`: "Return all instant
+and sorcery cards from your graveyard to your hand.", Wisdom of Ages;
+`return all card from your graveyard to hand`: "Return all cards from your
+graveyard to your hand.", any card). A
 mana value X is the spell's (CR 107.3). `put all creature card from all
 graveyards onto battlefield under your control` ("Put all creature cards
 from all graveyards onto the battlefield under your control.", Rise of

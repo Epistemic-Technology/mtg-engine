@@ -1,0 +1,7 @@
+card "Leveler" {
+  oracle_id ba1d34ab-7529-4f47-a5e7-7d8f66d7b901
+  cost {5}
+  type Artifact Creature — Juggernaut
+  pt 10/10
+  triggered when this enters: exile library
+}

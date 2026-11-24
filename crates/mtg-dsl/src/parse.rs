@@ -12905,7 +12905,19 @@ impl P {
                     }) =>
             {
                 self.pos += 1;
-                let filter = self.filter()?;
+                // `return all card from your graveyard to hand`: "Return all
+                // cards from your graveyard to your hand." (Praetor's
+                // Counsel), any card.
+                let filter = if self.at_word("card") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                // `... to hand`: "Return all instant and sorcery cards from
+                // your graveyard to your hand." (Wisdom of Ages).
+                if self.eat_words(&["card", "from", "your", "graveyard", "to", "hand"]) {
+                    return Ok(Effect::GraveyardToHand { filter });
+                }
                 self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
                 // "Sacrifice them at the beginning of the next end step."

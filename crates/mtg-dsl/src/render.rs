@@ -7423,6 +7423,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             cards_phrase(filter, ctx.card, true),
             if *tapped { " tapped" } else { "" }
         )),
+        Effect::GraveyardToHand { filter } => Clause::imperative(format!(
+            "return all {} from your graveyard to your hand",
+            cards_phrase(filter, ctx.card, true)
+        )),
         Effect::GraveyardToBattlefield { filter, tapped, .. } => Clause::imperative(format!(
             "return all {} from your graveyard to the battlefield{}",
             cards_phrase(filter, ctx.card, true),

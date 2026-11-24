@@ -2148,6 +2148,9 @@ impl Decompiler<'_> {
                 tapped: *tapped,
                 all_graveyards: *all_graveyards,
             },
+            CoreEffect::GraveyardToHand { filter } => Effect::GraveyardToHand {
+                filter: self.filter(filter),
+            },
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
             CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
                 what: std::iter::once(*a).chain(*b).map(r).collect(),

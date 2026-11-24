@@ -17658,6 +17658,28 @@ impl GameState {
                 ps.combat_mana += n;
                 self.bump();
             }
+            Effect::GraveyardToHand { filter } => {
+                // "Return all instant and sorcery cards from your graveyard
+                // to your hand.": the matching cards, as one event.
+                let filter = &*self.chosen_filter(filter, ctx);
+                let cards: Vec<ObjId> = self
+                    .player(ctx.controller)
+                    .graveyard
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.base_characteristics(o);
+                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                            && self.status_ok(filter, *id)
+                    })
+                    .collect();
+                let together = self.begin_together(cards.len());
+                for id in cards {
+                    self.move_object(id, Zone::Hand, false);
+                }
+                self.end_together(together);
+            }
             Effect::GraveyardToBattlefield {
                 filter,
                 tapped,

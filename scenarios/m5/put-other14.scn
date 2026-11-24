@@ -1,0 +1,98 @@
+# Moving cards, and miscellaneous effects (put-other14).
+
+# "Return all instant and sorcery cards from your graveyard to your hand.
+# You have no maximum hand size for the rest of the game."
+scenario "Wisdom of Ages: instants and sorceries return, other cards stay" {
+  battlefield A: 7 "Island"
+  hand A: "Wisdom of Ages", "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  graveyard A: "Lightning Bolt", "Shock", "Divination", "Grizzly Bears", "Forest"
+  graveyard B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wisdom of Ages"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert hand A contains "Shock"
+  assert hand A contains "Divination"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert graveyard B contains "Murder"
+  assert exile A contains "Wisdom of Ages"
+  assert graveyard A lacks "Wisdom of Ages"
+  assert hand A count 9
+  # No maximum hand size: nothing is discarded in the cleanup step.
+  run_to turn 2 upkeep
+  assert hand A count 9
+}
+
+scenario "Praetor's Counsel: every card returns, the spell is exiled" {
+  battlefield A: 8 "Forest"
+  hand A: "Praetor's Counsel"
+  graveyard A: "Lightning Bolt", "Grizzly Bears", "Plains", "Hill Giant", "Shock", "Divination", "Murder", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Praetor's Counsel"
+  run_to turn 1 postcombat_main
+  assert hand A count 8
+  assert graveyard A count 0
+  assert exile A contains "Praetor's Counsel"
+  run_to turn 2 upkeep
+  assert hand A count 8
+}
+
+# Aftermath: "Return all creature cards with power 2 or less from your
+# graveyard to your hand." cast from the graveyard.
+scenario "Dawn: creature cards with power 2 or less return" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Dusk // Dawn", "Grizzly Bears", "Savannah Lions", "Hill Giant", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dusk // Dawn" from graveyard
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Savannah Lions"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+  assert exile A contains "Dusk // Dawn"
+}
+
+scenario "Metallurgic Summonings: an X/X Construct, and the return with six artifacts" {
+  battlefield A: "Metallurgic Summonings", 6 "Ornithopter", 6 "Island", "Mountain"
+  hand A: "Lightning Bolt"
+  graveyard A: "Divination", "Shock", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Metallurgic Summonings"
+  run_to turn 1 postcombat_main
+  assert power "Construct" 1
+  assert toughness "Construct" 1
+  assert life B 17
+  assert hand A contains "Divination"
+  assert hand A contains "Shock"
+  assert hand A contains "Lightning Bolt"
+  assert graveyard A contains "Grizzly Bears"
+  assert exile A contains "Metallurgic Summonings"
+}
+
+scenario "Metallurgic Summonings: not with five artifacts" {
+  battlefield A: "Metallurgic Summonings", 5 "Ornithopter", 5 "Island"
+  graveyard A: "Divination"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Metallurgic Summonings"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+}
+
+# "When this creature enters, exile all cards from your library."
+scenario "Leveler: the whole library is exiled" {
+  battlefield A: 5 "Plains"
+  hand A: "Leveler"
+  library A: "Island", "Shock", "Grizzly Bears"
+  library B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leveler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Leveler"
+  assert library A count 0
+  assert exile A contains "Shock"
+  assert exile A contains "Grizzly Bears"
+  assert library B count 1
+}
