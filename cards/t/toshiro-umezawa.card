@@ -1,0 +1,8 @@
+card "Toshiro Umezawa" {
+  oracle_id 11838086-db2f-4588-ae18-4129c9e2b67d
+  cost {1}{B}{B}
+  type Legendary Creature — Human Samurai
+  pt 2/2
+  bushido 1
+  triggered whenever creature an opponent controls dies: cast now target instant card from your graveyard exile instead a
+}

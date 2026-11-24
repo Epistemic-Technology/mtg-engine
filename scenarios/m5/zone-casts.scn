@@ -1,0 +1,244 @@
+# M5: casting a card from a graveyard or from among cards exiled with a
+# permanent as an effect resolves, paying its costs (CR 608.2g, 601.3):
+# "you may cast target instant card from your graveyard", "..., and mana
+# of any type can be spent to cast that spell" (CR 609.4b), "If that
+# spell would be put into a graveyard, exile it instead."; a spell from
+# each opponent's graveyard free (Jetsam).
+
+scenario "Tinybones casts a creature card from the damaged player's graveyard with black mana" {
+  battlefield A: "Tinybones, the Pickpocket", "Swamp", "Island"
+  graveyard B: "Grizzly Bears"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 declare_attackers A: attack "Tinybones, the Pickpocket"
+  turn 1 combat_damage A: trigger "Tinybones, the Pickpocket" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B count 0
+  assert tapped "Swamp"
+  assert tapped "Island"
+}
+
+scenario "Tinybones: a card whose cost can't be paid is not cast" {
+  battlefield A: "Tinybones, the Pickpocket", "Swamp"
+  graveyard B: "Grizzly Bears"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 declare_attackers A: attack "Tinybones, the Pickpocket"
+  turn 1 combat_damage A: trigger "Tinybones, the Pickpocket" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Tinybones: declining leaves the card" {
+  battlefield A: "Tinybones, the Pickpocket", "Swamp", "Island"
+  graveyard B: "Grizzly Bears"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 declare_attackers A: attack "Tinybones, the Pickpocket"
+  turn 1 combat_damage A: trigger "Tinybones, the Pickpocket" targeting "Grizzly Bears"
+  turn 1 combat_damage A: decline "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert untapped "Swamp"
+  assert untapped "Island"
+}
+
+scenario "Quistis Trepe casts an opponent's instant with blue mana; it is exiled as it resolves" {
+  battlefield A: 4 "Island"
+  hand A: "Quistis Trepe"
+  graveyard B: "Lightning Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Quistis Trepe"
+  turn 1 A: trigger "Quistis Trepe" targeting "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile B contains "Lightning Bolt"
+  assert graveyard B count 0
+}
+
+scenario "Toshiro Umezawa: an opponent's creature dies; the instant is cast for its cost and exiled" {
+  battlefield A: "Toshiro Umezawa", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  graveyard A: "Lightning Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: trigger "Toshiro Umezawa" targeting "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Toshiro Umezawa: no mana left, the instant stays" {
+  battlefield A: "Toshiro Umezawa", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  graveyard A: "Lightning Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: trigger "Toshiro Umezawa" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Bilbo casts an instant from the graveyard and exiles it" {
+  battlefield A: "Bilbo, Thief in the Night", "Mountain"
+  graveyard A: "Shock", "Grizzly Bears"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 declare_attackers A: attack "Bilbo, Thief in the Night"
+  turn 1 declare_attackers A: choose "Shock"
+  turn 1 declare_attackers A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert exile A contains "Shock"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Bilbo: an artifact spell is cast for its cost less {1}, and isn't exiled" {
+  battlefield A: "Bilbo, Thief in the Night", "Island"
+  graveyard A: "Grizzly Bears", "Millstone"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 declare_attackers A: attack "Bilbo, Thief in the Night"
+  turn 1 declare_attackers A: choose "Millstone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Millstone"
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped "Island"
+}
+
+scenario "Jetsam: the opponent mills three; a spell among them is cast free and exiled" {
+  battlefield A: 6 "Island"
+  hand A: "Jetsam"
+  library A: 3 "Island"
+  library B: "Lightning Bolt", "Forest", "Grizzly Bears", "Island"
+  turn 1 A: cast "Jetsam"
+  turn 1 A: wait
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile B contains "Lightning Bolt"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Forest"
+  assert library B count 1
+}
+
+scenario "Jetsam: a creature cast this way enters under the caster's control" {
+  battlefield A: 6 "Island"
+  hand A: "Jetsam"
+  library A: 3 "Island"
+  library B: "Forest", "Grizzly Bears", "Island", "Island"
+  turn 1 A: cast "Jetsam"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B count 2
+}
+
+scenario "Memory Plunder casts an opponent's sorcery free" {
+  battlefield A: 4 "Island"
+  hand A: "Memory Plunder"
+  graveyard B: "Lava Axe"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Memory Plunder" targeting "Lava Axe"
+  turn 1 A: cast "Lava Axe" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard B contains "Lava Axe"
+}
+
+scenario "Wrexial casts the damaged player's instant free and exiles it" {
+  battlefield A: "Wrexial, the Risen Deep"
+  graveyard B: "Lightning Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 declare_attackers A: attack "Wrexial, the Risen Deep"
+  turn 1 combat_damage A: trigger "Wrexial, the Risen Deep" targeting "Lightning Bolt"
+  turn 1 combat_damage A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 12
+  assert exile B contains "Lightning Bolt"
+}
+
+scenario "Boiling Rock Rioter casts an Ally it exiled from its owner's graveyard" {
+  battlefield A: "Boiling Rock Rioter", 3 "Mountain"
+  graveyard A: "Akoum Flameseeker"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: activate "Boiling Rock Rioter" targeting "Akoum Flameseeker"
+  turn 3 declare_attackers A: attack "Boiling Rock Rioter"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Akoum Flameseeker"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Akoum Flameseeker"
+  assert exile A count 0
+}
+
+scenario "Boiling Rock Rioter: an Ally exiled from an opponent's graveyard isn't cast" {
+  battlefield A: "Boiling Rock Rioter", 3 "Mountain"
+  graveyard B: "Akoum Flameseeker"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: activate "Boiling Rock Rioter" targeting "Akoum Flameseeker"
+  turn 3 declare_attackers A: attack "Boiling Rock Rioter"
+  run_to turn 3 postcombat_main
+  assert exile B contains "Akoum Flameseeker"
+  assert battlefield A lacks "Akoum Flameseeker"
+}
+
+# "Once during each of your turns, you may cast ... from your graveyard"
+# (CR 601.3): one spell in each of the controller's turns.
+
+scenario "Kess: one instant from the graveyard each of your turns, exiled after" {
+  battlefield A: "Kess, Dissident Mage", 4 "Mountain"
+  graveyard A: "Shock", "Lightning Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Shock" from graveyard targeting player B
+  illegal turn 1 postcombat_main A: cast "Lightning Bolt" from graveyard targeting player B
+  illegal turn 2 A: cast "Lightning Bolt" from graveyard targeting player B
+  turn 3 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert exile A contains "Shock"
+  run_to turn 3 end
+  assert life B 15
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "Gisa and Geralf: a Zombie creature from the graveyard, but not a non-Zombie" {
+  battlefield A: "Gisa and Geralf", 4 "Swamp"
+  graveyard A: "Grizzly Bears", "Walking Corpse"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  turn 1 postcombat_main A: cast "Walking Corpse" from graveyard
+  run_to turn 1 end
+  assert battlefield A contains "Walking Corpse"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Danitha: an Equipment from the graveyard, once" {
+  battlefield A: "Danitha, New Benalia's Light", 4 "Plains"
+  graveyard A: "Bonesplitter", "Short Sword"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Bonesplitter" from graveyard
+  illegal turn 1 postcombat_main A: cast "Short Sword" from graveyard
+  run_to turn 1 end
+  assert battlefield A contains "Bonesplitter"
+  assert graveyard A contains "Short Sword"
+}

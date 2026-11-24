@@ -1657,6 +1657,11 @@ impl P {
         }
         r.brief = self.eat_word("brief");
         r.finality = self.eat_word("finality");
+        // `once`: "Once during each of your turns, you may cast ..."
+        // (a static grant's only); `exile instead`: "If a spell cast this
+        // way would be put into your graveyard, exile it instead."
+        r.once = self.eat_word("once");
+        r.exile = self.eat_words(&["exile", "instead"]);
         Ok(r)
     }
 
@@ -7017,7 +7022,12 @@ impl P {
 
     /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
     /// hand [with mana value up to <n>]`; then `exile instead`.
-    fn cast_free(&mut self) -> R<Effect> {
+    fn cast_free(&mut self, paid: bool) -> R<Effect> {
+        use mtg_core::card::CastFreeFrom;
+        let mut more = mtg_core::card::CastFreeMore {
+            paid,
+            ..mtg_core::card::CastFreeMore::default()
+        };
         // `cast free card exiled with this`: "you may cast a card exiled
         // with Krang & Shredder without paying its mana cost" (CR 607.2a).
         let exiled = (0..8).any(|k| {
@@ -7025,14 +7035,27 @@ impl P {
                 && self.word_at(k + 1).as_deref() == Some("with")
                 && self.word_at(k + 2).as_deref() == Some("this")
         }) && !self.at_word("target");
+        let mut among = false;
         let (what, filter, max) = if exiled {
             let f = if self.eat_word("card") {
                 Filter::default()
+            } else if self.eat_words(&["spell", "from", "among"]) {
+                among = true;
+                Filter::default()
             } else {
                 let f = self.filter()?;
-                self.expect_word("card")?;
+                if self.eat_words(&["spell", "from", "among"]) {
+                    among = true;
+                } else {
+                    self.expect_word("card")?;
+                }
                 f
             };
+            // `from among owned cards exiled with this`: "cards you own".
+            if among {
+                more.owned = self.eat_word("owned");
+                self.expect_word("cards")?;
+            }
             self.expect_words(&["exiled", "with", "this"])?;
             let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
                 i
@@ -7072,7 +7095,18 @@ impl P {
             } else {
                 Some(self.filter()?)
             };
-            self.expect_words(&["spell", "from", "hand"])?;
+            self.expect_words(&["spell", "from"])?;
+            // `from graveyard` (Bilbo), `from graveyard of each opponent`
+            // (Jetsam: one from each).
+            if self.eat_word("graveyard") {
+                more.from = if self.eat_words(&["of", "each", "opponent"]) {
+                    CastFreeFrom::OpponentGraveyards
+                } else {
+                    CastFreeFrom::Graveyard
+                };
+            } else {
+                self.expect_word("hand")?;
+            }
             let max = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
                 Some(self.num()?)
             } else {
@@ -7080,13 +7114,33 @@ impl P {
             };
             (None, filter, max)
         };
-        let exile = self.eat_words(&["exile", "instead"]);
+        // ", and mana of any type can be spent to cast that spell".
+        if self.eat_words(&["any", "type"]) {
+            more.spend = mtg_core::card::SpendAs::AnyType;
+        }
+        let mut exile_words = crate::ast::CastExileWords::Your;
+        let exile = if self.eat_words(&["exile", "instead"]) {
+            if self.eat_words(&["this", "way"]) {
+                exile_words = crate::ast::CastExileWords::ThisWay;
+            } else if self.eat_word("a") {
+                exile_words = crate::ast::CastExileWords::A;
+            }
+            true
+        } else if self.eat_words(&["exile", "instant", "or", "sorcery", "instead"]) {
+            more.exile_instants = true;
+            true
+        } else {
+            false
+        };
         Ok(Effect::CastFree {
             what,
             filter,
             max,
             exile,
             play: false,
+            more,
+            exile_words,
+            among,
         })
     }
 
@@ -8646,18 +8700,24 @@ impl P {
         // Casting from among the cards the resolution exiled or revealed
         // (CR 608.2g): `cast now that card`, `cast free it ...`, `cast
         // free up to 2 spell from among exiled cards`.
+        let among = self.word_at(2).as_deref() == Some("it")
+            || self.word_pair_at(2) == ("that", "card")
+            || self.word_pair_at(2) == ("up", "to")
+            || self.word_pair_at(2) == ("any", "number");
         if self.at_words(&["cast", "now"])
-            || self.at_words(&["cast", "free"])
-                && (self.word_at(2).as_deref() == Some("it")
-                    || self.word_pair_at(2) == ("that", "card")
-                    || self.word_pair_at(2) == ("up", "to")
-                    || self.word_pair_at(2) == ("any", "number"))
+            && (among || self.at_words(&["cast", "now", "exiled", "card"]))
+            || self.at_words(&["cast", "free"]) && among
         {
             return self.cast_among();
         }
-        // "You may cast ... without paying its mana cost" (CR 608.2g).
+        // "You may cast ... without paying its mana cost" (CR 608.2g);
+        // `cast now target instant card from your graveyard`: paying its
+        // costs.
         if self.eat_words(&["cast", "free"]) {
-            return self.cast_free();
+            return self.cast_free(false);
+        }
+        if self.eat_words(&["cast", "now"]) {
+            return self.cast_free(true);
         }
         // "You may play the exiled card without paying its mana cost"
         // (hideaway, CR 702.75a).
@@ -8714,7 +8774,7 @@ impl P {
             });
         }
         if self.eat_words(&["play", "free"]) {
-            let mut e = self.cast_free()?;
+            let mut e = self.cast_free(false)?;
             if let Effect::CastFree { play, .. } = &mut e {
                 *play = true;
             }

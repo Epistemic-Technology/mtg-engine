@@ -353,6 +353,13 @@ pub struct ExileCasts {
     /// Spells being cast or on the stack by such a permission, with its
     /// rider, for their payment (`spell_basis`).
     pub rider_spells: Vec<(ObjId, crate::card::CastRider)>,
+    /// Cards an effect is casting as it resolves (`pending`) with what its
+    /// text adds ("and mana of any type can be spent to cast that spell",
+    /// "If that spell would be put into a graveyard, exile it instead"):
+    /// the caster, the card, the rider (`Effect::CastFree`). Read like a
+    /// permission's rider (`permission_rider`); dropped as the cast
+    /// begins.
+    pub effect_riders: Vec<(PlayerId, ObjId, crate::card::CastRider)>,
     /// Spells cast from among cards exiled with a permanent whose
     /// permission says "If you cast a spell this way, that creature enters
     /// with a finality counter on it." (`PlayExiledMore::finality`).

@@ -465,6 +465,14 @@ impl Runner {
                 if self.state().objects[spell].kind == ObjKind::Ability {
                     self.choose_ability_target(d, spell, index, pos)
                 } else {
+                    // A spell an effect chose to cast ("you may cast an
+                    // artifact, instant, or sorcery spell from your
+                    // graveyard": `choose "Shock"`): a `cast "Shock"
+                    // targeting ...` line at this point gives its targets.
+                    if index == 0 && self.pending_targets.is_none() {
+                        let name = self.state().name_of(spell).to_string();
+                        self.cast_chosen(d, pos, &name);
+                    }
                     self.choose_target(d, index)
                 }
             }
@@ -2015,6 +2023,25 @@ impl Runner {
         index_of(d, &Choice::Accept).unwrap_or(0)
     }
 
+    /// `cast "X" targeting ...` at this point, for a spell an effect chose
+    /// to cast, asking for targets with none scripted: its targets.
+    fn cast_chosen(&mut self, d: &Decision, pos: Position, name: &str) {
+        let idxs = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::Cast { name: n, .. } if *n == name),
+        );
+        if let Some(&i) = idxs.first() {
+            self.fired[i] = true;
+            if let Action::Cast { targets, .. } = &self.actions[i].action
+                && !targets.is_empty()
+            {
+                self.pending_targets = Some(targets.clone());
+            }
+        }
+    }
+
     /// A card named only in the graveyard, cast by an effect ("you may
     /// cast target instant or sorcery card from your graveyard without
     /// paying its mana cost") rather than at priority.
@@ -2040,15 +2067,30 @@ impl Runner {
             .copied()
             .filter(|id| st.name_of(*id) == name)
             .collect();
-        !in_gy.is_empty()
-            && !d.options.iter().any(|c| match c {
+        let offered = |pred: &dyn Fn(ObjId) -> bool| {
+            d.options.iter().any(|c| match c {
                 Choice::Cast(id)
                 | Choice::CastFace { card: id, .. }
                 | Choice::CastAlt(id)
                 | Choice::CastDisturb(id)
-                | Choice::CastHarmonize { card: id, .. } => in_gy.contains(id),
+                | Choice::CastHarmonize { card: id, .. } => pred(*id),
                 _ => false,
             })
+        };
+        if !in_gy.is_empty() {
+            return !offered(&|id| in_gy.contains(&id));
+        }
+        // Another player's graveyard ("target instant or sorcery card from
+        // an opponent's graveyard"): only while no card of that name can
+        // be cast now from anywhere.
+        st.players_in_game().filter(|q| *q != d.player).any(|q| {
+            st.player(q)
+                .graveyard
+                .iter()
+                .any(|id| st.name_of(*id) == name)
+        }) && !offered(&|id| st.name_of(id) == name)
+            && self.playable_in_exile(d.player, name, false).is_none()
+            && self.top_of_library(d.player, name).is_none()
     }
 
     fn waiting_in_exile(&self, p: PlayerId, name: &str) -> bool {

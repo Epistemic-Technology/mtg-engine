@@ -1727,12 +1727,16 @@ impl Decompiler<'_> {
                 max_mv,
                 exile,
                 play,
+                more,
             } => Effect::CastFree {
                 what: what.map(r),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 max: *max_mv,
                 exile: *exile,
                 play: *play,
+                more: *more,
+                exile_words: crate::ast::CastExileWords::Your,
+                among: more.owned,
             },
             CoreEffect::Animate {
                 to,

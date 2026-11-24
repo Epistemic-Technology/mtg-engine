@@ -4336,6 +4336,9 @@ impl Compiler<'_> {
                 max,
                 exile,
                 play,
+                more,
+                exile_words: _,
+                among: _,
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::CastFree {
@@ -4344,6 +4347,7 @@ impl Compiler<'_> {
                     max_mv: *max,
                     exile: *exile,
                     play: *play,
+                    more: *more,
                 });
             }
             Effect::IsNow { to, types } => out.push(CoreEffect::Animate {

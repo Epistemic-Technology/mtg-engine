@@ -1,0 +1,6 @@
+card "Memory Plunder" {
+  oracle_id 36b67014-0507-4976-ad52-a2a36676197d
+  cost {U/B}{U/B}{U/B}{U/B}
+  type Instant
+  spell: cast free target instant or sorcery card from an opponent's graveyard
+}

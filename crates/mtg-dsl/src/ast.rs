@@ -162,6 +162,21 @@ pub enum CardWords {
     ExiledIfNotCastThisWay,
 }
 
+/// How `Effect::CastFree`'s "exile it instead" is worded (wording only).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum CastExileWords {
+    /// `exile instead`: "If that spell would be put into your graveyard,
+    /// exile it instead."
+    #[default]
+    Your,
+    /// `exile instead a`: "If that spell would be put into a graveyard,
+    /// exile it instead."
+    A,
+    /// `exile instead this way`: "If a spell cast this way would be put
+    /// into a graveyard, exile it instead." (Jetsam).
+    ThisWay,
+}
+
 /// How `Effect::CastAmong` names the cards it may cast.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum AmongWords {
@@ -5655,6 +5670,19 @@ pub enum Effect {
         /// `play free exiled card`: "you may play the exiled card without
         /// paying its mana cost" (a land may be played).
         play: bool,
+        /// `cast now target instant card from your graveyard` (paid, no
+        /// "without paying its mana cost"), `cast now artifact or instant
+        /// or sorcery spell from graveyard` (`from`), `any type` (",
+        /// and mana of any type can be spent to cast that spell"), `exile
+        /// instant or sorcery instead` (Bilbo).
+        more: mtg_core::card::CastFreeMore,
+        /// How "exile it instead" is worded.
+        exile_words: CastExileWords,
+        /// `cast now Ally spell from among owned cards exiled with this`:
+        /// "an Ally spell from among cards you own exiled with this
+        /// creature" rather than "a card exiled with ..." (wording only;
+        /// `owned` is `more.owned`).
+        among: bool,
     },
     /// `it is now enchantment`: "It's an enchantment." (the Enduring
     /// cycle's returned permanent; "They're an artifact." with `pronoun

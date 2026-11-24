@@ -1,0 +1,8 @@
+card "Tinybones, the Pickpocket" {
+  oracle_id 7bc4c7e2-6758-4a85-84e7-03ab93981106
+  cost {B}
+  type Legendary Creature — Skeleton Rogue
+  pt 1/1
+  keywords deathtouch
+  triggered whenever this deals combat damage to a player: cast now target nonland permanent card from that player's graveyard any type
+}

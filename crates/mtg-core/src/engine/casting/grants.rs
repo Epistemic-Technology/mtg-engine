@@ -89,8 +89,9 @@ impl GameState {
         if o.owner != p {
             return None;
         }
-        // Fewer riders first: no added cost, then no finality counter.
-        let rank = |r: &GraveRider| (r.costs(), r.finality);
+        // Fewer riders first: no added cost, then no finality counter,
+        // then not once each turn.
+        let rank = |r: &GraveRider| (r.costs(), r.finality, r.once || r.exile);
         let take = |r: &'a GraveRider, found: &mut Option<&'a GraveRider>| {
             if found.is_none_or(|b| rank(r) < rank(b)) {
                 *found = Some(r);
@@ -113,13 +114,42 @@ impl GameState {
             }
         }
         if self.pool.card_grants && self.player_static_sources > 0 {
-            for g in self.grants_of(card) {
-                if let GrantedWay::Cast(r) = g {
+            for (src, a, g) in self.grants_with_source(card) {
+                if let GrantedWay::Cast(r) = g
+                    && (!r.once || self.grave_once_open(p, src, a))
+                {
                     take(r, &mut found);
                 }
             }
         }
         found
+    }
+
+    /// Whether `p` may still use a "Once during each of your turns"
+    /// permission `src`'s ability `a` gives (CR 601.3): during their own
+    /// turn, not yet used this turn.
+    fn grave_once_open(&self, p: PlayerId, src: ObjId, a: crate::card::AbilityId) -> bool {
+        self.active_player == p && !self.activated_once.contains(&(src, a))
+    }
+
+    /// The once-each-turn permission a cast of `card` from the graveyard
+    /// by `rider` uses up (`activated_once`), if it is one.
+    pub(in crate::engine) fn grave_once_source(
+        &self,
+        p: PlayerId,
+        card: ObjId,
+        rider: &GraveRider,
+    ) -> Option<(ObjId, crate::card::AbilityId)> {
+        if !rider.once {
+            return None;
+        }
+        self.grants_with_source(card)
+            .find_map(|(src, a, g)| match g {
+                GrantedWay::Cast(r) if r == rider && self.grave_once_open(p, src, a) => {
+                    Some((src, a))
+                }
+                _ => None,
+            })
     }
 
     /// Whether `Choice::Cast` of the graveyard card `id` would cast it by
@@ -146,7 +176,9 @@ impl GameState {
 
     /// The card grants in force: each with its source and the source's
     /// controller, its condition holding (CR 611.3a).
-    fn card_grants_in_force(&self) -> impl Iterator<Item = (ObjId, PlayerId, &CardGrant)> + '_ {
+    fn card_grants_in_force(
+        &self,
+    ) -> impl Iterator<Item = (ObjId, PlayerId, crate::card::AbilityId, &CardGrant)> + '_ {
         self.battlefield
             .iter()
             .filter(|id| self.flags_of(&self.objects[**id]).has_player_static())
@@ -162,7 +194,7 @@ impl GameState {
                                 self.condition_now(self.pool.condition(c), o.controller, *id)
                             }) =>
                         {
-                            Some((*id, o.controller, &**g))
+                            Some((*id, o.controller, *a, &**g))
                         }
                         _ => None,
                     })
@@ -173,6 +205,14 @@ impl GameState {
     /// or, for a spell, the zone it was cast from (its cost is judged as
     /// it is cast; CR 601.2f), matching its characteristics and owner.
     fn grants_of(&self, card: ObjId) -> impl Iterator<Item = &GrantedWay> + '_ {
+        self.grants_with_source(card).map(|(_, _, g)| g)
+    }
+
+    /// `grants_of`, each with its source and the source's ability.
+    fn grants_with_source(
+        &self,
+        card: ObjId,
+    ) -> impl Iterator<Item = (ObjId, crate::card::AbilityId, &GrantedWay)> + '_ {
         let o = self.objects.get(card);
         let zone = o.and_then(|o| {
             if o.zone == Zone::Stack {
@@ -183,7 +223,7 @@ impl GameState {
         });
         let chars = o.map(|o| self.base_characteristics(o));
         self.card_grants_in_force()
-            .filter(move |(src, who, g)| {
+            .filter(move |(src, who, _, g)| {
                 let (Some(o), Some(zone), Some(c)) = (o, zone, chars.as_ref()) else {
                     return false;
                 };
@@ -191,7 +231,7 @@ impl GameState {
                     && (g.players || o.owner == *who)
                     && g.cards.matches(card, o.owner, c, Some(*src), Some(*who))
             })
-            .map(|(_, _, g)| &g.grant)
+            .map(|(src, _, a, g)| (src, a, &g.grant))
     }
 
     /// The flashback cost a grant gives `card`; with several, the one of

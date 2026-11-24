@@ -10938,10 +10938,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             max,
             exile,
             play,
+            more,
+            exile_words,
+            among,
         } => {
             // CR 608.2g: "You may cast a noncreature spell from your hand
             // without paying its mana cost."
             let what_r = what;
+            let from_words = match more.from {
+                mtg_core::card::CastFreeFrom::Hand => "from your hand",
+                mtg_core::card::CastFreeFrom::Graveyard => "from your graveyard",
+                mtg_core::card::CastFreeFrom::OpponentGraveyards => {
+                    "from each opponent's graveyard"
+                }
+            };
             #[allow(clippy::single_match_else)] // the hand's long phrase
             let what = match what {
                 // "a card exiled with Krang & Shredder" (CR 607.2a).
@@ -10952,11 +10962,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         .get(usize::from(*i))
                         .cloned()
                         .unwrap_or_default();
-                    with_article(&format!(
-                        "{} exiled with {}",
-                        cards_phrase(&f, ctx.card, false),
-                        this_ref(ctx.card)
-                    ))
+                    if *among {
+                        // "an Ally spell from among cards you own exiled
+                        // with this creature".
+                        let kind = card_filter_phrase(&f, ctx.card);
+                        let kind = kind.trim();
+                        with_article(&format!(
+                            "{}spell from among cards {}exiled with {}",
+                            if kind.is_empty() {
+                                String::new()
+                            } else {
+                                format!("{kind} ")
+                            },
+                            if more.owned { "you own " } else { "" },
+                            this_ref(ctx.card)
+                        ))
+                    } else {
+                        with_article(&format!(
+                            "{} exiled with {}",
+                            cards_phrase(&f, ctx.card, false),
+                            this_ref(ctx.card)
+                        ))
+                    }
                 }
                 Some(r) => ctx.obj(*r),
                 None => {
@@ -10968,7 +10995,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     // but "a spell from your hand with mana value less
                     // than or equal to that damage".
                     match max {
-                        None => format!("{} from your hand", with_article(&noun)),
+                        None => format!("{} {from_words}", with_article(&noun)),
                         Some(Num::ThatMuch) => format!(
                             "{} from your hand with mana value less than or equal to that damage",
                             with_article(&noun)
@@ -10986,10 +11013,30 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     }
                 }
             };
-            let tail = if *exile {
-                ". If that spell would be put into your graveyard, exile it instead"
+            // ", and mana of any type can be spent to cast that spell".
+            let spend = if more.spend == mtg_core::card::SpendAs::AnyType {
+                ", and mana of any type can be spent to cast that spell"
             } else {
                 ""
+            };
+            let tail = match (*exile, more.exile_instants, exile_words) {
+                (false, ..) => String::new(),
+                (true, true, _) => " If an instant or sorcery spell cast this way would be put into your graveyard, exile it instead".to_string(),
+                (true, false, crate::ast::CastExileWords::Your) => {
+                    " If that spell would be put into your graveyard, exile it instead".to_string()
+                }
+                (true, false, crate::ast::CastExileWords::A) => {
+                    " If that spell would be put into a graveyard, exile it instead".to_string()
+                }
+                (true, false, crate::ast::CastExileWords::ThisWay) => {
+                    " If a spell cast this way would be put into a graveyard, exile it instead"
+                        .to_string()
+                }
+            };
+            let tail = if tail.is_empty() {
+                spend.to_string()
+            } else {
+                format!("{spend}.{tail}")
             };
             // "you may cast the exiled card without paying its mana cost if
             // that spell's mana value is 4 or less" (Beseech the Mirror).
@@ -11013,8 +11060,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 _ => tail.to_string(),
             };
             Clause::imperative(format!(
-                "you may {} {what} without paying its mana cost{tail}",
-                if *play { "play" } else { "cast" }
+                "you may {} {what}{}{tail}",
+                if *play { "play" } else { "cast" },
+                if more.paid {
+                    ""
+                } else {
+                    " without paying its mana cost"
+                }
             ))
         }
         // "It's an enchantment." / "They're an artifact." (the Enduring
@@ -14700,6 +14752,30 @@ fn card_grant_text(
     use crate::ast::Granted;
     // "During your turn, you may cast instant and sorcery spells from your
     // graveyard by paying 1 life in addition to their other costs."
+    // "Once during each of your turns, you may cast a Zombie creature
+    // spell from your graveyard." (Gisa and Geralf; Kess's "If a spell
+    // cast this way would be put into your graveyard, exile it instead.").
+    if let Granted::Cast(r) = grant
+        && r.once
+        && cond.is_none()
+    {
+        let kind = card_filter_phrase(filter, card);
+        let kind = kind.trim();
+        let noun = if kind.is_empty() {
+            "spell".to_string()
+        } else {
+            format!("{kind} spell")
+        };
+        return format!(
+            "Once during each of your turns, you may cast {} from your graveyard.{}",
+            with_article(&noun),
+            if r.exile {
+                " If a spell cast this way would be put into your graveyard, exile it instead."
+            } else {
+                ""
+            }
+        );
+    }
     if let Granted::Cast(r) = grant {
         let s = format!("you may {}.", grave_rider_text(filter, r, card));
         return match cond {

@@ -464,6 +464,39 @@ pub enum Builtin {
     Miracle,
 }
 
+/// Where `Effect::CastFree` without a named card takes it from.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum CastFreeFrom {
+    /// "from your hand".
+    #[default]
+    Hand,
+    /// "from your graveyard" (Bilbo, Thief in the Night).
+    Graveyard,
+    /// "a spell from each opponent's graveyard" (Jetsam): one from each.
+    OpponentGraveyards,
+}
+
+/// The rest of `Effect::CastFree`: "you may cast target instant card from
+/// your graveyard" paying its costs, "and mana of any type can be spent
+/// to cast that spell" (CR 608.2g, 601.3, 609.4b).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct CastFreeMore {
+    /// Its mana cost and other costs paid as usual (no "without paying its
+    /// mana cost"): offered only if they can be.
+    pub paid: bool,
+    /// "..., and mana of any type can be spent to cast that spell".
+    pub spend: SpendAs,
+    /// Without a named card, where it is chosen from.
+    pub from: CastFreeFrom,
+    /// "If an instant or sorcery spell cast this way would be put into
+    /// your graveyard, exile it instead." (Bilbo): the exile rider for an
+    /// instant or sorcery card only.
+    pub exile_instants: bool,
+    /// "from among cards you own exiled with this creature" (Boiling Rock
+    /// Rioter): only cards the caster owns.
+    pub owned: bool,
+}
+
 /// What `Effect::CastAmong` pays for the spell (CR 118.9).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub enum AmongCost {
@@ -5904,6 +5937,10 @@ pub enum Effect {
         /// left; timing is otherwise ignored).
         #[serde(default)]
         play: bool,
+        /// Paid rather than free, where the card comes from, and what
+        /// the cast adds (`CastFreeMore`).
+        #[serde(default)]
+        more: CastFreeMore,
     },
     /// Hideaway N (CR 702.75a): "look at the top N cards of your library,
     /// exile one face down, then put the rest on the bottom in a random
@@ -7732,6 +7769,15 @@ pub struct GraveRider {
     /// Worded "in addition to their other costs" rather than "in addition
     /// to paying their other costs" (wording only).
     pub brief: bool,
+    /// "Once during each of your turns, you may cast ...": one spell in
+    /// each of the controller's turns by this permission (a static
+    /// grant's; `GameState::activated_once`).
+    #[serde(default)]
+    pub once: bool,
+    /// "If a spell cast this way would be put into your graveyard, exile
+    /// it instead." (CR 614.1a): exiled as it leaves the stack.
+    #[serde(default)]
+    pub exile: bool,
 }
 
 /// The rest of a permission to play from the top of the library

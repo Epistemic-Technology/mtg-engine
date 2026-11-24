@@ -110,6 +110,12 @@ impl GameState {
             .iter()
             .filter(|pe| pe.card == id && pe.player == p)
             .map(|pe| pe.rider)
+            .chain(
+                e.effect_riders
+                    .iter()
+                    .filter(|r| r.0 == p && r.1 == id)
+                    .map(|r| r.2),
+            )
             .reduce(|a, b| crate::card::CastRider {
                 spend: a.spend.or(b.spend),
                 more: a.more.min(b.more),

@@ -1,0 +1,8 @@
+card "Kess, Dissident Mage" {
+  oracle_id f5092c14-eec4-472c-999c-ba96c36b2fbb
+  cost {1}{U}{B}{R}
+  type Legendary Creature — Human Wizard
+  pt 3/4
+  keywords flying
+  static instant or sorcery card in your graveyard: has cast once exile instead
+}

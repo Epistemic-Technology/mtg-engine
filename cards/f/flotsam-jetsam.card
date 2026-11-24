@@ -1,0 +1,14 @@
+card "Flotsam // Jetsam" {
+  oracle_id b0c28b2b-a2dd-4b76-bb1c-cec55a0a6784
+  layout split
+  face "Flotsam" {
+    cost {1}{G/U}
+    type Instant
+    spell: mill 3 cards; investigate
+  }
+  face "Jetsam" {
+    cost {4}{U/B}{U/B}
+    type Sorcery
+    spell: each opponent mills 3 cards, then cast free spell from graveyard of each opponent exile instead this way
+  }
+}
