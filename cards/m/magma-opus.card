@@ -1,0 +1,7 @@
+card "Magma Opus" {
+  oracle_id 985f9dd7-e693-48ff-9dd6-a1a3cbaa236b
+  cost {6}{U}{R}
+  type Instant
+  spell: deal 4 damage divided among any number of targets; tap 2 target permanent; create 1 "4/4 blue and red Elemental creature"; draw 2 cards
+  activated {U/R}{U/R}, discard this: create 1 "Treasure"
+}

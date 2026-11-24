@@ -1,0 +1,6 @@
+card "Hex" {
+  oracle_id 89457fa8-b0e2-4277-b6a9-c6601c59b46d
+  cost {4}{B}{B}
+  type Sorcery
+  spell: destroy 6 target creature
+}

@@ -1,0 +1,6 @@
+card "Into the Core" {
+  oracle_id ad08ad3a-bc58-43da-b7f3-4a478132da8a
+  cost {2}{R}{R}
+  type Instant
+  spell: exile 2 target artifact
+}

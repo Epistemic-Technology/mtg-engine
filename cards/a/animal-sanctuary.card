@@ -1,0 +1,6 @@
+card "Animal Sanctuary" {
+  oracle_id f3c40943-1d7c-4ea2-b34f-8df8b6775701
+  type Land
+  mana {C}
+  activated {2}, {T}: put 1 +1/+1 counters on target Bird, Cat, Dog, Goat, Ox, or Snake
+}

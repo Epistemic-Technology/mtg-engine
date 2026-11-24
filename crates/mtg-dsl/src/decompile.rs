@@ -416,6 +416,7 @@ impl Decompiler<'_> {
             article: false,
             control_late: false,
             subtype_neg_first: false,
+            neg_before_color: false,
             plural: false,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             alt_article: false,

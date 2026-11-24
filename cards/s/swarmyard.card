@@ -1,0 +1,6 @@
+card "Swarmyard" {
+  oracle_id 4b508087-99da-4eb1-8b12-29162f2ec85d
+  type Land
+  mana {C}
+  activated {T}: regenerate target Insect, Rat, Spider, or Squirrel
+}

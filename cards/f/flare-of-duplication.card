@@ -1,0 +1,7 @@
+card "Flare of Duplication" {
+  oracle_id f586ecb8-310c-4f40-a766-6a7ca46a254d
+  cost {1}{R}{R}
+  type Instant
+  alternative cost sacrifice nontoken red creature
+  spell: copy target instant or sorcery spell new targets
+}

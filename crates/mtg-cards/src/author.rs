@@ -699,6 +699,22 @@ fn x_count(s: &str) -> Option<String> {
     }
 }
 
+/// The amount after "where X is" in DSL count form: the fixed amounts of
+/// `bound_amount` and the sacrificed object's characteristic ("the
+/// sacrificed artifact's mana value": `mana value of the sacrificed
+/// artifact`).
+fn x_amount(a: &str) -> Option<String> {
+    if let Some(c) = cached_regex(
+        r"^the sacrificed (artifact|creature|permanent)'s (mana value|power|toughness)$",
+    )
+    .expect("a sacrificed pattern")
+    .captures(a)
+    {
+        return Some(format!("{} of the sacrificed {}", &c[2], &c[1]));
+    }
+    bound_amount(a)
+}
+
 /// What a dig takes: "a creature card with mana value 4 or less", "up to
 /// two artifact cards", "any number of creature and/or land cards", "a
 /// creature card and/or a land card" as `take`'s count and filter
@@ -1468,6 +1484,18 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
             // "up to two target creature cards": the DSL names one kind.
             return Some(s.replace(" cards ", " card ").replace(" cards", " card"));
         }
+    }
+    // "six target creatures", "two other target legendary creatures": a
+    // fixed number of targets (CR 115.1), `6 target creature`.
+    if let Some((n, tail)) = s.split_once(' ')
+        && let Some(k) = ["two", "three", "four", "five", "six", "seven"]
+            .iter()
+            .position(|w| *w == n)
+        && (tail.starts_with("target ") || tail.starts_with("other target "))
+    {
+        *targets += k + 2;
+        let tail = tail.replacen("other target ", "another target ", 1);
+        return Some(format!("{} {}", k + 2, singular(&tail)));
     }
     // Any other "target <filter>" phrase: the DSL parser and the render
     // check decide whether it is one the engine knows.
@@ -3654,6 +3682,22 @@ impl Templates {
             (r(r"^Regenerate (.+)$"), |c, t| {
                 Some(format!("regenerate {}", recipient(cap(c, 1), t)?))
             }),
+            // "Put X +1/+1 counters on target creature, where X is your
+            // life total": the count in place of X.
+            (
+                r(&format!(
+                    r"^[Pp]ut X ([+-]\d/[+-]\d|{}) counters on (.+?), where X is (.+)$",
+                    counter_names()
+                )),
+                |c, t| {
+                    let to = recipient(cap(c, 2), t)?;
+                    let e = x_amount(cap(c, 3))?;
+                    Some(format!(
+                        "put count where {e} {} counters on {to}",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             (
                 r(&format!(
                     r"^Put (\S+) ([+-]\d/[+-]\d|{}) counters? on (.+)$",
@@ -3849,6 +3893,11 @@ impl Templates {
             if a.contains(';') || b.contains(';') {
                 *targets = before;
                 continue;
+            }
+            // "You draw a card and you lose 1 life": the subject repeated,
+            // `, and` (a plain `and` prints "and lose 1 life").
+            if left.starts_with("you ") && right.starts_with("you ") {
+                return Some(format!("{a}, and {b}"));
             }
             return Some(format!("{a} and {b}"));
         }
@@ -4805,6 +4854,17 @@ impl Templates {
                 && let Some(rest) = e.strip_prefix("this ")
             {
                 e = format!("that token {rest}");
+            }
+            // "Create a 0/0 ... Fractal creature token. Put X +1/+1
+            // counters on it." (Manifestation Sage, Additive Evolution):
+            // "it" is the token, not this card.
+            if body.starts_with("Put ")
+                && (body.trim_end_matches('.').ends_with(" counters on it")
+                    || body.contains(" counters on it, where X is "))
+                && out.last().is_some_and(|l| l.contains("create 1 "))
+                && let Some(head) = e.strip_suffix(" counters on this")
+            {
+                e = format!("{head} counters on that token");
             }
             out.push(format!("{prefix}{e}"));
         }
@@ -7659,6 +7719,24 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("ward pay {} life", cap(&c, 1)));
+            return Ok(());
+        }
+        // "Ward—{2}, Pay 2 life.": both parts.
+        if let Some(c) = cached_regex(r"^Ward\u{2014}(\{\d+\}), Pay (\d+) life\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("ward {}, pay {} life", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
+        // "Ward—Sacrifice a creature." (one permanent of a kind).
+        if let Some(c) = cached_regex(r"^Ward\u{2014}Sacrifice an? ([a-zA-Z]+)\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("ward sacrifice {}", cap(&c, 1)));
             return Ok(());
         }
         if line == "Ward\u{2014}Discard a card." {

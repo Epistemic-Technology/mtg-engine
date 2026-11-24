@@ -1,0 +1,294 @@
+# Thirteenth-wave template phrases: a fixed number of targets ("Destroy
+# six target creatures"), lists of four or more alternatives ("target
+# Insect, Rat, Spider, or Squirrel"), "Put X counters on ..., where X is
+# ...", "nontoken green creature" wording, and "it" after a token is
+# created being the token.
+
+# "Destroy six target creatures." / "Destroy three target permanents." /
+# "Exile two target artifacts."
+
+scenario "Hex: six target creatures are destroyed" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  battlefield B: "Llanowar Elves", "Savannah Lions", "Hill Giant", "Raging Goblin", "Typhoid Rats"
+  hand A: "Hex"
+  turn 1 A: cast "Hex" targeting "Llanowar Elves", "Savannah Lions", "Hill Giant", "Raging Goblin", "Typhoid Rats", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert graveyard B contains "Typhoid Rats"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B count 0
+}
+
+scenario "Hex: not with only five creatures" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Llanowar Elves", "Savannah Lions", "Hill Giant", "Raging Goblin", "Typhoid Rats"
+  hand A: "Hex"
+  illegal turn 1 A: cast "Hex" targeting "Llanowar Elves", "Savannah Lions", "Hill Giant", "Raging Goblin", "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hex"
+}
+
+scenario "Violent Ultimatum: three target permanents" {
+  battlefield A: 2 "Swamp", 3 "Mountain", 2 "Forest"
+  battlefield B: "Mind Stone", "Hill Giant", "Island", "Grizzly Bears"
+  hand A: "Violent Ultimatum"
+  turn 1 A: cast "Violent Ultimatum" targeting "Mind Stone", "Hill Giant", "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mind Stone"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Island"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Into the Core: two target artifacts are exiled" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Mind Stone", "Ornithopter", "Bonesplitter"
+  hand A: "Into the Core"
+  turn 1 A: cast "Into the Core" targeting "Mind Stone", "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Mind Stone"
+  assert exile B contains "Ornithopter"
+  assert battlefield B contains "Bonesplitter"
+}
+
+scenario "Into the Core: not a creature" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Mind Stone", "Grizzly Bears"
+  hand A: "Into the Core"
+  illegal turn 1 A: cast "Into the Core" targeting "Mind Stone", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Into the Core"
+}
+
+scenario "Ioreth of the Healing House: untap two other legendary creatures" {
+  battlefield A: "Ioreth of the Healing House", "Isamaru, Hound of Konda" tapped, "Ayula, Queen Among Bears" tapped, "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ioreth of the Healing House" ability 2 targeting "Isamaru, Hound of Konda", "Ayula, Queen Among Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Isamaru, Hound of Konda"
+  assert untapped "Ayula, Queen Among Bears"
+  assert tapped "Grizzly Bears"
+  assert tapped "Ioreth of the Healing House"
+}
+
+scenario "Ioreth of the Healing House: not a nonlegendary creature" {
+  battlefield A: "Ioreth of the Healing House", "Isamaru, Hound of Konda" tapped, "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Ioreth of the Healing House" ability 2 targeting "Isamaru, Hound of Konda", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Ioreth of the Healing House: untap another permanent" {
+  battlefield A: "Ioreth of the Healing House", "Forest" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ioreth of the Healing House" ability 1 targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+}
+
+scenario "Magma Opus: divided damage, two permanents tapped, a token, two cards" {
+  battlefield A: 4 "Island", 4 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Llanowar Elves"
+  hand A: "Magma Opus"
+  library A: "Plains", "Swamp", "Forest"
+  turn 1 A: cast "Magma Opus" targeting "Hill Giant", "Llanowar Elves", "Grizzly Bears", player B dividing 2, 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+  assert tapped "Hill Giant"
+  assert tapped "Llanowar Elves"
+  assert battlefield A contains "Elemental"
+  assert power "Elemental" 4
+  assert hand A contains "Plains"
+  assert hand A contains "Swamp"
+}
+
+scenario "Magma Opus: discard it for a Treasure" {
+  battlefield A: "Island", "Mountain"
+  hand A: "Magma Opus"
+  turn 1 A: activate "Magma Opus"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Magma Opus"
+  assert battlefield A contains "Treasure"
+}
+
+# "target Insect, Rat, Spider, or Squirrel": four or more alternatives.
+
+scenario "Swarmyard: regenerate a Rat" {
+  battlefield A: "Swarmyard", "Typhoid Rats"
+  hand B: "Shock"
+  battlefield B: "Mountain"
+  turn 1 A: activate "Swarmyard" targeting "Typhoid Rats"
+  turn 1 end B: cast "Shock" targeting "Typhoid Rats"
+  run_to turn 2 upkeep
+  assert graveyard B contains "Shock"
+  assert battlefield A contains "Typhoid Rats"
+  assert tapped "Typhoid Rats"
+}
+
+scenario "Swarmyard: not a Bear" {
+  battlefield A: "Swarmyard", "Grizzly Bears"
+  illegal turn 1 A: activate "Swarmyard" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Animal Sanctuary: a counter on a Cat" {
+  battlefield A: "Animal Sanctuary", 2 "Plains", "Savannah Lions"
+  turn 1 A: activate "Animal Sanctuary" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert counters "Savannah Lions" +1/+1 1
+}
+
+scenario "Animal Sanctuary: not an Elf" {
+  battlefield A: "Animal Sanctuary", 2 "Plains", "Llanowar Elves"
+  illegal turn 1 A: activate "Animal Sanctuary" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Mudflat Village: return a Rat card" {
+  battlefield A: "Mudflat Village", "Swamp", "Plains"
+  graveyard A: "Typhoid Rats", "Grizzly Bears"
+  turn 1 A: activate "Mudflat Village" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Typhoid Rats"
+  assert graveyard A contains "Mudflat Village"
+}
+
+scenario "Mudflat Village: not a Bear card" {
+  battlefield A: "Mudflat Village", "Swamp", "Plains"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Mudflat Village" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Acclaimed Contender: with another Knight, an Aura from the top five" {
+  battlefield A: "White Knight", 3 "Plains"
+  hand A: "Acclaimed Contender"
+  library A: "Plains", "Island", "Holy Strength", "Swamp", "Forest", "Mountain"
+  turn 1 A: cast "Acclaimed Contender"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Holy Strength"
+  assert hand A count 1
+}
+
+scenario "Acclaimed Contender: no other Knight, no trigger" {
+  battlefield A: 3 "Plains"
+  hand A: "Acclaimed Contender"
+  library A: "Plains", "Island", "Holy Strength", "Swamp", "Forest", "Mountain"
+  turn 1 A: cast "Acclaimed Contender"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Tazri, Beacon of Unity: two party cards from the top six" {
+  battlefield A: "Tazri, Beacon of Unity", "Island", "Swamp", "Mountain", "Forest"
+  library A: "Plains", "Prodigal Sorcerer", "Grizzly Bears", "Academy Raider", "Silver Knight", "Island"
+  turn 1 A: activate "Tazri, Beacon of Unity"
+  turn 1 A: choose "Prodigal Sorcerer"
+  turn 1 A: choose "Academy Raider"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Prodigal Sorcerer"
+  assert hand A contains "Academy Raider"
+  assert hand A count 2
+}
+
+# "Put X +1/+1 counters on target creature, where X is ...".
+
+scenario "Forge Armor: counters equal to the sacrificed artifact's mana value" {
+  battlefield A: 5 "Mountain", "Mind Stone", "Grizzly Bears"
+  hand A: "Forge Armor"
+  turn 1 A: cast "Forge Armor" sacrificing "Mind Stone" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert graveyard A contains "Mind Stone"
+}
+
+scenario "Ajani, Valiant Protector: -11, counters equal to life and trample" {
+  life A 13
+  battlefield A: "Ajani, Valiant Protector" with 11 loyalty, "Grizzly Bears"
+  turn 1 A: activate "Ajani, Valiant Protector" ability 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 13
+  assert has "Grizzly Bears" trample
+}
+
+# "Create a 0/0 ... token. Put X +1/+1 counters on it.": the token.
+
+scenario "Manifestation Sage: the Fractal gets a counter per card in hand" {
+  battlefield A: 4 "Forest"
+  hand A: "Manifestation Sage", "Plains", "Island", "Swamp"
+  turn 1 A: cast "Manifestation Sage"
+  run_to turn 1 postcombat_main
+  assert counters "Fractal" +1/+1 3
+  assert counters "Manifestation Sage" +1/+1 0
+  assert battlefield A contains "Fractal"
+}
+
+# Its combat trigger puts a fourth on the Fractal, the only creature.
+scenario "Additive Evolution: the Fractal gets the three counters" {
+  battlefield A: 5 "Forest"
+  hand A: "Additive Evolution"
+  turn 1 A: cast "Additive Evolution"
+  run_to turn 1 postcombat_main
+  assert counters "Fractal" +1/+1 4
+  assert has "Fractal" vigilance
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+# "a nontoken green creature": the Flares' alternative costs.
+
+scenario "Flare of Denial: sacrifice a nontoken blue creature to counter" {
+  battlefield A: "Wind Drake"
+  battlefield B: "Mountain"
+  hand A: "Flare of Denial"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Flare of Denial" alternative sacrificing "Wind Drake" targeting "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Wind Drake"
+  assert graveyard B contains "Shock"
+}
+
+scenario "Flare of Duplication: sacrifice a nontoken red creature to copy" {
+  battlefield A: "Raging Goblin", "Mountain"
+  hand A: "Shock", "Flare of Duplication"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Flare of Duplication" alternative sacrificing "Raging Goblin" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Raging Goblin"
+}
+
+scenario "Flare of Cultivation: two basic lands, one tapped onto the battlefield" {
+  battlefield A: "Grizzly Bears"
+  hand A: "Flare of Cultivation"
+  library A: "Forest", "Island", "Hill Giant"
+  turn 1 A: cast "Flare of Cultivation" alternative sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A count 1
+  assert hand A count 1
+}
+
+scenario "Flare of Cultivation: not by sacrificing a white creature" {
+  battlefield A: "Savannah Lions"
+  hand A: "Flare of Cultivation"
+  illegal turn 1 A: cast "Flare of Cultivation" alternative sacrificing "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+}
+
+scenario "Woodland Bellower: a nonlegendary green creature with mana value 3 or less" {
+  battlefield A: 6 "Forest"
+  hand A: "Woodland Bellower"
+  library A: "Ayula, Queen Among Bears", "Craw Wurm", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Woodland Bellower"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Ayula, Queen Among Bears"
+  assert battlefield A lacks "Craw Wurm"
+}

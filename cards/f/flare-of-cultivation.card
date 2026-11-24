@@ -1,0 +1,7 @@
+card "Flare of Cultivation" {
+  oracle_id 1766f1f4-0924-4436-8379-94030adcccc5
+  cost {1}{G}{G}
+  type Sorcery
+  alternative cost sacrifice nontoken green creature
+  spell: search up to 2 basic land card reveal to battlefield tapped and hand that card
+}
