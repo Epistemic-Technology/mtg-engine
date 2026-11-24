@@ -468,6 +468,11 @@ impl GameState {
             // permanent was kicked.
             cast: if old.zone == Zone::Stack && to == Zone::Battlefield {
                 old.cast.kept_by_permanent()
+            } else if to == Zone::Battlefield && matches!(old.zone, Zone::Graveyard | Zone::Exile) {
+                // "if it entered from a graveyard" (Breathless Knight).
+                let mut c = CastInfo::default();
+                c.set_entered_from(old.zone);
+                c
             } else {
                 CastInfo::default()
             },

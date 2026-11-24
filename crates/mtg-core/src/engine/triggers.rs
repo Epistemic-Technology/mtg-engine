@@ -1745,15 +1745,22 @@ impl GameState {
             (
                 TriggerSpec::CastsNth {
                     whose,
-                    nth: crate::card::SpellOrdinal::FromExile,
+                    nth:
+                        nth @ (crate::card::SpellOrdinal::FromExile
+                        | crate::card::SpellOrdinal::FromGraveyard),
                 },
                 Event::Cast { player, spell, .. },
             ) => {
-                let from_exile = self
+                let zone = if *nth == crate::card::SpellOrdinal::FromExile {
+                    Zone::Exile
+                } else {
+                    Zone::Graveyard
+                };
+                let from = self
                     .objects
                     .get(*spell)
-                    .is_some_and(|o| o.cast.cast_from() == Some(Zone::Exile));
-                (whose_ok(*whose, *player) && from_exile).then_some((Some(*spell), Some(*player)))
+                    .is_some_and(|o| o.cast.cast_from() == Some(zone));
+                (whose_ok(*whose, *player) && from).then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
                 let n = u8::try_from(self.tallied(crate::card::TurnEvent::Cast, *player))
@@ -1788,7 +1795,11 @@ impl GameState {
                 },
             ) => {
                 let p = filter_on_battlefield(f, *new)?;
-                Some((None, Some(p)))
+                // The first of the batch to trigger it is the triggering
+                // object: "if they entered or were cast from a graveyard,
+                // create a token that's a copy of one of them" (Twilight
+                // Diviner) judges and copies it.
+                Some((Some(*new), Some(p)))
             }
             // CR 701.21a: the sacrificed permanent is still on the
             // battlefield as the event is emitted.
@@ -1889,6 +1900,21 @@ impl GameState {
                     return None;
                 }
                 let p = filter_on_battlefield(filter, *new)?;
+                Some((Some(*new), Some(p)))
+            }
+            (
+                TriggerSpec::EntersFrom { what, zone, yours },
+                Event::ZoneChange {
+                    new,
+                    from,
+                    to: Zone::Battlefield,
+                    ..
+                },
+            ) if from == zone => {
+                if *yours && self.objects.get(*new)?.owner != w.controller {
+                    return None;
+                }
+                let p = on_battlefield(what, *new)?;
                 Some((Some(*new), Some(p)))
             }
             // CR 700.14: the spell whose payment crossed `n`.

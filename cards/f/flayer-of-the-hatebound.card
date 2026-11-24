@@ -1,0 +1,8 @@
+card "Flayer of the Hatebound" {
+  oracle_id ba9f3c5d-556f-48d1-8d87-723f7893cfcd
+  cost {5}{R}
+  type Creature — Devil
+  pt 4/2
+  keywords undying
+  triggered whenever this or creature enters from your graveyard: that creature deals damage equal power of it to any target
+}

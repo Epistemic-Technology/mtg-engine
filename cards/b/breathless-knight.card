@@ -1,0 +1,8 @@
+card "Breathless Knight" {
+  oracle_id e15fb040-2e11-478e-87f1-55675d614f8e
+  cost {1}{W}{B}
+  type Creature — Spirit Knight
+  pt 2/2
+  keywords flying, lifelink
+  triggered whenever this or creature you control enters if that creature entered from graveyard or you cast it from graveyard: put 1 +1/+1 counter on this
+}

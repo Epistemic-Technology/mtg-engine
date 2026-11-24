@@ -3111,8 +3111,23 @@ pub enum StaticCondition {
     /// source was cast (CR 601.2a), from another zone than this one.
     NotCastFrom(crate::state::Zone),
     /// "if you cast it" (CR 601.2a): the source was cast, from any zone;
-    /// a permanent remembers it from its spell.
+    /// a permanent remembers it from its spell. In a triggered ability
+    /// with a triggering object, "it" is that object ("Whenever a creature
+    /// you control enters, if you cast it", `GameState::condition_for`);
+    /// so for `CastFrom`.
     WasCast,
+    /// "if that creature entered from a graveyard or you cast it from a
+    /// graveyard" (0), "if they entered or were cast from a graveyard"
+    /// (1), "if one or more of them entered from exile or was cast from
+    /// exile" (2): the triggering object (else the source) was put onto
+    /// the battlefield from `zone` or cast from it (CR 400.7: remembered
+    /// by the permanent, `CastInfo::entered_from`). The number is wording
+    /// only; in a batched trigger each object is judged as it enters, so
+    /// one that qualifies is enough.
+    CameFrom {
+        zone: crate::state::Zone,
+        wording: u8,
+    },
     /// "creatures you control have total toughness 10 or greater".
     TotalToughness(u32),
     /// "you gained life this turn", "an opponent lost life this turn",
@@ -6916,6 +6931,18 @@ pub enum TriggerSpec {
     /// permanent that entered from its controller's graveyard (the
     /// source's controller's), the triggering object.
     EntersFromGraveyard(ObjFilter),
+    /// "When this creature enters from a graveyard", "Whenever this
+    /// creature or another permanent enters from a graveyard", "whenever a
+    /// permanent you control enters from exile": a matching permanent put
+    /// onto the battlefield from that zone (any player's graveyard; with
+    /// `yours`, its owner's, the source's controller's: "this creature or
+    /// another creature enters from your graveyard"), the triggering
+    /// object. A permanent spell cast from there enters from the stack.
+    EntersFrom {
+        what: TriggerObj,
+        zone: crate::state::Zone,
+        yours: bool,
+    },
     /// "Whenever one or more +1/+1 counters are put on this creature" (CR
     /// 122.1): once per instruction putting counters of that kind on it,
     /// however many.
@@ -7081,6 +7108,9 @@ pub enum SpellOrdinal {
     /// "a spell from exile": any spell cast from exile (checked by the
     /// trigger, not by `holds`).
     FromExile,
+    /// "a spell from a graveyard": any spell cast from a graveyard
+    /// (River Kelpie; checked by the trigger, not by `holds`).
+    FromGraveyard,
 }
 
 impl SpellOrdinal {
@@ -7096,7 +7126,7 @@ impl SpellOrdinal {
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
-            SpellOrdinal::FromExile => true,
+            SpellOrdinal::FromExile | SpellOrdinal::FromGraveyard => true,
         }
     }
 }
@@ -7117,7 +7147,8 @@ impl TriggerSpec {
         match self {
             TriggerSpec::Enters(_)
             | TriggerSpec::EntersBatch(_)
-            | TriggerSpec::EntersFromGraveyard(_) => true,
+            | TriggerSpec::EntersFromGraveyard(_)
+            | TriggerSpec::EntersFrom { .. } => true,
             TriggerSpec::Either(pair) => pair.0.is_enters() || pair.1.is_enters(),
             _ => false,
         }
@@ -7194,7 +7225,8 @@ impl TriggerSpec {
             | TriggerSpec::PutIntoGraveyard(_)
             | TriggerSpec::ThisToGraveyard
             | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
-            | TriggerSpec::EntersFromGraveyard(_) => WATCH_ZONE_CHANGE,
+            | TriggerSpec::EntersFromGraveyard(_)
+            | TriggerSpec::EntersFrom { .. } => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
                 WATCH_STEP_BEGIN

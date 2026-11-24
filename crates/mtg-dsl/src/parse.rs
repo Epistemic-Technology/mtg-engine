@@ -3627,6 +3627,10 @@ impl P {
                 self.self_trigger = matches!(
                     trigger,
                     Trigger::Enters(TriggerObj::This)
+                        | Trigger::EntersFrom {
+                            obj: TriggerObj::This,
+                            ..
+                        }
                         | Trigger::Attacks(TriggerObj::This)
                         | Trigger::TurnedFaceUp(TriggerObj::This)
                         | Trigger::CastsSpell { .. }
@@ -3637,6 +3641,10 @@ impl P {
                 self.no_trigger_player = matches!(
                     trigger,
                     Trigger::Enters(TriggerObj::This)
+                        | Trigger::EntersFrom {
+                            obj: TriggerObj::This,
+                            ..
+                        }
                         | Trigger::Dies(TriggerObj::This)
                         | Trigger::DiesOrExiled(TriggerObj::This)
                         | Trigger::Leaves(TriggerObj::This)
@@ -4601,6 +4609,29 @@ impl P {
         }
         if self.eat_words(&["you", "cast", "it"]) {
             return Ok(StaticCond::WasCast);
+        }
+        // "if that creature entered from a graveyard or you cast it from a
+        // graveyard", "if they entered or were cast from a graveyard", "if
+        // one or more of them entered from exile or was cast from exile".
+        if let Some(wording) = if self.eat_words(&["that", "creature", "entered", "from"]) {
+            Some(0)
+        } else if self.eat_words(&["they", "entered", "or", "were", "cast", "from"]) {
+            Some(1)
+        } else if self.eat_words(&["one", "or", "more", "of", "them", "entered", "from"]) {
+            Some(2)
+        } else {
+            None
+        } {
+            let zone = self.came_from_zone()?;
+            match wording {
+                0 => self.expect_words(&["or", "you", "cast", "it", "from"])?,
+                2 => self.expect_words(&["or", "was", "cast", "from"])?,
+                _ => {}
+            }
+            if wording != 1 && self.came_from_zone()? != zone {
+                return self.unexpected("the same zone twice");
+            }
+            return Ok(StaticCond::CameFrom { zone, wording });
         }
         if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutAnyCounterThisTurn);
@@ -11250,6 +11281,17 @@ impl P {
         }
     }
 
+    /// `graveyard` or `exile`: where a permanent came from.
+    fn came_from_zone(&mut self) -> R<mtg_core::state::Zone> {
+        if self.eat_word("graveyard") {
+            Ok(mtg_core::state::Zone::Graveyard)
+        } else if self.eat_word("exile") {
+            Ok(mtg_core::state::Zone::Exile)
+        } else {
+            self.unexpected("`graveyard` or `exile`")
+        }
+    }
+
     /// After a counter: `to exile` ("If that spell is countered this way,
     /// exile it instead ..."), `to library top`, or nothing.
     fn countered_to(&mut self) -> crate::ast::CounteredTo {
@@ -12577,6 +12619,9 @@ impl P {
         }
         if self.in_trigger && !self.in_delayed && self.eat_words(&["the", "creature"]) {
             return Ok(Recipient::TheTriggeringObject);
+        }
+        if self.in_trigger && !self.in_delayed && self.eat_words(&["one", "of", "them"]) {
+            return Ok(Recipient::TriggeringOneOfThem);
         }
         // "Exile them at the beginning of the next end step." (the
         // tokens a delayed trigger is about).
@@ -14562,6 +14607,9 @@ impl P {
         if self.eat_words(&["a", "spell", "from", "exile"]) {
             return Ok(Some(SpellOrdinal::FromExile));
         }
+        if self.eat_words(&["a", "spell", "from", "a", "graveyard"]) {
+            return Ok(Some(SpellOrdinal::FromGraveyard));
+        }
         if self.eat_words(&["a", "spell", "other", "than"]) {
             if !(self.eat_word("your") || self.eat_word("their")) {
                 return self.unexpected("`your` or `their`");
@@ -15365,6 +15413,16 @@ impl P {
             && self.eat_words(&["enters", "from", "your", "graveyard"])
         {
             return Ok(Trigger::EntersFromGraveyard(f.clone()));
+        }
+        // "this creature enters from a graveyard", "a permanent you
+        // control enters from exile".
+        if self.eat_words(&["enters", "from"]) {
+            let yours = self.eat_word("your");
+            let zone = self.came_from_zone()?;
+            if yours && zone != mtg_core::state::Zone::Graveyard {
+                return self.unexpected("`graveyard` after `your`");
+            }
+            return Ok(Trigger::EntersFrom { obj, zone, yours });
         }
         let first = self.trigger_verb(obj.clone(), whenever)?;
         // "this enters or dies", "this enters or attacks": one ability,
