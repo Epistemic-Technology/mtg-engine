@@ -1250,7 +1250,9 @@ impl GameState {
                     }),
                 }
             }
-            (Replacement::Prevent, Proposed::GainLife { .. }) => {
+            // "Skip that draw instead." (Living Conundrum, CR 614.10).
+            (Replacement::Prevent, Proposed::GainLife { .. })
+            | (Replacement::SkipDraw, Proposed::Draw { .. }) => {
                 self.emit(Event::Replaced { by: c.def });
                 Outcome::Nothing
             }
@@ -1471,10 +1473,6 @@ impl GameState {
                     Proposed::Draw { player },
                     Proposed::Draw { player }
                 ])
-            }
-            (Replacement::SkipDraw, Proposed::Draw { .. }) => {
-                self.emit(Event::Replaced { by: c.def });
-                Outcome::Nothing
             }
             (Replacement::WinGame, Proposed::Draw { player }) => {
                 self.emit(Event::Replaced { by: c.def });
