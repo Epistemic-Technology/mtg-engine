@@ -1,0 +1,8 @@
+card "Pia Nalaar, Consul of Revival" {
+  oracle_id 65d4ebdb-8757-4e5e-9411-d78597e20d57
+  cost {R}{W}
+  type Legendary Creature — Human Artificer
+  pt 2/3
+  static Thopter you control: has haste
+  triggered whenever you play a land from exile or cast a spell from exile: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

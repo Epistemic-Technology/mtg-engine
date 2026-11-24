@@ -1,0 +1,9 @@
+card "Ob Nixilis, Unshackled" {
+  oracle_id 73021bd2-3b60-4fe4-8858-6eb525be1422
+  cost {4}{B}{B}
+  type Legendary Creature — Demon
+  pt 4/4
+  keywords flying, trample
+  triggered whenever an opponent searches their library: that player sacrifices 1 creature and loses 10 life
+  triggered whenever other creature dies: put 1 +1/+1 counter on this
+}

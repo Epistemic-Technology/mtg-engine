@@ -21709,6 +21709,9 @@ fn no_trigger_amount(t: &Trigger) -> bool {
                     Trigger::CreaturesDealCombatDamage(_)
                         | Trigger::CreaturesDealDamage(_)
                         | Trigger::LosesLife { .. }
+                        // "Whenever you're dealt damage, put that many
+                        // charge counters on this artifact."
+                        | Trigger::PlayerDealtDamage { .. }
                 )
         }
     }

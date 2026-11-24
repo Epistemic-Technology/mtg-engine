@@ -1,0 +1,7 @@
+card "Darien, King of Kjeldor" {
+  oracle_id d05336cb-6157-47e7-942f-43becd67a5bf
+  cost {4}{W}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  triggered whenever you're dealt damage: you may create that much "1/1 white Soldier creature"
+}
