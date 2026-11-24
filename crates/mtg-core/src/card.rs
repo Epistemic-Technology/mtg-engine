@@ -6229,6 +6229,9 @@ pub enum RuleKind {
     /// "Damage can't be prevented." Prevention effects still apply but
     /// prevent nothing (CR 615.12).
     DamageCantBePrevented,
+    /// "Combat damage can't be prevented." (Frenzied Baloth): as
+    /// `DamageCantBePrevented`, for combat damage only.
+    CombatDamageCantBePrevented,
     /// "Cards in graveyards can't be the targets of spells or abilities."
     /// (CR 115.4): no graveyard card is a legal target.
     GraveyardUntargetable,
@@ -8795,6 +8798,14 @@ pub struct CardDef {
     /// that would counter it does nothing to it).
     #[serde(default)]
     pub uncounterable: bool,
+    /// "If X is 5 or more, this spell can't be countered and the damage
+    /// can't be prevented." (Banefire), "Spell mastery — If there are two
+    /// or more instant and/or sorcery cards in your graveyard, this spell
+    /// can't be countered." (Exquisite Firecraft): the pool's condition,
+    /// judged for the spell's controller when an effect would counter it
+    /// (CR 101.2) and, with `unpreventable`, as it resolves (CR 615.12).
+    #[serde(default)]
+    pub uncounterable_if: Option<(u16, bool)>,
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<Box<ManaCost>>,
@@ -11435,6 +11446,7 @@ impl Builder {
             strive: None,
             target_cost: None,
             uncounterable: false,
+            uncounterable_if: None,
             cond_cost: None,
             madness: None,
             foretell: None,
@@ -11964,6 +11976,14 @@ impl Builder {
     #[must_use]
     pub fn uncounterable(mut self) -> Self {
         self.0.uncounterable = true;
+        self
+    }
+
+    /// "If <condition>, this spell can't be countered [and the damage
+    /// can't be prevented]." (see `CardDef::uncounterable_if`).
+    #[must_use]
+    pub fn uncounterable_if(mut self, cond: u16, unpreventable: bool) -> Self {
+        self.0.uncounterable_if = Some((cond, unpreventable));
         self
     }
 

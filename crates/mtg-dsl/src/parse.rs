@@ -2287,6 +2287,12 @@ impl P {
                     mtg_core::card::RuleKind::DamageCantBePrevented,
                 ))
             }
+            "combat" if self.at_words(&["combat", "damage", "can't", "be", "prevented"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::CombatDamageCantBePrevented,
+                ))
+            }
             "additional" if self.at_words(&["additional", "land"]) => {
                 self.pos += 2;
                 let n = if matches!(self.peek(), Some(Tok::Num(_))) {
@@ -3811,6 +3817,19 @@ impl P {
                 self.pos += 1;
                 let cond = self.static_cond()?;
                 self.expect(&Tok::Comma)?;
+                if self.at_words(&["this", "spell", "can't", "be", "countered"]) {
+                    self.pos += 5;
+                    let unpreventable =
+                        self.at_words(&["and", "the", "damage", "can't", "be", "prevented"]);
+                    if unpreventable {
+                        self.pos += 6;
+                    }
+                    self.end_stmt()?;
+                    return Ok(Ability::UncounterableIf {
+                        cond,
+                        unpreventable,
+                    });
+                }
                 self.expect_word("enters")?;
                 self.expect_word("with")?;
                 let n = self.number()?;
@@ -11211,6 +11230,10 @@ impl P {
             "damage" => {
                 self.expect_words(&["can't", "be", "prevented", "this", "turn"])?;
                 Ok(Effect::Rule(RuleKind::DamageCantBePrevented))
+            }
+            "combat" if self.at_words(&["damage", "can't", "be", "prevented", "this", "turn"]) => {
+                self.pos += 6;
+                Ok(Effect::Rule(RuleKind::CombatDamageCantBePrevented))
             }
             // "Excess damage is dealt to that creature's controller
             // instead." (Pigment Storm).

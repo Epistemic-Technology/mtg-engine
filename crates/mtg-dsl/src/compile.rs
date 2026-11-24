@@ -595,6 +595,14 @@ impl Compiler<'_> {
                 Ability::Uncounterable => {
                     b = b.uncounterable();
                 }
+                Ability::UncounterableIf {
+                    cond,
+                    unpreventable,
+                } => {
+                    let c = self.static_cond(cond);
+                    let i = self.pool.intern_condition(c);
+                    b = b.uncounterable_if(i, *unpreventable);
+                }
                 Ability::EquipDiscount(n) => {
                     b = b.equip_discount(*n);
                 }
@@ -1522,6 +1530,7 @@ impl Compiler<'_> {
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
                     | Ability::Uncounterable
+                    | Ability::UncounterableIf { .. }
                     | Ability::EquipDiscount(_)
                     | Ability::AuraStays
                     | Ability::SelfCost { .. }
@@ -5616,7 +5625,7 @@ impl Compiler<'_> {
             Ability::BecomesChoice { .. } => {
                 return self.err("`becomes choice` is a card's ability, not a granted one");
             }
-            Ability::Uncounterable => {
+            Ability::Uncounterable | Ability::UncounterableIf { .. } => {
                 return self.err("\"can't be countered\" is a property of the spell");
             }
             Ability::EquipDiscount(_) => {

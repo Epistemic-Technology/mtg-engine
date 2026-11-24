@@ -11120,6 +11120,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
         }
+        Effect::Rule(RuleKind::CombatDamageCantBePrevented) => {
+            Clause::imperative("combat damage can't be prevented this turn".to_string())
+        }
         Effect::Rule(RuleKind::GraveyardUntargetable) => Clause::imperative(
             "cards in graveyards can't be the targets of spells or abilities this turn".to_string(),
         ),
@@ -17431,6 +17434,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("A deck can have any number of cards named {}.", card.name)
         }
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
+        Ability::UncounterableIf {
+            cond,
+            unpreventable,
+        } => {
+            let and = if *unpreventable {
+                " and the damage can't be prevented"
+            } else {
+                ""
+            };
+            format!(
+                "If {}, this spell can't be countered{and}.",
+                static_cond_text(cond, card)
+            )
+        }
         Ability::EquipDiscount(n) => format!(
             "Equip abilities you activate that target {} cost {{{n}}} less to activate.",
             this_ref(card)
@@ -17865,6 +17882,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
                     "damage can't be prevented".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::CombatDamageCantBePrevented) => {
+                    "combat damage can't be prevented".to_string()
                 }
                 K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
                     "cards in graveyards can't be the targets of spells or abilities".to_string()

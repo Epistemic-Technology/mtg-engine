@@ -1866,6 +1866,14 @@ pub enum Ability {
     DeckAnyNumber,
     /// `this spell can't be countered`: "This spell can't be countered."
     Uncounterable,
+    /// `if x 5 or more, this spell can't be countered and the damage can't
+    /// be prevented`: "If X is 5 or more, this spell can't be countered and
+    /// the damage can't be prevented." (Banefire); without the `and`
+    /// clause, "this spell can't be countered" only (Exquisite Firecraft).
+    UncounterableIf {
+        cond: StaticCond,
+        unpreventable: bool,
+    },
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
     /// Whenever a land you control enters, ...". No rules meaning.
     Labeled {

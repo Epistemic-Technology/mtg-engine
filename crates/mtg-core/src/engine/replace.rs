@@ -961,12 +961,24 @@ impl GameState {
             && (!f.needs_state() || (on_battlefield && self.status_ok(f, src)))
     }
 
+    /// Whether damage (combat damage, with `combat`) dealt now can't be
+    /// prevented (CR 615.12): "Damage can't be prevented.", "Combat damage
+    /// can't be prevented.", or a resolving spell's "the damage can't be
+    /// prevented". Protection's prevention is stopped too (CR 702.16d).
+    pub(super) fn damage_unpreventable(&self, combat: bool) -> bool {
+        self.this_way.as_ref().is_some_and(|l| l.unpreventable)
+            || self.rule_in_force(RuleKind::DamageCantBePrevented)
+            || (combat && self.rule_in_force(RuleKind::CombatDamageCantBePrevented))
+    }
+
     /// Apply one effect to the event (CR 614.6, 615.6), then its additional
     /// effects (CR 615.5).
     #[allow(clippy::too_many_lines)] // one arm per (replacement, event) pair
     fn apply_replacement(&mut self, c: &Candidate, ev: Proposed) -> Outcome {
-        let unpreventable = self.rule_in_force(RuleKind::DamageCantBePrevented)
-            || self.this_way.as_ref().is_some_and(|l| l.unpreventable);
+        let unpreventable = match &ev {
+            Proposed::Damage { combat, .. } => self.damage_unpreventable(*combat),
+            _ => false,
+        };
         // "Prevent that damage and each opponent mills that many cards":
         // the replaced event's damage is the follow-up's "that much".
         let that_much = match &ev {

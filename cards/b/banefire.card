@@ -1,0 +1,7 @@
+card "Banefire" {
+  oracle_id 5eff8a06-e0d6-435a-a7c0-db9f9d98636a
+  cost {X}{R}
+  type Sorcery
+  spell: deal X damage to any target
+  if x 5 or more, this spell can't be countered and the damage can't be prevented
+}

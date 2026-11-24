@@ -1,0 +1,185 @@
+# Damage prevention and redirection forms: "If X is 5 or more, this spell
+# can't be countered and the damage can't be prevented" (CR 101.2,
+# 615.12), "Combat damage can't be prevented." (also stops protection's
+# prevention, CR 702.16d), ...
+
+# ---- a conditional "this spell can't be countered" ----
+
+scenario "Banefire: with X 5 it can't be countered" {
+  battlefield A: 6 "Mountain"
+  battlefield B: 2 "Island"
+  hand A: "Banefire"
+  hand B: "Counterspell"
+  turn 1 A: cast "Banefire" x 5 targeting player B
+  turn 1 B: cast "Counterspell" targeting "Banefire" in response to "Banefire"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Banefire: with X 4 it is countered" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 2 "Island"
+  hand A: "Banefire"
+  hand B: "Counterspell"
+  turn 1 A: cast "Banefire" x 4 targeting player B
+  turn 1 B: cast "Counterspell" targeting "Banefire" in response to "Banefire"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Banefire"
+}
+
+scenario "Banefire: with X 5 its damage can't be prevented" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Banefire"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Banefire" x 5 targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Banefire"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Banefire: with X 4 its damage is prevented" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Banefire"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Banefire" x 4 targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Banefire"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Demonfire: hellbent, it can't be countered and the creature is exiled" {
+  battlefield A: 4 "Mountain"
+  battlefield B: 2 "Island", "Hill Giant"
+  hand A: "Demonfire"
+  hand B: "Counterspell"
+  turn 1 A: cast "Demonfire" x 3 targeting "Hill Giant"
+  turn 1 B: cast "Counterspell" targeting "Demonfire" in response to "Demonfire"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Demonfire: with a card in hand it can be countered" {
+  battlefield A: 4 "Mountain"
+  battlefield B: 2 "Island", "Hill Giant"
+  hand A: "Demonfire", "Shock"
+  hand B: "Counterspell"
+  turn 1 A: cast "Demonfire" x 3 targeting "Hill Giant"
+  turn 1 B: cast "Counterspell" targeting "Demonfire" in response to "Demonfire"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Demonfire"
+}
+
+scenario "Demonfire: with a card in hand its damage is prevented" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Demonfire", "Shock"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Demonfire" x 3 targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Demonfire"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Demonfire: hellbent, its damage can't be prevented" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Plains"
+  hand A: "Demonfire"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Demonfire" x 3 targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Demonfire"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Exquisite Firecraft: spell mastery, it can't be countered" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 2 "Island"
+  graveyard A: "Lightning Bolt", "Divination"
+  hand A: "Exquisite Firecraft"
+  hand B: "Counterspell"
+  turn 1 A: cast "Exquisite Firecraft" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Exquisite Firecraft" in response to "Exquisite Firecraft"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Exquisite Firecraft: one instant in the graveyard, it is countered" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 2 "Island"
+  graveyard A: "Lightning Bolt", "Grizzly Bears"
+  hand A: "Exquisite Firecraft"
+  hand B: "Counterspell"
+  turn 1 A: cast "Exquisite Firecraft" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Exquisite Firecraft" in response to "Exquisite Firecraft"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Exquisite Firecraft: spell mastery doesn't stop prevention" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Plains"
+  graveyard A: "Lightning Bolt", "Divination"
+  hand A: "Exquisite Firecraft"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Exquisite Firecraft" targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Exquisite Firecraft"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+# ---- "Combat damage can't be prevented." ----
+
+scenario "Frenzied Baloth: Fog prevents nothing" {
+  battlefield A: "Frenzied Baloth"
+  battlefield B: "Forest"
+  hand B: "Fog"
+  turn 1 A: attack "Frenzied Baloth"
+  turn 1 declare_blockers B: cast "Fog"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Frenzied Baloth: protection from green doesn't prevent its combat damage" {
+  battlefield A: "Frenzied Baloth"
+  battlefield B: "Cerulean Wyvern"
+  turn 1 A: attack "Frenzied Baloth"
+  turn 1 B: block "Frenzied Baloth" with "Cerulean Wyvern"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Cerulean Wyvern"
+}
+
+scenario "Frenzied Baloth: noncombat damage is still prevented" {
+  battlefield A: "Frenzied Baloth", "Mountain"
+  battlefield B: "Plains"
+  hand A: "Shock"
+  hand B: "Mending Hands"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Mending Hands" targeting player B in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Frenzied Baloth: creature spells you control can't be countered" {
+  battlefield A: "Frenzied Baloth", 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Without Frenzied Baloth, Fog prevents combat damage" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Forest"
+  hand B: "Fog"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers B: cast "Fog"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

@@ -3275,6 +3275,9 @@ impl Fmt {
             Effect::Rule(RuleKind::DamageCantBePrevented) => {
                 "damage can't be prevented this turn".to_string()
             }
+            Effect::Rule(RuleKind::CombatDamageCantBePrevented) => {
+                "combat damage can't be prevented this turn".to_string()
+            }
             // Not written as an effect (only a static ability).
             Effect::Rule(RuleKind::GraveyardUntargetable) => {
                 "graveyard cards can't be targeted this turn".to_string()
@@ -7093,6 +7096,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");
         }
+        Ability::UncounterableIf {
+            cond,
+            unpreventable,
+        } => {
+            let and = if *unpreventable {
+                " and the damage can't be prevented"
+            } else {
+                ""
+            };
+            let _ = writeln!(
+                out,
+                "{indent}if {}, this spell can't be countered{and}",
+                static_cond(cond)
+            );
+        }
         Ability::EquipDiscount(n) => {
             let _ = writeln!(
                 out,
@@ -7396,6 +7414,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
                     "damage can't be prevented".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::CombatDamageCantBePrevented) => {
+                    "combat damage can't be prevented".to_string()
                 }
                 K::Rule(mtg_core::card::RuleKind::GraveyardUntargetable) => {
                     "graveyard cards can't be targeted".to_string()

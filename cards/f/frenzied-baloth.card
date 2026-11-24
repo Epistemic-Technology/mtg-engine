@@ -1,0 +1,10 @@
+card "Frenzied Baloth" {
+  oracle_id 6a4ef075-9254-4d36-9572-622833fae54e
+  cost {G}{G}
+  type Creature — Beast
+  pt 3/2
+  this spell can't be countered
+  keywords trample, haste
+  spells creature you control can't be countered
+  combat damage can't be prevented
+}

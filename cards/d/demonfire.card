@@ -1,0 +1,7 @@
+card "Demonfire" {
+  oracle_id 314a5c76-1a68-433b-a383-1834400254a8
+  cost {X}{R}
+  type Sorcery
+  spell: deal X damage to any target; this turn, replace creature dealt damage this way dies: exile
+  label "Hellbent" if hand 0 or less, this spell can't be countered and the damage can't be prevented
+}
