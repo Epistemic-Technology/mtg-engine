@@ -51,6 +51,39 @@ scenario "activate on a land with a mana ability takes its other ability" {
   assert power "Restless Spire" 2
 }
 
+# ----- Scenario runner: a Room set up by its full name has both doors
+# locked (CR 709.5d), as one an effect puts onto the battlefield. -----
+
+scenario "a Room set up by its full name is a Room with both doors locked" {
+  battlefield A: "Derelict Attic // Widow's Walk", 4 "Swamp"
+  turn 1 A: unlock "Widow's Walk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Widow's Walk"
+  assert battlefield A lacks "Derelict Attic // Widow's Walk"
+}
+
+scenario "manifest dread: choose steers which card is manifested" {
+  battlefield A: 4 "Forest"
+  hand A: "Threats Around Every Corner"
+  library A: "Grizzly Bears", "Island", "Plains"
+  turn 1 A: cast "Threats Around Every Corner"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Island"
+}
+
+scenario "manifest dread: choose the other card" {
+  battlefield A: 4 "Forest"
+  hand A: "Threats Around Every Corner"
+  library A: "Grizzly Bears", "Island", "Plains"
+  turn 1 A: cast "Threats Around Every Corner"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
 # ----- "Return target Aura or Equipment card from your graveyard to the
 # battlefield attached to a creature you control." with no creature: an
 # Equipment enters unattached (CR 301.5c), an Aura stays (CR 303.4g). -----
