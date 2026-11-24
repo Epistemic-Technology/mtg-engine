@@ -1,0 +1,8 @@
+card "Coral Colony" {
+  oracle_id 5e186931-992b-491c-bffc-6877a613d5c3
+  cost {1}{U}
+  type Creature — Wall
+  pt 1/4
+  keywords defender
+  activated {1}{U}, {T}: target player mills count where creature with defender you control cards
+}

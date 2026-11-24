@@ -1,0 +1,14 @@
+card "Carnival // Carnage" {
+  oracle_id b996ae86-3bf6-4e84-8302-6ec6edaa6ff0
+  layout split
+  face "Carnival" {
+    cost {B/R}
+    type Instant
+    spell: deal 1 damage to target creature or planeswalker and deal 1 damage to controller of that target 1
+  }
+  face "Carnage" {
+    cost {2}{B}{R}
+    type Sorcery
+    spell: deal 3 damage to target opponent; that player discards 2 cards
+  }
+}

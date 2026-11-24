@@ -1,0 +1,8 @@
+card "Farmstead Gleaner" {
+  oracle_id e26f7255-8b18-47d6-aafa-22ca22c35d2e
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  keywords doesn't untap
+  activated {2}, {Q}: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,9 @@
+card "Patagia Viper" {
+  oracle_id b9985370-d908-431c-ad33-ec532fe07d1f
+  cost {3}{G}
+  type Creature — Snake
+  pt 2/1
+  keywords flying
+  triggered when this enters: create 2 "1/1 green and blue Snake creature"
+  triggered whenever this enters: sacrifice this unless spent {U}
+}

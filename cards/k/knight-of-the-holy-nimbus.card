@@ -1,0 +1,9 @@
+card "Knight of the Holy Nimbus" {
+  oracle_id 4e92c705-19c2-42df-ad12-808d272c505e
+  cost {W}{W}
+  type Creature — Human Rebel Knight
+  pt 2/2
+  keywords flanking
+  replace destroy this: regenerate
+  activated {2}, opponents only: this can't be regenerated
+}

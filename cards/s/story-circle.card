@@ -1,0 +1,7 @@
+card "Story Circle" {
+  oracle_id 7071aee8-b5ca-4be5-9ba0-2df7e3af303b
+  cost {1}{W}{W}
+  type Enchantment
+  as this enters choose color
+  activated {W}: this turn, replace damage from chosen permanent of chosen color to you: prevent next time
+}

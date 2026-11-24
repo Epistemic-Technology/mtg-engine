@@ -9580,6 +9580,72 @@ fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, S
     })
 }
 
+/// A line's amounts and mana symbols, each as the DSL writes it ("two" →
+/// `2`, "{2}{G}" as it is), and the line with each replaced by a mark:
+/// "~ deals 2 damage to any target." and "~ deals 3 damage to any
+/// target." share the shape.
+fn line_shape(line: &str) -> (String, Vec<String>) {
+    let token = cached_regex(r"(?:\{[^}]+\})+|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b")
+        .expect("a token pattern");
+    let mut values = Vec::new();
+    let shape = token
+        .replace_all(line, |c: &regex::Captures| {
+            let t = &c[0];
+            if t.starts_with('{') {
+                values.push(t.to_string());
+                "\u{1}M".to_string()
+            } else {
+                values.push(number(t).unwrap_or_else(|| t.to_string()));
+                "\u{1}N".to_string()
+            }
+        })
+        .into_owned();
+    (shape, values)
+}
+
+/// The statement a corpus card prints `line` with: the line itself, or
+/// one of the same shape with its amounts and mana symbols put in. The
+/// card it goes into is still rendered and checked against its Oracle
+/// text, so a substitution that misses shows as a mismatch.
+fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
+    use std::collections::HashMap;
+    use std::sync::OnceLock;
+    let exact = corpus_lines(corpus);
+    if let Some(st) = exact.get(line) {
+        return Some(st.clone());
+    }
+    static SHAPES: OnceLock<HashMap<String, Vec<(Vec<String>, String)>>> = OnceLock::new();
+    let shapes = SHAPES.get_or_init(|| {
+        let mut out: HashMap<String, Vec<(Vec<String>, String)>> = HashMap::new();
+        for (l, st) in exact {
+            let (shape, values) = line_shape(l);
+            if !values.is_empty() {
+                out.entry(shape).or_default().push((values, st.clone()));
+            }
+        }
+        out
+    });
+    let (shape, values) = line_shape(line);
+    let token = cached_regex(r"(?:\{[^}]+\})+|\d+").expect("a token pattern");
+    'next: for (theirs, st) in shapes.get(&shape)? {
+        let mut map: HashMap<&str, &str> = HashMap::new();
+        for (a, b) in theirs.iter().zip(&values) {
+            if *map.entry(a.as_str()).or_insert(b.as_str()) != b.as_str() {
+                continue 'next;
+            }
+        }
+        // Each of the corpus line's values must be in its statement.
+        if theirs.iter().any(|a| !st.contains(a.as_str())) {
+            continue;
+        }
+        let out = token.replace_all(st, |c: &regex::Captures| {
+            map.get(&c[0]).map_or_else(|| c[0].to_string(), |b| (*b).to_string())
+        });
+        return Some(out.into_owned());
+    }
+    None
+}
+
 /// The card's flavor words and mode names (CR 207.2d, 700.2): Scryfall
 /// tags each as a keyword; the text prints it at the start of a line or a
 /// mode, before an em dash. A real keyword printed so ("Forecast —") is
@@ -10736,7 +10802,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             b.spell_paragraphs.truncate(mark.2);
             b.spell_at = mark.3;
             b.spell_targets = mark.4;
-            let Some(st) = corpus_lines(corpus).get(line) else {
+            let Some(st) = corpus_statement(corpus, line) else {
                 return Err(e);
             };
             // A spell's paragraph numbers its targets from the spell's

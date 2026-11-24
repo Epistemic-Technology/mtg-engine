@@ -1,0 +1,296 @@
+# Cards the template author writes from a corpus line of the same shape,
+# its amounts and mana symbols put in ("You draw three cards and lose
+# three life." from "You draw two cards and lose two life.").
+
+scenario "Shrewd Hatchling: four -1/-1 counters, one removed for a blue spell" {
+  battlefield A: 4 "Island", "Island"
+  hand A: "Shrewd Hatchling", "Opt"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shrewd Hatchling"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert counters "Shrewd Hatchling" -1/-1 3
+  assert power "Shrewd Hatchling" 3
+}
+
+scenario "Lashwrithe: the Germ gets +1/+1 for each Swamp" {
+  battlefield A: 4 "Swamp"
+  hand A: "Lashwrithe"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lashwrithe"
+  run_to turn 1 postcombat_main
+  assert attached "Lashwrithe" to "Phyrexian Germ"
+  assert power "Phyrexian Germ" 4
+  assert toughness "Phyrexian Germ" 4
+}
+
+scenario "Valkyrie Harbinger: four life gained this turn makes an Angel at the end step" {
+  battlefield A: "Valkyrie Harbinger"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Valkyrie Harbinger"
+  run_to turn 1 cleanup
+  assert life A 24
+  assert battlefield A contains "Angel"
+  assert has "Angel" vigilance
+}
+
+scenario "Valkyrie Harbinger: no Angel with less life gained" {
+  battlefield A: "Valkyrie Harbinger"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Angel"
+}
+
+scenario "Plaxmanta: shroud for your creatures; sacrificed unless {G} was spent" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Plaxmanta"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Plaxmanta"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Plaxmanta"
+  assert has "Grizzly Bears" shroud
+}
+
+scenario "Plaxmanta: kept when {G} was spent" {
+  battlefield A: "Island", "Forest"
+  hand A: "Plaxmanta"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Plaxmanta"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plaxmanta"
+}
+
+scenario "Azorius Herald: four life, then sacrificed unless {U} was spent" {
+  battlefield A: 3 "Plains"
+  hand A: "Azorius Herald"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Azorius Herald"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert graveyard A contains "Azorius Herald"
+}
+
+scenario "Azorius Herald: kept with {U} spent, and can't be blocked" {
+  battlefield A: 2 "Plains", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Azorius Herald"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Azorius Herald"
+  run_to turn 3 precombat_main
+  turn 3 A: attack "Azorius Herald"
+  illegal turn 3 B: block "Azorius Herald" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+}
+
+scenario "Patagia Viper: two Snakes; sacrificed unless {U} was spent" {
+  battlefield A: 4 "Forest"
+  hand A: "Patagia Viper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Patagia Viper"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Snake"
+  assert graveyard A contains "Patagia Viper"
+}
+
+scenario "Knight of the Holy Nimbus: regenerated when destroyed" {
+  battlefield A: "Knight of the Holy Nimbus"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Knight of the Holy Nimbus"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Knight of the Holy Nimbus"
+  assert tapped "Knight of the Holy Nimbus"
+}
+
+scenario "Knight of the Holy Nimbus: an opponent pays {2} so it can't be regenerated" {
+  battlefield A: "Knight of the Holy Nimbus"
+  battlefield B: 5 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: activate A "Knight of the Holy Nimbus"
+  turn 2 B: wait
+  turn 2 B: cast "Murder" targeting "Knight of the Holy Nimbus"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Knight of the Holy Nimbus"
+}
+
+scenario "Coral Colony: mill one for each creature with defender you control" {
+  battlefield A: "Coral Colony", "Wall of Essence", 2 "Island"
+  library B: "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Coral Colony" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 2
+}
+
+scenario "Story Circle: the next damage from a source of the chosen color is prevented" {
+  battlefield A: "Hill Giant", "Raging Goblin"
+  battlefield B: 4 "Plains"
+  hand B: "Story Circle"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Story Circle"
+  turn 2 B: choose red
+  turn 3 A: attack "Hill Giant", "Raging Goblin"
+  turn 3 declare_blockers B: activate "Story Circle"
+  turn 3 declare_blockers B: choose "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 19
+}
+
+scenario "Fanatic of Rhonas: four mana with a creature of power 4 or greater" {
+  battlefield A: "Fanatic of Rhonas", "Craw Wurm", 2 "Forest"
+  hand A: "Colossal Dreadmaw"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Colossal Dreadmaw"
+}
+
+scenario "Fanatic of Rhonas: one mana without one" {
+  battlefield A: "Fanatic of Rhonas", "Grizzly Bears", 4 "Forest"
+  hand A: "Colossal Dreadmaw"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Ambition's Cost: draw three, lose three" {
+  battlefield A: 4 "Swamp"
+  hand A: "Ambition's Cost"
+  library A: 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ambition's Cost"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert life A 17
+}
+
+scenario "Pili-Pala: {2}, untap it: one mana of any color" {
+  battlefield A: "Pili-Pala" tapped, 2 "Plains"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pili-Pala"
+  turn 1 A: choose red
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Pili-Pala"
+}
+
+scenario "Mishra's Foundry: a 2/2 Assembly-Worker that's still a land" {
+  battlefield A: "Mishra's Foundry", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mishra's Foundry"
+  turn 1 A: attack "Mishra's Foundry"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert is "Mishra's Foundry" land
+  assert is "Mishra's Foundry" "Assembly-Worker"
+}
+
+scenario "Vexing Devil: an opponent takes 4 damage and it is sacrificed" {
+  battlefield A: "Mountain"
+  hand A: "Vexing Devil"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vexing Devil"
+  turn 1 B: accept "Vexing Devil"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Vexing Devil"
+}
+
+scenario "Vexing Devil: declined, it stays" {
+  battlefield A: "Mountain"
+  hand A: "Vexing Devil"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vexing Devil"
+  turn 1 B: decline "Vexing Devil"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Vexing Devil"
+}
+
+scenario "Carnival: 1 damage to a creature and 1 to its controller" {
+  battlefield A: "Mountain"
+  battlefield B: "Raging Goblin"
+  hand A: "Carnival // Carnage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Carnival" targeting "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert life B 19
+}
+
+scenario "Carnage: 3 damage to an opponent, who discards two cards" {
+  battlefield A: 2 "Mountain", 2 "Swamp"
+  hand A: "Carnival // Carnage"
+  hand B: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Carnage" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand B count 1
+}
+
+scenario "Flame Spill: excess damage is dealt to the controller" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Flame Spill"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flame Spill" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "Paraselene: destroy all enchantments, a life for each" {
+  battlefield A: 3 "Plains", "Glorious Anthem"
+  battlefield B: "Glorious Anthem", "Pacifism" on "Grizzly Bears", "Grizzly Bears"
+  hand A: "Paraselene"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Paraselene"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Glorious Anthem"
+  assert graveyard B contains "Pacifism"
+  assert life A 23
+}
+
+scenario "Farmstead Gleaner: doesn't untap; {2}, untap it: a +1/+1 counter" {
+  battlefield A: "Farmstead Gleaner" tapped, 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Farmstead Gleaner"
+  run_to turn 1 postcombat_main
+  assert counters "Farmstead Gleaner" +1/+1 1
+  assert untapped "Farmstead Gleaner"
+}
+
+scenario "Farmstead Gleaner: it doesn't untap in the untap step" {
+  battlefield A: "Farmstead Gleaner" tapped
+  start turn 2 B
+  run_to turn 3 precombat_main
+  assert tapped "Farmstead Gleaner"
+}
+
+scenario "Loxodon Punisher: +2/+2 for each Equipment attached" {
+  battlefield A: "Loxodon Punisher", "Bonesplitter" on "Loxodon Punisher", "Lashwrithe" on "Loxodon Punisher"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Loxodon Punisher" 8
+  assert toughness "Loxodon Punisher" 6
+}
+
+scenario "Mystic Subdual: -2/-0 and no abilities" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Mystic Subdual"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mystic Subdual" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 2
+  assert toughness "Serra Angel" 4
+  assert has not "Serra Angel" flying
+}

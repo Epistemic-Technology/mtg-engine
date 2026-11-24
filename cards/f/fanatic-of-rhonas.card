@@ -1,0 +1,9 @@
+card "Fanatic of Rhonas" {
+  oracle_id 7973820b-fdaf-46ec-9e3e-d4c0e77b5067
+  cost {1}{G}
+  type Creature — Snake Druid
+  pt 1/4
+  mana {G}
+  label "Ferocious" activated {T}, if you control creature with power 4 or greater: add {G}{G}{G}{G}
+  eternalize {2}{G}{G}
+}
