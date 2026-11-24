@@ -572,7 +572,7 @@ end of turn".
 deal ..." and `you may each Ally creature you control gets +1/+0` "you may
 have Ally creatures you control get +1/+0 ...".
 
-Conditions (intervening "if", CR 603.4): `if its toughness was less than 1` (also `power`, `mana value`, and `was N or less` / `was N or greater`: the triggering object as it is or last existed, "Whenever a creature an opponent controls dies, if its toughness was less than 1, ..."), `if its power or toughness greater than this` (evolve's check, printed "if its power is greater than this creature's power or its toughness is greater than this creature's toughness"), `if it wasn't blocking` and `if it was blocking` (in a dies trigger, as it last existed), `if this is untapped`, `if
+Conditions (intervening "if", CR 603.4): `if its toughness was less than 1` (also `power`, `mana value`, and `was N or less` / `was N or greater`: the triggering object as it is or last existed, "Whenever a creature an opponent controls dies, if its toughness was less than 1, ..."; `is` for one still there, `if its power is 2 or less`, "Whenever enchanted creature attacks, if its power is 2 or less, ..."), `if its power or toughness greater than this` (evolve's check, printed "if its power is greater than this creature's power or its toughness is greater than this creature's toughness"), `if it wasn't blocking` and `if it was blocking` (in a dies trigger, as it last existed), `if this is untapped`, `if
 this is tapped` ("if this creature is tapped"),
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
 CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`

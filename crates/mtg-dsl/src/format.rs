@@ -8243,8 +8243,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     cmp,
                     less_than,
                     n,
+                    present,
                 }) => {
-                    let _ = write!(head, " if its {} was {}", its_stat_word(*stat), {
+                    let verb = if *present { "is" } else { "was" };
+                    let _ = write!(head, " if its {} {verb} {}", its_stat_word(*stat), {
                         if *less_than {
                             format!("less than {}", n + 1)
                         } else if *cmp == mtg_core::card::Cmp::AtLeast {

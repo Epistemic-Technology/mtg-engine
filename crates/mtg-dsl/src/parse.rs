@@ -8178,7 +8178,8 @@ impl P {
             self.pos = at;
             return Ok(None);
         };
-        if !self.eat_word("was") {
+        let present = self.eat_word("is");
+        if !present && !self.eat_word("was") {
             self.pos = at;
             return Ok(None);
         }
@@ -8189,6 +8190,7 @@ impl P {
                 cmp: Cmp::AtMost,
                 less_than: true,
                 n: n - 1,
+                present,
             }));
         }
         let n = i16::try_from(self.number()?).unwrap_or(i16::MAX);
@@ -8204,6 +8206,7 @@ impl P {
             cmp,
             less_than: false,
             n,
+            present,
         }))
     }
 

@@ -1,0 +1,8 @@
+card "Writ of Passage" {
+  oracle_id 1ea7f839-e3b8-4aff-b850-c0a98b06ae14
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks if its power is 2 or less: it can't be blocked this turn
+  label "Forecast" activated {1}{U}, reveal this: target creature with power 2 or less can't be blocked this turn
+}

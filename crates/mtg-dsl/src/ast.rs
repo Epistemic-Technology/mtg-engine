@@ -2506,6 +2506,9 @@ pub enum TrigCond {
         /// `less than N`: printed so, the check "N-1 or less".
         less_than: bool,
         n: i16,
+        /// `if its power is 2 or less` ("is"): the triggering object as it
+        /// is, an attacker (Writ of Passage); wording only.
+        present: bool,
     },
 }
 

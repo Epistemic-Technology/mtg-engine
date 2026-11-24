@@ -21004,12 +21004,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     cmp,
                     less_than,
                     n,
+                    present,
                 }) => {
                     let word = crate::format::its_stat_word(*stat);
+                    let verb = if *present { "is" } else { "was" };
                     let _ = if *less_than {
-                        write!(out, ", if its {word} was less than {}", n + 1)
+                        write!(out, ", if its {word} {verb} less than {}", n + 1)
                     } else {
-                        write!(out, ", if its {word} was {n}{}", cmp_words(*cmp))
+                        write!(out, ", if its {word} {verb} {n}{}", cmp_words(*cmp))
                     };
                 }
                 // An ∞ ability: the label says it.
