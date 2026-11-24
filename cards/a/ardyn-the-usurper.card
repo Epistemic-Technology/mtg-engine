@@ -1,0 +1,14 @@
+card "Ardyn, the Usurper" {
+  oracle_id 9ae13026-960a-4d31-b775-d47209a1e313
+  cost {5}{B}{B}{B}
+  type Legendary Creature — Elder Human Noble
+  pt 4/4
+  static Demon you control: has menace, lifelink, haste
+  label "Starscourge" triggered at beginning of your combat: exile up to 1 target creature card from a graveyard; if you exiled card this way, create token copy of that created card with exceptions
+  except {
+    exactly
+    pt 5/5
+    colors black
+    subtypes Demon
+  }
+}

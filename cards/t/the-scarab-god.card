@@ -1,0 +1,15 @@
+card "The Scarab God" {
+  oracle_id c75e55f2-fd6c-4816-9d96-21eeb8369aff
+  cost {3}{U}{B}
+  type Legendary Creature — God
+  pt 5/5
+  triggered at beginning of your upkeep step: each opponent loses count where Zombie you control life and you scry count where Zombie you control
+  activated {2}{U}{B}: exile target creature card from a graveyard; create token copy of target 1 with exceptions
+  triggered when this dies: delayed this: return it to hand at beginning of the next end step
+  except {
+    exactly
+    pt 4/4
+    colors black
+    subtypes Zombie
+  }
+}

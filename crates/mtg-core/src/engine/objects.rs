@@ -160,8 +160,22 @@ impl GameState {
         &mut self,
         id: ObjId,
         controller: PlayerId,
-        enter: Enter,
+        mut enter: Enter,
     ) -> ObjId {
+        // "You may have this land enter tapped as a copy of any land on
+        // the battlefield" (Vesuva), a Clone put onto the battlefield or a
+        // token copy of a Clone card: the copy is chosen before other
+        // replacement effects apply (CR 614.12). A resolving spell chose
+        // already (`choose_copy_on_resolving`).
+        if self.enters_choice_cards > 0 && self.objects[id].zone != Zone::Stack {
+            let card = self.objects[id].card;
+            if let Some((_, way)) = self.pool.get(card).enters_as_copy()
+                && self.choose_copy_on_entering(id, controller)
+                && way.tapped
+            {
+                enter.tapped = true;
+            }
+        }
         self.propose(Proposed::ZoneChange {
             obj: id,
             to: Zone::Battlefield,

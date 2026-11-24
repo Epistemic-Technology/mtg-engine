@@ -1,0 +1,9 @@
+card "Echoing Deeps" {
+  oracle_id 2ef88214-f46d-473e-a55b-795a647e2f03
+  type Land — Cave
+  enters tapped as copy of land card in graveyard
+  activated {T}: add {C}
+  except {
+    subtypes Cave
+  }
+}

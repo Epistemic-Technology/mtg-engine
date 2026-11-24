@@ -1561,7 +1561,10 @@ impl GameState {
                         && self.status_ok(filter, *id)
                 })
                 .collect(),
-            ChooseAct::Discard | ChooseAct::HandToBottom | ChooseAct::RevealFromHand => self
+            ChooseAct::Discard
+            | ChooseAct::HandToBottom
+            | ChooseAct::RevealFromHand
+            | ChooseAct::ExileFromHand => self
                 .player(p)
                 .hand
                 .iter()
@@ -1578,6 +1581,11 @@ impl GameState {
                 .graveyard
                 .iter()
                 .copied()
+                .filter(|id| card_ok(*id))
+                .collect(),
+            ChooseAct::ExileFromAnyGraveyard => self
+                .players_in_game()
+                .flat_map(|q| self.player(q).graveyard.iter().copied())
                 .filter(|id| card_ok(*id))
                 .collect(),
             // CR 404.2: the most recent matching cards first.
@@ -1771,6 +1779,8 @@ impl GameState {
                     ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
                 ChooseAct::ExileFromGraveyard
+                | ChooseAct::ExileFromAnyGraveyard
+                | ChooseAct::ExileFromHand
                 | ChooseAct::ExileTopOfGraveyard
                 | ChooseAct::ExileWithThisSpell => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
@@ -2214,15 +2224,19 @@ impl GameState {
         let Some(log) = &self.this_way else {
             return nothing;
         };
+        // "If you exiled a card this way" (Ardyn, the Usurper): the
+        // ability's controller exiled it, whoever owns it; "if you
+        // discarded" is about the cards you owned.
+        let by_you = cond.by_you && cond.verb != crate::card::ThisWay::Exiled;
         if nothing {
             return !log
                 .moved
                 .iter()
-                .any(|m| m.is(cond.verb) && (!cond.by_you || m.owner == ctx.controller));
+                .any(|m| m.is(cond.verb) && (!by_you || m.owner == ctx.controller));
         }
         log.moved.iter().any(|m| {
             m.is(cond.verb)
-                && (!cond.by_you || m.owner == ctx.controller)
+                && (!by_you || m.owner == ctx.controller)
                 && cond
                     .filter
                     .as_ref()
@@ -8861,7 +8875,7 @@ impl GameState {
                     spell,
                     def: obj.card,
                 });
-                self.choose_copy_on_entering(spell);
+                self.choose_copy_on_resolving(spell);
                 self.put_onto_battlefield(spell, obj.controller);
                 return;
             }
@@ -9000,7 +9014,7 @@ impl GameState {
                 if obj.cast.copy() {
                     self.objects[spell].kind = ObjKind::Token;
                 }
-                self.choose_copy_on_entering(spell);
+                self.choose_copy_on_resolving(spell);
                 if obj.alt == AltCast::Sneak {
                     self.enter_sneaking(spell, obj.controller);
                 } else if obj.alt == AltCast::Impending
@@ -9675,30 +9689,57 @@ impl GameState {
         }
     }
 
-    /// CR 707.?: "you may have ~ enter as a copy of ...". The controller
-    /// chooses among the matching permanents (or nothing) as the spell
-    /// resolves; the copy effect is set on the spell so that it enters with
-    /// the copied values (and the copied card's "enters" effects, CR
-    /// 614.12).
-    fn choose_copy_on_entering(&mut self, spell: ObjId) {
-        let o = &self.objects[spell];
-        let (controller, card) = (o.controller, o.card);
-        let Some(filter) = self.pool.get(card).enters_as_copy().cloned() else {
-            return;
+    /// A card in a graveyard or face up in exile that a copy effect can
+    /// copy (CR 707.2: its copiable values are the printed ones; a
+    /// face-down card has none, CR 406.3, so nothing is copied).
+    pub(super) fn copiable_card(&self, t: Target) -> Option<ObjId> {
+        let Target::Object(id) = t else {
+            return None;
         };
-        let candidates: Vec<ObjId> = self
-            .battlefield
-            .iter()
-            .copied()
+        self.objects
+            .get(id)
+            .is_some_and(|o| {
+                matches!(o.zone, Zone::Graveyard | Zone::Exile) && !o.exiled_face_down()
+            })
+            .then_some(id)
+    }
+
+    /// CR 707.?: "you may have ~ enter as a copy of ...". The controller
+    /// chooses among the matching permanents, or the matching cards in
+    /// graveyards (Echoing Deeps), or nothing, as the permanent enters
+    /// (CR 614.1c, 614.12); the copy effect is set on the object so that
+    /// it enters with the copied values (and the copied card's "enters"
+    /// effects). Whether it copied something.
+    pub(super) fn choose_copy_on_entering(&mut self, obj: ObjId, controller: PlayerId) -> bool {
+        let card = self.objects[obj].card;
+        let Some((filter, way)) = self
+            .pool
+            .get(card)
+            .enters_as_copy()
+            .map(|(f, w)| (f.clone(), w))
+        else {
+            return false;
+        };
+        let pool: Vec<ObjId> = if way.graveyard {
+            self.players_in_game()
+                .flat_map(|p| self.player(p).graveyard.iter().copied())
+                .collect()
+        } else {
+            self.battlefield.clone()
+        };
+        let candidates: Vec<ObjId> = pool
+            .into_iter()
             .filter(|id| {
-                let t = &self.objects[*id];
-                self.characteristics(*id).is_some_and(|c| {
-                    filter.matches(*id, t.controller, &c, Some(spell), Some(controller))
-                }) && self.status_ok(&filter, *id)
+                *id != obj && {
+                    let t = &self.objects[*id];
+                    self.characteristics(*id).is_some_and(|c| {
+                        filter.matches(*id, t.controller, &c, Some(obj), Some(controller))
+                    }) && self.status_ok(&filter, *id)
+                }
             })
             .collect();
         if candidates.is_empty() {
-            return;
+            return false;
         }
         let mut options: Vec<Choice> = candidates
             .iter()
@@ -9710,7 +9751,7 @@ impl GameState {
         options.push(Choice::NoCopy);
         let k = self.choose_mid(controller, DecisionKind::ChooseCopy, options);
         let Some(of) = candidates.get(k).copied() else {
-            return;
+            return false;
         };
         let (def, except, sized) = {
             let t = &self.objects[of];
@@ -9723,15 +9764,21 @@ impl GameState {
         } else {
             except
         };
-        let s = &mut self.objects[spell];
+        let s = &mut self.objects[obj];
         s.def = def;
         s.except = except;
         s.sized = sized;
         self.bump();
-        self.emit(Event::BecameCopy {
-            obj: spell,
-            of: def,
-        });
+        self.emit(Event::BecameCopy { obj, of: def });
+        true
+    }
+
+    /// `choose_copy_on_entering` for a permanent spell resolving (no
+    /// permanent card with "enter tapped as a copy" is cast: those are
+    /// lands, `put_onto_battlefield_with`).
+    fn choose_copy_on_resolving(&mut self, spell: ObjId) {
+        let controller = self.objects[spell].controller;
+        self.choose_copy_on_entering(spell, controller);
     }
 
     /// Per chosen target, whether it is still legal for its spec (CR
@@ -14633,7 +14680,23 @@ impl GameState {
                     return;
                 }
                 for t in self.recipients(ctx, *what) {
-                    if let Some(id) = on_battlefield(self, t) {
+                    // A permanent, or (not "until") a card in a graveyard:
+                    // "Exile target creature card from your graveyard",
+                    // linked to a Saga's later chapters (The Cloning of
+                    // Shredder).
+                    let card = match t {
+                        Target::Object(id)
+                            if !*until
+                                && self
+                                    .objects
+                                    .get(id)
+                                    .is_some_and(|o| o.zone == Zone::Graveyard) =>
+                        {
+                            Some(id)
+                        }
+                        _ => None,
+                    };
+                    if let Some(id) = on_battlefield(self, t).or(card) {
                         let new = self.move_object(id, Zone::Exile, true);
                         ctx.created = Some(new);
                         if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
@@ -14793,18 +14856,10 @@ impl GameState {
                 };
                 // What is copied: a permanent, or a card in a graveyard or
                 // exile ("a creature card exiled with it").
-                let of_obj = self.recipients(ctx, *of).into_iter().find_map(|t| {
-                    on_battlefield(self, t).or_else(|| match t {
-                        Target::Object(id)
-                            if self.objects.get(id).is_some_and(|o| {
-                                matches!(o.zone, Zone::Graveyard | Zone::Exile)
-                            }) =>
-                        {
-                            Some(id)
-                        }
-                        _ => None,
-                    })
-                });
+                let of_obj = self
+                    .recipients(ctx, *of)
+                    .into_iter()
+                    .find_map(|t| on_battlefield(self, t).or_else(|| self.copiable_card(t)));
                 let Some(of_obj) = of_obj else {
                     return;
                 };
@@ -16638,7 +16693,22 @@ impl GameState {
                 }
                 let recipients = self.recipients(ctx, *of);
                 for t in recipients {
-                    if let Some(id) = on_battlefield(self, t) {
+                    // A permanent, or a card in a graveyard or exile ("Exile
+                    // target creature card from a graveyard. Create a token
+                    // that's a copy of it."): a card's copiable values are
+                    // its printed ones (CR 707.2). "Exile X target creature
+                    // cards from your graveyard. For each card exiled this
+                    // way, create a token that's a copy of that card": a
+                    // target this resolution exiled is found in exile (CR
+                    // 400.7).
+                    let t = match t {
+                        Target::Object(id) if !self.objects.contains_key(id) => self
+                            .current_object(id)
+                            .filter(|n| self.objects[*n].zone == Zone::Exile)
+                            .map_or(t, Target::Object),
+                        _ => t,
+                    };
+                    if let Some(id) = on_battlefield(self, t).or_else(|| self.copiable_card(t)) {
                         // CR 614.1a: token-creation replacement effects
                         // ("twice that many of those tokens").
                         let def = self.objects[id].def;

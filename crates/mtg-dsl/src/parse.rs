@@ -576,6 +576,12 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "created", "creature"], Recipient::CreatedThat),
     (&["that", "created", "token"], Recipient::CreatedThatToken),
     (&["that", "created", "land"], Recipient::CreatedThatLand),
+    (&["that", "created", "card"], Recipient::CreatedThatCard),
+    (&["that", "exiled", "card"], Recipient::CreatedExiledCard),
+    (
+        &["a", "card", "exiled", "with", "this"],
+        Recipient::ACardExiledWith,
+    ),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
@@ -1484,6 +1490,12 @@ impl P {
                         Some("exactly") => {
                             self.pos += 1;
                             except.exactly = true;
+                            self.end_stmt()?;
+                        }
+                        // "it isn't legendary and is a Mutant ...".
+                        Some("and") if self.word_at(1).as_deref() == Some("is") => {
+                            self.pos += 2;
+                            except.and_is = true;
                             self.end_stmt()?;
                         }
                         // "except the token isn't legendary".
@@ -4220,13 +4232,22 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::AsEntersChoose { kind, joined })
             }
-            "enters" if self.at_words(&["enters", "as"]) => {
-                self.pos += 2;
+            "enters"
+                if self.at_words(&["enters", "as"])
+                    || self.at_words(&["enters", "tapped", "as", "copy"]) =>
+            {
+                self.pos += 1;
+                let tapped = self.eat_word("tapped");
+                self.expect_word("as")?;
                 self.expect_word("copy")?;
                 self.expect_word("of")?;
                 let f = self.filter()?;
+                let graveyard = self.eat_words(&["card", "in", "graveyard"]);
                 self.end_stmt()?;
-                Ok(Ability::EntersAsCopy(f))
+                Ok(Ability::EntersAsCopy(
+                    f,
+                    mtg_core::card::EntersCopy { tapped, graveyard },
+                ))
             }
             // "As this land enters, you may pay 3 life. If you don't, it
             // enters tapped."
@@ -10069,7 +10090,27 @@ impl P {
                 let graveyard =
                     card_filter(self).is_ok() && self.at_words(&["from", "your", "graveyard"]);
                 self.pos = at;
-                if graveyard || top || with_spell {
+                let any_graveyard = !graveyard
+                    && !top
+                    && !with_spell
+                    && card_filter(self).is_ok()
+                    && self.at_words(&["from", "a", "graveyard"]);
+                self.pos = at;
+                let hand = !graveyard
+                    && !top
+                    && !with_spell
+                    && card_filter(self).is_ok()
+                    && self.at_words(&["from", "your", "hand"]);
+                self.pos = at;
+                if hand {
+                    let f = card_filter(self)?;
+                    self.expect_words(&["from", "your", "hand"])?;
+                    (ChooseAct::ExileFromHand, f)
+                } else if any_graveyard {
+                    let f = card_filter(self)?;
+                    self.expect_words(&["from", "a", "graveyard"])?;
+                    (ChooseAct::ExileFromAnyGraveyard, f)
+                } else if graveyard || top || with_spell {
                     let f = card_filter(self)?;
                     self.expect_words(&["from", "your", "graveyard"])?;
                     if top {
@@ -14042,6 +14083,30 @@ impl P {
     }
 
     fn recipient(&mut self) -> R<Recipient> {
+        // `each card exiled this way`, `each creature card exiled this
+        // way`: the targets the ability exiled, each in turn ("For each
+        // card exiled this way, create a token that's a copy of that
+        // card", Hour of Eternity).
+        for (words, creature) in [
+            (&["each", "card", "exiled", "this", "way"][..], false),
+            (
+                &["each", "creature", "card", "exiled", "this", "way"][..],
+                true,
+            ),
+        ] {
+            if self.at_words(words) {
+                if self.targets.is_empty() {
+                    return self
+                        .fail("`each card exiled this way` needs targets declared before it");
+                }
+                self.pos += words.len();
+                return Ok(Recipient::EachExiledThisWay(
+                    0,
+                    self.targets.len(),
+                    creature,
+                ));
+            }
+        }
         // `them`, `those creatures`: the objects a group named earlier in
         // the ability denoted (CR 608.2c).
         if let Some((t, n)) = self.at_those() {

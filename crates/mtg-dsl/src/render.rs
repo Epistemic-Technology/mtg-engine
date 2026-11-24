@@ -2051,7 +2051,9 @@ impl<'a> Ctx<'a> {
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::SameTheToken => "the token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
-            Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
+            Recipient::TriggeringCard | Recipient::SameCard | Recipient::CreatedThatCard => {
+                "that card".to_string()
+            }
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
                     enchanted_noun(self.card)
@@ -2128,6 +2130,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::CreatedThat => "that creature".to_string(),
             Recipient::CreatedThatLand => "that land".to_string(),
+            Recipient::ACardExiledWith => format!("a card exiled with {}", this_ref(self.card)),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -2205,7 +2208,7 @@ impl<'a> Ctx<'a> {
                 let first = self.obj(Recipient::Source);
                 format!("{first} and {}", self.obj(Recipient::Target(a)))
             }
-            Recipient::ExiledCard => "the exiled card".to_string(),
+            Recipient::ExiledCard | Recipient::CreatedExiledCard => "the exiled card".to_string(),
             // The granting card is the quoted ability's holder's name
             // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
             // deals 2 damage to any target."
@@ -2242,6 +2245,10 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
+            Recipient::EachExiledThisWay(_, _, true) => {
+                "each creature card exiled this way".to_string()
+            }
             Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(a, n) => format!("those {}", self.group_noun(a, n)),
         }
@@ -4911,6 +4918,13 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     }
     if !has.is_empty() {
         parts.push(format!("it has {}", list(&has)));
+    }
+    // "it isn't legendary and is a Mutant in addition to its other types".
+    if x.and_is
+        && let Some(second) = parts.get_mut(1)
+        && let Some(rest) = second.strip_prefix("it's ")
+    {
+        *second = format!("is {rest}");
     }
     list(&parts)
 }
@@ -8961,12 +8975,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "For each of X target permanents, create X tokens that are
             // copies of that permanent." (Doppelgang).
             let many = ctx.is_many(*of);
-            let mut text = match o.strip_prefix("each ") {
-                Some(rest) => {
-                    format!("for each {rest}, create {copies} that {}", noun(rest))
-                }
-                None if many => format!("for each of {o}, create {copies} that {}", noun(&o)),
-                None => format!("create {copies} {o}"),
+            let mut text = match (of, o.strip_prefix("each ")) {
+                // "For each card exiled this way, create a token that's a
+                // copy of that card" (Hour of Eternity); "For each creature
+                // card exiled this way, ... a copy of it" (Foggy Swamp
+                // Visions).
+                (Recipient::EachExiledThisWay(_, _, creature), Some(rest)) => format!(
+                    "for each {rest}, create {copies} {}",
+                    if *creature { "it" } else { "that card" }
+                ),
+                (_, rest) => match rest {
+                    Some(rest) => {
+                        format!("for each {rest}, create {copies} that {}", noun(rest))
+                    }
+                    None if many => format!("for each of {o}, create {copies} that {}", noun(&o)),
+                    None => format!("create {copies} {o}"),
+                },
             };
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
@@ -9043,7 +9067,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 who,
                 Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
             );
-            let s = if source {
+            // `this creature`: named in full even after a mention ("...
+            // you may have Lazav become a copy of that card").
+            let s = if *who == Recipient::SourceNamed {
+                ctx.source_mentioned = true;
+                ctx.source_name()
+            } else if source {
                 ctx.source_subj()
             } else {
                 ctx.subj(*who)
@@ -9058,6 +9087,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 && o.starts_with("target ")
             {
                 o = format!("a second {o}");
+            }
+            // "a copy of target creature card in your graveyard with mana
+            // value X" (Likeness Looter): a copy doesn't move the card, so
+            // "in", right after "card".
+            if let Some(rest) = o.strip_suffix(" from your graveyard")
+                && let Some((head, tail)) = rest.split_once(" card")
+                && !tail.starts_with('s')
+            {
+                o = format!("{head} card in your graveyard{tail}");
             }
             let mut text = format!("becomes a copy of {o}");
             match until {
@@ -9929,6 +9967,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
                 ChooseAct::ExileFromGraveyard => {
                     format!("exile {} from your graveyard", cards())
+                }
+                ChooseAct::ExileFromHand => {
+                    format!("exile {} from your hand", cards())
+                }
+                ChooseAct::ExileFromAnyGraveyard => {
+                    format!("exile {} from a graveyard", cards())
                 }
                 // CR 404.2: "exile the top creature card of your graveyard".
                 ChooseAct::ExileTopOfGraveyard => {
@@ -11958,14 +12002,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Effect::BecomeCopy {
                         of,
                         except,
-                        who: Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt,
-                        until: mtg_core::card::CopyUntil::Permanent,
+                        who:
+                            who @ (Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt),
+                        until,
                     },
                 ] = one.effects.as_slice()
             {
-                let s = ctx.source();
+                let s = if *who == Recipient::SourceNamed {
+                    ctx.source_name()
+                } else {
+                    ctx.source()
+                };
                 let o = ctx.obj(*of);
-                let mut text = format!("you may have {s} become a copy of {o}");
+                // "... you may have Lazav become a copy of that card until
+                // end of turn".
+                let until = match until {
+                    mtg_core::card::CopyUntil::Permanent => "",
+                    mtg_core::card::CopyUntil::EndOfTurn => " until end of turn",
+                    mtg_core::card::CopyUntil::YourNextTurn => " until your next turn",
+                };
+                let mut text = format!("you may have {s} become a copy of {o}{until}");
                 if *except {
                     let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
                 }
@@ -19714,17 +19770,27 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             g.who = None;
             format!("Affinity for {}", filter_phrase(&g, card, true))
         }
-        Ability::EntersAsCopy(f) => {
+        Ability::EntersAsCopy(f, way) => {
+            // "enter tapped as a copy" (Vesuva).
+            let enter = if way.tapped { "enter tapped" } else { "enter" };
             // "... a copy of a creature you control" (Visage Bandit).
-            let mut s = if f.who == Some(mtg_core::card::Who::You) {
+            let mut s = if way.graveyard {
+                // "... a copy of any land card in a graveyard" (Echoing
+                // Deeps).
                 format!(
-                    "You may have {} enter as a copy of {}",
+                    "You may have {} {enter} as a copy of any {} card in a graveyard",
+                    this_ref(card),
+                    filter_phrase(f, card, false)
+                )
+            } else if f.who == Some(mtg_core::card::Who::You) {
+                format!(
+                    "You may have {} {enter} as a copy of {}",
                     this_ref(card),
                     with_article(&filter_phrase(f, card, false))
                 )
             } else {
                 format!(
-                    "You may have {} enter as a copy of any {} on the battlefield",
+                    "You may have {} {enter} as a copy of any {} on the battlefield",
                     this_ref(card),
                     filter_phrase(f, card, false)
                 )

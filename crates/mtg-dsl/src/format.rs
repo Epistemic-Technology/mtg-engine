@@ -184,6 +184,9 @@ fn format_inner(card: &Card) -> String {
         if x.the_token {
             out.push_str("    the token\n");
         }
+        if x.and_is {
+            out.push_str("    and is\n");
+        }
         if x.not_legendary && x.its_not {
             out.push_str("    its not legendary\n");
         } else if x.not_legendary {
@@ -423,6 +426,10 @@ impl Fmt {
             Recipient::GranterIt => "granter as it".to_string(),
             Recipient::GranterController => "controller of granter".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
+            Recipient::EachExiledThisWay(_, _, true) => {
+                "each creature card exiled this way".to_string()
+            }
             Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::Those(t) => those_word(t).to_string(),
@@ -438,6 +445,9 @@ impl Fmt {
             Recipient::CreatedThat => "that created creature".to_string(),
             Recipient::CreatedThatToken => "that created token".to_string(),
             Recipient::CreatedThatLand => "that created land".to_string(),
+            Recipient::CreatedThatCard => "that created card".to_string(),
+            Recipient::CreatedExiledCard => "that exiled card".to_string(),
+            Recipient::ACardExiledWith => "a card exiled with this".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
@@ -2108,9 +2118,7 @@ impl Fmt {
                 until,
             } => {
                 let subject = match who {
-                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
-                        "this".to_string()
-                    }
+                    Recipient::Source | Recipient::SourceIt => "this".to_string(),
                     w => self.recipient(*w, t),
                 };
                 let mut s = format!("{subject} becomes a copy of {}", self.recipient(*of, t));
@@ -3319,6 +3327,18 @@ impl Fmt {
                     }
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::ExileFromHand if unfiltered => {
+                        format!("exile {n} {cs} from your hand chosen")
+                    }
+                    ChooseAct::ExileFromHand => {
+                        format!("exile {n} {f} {cs} from your hand chosen")
+                    }
+                    ChooseAct::ExileFromAnyGraveyard if unfiltered => {
+                        format!("exile {n} {cs} from a graveyard chosen")
+                    }
+                    ChooseAct::ExileFromAnyGraveyard => {
+                        format!("exile {n} {f} {cs} from a graveyard chosen")
                     }
                     ChooseAct::ExileTopOfGraveyard if unfiltered => {
                         format!("exile top {n} {cs} from your graveyard chosen")
@@ -7466,8 +7486,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let _ = writeln!(out, "{indent}{text}");
         }
-        Ability::EntersAsCopy(f) => {
-            let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));
+        Ability::EntersAsCopy(f, way) => {
+            let _ = writeln!(
+                out,
+                "{indent}enters {}as copy of {}{}",
+                if way.tapped { "tapped " } else { "" },
+                filter(f),
+                if way.graveyard {
+                    " card in graveyard"
+                } else {
+                    ""
+                }
+            );
         }
         Ability::BecomesChoice { forms, in_addition } => {
             let forms: Vec<String> = forms

@@ -1,0 +1,12 @@
+card "Hour of Eternity" {
+  oracle_id 6fbaac3b-37ec-4815-a4ea-544c547e90b1
+  cost {X}{X}{U}{U}{U}
+  type Sorcery
+  spell: exile x target creature card from your graveyard; create token copy of each card exiled this way with exceptions
+  except {
+    exactly
+    pt 4/4
+    colors black
+    subtypes Zombie
+  }
+}

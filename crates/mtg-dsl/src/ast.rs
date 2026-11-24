@@ -758,6 +758,10 @@ pub struct Except {
     pub exactly: bool,
     /// `the token`: "except the token isn't legendary" (wording only).
     pub the_token: bool,
+    /// `and is`: "except it isn't legendary and is a Mutant in addition
+    /// to its other types" (The Cloning of Shredder), not "and it's"
+    /// (wording only).
+    pub and_is: bool,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -1781,7 +1785,12 @@ pub enum Ability {
         /// condition doesn't hold. Empty without a condition.
         otherwise: Vec<Mod>,
     },
-    EntersAsCopy(Filter),
+    /// `enters as copy of creature`: "You may have ~ enter as a copy of
+    /// any creature on the battlefield"; `enters tapped as copy of land`
+    /// "enter tapped as a copy of any land on the battlefield" (Vesuva);
+    /// `... of land card in graveyard` "any land card in a graveyard"
+    /// (Echoing Deeps).
+    EntersAsCopy(Filter, mtg_core::card::EntersCopy),
     /// `as this enters choose color`: "As this land enters, choose a
     /// color." (CR 614.12). `as it enters choose color except blue` is
     /// printed on the line before: "This land enters tapped. As it
@@ -4429,6 +4438,28 @@ pub enum Recipient {
     /// printed "that land" ("Then if you control four or more lands, untap
     /// that land.", Fabled Passage).
     CreatedThatLand,
+    /// `that created card`: the card the effect before it moved (the
+    /// core `CreatedObject`), printed "that card" ("you may exile a
+    /// creature card from your graveyard. If you do, create a token that's
+    /// a copy of that card", God-Pharaoh's Gift).
+    CreatedThatCard,
+    /// `that exiled card`: `CreatedThatCard` printed "the exiled card"
+    /// ("Then you may exile an artifact or creature card from your hand.
+    /// If you do, create a token that's a copy of the exiled card", Nexus
+    /// of Becoming); `exiled card` is a linked ability's (CR 607.2a).
+    CreatedExiledCard,
+    /// `a card exiled with this`: the card the source's linked ability
+    /// exiled (the core `ExiledCard`, CR 607.2a), printed "a card exiled
+    /// with this Saga" ("Create a token that's a copy of a card exiled
+    /// with this Saga", The Cloning of Shredder).
+    ACardExiledWith,
+    /// `each card exiled this way` (`each creature card exiled this
+    /// way` when `.2`): the targets `.0` to `.0 + .1` (the core
+    /// `Targets`), found in exile after the effect before it moved them;
+    /// a token copy of them prints "For each card exiled this way, create
+    /// a token that's a copy of that card" ("For each creature card
+    /// exiled this way, ... a copy of it", Foggy Swamp Visions).
+    EachExiledThisWay(usize, usize, bool),
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).

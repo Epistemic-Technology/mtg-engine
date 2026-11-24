@@ -3068,12 +3068,15 @@ impl Compiler<'_> {
             // "X target attacking creatures become blocked. ... deals 1
             // damage to each of those creatures": through a variable
             // group, to the end of the list.
-            Recipient::ThoseTargets(a, n) if many.is_some_and(|m| a <= m && m < a + n) => {
+            Recipient::ThoseTargets(a, n) | Recipient::EachExiledThisWay(a, n, _)
+                if many.is_some_and(|m| a <= m && m < a + n) =>
+            {
                 CoreRecipient::Targets(u8::try_from(ti(a)).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Targets(a, n)
             | Recipient::ChosenTargets(a, n)
             | Recipient::ThoseCards(a, n)
+            | Recipient::EachExiledThisWay(a, n, _)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
                 u8::try_from(ti(a)).unwrap_or(u8::MAX),
                 u8::try_from(n).unwrap_or(u8::MAX),
@@ -3131,11 +3134,13 @@ impl Compiler<'_> {
             | Recipient::CreatedObject
             | Recipient::CreatedThat
             | Recipient::CreatedThatToken
-            | Recipient::CreatedThatLand => CoreRecipient::CreatedObject,
+            | Recipient::CreatedThatLand
+            | Recipient::CreatedThatCard
+            | Recipient::CreatedExiledCard => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
-            Recipient::ExiledCard => CoreRecipient::ExiledCard,
+            Recipient::ExiledCard | Recipient::ACardExiledWith => CoreRecipient::ExiledCard,
             Recipient::Granter | Recipient::GranterIt => CoreRecipient::Granter,
             Recipient::GranterController => CoreRecipient::GranterController,
             Recipient::Those(_) => CoreRecipient::ThoseObjects,
@@ -6456,7 +6461,7 @@ impl Compiler<'_> {
                     mtg_core::card::BlockRule::BlocksAdditional(*n)
                 }
             }),
-            Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),
+            Ability::EntersAsCopy(f, way) => AbilityDef::EntersAsCopy(self.filter(f), *way),
             Ability::AsEntersChoose { kind, .. } => {
                 AbilityDef::AsEntersChoose(self.choice_kind(kind))
             }
@@ -8474,6 +8479,9 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
                 e,
                 CoreEffect::ReturnToBattlefield {
                     what: CoreRecipient::ExiledCard,
+                    ..
+                } | CoreEffect::CreateTokenCopy {
+                    of: CoreRecipient::ExiledCard,
                     ..
                 }
             )

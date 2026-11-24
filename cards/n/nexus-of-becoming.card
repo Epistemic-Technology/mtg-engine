@@ -1,0 +1,11 @@
+card "Nexus of Becoming" {
+  oracle_id 07142ee9-dc2c-4b33-ad20-2f5285225e86
+  cost {6}
+  type Artifact
+  triggered at beginning of your combat: draw 1 card; then you may exile 1 artifact or creature card from your hand chosen; if you do, create token copy of that exiled card with exceptions
+  except {
+    pt 3/3
+    subtypes Golem
+    types Artifact Creature
+  }
+}

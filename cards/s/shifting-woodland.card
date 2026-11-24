@@ -1,0 +1,7 @@
+card "Shifting Woodland" {
+  oracle_id 7c2a4fe5-43e8-4e20-bef2-0278d18afc4b
+  type Land
+  enters tapped unless you control Forest
+  mana {G}
+  label "Delirium" activated {2}{G}{G}, if delirium: this becomes a copy of target permanent card from your graveyard until end of turn
+}
