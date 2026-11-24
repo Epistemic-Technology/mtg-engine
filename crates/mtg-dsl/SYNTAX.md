@@ -655,7 +655,9 @@ battlefield under your control this turn"), `2 nonland
 entered this turn` (celebration: "two or more nonland permanents entered
 the battlefield under your control this turn"), `artifact or creature to
 graveyard this turn` ("an artifact or creature was put into a graveyard
-from the battlefield this turn"; any card types joined by `or`),
+from the battlefield this turn"; any card types joined by `or`;
+`permanent to graveyard this turn`, "a permanent was put into a graveyard
+from the battlefield this turn", any permanent),
 `discarded this turn`, `opponent controls more creatures`, `opponent has more life`, `opponent
 has more cards in hand` ("an opponent controls more creatures than you",
 ...), `not cast this turn` ("you haven't cast a

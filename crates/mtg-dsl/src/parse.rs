@@ -4873,6 +4873,11 @@ impl P {
             self.expect_words(&["nonland", "entered", "this", "turn"])?;
             return Ok(StaticCond::NonlandEnteredThisTurn(n));
         }
+        // `permanent to graveyard this turn`: "a permanent was put into a
+        // graveyard from the battlefield this turn" (any types).
+        if self.eat_words(&["permanent", "to", "graveyard", "this", "turn"]) {
+            return Ok(StaticCond::PutIntoGraveyardThisTurn(Vec::new()));
+        }
         // `artifact or creature to graveyard this turn`.
         let type_at = |w: Option<String>| {
             w.and_then(|w| {

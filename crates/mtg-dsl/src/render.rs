@@ -15763,7 +15763,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         ),
         StaticCond::PutIntoGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
-            let list = names.join(" or ");
+            // No types: any permanent (Ashen Reaper).
+            let list = if names.is_empty() {
+                "permanent".to_string()
+            } else {
+                names.join(" or ")
+            };
             format!(
                 "{} was put into a graveyard from the battlefield this turn",
                 with_article(&list)

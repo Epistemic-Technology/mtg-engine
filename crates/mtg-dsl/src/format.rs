@@ -5989,7 +5989,11 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NonlandEnteredThisTurn(n) => format!("{n} nonland entered this turn"),
         StaticCond::PutIntoGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
-            format!("{} to graveyard this turn", names.join(" or "))
+            if names.is_empty() {
+                "permanent to graveyard this turn".to_string()
+            } else {
+                format!("{} to graveyard this turn", names.join(" or "))
+            }
         }
         StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
         StaticCond::Night => "night".to_string(),

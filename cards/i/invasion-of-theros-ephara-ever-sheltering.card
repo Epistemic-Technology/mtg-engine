@@ -1,0 +1,15 @@
+card "Invasion of Theros // Ephara, Ever-Sheltering" {
+  oracle_id ba5f7f37-352a-4b9c-b648-0ba5c8d842fc
+  layout transform
+  cost {2}{W}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: search Aura or God or Demigod card reveal to hand
+  face "Ephara, Ever-Sheltering" {
+    type Legendary Enchantment Creature — God
+    pt 4/4
+    color white blue
+    static this: has lifelink and indestructible as long as you control at least 3 other enchantment
+    triggered whenever another enchantment you control enters: draw 1 card
+  }
+}

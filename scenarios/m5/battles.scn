@@ -257,3 +257,57 @@ scenario "Siege: Truga Cliffcharger finds a battle card" {
   assert hand A contains "Invasion of Dominaria"
   assert graveyard A contains "Island"
 }
+
+scenario "Siege: Invasion of Azgol has a player sacrifice and lose 1 life" {
+  battlefield A: "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Invasion of Azgol"
+  turn 1 A: cast "Invasion of Azgol"
+  turn 1 A: trigger "Invasion of Azgol" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "Siege: Ashen Reaper grows only after a permanent went to a graveyard" {
+  battlefield A: "Invasion of Azgol" with 2 defense, "Hill Giant", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Azgol"
+  run_to turn 4 upkeep
+  assert battlefield A contains "Ashen Reaper"
+  assert has "Ashen Reaper" menace
+  assert counters "Ashen Reaper" +1/+1 0
+  turn 5 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 6 upkeep
+  assert counters "Ashen Reaper" +1/+1 1
+}
+
+scenario "Siege: Invasion of Theros finds an Aura" {
+  battlefield A: 3 "Plains"
+  hand A: "Invasion of Theros"
+  library A: "Grizzly Bears", "Pacifism", "Grizzly Bears"
+  turn 1 A: cast "Invasion of Theros"
+  run_to turn 1 end
+  assert hand A contains "Pacifism"
+  assert library A count 2
+}
+
+scenario "Siege: Ephara needs three other enchantments, and draws as one enters" {
+  battlefield A: "Invasion of Theros" with 2 defense, "Hill Giant", "Glorious Anthem", "Oblivion Ring", 2 "Plains"
+  hand A: "Pacifism"
+  battlefield B: "Grizzly Bears"
+  library A: 10 "Island"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Theros"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Ephara, Ever-Sheltering"
+  assert has not "Ephara, Ever-Sheltering" lifelink
+  assert hand A count 2
+  turn 3 postcombat_main A: cast "Pacifism" targeting "Grizzly Bears"
+  run_to turn 3 end
+  assert hand A count 2
+  assert has "Ephara, Ever-Sheltering" lifelink
+  assert has "Ephara, Ever-Sheltering" indestructible
+}
