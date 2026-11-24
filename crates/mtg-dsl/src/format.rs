@@ -4077,12 +4077,19 @@ impl Fmt {
                     Some(w) => format!("{} discards {what}", self.recipient(*w, t)),
                 }
             }
-            Effect::WhenYouDo { targets, effects } => {
+            Effect::WhenYouDo {
+                targets,
+                effects,
+                discarded,
+            } => {
                 // Its own targets, declared afresh (CR 603.12).
                 let outer = std::mem::replace(&mut self.mentioned, vec![false; targets.len()]);
                 let body = self.line(effects, targets);
                 self.mentioned = outer;
-                format!("when you do, {body}")
+                match discarded {
+                    Some(f) => format!("when you discard {} card this way, {body}", filter(f)),
+                    None => format!("when you do, {body}"),
+                }
             }
             Effect::Instead {
                 cond,

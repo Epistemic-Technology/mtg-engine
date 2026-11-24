@@ -12782,7 +12782,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let what = if *color { "color" } else { "type" };
             Clause::with_subject(*to, s, format!("{verb} that {what}")).until_eot()
         }
-        Effect::WhenYouDo { targets, effects } => {
+        Effect::WhenYouDo {
+            targets,
+            effects,
+            discarded,
+        } => {
             // CR 603.12: its own targets; the source and the trigger as the
             // ability around it has them.
             let mut inner = Ctx::new(ctx.card, ctx.lookup, targets);
@@ -12799,7 +12803,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // "Draw a card, then discard a card. When you discard a card
             // this way, ...".
-            let when = if ctx.discarded_one {
+            let when = if let Some(f) = discarded {
+                format!(
+                    "when you discard {} this way",
+                    with_article(&format!("{} card", card_filter_phrase(f, ctx.card)))
+                )
+            } else if ctx.discarded_one {
                 "when you discard a card this way".to_string()
             } else if ctx.removed_from_source {
                 format!(

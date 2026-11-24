@@ -1,0 +1,7 @@
+card "Glacial Dragonhunt" {
+  oracle_id 8f976399-29a9-4eb7-844d-3d3f2fdf6ea7
+  cost {U}{R}
+  type Sorcery
+  spell: draw 1 card, then you may discard 1 card; when you discard nonland card this way, deal 3 damage to target creature
+  harmonize {4}{U}{R}
+}

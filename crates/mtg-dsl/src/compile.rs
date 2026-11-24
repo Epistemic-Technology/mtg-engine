@@ -4998,7 +4998,11 @@ impl Compiler<'_> {
                 let i = self.pool.intern_condition(c);
                 out.push(CoreEffect::IfCondition(i, effects));
             }
-            Effect::WhenYouDo { targets, effects } => {
+            Effect::WhenYouDo {
+                targets,
+                effects,
+                discarded,
+            } => {
                 // "When you do, if it has four or more quest counters on
                 // it, put a +1/+1 counter on target creature you control.
                 // It gains trample until end of turn." (Earthbender
@@ -5042,7 +5046,21 @@ impl Compiler<'_> {
                         targets,
                         effects,
                     }));
-                out.push(CoreEffect::Reflexive(id));
+                // "When you discard a nonland card this way": it triggers
+                // only if one was (CR 603.12, 608.2c).
+                if let Some(f) = discarded {
+                    out.push(CoreEffect::IfThisWay {
+                        cond: mtg_core::card::ThisWayCond {
+                            verb: mtg_core::card::ThisWay::Discarded,
+                            filter: Some(Box::new(self.filter(f))),
+                            negated: false,
+                            by_you: true,
+                        },
+                        then: vec![CoreEffect::Reflexive(id)],
+                    });
+                } else {
+                    out.push(CoreEffect::Reflexive(id));
+                }
             }
             Effect::IfYouDo(inner) => {
                 let effects = self.sentences(inner)?;

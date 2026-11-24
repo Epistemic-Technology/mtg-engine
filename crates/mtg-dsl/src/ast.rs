@@ -6278,6 +6278,10 @@ pub enum Effect {
     WhenYouDo {
         targets: Vec<Target>,
         effects: Vec<Sentence>,
+        /// `when you discard nonland card this way, ...`: "When you
+        /// discard a nonland card this way, ..." (Glacial Dragonhunt): it
+        /// triggers only if a card the resolution discarded matches.
+        discarded: Option<Filter>,
     },
     /// `<clause> unless you pay {2}`, `... unless they pay {2}`: the payer
     /// may pay to stop it.
@@ -7373,7 +7377,9 @@ pub enum SpentOf {
 pub fn exert_parts(effects: &[Sentence]) -> (&[Target], &[Sentence]) {
     match effects {
         [s] if s.effects.len() == 1 => match &s.effects[0] {
-            Effect::WhenYouDo { targets, effects } => (targets, effects),
+            Effect::WhenYouDo {
+                targets, effects, ..
+            } => (targets, effects),
             _ => (&[], effects),
         },
         _ => (&[], effects),

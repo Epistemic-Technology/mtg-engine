@@ -3419,7 +3419,10 @@ target`; with {X}, `you may pay {X}; when you do, put X +1/+1 counters
 on this`, the player chooses X as they pay, any value they can pay, and
 X after it, in the same resolution or the reflexive ability, is that
 value; after `draw 1 card then discard 1 card` it prints "When you discard
-a card this way, ..."; `you may you sacrifice a creature` prints "you may sacrifice a
+a card this way, ..."; `when you discard nonland card this way, ...` (any card filter)
+prints "When you discard a nonland card this way, ..." and triggers only
+if a card the resolution discarded matches (Glacial Dragonhunt, Teo,
+Spirited Glider); `you may you sacrifice a creature` prints "you may sacrifice a
 creature", and an empty choice is no action; every sentence after `when
 you do` is the reflexive ability's, and what the resolution sacrificed
 is its `that sacrificed creature`: `you may sacrifice 1 another creature

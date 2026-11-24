@@ -1892,6 +1892,7 @@ impl Decompiler<'_> {
                 Effect::WhenYouDo {
                     targets: t.targets.iter().map(|t| self.target(*t)).collect(),
                     effects: self.sentences(&t.effects),
+                    discarded: None,
                 }
             }
             CoreEffect::Waterbend(mana) => Effect::Waterbend(mana.clone()),

@@ -3553,7 +3553,11 @@ impl P {
                 // reflexive trigger with the targets (CR 603.12).
                 let targets = std::mem::take(&mut self.targets);
                 Ok(Ability::Exert(vec![Sentence::new(vec![
-                    Effect::WhenYouDo { targets, effects },
+                    Effect::WhenYouDo {
+                        targets,
+                        effects,
+                        discarded: None,
+                    },
                 ])]))
             }
             "escape" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
@@ -5055,6 +5059,7 @@ impl P {
         Ok(Effect::WhenYouDo {
             targets,
             effects: s?,
+            discarded: None,
         })
     }
 
@@ -8826,6 +8831,20 @@ impl P {
         if self.at_words(&["when", "you", "discard", "a", "card", "this", "way"]) {
             self.pos += 4;
             return self.when_you_do();
+        }
+        // "When you discard a nonland card this way, ..." (Glacial
+        // Dragonhunt): only if a matching card was discarded.
+        if self.at_words(&["when", "you", "discard"]) {
+            self.pos += 3;
+            let f = self.filter()?;
+            self.expect_word("card")?;
+            self.expect_words(&["this", "way"])?;
+            self.pos -= 3;
+            let mut e = self.when_you_do()?;
+            if let Effect::WhenYouDo { discarded, .. } = &mut e {
+                *discarded = Some(f);
+            }
+            return Ok(e);
         }
         // "if you do, ...": after an optional action.
         // `if they do`: the same, after "unless its controller pays".
