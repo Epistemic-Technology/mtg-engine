@@ -1,0 +1,323 @@
+# M5: the top of the library as state: a static condition on the top card
+# ("As long as the top card of your library is a Goblin card"), abilities
+# borrowed from it, "You may look at the top card of your library any
+# time", and permissions to play from the top for a turn, with a
+# condition, with flash, or paying life rather than mana.
+
+scenario "top permission: The Belligerent lets lands and spells be played from the top after it attacks" {
+  battlefield A: "The Belligerent", "Hill Giant", 2 "Forest"
+  library A: "Grizzly Bears", "Island", "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "The Belligerent"
+  turn 1 A: attack "The Belligerent"
+  turn 1 postcombat_main A: cast "Grizzly Bears"
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: play "Island"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Treasure"
+  assert life B 15
+  assert library A count 3
+  assert known A "Forest"
+  assert unknown B "Forest"
+}
+
+scenario "top permission: The Belligerent's permission ends with the turn" {
+  battlefield A: "The Belligerent", "Hill Giant", 2 "Forest"
+  library A: "Grizzly Bears", "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Belligerent"
+  turn 1 A: attack "The Belligerent"
+  illegal turn 3 A: play "Plains"
+  run_to turn 3 end
+  assert library A count 3
+  assert unknown A "Plains"
+}
+
+scenario "top permission: Gwenom casts the top card for life equal to its mana value" {
+  battlefield A: "Gwenom, Remorseless"
+  library A: "Serra Angel", "Forest", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Serra Angel"
+  turn 1 A: attack "Gwenom, Remorseless"
+  turn 1 postcombat_main A: cast "Serra Angel"
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains "Forest"
+  assert life B 16
+  assert life A 19
+}
+
+scenario "top permission: Gwenom's spell pays an X of 0" {
+  battlefield A: "Gwenom, Remorseless", 3 "Mountain"
+  library A: "Blaze", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Gwenom, Remorseless"
+  turn 1 postcombat_main A: cast "Blaze" targeting player B
+  run_to turn 1 end
+  assert life A 23
+  assert life B 16
+  assert graveyard A contains "Blaze"
+}
+
+scenario "pay life: Bolas's Citadel needs as much life as the mana value" {
+  life A 6
+  battlefield A: "Bolas's Citadel"
+  library A: "Hill Giant", "Serra Angel", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert life A 2
+  assert library A count 2
+  assert known A "Serra Angel"
+}
+
+scenario "pay life: Bolas's Citadel plays a land from the top without paying life" {
+  battlefield A: "Bolas's Citadel"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert life A 20
+}
+
+scenario "pay life: with Future Sight too, the top card is cast for its mana cost" {
+  battlefield A: "Bolas's Citadel", "Future Sight", 4 "Mountain"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "conditional permission: The Lunar Whale plays the top card only after it attacked" {
+  battlefield A: "The Lunar Whale", "Grizzly Bears", 4 "Island"
+  library A: "Wind Drake", "Plains", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wind Drake"
+  turn 1 A: activate "The Lunar Whale"
+  turn 1 A: attack "The Lunar Whale"
+  turn 1 postcombat_main A: cast "Wind Drake"
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: play "Plains"
+  run_to turn 1 end
+  assert battlefield A contains "Wind Drake"
+  assert battlefield A contains "Plains"
+  assert life B 17
+  assert known A "Forest"
+  assert unknown B "Forest"
+}
+
+scenario "conditional permission: The Lunar Whale that didn't attack gives nothing" {
+  battlefield A: "The Lunar Whale", 4 "Island"
+  library A: "Plains", "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: play "Plains"
+  run_to turn 1 end
+  assert library A count 2
+  assert known A "Plains"
+}
+
+scenario "flash permission: Elsha casts a sorcery from the top at instant speed, not a creature" {
+  battlefield A: "Elsha of the Infinite", 3 "Island", 2 "Forest"
+  library A: "Divination", "Plains", "Swamp", "Grizzly Bears", "Island"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Divination"
+  illegal turn 2 end A: cast "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert library A count 2
+}
+
+scenario "top card condition: Conspicuous Snoop has the activated abilities of the Goblin on top" {
+  battlefield A: "Conspicuous Snoop", "Mountain"
+  library A: "Mogg Fanatic", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Conspicuous Snoop" targeting player B
+  run_to turn 1 end
+  assert life B 19
+  assert graveyard A contains "Conspicuous Snoop"
+  assert library A count 2
+}
+
+scenario "top card condition: Conspicuous Snoop casts the Goblin on top, then has the next one's abilities" {
+  battlefield A: "Conspicuous Snoop", 2 "Mountain"
+  library A: "Mogg Fanatic", "Prodigal Sorcerer", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mogg Fanatic"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Conspicuous Snoop" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Mogg Fanatic"
+  assert battlefield A contains "Conspicuous Snoop"
+  assert life B 20
+  assert known B "Prodigal Sorcerer"
+}
+
+scenario "top card condition: Skill Borrower has the activated abilities of the creature on top" {
+  battlefield A: "Skill Borrower"
+  library A: "Prodigal Sorcerer", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Skill Borrower" targeting player B
+  run_to turn 1 end
+  assert life B 19
+  assert tapped "Skill Borrower"
+  assert library A count 2
+}
+
+scenario "top card condition: Skill Borrower gains nothing from an instant on top" {
+  battlefield A: "Skill Borrower"
+  library A: "Lightning Bolt", "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Skill Borrower" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "top card condition: Skill Borrower follows the top card as it changes" {
+  battlefield A: "Skill Borrower", 3 "Island"
+  hand A: "Divination"
+  library A: "Lightning Bolt", "Island", "Prodigal Sorcerer", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Skill Borrower" targeting player B
+  turn 1 A: cast "Divination"
+  turn 1 A: wait
+  turn 1 A: activate "Skill Borrower" targeting player B
+  run_to turn 1 end
+  assert hand A count 2
+  assert life B 19
+}
+
+scenario "top card condition: Mul Daya Channelers is 5/5 with a creature on top" {
+  battlefield A: "Mul Daya Channelers"
+  library A: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 end
+  assert power "Mul Daya Channelers" 5
+  assert toughness "Mul Daya Channelers" 5
+}
+
+scenario "top card condition: Mul Daya Channelers taps for two mana with a land on top" {
+  battlefield A: "Mul Daya Channelers"
+  hand A: "Grizzly Bears"
+  library A: "Forest", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Mul Daya Channelers"
+  assert power "Mul Daya Channelers" 2
+}
+
+scenario "look and play: Radha plays a land from the top, and its controller may look at it" {
+  battlefield A: "Radha, Heart of Keld"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert known A "Island"
+  assert unknown B "Island"
+}
+
+scenario "solved permission: Case of the Locked Hothouse plays lands and creature spells from the top once solved" {
+  battlefield A: "Case of the Locked Hothouse", 7 "Forest"
+  library A: "Plains", "Forest", "Grizzly Bears", "Island", "Lightning Bolt", "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: play "Plains"
+  turn 3 A: play "Forest"
+  turn 3 A: wait
+  turn 3 A: cast "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: play "Island"
+  illegal turn 3 postcombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 end
+  assert battlefield A contains 8 "Forest"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Island"
+  assert hand A contains "Plains"
+  assert life B 20
+}
+
+scenario "coven permission: Augur of Autumn casts creature spells from the top with three different powers" {
+  battlefield A: "Augur of Autumn", "Hill Giant", "Serra Angel", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "coven permission: Augur of Autumn without three different powers plays only lands from the top" {
+  battlefield A: "Augur of Autumn", "Grizzly Bears", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert library A count 2
+  assert known A "Grizzly Bears"
+}
+
+scenario "attached permission: The Reality Chip plays from the top only while attached to a creature" {
+  battlefield A: "The Reality Chip", "Grizzly Bears", 3 "Island"
+  library A: "Plains", "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: play "Plains"
+  turn 1 A: activate "The Reality Chip" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: play "Plains"
+  run_to turn 1 end
+  assert attached "The Reality Chip" to "Grizzly Bears"
+  assert battlefield A contains "Plains"
+  assert library A count 1
+}
+
+scenario "chosen type permission: Realmwalker casts creature spells of the chosen type from the top" {
+  battlefield A: 4 "Mountain", "Forest"
+  hand A: "Realmwalker"
+  library A: "Mogg Fanatic", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Realmwalker"
+  turn 1 A: choose Goblin
+  turn 1 A: wait
+  turn 1 A: cast "Mogg Fanatic"
+  run_to turn 1 end
+  assert battlefield A contains "Mogg Fanatic"
+}
+
+scenario "chosen type permission: Realmwalker doesn't cast a creature of another type" {
+  battlefield A: 4 "Mountain", "Forest"
+  hand A: "Realmwalker"
+  library A: "Mogg Fanatic", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Realmwalker"
+  turn 1 A: choose Elf
+  turn 1 A: wait
+  illegal turn 1 A: cast "Mogg Fanatic"
+  run_to turn 1 end
+  assert library A count 2
+}
+
+scenario "restricted mana: Mm'menon's artifacts pay for an artifact spell from the top, not from the hand" {
+  battlefield A: "Mm'menon, the Right Hand", 2 "Ornithopter"
+  hand A: "Opt"
+  library A: "Mind Stone", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ornithopter"
+  turn 1 A: activate "Ornithopter"
+  illegal turn 1 A: cast "Opt"
+  turn 1 A: cast "Mind Stone"
+  run_to turn 1 end
+  assert battlefield A contains "Mind Stone"
+  assert hand A contains "Opt"
+}

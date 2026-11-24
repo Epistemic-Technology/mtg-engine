@@ -552,6 +552,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             n >= *at_least as usize
         }
         StaticCondition::YourTurn => state.active_player == you,
+        StaticCondition::TopCard(_) => state.condition_now(cond, you, source),
         StaticCondition::SourceAttackedBattle => state.battle_attackers_this_turn.contains(&source),
         StaticCondition::NotYourTurn => state.active_player != you,
         StaticCondition::YourMainPhase => state.active_player == you && state.step.is_main(),
@@ -1519,6 +1520,7 @@ fn per_count(
         | CountExpr::TargetColors(_)
         | CountExpr::Their(_)
         | CountExpr::PlayersDidntDiscard { .. }
+        | CountExpr::LibraryTop
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,
@@ -1630,6 +1632,13 @@ fn activated_of(
                         take(&state.base_characteristics(&state.objects[id]));
                     }
                 }
+            }
+        }
+        // "this creature has all activated abilities of that card": the
+        // top card of your library, as printed.
+        CountExpr::LibraryTop => {
+            if let Some(t) = state.player(you).library.last() {
+                take(&state.base_characteristics(&state.objects[*t]));
             }
         }
         // The card language compiles no other source.

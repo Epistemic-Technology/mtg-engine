@@ -452,17 +452,19 @@ impl GameState {
         // CR 601.3, 305.1: the top card of the library, by a permanent's
         // permission ("You may cast creature spells from the top of your
         // library").
-        if self.top_play_sources > 0
+        if (self.top_play_sources > 0 || !self.top_grants.is_empty())
             && let Some(&top) = ps.library.last()
-            && !self.top_permissions(p, top).is_empty()
         {
-            let def = self.pool.get(self.objects[top].def);
-            if def.is_land() {
-                if sorcery_timing && ps.lands_played_this_turn < 1 {
-                    options.push(Choice::PlayLand(top));
+            let perms = self.top_permissions(p, top);
+            if !perms.is_empty() {
+                let def = self.pool.get(self.objects[top].def);
+                if def.is_land() {
+                    if sorcery_timing && self.may_play_another_land(p) {
+                        options.push(Choice::PlayLand(top));
+                    }
+                } else if self.top_castable(p, top, &perms, sorcery_timing, &sources, &changers) {
+                    options.push(Choice::Cast(top));
                 }
-            } else if self.castable(p, def, top, sorcery_timing, &sources, &changers) {
-                options.push(Choice::Cast(top));
             }
         }
         // CR 702.34a: a card given flashback ("The flashback cost is
@@ -976,6 +978,7 @@ impl GameState {
                     }
                 }
             }
+            CountExpr::LibraryTop => usize::from(!self.player(ctx.controller).library.is_empty()),
             CountExpr::PlayersDidntDiscard { n, filter } => {
                 let Some(log) = self.this_way.as_ref() else {
                     return 0;
@@ -3057,23 +3060,46 @@ impl GameState {
 
     /// Permanents with a static ability that changes what spells cost.
     /// CR 601.3, 305.1: the permissions `p` has to play `card`, the top
-    /// card of their library, from permanents they control
-    /// (`AbilityDef::PlayFromTop`): each (source, ability, once each
-    /// turn). A once-each-turn permission already used this turn is left
-    /// out.
-    pub(super) fn top_permissions(
-        &self,
-        p: PlayerId,
-        card: ObjId,
-    ) -> SmallVec<[(ObjId, crate::card::AbilityId, bool); 2]> {
+    /// card of their library: from permanents they control
+    /// (`AbilityDef::PlayFromTop`, while its condition holds) and until end
+    /// of turn (`Effect::TopPermission`). A once-each-turn permission
+    /// already used this turn is left out.
+    pub(super) fn top_permissions(&self, p: PlayerId, card: ObjId) -> SmallVec<[TopPerm; 2]> {
         let mut out = SmallVec::new();
-        if self.top_play_sources == 0 || self.player(p).library.last() != Some(&card) {
+        if (self.top_play_sources == 0 && self.top_grants.is_empty())
+            || self.player(p).library.last() != Some(&card)
+        {
             return out;
         }
         let o = &self.objects[card];
         let def = self.pool.get(o.def);
         let land = def.is_land();
         let chars = self.base_characteristics(o);
+        let fits = |lands: bool, spells: Option<&crate::card::ObjFilter>, src: Option<ObjId>| {
+            if land {
+                lands
+            } else {
+                // The mana value isn't a characteristic `matches` sees.
+                spells.is_some_and(|f| {
+                    f.mana_value
+                        .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)))
+                        && f.matches(card, p, &chars, src, Some(p))
+                })
+            }
+        };
+        for (who, g) in &self.top_grants {
+            if *who == p && fits(g.lands, g.spells.as_ref(), None) {
+                out.push(TopPerm {
+                    src: None,
+                    once: false,
+                    flash: false,
+                    life: g.life,
+                });
+            }
+        }
+        if self.top_play_sources == 0 {
+            return out;
+        }
         for src in &self.battlefield {
             let s = &self.objects[*src];
             if s.controller != p || !self.flags_of(s).has_top_play() {
@@ -3084,26 +3110,63 @@ impl GameState {
                     lands,
                     spells,
                     once,
+                    more,
                 } = self.pool.ability(*a)
                 else {
                     continue;
                 };
-                let ok = if land {
-                    *lands
-                } else {
-                    // The mana value isn't a characteristic `matches` sees.
-                    spells.as_ref().is_some_and(|f| {
-                        f.mana_value.is_none_or(|(cmp, n)| {
-                            cmp.holds(def.mana_cost.mana_value(), u32::from(n))
-                        }) && f.matches(card, p, &chars, Some(*src), Some(p))
-                    })
-                };
-                if ok && !(*once && self.activated_once.contains(&(*src, *a))) {
-                    out.push((*src, *a, *once));
+                // "creature spells of the chosen type" (Realmwalker).
+                let spells = spells.as_ref().map(|f| {
+                    if f.chosen {
+                        std::borrow::Cow::Owned(f.with_chosen(s.chosen))
+                    } else {
+                        std::borrow::Cow::Borrowed(f)
+                    }
+                });
+                if fits(*lands, spells.as_deref(), Some(*src))
+                    && !(*once && self.activated_once.contains(&(*src, *a)))
+                    && more
+                        .condition
+                        .is_none_or(|c| self.condition_now(self.pool.condition(c), p, *src))
+                {
+                    out.push(TopPerm {
+                        src: Some((*src, *a)),
+                        once: *once,
+                        flash: more.flash,
+                        life: more.life,
+                    });
                 }
             }
         }
         out
+    }
+
+    /// CR 601.3: whether `p` may cast `top`, the top card of their library,
+    /// now by one of `perms` (`top_permissions`): paying its mana cost by a
+    /// permission that doesn't ask for life (with flash if one gives it,
+    /// CR 702.8a), else paying life equal to its mana value (CR 118.9,
+    /// 119.4; `AltCast::PayLife`). The way `cast_way_of` casts it.
+    pub(super) fn top_castable(
+        &self,
+        p: PlayerId,
+        top: ObjId,
+        perms: &[TopPerm],
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        let def = self.pool.get(self.objects[top].def);
+        if perms.iter().any(|t| !t.life) {
+            let flash = perms.iter().any(|t| !t.life && t.flash);
+            return self.castable(p, def, top, sorcery_timing || flash, sources, changers);
+        }
+        let instant_speed = def.is_instant() || self.has_flash(p, def, top);
+        let mv = def.mana_cost.mana_value();
+        (instant_speed || sorcery_timing || perms.iter().any(|t| t.flash))
+            && self.player(p).life >= i32::try_from(mv).unwrap_or(i32::MAX)
+            && self.alt_payable(p, top, def, AltCast::PayLife, sources, changers)
+            && ((!def.spree.is_empty() || !def.tiered.is_empty()) && def.modes().is_some()
+                || self.way_targets_available(p, def, top))
     }
 
     /// Whether any permanent gives `p` a static permission to cast spells
@@ -5585,7 +5648,7 @@ impl GameState {
         const MAX_X: u32 = 30;
         if matches!(
             self.objects[spell].alt,
-            AltCast::Free | AltCast::Suspend | AltCast::FreeExile
+            AltCast::Free | AltCast::Suspend | AltCast::FreeExile | AltCast::PayLife
         ) {
             return vec![Choice::X(0)];
         }
@@ -6615,7 +6678,15 @@ impl GameState {
     /// on the card. Both are read from current characteristics, so a land
     /// turned into a Mountain taps for red.
     pub(super) fn mana_sources(&self, p: PlayerId) -> Sources {
-        let key = (self.cversion, self.tap_epoch, self.turn_number);
+        // A mana ability borrowed from the top card of a library
+        // (Conspicuous Snoop) changes with that card, which no `cbump`
+        // marks: the tops are mixed in while such a static is in play.
+        let cv = if self.top_static_sources > 0 {
+            self.cversion ^ self.top_key().wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        } else {
+            self.cversion
+        };
+        let key = (cv, self.tap_epoch, self.turn_number);
         let slot = p.index().min(1);
         {
             let cache = self.mana_cache.borrow();
@@ -8081,7 +8152,17 @@ impl GameState {
             sacrifice
         };
         let other = self.objects[spell].cast.other_cost();
+        // CR 118.9, 119.4: "pay life equal to its mana value rather than pay
+        // its mana cost" (X is 0).
+        let life_cost = if self.objects[spell].alt == AltCast::PayLife {
+            def.mana_cost.mana_value()
+        } else {
+            0
+        };
         self.pay_costs_recorded(spell, |s| {
+            if life_cost > 0 {
+                s.change_life(caster, -i32::try_from(life_cost).unwrap_or(i32::MAX));
+            }
             let chosen = match &def.additional_or {
                 Some(c) if other => c,
                 _ => &def.additional,
@@ -12041,6 +12122,13 @@ impl GameState {
                     })
                     .collect();
                 self.granted_graveyard_cast.extend(cards);
+            }
+            // "Until end of turn, you may look at the top card of your
+            // library any time, and you may play lands and cast spells from
+            // the top of your library." (CR 601.3, 305.1).
+            Effect::TopPermission(t) => {
+                self.top_grants.push((ctx.controller, (**t).clone()));
+                self.bump();
             }
             Effect::SwitchPt { to } => {
                 for t in self.recipients(ctx, *to) {
@@ -17114,6 +17202,21 @@ pub(super) struct EffectCtx {
     /// source's: an ability another card granted it (Galuf's Final Act's
     /// "equal to its power"), or a spliced card.
     pub counts: Option<crate::card::CardRef>,
+}
+
+/// One permission to play the top card of a library
+/// (`GameState::top_permissions`).
+#[derive(Copy, Clone, Debug)]
+pub(super) struct TopPerm {
+    /// The permanent and ability giving it; `None` for one given until end
+    /// of turn (`Effect::TopPermission`).
+    pub src: Option<(ObjId, crate::card::AbilityId)>,
+    /// "Once each turn": used up as a spell is cast by it.
+    pub once: bool,
+    /// "you may cast it as though it had flash".
+    pub flash: bool,
+    /// "pay life equal to its mana value rather than pay its mana cost".
+    pub life: bool,
 }
 
 /// How a permission to cast a spell without paying its mana cost is used

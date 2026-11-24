@@ -1058,6 +1058,63 @@ fn cost_spells_subject(f: &Filter, card: &Card) -> String {
 /// What a permission to cast from the top of a library covers:
 /// "creature spells", "Spider spells and noncreature spells", "spells
 /// with mana value 4 or greater", "spells with flash or flying".
+/// A permission to play from the top of the library, after its subject:
+/// "may look at the top card of your library any time, and you may play
+/// lands and cast spells from the top of your library", and the sentences
+/// after it (" If you cast a spell this way, ..."), each with a leading
+/// space.
+fn top_play_text(
+    lands: bool,
+    spells: Option<&Filter>,
+    once: bool,
+    more: &crate::ast::TopMore,
+    card: &Card,
+) -> (String, String) {
+    use crate::ast::TopWording;
+    let spells = spells.map(|f| {
+        if once {
+            a_spell(f, card)
+        } else {
+            top_spells(f, card)
+        }
+    });
+    let what = match more.wording {
+        TopWording::TopCard => "play the top card of your library".to_string(),
+        TopWording::Cards => "play cards from the top of your library".to_string(),
+        TopWording::Split => {
+            let what = match (lands, spells) {
+                (true, None) => "play lands".to_string(),
+                (true, Some(s)) => format!("play lands and cast {s}"),
+                (false, Some(s)) => format!("cast {s}"),
+                (false, None) => String::new(),
+            };
+            format!("{what} from the top of your library")
+        }
+    };
+    let body = if more.look {
+        // "any time and you may play cards" (Gwenom) but "any time, and you
+        // may play lands" (The Belligerent).
+        let and = if more.wording == TopWording::Cards {
+            " and"
+        } else {
+            ", and"
+        };
+        format!("may look at the top card of your library any time{and} you may {what}")
+    } else {
+        format!("may {what}")
+    };
+    let mut after = String::new();
+    if more.flash {
+        after.push_str(" If you cast a spell this way, you may cast it as though it had flash.");
+    }
+    if more.life {
+        after.push_str(
+            " If you cast a spell this way, pay life equal to its mana value rather than pay its mana cost.",
+        );
+    }
+    (body, after)
+}
+
 fn top_spells(f: &Filter, card: &Card) -> String {
     let one = |g: &Filter| {
         let s = cost_spells_subject(g, card);
@@ -1066,6 +1123,10 @@ fn top_spells(f: &Filter, card: &Card) -> String {
         } else {
             s
         };
+        // "creature spells of the chosen type" (Realmwalker).
+        if let Some(b) = s.strip_suffix(" of the chosen type spells") {
+            return format!("{b} spells of the chosen type");
+        }
         // "with mana value 4 or greater spells": the qualities follow.
         match s
             .strip_prefix("with ")
@@ -1165,6 +1226,7 @@ fn activated_of_phrase(
     use crate::ast::{CountExpr, GroupWord};
     let have = if plural_form { "have" } else { "has" };
     let group = match (word, from) {
+        (GroupWord::The, CountExpr::LibraryTop) => "that card".to_string(),
         (GroupWord::The, _) => "the exiled card".to_string(),
         (_, CountExpr::Permanents(f)) if f.same == Some(SameRef::NotNamedThis) => {
             let g = Filter {
@@ -5364,6 +5426,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         // "For each opponent who didn't discard two nonland cards this
         // way", "For each of those opponents who didn't discard a card
         // with mana value 4 or greater".
+        CountExpr::LibraryTop => ("that card".to_string(), "that card".to_string()),
         CountExpr::PlayersDidntDiscard { n, filter, those } => {
             let what = match filter {
                 Some(f) if *n == 1 => {
@@ -5913,6 +5976,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
 #[allow(clippy::too_many_lines)] // one arm per effect kind
 fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
     match e {
+        // "until end of turn, you may look at the top card of your library
+        // any time, and you may play lands and cast spells from the top of
+        // your library".
+        Effect::TopPermission(t) => {
+            let (body, after) = top_play_text(t.lands, t.spells.as_ref(), false, &t.more, ctx.card);
+            let after = after
+                .strip_suffix('.')
+                .unwrap_or(&after)
+                .replacen(' ', ". ", 1);
+            Clause::imperative(format!("until end of turn, you {body}{after}"))
+        }
         // "Target opponent chooses a creature they control."
         Effect::PlayerChooses { who, filter } => {
             let s = ctx.subj(*who);
@@ -15868,6 +15942,32 @@ fn works_from_graveyard(a: Option<&Ability>) -> bool {
 fn static_cond_text(c: &StaticCond, card: &Card) -> String {
     let or_more = |n: u32| format!("{} or more", count_words(Num::N(n), "one"));
     match c {
+        // "the top card of your library is a Goblin card", "... is black".
+        StaticCond::TopCard(f) => {
+            let what = if f.types.is_empty()
+                && f.any_types.is_empty()
+                && f.subtypes.is_empty()
+                && f.or.is_none()
+            {
+                is_predicate(f, card)
+            } else {
+                with_article(&format!("{} card", card_filter_phrase(f, card)))
+            };
+            format!("the top card of your library is {what}")
+        }
+        // "As long as The Lunar Whale attacked this turn".
+        StaticCond::Is(f)
+            if *f
+                == (Filter {
+                    status: mtg_core::card::StatusQuals {
+                        attacked_this_turn: true,
+                        ..Default::default()
+                    },
+                    ..Filter::default()
+                }) =>
+        {
+            format!("{} attacked this turn", this_ref(card))
+        }
         StaticCond::CardsInGraveyard(n) => {
             format!("there are {} cards in your graveyard", or_more(*n))
         }
@@ -16574,6 +16674,18 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 format!("enchanted {}", enchanted_noun(card))
             };
             format!("{noun}'s power is {n}{}", cmp_words(cmp))
+        }
+        // "As long as The Reality Chip is attached to a creature" (an
+        // Equipment creature that reconfigures).
+        StaticCond::AttachedIs(f)
+            if card.subtypes.iter().any(|s| s == "Equipment")
+                && *f
+                    == (Filter {
+                        types: vec![CardType::Creature],
+                        ..Filter::default()
+                    }) =>
+        {
+            format!("{} is attached to a creature", this_ref(card))
         }
         StaticCond::AttachedIs(f) => {
             let noun = if card.subtypes.iter().any(|s| s == "Equipment") {
@@ -18531,22 +18643,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             lands,
             spells,
             once,
+            more,
         } => {
-            let spells = spells.as_ref().map(|f| {
-                if *once {
-                    a_spell(f, card)
-                } else {
-                    top_spells(f, card)
-                }
-            });
-            let what = match (*lands, spells) {
-                (true, None) => "play lands".to_string(),
-                (true, Some(s)) => format!("play lands and cast {s}"),
-                (false, Some(s)) => format!("cast {s}"),
-                (false, None) => String::new(),
+            let lead = match &more.cond {
+                Some(c) => format!("As long as {}, you", static_cond_text(c, card)),
+                None if *once => "Once each turn, you".to_string(),
+                None => "You".to_string(),
             };
-            let once = if *once { "Once each turn, you" } else { "You" };
-            format!("{once} may {what} from the top of your library.")
+            let (body, after) = top_play_text(*lands, spells.as_ref(), *once, more, card);
+            format!("{lead} {body}.{after}")
         }
         Ability::PlayExiled {
             lands,

@@ -2277,6 +2277,10 @@ pub enum CountExpr {
     /// cards this way, you draw a card."), judged by the discarded cards
     /// as they last existed.
     PlayersDidntDiscard { n: u32, filter: Option<ObjFilter> },
+    /// The top card of your library (1, or 0 with an empty library): "this
+    /// creature has all activated abilities of that card" (Conspicuous
+    /// Snoop, `Modification::AddActivatedOf`), its printed abilities.
+    LibraryTop,
 }
 
 /// What `CountExpr::Their` counts of a player.
@@ -2418,6 +2422,7 @@ impl CountExpr {
             | CountExpr::TargetColors(_)
             | CountExpr::Their(_)
             | CountExpr::PlayersDidntDiscard { .. }
+            | CountExpr::LibraryTop
             | CountExpr::DamageThisWay { .. } => false,
         }
     }
@@ -3253,6 +3258,11 @@ pub enum StaticCondition {
         cmp: Cmp,
         n: u32,
     },
+    /// "As long as the top card of your library is a Goblin card", "is
+    /// black": the top card of the controller's library matches, by its
+    /// printed characteristics. A static ability with it bumps the
+    /// characteristics cache as that card changes (`DefFlags::TOP_STATIC`).
+    TopCard(ObjFilter),
 }
 
 impl StaticCondition {
@@ -5837,6 +5847,13 @@ pub enum Effect {
     /// their timing; they aren't exiled as they leave the stack. Like
     /// `GrantFlashback`, the grant ends if the card leaves the graveyard.
     GrantGraveyardCast(ObjFilter),
+    /// "Until end of turn, you may look at the top card of your library any
+    /// time, and you may play lands and cast spells from the top of your
+    /// library." (The Belligerent, Gwenom): the controller has the
+    /// permission `TopPlay` names for the rest of the turn
+    /// (`GameState::top_grants`), as a `AbilityDef::PlayFromTop` would give
+    /// it (CR 601.3, 305.1).
+    TopPermission(Box<TopPlay>),
     /// "gains all creature types until end of turn" (`all`), "loses all
     /// creature types until end of turn" (layer 4).
     CreatureTypes {
@@ -6562,6 +6579,41 @@ pub enum GrantedWay {
     /// is in (cycling and typecycling from a hand, unearth from a
     /// graveyard): a registered `AbilityDef::Activated`.
     Ability(AbilityId),
+}
+
+/// The rest of a permission to play from the top of the library
+/// (`AbilityDef::PlayFromTop`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // one per clause of the text
+pub struct TopPlayMore {
+    /// "You may look at the top card of your library any time, and you
+    /// may ...": information only, as `AbilityDef::MayLook` (CR 401.2).
+    pub look: bool,
+    /// "As long as The Lunar Whale attacked this turn, ...": a pool
+    /// condition, judged for the source.
+    pub condition: Option<u16>,
+    /// "If you cast a spell this way, you may cast it as though it had
+    /// flash." (Elsha of the Infinite; CR 702.8a).
+    pub flash: bool,
+    /// "If you cast a spell this way, pay life equal to its mana value
+    /// rather than pay its mana cost." (Bolas's Citadel; CR 118.9, 119.4):
+    /// an alternative cost, `AltCast::PayLife`.
+    pub life: bool,
+}
+
+/// A permission to play from the top of the library given until end of
+/// turn (`Effect::TopPermission`, `GameState::top_grants`).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct TopPlay {
+    /// "play lands".
+    pub lands: bool,
+    /// "cast spells": the spells' filter.
+    pub spells: Option<ObjFilter>,
+    /// "you may look at the top card of your library any time".
+    pub look: bool,
+    /// "If you cast a spell this way, pay life equal to its mana value
+    /// rather than pay its mana cost." (Gwenom, Remorseless).
+    pub life: bool,
 }
 
 /// How often a static free-cast permission may be used
@@ -8846,6 +8898,10 @@ pub enum AbilityDef {
         lands: bool,
         spells: Option<ObjFilter>,
         once: bool,
+        /// The rest of the permission (looking, a condition, flash, life
+        /// rather than mana).
+        #[serde(default)]
+        more: TopPlayMore,
     },
     /// "You may cast spells from your hand without paying their mana
     /// costs." (Omniscience; CR 601.2b, 118.9): the controller may cast
@@ -9784,6 +9840,10 @@ impl DefFlags {
     /// activate this ability."): priority then looks at other players'
     /// permanents.
     const FOREIGN_ACTIVATED: u32 = 268_435_456;
+    /// A static ability whose condition or granted abilities read the top
+    /// card of a library (`StaticCondition::TopCard`, `CountExpr::LibraryTop`):
+    /// the characteristics cache then keys on the top cards.
+    const TOP_STATIC: u32 = 536_870_912;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -9908,6 +9968,10 @@ impl DefFlags {
 
     pub const fn has_foreign_activated(self) -> bool {
         self.has(DefFlags::FOREIGN_ACTIVATED)
+    }
+
+    pub const fn has_top_static(self) -> bool {
+        self.has(DefFlags::TOP_STATIC)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -10044,6 +10108,15 @@ impl DefFlags {
                     a,
                     AbilityDef::PlayFromTop { .. } | AbilityDef::TopRevealed { .. }
                 )
+            }),
+        );
+        flags.set(
+            DefFlags::TOP_STATIC,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(sa)
+                    if matches!(sa.condition, Some(StaticCondition::TopCard(_)))
+                        || sa.parts.iter().any(|m| matches!(m,
+                            Modification::AddActivatedOf(f) if matches!(**f, CountExpr::LibraryTop))))
             }),
         );
         // Cipher asks whether to encode as the spell resolves (CR 702.99a).

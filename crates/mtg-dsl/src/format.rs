@@ -832,6 +832,10 @@ impl Fmt {
     #[allow(clippy::too_many_lines)]
     fn effect(&mut self, effect: &Effect, t: &[Target]) -> String {
         match effect {
+            Effect::TopPermission(tp) => format!(
+                "play from top this turn{}",
+                top_play_body(tp.lands, tp.spells.as_ref(), &tp.more)
+            ),
             Effect::DealDamage {
                 amount,
                 to,
@@ -3731,6 +3735,7 @@ fn count_text(c: &crate::ast::Count) -> String {
 fn count_expr_text(e: &crate::ast::CountExpr) -> String {
     use crate::ast::CountExpr;
     match e {
+        CountExpr::LibraryTop => "that card".to_string(),
         CountExpr::Times(n, inner) => format!("{n} {}", count_expr_text(inner)),
         CountExpr::Divided { by: 2, up, inner } => format!(
             "half {} {}",
@@ -5891,6 +5896,9 @@ fn modification(m: &Mod) -> String {
                 ""
             };
             let word = match word {
+                GroupWord::The if matches!(from, crate::ast::CountExpr::LibraryTop) => {
+                    return format!("has all activated abilities{here} of that card");
+                }
                 GroupWord::The => {
                     return format!("has all activated abilities{here} of the exiled card");
                 }
@@ -6014,9 +6022,48 @@ fn body(
     }
 }
 
+/// `top_play_body` of the parser: what follows `play from top [once]` or
+/// `play from top this turn`, with a leading space.
+fn top_play_body(lands: bool, spells: Option<&Filter>, more: &crate::ast::TopMore) -> String {
+    use crate::ast::TopWording;
+    let mut s = String::new();
+    if more.look {
+        s.push_str(" look");
+    }
+    match more.wording {
+        TopWording::Cards => s.push_str(" cards"),
+        TopWording::TopCard => s.push_str(" card"),
+        TopWording::Split => {
+            if lands {
+                s.push_str(" lands");
+            }
+            if let Some(f) = spells {
+                if lands {
+                    s.push_str(" and");
+                }
+                s.push_str(" spells");
+                if *f != Filter::default() {
+                    let _ = write!(s, " {}", filter(f));
+                }
+            }
+        }
+    }
+    if more.flash {
+        s.push_str(" as though flash");
+    }
+    if more.life {
+        s.push_str(" pay life");
+    }
+    if let Some(c) = &more.cond {
+        let _ = write!(s, " as long as {}", static_cond(c));
+    }
+    s
+}
+
 #[allow(clippy::too_many_lines)] // one arm per condition
 fn static_cond(c: &StaticCond) -> String {
     match c {
+        StaticCond::TopCard(fl) => format!("top card is {}", filter(fl)),
         StaticCond::CardsInGraveyard(n) => format!("{n} cards in your graveyard"),
         StaticCond::CardTypesInGraveyard(n) => format!("{n} card types in your graveyard"),
         StaticCond::YouControl {
@@ -7683,23 +7730,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             lands,
             spells,
             once,
+            more,
         } => {
             let mut s = format!("{indent}play from top");
             if *once {
                 s.push_str(" once");
             }
-            if *lands {
-                s.push_str(" lands");
-            }
-            if let Some(f) = spells {
-                if *lands {
-                    s.push_str(" and");
-                }
-                s.push_str(" spells");
-                if *f != Filter::default() {
-                    let _ = write!(s, " {}", filter(f));
-                }
-            }
+            s.push_str(&top_play_body(*lands, spells.as_ref(), more));
             let _ = writeln!(out, "{s}");
         }
         Ability::PlayExiled {

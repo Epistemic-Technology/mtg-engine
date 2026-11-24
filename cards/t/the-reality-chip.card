@@ -1,0 +1,9 @@
+card "The Reality Chip" {
+  oracle_id 751f22bc-bcea-4213-a37b-b5f72448a4c4
+  cost {1}{U}
+  type Legendary Artifact Creature — Equipment Jellyfish
+  pt 0/4
+  may look top
+  play from top lands and spells as long as attached is creature
+  reconfigure {2}{U}
+}

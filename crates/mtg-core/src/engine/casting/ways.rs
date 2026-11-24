@@ -311,7 +311,11 @@ impl GameState {
         match (&def.flashback, b.flashback) {
             (Some(fb), true) => reqs(&fb.mana),
             // Cast without paying its mana cost: X is 0 (CR 107.3b).
-            _ if matches!(alt, AltCast::Free | AltCast::Suspend | AltCast::FreeExile) => {
+            _ if matches!(
+                alt,
+                AltCast::Free | AltCast::Suspend | AltCast::FreeExile | AltCast::PayLife
+            ) =>
+            {
                 ManaRequirement::default()
             }
             (_, false) if alt == AltCast::Madness && def.madness.is_some() => {

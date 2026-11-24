@@ -1,0 +1,9 @@
+card "Conspicuous Snoop" {
+  oracle_id f5d1bd3c-0e65-4999-a810-881b2389b40e
+  cost {R}{R}
+  type Creature — Goblin Rogue
+  pt 2/2
+  top revealed
+  play from top spells Goblin
+  static as long as top card is Goblin, this: has all activated abilities of that card
+}

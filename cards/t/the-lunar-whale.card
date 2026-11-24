@@ -1,0 +1,10 @@
+card "The Lunar Whale" {
+  oracle_id 13b4aeac-4530-4e09-a547-548b4884bb2f
+  cost {3}{U}
+  type Legendary Artifact — Vehicle
+  pt 3/5
+  keywords flying
+  may look top
+  play from top card as long as this is that attacked this turn
+  crew 1
+}

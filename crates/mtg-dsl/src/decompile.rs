@@ -606,6 +606,7 @@ impl Decompiler<'_> {
         };
         match c {
             StaticCondition::CardsInGraveyard(n) => StaticCond::CardsInGraveyard(*n),
+            StaticCondition::TopCard(f) => StaticCond::TopCard(self.filter(f)),
             StaticCondition::CardTypesInGraveyard(n) => StaticCond::CardTypesInGraveyard(*n),
             StaticCondition::YouControl { filter, at_least } => StaticCond::YouControl {
                 filter: unowned(filter),
@@ -2132,6 +2133,17 @@ impl Decompiler<'_> {
                 harmonize: *harmonize,
             },
             CoreEffect::GrantGraveyardCast(f) => Effect::GrantGraveyardCast(self.filter(f)),
+            CoreEffect::TopPermission(t) => {
+                Effect::TopPermission(Box::new(crate::ast::TopPlayAst {
+                    lands: t.lands,
+                    spells: t.spells.as_ref().map(|f| self.filter(f)),
+                    more: crate::ast::TopMore {
+                        look: t.look,
+                        life: t.life,
+                        ..Default::default()
+                    },
+                }))
+            }
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
             },
@@ -2811,10 +2823,20 @@ impl Decompiler<'_> {
                 lands,
                 spells,
                 once,
+                more,
             } => Ability::PlayFromTop {
                 lands: *lands,
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 once: *once,
+                more: crate::ast::TopMore {
+                    look: more.look,
+                    cond: more
+                        .condition
+                        .map(|c| self.static_cond(self.pool.condition(c))),
+                    flash: more.flash,
+                    life: more.life,
+                    wording: crate::ast::TopWording::Split,
+                },
             },
             AbilityDef::PlayExiled {
                 lands,

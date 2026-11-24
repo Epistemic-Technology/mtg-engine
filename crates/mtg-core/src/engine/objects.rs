@@ -954,6 +954,7 @@ impl GameState {
             self.saga_count += d(flags.has_saga());
             self.player_static_sources += d(flags.has_player_static());
             self.top_play_sources += d(flags.has_top_play());
+            self.top_static_sources += d(flags.has_top_static());
             self.foreign_activated_sources += d(flags.has_foreign_activated());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
@@ -978,6 +979,7 @@ impl GameState {
             self.saga_count -= d(flags.has_saga());
             self.player_static_sources -= d(flags.has_player_static());
             self.top_play_sources -= d(flags.has_top_play());
+            self.top_static_sources -= d(flags.has_top_static());
             self.foreign_activated_sources -= d(flags.has_foreign_activated());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).

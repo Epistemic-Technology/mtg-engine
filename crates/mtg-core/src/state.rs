@@ -454,6 +454,10 @@ pub enum AltCast {
     /// its owner's graveyard ("If that spell would be put into your
     /// graveyard, exile it instead", CR 614.1a).
     FreeExile,
+    /// Cast from the top of the library paying life equal to its mana
+    /// value rather than its mana cost (Bolas's Citadel, Gwenom; CR 118.9,
+    /// 119.4): X is 0.
+    PayLife,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -1486,6 +1490,10 @@ pub struct DerivedCache(
     /// Cache hits, for sampling the debug consistency check.
     #[cfg_attr(not(debug_assertions), allow(dead_code))]
     pub(crate) std::cell::Cell<u32>,
+    /// The library tops the cache was derived with (`GameState::top_key`),
+    /// read only while a static ability looks at them
+    /// (`GameState::top_static_sources`).
+    pub(crate) std::cell::Cell<u64>,
 );
 
 impl Clone for DerivedCache {
@@ -2276,6 +2284,13 @@ pub struct GameState {
     /// the top of the library or reveal it (`DefFlags::TOP_PLAY`):
     /// priority and the views look only when there are any.
     pub top_play_sources: u32,
+    /// Permanents on the battlefield with a static ability reading the
+    /// top card of a library (`DefFlags::TOP_STATIC`): the characteristics
+    /// cache then keys on the library tops (`top_key`).
+    pub top_static_sources: u32,
+    /// Permissions to play from the top of a library until end of turn
+    /// (`Effect::TopPermission`), by player.
+    pub top_grants: Vec<(PlayerId, crate::card::TopPlay)>,
     /// Each player's starting life total (CR 103.4): the game's, or 20
     /// for a prepared position.
     pub starting_life: i32,
@@ -3462,7 +3477,9 @@ impl GameState {
             drop(cache);
             return self.characteristics_miss(id, obj);
         };
-        if *v != self.cversion {
+        if *v != self.cversion
+            || (self.top_static_sources > 0 && self.cache.2.get() != self.top_key())
+        {
             drop(cache);
             return self.characteristics_miss(id, obj);
         }
@@ -3521,7 +3538,26 @@ impl GameState {
             Derived::Battlefield(map) => map.get(&id).copied(),
         };
         *self.cache.0.borrow_mut() = Some((self.cversion, derived));
+        if self.top_static_sources > 0 {
+            self.cache.2.set(self.top_key());
+        }
         out
+    }
+
+    /// The cards on top of the libraries, as a key: a static ability that
+    /// reads them (`StaticCondition::TopCard`, `CountExpr::LibraryTop`) is
+    /// stale once one changes, which no `cbump` marks (a draw, a shuffle,
+    /// a card put on top). Exact for two players.
+    pub fn top_key(&self) -> u64 {
+        let mut k = 0u64;
+        for p in &self.players {
+            let top = p
+                .library
+                .last()
+                .map_or(0, |t| u64::from(self.objects[*t].def.0) + 1);
+            k = k.rotate_left(32) ^ top;
+        }
+        k
     }
 
     /// Printed characteristics of a card, before any effect.
@@ -4672,6 +4708,18 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| &l.object))
                 .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
             C::Happened { count, cmp, n } => self.turn_count_holds(count, *cmp, *n, you, source),
+            // "the top card of your library is a Goblin card": by its
+            // printed characteristics.
+            C::TopCard(f) => self.player(you).library.last().is_some_and(|t| {
+                let o = &self.objects[*t];
+                f.matches(
+                    *t,
+                    o.owner,
+                    &self.base_characteristics(o),
+                    Some(source),
+                    Some(you),
+                )
+            }),
             C::Night => self.desig.day_night == DayNight::Night,
             C::NthResolution(n) => self.resolution_number == *n,
             C::MoreCardsInHand => {

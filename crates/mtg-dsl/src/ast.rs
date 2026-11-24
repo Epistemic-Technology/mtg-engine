@@ -641,6 +641,11 @@ pub enum CountExpr {
         filter: Option<Filter>,
         those: bool,
     },
+    /// `that card` in `has all activated abilities of that card`: the top
+    /// card of your library ("As long as the top card of your library is
+    /// a Goblin card, this creature has all activated abilities of that
+    /// card.", Conspicuous Snoop).
+    LibraryTop,
     /// `total power creature you control`: "the total power of creatures
     /// you control" (also `total toughness`, `total mana value`).
     Total(mtg_core::card::Stat, Filter),
@@ -1908,6 +1913,9 @@ pub enum Ability {
         lands: bool,
         spells: Option<Filter>,
         once: bool,
+        /// The rest: `may look top and play from top ...`, `as long as
+        /// <condition>`, `flash`, `pay life`, and the wording.
+        more: TopMore,
     },
     /// `cast free from hand spells`: "You may cast spells from your hand
     /// without paying their mana costs." (Omniscience); `cast free spells
@@ -2713,6 +2721,10 @@ pub enum StaticCond {
     AttackedBattleThisTurn,
     /// `attacked last turn`: "it attacked during your last turn".
     AttackedLastTurn,
+    /// `top card is Goblin card`, `top card is black`: "the top card of
+    /// your library is a Goblin card", "... is black" (by its printed
+    /// characteristics).
+    TopCard(Filter),
     /// `creature died this turn` (morbid).
     CreatureDiedThisTurn,
     /// `opponent damaged this turn`: "an opponent was dealt damage this
@@ -3887,6 +3899,48 @@ pub enum TriggerObj {
     /// `this or Ally you control`: "this creature or another Ally you
     /// control" (the filter, the source included).
     ThisOr(Filter),
+}
+
+/// How a permission to play from the top of a library words "lands and
+/// spells" (`TopMore::wording`).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum TopWording {
+    /// "play lands and cast spells from the top of your library".
+    #[default]
+    Split,
+    /// `cards`: "play cards from the top of your library".
+    Cards,
+    /// `card`: "play the top card of your library".
+    TopCard,
+}
+
+/// The rest of a permission to play from the top of a library
+/// (`Ability::PlayFromTop`, `Effect::TopPermission`).
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // one per clause of the text
+pub struct TopMore {
+    /// `may look top and ...`: "You may look at the top card of your
+    /// library any time, and you may ...".
+    pub look: bool,
+    /// `as long as <condition>` (after the permission): "As long as The
+    /// Lunar Whale attacked this turn, you may ...".
+    pub cond: Option<StaticCond>,
+    /// `flash`: "If you cast a spell this way, you may cast it as though it
+    /// had flash."
+    pub flash: bool,
+    /// `pay life`: "If you cast a spell this way, pay life equal to its
+    /// mana value rather than pay its mana cost."
+    pub life: bool,
+    /// `cards`, `card`: how "lands and spells" is worded.
+    pub wording: TopWording,
+}
+
+/// `Effect::TopPermission`: what is permitted until end of turn.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct TopPlayAst {
+    pub lands: bool,
+    pub spells: Option<Filter>,
+    pub more: TopMore,
 }
 
 /// The word before a group in "has all activated abilities of ...":
@@ -5907,6 +5961,14 @@ pub enum Effect {
     /// graveyard gain \"You may cast this card from your graveyard\" until
     /// end of turn." (CR 611.2c: the cards there as it resolves).
     GrantGraveyardCast(Filter),
+    /// `until end of turn may look top and play from top lands and
+    /// spells`: "Until end of turn, you may look at the top card of your
+    /// library any time, and you may play lands and cast spells from the
+    /// top of your library." (The Belligerent); `... play from top cards
+    /// pay life` (Gwenom): "... and you may play cards from the top of your
+    /// library. If you cast a spell this way, pay life equal to its mana
+    /// value rather than pay its mana cost." The permission lasts the turn.
+    TopPermission(Box<TopPlayAst>),
     /// `target permanent you control gains protection from artifact or
     /// from color of choice`: "gains protection from artifacts or from the
     /// color of your choice until end of turn" (CR 702.16): the controller

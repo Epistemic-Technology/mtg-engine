@@ -1,0 +1,9 @@
+card "Augur of Autumn" {
+  oracle_id 9e774188-caa1-4b62-b9cc-547f8e444b7f
+  cost {1}{G}{G}
+  type Creature — Human Druid
+  pt 2/3
+  may look top
+  play from top lands
+  label "Coven" play from top spells creature as long as 3 different powers
+}

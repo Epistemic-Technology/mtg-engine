@@ -1,0 +1,9 @@
+card "Radha, Heart of Keld" {
+  oracle_id 927fb139-0493-48be-8cc4-2c7d854d6a55
+  cost {1}{R}{G}
+  type Legendary Creature — Elf Warrior
+  pt 3/3
+  static during your turn, this: has first strike
+  play from top look lands
+  activated {4}{R}{G}: this gets +1/+1 count where land you control until end of turn
+}

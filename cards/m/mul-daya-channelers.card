@@ -1,0 +1,9 @@
+card "Mul Daya Channelers" {
+  oracle_id d3daca53-d40e-4537-a16a-f1e97333bc87
+  cost {1}{G}{G}
+  type Creature — Elf Druid Shaman
+  pt 2/2
+  top revealed
+  static as long as top card is creature, this: +3/+3
+  static as long as top card is land, this: has ability { activated {T}: add any 2 }
+}

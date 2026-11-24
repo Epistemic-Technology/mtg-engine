@@ -1,0 +1,9 @@
+card "Elsha of the Infinite" {
+  oracle_id da339200-ed26-42e4-b24f-b96bc4daef7c
+  cost {2}{U}{R}{W}
+  type Legendary Creature — Djinn Monk
+  pt 3/3
+  keywords prowess
+  may look top
+  play from top spells noncreature as though flash
+}

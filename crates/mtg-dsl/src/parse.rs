@@ -2196,6 +2196,59 @@ impl P {
         ok.then_some((players, n))
     }
 
+    /// After `play from top [once]` (or the effect's `play from top this
+    /// turn`): `[look] (cards | card | lands [and spells [<filter>]] |
+    /// spells [<filter>])`, then any of `as though flash`, `pay life`, `as
+    /// long as <condition>`.
+    fn top_play_body(&mut self) -> R<(bool, Option<Filter>, crate::ast::TopMore)> {
+        use crate::ast::{TopMore, TopWording};
+        let mut more = TopMore {
+            look: self.eat_word("look"),
+            ..TopMore::default()
+        };
+        let at_end = |p: &Self| {
+            p.at_stmt_end()
+                || matches!(p.peek(), Some(Tok::Semi))
+                || p.at_words(&["as", "though", "flash"])
+                || p.at_words(&["pay", "life"])
+                || p.at_words(&["as", "long", "as"])
+        };
+        let (lands, spells) = if self.eat_word("cards") {
+            more.wording = TopWording::Cards;
+            (true, Some(Filter::default()))
+        } else if self.eat_word("card") {
+            more.wording = TopWording::TopCard;
+            (true, Some(Filter::default()))
+        } else {
+            let lands = self.eat_word("lands");
+            let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
+                if at_end(self) {
+                    Some(Filter::default())
+                } else {
+                    Some(self.filter()?)
+                }
+            } else {
+                None
+            };
+            (lands, spells)
+        };
+        if !lands && spells.is_none() {
+            return self.fail("expected `lands`, `spells`, `cards`, or `card`".to_string());
+        }
+        loop {
+            if self.eat_words(&["as", "though", "flash"]) {
+                more.flash = true;
+            } else if self.eat_words(&["pay", "life"]) {
+                more.life = true;
+            } else if self.eat_words(&["as", "long", "as"]) {
+                more.cond = Some(self.static_cond()?);
+            } else {
+                break;
+            }
+        }
+        Ok((lands, spells, more))
+    }
+
     /// The rest of a player-level static ability: an optional `as long as
     /// <condition>`.
     fn player_static(&mut self, kind: mtg_core::card::PlayerStaticKind) -> R<Ability> {
@@ -2760,24 +2813,13 @@ impl P {
             "play" if self.at_words(&["play", "from", "top"]) => {
                 self.pos += 3;
                 let once = self.eat_word("once");
-                let lands = self.eat_word("lands");
-                let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
-                    if self.at_stmt_end() {
-                        Some(Filter::default())
-                    } else {
-                        Some(self.filter()?)
-                    }
-                } else {
-                    None
-                };
-                if !lands && spells.is_none() {
-                    return self.fail("expected `lands` or `spells`".to_string());
-                }
+                let (lands, spells, more) = self.top_play_body()?;
                 self.end_stmt()?;
                 Ok(Ability::PlayFromTop {
                     lands,
                     spells,
                     once,
+                    more,
                 })
             }
             // "You may cast spells from your hand without paying their mana
@@ -4870,6 +4912,11 @@ impl P {
             self.expect_word("else")?;
             let b = self.static_cond()?;
             return Ok(StaticCond::Or(Box::new(a), Box::new(b)));
+        }
+        // `top card is Goblin card`: "the top card of your library is a
+        // Goblin card".
+        if self.eat_words(&["top", "card", "is"]) {
+            return Ok(StaticCond::TopCard(self.filter()?));
         }
         // `flash if pay {2} more` (Mystical Tether).
         if self.at_word("pay")
@@ -11438,6 +11485,18 @@ impl P {
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
+            // "Until end of turn, you may look at the top card of your
+            // library any time, and you may play lands and cast spells from
+            // the top of your library."
+            "play" if self.at_words(&["from", "top", "this", "turn"]) => {
+                self.pos += 4;
+                let (lands, spells, more) = self.top_play_body()?;
+                Ok(Effect::TopPermission(Box::new(crate::ast::TopPlayAst {
+                    lands,
+                    spells,
+                    more,
+                })))
+            }
             // "Creature cards in your graveyard gain \"You may cast this
             // card from your graveyard\" until end of turn."
             "grant" if self.at_words(&["graveyard", "cast", "to"]) => {
@@ -17890,6 +17949,14 @@ impl P {
                 if self.eat_words(&["the", "exiled", "card"]) {
                     return Ok(Mod::ActivatedOf {
                         from: CountExpr::ExiledWith(None),
+                        word: GroupWord::The,
+                        while_here,
+                    });
+                }
+                // "... of that card": the top card of your library.
+                if self.eat_words(&["that", "card"]) {
+                    return Ok(Mod::ActivatedOf {
+                        from: CountExpr::LibraryTop,
                         word: GroupWord::The,
                         while_here,
                     });

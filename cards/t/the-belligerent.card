@@ -1,0 +1,8 @@
+card "The Belligerent" {
+  oracle_id 9a0c9023-9431-4f98-b167-ab4c7215319c
+  cost {2}{U}{R}
+  type Legendary Artifact — Vehicle
+  pt 5/5
+  triggered whenever this attacks: create 1 "Treasure"; play from top this turn look lands and spells
+  crew 3
+}
