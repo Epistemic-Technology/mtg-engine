@@ -181,8 +181,17 @@ fn format_inner(card: &Card) -> String {
     }
     if let Some(x) = &card.except {
         out.push_str("  except {\n");
+        if x.the_token {
+            out.push_str("    the token\n");
+        }
         if x.not_legendary {
             out.push_str("    not legendary\n");
+        }
+        if x.legendary {
+            out.push_str("    legendary\n");
+        }
+        if x.exactly {
+            out.push_str("    exactly\n");
         }
         if let Some((p, t)) = x.pt {
             let _ = writeln!(out, "    pt {p}/{t}");
@@ -411,6 +420,7 @@ impl Fmt {
                 "it".to_string()
             }
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
+            Recipient::SameTheToken => "the token".to_string(),
             Recipient::CreatedThat => "that created creature".to_string(),
             Recipient::CreatedThatToken => "that created token".to_string(),
             Recipient::CreatedThatLand => "that created land".to_string(),
@@ -1828,18 +1838,33 @@ impl Fmt {
                 }
                 s
             }
-            Effect::CreateTokenCopy { of, except, count } => {
+            Effect::CreateTokenCopy {
+                of,
+                except,
+                count,
+                tapped,
+                attacking,
+                trailing,
+            } => {
+                let entry = match (*tapped && !*trailing, *attacking) {
+                    (false, _) => "",
+                    (true, false) => "tapped ",
+                    (true, true) => "tapped and attacking ",
+                };
                 let mut s = if *count == Num::N(1) {
-                    format!("create token copy of {}", self.recipient(*of, t))
+                    format!("create {entry}token copy of {}", self.recipient(*of, t))
                 } else {
                     format!(
-                        "create {} token copies of {}",
+                        "create {} {entry}token copies of {}",
                         num(*count),
                         self.recipient(*of, t)
                     )
                 };
                 if *except {
                     s.push_str(" with exceptions");
+                }
+                if *trailing {
+                    s.push_str(" tapped and attacking");
                 }
                 s
             }

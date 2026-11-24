@@ -4923,6 +4923,11 @@ pub enum Effect {
         /// "create two tokens that are copies of it": how many for each
         /// object (CR 111.4).
         count: Num,
+        /// "create a tapped token that's a copy of ...": it enters tapped
+        /// (CR 614.1c). "Tapped and attacking" is this and a following
+        /// `CreatedAttack` (CR 508.4).
+        #[serde(default)]
+        tapped: bool,
     },
     /// "Each opponent gets a poison counter" (CR 122.1f).
     AddPoison {
@@ -8260,6 +8265,15 @@ pub struct CopyExcept {
     /// types": colors added to its own.
     #[serde(default)]
     pub colors: ColorSet,
+    /// "except it's legendary" (Adagia): the copy has the legendary
+    /// supertype.
+    #[serde(default)]
+    pub legendary: bool,
+    /// "except it's a 1/1 green Frog", "a 4/4 black Zombie" (no "in
+    /// addition"): `colors` replace its colors and `subtypes` its creature
+    /// types (CR 707.9b, 205.1b); its card types stay.
+    #[serde(default)]
+    pub exactly: bool,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

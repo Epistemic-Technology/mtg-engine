@@ -1928,7 +1928,7 @@ impl GameState {
         for (d, k) in self.tokens_to_create(p, def, 1) {
             for _ in 0..k {
                 let new = if d == def {
-                    self.create_token_copy(of, p, None)
+                    self.create_token_copy(of, p, None, false)
                 } else {
                     self.create_token(d, p)
                 };
@@ -15522,7 +15522,12 @@ impl GameState {
                 });
                 self.enter_attacking(new, defender);
             }
-            Effect::CreateTokenCopy { of, except, count } => {
+            Effect::CreateTokenCopy {
+                of,
+                except,
+                count,
+                tapped,
+            } => {
                 let x = except.then(|| {
                     self.objects
                         .get(ctx.source)
@@ -15555,7 +15560,7 @@ impl GameState {
                         for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy_of(def, x.or(was), sized, ctx.controller)
+                                    self.create_token_copy_of(def, x.or(was), sized, ctx.controller, *tapped)
                                 } else {
                                     self.create_token(d, ctx.controller)
                                 };
@@ -15575,7 +15580,7 @@ impl GameState {
                         for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy(id, ctx.controller, x)
+                                    self.create_token_copy(id, ctx.controller, x, *tapped)
                                 } else {
                                     self.create_token(d, ctx.controller)
                                 };

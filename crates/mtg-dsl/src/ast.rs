@@ -668,6 +668,13 @@ pub struct Except {
     /// `colors red`: "a ... red ... in addition to its other colors and
     /// types".
     pub colors: Vec<mtg_core::mana::Color>,
+    /// `legendary`: "it's legendary".
+    pub legendary: bool,
+    /// `exactly`: "it's a 1/1 green Frog" (its colors and creature types
+    /// are these, not added to its own).
+    pub exactly: bool,
+    /// `the token`: "except the token isn't legendary" (wording only).
+    pub the_token: bool,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -3863,6 +3870,10 @@ pub enum Recipient {
     /// token (`SameObject`), printed "that token" ("Exile that token at
     /// the beginning of the next end step").
     SameToken,
+    /// `the token` inside a delayed trigger about a created token: that
+    /// token (`SameObject`), printed "the token" ("Exile the token at end
+    /// of combat.").
+    SameTheToken,
     CreatedObject,
     /// `that created creature`: the created token (`CreatedObject`),
     /// printed "that creature" ("Create a 1/1 ... Otter creature token
@@ -4280,6 +4291,16 @@ pub enum Effect {
         of: Recipient,
         except: bool,
         count: Num,
+        /// `create tapped token copy of ...`: "create a tapped token
+        /// that's a copy of ..." (CR 614.1c).
+        tapped: bool,
+        /// `create tapped and attacking token copy of ...`: "create a
+        /// tapped and attacking token that's a copy of ..." (CR 508.4).
+        attacking: bool,
+        /// `create token copy of <what> tapped and attacking`: the older
+        /// wording "create a token that's a copy of ... and that's tapped
+        /// and attacking". Wording only.
+        trailing: bool,
     },
     /// `copy target instant or sorcery spell you control [times N] [new
     /// targets] [with exceptions]` (CR 707.10): "Copy target instant or

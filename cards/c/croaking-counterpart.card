@@ -1,0 +1,13 @@
+card "Croaking Counterpart" {
+  oracle_id 142b2f24-49f6-4ef8-9731-9ae2e513f796
+  cost {1}{G}{U}
+  type Sorcery
+  spell: create token copy of target non-Frog creature with exceptions
+  flashback {3}{G}{U}
+  except {
+    exactly
+    pt 1/1
+    colors green
+    subtypes Frog
+  }
+}

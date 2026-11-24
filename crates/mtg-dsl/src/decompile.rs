@@ -245,6 +245,9 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             types: x.types.iter().collect(),
             pt: x.pt,
             colors: x.colors.iter().collect(),
+            legendary: x.legendary,
+            exactly: x.exactly,
+            the_token: false,
         }),
         mismatch: None,
         line: 0,
@@ -931,7 +934,10 @@ impl Decompiler<'_> {
             }
             // "create a ... token that's tapped and attacking".
             if matches!(e, CoreEffect::CreatedAttack)
-                && let Some(Effect::CreateToken { attacking, .. }) = out
+                && let Some(
+                    Effect::CreateToken { attacking, .. }
+                    | Effect::CreateTokenCopy { attacking, .. },
+                ) = out
                     .last_mut()
                     .and_then(|s: &mut Sentence| s.effects.last_mut())
             {
@@ -1129,10 +1135,18 @@ impl Decompiler<'_> {
                 attached: attached.map(r),
                 sized: None,
             },
-            CoreEffect::CreateTokenCopy { of, except, count } => Effect::CreateTokenCopy {
+            CoreEffect::CreateTokenCopy {
+                of,
+                except,
+                count,
+                tapped,
+            } => Effect::CreateTokenCopy {
                 of: r(*of),
                 except: *except,
                 count: *count,
+                tapped: *tapped,
+                attacking: false,
+                trailing: false,
             },
             CoreEffect::CastCopy { what, free } => Effect::CastCopy {
                 what: r(*what),

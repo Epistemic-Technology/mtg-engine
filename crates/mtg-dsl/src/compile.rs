@@ -1729,6 +1729,8 @@ impl Compiler<'_> {
                     .colors
                     .iter()
                     .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
+                legendary: x.legendary,
+                exactly: x.exactly,
             });
         }
         if haunted.is_some() || haunt_spell.is_some() {
@@ -3031,6 +3033,7 @@ impl Compiler<'_> {
             | Recipient::SameCard
             | Recipient::SameThat
             | Recipient::SameToken
+            | Recipient::SameTheToken
             | Recipient::SameTokens
             | Recipient::SameCards
             | Recipient::SameExiledCards
@@ -3631,12 +3634,24 @@ impl Compiler<'_> {
                     out.push(CoreEffect::CreatedAttack);
                 }
             }
-            Effect::CreateTokenCopy { of, except, count } => {
+            Effect::CreateTokenCopy {
+                of,
+                except,
+                count,
+                tapped,
+                attacking,
+                ..
+            } => {
                 out.push(CoreEffect::CreateTokenCopy {
                     of: r(*of),
                     except: *except,
                     count: *count,
+                    tapped: *tapped,
                 });
+                // CR 508.4: "a tapped and attacking token that's a copy".
+                if *attacking {
+                    out.push(CoreEffect::CreatedAttack);
+                }
             }
             Effect::CastCopy { what, free, .. } => out.push(CoreEffect::CastCopy {
                 what: r(*what),

@@ -304,7 +304,7 @@ like the card; either half may still be cast alone.
 | `hands revealed players` | "Players play with their hands revealed.": every card in a hand is known to every player while it is there. |
 | `activated abilities of artifact you control cost {1} less min one`, `activated abilities of land you control cost {1} less`, `power-up abilities of other creature you control cost {3} less`, `exhaust abilities of other permanent you control cost {2} less` | "Activated abilities of artifacts you control cost {1} less to activate. This effect can't reduce the mana in that cost to less than one mana." (`min one`), "Power-up abilities of other creatures you control cost {3} less to activate." (CR 601.2f by way of 602.2b): the generic mana of the matching permanents' activated abilities (of that keyword: `power-up`, `exhaust`, `boast`, `ninjutsu`) is reduced as they are activated; with `min one`, never below one mana in all. |
 | `hand size none`, `hand size +1`, `hand size opponents -1`, `hand size 8` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one.", "Your maximum hand size is eight." (CR 402.2). The count `difference 10 hand` ("draw cards equal to the difference", after the condition `hand fewer than 10`: "if you have fewer than ten cards in hand") is ten minus the count, at least 0. |
-| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
+| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token); `legendary` ("it's legendary": the legend rule then applies to it); `exactly` with `pt`, `colors`, and `subtypes` ("it's a 1/1 green Frog", "a 4/4 black Zombie", no "in addition": its colors and creature types are these instead, its card types stay); `pt 1/1` alone ("it's 1/1"); `the token` (wording: "except the token isn't legendary"). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
 Effects written after `:` sit on one line; write `{` instead of `:` and put
 one line per paragraph for text that spans paragraphs:
@@ -2308,7 +2308,16 @@ Wicked Role token attached to that Rat."; `each` after a variable target
 group before `gain` prints "One or two target creatures each gain haste"), `<who> creates 2
 "Treasure"` (`its controller creates`, `each player creates`, `you
 create`: "Its controller creates two Treasure tokens"),
-`create token copy of <what> [with exceptions]` (of a group, `create
+`create token copy of <what> [with exceptions]` (`create tapped token
+copy of ...`, `create 2 tapped token copies of this artifact`: "create a
+tapped token that's a copy of ...", "create two tapped tokens that are
+copies of this artifact", entering tapped; `create tapped and attacking
+token copy of ...` "create a tapped and attacking token that's a copy of
+...", and the older `create token copy of <what> [with exceptions] tapped
+and attacking` "create a token that's a copy of ... and that's tapped and
+attacking": CR 508.4, attacking what the source attacks; in a delayed
+trigger about it, `the token` prints "the token": `delayed that token:
+exile the token at end of combat`; of a group, `create
 token copy of each nontoken creature you control` prints "For each
 nontoken creature you control, create a token that's a copy of that
 creature"; `create 2 token copies of it` prints "create two tokens that

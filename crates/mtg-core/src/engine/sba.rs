@@ -445,8 +445,8 @@ impl GameState {
             for id in self.permanents_of(p) {
                 let def = self.pool.get(self.objects[id].def);
                 // "Except it isn't legendary" (CR 707.9b): a copy
-                // exception can take the supertype away.
-                if def.is_legendary()
+                // exception can take the supertype away, or add it.
+                if self.legend_of(&self.objects[id])
                     && (self.objects[id].except.is_none()
                         || self.characteristics(id).is_some_and(|c| {
                             c.supertypes.contains(crate::card::Supertype::Legendary)

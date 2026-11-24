@@ -1807,6 +1807,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
+            Recipient::SameTheToken => "the token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
@@ -4456,10 +4457,33 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     };
     let mut parts = Vec::new();
     if x.not_legendary {
-        parts.push("it isn't legendary".to_string());
+        parts.push(if x.the_token {
+            "the token isn't legendary".to_string()
+        } else {
+            "it isn't legendary".to_string()
+        });
+    }
+    if x.legendary {
+        parts.push("it's legendary".to_string());
+    }
+    // "it's a 1/1 green Frog", "it's a 4/4 black Zombie": its colors and
+    // creature types are these.
+    if x.exactly {
+        let mut words: Vec<String> = Vec::new();
+        if let Some((p, t)) = x.pt {
+            words.push(format!("{p}/{t}"));
+        }
+        words.extend(x.colors.iter().map(|c| color_name(*c).to_string()));
+        words.extend(x.subtypes.iter().cloned());
+        words.extend(x.types.iter().map(|t| type_noun(*t).to_string()));
+        parts.push(format!("it's {}", with_article(&words.join(" "))));
+    } else if x.pt.is_some() && x.subtypes.is_empty() && x.types.is_empty() {
+        // "except it's 1/1".
+        let (p, t) = x.pt.unwrap_or_default();
+        parts.push(format!("it's {p}/{t}"));
     }
     // "it's a Vehicle artifact in addition to its other types".
-    if !x.subtypes.is_empty() || !x.types.is_empty() {
+    if !x.exactly && (!x.subtypes.is_empty() || !x.types.is_empty()) {
         // "it's a 1/1 red Balloon creature in addition to its other
         // colors and types".
         let mut words: Vec<String> = Vec::new();
@@ -8064,14 +8088,30 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.those_tokens = None;
             Clause::imperative(text)
         }
-        Effect::CreateTokenCopy { of, except, count } => {
+        Effect::CreateTokenCopy {
+            of,
+            except,
+            count,
+            tapped,
+            attacking,
+            trailing,
+        } => {
             let o = ctx.obj(*of);
             // "create a token that's a copy of", "create two tokens that are
-            // copies of", "Create X tokens that are copies of".
+            // copies of", "Create X tokens that are copies of"; "a tapped
+            // [and attacking] token that's a copy of".
+            let entry = match (*tapped && !*trailing, *attacking) {
+                (false, _) => "",
+                (true, false) => "tapped ",
+                (true, true) => "tapped and attacking ",
+            };
             let copies = if *count == Num::N(1) {
-                "a token that's a copy of".to_string()
+                format!("a {entry}token that's a copy of")
             } else {
-                format!("{} tokens that are copies of", count_words(*count, "one"))
+                format!(
+                    "{} {entry}tokens that are copies of",
+                    count_words(*count, "one")
+                )
             };
             let noun = |rest: &str| {
                 if rest.contains("creature") {
@@ -8094,6 +8134,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
+            }
+            // "... and that's tapped and attacking" (Flamerush Rider).
+            if *trailing {
+                text.push_str(if *count == Num::N(1) {
+                    " and that's tapped and attacking"
+                } else {
+                    " and that are tapped and attacking"
+                });
             }
             Clause::imperative(text)
         }

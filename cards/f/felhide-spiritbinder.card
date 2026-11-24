@@ -1,0 +1,10 @@
+card "Felhide Spiritbinder" {
+  oracle_id 91e3f057-c24f-42b5-8525-74b44bdefc83
+  cost {3}{R}
+  type Creature — Minotaur Shaman
+  pt 3/4
+  label "Inspired" triggered whenever this becomes untapped: you may pay {1}{R}; if you do, create token copy of another target creature with exceptions; that token gains haste indefinitely; delayed that token: exile it at beginning of the next end step
+  except {
+    types Enchantment
+  }
+}
