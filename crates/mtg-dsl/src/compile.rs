@@ -2640,7 +2640,7 @@ impl Compiler<'_> {
                 at_most: true,
             },
             StaticCond::ActivatedThisTurn(n) => StaticCondition::ActivatedThisTurn(*n),
-            StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
+            StaticCond::CardsInHand { n, at_most, .. } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
             },
@@ -3950,6 +3950,7 @@ impl Compiler<'_> {
                 filter,
                 tapped,
                 all_graveyards,
+                ..
             } => {
                 out.push(CoreEffect::GraveyardToBattlefield {
                     filter: self.filter(filter),

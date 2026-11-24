@@ -2203,15 +2203,20 @@ impl Fmt {
                 filter: f,
                 tapped,
                 all_graveyards: true,
+                ..
             } => format!(
                 "put all {} card from all graveyards onto battlefield{} under your control",
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
             Effect::GraveyardToBattlefield {
-                filter: f, tapped, ..
+                filter: f,
+                tapped,
+                each,
+                ..
             } => format!(
-                "return all {} card from your graveyard to battlefield{}",
+                "return {} {} card from your graveyard to battlefield{}",
+                if *each { "each" } else { "all" },
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
@@ -4771,7 +4776,9 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TriggerStat { stat, that, spell } => format!(
             "{} of {}",
             stat_word(*stat),
-            if *spell {
+            if *spell && !*that {
+                "that spell long"
+            } else if *spell {
                 "that spell"
             } else if *that {
                 "that creature"
@@ -7562,8 +7569,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
         StaticCond::ActivatedThisTurn(n) => format!("activated {n} times this turn"),
-        StaticCond::CardsInHand { n, at_most } => {
-            format!("hand {n} or {}", if *at_most { "less" } else { "more" })
+        StaticCond::CardsInHand { n, at_most, your } => {
+            let your = if *your { " your" } else { "" };
+            format!("hand {n} or {}{your}", if *at_most { "less" } else { "more" })
         }
         StaticCond::HandFewerThan(n) => format!("hand fewer than {n}"),
         StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),

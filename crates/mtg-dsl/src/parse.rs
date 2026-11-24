@@ -6354,7 +6354,8 @@ impl P {
                 self.expect_word("more")?;
                 false
             };
-            return Ok(StaticCond::CardsInHand { n, at_most });
+            let your = self.eat_word("your");
+            return Ok(StaticCond::CardsInHand { n, at_most, your });
         }
         // "unless at least two other creatures attack" (CR 508.1c).
         if self.eat_words(&["at", "least"]) {
@@ -12547,6 +12548,7 @@ impl P {
                     filter,
                     tapped,
                     all_graveyards: true,
+                    each: false,
                 })
             }
             // `put that target 1 onto battlefield tapped`: "put that card
@@ -12831,7 +12833,7 @@ impl P {
             // "Return all creature cards from your graveyard to the
             // battlefield."
             "return"
-                if self.at_word("all")
+                if (self.at_word("all") || self.at_word("each"))
                     // A long filter ("all creature with mana value 2 or
                     // less card from your graveyard") is still one.
                     && (1..24).any(|k| {
@@ -12841,7 +12843,10 @@ impl P {
                             && self.word_at(k + 3).as_deref() == Some("graveyard")
                     }) =>
             {
-                self.pos += 1;
+                let each = self.eat_word("each");
+                if !each {
+                    self.pos += 1;
+                }
                 let filter = self.filter()?;
                 self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
@@ -12851,6 +12856,7 @@ impl P {
                     filter,
                     tapped,
                     all_graveyards: false,
+                    each,
                 })
             }
             "return" if self.at_words(&["those", "exiled", "cards", "to", "hand"]) => {
@@ -14990,9 +14996,12 @@ impl P {
         {
             let spell = at(1).as_deref() == Some("spell");
             self.pos += len + 2;
+            // `mana value of that spell long`: "the mana value of that
+            // spell" (Ovika, Enigma Goliath), wording only.
+            let long = spell && self.eat_word("long");
             return Some(CountExpr::TriggerStat {
                 stat,
-                that: true,
+                that: !long,
                 spell,
             });
         }

@@ -928,6 +928,7 @@ impl Decompiler<'_> {
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
+                your: false,
             },
             StaticCondition::NoCardInHand(f) => StaticCond::NoCardInHand(self.filter(f)),
             StaticCondition::EachHandEmpty => StaticCond::EachHandEmpty,
@@ -2143,6 +2144,7 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 tapped: *tapped,
                 all_graveyards: *all_graveyards,
+                each: false,
             },
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
             CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {

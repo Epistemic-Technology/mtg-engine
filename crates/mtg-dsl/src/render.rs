@@ -3407,6 +3407,42 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             filter_phrase_one(alt, card, true)
         );
     }
+    // `andlist other Ninja or Rogue creature you control`: "Other Ninja
+    // and Rogue creatures you control" (Silver-Fur Master): the shared
+    // type once, the subtypes as adjectives.
+    if plural_form && f.and_list && alt.or.is_none() {
+        // "Other snow and Zombie creatures you control" (Narfi): a
+        // supertype the same way.
+        let (b, a) = crate::format::factor_qualifiers(&base, alt);
+        let adj = match (b.subtypes.as_slice(), b.supertypes.as_slice()) {
+            ([s], []) => Some(s.clone()),
+            ([], [s]) => Some(format!("{s:?}").to_lowercase()),
+            _ => None,
+        };
+        let rest = Filter {
+            subtypes: Vec::new(),
+            supertypes: Vec::new(),
+            types: Vec::new(),
+            relation: Relation::Any,
+            who: None,
+            dont_control: false,
+            they_control: false,
+            and_list: false,
+            ..b.clone()
+        };
+        if let Some(adj) = adj
+            && !base.types.is_empty()
+            && base.types == alt.types
+            && rest == Filter::default()
+        {
+            let other = if b.relation == Relation::Other {
+                "other "
+            } else {
+                ""
+            };
+            return format!("{other}{adj} and {}", filter_phrase_one(&a, card, true));
+        }
+    }
     // A chain of three or more prints as a list: "Bear, Spider, or Wolf".
     let mut sides = Vec::new();
     let mut cur = f.clone();
@@ -6084,6 +6120,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             return p.replacen(sep, " and/or ", 1);
         }
         CountExpr::TriggerStat { stat, that, spell } => {
+            if *spell && !*that {
+                return format!("the {} of that spell", stat_word(*stat));
+            }
             let whose = if *spell {
                 "that spell's"
             } else if *that {
@@ -7450,11 +7489,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             tapped,
             all_graveyards: true,
+            ..
         } => Clause::imperative(format!(
             "put all {} from all graveyards onto the battlefield{} under your control",
             cards_phrase(filter, ctx.card, true),
             if *tapped { " tapped" } else { "" }
         )),
+        // "Return each artifact and creature card with mana value X from
+        // your graveyard to the battlefield." (Fix What's Broken).
+        Effect::GraveyardToBattlefield {
+            filter,
+            tapped,
+            each: true,
+            ..
+        } => {
+            let mut p = cards_phrase(filter, ctx.card, false);
+            if filter.and_list {
+                p = p.replacen(" or ", " and ", 1);
+            }
+            Clause::imperative(format!(
+                "return each {p} from your graveyard to the battlefield{}",
+                if *tapped { " tapped" } else { "" }
+            ))
+        }
         Effect::GraveyardToBattlefield { filter, tapped, .. } => Clause::imperative(format!(
             "return all {} from your graveyard to the battlefield{}",
             cards_phrase(filter, ctx.card, true),
@@ -19771,17 +19828,20 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "this ability has been activated {} times this turn",
             or_more(*n)
         ),
-        StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
-            (0, true) => "you have no cards in hand".to_string(),
-            (n, true) => format!(
-                "you have {} or fewer cards in hand",
-                count_words(Num::N(*n), "one")
-            ),
-            (n, false) => format!(
-                "you have {} or more cards in hand",
-                count_words(Num::N(*n), "one")
-            ),
-        },
+        StaticCond::CardsInHand { n, at_most, your } => {
+            let hand = if *your { "your hand" } else { "hand" };
+            match (n, at_most) {
+                (0, true) => format!("you have no cards in {hand}"),
+                (n, true) => format!(
+                    "you have {} or fewer cards in {hand}",
+                    count_words(Num::N(*n), "one")
+                ),
+                (n, false) => format!(
+                    "you have {} or more cards in {hand}",
+                    count_words(Num::N(*n), "one")
+                ),
+            }
+        }
         StaticCond::Attacking => "it's attacking".to_string(),
         StaticCond::AttackedBattleThisTurn => "it attacked a battle this turn".to_string(),
         StaticCond::AttackedWith(f) => {

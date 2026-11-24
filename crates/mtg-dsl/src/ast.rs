@@ -3370,6 +3370,9 @@ pub enum StaticCond {
     CardsInHand {
         n: u32,
         at_most: bool,
+        /// `hand 7 or more your`: "seven or more cards in your hand"
+        /// (Resonating Lute); wording only.
+        your: bool,
     },
     /// `hand has no land card`: "you have no land cards in hand".
     NoCardInHand(Filter),
@@ -6521,6 +6524,10 @@ pub enum Effect {
         /// graveyards onto the battlefield under your control." (every
         /// graveyard, under the controller's control).
         all_graveyards: bool,
+        /// `return each andlist artifact or creature card ...`: "Return
+        /// each artifact and creature card ..." (Fix What's Broken);
+        /// wording only.
+        each: bool,
     },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).

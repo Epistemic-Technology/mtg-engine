@@ -561,7 +561,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this deals 4 or more damage` | "Whenever Spinneret and Spiderling deals 4 or more damage": one damage event of at least that much from the source (as it last existed, if it has left) to one creature, player, or other permanent; damage to different recipients at once doesn't add up. The recipient is `that creature` or `that player` |
 | `whenever counter put on creature you control`, `whenever one or more counters put on creature you control` | "Whenever a counter is put on a creature you control", "Whenever one or more counters are put on ...": counters of any kind put on a matching permanent, by anyone; once per instruction putting counters on it (the first form is the older wording, the same trigger) |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
-| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; `count andor thatare Fungus or Saproling creature you control`, alternatives of one creature type each, prints "creatures you control that are Fungi and/or Saprolings", The Mycotyrant; wording only) |
+| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control"), and plural types (`andlist artifact or creature you control`: "artifacts and creatures you control"); two alternatives of one card type, one subtype or supertype on the first, print it as an adjective (`andlist other Ninja or Rogue creature you control`: "other Ninja and Rogue creatures you control", `andlist other snow creature or Zombie creature you control`: "other snow and Zombie creatures you control"). In a count, `andor thatare creature or Vehicle you control` prints "permanents you control that are creatures and/or Vehicles" (Collision Course; `count andor thatare Fungus or Saproling creature you control`, alternatives of one creature type each, prints "creatures you control that are Fungi and/or Saprolings", The Mycotyrant; wording only) |
 
 A trigger's subject prints its controller before its "with" qualities
 ("Whenever a creature you control with power 5 or greater enters").
@@ -632,6 +632,8 @@ card"; `top card is black`: "... is black"; by the card's printed
 characteristics, checked again whenever the top card changes),
 `creature died this turn` (morbid), `hand 0 or less` ("you have no cards
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
+`hand 7 or more your` ("you have seven or more cards in your hand",
+Resonating Lute; wording only),
 `hand has no land card` ("you have no land cards in hand"), and
 the shorthands `threshold`, `delirium`, `metalcraft`; also `land entered
 this turn` (landfall: "you had a land enter the battlefield under your
@@ -1193,7 +1195,9 @@ ability too ("Target player mills three cards. ... that player mills ten
 cards instead"). In a triggered ability `toughness of
 it`, `power of it`, `mana value of it` ("its toughness") and `power of
 that creature` ("that creature's power"; `mana value of that spell`:
-"that spell's mana value", the spell a cast trigger is about) otherwise
+"that spell's mana value", the spell a cast trigger is about; `mana value
+of that spell long` prints "the mana value of that spell", as in "create X
+... tokens, where X is the mana value of that spell", Ovika) otherwise
 read the triggering object, as it last existed once it has left (CR 608.2h): `triggered when enchanted creature dies: its
 controller loses count equal power of it life and you gain count equal
 toughness of it life`.
@@ -1556,7 +1560,11 @@ all creature cards from your graveyard to the battlefield."): every card
 in the controller's graveyard matching the filter enters under its owner's
 control; `... to battlefield tapped` ("Return all land cards from your
 graveyard to the battlefield tapped."), and `return all andlist artifact
-or enchantment card ...` ("all artifact and enchantment cards"). A
+or enchantment card ...` ("all artifact and enchantment cards");
+`return each andlist artifact or creature with mana value x card from
+your graveyard to battlefield` prints "Return each artifact and creature
+card with mana value X from your graveyard to the battlefield." (Fix
+What's Broken; the same rule). A
 mana value X is the spell's (CR 107.3). `put all creature card from all
 graveyards onto battlefield under your control` ("Put all creature cards
 from all graveyards onto the battlefield under your control.", Rise of

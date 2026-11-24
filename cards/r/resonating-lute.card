@@ -1,0 +1,7 @@
+card "Resonating Lute" {
+  oracle_id 9263287d-f782-4318-9ab8-e2e5f8107f5e
+  cost {2}{U}{R}
+  type Artifact
+  static land you control: has ability { activated {T}: add any 2 only to cast instant or sorcery spells joined and }
+  activated {T}, if hand 7 or more your: draw 1 card
+}
