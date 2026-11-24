@@ -190,6 +190,10 @@ pub enum Action {
         /// its damage or counters among them, in target order (CR
         /// 601.2d).
         divide: Vec<u32>,
+        /// `paying_life N` after `x`: pay N of the spell's Phyrexian mana
+        /// symbols with 2 life each (CR 601.2b, 107.4f); otherwise as
+        /// few as can be.
+        life: Option<u32>,
     },
     /// `unmorph "X"`: turn the face-down permanent that is card X face up.
     TurnFaceUp(String),

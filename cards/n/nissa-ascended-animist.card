@@ -1,0 +1,10 @@
+card "Nissa, Ascended Animist" {
+  oracle_id 9c8845d6-fa65-4731-b348-dc724fc2d285
+  cost {3}{G}{G}{G/P}{G/P}
+  type Legendary Planeswalker — Nissa
+  loyalty 7
+  compleated
+  loyalty +1: create 1 "0/0 green Phyrexian Horror creature" sized count where loyalty of this
+  loyalty -1: destroy target artifact or enchantment
+  loyalty -7: until end of turn, creatures you control get +1/+1 count each Forest you control and gain trample
+}

@@ -8000,7 +8000,67 @@ impl GameState {
         self.bump();
     }
 
-    /// CR 601.2f–i: pay and finish casting; caster gets priority.
+    /// The total mana cost `spell` pays as its casting finishes (CR
+    /// 601.2f): `spell_requirements`, emerge's reduction by the creature
+    /// sacrificed.
+    fn cast_requirements(&self, spell: ObjId, sacrifice: Option<ObjId>) -> ManaRequirement {
+        let obj = &self.objects[spell];
+        let mut req = self.spell_requirements(spell, self.x_of(spell));
+        // CR 702.119a: emerge's cost is reduced by the sacrificed
+        // creature's mana value (generic mana only, CR 601.2f).
+        if self.pool.get(obj.def).emerge
+            && obj.alt == AltCast::AltCost
+            && let Some(c) = sacrifice.and_then(|c| self.characteristics(c))
+        {
+            let mv = self.pool.get(c.def).mana_cost.mana_value();
+            adjust_generic(&mut req, -i32::try_from(mv).unwrap_or(i32::MAX));
+        }
+        req
+    }
+
+    /// CR 601.2b, 119.4: how many of `spell`'s Phyrexian mana symbols its
+    /// caster could pay with 2 life each, the rest of the cost then
+    /// payable, fewest first.
+    pub(super) fn phyrexian_options(&self, spell: ObjId, sacrifice: Option<ObjId>) -> Vec<u32> {
+        let req = self.cast_requirements(spell, sacrifice);
+        let p = self.objects[spell].controller;
+        let sources = self.spell_sources(spell);
+        let ps = self.player(p);
+        (0..=req.phyrexian_count())
+            .filter(|k| {
+                let r = ManaRequirement {
+                    life_symbols: Some(u8::try_from(*k).unwrap_or(u8::MAX)),
+                    ..req
+                };
+                self.payable(p, &sources, &ps.mana_pool, &r, ps.life, None)
+            })
+            .collect()
+    }
+
+    /// CR 601.2b: the number of Phyrexian symbols `spell`'s cost `req`
+    /// pays with life: announced (`phyrexian_life`), the only number that
+    /// can be paid, or `None` while the caster has a choice to make
+    /// (`Flow::ChoosingPhyrexian`).
+    #[cold]
+    #[inline(never)]
+    fn phyrexian_announced(&mut self, spell: ObjId, sacrifice: Option<ObjId>) -> Option<u8> {
+        if let Some((_, k)) = self.phyrexian_life.iter().find(|(s, _)| *s == spell) {
+            return Some(*k);
+        }
+        let options = self.phyrexian_options(spell, sacrifice);
+        match options.as_slice() {
+            [] => Some(u8::MAX),
+            [k] => {
+                let k = u8::try_from(*k).unwrap_or(u8::MAX);
+                self.phyrexian_life.push((spell, k));
+                Some(k)
+            }
+            _ => None,
+        }
+    }
+
+    /// CR 601.2f–i: pay and finish casting; caster gets priority. First
+    /// the Phyrexian symbols paid with life are announced (CR 601.2b).
     #[allow(clippy::too_many_lines)] // one block per kind of cost
     pub(super) fn finish_cast(
         &mut self,
@@ -8008,6 +8068,25 @@ impl GameState {
         sacrifice: Option<ObjId>,
         discard: Option<ObjId>,
     ) {
+        let mut req = self.cast_requirements(spell, sacrifice);
+        // CR 601.2b: how the Phyrexian symbols are paid is announced
+        // before the total cost is paid.
+        if req.phyrexian_count() > 0 {
+            match self.phyrexian_announced(spell, sacrifice) {
+                // Nothing payable (a cost that changed since the offer):
+                // payment as before.
+                Some(u8::MAX) => {}
+                Some(k) => req.life_symbols = Some(k),
+                None => {
+                    self.flow = crate::state::Flow::ChoosingPhyrexian {
+                        spell,
+                        sacrifice,
+                        discard,
+                    };
+                    return;
+                }
+            }
+        }
         let obj = &self.objects[spell];
         let (caster, def_ref) = (obj.controller, obj.def);
         let x = self.x_of(spell);
@@ -8015,16 +8094,6 @@ impl GameState {
         let targets: Vec<Target> = obj.targets.iter().copied().collect();
         let pool = std::sync::Arc::clone(&self.pool);
         let def = pool.get(def_ref);
-        let mut req = self.spell_requirements(spell, x);
-        // CR 702.119a: emerge's cost is reduced by the sacrificed
-        // creature's mana value (generic mana only, CR 601.2f).
-        if def.emerge
-            && obj.alt == AltCast::AltCost
-            && let Some(c) = sacrifice.and_then(|c| self.characteristics(c))
-        {
-            let mv = pool.get(c.def).mana_cost.mana_value();
-            adjust_generic(&mut req, -i32::try_from(mv).unwrap_or(i32::MAX));
-        }
         // "Tap three untapped white creatures you control": tapped before
         // the mana is paid, so they don't also tap for it (CR 601.2h).
         let mut sacrifice = sacrifice;
@@ -8063,6 +8132,15 @@ impl GameState {
         self.mana_spent_this_turn[i] =
             before.saturating_add(u16::try_from(req.total()).unwrap_or(u16::MAX));
         let sources = self.spell_sources(spell);
+        if req.life_symbols.is_some() {
+            // The permanents tapped for an additional cost may have taken
+            // mana the announcement counted on: then any way.
+            let ps = self.player(caster);
+            if !self.payable(caster, &sources, &ps.mana_pool, &req, ps.life, None) {
+                req.life_symbols = None;
+            }
+            self.phyrexian_life.retain(|(s, k)| *s != spell || *k > 0);
+        }
         if def.spent.record || self.spent_watchers > 0 {
             self.pay_recorded(spell, caster, &req, &sources, def.spent);
         } else {

@@ -140,6 +140,8 @@ struct Runner {
     pending_discard: Option<String>,
     /// Whether the spell being cast is scripted `kicked`.
     pending_kicked: bool,
+    /// `paying_life N` on the cast being made (CR 601.2b).
+    pending_life: Option<u32>,
     /// `conspired` on the cast being made (CR 702.78a).
     pending_conspired: bool,
     /// `other_cost` on the cast being made.
@@ -260,6 +262,7 @@ impl Runner {
             pending_sacrifice: None,
             pending_discard: None,
             pending_kicked: false,
+            pending_life: None,
             pending_conspired: false,
             pending_other_cost: false,
             pending_splice: Vec::new(),
@@ -487,6 +490,7 @@ impl Runner {
             | DecisionKind::Replicate { .. }
             | DecisionKind::Multikicker { .. } => self.choose_x(d),
             DecisionKind::Divide { .. } => self.choose_division(d),
+            DecisionKind::PhyrexianLife { .. } => self.choose_life(d),
             DecisionKind::ChooseSacrifice { .. } => self.choose_cost(d, "sacrifice"),
             DecisionKind::ChooseDiscardCost { .. } => self.choose_cost(d, "discard"),
             DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
@@ -613,6 +617,22 @@ impl Runner {
             line,
             message: format!(
                 "dividing {parts:?} is not legal; options: {}",
+                self.describe_options(d)
+            ),
+        })
+    }
+
+    /// How many Phyrexian symbols of the spell being cast are paid with
+    /// life: the scripted `paying_life N`, else the fewest.
+    fn choose_life(&mut self, d: &Decision) -> Res<ChoiceId> {
+        let Some(n) = self.pending_life.take() else {
+            return Ok(0);
+        };
+        let line = self.current_cast_line();
+        index_of(d, &Choice::X(n)).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "{n} Phyrexian symbol(s) cannot be paid with life; available: {}",
                 self.describe_options(d)
             ),
         })
@@ -1496,6 +1516,12 @@ impl Runner {
             let illegal = a.illegal && !splice_refusal;
             let refused = match (illegal, found, &targets) {
                 (true, Some(idx), Some(ts)) if !ts.is_empty() => {
+                    // A scripted `paying_life N` not offered counts as
+                    // refused (CR 601.2b).
+                    self.pending_life = match &a.action {
+                        Action::Cast { life, .. } => *life,
+                        _ => None,
+                    };
                     // A scripted `kicked` or `gift` is taken on the copy too.
                     let promised = costs.3
                         || matches!(
@@ -1645,6 +1671,10 @@ impl Runner {
                         self.pending_division = match &a.action {
                             Action::Cast { divide, .. } => divide.clone(),
                             _ => Vec::new(),
+                        };
+                        self.pending_life = match &a.action {
+                            Action::Cast { life, .. } => *life,
+                            _ => None,
                         };
                         self.pending_mode = pending_mode;
                         self.pending_other_cost = matches!(
@@ -2594,6 +2624,13 @@ impl Runner {
                 DecisionKind::ChooseX { .. } => {
                     x.and_then(|x| index_of(&d, &Choice::X(x))).unwrap_or(0)
                 }
+                DecisionKind::PhyrexianLife { .. } => match self.pending_life {
+                    Some(n) => match index_of(&d, &Choice::X(n)) {
+                        Some(i) => i,
+                        None => return Ok(true),
+                    },
+                    None => 0,
+                },
                 DecisionKind::ChooseTarget { index, .. } => {
                     let Some(tr) = targets.get(index) else {
                         return Ok(false);

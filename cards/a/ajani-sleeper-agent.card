@@ -1,0 +1,10 @@
+card "Ajani, Sleeper Agent" {
+  oracle_id 37714eb9-a39d-4534-a2d3-27908c418f8a
+  cost {1}{G}{G/W/P}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 4
+  compleated
+  loyalty +1: reveal top card; if it is creature or planeswalker card, put it into hand; otherwise, you may put it on bottom of library
+  loyalty -3: distribute 3 +1/+1 counters among 0 to 3 target creatures; target 1 gains vigilance until end of turn
+  loyalty -6: emblem "Ajani, Sleeper Agent emblem"
+}

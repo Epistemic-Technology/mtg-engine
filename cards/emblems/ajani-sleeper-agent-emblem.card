@@ -1,0 +1,3 @@
+emblem "Ajani, Sleeper Agent emblem" {
+  triggered whenever you cast creature or planeswalker spell: target opponent gets 2 poison counters
+}

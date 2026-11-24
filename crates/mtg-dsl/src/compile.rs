@@ -808,6 +808,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Conspire) => {
                     b = b.conspire();
                 }
+                Ability::Mechanic(Mechanic::Compleated) => {
+                    b = b.compleated();
+                }
                 Ability::Mechanic(Mechanic::Awaken(n, c)) => {
                     let Ok(n) = u8::try_from(*n) else {
                         return self.err("awaken is at most 255");
@@ -1568,6 +1571,7 @@ impl Compiler<'_> {
                             | Mechanic::SpliceCost(_)
                             | Mechanic::Bargain
                             | Mechanic::Conspire
+                            | Mechanic::Compleated
                             | Mechanic::Casualty(_)
                             | Mechanic::Dredge(_)
                             | Mechanic::Storm
@@ -2821,6 +2825,8 @@ impl Compiler<'_> {
             A::DamageThisWay { excess, .. } => C::DamageThisWay { excess: *excess },
             A::CardTypesInGraveyards => C::CardTypesInAllGraveyards,
             A::SourceCounters { kind, .. } => C::SourceCounters(*kind),
+            // CR 306.5b: its loyalty is its loyalty counters.
+            A::SourceLoyalty => C::SourceCounters(mtg_core::card::CounterKind::Loyalty),
             A::TriggerCounters(kind) => C::TriggerCounters(*kind),
             A::Those(_) => C::ThoseObjects,
             A::HostGraveyard(f) => C::HostGraveyard(f.as_ref().map(|f| self.filter(f))),
@@ -6561,6 +6567,7 @@ impl Compiler<'_> {
                 | Mechanic::SpliceCost(_)
                 | Mechanic::Bargain
                 | Mechanic::Conspire
+                | Mechanic::Compleated
                 | Mechanic::Casualty(_)
                 | Mechanic::Dredge(_)
                 | Mechanic::Storm
@@ -8234,6 +8241,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Strive(_)
         | Mechanic::Bargain
         | Mechanic::Conspire
+        | Mechanic::Compleated
         | Mechanic::Casualty(_)
         | Mechanic::Dredge(_)
         | Mechanic::Storm

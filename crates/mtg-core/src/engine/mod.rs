@@ -528,6 +528,7 @@ impl GameState {
             granters: Vec::new(),
             ninjutsu: Vec::new(),
             harmonized: Vec::new(),
+            phyrexian_life: Vec::new(),
             bargains: Vec::new(),
             divisions: Vec::new(),
             pairs: Vec::new(),
@@ -1103,6 +1104,25 @@ impl GameState {
                         player: obj.controller,
                         kind: DecisionKind::Conspire { spell },
                         options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
+                Flow::ChoosingPhyrexian {
+                    spell, sacrifice, ..
+                } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let options = self
+                        .phyrexian_options(spell, sacrifice)
+                        .into_iter()
+                        .map(Choice::X)
+                        .collect();
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::PhyrexianLife { spell },
+                        options,
                     });
                 }
                 Flow::ChoosingSplice { spell } => {
@@ -2280,6 +2300,19 @@ impl GameState {
             (Flow::ChoosingOptionalCost { spell }, Choice::Decline) => {
                 self.flow = self.after_optional_cost(spell);
             }
+            // CR 601.2b: this many Phyrexian symbols are paid with life.
+            (
+                Flow::ChoosingPhyrexian {
+                    spell,
+                    sacrifice,
+                    discard,
+                },
+                Choice::X(k),
+            ) => {
+                self.phyrexian_life
+                    .push((spell, u8::try_from(k).unwrap_or(u8::MAX)));
+                self.finish_cast(spell, sacrifice, discard);
+            }
             // CR 702.78a: the creatures are tapped as the costs are paid.
             (Flow::ChoosingConspire { spell }, Choice::Accept) => {
                 self.objects[spell].cast.set_conspired(true);
@@ -3191,6 +3224,7 @@ impl GameState {
             self.divisions.retain(|(id, _)| *id != spell);
             self.bargains.retain(|(id, _)| *id != spell);
             self.harmonized.retain(|(id, ..)| *id != spell);
+            self.phyrexian_life.retain(|(id, _)| *id != spell);
             self.splices.retain(|s| s.spell != spell);
             let card = self.move_object(spell, back, false);
             self.give_priority(controller);
