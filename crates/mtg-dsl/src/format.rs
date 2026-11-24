@@ -5557,7 +5557,7 @@ fn cost_text(c: &Cost) -> String {
                         mtg_core::card::ChosenCost::Return => "return",
                         mtg_core::card::ChosenCost::Tap => "tap",
                     },
-                    if c.count > 1 {
+                    if c.count > 0 {
                         format!("{} ", c.count)
                     } else {
                         String::new()
