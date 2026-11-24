@@ -277,3 +277,53 @@ scenario "esoteric duplicator: a sacrificed creature isn't copied" {
   assert battlefield A lacks "Grizzly Bears"
   assert graveyard B contains "Hill Giant"
 }
+
+# "Then you may have it become a copy of another creature you control
+# until end of turn": the creature is chosen as the ability resolves, not
+# targeted (CR 608.2d).
+
+scenario "deepfathom echo: explores, then becomes a copy of the chosen creature" {
+  battlefield A: "Deepfathom Echo", "Grizzly Bears", "Serra Angel"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: choose "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert hand A contains "Forest"
+  assert battlefield A contains 2 "Serra Angel"
+  assert battlefield A lacks "Deepfathom Echo"
+  assert has oldest A "Serra Angel" flying
+  run_to turn 2 upkeep
+  assert battlefield A contains "Deepfathom Echo"
+  assert power "Deepfathom Echo" 4
+  assert battlefield A contains 1 "Serra Angel"
+}
+
+scenario "deepfathom echo: the explore counter stays on the copy" {
+  battlefield A: "Deepfathom Echo", "Grizzly Bears"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert power oldest A "Grizzly Bears" 3
+  assert counters oldest A "Grizzly Bears" +1/+1 1
+}
+
+scenario "deepfathom echo: may decline to copy" {
+  battlefield A: "Deepfathom Echo", "Grizzly Bears"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: decline "Deepfathom Echo"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Deepfathom Echo"
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "deepfathom echo: an opponent's creature can't be chosen" {
+  battlefield A: "Deepfathom Echo"
+  battlefield B: "Serra Angel"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Deepfathom Echo"
+  assert battlefield A lacks "Serra Angel"
+}

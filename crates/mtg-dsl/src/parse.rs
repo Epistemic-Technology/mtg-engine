@@ -8669,7 +8669,23 @@ impl P {
                     // The subject becomes the copy (`Effect::BecomeCopy`):
                     // the source, a target, or a group.
                     self.expect_word("of")?;
-                    let of = self.recipient()?;
+                    // `chosen other creature you control`: not targeted,
+                    // chosen as it resolves (CR 608.2d).
+                    let of = if self.eat_word("chosen") {
+                        let f = self.filter()?;
+                        let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+                            i
+                        } else {
+                            self.groups.push(f);
+                            self.groups.len() - 1
+                        };
+                        Recipient::ChosenOf(u16::try_from(i).map_err(|_| ParseError {
+                            line: self.line(),
+                            message: "too many groups".to_string(),
+                        })?)
+                    } else {
+                        self.recipient()?
+                    };
                     let except = self.except_clause();
                     let until = if self.eat_words(&["until", "end", "of", "turn"]) {
                         mtg_core::card::CopyUntil::EndOfTurn

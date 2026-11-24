@@ -2963,6 +2963,8 @@ impl Compiler<'_> {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
+            // Chosen by the `ChooseAct` compiled before the effect.
+            Recipient::ChosenOf(_) => CoreRecipient::CreatedObject,
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
             Recipient::OpponentsWithout(i) => {
@@ -3674,16 +3676,33 @@ impl Compiler<'_> {
                 except,
                 who,
                 until,
-            } => out.push(CoreEffect::BecomeCopy {
-                of: r(*of),
-                except: *except,
-                who: (!matches!(
-                    who,
-                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
-                ))
-                .then(|| r(*who)),
-                until: *until,
-            }),
+            } => {
+                // "become a copy of another creature you control": the
+                // controller chooses it as the effect resolves (CR 608.2d);
+                // the chosen permanent is the created object.
+                if let Recipient::ChosenOf(i) = of {
+                    let Some(f) = self.card.groups.get(usize::from(*i)) else {
+                        return self.err("`chosen` names no filter");
+                    };
+                    let filter = self.filter(f);
+                    out.push(CoreEffect::ChooseAct {
+                        act: mtg_core::card::ChooseAct::Choose,
+                        filter,
+                        count: mtg_core::card::Num::N(1),
+                        up_to: false,
+                    });
+                }
+                out.push(CoreEffect::BecomeCopy {
+                    of: r(*of),
+                    except: *except,
+                    who: (!matches!(
+                        who,
+                        Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                    ))
+                    .then(|| r(*who)),
+                    until: *until,
+                });
+            }
             Effect::Counter { to, dest } => out.push(CoreEffect::Counter {
                 to: r(*to),
                 dest: *dest,

@@ -1897,6 +1897,11 @@ impl<'a> Ctx<'a> {
                 Some(f) => format!("{} chosen at random", filter_a(f, self.card)),
                 None => "a permanent chosen at random".to_string(),
             },
+            // "become a copy of another creature you control".
+            Recipient::ChosenOf(i) => match self.card.groups.get(usize::from(i)) {
+                Some(f) => filter_a(f, self.card),
+                None => "a permanent".to_string(),
+            },
             // "When this Aura enters, if enchanted creature is a Wolf or
             // Werewolf, untap that creature." (Howl of the Hunt).
             Recipient::Attached if self.attached_by_cond && self.attached_by_type => {

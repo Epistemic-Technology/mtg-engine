@@ -1,0 +1,7 @@
+card "Deepfathom Echo" {
+  oracle_id 0c0d6c7e-a7cc-49e0-bf84-3fc33dd10b90
+  cost {2}{G}{U}
+  type Creature — Merfolk Spirit
+  pt 4/4
+  triggered at beginning of your combat step: this explores; then you may this becomes a copy of chosen other creature you control until end of turn
+}

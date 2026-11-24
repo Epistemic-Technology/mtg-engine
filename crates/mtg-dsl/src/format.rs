@@ -482,6 +482,10 @@ impl Fmt {
                 Some(f) => format!("random {}", filter(f)),
                 None => "random permanent".to_string(),
             },
+            Recipient::ChosenOf(i) => match self.groups.get(usize::from(i)) {
+                Some(f) => format!("chosen {}", filter(f)),
+                None => "chosen permanent".to_string(),
+            },
             Recipient::Group(i) => {
                 let text = match self.groups.get(usize::from(i)) {
                     Some(f) if f.all => filter(f),

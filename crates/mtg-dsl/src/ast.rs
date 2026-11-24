@@ -3923,6 +3923,11 @@ pub enum Recipient {
     /// `random <filter>`: one of the `n`th group's permanents, picked at
     /// random ("a creature an opponent controls chosen at random").
     RandomOf(u16),
+    /// `chosen <filter>` after `becomes a copy of`: one of the `n`th
+    /// group's permanents, chosen by the controller as the effect
+    /// resolves, not targeted ("you may have it become a copy of another
+    /// creature you control", CR 608.2d).
+    ChosenOf(u16),
     /// `enchanted creature`, `equipped creature`: what the source is
     /// attached to.
     Attached,

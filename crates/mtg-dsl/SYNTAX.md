@@ -2119,7 +2119,11 @@ land.", else ". It's still a land."; an Aura's `static enchanted: base 4/2,
 set color red, add subtype Beast, add type creature, has trample` prints
 "Enchanted land is a 4/2 red Beast creature with trample. It's still a
 land."), `this becomes a
-copy of <what> [with exceptions]` (any subject: `target Shapeshifter
+copy of <what> [with exceptions]` (`you may this becomes a copy of chosen
+other creature you control until end of turn`: "you may have it become a
+copy of another creature you control until end of turn", the creature
+chosen as the effect resolves, not targeted, CR 608.2d; scenarios `choose
+"X"`; any subject: `target Shapeshifter
 becomes a copy of target creature until your next turn`, `each single
 other creature becomes a copy of target nonlegendary creature until end of
 turn`, "Each other creature becomes ..."; `until end of turn` and `until
