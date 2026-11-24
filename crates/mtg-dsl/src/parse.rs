@@ -2312,9 +2312,9 @@ impl P {
             // life.", "Each opponent can't draw more than one card each
             // turn." (CR 101.2).
             "each" | "you" | "opponents" | "enchanted" if self.rule_players_ahead().is_some() => {
+                use mtg_core::card::PlayerStaticKind as K;
                 let (players, n) = self.rule_players_ahead().expect("checked");
                 self.pos += n;
-                use mtg_core::card::PlayerStaticKind as K;
                 let kind = if self
                     .eat_words(&["cast", "more", "than", "one", "spell", "each", "turn"])
                 {
