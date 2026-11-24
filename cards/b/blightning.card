@@ -1,0 +1,6 @@
+card "Blightning" {
+  oracle_id a6496440-dc0c-4d9b-bf37-f537b6f0187b
+  cost {1}{B}{R}
+  type Sorcery
+  spell: deal 3 damage to target player or planeswalker; controller of that target 1 discards 2 cards
+}

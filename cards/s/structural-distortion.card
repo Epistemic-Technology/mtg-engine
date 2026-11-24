@@ -1,0 +1,6 @@
+card "Structural Distortion" {
+  oracle_id bf0b6800-8e6b-4ccd-8e4d-96e61342f981
+  cost {3}{R}
+  type Sorcery
+  spell: exile target artifact or land; deal 2 damage to controller of that target 1
+}

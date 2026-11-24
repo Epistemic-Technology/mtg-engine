@@ -1,0 +1,8 @@
+card "Super-Soldier Serum" {
+  oracle_id 6f2ba142-5e7c-4709-ae03-e028cb2a9872
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has first strike, vigilance, add supertype legendary, add subtype Soldier
+  triggered whenever enchanted creature attacks or blocks: attach any number of target Equipment you control to triggering it
+}

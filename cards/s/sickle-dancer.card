@@ -1,0 +1,7 @@
+card "Sickle Dancer" {
+  oracle_id 836bfcad-014a-40cc-ab79-906fcab723a0
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered whenever this attacks if team controls other Warrior: this gets +1/+1 until end of turn
+}

@@ -1,0 +1,7 @@
+card "Splitskin Doll" {
+  oracle_id 934e2634-4b1c-4d92-b4d6-9241620f3770
+  cost {1}{W}
+  type Artifact Creature — Toy
+  pt 2/1
+  triggered when this enters: draw 1 card; then discard 1 card unless you control other creature with power 2 or less
+}

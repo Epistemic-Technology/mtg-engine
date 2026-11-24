@@ -1,0 +1,7 @@
+card "Aurora Champion" {
+  oracle_id a4499cf9-04a0-45c5-9c73-19f8e7e95da6
+  cost {2}{W}
+  type Creature — Elf Warrior
+  pt 3/2
+  triggered whenever this attacks if team controls other Warrior: tap target creature
+}

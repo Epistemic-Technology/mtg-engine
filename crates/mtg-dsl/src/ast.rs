@@ -531,10 +531,12 @@ pub enum CountExpr {
     GreatestPowerInGraveyard(Filter),
     /// `toughness of it` ("its toughness"), `power of that creature`
     /// ("that creature's power"): the triggering object's, as it last
-    /// existed.
+    /// existed. `mana value of that spell` (`spell`): "that spell's mana
+    /// value", the spell whose casting triggered (Thor, God of Thunder).
     TriggerStat {
         stat: mtg_core::card::Stat,
         that: bool,
+        spell: bool,
     },
     /// `power of attached`: what the source enchants or equips, "its
     /// power".
@@ -1586,7 +1588,13 @@ pub enum Ability {
     Tiered(Vec<(ManaCost, Mode)>),
     /// `equip abilities targeting this cost {2} less`: "Equip abilities
     /// you activate that target this creature cost {2} less to activate."
-    EquipDiscount(u8),
+    /// With `equipment`, `equipment abilities targeting this cost {1}
+    /// less`: "Activated abilities of Equipment you control that target
+    /// this creature cost {1} less to activate." (Bladegraft Aspirant).
+    EquipDiscount {
+        n: u8,
+        equipment: bool,
+    },
     /// `pawprint 5 { mode 1: ... mode 2: ... mode 3: ... }` (CR 700.2i):
     /// "Choose up to five {P} worth of modes. You may choose the same mode
     /// more than once." with each mode's number of pawprints.
@@ -2566,6 +2574,10 @@ pub enum StaticCond {
         filter: Filter,
         at_least: u32,
     },
+    /// `team controls other Warrior`: "your team controls another
+    /// Warrior" (Sickle Dancer). Outside a team game a player's team is
+    /// that player alone (CR 810.1), so it is `you control`.
+    TeamControls(Filter),
     /// `your turn`: "it's your turn"; `static during your turn, ...`
     /// prints "During your turn, ..." instead.
     YourTurn,
@@ -2632,6 +2644,10 @@ pub enum StaticCond {
     /// more +1/+1 counters on it" (Ingenious Prodigy; `1 or more` prints
     /// "a +1/+1 counter").
     SourceCountersOneOrMore(CounterKind),
+    /// `this doesn't have flying counter`: "this creature doesn't have a
+    /// flying counter on it" (Inventive Wingsmith; the same condition as
+    /// `this has no flying counters`, worded from the source).
+    SourceLacksCounter(CounterKind),
     /// `defending player controls Island`: "defending player controls an
     /// Island"; `at_least` 0, `defending player controls no Glimmer
     /// creature`: "... controls no Glimmer creatures".
@@ -3109,8 +3125,11 @@ pub enum ModeHead {
     UpTo(u8),
     /// `choose one unchosen`, `choose one unchosen this turn`: "choose one
     /// that hasn't been chosen [this turn] —" (an ability's modes, each
-    /// chosen at most once for the object, or once each turn).
-    Unchosen { this_turn: bool },
+    /// chosen at most once for the object, or once each turn). `stop`,
+    /// `choose one unchosen this turn stop`: the head ends with a period
+    /// rather than a dash ("... hasn't been chosen this turn." before the
+    /// bullets, Lita, Little Orphan Amphibian; wording only).
+    Unchosen { this_turn: bool, stop: bool },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -3920,8 +3939,11 @@ pub enum Mod {
     /// source chose as it entered).
     ChosenLandType,
     /// `add chosen type`: "is the chosen type in addition to its other
-    /// types".
-    AddChosenType,
+    /// types"; `add chosen creature type` (`creature`): "the chosen
+    /// creature type" (Lifecraft Engine; wording only).
+    AddChosenType {
+        creature: bool,
+    },
     /// `add supertype snow`: "is snow" (CR 205.4).
     AddSupertype(Supertype),
     AddSubtype(String),
@@ -5476,8 +5498,12 @@ pub enum Effect {
     Populate,
     /// `end the turn` (CR 724.1).
     EndTurn,
-    /// `incubate 2` (CR 701.53): the token is "Incubator".
-    Incubate(Num),
+    /// `incubate 2` (CR 701.53): the token is "Incubator". `you incubate
+    /// 2` (`you`): "you incubate 2" (Assimilate Essence; wording only).
+    Incubate {
+        count: Num,
+        you: bool,
+    },
     /// `discover 4` (CR 701.57).
     Discover(u32),
     /// Modular's "put its +1/+1 counters on [recipient]" (internal).
@@ -5771,6 +5797,9 @@ pub enum Effect {
         it: bool,
         /// `choose`: "Choose one of them. ... you may play that card."
         choose: bool,
+        /// `choose one`: "Choose one." for "Choose one of them." (Chandra,
+        /// Flameshaper; wording only).
+        choose_one: bool,
         /// `of target opponent`: "Target opponent exiles the top card of
         /// their library. You may play that card this turn."
         from: Option<Recipient>,

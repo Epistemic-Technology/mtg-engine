@@ -1,0 +1,8 @@
+card "Diregraf Escort" {
+  oracle_id f28a67d8-05ec-4d72-aa17-670ce1136f5c
+  cost {G}
+  type Creature — Human Cleric
+  pt 1/1
+  soulbond
+  static paired: has protection from Zombie
+}

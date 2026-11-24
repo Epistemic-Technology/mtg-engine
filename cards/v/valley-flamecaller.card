@@ -1,0 +1,7 @@
+card "Valley Flamecaller" {
+  oracle_id 60654004-7d9a-47ac-a70d-b246dd1728d3
+  cost {2}{R}
+  type Creature — Lizard Warlock
+  pt 3/3
+  replace damage from Lizard or Mouse or Otter or Raccoon you control to any: plus 1
+}

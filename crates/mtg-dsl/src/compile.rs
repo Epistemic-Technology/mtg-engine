@@ -603,8 +603,12 @@ impl Compiler<'_> {
                     let i = self.pool.intern_condition(c);
                     b = b.uncounterable_if(i, *unpreventable);
                 }
-                Ability::EquipDiscount(n) => {
-                    b = b.equip_discount(*n);
+                Ability::EquipDiscount { n, equipment } => {
+                    b = if *equipment {
+                        b.equipment_discount(*n)
+                    } else {
+                        b.equip_discount(*n)
+                    };
                 }
                 Ability::CondCost { delta, cond, .. } => {
                     let c = self.static_cond(cond);
@@ -1536,7 +1540,7 @@ impl Compiler<'_> {
                     | Ability::KeepsDamage
                     | Ability::Uncounterable
                     | Ability::UncounterableIf { .. }
-                    | Ability::EquipDiscount(_)
+                    | Ability::EquipDiscount { .. }
                     | Ability::AuraStays
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
@@ -2140,7 +2144,7 @@ impl Compiler<'_> {
         let mut singles = self.modes(modes, false, false)?;
         let n = singles.len();
         let most = match head {
-            ModeHead::Unchosen { this_turn } => {
+            ModeHead::Unchosen { this_turn, .. } => {
                 let once = if this_turn {
                     mtg_core::card::ModeOnce::ThisTurn
                 } else {
@@ -2311,10 +2315,12 @@ impl Compiler<'_> {
                 filter: self.filter(filter).who(Who::You),
                 at_least: *at_least,
             },
-            StaticCond::YouControlOneOrMore(filter) => StaticCondition::YouControl {
-                filter: self.filter(filter).who(Who::You),
-                at_least: 1,
-            },
+            StaticCond::TeamControls(filter) | StaticCond::YouControlOneOrMore(filter) => {
+                StaticCondition::YouControl {
+                    filter: self.filter(filter).who(Who::You),
+                    at_least: 1,
+                }
+            }
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
             StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
@@ -2357,6 +2363,11 @@ impl Compiler<'_> {
                 kind: *kind,
                 n: 1,
                 at_least: true,
+            },
+            StaticCond::SourceLacksCounter(kind) => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: 0,
+                at_least: false,
             },
             StaticCond::SourceCountersThere { kind, n } => StaticCondition::SourceCounters {
                 kind: *kind,
@@ -4738,7 +4749,7 @@ impl Compiler<'_> {
                 n: *n,
             }),
             Effect::Firebend(n) => out.push(CoreEffect::Firebend(*n)),
-            Effect::Earthbend { count, to } => out.push(CoreEffect::Earthbend {
+            Effect::Earthbend { count, to, .. } => out.push(CoreEffect::Earthbend {
                 count: *count,
                 to: r(*to),
             }),
@@ -4760,7 +4771,7 @@ impl Compiler<'_> {
                 };
                 out.push(CoreEffect::Recruit { token });
             }
-            Effect::Incubate(count) => {
+            Effect::Incubate { count, .. } => {
                 let Some(token) = self.pool.lookup(INCUBATOR) else {
                     return self.err(format!("unknown token \"{INCUBATOR}\""));
                 };
@@ -5652,7 +5663,7 @@ impl Compiler<'_> {
                 Modification::SetLandType(lands.first().copied().unwrap_or(Color::Green))
             }
             Mod::ChosenLandType => Modification::ChosenLandType,
-            Mod::AddChosenType => Modification::AddChosenType,
+            Mod::AddChosenType { .. } => Modification::AddChosenType,
             Mod::AddSubtype(s) => Modification::AddSubtype(self.pool.subtype(s)),
             Mod::AddSupertype(s) => Modification::AddSupertype(*s),
             Mod::SetSubtype(s) => Modification::SetCreatureType(self.pool.subtype(s)),
@@ -5812,7 +5823,7 @@ impl Compiler<'_> {
             Ability::Uncounterable | Ability::UncounterableIf { .. } => {
                 return self.err("\"can't be countered\" is a property of the spell");
             }
-            Ability::EquipDiscount(_) => {
+            Ability::EquipDiscount { .. } => {
                 return self.err("an equip discount is a property of the card");
             }
             Ability::AuraStays => {

@@ -427,9 +427,10 @@ impl Fmt {
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
-            Recipient::SameObject | Recipient::TriggeringIt | Recipient::SourceIt => {
-                "it".to_string()
-            }
+            Recipient::SameObject | Recipient::SourceIt => "it".to_string(),
+            // `triggering it`: the triggering object even after a target
+            // ("attach any number of target Equipment you control to it").
+            Recipient::TriggeringIt => "triggering it".to_string(),
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
             Recipient::SameTheToken => "the token".to_string(),
             Recipient::CreatedThat => "that created creature".to_string(),
@@ -934,7 +935,8 @@ impl Fmt {
             Effect::Recruit { you: false } => "recruit".to_string(),
             Effect::CloakTop => "cloak top".to_string(),
             Effect::Recruit { you: true } => "you recruit".to_string(),
-            Effect::Incubate(n) => format!("incubate {}", num(*n)),
+            Effect::Incubate { count, you: false } => format!("incubate {}", num(*count)),
+            Effect::Incubate { count, you: true } => format!("you incubate {}", num(*count)),
             Effect::Discover(n) => format!("discover {n}"),
             Effect::MoveSourceCounters { .. }
             | Effect::CumulativeUpkeep(_)
@@ -1285,6 +1287,7 @@ impl Fmt {
                 first,
                 it,
                 choose,
+                choose_one,
                 from,
                 possessive,
                 this_way,
@@ -1314,6 +1317,9 @@ impl Fmt {
                 }
                 if *choose {
                     s.push_str(" choose");
+                }
+                if *choose_one {
+                    s.push_str(" one");
                 }
                 if *this_way {
                     s.push_str(" this way");
@@ -3898,10 +3904,16 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             format!("greatest power graveyard {}", card_filter(f))
         }
         CountExpr::AttachedStat(stat) => format!("{} of attached", stat_word(*stat)),
-        CountExpr::TriggerStat { stat, that } => format!(
+        CountExpr::TriggerStat { stat, that, spell } => format!(
             "{} of {}",
             stat_word(*stat),
-            if *that { "that creature" } else { "it" }
+            if *spell {
+                "that spell"
+            } else if *that {
+                "that creature"
+            } else {
+                "it"
+            }
         ),
         CountExpr::MovedStat {
             verb,
@@ -5830,7 +5842,8 @@ fn modification(m: &Mod) -> String {
                 .join(" ")
         ),
         Mod::ChosenLandType => "set land chosen".to_string(),
-        Mod::AddChosenType => "add chosen type".to_string(),
+        Mod::AddChosenType { creature: false } => "add chosen type".to_string(),
+        Mod::AddChosenType { creature: true } => "add chosen creature type".to_string(),
         Mod::AddSubtype(s) => format!("add subtype {s}"),
         Mod::AddSupertype(s) => format!(
             "add supertype {}",
@@ -6023,6 +6036,7 @@ fn static_cond(c: &StaticCond) -> String {
             filter: fl,
             at_least: 1,
         } => format!("you control {}", filter(fl)),
+        StaticCond::TeamControls(fl) => format!("team controls {}", filter(fl)),
         StaticCond::YouControl {
             filter: fl,
             at_least,
@@ -6048,6 +6062,9 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::SourceCountersOneOrMore(kind) => {
             format!("this has one or more {} counters", kind.name())
+        }
+        StaticCond::SourceLacksCounter(kind) => {
+            format!("this doesn't have {} counter", kind.name())
         }
         StaticCond::SourceCountersThere { kind, n } => {
             format!("there are {n} or more {} counters on this", kind.name())
@@ -7537,10 +7554,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 static_cond(cond)
             );
         }
-        Ability::EquipDiscount(n) => {
+        Ability::EquipDiscount { n, equipment } => {
+            let word = if *equipment { "equipment" } else { "equip" };
             let _ = writeln!(
                 out,
-                "{indent}equip abilities targeting this cost {{{n}}} less"
+                "{indent}{word} abilities targeting this cost {{{n}}} less"
             );
         }
         Ability::AuraStays => {
@@ -8133,10 +8151,11 @@ fn mode_head_dsl(head: crate::ast::ModeHead) -> String {
     match head {
         crate::ast::ModeHead::OneOrMore => "choose one or more".to_string(),
         crate::ast::ModeHead::UpTo(n) => format!("choose up to {n}"),
-        crate::ast::ModeHead::Unchosen { this_turn: false } => "choose one unchosen".to_string(),
-        crate::ast::ModeHead::Unchosen { this_turn: true } => {
-            "choose one unchosen this turn".to_string()
-        }
+        crate::ast::ModeHead::Unchosen { this_turn, stop } => format!(
+            "choose one unchosen{}{}",
+            if this_turn { " this turn" } else { "" },
+            if stop { " stop" } else { "" }
+        ),
     }
 }
 

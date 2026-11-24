@@ -1,0 +1,9 @@
+card "Bladegraft Aspirant" {
+  oracle_id 644c785d-3061-44bc-9f78-bc939c565bf4
+  cost {2}{R}
+  type Creature — Phyrexian Warrior
+  pt 2/3
+  keywords menace
+  spells Equipment you cast cost {1} less
+  equipment abilities targeting this cost {1} less
+}

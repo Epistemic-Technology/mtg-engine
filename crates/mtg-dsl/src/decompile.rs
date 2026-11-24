@@ -1858,7 +1858,10 @@ impl Decompiler<'_> {
             CoreEffect::Airbend { what } => Effect::Airbend {
                 what: vec![r(*what)],
             },
-            CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
+            CoreEffect::Incubate { count, .. } => Effect::Incubate {
+                count: *count,
+                you: false,
+            },
             CoreEffect::Fabricate { .. }
             | CoreEffect::Hideaway { .. }
             | CoreEffect::BecomeRenowned => {
@@ -2039,6 +2042,7 @@ impl Decompiler<'_> {
                 first: *until != mtg_core::card::PlayUntil::YourNextEndStep,
                 it: false,
                 choose: *choose,
+                choose_one: false,
                 from: from.map(Self::recipient),
                 possessive: false,
                 this_way: false,
@@ -2613,7 +2617,7 @@ impl Decompiler<'_> {
             Modification::AddLandType(c) => Mod::AddLandType(*c),
             Modification::SetLandType(c) => Mod::SetLandType(*c),
             Modification::ChosenLandType => Mod::ChosenLandType,
-            Modification::AddChosenType => Mod::AddChosenType,
+            Modification::AddChosenType => Mod::AddChosenType { creature: false },
             Modification::AddSubtype(s) => Mod::AddSubtype(self.pool.subtype_name(*s).to_string()),
             Modification::AddSupertype(s) => Mod::AddSupertype(*s),
             Modification::SetCreatureType(s) => {

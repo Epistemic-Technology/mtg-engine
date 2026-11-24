@@ -1,0 +1,13 @@
+card "Chandra, Flameshaper" {
+  oracle_id 818f908c-9af6-4edc-bb0e-193bc830e2e4
+  cost {5}{R}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 6
+  loyalty +2: add {R}{R}{R}; impulse 3 this turn choose one
+  loyalty +1: create token copy of target creature you control with exceptions
+  loyalty -4: deal 8 damage divided among any number of target andor creature or planeswalker
+  except {
+    keywords haste
+    triggered at the beginning of the end step: sacrifice this
+  }
+}

@@ -1935,6 +1935,27 @@ impl<'a> Ctx<'a> {
             Recipient::ThatControllerOf(i) if self.target_noun[i] == "permanent or player" => {
                 "that player or that permanent's controller".to_string()
             }
+            // "target player or planeswalker. That player or that
+            // planeswalker's controller discards two cards." (Blightning).
+            Recipient::ThatControllerOf(i)
+                if matches!(
+                    self.targets.get(i).map(Target::base),
+                    Some(Target::Spec(
+                        TargetSpec::PlayerOrPlaneswalker | TargetSpec::OpponentOrPlaneswalker
+                    ))
+                ) =>
+            {
+                "that player or that planeswalker's controller".to_string()
+            }
+            // An exiled permanent is "that card", but its controller is the
+            // last-known one: "Exile target artifact or land. Structural
+            // Distortion deals 2 damage to that permanent's controller."
+            Recipient::ThatControllerOf(i)
+                if self.target_noun[i] == "card"
+                    && target_noun(&self.targets[i]) == "permanent" =>
+            {
+                "that permanent's controller".to_string()
+            }
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
             Recipient::TheTriggeringController => "the creature's controller".to_string(),
@@ -3332,7 +3353,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.enchanted_player {
         s.push_str(" enchanted player controls");
     }
-    if f.other_than_this {
+    // "Each creature you control of the chosen type other than this
+    // Vehicle" (Lifecraft Engine): after the choice.
+    let other_late = f.chosen.is_some() && !chosen_first;
+    if f.other_than_this && !other_late {
         let _ = write!(s, " other than {}", this_ref(card));
     }
     if f.not_attached {
@@ -3439,6 +3463,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         && !chosen_first
     {
         s.push_str(of_chosen(c));
+        if f.other_than_this {
+            let _ = write!(s, " other than {}", this_ref(card));
+        }
     }
     if !f.named_first {
         s.push_str(&same_phrase(f, card, plural_form));
@@ -4674,9 +4701,12 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     }
     // "it has haste and \"At the beginning of the end step, sacrifice
     // this token.\"": a spell's copy is a token, which its abilities
-    // name.
+    // name; so is a planeswalker's copy of a creature ("+1: Create a
+    // token that's a copy of target creature you control, except it has
+    // haste and \"At the beginning of the end step, sacrifice this
+    // token.\"", Chandra, Flameshaper).
     let token;
-    let about = if is_spell(card) {
+    let about = if is_spell(card) || card.types.contains(&CardType::Planeswalker) {
         let mut t = card.clone();
         t.kind = Kind::Token;
         t.types
@@ -5192,8 +5222,14 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             let sep = if p.contains(" and ") { " and " } else { " or " };
             return p.replacen(sep, " and/or ", 1);
         }
-        CountExpr::TriggerStat { stat, that } => {
-            let whose = if *that { "that creature's" } else { "its" };
+        CountExpr::TriggerStat { stat, that, spell } => {
+            let whose = if *spell {
+                "that spell's"
+            } else if *that {
+                "that creature's"
+            } else {
+                "its"
+            };
             return format!("{whose} {}", stat_word(*stat));
         }
         CountExpr::AttachedStat(stat) => return format!("its {}", stat_word(*stat)),
@@ -6302,7 +6338,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Recruit { you: true } => {
             Clause::with_subject(Recipient::You, "you".to_string(), "recruit".to_string())
         }
-        Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
+        Effect::Incubate { count, you: false } => {
+            Clause::imperative(format!("incubate {}", digits(*count)))
+        }
+        // "If they do, you incubate 2." (Assimilate Essence).
+        Effect::Incubate { count, you: true } => Clause::with_subject(
+            Recipient::You,
+            "you".to_string(),
+            format!("incubate {}", digits(*count)),
+        ),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
         Effect::Soulbond { .. } => Clause::imperative("pair them".to_string()),
         Effect::MoveSourceCounters { to } => {
@@ -6362,6 +6406,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             first,
             it,
             choose,
+            choose_one,
             from,
             possessive,
             this_way,
@@ -6421,7 +6466,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // "Choose one of them. Until the end of your next turn, you may
             // play that card."
-            let head = if *choose {
+            let head = if *choose_one {
+                format!("{head}. Choose one")
+            } else if *choose {
                 format!("{head}. Choose one of them")
             } else {
                 head
@@ -7034,7 +7081,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             rest_revealed,
         } => {
             let n = count_words(*count, "one");
-            let head = if *reveal_top {
+            let head = if *reveal_top && *count == Num::ThatMuch {
+                // "reveal that many cards from the top of your library"
+                // (Gishath, Sun's Avatar).
+                "reveal that many cards from the top of your library".to_string()
+            } else if *reveal_top {
                 format!("reveal the top {n} cards of your library")
             } else {
                 format!("look at the top {n} cards of your library")
@@ -7225,6 +7276,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Modes(modes) | Effect::ModesTwo(modes) | Effect::ModesOf(_, modes) => {
             let mut out = match e {
                 Effect::ModesTwo(_) => "choose two —".to_string(),
+                // "choose one that hasn't been chosen this turn." (Lita).
+                Effect::ModesOf(h @ crate::ast::ModeHead::Unchosen { stop: true, .. }, _) => {
+                    format!("{}.", mode_head_text(*h))
+                }
                 Effect::ModesOf(h, _) => format!("{} —", mode_head_text(*h)),
                 _ => "choose one —".to_string(),
             };
@@ -14104,6 +14159,10 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     let p = filter_a(f, ctx.card);
                     let by = if p.contains("permanent") {
                         p.replacen("permanent", "source", 1)
+                    } else if f.subtypes.len() > 1 || f.or.is_some() {
+                        // "If a Lizard, Mouse, Otter, or Raccoon you
+                        // control would deal damage" (Valley Flamecaller).
+                        p
                     } else {
                         p.replacen(" you control", " source you control", 1)
                     };
@@ -14828,9 +14887,10 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             v("is", "are"),
             with_article(s)
         ),
-        Mod::AddChosenType => format!(
-            "{} the chosen type in addition to {} other types",
+        Mod::AddChosenType { creature } => format!(
+            "{} the chosen {}type in addition to {} other types",
             v("is", "are"),
+            if *creature { "creature " } else { "" },
             v("its", "their")
         ),
         Mod::ChosenLandType => format!("{} the chosen type", v("is", "are")),
@@ -15023,9 +15083,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         let this = capitalize(&this_ref(card));
         let body = static_text(&f, mods, card, lookup);
         let rest = body.strip_prefix(&format!("{this} ")).unwrap_or(&body);
-        let keywords = mods.iter().all(|m| matches!(m, Mod::AddKeywords(_)));
+        // Keywords and protection are "both creatures have"; a quoted
+        // ability is "each of those creatures has" (Diregraf Escort).
         let tail = match rest.strip_prefix("has ") {
-            Some(r) if keywords => format!("both creatures have {r}"),
+            Some(r) if !r.starts_with('"') => format!("both creatures have {r}"),
             _ => format!("each of those creatures {rest}"),
         };
         let who = if named {
@@ -15109,7 +15170,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                 | Mod::AddLandType(_)
                 | Mod::AddSubtype(_)
                 | Mod::AddColors(_)
-                | Mod::AddChosenType
+                | Mod::AddChosenType { .. }
         )
     });
     let (subject, plural_form) = if filter.relation == Relation::This {
@@ -15472,6 +15533,18 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                     with_article(&words.join(" "))
                 )
             };
+        }
+    }
+    // "is a legendary Soldier in addition to its other types"
+    // (Super-Soldier Serum): a supertype and a subtype added together are
+    // one noun phrase.
+    for i in 0..mods.len().saturating_sub(1) {
+        if let (Mod::AddSupertype(Supertype::Legendary), Mod::AddSubtype(sub)) =
+            (&mods[i], &mods[i + 1])
+            && !plural_form
+        {
+            parts[i] = "\u{2}".to_string();
+            parts[i + 1] = format!("is a legendary {sub} in addition to its other types");
         }
     }
     // "is a Spider Hero in addition to its other types" (Spider-Suit):
@@ -15905,6 +15978,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             f.who = None;
             format!("you control one or more {}", filter_phrase(&f, card, true))
         }
+        // "if your team controls another Warrior" (Sickle Dancer).
+        StaticCond::TeamControls(filter) => static_cond_text(
+            &StaticCond::YouControl {
+                filter: filter.clone(),
+                at_least: 1,
+            },
+            card,
+        )
+        .replacen("you control", "your team controls", 1),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
         StaticCond::CastDuringMain => "you cast this spell during your main phase".to_string(),
@@ -15918,6 +16000,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             this_ref(card),
             kind.name()
         ),
+        StaticCond::SourceLacksCounter(kind) => {
+            let c = kind.name();
+            format!(
+                "{} doesn't have {} {c} counter on it",
+                this_ref(card),
+                article(c)
+            )
+        }
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on this {}",
             count_words(Num::N(*n), "one"),
@@ -17020,6 +17110,7 @@ pub(crate) fn equip_full_cost(cost: &crate::ast::Cost) -> bool {
 
 /// A static ability's text with its condition: "As long as <cond>, <text>"
 /// or "<text> as long as <cond>." ("During your turn, ..." for the turn).
+#[allow(clippy::too_many_lines)] // one wording per kind of condition
 fn conditional_static(
     body: &str,
     c: &StaticCond,
@@ -17048,7 +17139,9 @@ fn conditional_static(
         let this = format!("{} ", capitalize(&this_ref(card)));
         let rest = if matches!(
             c,
-            StaticCond::SourceCounters { .. } | StaticCond::SourceCountersOneOrMore(_)
+            StaticCond::SourceCounters { .. }
+                | StaticCond::SourceCountersOneOrMore(_)
+                | StaticCond::SourceLacksCounter(_)
         ) && body.starts_with(&this)
         {
             // "As long as this creature has four or more oil counters on
@@ -17588,7 +17681,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 Some(crate::ast::TrigCond::Static(c)) => {
                     out.push_str(", if ");
-                    let cond = static_cond_text(c, card);
+                    let mut cond = static_cond_text(c, card);
+                    // "if you haven't cast a spell from your hand this turn
+                    // and this enchantment isn't a creature, it becomes"
+                    // (Emergent Haunting): the source named in the second
+                    // half, "it" after.
+                    let names_source = matches!(c, StaticCond::And(_, b)
+                        if matches!(**b, StaticCond::Is(_) | StaticCond::Isnt(_)));
+                    if names_source {
+                        let this = this_ref(card);
+                        cond = cond
+                            .replacen(" and it isn't ", &format!(" and {this} isn't "), 1)
+                            .replacen(" and it's ", &format!(" and {this} is "), 1);
+                    }
                     out.push_str(&cond);
                     // "if Katara is tapped, put a +1/+1 counter on her": a
                     // condition naming the source by name.
@@ -17600,10 +17705,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // one about the source ("if there are no arrowhead
                     // counters on this artifact, sacrifice it").
                     ctx.source_mentioned = named
+                        || names_source
+                        || matches!(c, StaticCond::And(_, b)
+                            if matches!(**b, StaticCond::SourceLacksCounter(_)))
                         || matches!(
                             c,
                             StaticCond::SourceCounters { .. }
                                 | StaticCond::SourceCountersOneOrMore(_)
+                                | StaticCond::SourceLacksCounter(_)
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
                         );
@@ -18429,8 +18538,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 static_cond_text(cond, card)
             )
         }
-        Ability::EquipDiscount(n) => format!(
+        Ability::EquipDiscount {
+            n,
+            equipment: false,
+        } => format!(
             "Equip abilities you activate that target {} cost {{{n}}} less to activate.",
+            this_ref(card)
+        ),
+        Ability::EquipDiscount { n, equipment: true } => format!(
+            "Activated abilities of Equipment you control that target {} cost {{{n}}} less to \
+             activate.",
             this_ref(card)
         ),
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
@@ -19567,7 +19684,7 @@ fn mode_head_text(head: crate::ast::ModeHead) -> String {
         crate::ast::ModeHead::UpTo(n) => {
             format!("choose up to {}", count_words(Num::N(u32::from(n)), "one"))
         }
-        crate::ast::ModeHead::Unchosen { this_turn } => format!(
+        crate::ast::ModeHead::Unchosen { this_turn, .. } => format!(
             "choose one that hasn't been chosen{}",
             if this_turn { " this turn" } else { "" }
         ),
