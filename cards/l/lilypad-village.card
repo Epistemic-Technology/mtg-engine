@@ -1,0 +1,7 @@
+card "Lilypad Village" {
+  oracle_id 5bb06e6f-e3af-4caa-b66d-77248ad46b61
+  type Land
+  mana {C}
+  activated {T}: add {U} only to cast creature spell
+  activated {U}, {T}, if entered Bird or Frog or Otter or Rat this turn: surveil 2
+}

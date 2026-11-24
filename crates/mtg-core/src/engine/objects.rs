@@ -1788,8 +1788,12 @@ impl GameState {
                 self.log_event(TurnEvent::DamageTaken, p, amount);
                 if !combat {
                     self.log_event(TurnEvent::NoncombatDamaged, p, 1);
+                } else if src.as_ref().is_some_and(|c| {
+                    c.is_creature() && c.supertypes.contains(crate::card::Supertype::Legendary)
+                }) {
+                    self.log_event(TurnEvent::LegendaryCombatDamaged, p, 1);
                 }
-                self.note_damage_source(source);
+                self.note_damage_source(source, combat);
                 // CR 702.173a: an Assassin's combat damage enables
                 // freerunning for its controller this turn.
                 if combat
@@ -1902,7 +1906,7 @@ impl GameState {
                 }
                 self.bump();
                 self.sba_touch();
-                self.note_damage_source(source);
+                self.note_damage_source(source, combat);
                 self.emit(Event::Damage {
                     source,
                     target,
@@ -1950,7 +1954,15 @@ impl GameState {
 
     /// Remember that `source` dealt damage this turn ("creature that dealt
     /// damage this turn").
-    fn note_damage_source(&mut self, source: ObjId) {
+    fn note_damage_source(&mut self, source: ObjId, combat: bool) {
+        // "as long as it hasn't dealt damage yet": refreshed as it first
+        // does.
+        if self.pool.history(crate::card::CardPool::HISTORY_DAMAGE)
+            && !self.dealt_damage_ever.contains(&(source, combat))
+        {
+            self.dealt_damage_ever.push((source, combat));
+            self.cbump();
+        }
         if !self.dealt_damage_this_turn.contains(&source) {
             self.dealt_damage_this_turn.push(source);
             // "three or more sources you controlled dealt damage this
@@ -1993,6 +2005,15 @@ impl GameState {
         if kind == CounterKind::PlusOnePlusOne {
             self.log_event(TurnEvent::PlusCountersOn, on, 1);
             self.log_event(TurnEvent::PlusCountersBy, by, 1);
+        }
+        // "you've put one or more +1/+1 counters on this creature this
+        // turn": who put which kind on what (the bump below refreshes the
+        // statics that read it).
+        if self.pool.history(crate::card::CardPool::HISTORY_COUNTERS) {
+            let e = (id, by, kind == CounterKind::PlusOnePlusOne);
+            if !self.counters_put_this_turn.contains(&e) {
+                self.counters_put_this_turn.push(e);
+            }
         }
         self.cbump();
         // "if you put a counter on a creature this turn": asked once per

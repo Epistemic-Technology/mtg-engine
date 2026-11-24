@@ -311,6 +311,21 @@ impl Engine {
         }
         state.turn_number = setup.turn_number;
         state.step = setup.step;
+        // The turns each player has begun, taking turns in order with the
+        // active player's being this one ("your first, second, or third
+        // turn of the game").
+        let n = state.players.len();
+        let mut p = setup.active_player;
+        for k in 0..n {
+            let k32 = u32::try_from(k).unwrap_or(u32::MAX);
+            let n32 = u32::try_from(n).unwrap_or(u32::MAX);
+            state.player_mut(p).turns_begun = if setup.turn_number > k32 {
+                (setup.turn_number - 1 - k32) / n32 + 1
+            } else {
+                0
+            };
+            p = PlayerId(u8::try_from((p.index() + n - 1) % n).unwrap_or(0));
+        }
         // Permanents set up count as controlled since the turn began, so
         // they did not enter this turn either (power-up, CR 702.193a).
         state.turn_started_at = state.next_timestamp;
@@ -515,6 +530,9 @@ impl GameState {
             attacked_last_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
+            counters_put_this_turn: Vec::new(),
+            dealt_damage_ever: Vec::new(),
+            noncombat_last_turn: 0,
             entered_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
@@ -582,6 +600,7 @@ impl GameState {
                     energy: 0,
                     adventures_in_exile: 0,
                     lands_played_this_turn: 0,
+                    turns_begun: 0,
                     extra_land_plays: 0,
                     flashback_in_graveyard: 0,
                     max_hand_size: 7,
@@ -2974,6 +2993,7 @@ impl GameState {
     fn begin_game(&mut self) {
         self.turn_number = 1;
         self.active_player = self.starting_player;
+        self.player_mut(self.starting_player).turns_begun += 1;
         self.step = Step::Untap;
         self.emit(Event::TurnBegin {
             turn: 1,
@@ -3682,6 +3702,7 @@ impl GameState {
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
+            self.counters_put_this_turn.clear();
             self.entered_this_turn.clear();
             self.damaged_by_this_turn.clear();
             self.saddled.clear();
@@ -3706,6 +3727,12 @@ impl GameState {
             }
             let cast = self.turn_log.tally[crate::card::TurnEvent::Cast as usize];
             self.spells_last_turn = cast.map(|n| u8::try_from(n).unwrap_or(u8::MAX));
+            self.noncombat_last_turn = self.turn_log.tally
+                [crate::card::TurnEvent::NoncombatDamaged as usize]
+                .iter()
+                .enumerate()
+                .filter(|(_, n)| **n > 0)
+                .fold(0, |a, (i, _)| a | (1 << i));
             self.next_spell_less = [0; 4];
             self.next_spell_free.clear();
             self.next_uncounterable = 0;
@@ -3794,6 +3821,7 @@ impl GameState {
                     None => self.next_player_in_game(self.active_player),
                 },
             };
+            self.player_mut(self.active_player).turns_begun += 1;
             // CR 611.2b: "until your next turn" ends as that turn begins.
             let ends = Duration::UntilYourNextTurn(self.active_player);
             if self.effects.iter().any(|e| e.duration == ends) {

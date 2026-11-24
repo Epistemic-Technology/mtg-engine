@@ -116,6 +116,23 @@ fn digits(n: Num) -> String {
     }
 }
 
+/// "that was put there this turn" after a graveyard card's zone ("that
+/// were ..." for several), taken off the filter so its own phrase leaves
+/// it out.
+fn put_there_suffix(f: &mut Filter, plural: bool) -> String {
+    if !f.status.put_there_this_turn {
+        return String::new();
+    }
+    f.status.put_there_this_turn = false;
+    let anywhere = if std::mem::take(&mut f.put_there_anywhere) {
+        " from anywhere"
+    } else {
+        ""
+    };
+    let was = if plural { "were" } else { "was" };
+    format!(" that {was} put there{anywhere} this turn")
+}
+
 /// A turn-log count's noun phrase, singular and plural ("for each time you
 /// descended this turn", "the number of times you descended this turn").
 fn tally_nouns(t: crate::ast::Tally) -> (&'static str, &'static str) {
@@ -157,6 +174,10 @@ fn tally_nouns(t: crate::ast::Tally) -> (&'static str, &'static str) {
             "creature that attacked this turn",
             "creatures that attacked this turn",
         ),
+        Tally::LegendaryCombatDamaged => (
+            "opponent who was dealt combat damage by a legendary creature this turn",
+            "opponents who were dealt combat damage by a legendary creature this turn",
+        ),
     }
 }
 
@@ -185,6 +206,12 @@ fn tally_cond(t: crate::ast::Tally, n: u32) -> String {
         }
         Tally::LoyaltyActivated => format!("you've activated {k} loyalty abilities this turn"),
         Tally::CreaturesAttacked => format!("{k} creatures attacked this turn"),
+        Tally::LegendaryCombatDamaged if n == 1 => {
+            "an opponent was dealt combat damage by a legendary creature this turn".to_string()
+        }
+        Tally::LegendaryCombatDamaged => format!(
+            "an opponent was dealt combat damage by a legendary creature {k} times this turn"
+        ),
     }
 }
 
@@ -2004,7 +2031,13 @@ impl<'a> Ctx<'a> {
                 } else {
                     "target"
                 };
-                format!("{tgt} {} from {whose}", cards_phrase(&g, self.card, false))
+                // "target creature card from a graveyard that was put there
+                // this turn": after the zone.
+                let there = put_there_suffix(&mut g, false);
+                format!(
+                    "{tgt} {} from {whose}{there}",
+                    cards_phrase(&g, self.card, false)
+                )
             }
         }
     }
@@ -2781,6 +2814,8 @@ impl<'a> Ctx<'a> {
                 let mut filter = filter.clone();
                 filter.that_player = None;
                 filter.their = false;
+                let there = put_there_suffix(&mut filter, true);
+                let whose = format!("{whose}{there}");
                 let each = std::mem::take(&mut filter.each);
                 let filter = &filter;
                 if each {
@@ -3749,6 +3784,21 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.dealt_damage {
         s.push_str(" that dealt damage this turn");
+    }
+    if f.status.counters_put {
+        s.push_str(" that you've put one or more +1/+1 counters on this turn");
+    }
+    if f.status.put_there_this_turn {
+        let anywhere = if f.put_there_anywhere {
+            " from anywhere"
+        } else {
+            ""
+        };
+        if plural_form {
+            let _ = write!(s, " that were put there{anywhere} this turn");
+        } else {
+            let _ = write!(s, " that was put there{anywhere} this turn");
+        }
     }
     if f.status.blocked_this_turn {
         s.push_str(" that blocked this turn");
@@ -17731,6 +17781,51 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::DescendedThisTurn => "you descended this turn".to_string(),
         StaticCond::Tally { what, n } => tally_cond(*what, *n),
+        StaticCond::SourceHistory { what, not } => {
+            use mtg_core::card::SourceHistory as H;
+            let this = this_ref(card);
+            match (what, not) {
+                (H::CountersPut { plus: true }, false) => {
+                    format!("you've put one or more +1/+1 counters on {this} this turn")
+                }
+                (H::CountersPut { plus: true }, true) => {
+                    format!("you haven't put a +1/+1 counter on {this} this turn")
+                }
+                (H::CountersPut { plus: false }, false) => {
+                    format!("you put a counter on {this} this turn")
+                }
+                (H::CountersPut { plus: false }, true) => {
+                    format!("you didn't put a counter on {this} this turn")
+                }
+                (H::DealtDamage { combat }, not) => {
+                    let combat = if *combat { "combat " } else { "" };
+                    let it = it_subj(card);
+                    let has = match (card.pronoun, not) {
+                        (Some(crate::ast::Pronoun::They), true) => "haven't",
+                        (Some(crate::ast::Pronoun::They), false) => "have",
+                        (_, true) => "hasn't",
+                        (_, false) => "has",
+                    };
+                    if *not {
+                        format!("{it} {has} dealt {combat}damage yet")
+                    } else {
+                        format!("{it} {has} dealt {combat}damage")
+                    }
+                }
+                (H::EnteredThisTurn, false) => {
+                    format!("{this} entered the battlefield this turn")
+                }
+                (H::EnteredThisTurn, true) => {
+                    format!("{this} didn't enter the battlefield this turn")
+                }
+                (H::AttackedThisCombat, false) => format!("{this} attacked this combat"),
+                (H::AttackedThisCombat, true) => format!("{this} didn't attack this combat"),
+            }
+        }
+        StaticCond::EarlyTurn => "it's your first, second, or third turn of the game".to_string(),
+        StaticCond::OpponentNoncombatLastTurn => {
+            "an opponent was dealt noncombat damage last turn".to_string()
+        }
         StaticCond::SpellNumber(n) => {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
         }
@@ -18096,6 +18191,10 @@ fn conditional_static(
             // "As long as this creature has four or more oil counters on
             // it, it gets +2/+0."
             format!("it {}", &body[this.len()..])
+        } else if matches!(c, StaticCond::SourceHistory { .. }) && body.starts_with(&this) {
+            // "As long as you've put one or more +1/+1 counters on Beast
+            // this turn, he has flying."
+            format!("{} {}", it_subj(card), &body[this.len()..])
         } else if starts_with_name(body, card) {
             body.to_string()
         } else if matches!(
@@ -18669,6 +18768,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                                 | StaticCond::SourceLacksCounter(_)
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
+                                | StaticCond::SourceHistory { .. }
                         );
                     ctx.attached_mentioned = matches!(c, StaticCond::AttachedIs(_));
                     ctx.attached_by_cond = ctx.attached_mentioned;

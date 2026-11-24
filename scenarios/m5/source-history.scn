@@ -1,0 +1,227 @@
+# What a source did or had done to it (`SourceHistory`): counters put on
+# it this turn and by whom, damage it has dealt since it became this
+# object, entering this turn; a graveyard card put there this turn; your
+# first three turns of the game; an opponent dealt noncombat damage last
+# turn.
+
+scenario "Beast, Erudite Aerialist flies after you put a +1/+1 counter on him" {
+  battlefield A: "Beast, Erudite Aerialist", "Plains"
+  hand A: "Moment of Glory"
+  turn 1 A: cast "Moment of Glory" targeting "Beast, Erudite Aerialist"
+  run_to turn 1 postcombat_main
+  assert has "Beast, Erudite Aerialist" flying
+  run_to turn 2 upkeep
+  assert has not "Beast, Erudite Aerialist" flying
+}
+
+scenario "Beast, Erudite Aerialist doesn't fly without a counter this turn" {
+  battlefield A: "Beast, Erudite Aerialist" with 1 +1/+1
+  run_to turn 1 postcombat_main
+  assert has not "Beast, Erudite Aerialist" flying
+}
+
+scenario "Kid Loki gives hexproof only to the creature you put a +1/+1 counter on" {
+  battlefield A: "Kid Loki", "Grizzly Bears", "Hill Giant", "Plains"
+  hand A: "Moment of Glory"
+  turn 1 A: cast "Moment of Glory" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" hexproof
+  assert has not "Hill Giant" hexproof
+  assert has not "Kid Loki" hexproof
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" hexproof
+}
+
+scenario "Fractal Tender makes a Fractal at the end step after a counter was put on it" {
+  battlefield A: "Fractal Tender", "Plains"
+  hand A: "Moment of Glory"
+  turn 1 A: cast "Moment of Glory" targeting "Fractal Tender"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Fractal"
+  assert power "Fractal" 3
+  assert toughness "Fractal" 3
+}
+
+scenario "Fractal Tender: an opponent's -1/-1 counter isn't one you put" {
+  battlefield A: "Fractal Tender"
+  battlefield B: 4 "Mountain"
+  hand B: "Blur of Blades"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Blur of Blades" targeting "Fractal Tender"
+  run_to turn 3 upkeep
+  assert counters "Fractal Tender" -1/-1 1
+  assert battlefield A lacks "Fractal"
+}
+
+scenario "Fractal Tender makes nothing without a counter" {
+  battlefield A: "Fractal Tender"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Fractal"
+}
+
+scenario "Karakyk Guardian has hexproof until it deals damage" {
+  battlefield A: "Karakyk Guardian"
+  run_to turn 1 precombat_main
+  assert has "Karakyk Guardian" hexproof
+  turn 1 A: attack "Karakyk Guardian"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert has not "Karakyk Guardian" hexproof
+  run_to turn 3 upkeep
+  assert has not "Karakyk Guardian" hexproof
+}
+
+scenario "Karakyk Guardian keeps hexproof while it hasn't dealt damage" {
+  battlefield A: "Karakyk Guardian"
+  run_to turn 3 upkeep
+  assert has "Karakyk Guardian" hexproof
+}
+
+scenario "Ruric Thar loses hexproof once they deal combat damage" {
+  battlefield A: "Ruric Thar, Magecrusher"
+  run_to turn 1 precombat_main
+  assert has "Ruric Thar, Magecrusher" hexproof
+  turn 1 A: attack "Ruric Thar, Magecrusher"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert has not "Ruric Thar, Magecrusher" hexproof
+}
+
+scenario "Cactuar stays the turn it enters and returns at a later end step" {
+  battlefield A: "Forest"
+  hand A: "Cactuar"
+  turn 1 A: cast "Cactuar"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Cactuar"
+  run_to turn 4 upkeep
+  assert hand A contains "Cactuar"
+}
+
+scenario "Cactuar already on the battlefield returns at your end step" {
+  battlefield A: "Cactuar"
+  run_to turn 2 upkeep
+  assert hand A contains "Cactuar"
+}
+
+scenario "Starting Town enters untapped on your first turns" {
+  hand A: "Starting Town"
+  turn 1 A: play "Starting Town"
+  run_to turn 1 postcombat_main
+  assert untapped "Starting Town"
+}
+
+scenario "Starting Town enters untapped on your third turn" {
+  hand A: "Starting Town"
+  start turn 5 A precombat_main
+  turn 5 A: play "Starting Town"
+  run_to turn 5 postcombat_main
+  assert untapped "Starting Town"
+}
+
+scenario "Starting Town enters tapped on your fourth turn" {
+  hand A: "Starting Town"
+  start turn 7 A precombat_main
+  turn 7 A: play "Starting Town"
+  run_to turn 7 postcombat_main
+  assert tapped "Starting Town"
+}
+
+scenario "Starting Town counts your turns from a set-up position" {
+  battlefield A: "Island"
+  hand A: "Starting Town"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  turn 3 A: play "Starting Town"
+  run_to turn 3 postcombat_main
+  assert untapped "Starting Town"
+}
+
+scenario "Command the Stage makes a Cadet and grows the other Wizard tokens" {
+  battlefield A: 6 "Mountain"
+  hand A: "Command the Stage", "Command the Stage"
+  turn 1 A: cast "Command the Stage"
+  turn 1 A: wait
+  turn 1 A: cast "Command the Stage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Cadet"
+  assert counters oldest "Cadet" +1/+1 1
+  assert counters newest "Cadet" +1/+1 0
+}
+
+scenario "Command the Stage returns to hand after an opponent was dealt noncombat damage last turn" {
+  battlefield A: "Mountain"
+  graveyard A: "Command the Stage"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 draw
+  assert hand A contains "Command the Stage"
+}
+
+scenario "Command the Stage stays after only combat damage last turn" {
+  battlefield A: "Grizzly Bears"
+  graveyard A: "Command the Stage"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 2 draw
+  assert life B 18
+  assert graveyard A contains "Command the Stage"
+}
+
+scenario "Command the Stage: noncombat damage to you isn't to an opponent" {
+  battlefield A: "Mountain"
+  graveyard A: "Command the Stage"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 2 draw
+  assert life A 18
+  assert graveyard A contains "Command the Stage"
+}
+
+scenario "Night Nurse returns a permanent card put into your graveyard this turn" {
+  battlefield A: "Grizzly Bears", 3 "Plains", "Mountain"
+  hand A: "Lightning Bolt", "Night Nurse, Healer of Heroes"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Night Nurse, Healer of Heroes"
+  turn 1 A: wait
+  turn 1 precombat_main A: trigger "Night Nurse, Healer of Heroes" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Night Nurse can't choose a card put into the graveyard on an earlier turn" {
+  battlefield A: 2 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Night Nurse, Healer of Heroes"
+  turn 1 A: cast "Night Nurse, Healer of Heroes"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Lilypad Village surveils after a Rat entered under your control this turn" {
+  battlefield A: "Lilypad Village", "Island", "Swamp"
+  hand A: "Typhoid Rats"
+  library A: "Forest", "Plains", "Island"
+  turn 1 A: cast "Typhoid Rats"
+  turn 1 A: wait
+  turn 1 A: activate "Lilypad Village" ability 2
+  turn 1 precombat_main A: surveil "Forest", "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Plains"
+}
+
+scenario "Lilypad Village can't surveil with no Bird, Frog, Otter, or Rat entered this turn" {
+  battlefield A: "Lilypad Village", "Island", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Lilypad Village" ability 2
+  run_to turn 1 postcombat_main
+}
+
+scenario "Lilypad Village's blue mana casts only a creature spell" {
+  battlefield A: "Lilypad Village"
+  hand A: "Opt"
+  illegal turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+}

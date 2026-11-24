@@ -1151,6 +1151,10 @@ pub struct Filter {
     /// damage this turn" rather than "creature that was dealt damage this
     /// turn".
     pub damaged_short: bool,
+    /// `put there from anywhere this turn`: `status.put_there_this_turn`
+    /// printed "that was put there from anywhere this turn" rather than
+    /// "that was put there this turn".
+    pub put_there_anywhere: bool,
     /// `blocked` / `unblocked`, `with aura` / `without aura` ("enchanted
     /// permanent", "that isn't enchanted"), `that entered this turn`,
     /// `that dealt damage this turn`, `that blocked this turn`, `with mana
@@ -2791,10 +2795,14 @@ pub enum Tally {
     LoyaltyActivated,
     /// "creatures attacked this turn" (any player's).
     CreaturesAttacked,
+    /// "an opponent was dealt combat damage by a legendary creature this
+    /// turn".
+    LegendaryCombatDamaged,
 }
 
 impl Tally {
-    pub const ALL: [Tally; 9] = [
+    pub const ALL: [Tally; 10] = [
+        Tally::LegendaryCombatDamaged,
         Tally::LeftGraveyard,
         Tally::Descended,
         Tally::LandsEntered,
@@ -2825,6 +2833,17 @@ impl Tally {
             Tally::DamageSources => &["sources", "dealt", "damage", "this", "turn"],
             Tally::LoyaltyActivated => &["loyalty", "abilities", "activated", "this", "turn"],
             Tally::CreaturesAttacked => &["creatures", "attacked", "this", "turn"],
+            Tally::LegendaryCombatDamaged => &[
+                "opponent",
+                "dealt",
+                "combat",
+                "damage",
+                "by",
+                "legendary",
+                "creature",
+                "this",
+                "turn",
+            ],
         }
     }
 
@@ -2844,6 +2863,7 @@ impl Tally {
             Tally::DamageSources => TurnCount::of(E::DamageSource, W::You),
             Tally::LoyaltyActivated => TurnCount::of(E::LoyaltyActivated, W::You),
             Tally::CreaturesAttacked => TurnCount::of(E::Attacked, W::Anyone),
+            Tally::LegendaryCombatDamaged => TurnCount::of(E::LegendaryCombatDamaged, W::Opponent),
         }
     }
 
@@ -3186,6 +3206,23 @@ pub enum StaticCond {
         what: Tally,
         n: u32,
     },
+    /// What the source did or had done to it (`SourceHistory`), or with
+    /// `not` didn't: `this plus counters put this turn` ("you've put one
+    /// or more +1/+1 counters on this creature this turn"), `this counters
+    /// put this turn` ("you put a counter on this creature this turn"),
+    /// `this not dealt damage` ("it hasn't dealt damage yet"), `this not
+    /// dealt combat damage`, `this not entered this turn` ("this creature
+    /// didn't enter the battlefield this turn"), `this attacked this
+    /// combat` ("Tolsimir attacked this combat").
+    SourceHistory {
+        what: mtg_core::card::SourceHistory,
+        not: bool,
+    },
+    /// `early turn`: "it's your first, second, or third turn of the game".
+    EarlyTurn,
+    /// `opponent dealt noncombat damage last turn`: "an opponent was dealt
+    /// noncombat damage last turn".
+    OpponentNoncombatLastTurn,
     /// `spell number 2 this turn`: the spell being cast would be your
     /// second this turn ("The second spell you cast each turn costs {1}
     /// less to cast.").

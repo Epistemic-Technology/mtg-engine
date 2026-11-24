@@ -1,0 +1,9 @@
+card "Beast, Erudite Aerialist" {
+  oracle_id 191ba5f0-45f4-4b7f-910d-4bd4d2d28b33
+  cost {3}{G/U}
+  type Legendary Creature — Mutant Scientist Hero
+  pt 3/3
+  pronoun he
+  static as long as this plus counters put this turn, this: has flying
+  triggered whenever this deals combat damage to a player: draw 1 card
+}

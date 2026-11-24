@@ -1,0 +1,9 @@
+card "Fractal Tender" {
+  oracle_id cb45860a-1937-4803-b6d8-331a35be39fd
+  cost {3}{G}{U}
+  type Creature — Elf Wizard
+  pt 3/3
+  ward {2}
+  increment
+  triggered at beginning of every end if this counters put this turn: create 1 "0/0 green and blue Fractal creature" and put 3 +1/+1 counters on it
+}

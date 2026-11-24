@@ -5173,6 +5173,48 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond_one(&mut self) -> R<StaticCond> {
+        if self.eat_words(&["early", "turn"]) {
+            return Ok(StaticCond::EarlyTurn);
+        }
+        if self.eat_words(&["opponent", "dealt", "noncombat", "damage", "last", "turn"]) {
+            return Ok(StaticCond::OpponentNoncombatLastTurn);
+        }
+        // `this plus counters put this turn`, `this not dealt damage`, ...
+        if self.at_word("this") {
+            use mtg_core::card::SourceHistory as H;
+            let not = self.word_at(1).as_deref() == Some("not");
+            let k = 1 + usize::from(not);
+            let forms: [(&[&str], H); 6] = [
+                (
+                    &["plus", "counters", "put", "this", "turn"],
+                    H::CountersPut { plus: true },
+                ),
+                (
+                    &["counters", "put", "this", "turn"],
+                    H::CountersPut { plus: false },
+                ),
+                (
+                    &["dealt", "combat", "damage"],
+                    H::DealtDamage { combat: true },
+                ),
+                (&["dealt", "damage"], H::DealtDamage { combat: false }),
+                (&["entered", "this", "turn"], H::EnteredThisTurn),
+                (&["attacked", "this", "combat"], H::AttackedThisCombat),
+            ];
+            if let Some((ws, what)) = forms.iter().find(|(ws, _)| {
+                ws.iter()
+                    .enumerate()
+                    .all(|(i, w)| self.word_at(k + i).as_deref() == Some(*w))
+                    // `this dealt damage` must not be a longer phrase.
+                    && !matches!(
+                        self.word_at(k + ws.len()).as_deref(),
+                        Some("this" | "to" | "by")
+                    )
+            }) {
+                self.pos += k + ws.len();
+                return Ok(StaticCond::SourceHistory { what: *what, not });
+            }
+        }
         // `3 cards left your graveyard this turn` (`Tally`).
         if let Some(Tok::Num(_)) = self.peek()
             && let Some(what) = crate::ast::Tally::ALL.into_iter().find(|t| {
@@ -15414,6 +15456,13 @@ impl P {
                 Who::Any
             };
             self.expect_word("graveyard")?;
+            // `... from a graveyard put there this turn` (`put there from
+            // anywhere this turn`).
+            if self.eat_words(&["put", "there"]) {
+                f.status.put_there_this_turn = true;
+                f.put_there_anywhere = self.eat_words(&["from", "anywhere"]);
+                self.expect_words(&["this", "turn"])?;
+            }
             return Ok(Target::GraveyardCard {
                 filter: f,
                 who,
@@ -15955,6 +16004,19 @@ impl P {
                 "that" if self.at_words(&["that", "dealt", "damage", "this", "turn"]) => {
                     f.status.dealt_damage = true;
                     self.pos += 5;
+                }
+                "with" if self.at_words(&["with", "counters", "put", "this", "turn"]) => {
+                    f.status.counters_put = true;
+                    self.pos += 5;
+                }
+                "put" if self.at_words(&["put", "there", "this", "turn"]) => {
+                    f.status.put_there_this_turn = true;
+                    self.pos += 4;
+                }
+                "put" if self.at_words(&["put", "there", "from", "anywhere", "this", "turn"]) => {
+                    f.status.put_there_this_turn = true;
+                    f.put_there_anywhere = true;
+                    self.pos += 6;
                 }
                 "that" if self.at_words(&["that", "blocked", "this", "turn"]) => {
                     f.status.blocked_this_turn = true;

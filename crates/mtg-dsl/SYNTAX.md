@@ -956,7 +956,28 @@ activated a loyalty ability this turn"; with 2 or more, "you've
 activated two or more loyalty abilities this turn"), and `3 creatures
 attacked this turn` ("three or more creatures attacked this turn", any
 player's; only a condition, the count being `creature attacked this
-turn`). A
+turn`), and `1 opponent dealt combat damage by legendary creature this
+turn` ("an opponent was dealt combat damage by a legendary creature this
+turn"). About the source (negated with `not` after `this`): `this plus
+counters put this turn` ("you've put one or more +1/+1 counters on Beast
+this turn"; "As long as ..., he has flying" with the source as subject),
+`this counters put this turn` ("you put a counter on this creature this
+turn", any kind), both by the ability's controller; `this not dealt
+damage` ("it hasn't dealt damage yet", since it became this object),
+`this not dealt combat damage` ("they haven't dealt combat damage yet"
+with `pronoun they`); `this not entered this turn` ("this creature didn't
+enter the battlefield this turn"; "it" after); `this attacked this combat`
+("Tolsimir attacked this combat"). `early turn`: "it's your first,
+second, or third turn of the game" (CR 500.1; a set-up position counts
+the turns as if the players had taken them in order from turn 1);
+`opponent dealt noncombat damage last turn`: "an opponent was dealt
+noncombat damage last turn". A filter's `with counters put this turn`
+prints "that you've put one or more +1/+1 counters on this turn" (by the
+permanent's controller: "Each creature you control that ..."), and a
+graveyard card target's `... from a graveyard put there this turn`
+(`put there from anywhere this turn`) prints "... from a graveyard that
+was put there this turn" (Night Nurse: "target permanent card in your
+graveyard that was put there from anywhere this turn"). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).

@@ -70,6 +70,7 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
                     | TurnEvent::CreatureCardToGraveyard
                     | TurnEvent::DamageSource
                     | TurnEvent::LoyaltyActivated
+                    | TurnEvent::LegendaryCombatDamaged
             )
             || (count.kind, count.who) == (TurnEvent::Attacked, TurnWho::Anyone))
     {
@@ -135,7 +136,8 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
             | TurnEvent::CreatureExiled
             | TurnEvent::CreatureCardToGraveyard
             | TurnEvent::DamageSource
-            | TurnEvent::LoyaltyActivated,
+            | TurnEvent::LoyaltyActivated
+            | TurnEvent::LegendaryCombatDamaged,
             ..,
         ) => unreachable!("worded as a tally"),
     }
@@ -381,6 +383,7 @@ impl Decompiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             damaged_short: false,
+            put_there_anywhere: false,
             each: false,
             status: f.status,
             chosen: (f.chosen && f.status.equal_chosen.is_none())
@@ -778,7 +781,13 @@ impl Decompiler<'_> {
                 StaticCond::FlashPay(2)
             }
             StaticCondition::SorceryTiming => StaticCond::Not(Box::new(StaticCond::FlashPay(2))),
-            StaticCondition::Not(a) => StaticCond::Not(Box::new(self.static_cond(a))),
+            StaticCondition::Not(a) => match &**a {
+                StaticCondition::SourceHistory(what) => StaticCond::SourceHistory {
+                    what: *what,
+                    not: true,
+                },
+                _ => StaticCond::Not(Box::new(self.static_cond(a))),
+            },
             StaticCondition::Or(a, b)
                 if **a == StaticCondition::happened(TurnEvent::Scried, TurnWho::You)
                     && **b == StaticCondition::happened(TurnEvent::Surveilled, TurnWho::You) =>
@@ -841,6 +850,13 @@ impl Decompiler<'_> {
                 },
                 None => happened(count, *cmp, *n),
             },
+            StaticCondition::SourceHistory(what) => StaticCond::SourceHistory {
+                what: *what,
+                not: false,
+            },
+
+            StaticCondition::EarlyTurn(_) => StaticCond::EarlyTurn,
+            StaticCondition::OpponentNoncombatLastTurn => StaticCond::OpponentNoncombatLastTurn,
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,

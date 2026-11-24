@@ -1365,6 +1365,15 @@ pub struct StatusQuals {
     /// its back face up (CR 701.27g).
     #[serde(default)]
     pub transformed: bool,
+    /// "creature you control that you've put one or more +1/+1 counters on
+    /// this turn": its controller put +1/+1 counters on it this turn
+    /// (`GameState::counters_put_this_turn`).
+    #[serde(default)]
+    pub counters_put: bool,
+    /// "card in a graveyard that was put there this turn": it went to the
+    /// graveyard this turn (its timestamp is this turn's).
+    #[serde(default)]
+    pub put_there_this_turn: bool,
     /// "a spell that's both white and black": `ObjFilter::colors` must
     /// all be the object's, not just one (CR 105.2). A characteristic, not
     /// game state: `any` leaves it out.
@@ -1468,6 +1477,8 @@ impl StatusQuals {
             || self.on.is_some()
             || self.face_down
             || self.transformed
+            || self.counters_put
+            || self.put_there_this_turn
             || self.morph
             || self.suspected.is_some()
             || self.you_own
@@ -2948,11 +2959,15 @@ pub enum TurnEvent {
     /// Loyalty abilities the player activated (CR 606.3; "if you've
     /// activated a loyalty ability this turn").
     LoyaltyActivated,
+    /// Times the player was dealt combat damage by a legendary creature
+    /// ("if an opponent was dealt combat damage by a legendary creature
+    /// this turn").
+    LegendaryCombatDamaged,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 39;
+    pub const COUNT: usize = 40;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -2980,7 +2995,8 @@ impl TurnEvent {
             | TurnEvent::Exiled
             | TurnEvent::CreatureCardToGraveyard
             | TurnEvent::DamageSource
-            | TurnEvent::LoyaltyActivated => true,
+            | TurnEvent::LoyaltyActivated
+            | TurnEvent::LegendaryCombatDamaged => true,
             TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
@@ -3027,6 +3043,24 @@ pub enum TurnWho {
     /// Every opponent's together ("the number of creatures that were
     /// exiled under your opponents' control this turn").
     Opponents,
+}
+
+/// What a source-history condition asks about the source
+/// (`StaticCondition::SourceHistory`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SourceHistory {
+    /// "you've put one or more +1/+1 counters on this creature this turn"
+    /// (`plus`), "you put a counter on this creature this turn".
+    CountersPut { plus: bool },
+    /// "it has dealt damage" (`combat`: combat damage) since it became
+    /// this object, negated for "as long as it hasn't dealt damage yet".
+    DealtDamage { combat: bool },
+    /// "this creature entered the battlefield this turn", negated for
+    /// "if this creature didn't enter the battlefield this turn".
+    EnteredThisTurn,
+    /// "if Tolsimir attacked this combat": declared as an attacker in the
+    /// current combat.
+    AttackedThisCombat,
 }
 
 /// "Events of kind K by player P this turn": what a `StaticCondition::
@@ -3454,6 +3488,14 @@ pub enum StaticCondition {
     /// printed characteristics. A static ability with it bumps the
     /// characteristics cache as that card changes (`DefFlags::TOP_STATIC`).
     TopCard(ObjFilter),
+    /// What the source did or had done to it (`SourceHistory`).
+    SourceHistory(SourceHistory),
+    /// "it's your first, second, or third turn of the game": it's your
+    /// turn, and one of your first `n` (`PlayerState::turns_begun`).
+    EarlyTurn(u32),
+    /// "an opponent was dealt noncombat damage last turn"
+    /// (`GameState::noncombat_last_turn`).
+    OpponentNoncombatLastTurn,
 }
 
 impl StaticCondition {
@@ -11085,6 +11127,9 @@ pub struct CardPool {
     /// Whether any ability does: until one is registered, nothing looks
     /// for granters.
     pub granter_abilities: bool,
+    /// Which per-object histories the game keeps for the cards in the
+    /// pool (`CardPool::HISTORY_COUNTERS`, `HISTORY_DAMAGE`).
+    history: u8,
     /// Whether some card has `CardDef::equip_discount`, so equip
     /// abilities' costs depend on their targets (and, with
     /// `CardDef::equipment_discount`, any targeted ability of an
@@ -11197,6 +11242,7 @@ impl CardPool {
             counts_owner: Vec::new(),
             names_granter: Vec::new(),
             granter_abilities: false,
+            history: 0,
             equip_discounts: false,
             card_grants: false,
             spend_grants: false,
@@ -12543,6 +12589,23 @@ impl CardPool {
     /// The creature types prowl cards in the pool watch.
     pub fn prowl_types(&self) -> &[Subtype] {
         &self.prowl_types
+    }
+
+    /// Counters put on permanents this turn, by whom
+    /// (`GameState::counters_put_this_turn`).
+    pub const HISTORY_COUNTERS: u8 = 1;
+    /// Damage each source has dealt (`GameState::dealt_damage_ever`).
+    pub const HISTORY_DAMAGE: u8 = 2;
+
+    /// A card in the pool reads a per-object history: the game keeps it.
+    pub fn note_history(&mut self, h: u8) {
+        self.history |= h;
+    }
+
+    /// Whether the game keeps a per-object history.
+    #[must_use]
+    pub const fn history(&self, h: u8) -> bool {
+        self.history & h != 0
     }
 
     /// The Assassin type, if a card with freerunning is in the pool.
