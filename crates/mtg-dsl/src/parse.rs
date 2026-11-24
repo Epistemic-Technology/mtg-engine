@@ -1861,6 +1861,10 @@ impl P {
         if self.eat_word("produced") {
             return Ok(Effect::AddManaProduced);
         }
+        // "Add one mana of any of the exiled cards' colors." (CR 607.2a).
+        if self.eat_words(&["exiled", "color"]) {
+            return Ok(Effect::AddManaExiledColors);
+        }
         // "For each color among permanents you control, add one mana of
         // that color."
         if self.eat_words(&["each", "color", "among"]) {

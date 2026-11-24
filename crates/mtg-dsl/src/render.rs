@@ -12083,6 +12083,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("add {joined}"))
         }
+        Effect::AddManaExiledColors => {
+            Clause::imperative("add one mana of any of the exiled cards' colors".to_string())
+        }
         Effect::AddManaProduced => Clause::imperative(
             "add one mana of any type that permanent produced".to_string(),
         ),

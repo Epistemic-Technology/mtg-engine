@@ -1447,6 +1447,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::AddManaCommander { rider } => Effect::AddManaCommander { rider: *rider },
             CoreEffect::AddManaProduced => Effect::AddManaProduced,
+            CoreEffect::AddManaExiledColors => Effect::AddManaExiledColors,
             CoreEffect::AddManaOneOfTimes { colors, count } => Effect::AddManaOneOfTimes {
                 mana: colors.iter().map(mtg_core::mana::Mana::Colored).collect(),
                 count: *count,

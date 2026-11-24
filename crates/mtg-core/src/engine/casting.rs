@@ -13290,6 +13290,23 @@ impl GameState {
                     self.bump();
                 }
             }
+            Effect::AddManaExiledColors => {
+                let p = ctx.controller;
+                let colors = self.exiled_colors(ctx.source);
+                let options: Vec<Choice> = colors.iter().map(Choice::Color).collect();
+                let m = match options.len() {
+                    0 => None,
+                    1 => Some(options[0].clone()),
+                    _ => {
+                        let k = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                        Some(options[k.min(options.len() - 1)].clone())
+                    }
+                };
+                if let Some(Choice::Color(c)) = m {
+                    self.player_mut(p).mana_pool.add(Mana::Colored(c));
+                    self.bump();
+                }
+            }
             Effect::AddManaColorsAmong(filter) => {
                 let p = ctx.controller;
                 let seen = self.colors_among(p, filter, ctx.source);

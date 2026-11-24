@@ -417,6 +417,22 @@ impl GameState {
         !triggers.is_empty() || times > 1
     }
 
+    /// The colors among the cards `source` exiled that are still in exile
+    /// (CR 607.2a), each judged as the card is (CR 406.3: a face-down one
+    /// has none).
+    pub(super) fn exiled_colors(&self, source: ObjId) -> ColorSet {
+        let mut seen = ColorSet::default();
+        for id in self.exiled_with(source) {
+            if self.objects[id].exiled_face_down() {
+                continue;
+            }
+            for col in self.base_characteristics(&self.objects[id]).colors.iter() {
+                seen = seen.with(col);
+            }
+        }
+        seen
+    }
+
     /// The colors among the permanents `p` controls matching `filter`
     /// ("For each color among permanents you control"), for `src`'s
     /// filter.
@@ -872,6 +888,13 @@ impl GameState {
                 Effect::AddManaColorsAmong(f) => {
                     for c in self.colors_among(ctx.controller, f, id).iter() {
                         made.out.push(1 << (c as u8));
+                    }
+                }
+                // "one mana of any of the exiled cards' colors".
+                Effect::AddManaExiledColors => {
+                    let k = color_kinds(self.exiled_colors(id));
+                    if k != 0 {
+                        made.out.push(k);
                     }
                 }
                 // "Add {C}. If you control an Urza's Mine and an Urza's

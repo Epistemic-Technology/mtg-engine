@@ -4267,6 +4267,7 @@ impl Compiler<'_> {
                 any_type: *any_type,
             }),
             Effect::AddManaProduced => out.push(CoreEffect::AddManaProduced),
+            Effect::AddManaExiledColors => out.push(CoreEffect::AddManaExiledColors),
             Effect::AddManaOneOfTimes { mana, count, each } => {
                 let mut colors = mtg_core::mana::ColorSet::COLORLESS;
                 for m in mana {
@@ -9317,6 +9318,15 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // card its abilities exile is linked to the permanent (the engine
     // records them as the abilities resolve).
     if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
+    // "Add one mana of any of the exiled cards' colors." (Pit of
+    // Offerings): what its abilities exile.
+    if def.abilities.iter().any(|a| {
+        a.all_effects()
+            .iter()
+            .any(|e| matches!(e, CoreEffect::AddManaExiledColors))
+    }) {
         def.links_exile = true;
     }
     // "As long as ..., you may cast the exiled card" (Null Summoner): a

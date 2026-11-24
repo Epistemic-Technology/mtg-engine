@@ -5995,6 +5995,9 @@ pub enum Effect {
     /// type that land produced" (Mana Flare, CR 106.12): a kind of the mana
     /// the tapped permanent made.
     AddManaProduced,
+    /// `add exiled color`: "Add one mana of any of the exiled cards'
+    /// colors."
+    AddManaExiledColors,
     /// `add each color among permanent you control`: "For each color among
     /// permanents you control, add one mana of that color."
     AddManaColorsAmong(Filter),

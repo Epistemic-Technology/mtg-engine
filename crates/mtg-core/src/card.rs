@@ -5151,6 +5151,11 @@ pub enum Effect {
     /// permanent just made (`GameState::tapped_produced`); of several
     /// kinds, the one it made most of (the engine picks).
     AddManaProduced,
+    /// "Add one mana of any of the exiled cards' colors." (Pit of
+    /// Offerings, CR 607.2a): one mana of a color among the cards its
+    /// source exiled that are still in exile (its controller chooses);
+    /// none without a colored one.
+    AddManaExiledColors,
     /// "For each color among permanents you control, add one mana of that
     /// color" (vivid): one mana of each color among the controller's
     /// permanents matching the filter.
@@ -6820,6 +6825,7 @@ impl Effect {
             | Effect::AddManaCombination { .. }
             | Effect::AddManaLandCould { .. }
             | Effect::AddManaProduced
+            | Effect::AddManaExiledColors
             | Effect::AddManaColorsAmong(_)
             | Effect::AddManaOneOfTimes { .. }
             | Effect::AddManaCommander { .. } => true,
@@ -6894,6 +6900,7 @@ impl Effect {
                 | Effect::Search { .. }
                 | Effect::AddMana(_)
                 | Effect::AddManaOneOf(_)
+                | Effect::AddManaExiledColors
                 | Effect::AddManaTimes { .. }
                 | Effect::AddManaTwoColors(_)
                 | Effect::AddManaCombination { .. }

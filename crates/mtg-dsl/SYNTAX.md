@@ -3098,7 +3098,7 @@ mana as steps and phases end.": all the controller's red mana stays as
 each step ends this turn, until the cleanup step), `add each color among permanent you control` ("For each color among
 permanents you control, add one mana of that color."; any filter:
 `add each color among monocolored permanent you control`, "... among
-monocolored permanents you control ..."; payment uses it), `add {G} 6` ("Add six {G}.", Castle Garenbrig), `add {R} that much` ("add that much {R}", the triggering event's amount:
+monocolored permanents you control ..."; payment uses it), `add exiled color` ("Add one mana of any of the exiled cards' colors.", Pit of Offerings: a color among the cards the source's abilities exiled that are still in exile, CR 607.2a; its controller chooses; none for colorless or face-down cards; payment uses it), `add {G} 6` ("Add six {G}.", Castle Garenbrig), `add {R} that much` ("add that much {R}", the triggering event's amount:
 "Whenever Raphael is dealt damage, add that much {R}"), `add any 2` ("Add
 two mana of any one color."; `add any count where power`: "Add X mana of
 any one color, where X is this creature's power.", the color chosen once;

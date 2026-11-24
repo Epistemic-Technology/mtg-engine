@@ -3023,6 +3023,7 @@ impl Fmt {
             },
             Effect::AddManaTwoColors(n) => format!("add any {n} and any {n} other"),
             Effect::AddManaProduced => "add produced".to_string(),
+            Effect::AddManaExiledColors => "add exiled color".to_string(),
             Effect::AddManaOneOfTimes { mana, count, each } => {
                 let syms: Vec<String> = mana
                     .iter()
