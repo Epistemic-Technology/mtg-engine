@@ -7,7 +7,7 @@
 use super::{CostBasis, Sources, Spend};
 use crate::card::{
     AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, CardGrant, CardType, Cost,
-    GrantedWay, ObjFilter, SacCost, TypeSet,
+    GrantedWay, GraveRider, ObjFilter, SacCost, TypeSet,
 };
 use crate::decision::Choice;
 use crate::ids::{ObjId, PlayerId};
@@ -69,6 +69,77 @@ impl GameState {
     #[inline]
     pub(in crate::engine) fn card_grants_live(&self) -> bool {
         self.pool.card_grants && self.player_static_sources > 0
+            || !self.grave_turn_grants.is_empty()
+    }
+
+    /// The permission to cast `card` from its owner's graveyard a grant
+    /// or an until-end-of-turn permission gives `p` (`GrantedWay::Cast`,
+    /// `Effect::GraveCastTurn`), if any: one without an added cost or a
+    /// finality counter first (CR 601.3: the player chooses which
+    /// permission to use). Judged where the card is or, on the stack,
+    /// where it was cast from.
+    pub(in crate::engine) fn grave_permission<'a>(
+        &'a self,
+        p: PlayerId,
+        card: ObjId,
+    ) -> Option<&'a GraveRider> {
+        let o = self.objects.get(card)?;
+        if o.owner != p {
+            return None;
+        }
+        // Fewer riders first: no added cost, then no finality counter.
+        let rank = |r: &GraveRider| (r.costs(), r.finality);
+        let take = |r: &'a GraveRider, found: &mut Option<&'a GraveRider>| {
+            if found.is_none_or(|b| rank(r) < rank(b)) {
+                *found = Some(r);
+            }
+        };
+        let mut found: Option<&'a GraveRider> = None;
+        if !self.grave_turn_grants.is_empty() {
+            let zone = if o.zone == Zone::Stack {
+                o.cast.cast_from()
+            } else {
+                Some(o.zone)
+            };
+            if zone == Some(Zone::Graveyard) {
+                let chars = self.base_characteristics(o);
+                for (who, f, r) in &self.grave_turn_grants {
+                    if *who == p && f.matches(card, o.owner, &chars, None, Some(p)) {
+                        take(r, &mut found);
+                    }
+                }
+            }
+        }
+        if self.pool.card_grants && self.player_static_sources > 0 {
+            for g in self.grants_of(card) {
+                if let GrantedWay::Cast(r) = g {
+                    take(r, &mut found);
+                }
+            }
+        }
+        found
+    }
+
+    /// Whether `Choice::Cast` of the graveyard card `id` would cast it by
+    /// a permission to cast from a graveyard (`grave_permission`): it has
+    /// no other way to be cast from there that `cast_way_of` takes first
+    /// (flashback, its own or given; escape; mayhem the turn it was
+    /// discarded; jump-start or retrace given; aftermath; "You may cast
+    /// this card from your graveyard" given until end of turn).
+    pub(in crate::engine) fn grave_way_open(&self, id: ObjId, def: &crate::card::CardDef) -> bool {
+        let discarded = self.mayhem_discarded.contains(&id);
+        let own = def.flashback.is_some()
+            || def.escape.is_some()
+            || (def.mayhem.is_some() && discarded)
+            || def.keywords.contains(crate::card::Keyword::Aftermath);
+        let until_eot =
+            self.granted_flashback.contains(&id) || self.granted_graveyard_cast.contains(&id);
+        let granted = self.pool.card_grants
+            && self.player_static_sources > 0
+            && (self.granted_flashback(id).is_some()
+                || self.granted_discard_way(id).is_some()
+                || (discarded && self.granted_mayhem(id).is_some()));
+        !(own || until_eot || granted)
     }
 
     /// The card grants in force: each with its source and the source's
@@ -237,6 +308,7 @@ impl GameState {
     /// its warp cost, and the abilities activated from those zones.
     #[cold]
     #[inline(never)]
+    #[allow(clippy::too_many_lines)] // one block per granted way
     pub(in crate::engine) fn card_grant_options(
         &self,
         p: PlayerId,
@@ -256,7 +328,19 @@ impl GameState {
                     self.graveyard_ability_options(p, id, a, ab, sorcery_timing, sources, options);
                 }
             }
-            if def.is_land() || options.contains(&Choice::Cast(id)) {
+            // CR 601.3, 305.1: "During your turn, you may play cards from
+            // your graveyard." (Hades), a land with a land play.
+            if def.is_land() {
+                if sorcery_timing
+                    && !options.contains(&Choice::PlayLand(id))
+                    && self.grave_permission(p, id).is_some_and(|r| r.lands)
+                    && self.may_play_another_land(p)
+                {
+                    options.push(Choice::PlayLand(id));
+                }
+                continue;
+            }
+            if options.contains(&Choice::Cast(id)) {
                 continue;
             }
             // CR 702.190a: "You may cast creature spells from your
@@ -321,6 +405,25 @@ impl GameState {
                 && self.granted_castable(
                     p,
                     &self.offer_basis(p, id, def, AltCast::Mayhem),
+                    sorcery_timing,
+                    sources,
+                    changers,
+                )
+            {
+                options.push(Choice::Cast(id));
+                continue;
+            }
+            // CR 601.3: "You may cast artifact spells from your graveyard
+            // by paying 3 life in addition to paying their other costs."
+            // (Noctis): for its costs and the rider's, with its usual
+            // timing. A card's own way from the graveyard comes first
+            // (`cast_way_of` takes the same order).
+            if self.grave_way_open(id, def)
+                && let Some(r) = self.grave_permission(p, id)
+                && self.additional_payable(p, &r.cost(), id)
+                && self.granted_castable(
+                    p,
+                    &self.offer_basis(p, id, def, AltCast::None),
                     sorcery_timing,
                     sources,
                     changers,

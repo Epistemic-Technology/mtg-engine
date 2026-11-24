@@ -1676,6 +1676,12 @@ pub enum Granted {
     /// An activated keyword ability, activated from the cards' zone:
     /// `slivercycling {3}`, `cycling {2}`, `unearth {2}`.
     Ability(Box<Ability>),
+    /// `cast`, `cast by pay 3 life finality`, `cast by pay 1 life brief`,
+    /// `play`, in a graveyard: "You may cast artifact spells from your
+    /// graveyard by paying 3 life in addition to paying their other
+    /// costs. If you cast a spell this way, that artifact enters with a
+    /// finality counter on it.", "You may play cards from your graveyard."
+    Cast(mtg_core::card::GraveRider),
 }
 
 /// Whose activated abilities an `Ability::ActivationCost` changes
@@ -3297,6 +3303,9 @@ pub enum StaticCond {
     /// `cast from anywhere other than hand`: "this spell was cast from
     /// anywhere other than your hand".
     NotCastFromHand,
+    /// `not cast from hand`: "this spell wasn't cast from your hand" (a
+    /// copy wasn't cast, so it qualifies).
+    WasntCastFromHand,
     /// `you cast it`: "you cast it" (from any zone).
     WasCast,
     /// `that creature entered from graveyard or you cast it from
@@ -3614,9 +3623,13 @@ pub enum Replaces {
         whose: Who,
         library_empty: bool,
     },
+    /// `card put into your graveyard`; `card or token put into your
+    /// graveyard` ("If a card or token would be put into your graveyard
+    /// from anywhere").
     ToGraveyard {
         whose: Who,
         from_battlefield: bool,
+        tokens: bool,
     },
     /// `instant or sorcery card put into a graveyard`: "If an instant or
     /// sorcery card would be put into a graveyard from anywhere".
@@ -6398,6 +6411,15 @@ pub enum Effect {
     /// graveyard gain \"You may cast this card from your graveyard\" until
     /// end of turn." (CR 611.2c: the cards there as it resolves).
     GrantGraveyardCast(Filter),
+    /// `graveyard cast this turn creature cards by forage finality`:
+    /// "Until end of turn, you may cast creature spells from your graveyard
+    /// by foraging in addition to paying their other costs. If you cast a
+    /// spell this way, that creature enters with a finality counter on
+    /// it." (`mtg_core::card::Effect::GraveCastTurn`).
+    GraveCastTurn {
+        cards: Filter,
+        rider: mtg_core::card::GraveRider,
+    },
     /// `until end of turn may look top and play from top lands and
     /// spells`: "Until end of turn, you may look at the top card of your
     /// library any time, and you may play lands and cast spells from the

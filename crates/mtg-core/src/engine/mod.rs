@@ -640,6 +640,8 @@ impl GameState {
             top_play_sources: 0,
             top_static_sources: 0,
             top_grants: Vec::new(),
+            grave_turn_grants: Vec::new(),
+            grave_cast_spells: Vec::new(),
             starting_life: 20,
             foreign_activated_sources: 0,
             saga_count: 0,
@@ -3453,6 +3455,7 @@ impl GameState {
         self.granted_flashback.clear();
         self.granted_graveyard_cast.clear();
         self.top_grants.clear();
+        self.grave_turn_grants.clear();
         self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {

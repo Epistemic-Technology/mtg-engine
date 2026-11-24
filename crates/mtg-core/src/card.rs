@@ -6115,6 +6115,17 @@ pub enum Effect {
     /// their timing; they aren't exiled as they leave the stack. Like
     /// `GrantFlashback`, the grant ends if the card leaves the graveyard.
     GrantGraveyardCast(ObjFilter),
+    /// "Until end of turn, you may cast creature spells from your graveyard
+    /// by foraging in addition to paying their other costs. If you cast a
+    /// spell this way, that creature enters with a finality counter on
+    /// it." (Osteomancer Adept), "you may cast spells from your graveyard
+    /// this turn" (Forgotten Cellar): the controller may cast matching
+    /// cards from their graveyard for the rest of the turn, cards put
+    /// there later included (CR 601.3; `GameState::grave_turn_grants`).
+    GraveCastTurn {
+        cards: ObjFilter,
+        rider: Box<GraveRider>,
+    },
     /// "Until end of turn, you may look at the top card of your library any
     /// time, and you may play lands and cast spells from the top of your
     /// library." (The Belligerent, Gwenom): the controller has the
@@ -7035,6 +7046,51 @@ pub enum GrantedWay {
     /// is in (cycling and typecycling from a hand, unearth from a
     /// graveyard): a registered `AbilityDef::Activated`.
     Ability(AbilityId),
+    /// "You may cast artifact spells from your graveyard by paying 3 life
+    /// in addition to paying their other costs. If you cast a spell this
+    /// way, that artifact enters with a finality counter on it." (Noctis;
+    /// CR 601.3): cast from the graveyard for its costs and the rider's,
+    /// with its usual timing; it isn't exiled.
+    Cast(GraveRider),
+}
+
+impl GraveRider {
+    /// The cost it adds to the spell's other costs.
+    #[must_use]
+    pub fn cost(&self) -> Cost {
+        Cost {
+            life: self.life,
+            forage: self.forage,
+            ..Cost::default()
+        }
+    }
+
+    /// Whether it adds a cost.
+    #[must_use]
+    pub const fn costs(&self) -> bool {
+        self.life > 0 || self.forage
+    }
+}
+
+/// What a permission to cast spells from a graveyard adds
+/// (`GrantedWay::Cast`, `Effect::GraveCastTurn`).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // one per clause of the text
+pub struct GraveRider {
+    /// "by paying 3 life" in addition to the spell's other costs (CR
+    /// 601.2f-h, 119.4).
+    pub life: u32,
+    /// "by foraging" in addition to them (CR 701.61a).
+    pub forage: bool,
+    /// "If you cast a spell this way, that creature enters with a finality
+    /// counter on it." (CR 122.1h).
+    pub finality: bool,
+    /// "you may play cards from your graveyard": land cards may be played
+    /// too, with a land play (CR 305.1).
+    pub lands: bool,
+    /// Worded "in addition to their other costs" rather than "in addition
+    /// to paying their other costs" (wording only).
+    pub brief: bool,
 }
 
 /// The rest of a permission to play from the top of the library
@@ -7224,8 +7280,15 @@ pub enum Replaces {
     /// library (Laboratory Maniac).
     Draw { whose: Who, library_empty: bool },
     /// A card would be put into a graveyard owned by `whose`, from anywhere
-    /// or only from the battlefield.
-    ToGraveyard { whose: Who, from_battlefield: bool },
+    /// or only from the battlefield; a token too for `Who::Any` or with
+    /// `tokens` ("If a card or token would be put into your graveyard from
+    /// anywhere", Festival of Embers; a token isn't a card, CR 108.2).
+    ToGraveyard {
+        whose: Who,
+        from_battlefield: bool,
+        #[serde(default)]
+        tokens: bool,
+    },
     /// A card matching the filter (judged as it is, in whatever zone)
     /// would be put into a graveyard from anywhere: "If an instant or
     /// sorcery card would be put into a graveyard from anywhere, exile it

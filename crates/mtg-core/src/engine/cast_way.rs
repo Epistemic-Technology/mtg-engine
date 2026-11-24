@@ -160,6 +160,16 @@ impl GameState {
         {
             return CastWay::new(id, AltCast::None);
         }
+        // CR 601.3: a permission to cast it from the graveyard ("You may
+        // cast artifact spells from your graveyard ..."): for its costs
+        // (the rider's are recorded by `cast_choice`), not exiled.
+        if o.zone == Zone::Graveyard
+            && self.card_grants_live()
+            && self.grave_way_open(id, gdef)
+            && self.grave_permission(player, id).is_some()
+        {
+            return CastWay::new(id, AltCast::None);
+        }
         // Flashback granted until end of turn: for its mana cost.
         // Flashback a permanent gives it (CR 113.6b): for its granted cost.
         let live = o.zone == Zone::Graveyard && self.card_grants_live();
@@ -251,7 +261,26 @@ impl GameState {
             )),
             _ => None,
         };
+        // CR 601.3: the rider of the permission it is cast by (its added
+        // cost, a finality counter), kept for payment and resolution.
+        let rider = if way.alt == AltCast::None
+            && !way.flashback
+            && way.face.is_none()
+            && self.objects[way.card].zone == Zone::Graveyard
+            && self.card_grants_live()
+            && self.grave_way_open(way.card, self.pool.get(self.objects[way.card].def))
+        {
+            self.grave_permission(player, way.card).cloned()
+        } else {
+            None
+        };
         let spell = self.begin_way(player, way);
+        if let Some(r) = rider {
+            let objects = &self.objects;
+            self.grave_cast_spells
+                .retain(|(s, _)| objects.get(*s).is_some_and(|o| o.zone == Zone::Stack));
+            self.grave_cast_spells.push((spell, r));
+        }
         if let Some((c, power)) = tapped {
             self.harmonized.push((spell, c, power));
         }

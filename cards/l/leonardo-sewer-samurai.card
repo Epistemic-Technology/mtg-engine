@@ -1,0 +1,9 @@
+card "Leonardo, Sewer Samurai" {
+  oracle_id 74e3243b-6707-4769-8767-7cf2ef71009a
+  cost {3}{W}
+  type Legendary Creature — Mutant Ninja Turtle Samurai
+  pt 3/3
+  sneak {2}{W}{W}
+  keywords double strike
+  static during your turn, creature with power or toughness 1 or less card in your graveyard: has cast finality
+}

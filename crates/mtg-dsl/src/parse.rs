@@ -1573,6 +1573,28 @@ impl P {
         }
     }
 
+    /// A permission to cast from a graveyard's rider (`Granted::Cast`,
+    /// `Effect::GraveCastTurn`): `[by pay N life | by forage] [brief]
+    /// [finality]`.
+    fn grave_rider(&mut self, lands: bool) -> R<mtg_core::card::GraveRider> {
+        let mut r = mtg_core::card::GraveRider {
+            lands,
+            ..Default::default()
+        };
+        if self.eat_word("by") {
+            if self.eat_word("forage") {
+                r.forage = true;
+            } else {
+                self.expect_word("pay")?;
+                r.life = self.number()?;
+                self.expect_word("life")?;
+            }
+        }
+        r.brief = self.eat_word("brief");
+        r.finality = self.eat_word("finality");
+        Ok(r)
+    }
+
     /// The rest of `static [each] <filter> card [or <filter> card] in your
     /// graveyard: has <grant>` after the first filter (`Ability::CardGrant`).
     fn card_grant(
@@ -1641,6 +1663,11 @@ impl P {
             Some("jump") if self.word_at(1).as_deref() == Some("start") => {
                 self.pos += 2;
                 crate::ast::Granted::JumpStart
+            }
+            Some(w @ ("cast" | "play")) if zone == mtg_core::state::Zone::Graveyard => {
+                let lands = w == "play";
+                self.pos += 1;
+                crate::ast::Granted::Cast(self.grave_rider(lands)?)
             }
             _ => {
                 let a = self.ability()?;
@@ -4521,6 +4548,11 @@ impl P {
                 if condition.is_some() && self.at_word("spells") {
                     return self.cost_change(condition);
                 }
+                // "During your turn, you may play cards from your
+                // graveyard.": any card (`card in your graveyard: has play`).
+                if self.at_words(&["card", "in", "your", "graveyard"]) {
+                    return self.card_grant(Filter::default(), false, condition);
+                }
                 let each = self.at_word("each");
                 let plural = !each && self.eat_word("plural");
                 let mut filter = self.filter()?;
@@ -5205,6 +5237,15 @@ impl P {
         }
         if self.eat_words(&["cast", "from", "anywhere", "other", "than", "hand"]) {
             return Ok(StaticCond::NotCastFromHand);
+        }
+        // Not `not cast from hand this turn` ("you haven't cast a spell
+        // from your hand this turn").
+        if self.at_words(&["not", "cast", "from", "hand"])
+            && !(self.word_at(4).as_deref() == Some("this")
+                && self.word_at(5).as_deref() == Some("turn"))
+        {
+            self.pos += 4;
+            return Ok(StaticCond::WasntCastFromHand);
         }
         if self.eat_words(&["you", "cast", "it"]) {
             return Ok(StaticCond::WasCast);
@@ -12327,6 +12368,15 @@ impl P {
             }
             // "Creature cards in your graveyard gain \"You may cast this
             // card from your graveyard\" until end of turn."
+            // "Until end of turn, you may cast creature spells from your
+            // graveyard by foraging ..."
+            "graveyard" if self.at_words(&["cast", "this", "turn"]) => {
+                self.pos += 3;
+                let cards = self.filter()?;
+                self.expect_word("cards")?;
+                let rider = self.grave_rider(false)?;
+                Ok(Effect::GraveCastTurn { cards, rider })
+            }
             "grant" if self.at_words(&["graveyard", "cast", "to"]) => {
                 self.pos += 3;
                 let f = self.filter()?;
@@ -18766,9 +18816,15 @@ impl P {
             }
             self.pos = start;
         }
-        if self.at_words(&["card", "put", "into"]) || self.at_words(&["a", "card", "put", "into"]) {
-            self.eat_word("a");
-            self.pos += 3;
+        let tokens = self.eat_words(&["card", "or", "token", "put", "into"]);
+        if tokens
+            || self.at_words(&["card", "put", "into"])
+            || self.at_words(&["a", "card", "put", "into"])
+        {
+            if !tokens {
+                self.eat_word("a");
+                self.pos += 3;
+            }
             let whose = if self.eat_words(&["an", "opponent's"]) {
                 Who::Opponents
             } else if self.eat_word("your") {
@@ -18784,6 +18840,7 @@ impl P {
             return Ok(Replaces::ToGraveyard {
                 whose,
                 from_battlefield,
+                tokens,
             });
         }
         if matches!(

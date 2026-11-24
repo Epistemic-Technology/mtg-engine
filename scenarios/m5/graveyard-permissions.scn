@@ -1,0 +1,259 @@
+# Permissions to cast spells from a graveyard (CR 601.3), a permanent's
+# ("You may cast artifact spells from your graveyard by paying 3 life in
+# addition to paying their other costs.") or until end of turn (Osteomancer
+# Adept), with their riders: an added cost of life or foraging, and a
+# finality counter on the permanent the spell becomes (CR 122.1h). The
+# spell isn't exiled as it leaves the stack.
+
+scenario "Noctis: an artifact is cast from the graveyard for 3 life and enters with a finality counter" {
+  battlefield A: "Noctis, Prince of Lucis"
+  graveyard A: "Ornithopter"
+  turn 1 A: cast "Ornithopter" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert counters "Ornithopter" finality 1
+  assert life A 17
+}
+
+scenario "Noctis: the artifact is exiled as it would die" {
+  battlefield A: "Noctis, Prince of Lucis", "Mountain"
+  graveyard A: "Ornithopter"
+  hand A: "Shock"
+  turn 1 A: cast "Ornithopter" from graveyard
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Ornithopter"
+  assert graveyard A lacks "Ornithopter"
+}
+
+scenario "Noctis: not without 3 life to pay" {
+  battlefield A: "Noctis, Prince of Lucis"
+  graveyard A: "Ornithopter"
+  life A 2
+  illegal turn 1 A: cast "Ornithopter" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "Noctis: only artifact spells" {
+  battlefield A: "Noctis, Prince of Lucis", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Noctis: the mana cost is paid too" {
+  battlefield A: "Noctis, Prince of Lucis"
+  graveyard A: "Millstone"
+  illegal turn 1 A: cast "Millstone" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Millstone"
+}
+
+scenario "Leonardo: a creature with toughness 1 or less, during your turn" {
+  battlefield A: "Leonardo, Sewer Samurai", "Forest"
+  graveyard A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert counters "Llanowar Elves" finality 1
+  assert life A 20
+}
+
+scenario "Leonardo: not a 2/2" {
+  battlefield A: "Leonardo, Sewer Samurai", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Leonardo: not during an opponent's turn" {
+  battlefield A: "Leonardo, Sewer Samurai", "Forest"
+  graveyard A: "Memnite"
+  illegal turn 2 A: cast "Memnite" from graveyard
+  run_to turn 2 end
+  assert graveyard A contains "Memnite"
+}
+
+scenario "Festival of Embers: an instant from the graveyard for 1 life, then exiled" {
+  battlefield A: "Festival of Embers", "Mountain"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 19
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "Festival of Embers: a card of yours is exiled instead of put into the graveyard" {
+  battlefield A: "Festival of Embers", "Mountain", "Doomed Traveler"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Doomed Traveler"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Doomed Traveler"
+  assert battlefield A lacks "Spirit"
+}
+
+scenario "Festival of Embers: a token of yours is exiled too, so it doesn't die" {
+  battlefield A: "Festival of Embers", "Mountain", "Moldervine Reclamation", "Soldier"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Soldier"
+  run_to turn 1 end
+  assert battlefield A lacks "Soldier"
+  assert life A 20
+}
+
+scenario "Festival of Embers: not creature spells" {
+  battlefield A: "Festival of Embers", 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Leyline of the Void: an opponent's token isn't a card and still dies" {
+  battlefield A: "Leyline of the Void", "Mountain", "Blood Artist"
+  battlefield B: "Soldier"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Soldier"
+  turn 1 A: trigger "Blood Artist" targeting player B
+  run_to turn 1 end
+  assert battlefield B lacks "Soldier"
+  assert life B 19
+}
+
+scenario "Leyline of the Void: an opponent's dying card is exiled" {
+  battlefield A: "Leyline of the Void", "Mountain"
+  battlefield B: "Doomed Traveler"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Doomed Traveler"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Doomed Traveler"
+  assert battlefield B lacks "Spirit"
+}
+
+scenario "Osteomancer Adept: a creature cast from the graveyard by foraging" {
+  battlefield A: "Osteomancer Adept", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Island", "Swamp", "Plains"
+  turn 1 A: activate "Osteomancer Adept"
+  turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" finality 1
+  assert exile A contains "Island"
+  assert exile A contains "Swamp"
+  assert exile A contains "Plains"
+}
+
+scenario "Osteomancer Adept: nothing to forage with" {
+  battlefield A: "Osteomancer Adept", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Osteomancer Adept"
+  illegal turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Osteomancer Adept: the permission covers cards put there later" {
+  battlefield A: "Osteomancer Adept", 2 "Forest", "Mountain", "Grizzly Bears"
+  graveyard A: "Island", "Swamp", "Plains"
+  hand A: "Shock"
+  turn 1 A: activate "Osteomancer Adept"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" finality 1
+}
+
+scenario "Osteomancer Adept: the permission ends with the turn" {
+  battlefield A: "Osteomancer Adept", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Island", "Swamp", "Plains"
+  turn 1 A: activate "Osteomancer Adept"
+  illegal turn 3 A: cast "Grizzly Bears" from graveyard
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Osteomancer Adept: not a noncreature spell" {
+  battlefield A: "Osteomancer Adept", "Mountain"
+  graveyard A: "Lightning Bolt", "Island", "Swamp", "Plains"
+  turn 1 A: activate "Osteomancer Adept"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Twinned Vision: cast from the hand, one card" {
+  battlefield A: 2 "Island"
+  hand A: "Twinned Vision"
+  library A: "Forest", "Island", "Swamp"
+  turn 1 A: cast "Twinned Vision"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Twinned Vision: cast with flashback, two cards" {
+  battlefield A: 3 "Island"
+  graveyard A: "Twinned Vision"
+  hand A: "Mountain"
+  library A: "Forest", "Island", "Swamp"
+  turn 1 A: cast "Twinned Vision" from graveyard discarding "Mountain"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Mountain"
+  assert exile A contains "Twinned Vision"
+}
+
+scenario "Twinned Vision: no flashback without a card to discard" {
+  battlefield A: 3 "Island"
+  graveyard A: "Twinned Vision"
+  illegal turn 1 A: cast "Twinned Vision" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Twinned Vision"
+}
+
+scenario "Hades: during your turn, a land and a spell from the graveyard" {
+  battlefield A: "Emet-Selch, Unsundered", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Mountain", 12 "Island"
+  start turn 3 A upkeep
+  turn 3 A: play "Mountain"
+  turn 3 A: cast "Grizzly Bears" from graveyard
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hades, Sorcerer of Eld"
+  assert battlefield A contains "Mountain"
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" finality 0
+}
+
+scenario "Hades: not during an opponent's turn" {
+  battlefield A: "Emet-Selch, Unsundered", "Island"
+  graveyard A: "Memnite", 13 "Island"
+  start turn 1 A upkeep
+  illegal turn 2 A: cast "Memnite" from graveyard
+  run_to turn 2 end
+  assert graveyard A contains "Memnite"
+}
+
+scenario "Hades: cards of yours are exiled instead of put into the graveyard" {
+  battlefield A: "Emet-Selch, Unsundered", "Mountain"
+  graveyard A: 14 "Island"
+  hand A: "Shock"
+  start turn 3 A upkeep
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert exile A contains "Shock"
+}
+
+scenario "Emet-Selch: no transformation with thirteen cards in the graveyard" {
+  battlefield A: "Emet-Selch, Unsundered"
+  graveyard A: 13 "Island"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Emet-Selch, Unsundered"
+}

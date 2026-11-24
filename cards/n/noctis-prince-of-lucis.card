@@ -1,0 +1,8 @@
+card "Noctis, Prince of Lucis" {
+  oracle_id 2d44bdd2-aa31-415a-be71-d9e98ef12334
+  cost {1}{W}{U}{B}
+  type Legendary Creature — Human Noble
+  pt 4/3
+  keywords lifelink
+  static artifact card in your graveyard: has cast by pay 3 life finality
+}

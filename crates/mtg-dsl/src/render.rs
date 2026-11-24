@@ -8060,6 +8060,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         // "Creature cards in your graveyard gain \"You may cast this card
         // from your graveyard\" until end of turn."
+        // "Until end of turn, you may cast creature spells from your
+        // graveyard by foraging in addition to paying their other costs.
+        // If you cast a spell this way, ..."
+        Effect::GraveCastTurn { cards, rider } => Clause::imperative(format!(
+            "until end of turn, you may {}",
+            grave_rider_text(cards, rider, ctx.card)
+        )),
         Effect::GrantGraveyardCast(f) => Clause::imperative(format!(
             "{} in your graveyard gain \"You may cast this card from your graveyard\" until end of turn",
             cards_phrase(f, ctx.card, true)
@@ -12716,6 +12723,47 @@ fn target_predicate(f: &Filter, card: &Card) -> String {
     with_article(&filter_phrase(f, card, false))
 }
 
+/// A permission to cast from a graveyard after "you may" (`Granted::Cast`,
+/// `Effect::GraveCastTurn`), without the last period: "cast artifact
+/// spells from your graveyard by paying 3 life in addition to paying their
+/// other costs. If you cast a spell this way, that artifact enters with a
+/// finality counter on it", "play cards from your graveyard".
+fn grave_rider_text(f: &Filter, r: &mtg_core::card::GraveRider, card: &Card) -> String {
+    let mut s = if r.lands {
+        format!(
+            "play {} from your graveyard",
+            lowercase_first(&cards_phrase(f, card, true))
+        )
+    } else {
+        format!("cast {} from your graveyard", plural_spells(f, card, "and"))
+    };
+    let by = if r.forage {
+        "foraging".to_string()
+    } else if r.life > 0 {
+        format!("paying {} life", r.life)
+    } else {
+        String::new()
+    };
+    if !by.is_empty() {
+        let _ = write!(
+            s,
+            " by {by} in addition to {}their other costs",
+            if r.brief { "" } else { "paying " }
+        );
+    }
+    if r.finality {
+        let noun = match f.types.as_slice() {
+            [t] => type_noun(*t),
+            _ => "permanent",
+        };
+        let _ = write!(
+            s,
+            ". If you cast a spell this way, that {noun} enters with a finality counter on it"
+        );
+    }
+    s
+}
+
 /// `Ability::CardGrant`'s text: "Each Sliver card in each player's hand
 /// has slivercycling {3}.", "During your turn, each Lesson card in your
 /// graveyard has flashback {1}."
@@ -12731,6 +12779,17 @@ fn card_grant_text(
     lookup: &dyn Lookup,
 ) -> String {
     use crate::ast::Granted;
+    // "During your turn, you may cast instant and sorcery spells from your
+    // graveyard by paying 1 life in addition to their other costs."
+    if let Granted::Cast(r) = grant {
+        let s = format!("you may {}.", grave_rider_text(filter, r, card));
+        return match cond {
+            None => capitalize(&s),
+            Some(StaticCond::DuringYourTurn) => format!("During your turn, {s}"),
+            Some(StaticCond::NotYourTurn) => format!("During turns other than yours, {s}"),
+            Some(c) => format!("As long as {}, {s}", static_cond_text(c, card)),
+        };
+    }
     // "Each instant and sorcery card in your graveyard that's exactly two
     // colors has jump-start.": the color count after the zone.
     let two = filter.color_count == Some(mtg_core::card::ColorCount::TwoColors);
@@ -12791,6 +12850,7 @@ fn card_grant_text(
             lowercase_first(&cards_phrase(filter, card, false)).trim_end_matches(" card")
         ),
         Granted::JumpStart => "jump-start".to_string(),
+        Granted::Cast(_) => unreachable!("worded above"),
         Granted::Ability(a) => lowercase_first(ability_text(card, a, lookup).trim_end_matches('.')),
     };
     // "Each nonland card in your hand without foretell has foretell." (a
@@ -15181,13 +15241,15 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             Replaces::ToGraveyard {
                 whose,
                 from_battlefield,
+                tokens,
             },
             outcome,
         ) => {
+            let card = if *tokens { "a card or token" } else { "a card" };
             let (what, gy) = match whose {
                 Who::Any => ("a card or token", "a graveyard"),
-                Who::You => ("a card", "your graveyard"),
-                Who::Opponents => ("a card", "an opponent's graveyard"),
+                Who::You => (card, "your graveyard"),
+                Who::Opponents => (card, "an opponent's graveyard"),
             };
             let from = if *from_battlefield {
                 "from the battlefield"
@@ -17133,6 +17195,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 .to_string()
         }
         StaticCond::NotYourMainPhase => "it isn't your main phase".to_string(),
+        StaticCond::WasntCastFromHand => format!(
+            "{} wasn't cast from your hand",
+            if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            }
+        ),
         StaticCond::NotCastFromHand => format!(
             "{} was cast from anywhere other than your hand",
             if is_instant_or_sorcery(card) {

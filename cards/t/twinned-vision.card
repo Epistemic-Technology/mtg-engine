@@ -1,0 +1,7 @@
+card "Twinned Vision" {
+  oracle_id fa1cc78f-26bc-4d5d-973b-7cb7d7490973
+  cost {1}{U/R}
+  type Instant
+  spell: draw 1 card; if not cast from hand, draw 2 cards instead
+  flashback {1}{U/R}{U/R}, discard 1 card
+}
