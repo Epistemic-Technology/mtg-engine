@@ -116,6 +116,44 @@ fn digits(n: Num) -> String {
     }
 }
 
+/// The creature types of `thatare Fungus or Saproling creature you
+/// control`: alternatives of one creature type each, creatures you
+/// control, and nothing else.
+fn creature_types_only(f: &Filter) -> Option<Vec<String>> {
+    let mut subs = Vec::new();
+    let mut alt = Some(f);
+    let mut creature = false;
+    while let Some(a) = alt {
+        let [s] = a.subtypes.as_slice() else {
+            return None;
+        };
+        if !a
+            .types
+            .iter()
+            .all(|t| *t == mtg_core::card::CardType::Creature)
+            || a.who.is_some_and(|w| w != Who::You)
+        {
+            return None;
+        }
+        creature |= !a.types.is_empty();
+        let rest = Filter {
+            subtypes: Vec::new(),
+            types: Vec::new(),
+            who: None,
+            or: None,
+            that_are: false,
+            and_or: false,
+            ..a.clone()
+        };
+        if rest != Filter::default() {
+            return None;
+        }
+        subs.push(s.clone());
+        alt = a.or.as_deref();
+    }
+    (creature && subs.len() > 1).then_some(subs)
+}
+
 /// "that was put there this turn" after a graveyard card's zone ("that
 /// were ..." for several), taken off the filter so its own phrase leaves
 /// it out.
@@ -276,6 +314,7 @@ fn pluralize(word: &str) -> String {
         "Ox" => return "Oxen".to_string(),
         "Mouse" => return "Mice".to_string(),
         "Homunculus" => return "Homunculi".to_string(),
+        "Fungus" => return "Fungi".to_string(),
         _ => {}
     }
     if word.ends_with('y') && !word.ends_with("ey") {
@@ -1326,6 +1365,16 @@ fn list(items: &[String]) -> String {
             let (last, rest) = items.split_last().expect("nonempty");
             format!("{}, and {last}", rest.join(", "))
         }
+    }
+}
+
+/// "Fungi and/or Saprolings", "A, B, and/or C".
+fn and_or_list(items: &[String]) -> String {
+    match items.split_last() {
+        Some((last, rest)) if rest.len() > 1 => format!("{}, and/or {last}", rest.join(", ")),
+        Some((last, [first])) => format!("{first} and/or {last}"),
+        Some((last, _)) => last.clone(),
+        None => String::new(),
     }
 }
 
@@ -5283,6 +5332,19 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                     filter_phrase(&g, card, true),
                     same_phrase(f, card, true)
                 ),
+            )
+        }
+        // "the number of creatures you control that are Fungi and/or
+        // Saprolings" (The Mycotyrant): creature types after the noun.
+        CountExpr::Permanents(f) if f.that_are && creature_types_only(f).is_some() => {
+            let subs = creature_types_only(f).unwrap_or_default();
+            let many: Vec<String> = subs.iter().map(|s| pluralize(s)).collect();
+            (
+                format!(
+                    "creature you control that's {}",
+                    with_article(&subs.join(" or "))
+                ),
+                format!("creatures you control that are {}", and_or_list(&many)),
             )
         }
         // "the number of permanents you control that are creatures and/or
@@ -15948,6 +16010,11 @@ fn cda_count_text(c: &crate::ast::CountExpr, card: &Card) -> String {
         // "twice the number of instant and sorcery cards in your
         // graveyard".
         CountExpr::Times(2, inner) => format!("twice {}", cda_count_text(inner, card)),
+        // "the number of creatures you control that are Fungi and/or
+        // Saprolings".
+        CountExpr::Permanents(f) if f.that_are && creature_types_only(f).is_some() => {
+            count_phrase(c, card, false)
+        }
         CountExpr::Permanents(f) => format!(
             "the number of {}{}",
             filter_phrase(f, card, true),

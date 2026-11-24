@@ -1,0 +1,8 @@
+card "The Mycotyrant" {
+  oracle_id b69bbb8d-7f8c-45d6-983a-759b5fce6ebd
+  cost {1}{B}{G}
+  type Legendary Creature — Elder Fungus
+  keywords trample
+  static this: cda pt count andor thatare Fungus or Saproling creature you control
+  triggered at beginning of your end step: create count where times descended this turn "1/1 black Fungus creature that can't block"
+}

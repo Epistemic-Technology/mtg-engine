@@ -142,3 +142,28 @@ scenario "Blitzball can't be activated before any combat damage" {
   illegal turn 1 A: activate "Blitzball" ability 2
   run_to turn 1 postcombat_main
 }
+
+scenario "The Mycotyrant makes a Fungus for each time you descended this turn" {
+  battlefield A: "The Mycotyrant", "Grizzly Bears", "Wind Drake", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  # The Mycotyrant is the only Fungus so far.
+  assert power "The Mycotyrant" 1
+  run_to turn 2 upkeep
+  assert battlefield A contains 2 "Fungus"
+  assert power "The Mycotyrant" 3
+  assert toughness "The Mycotyrant" 3
+}
+
+scenario "The Mycotyrant: a token or an opponent's card isn't a descent" {
+  battlefield A: "The Mycotyrant", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A lacks "Fungus"
+}
