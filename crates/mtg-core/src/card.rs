@@ -2586,6 +2586,39 @@ pub enum SearchTo {
     /// "exile them, then shuffle" (Foresight): face up, not linked to
     /// anything.
     Exile,
+    /// "Put one into your hand and the other into your graveyard" (Fork
+    /// in the Road): the searcher chooses the one for the hand.
+    HandAndGraveyard,
+}
+
+/// The rarer parts of a search (`Effect::Search::more`).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct SearchMore {
+    /// "a black card, a green card, and a blue card", "a card named
+    /// Magnifying Glass and/or a card named Thinking Cap": after the
+    /// search's own filter (and name) finds its card, one card more for
+    /// each of these, by its own filter and name (`|`-joined names, as
+    /// `Effect::Search::name`). Any of them may be left unfound (CR
+    /// 701.19b); a card found for one doesn't count for another.
+    #[serde(default)]
+    pub slots: Vec<(ObjFilter, Option<Box<str>>)>,
+    /// "search your graveyard, hand, and/or library": the hand's cards may
+    /// be found too (with `Effect::Search::graveyard`).
+    #[serde(default)]
+    pub hand: bool,
+    /// "search your graveyard, hand, and library ... then shuffle": every
+    /// zone is searched, so the library is shuffled whatever is found.
+    #[serde(default)]
+    pub all: bool,
+    /// "with different names" (CR 201.2): no two found cards share a name.
+    #[serde(default)]
+    pub different_names: bool,
+    /// "Put it onto the battlefield if its mana value is 2 or less.
+    /// Otherwise, put it into your hand." (Guidelight Pathmaker): a found
+    /// card matching this filter (its printed characteristics) goes here
+    /// instead of the search's `to`.
+    #[serde(default)]
+    pub split: Option<(ObjFilter, SearchTo)>,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its
@@ -3814,6 +3847,10 @@ pub struct ManyTargets {
     /// mana values add up to at most this (CR 601.2c).
     #[serde(default)]
     pub total_mv: Option<Num>,
+    /// "with different names" (CR 201.2): no two chosen objects share a
+    /// name.
+    #[serde(default)]
+    pub different_names: bool,
 }
 
 /// The spec the `i`th chosen target answers: a variable group's spec
@@ -4232,6 +4269,10 @@ pub enum Effect {
         /// card named X or Y" joins the names with `|`.
         #[serde(default)]
         name: Option<Box<str>>,
+        /// Several differently-filtered cards, more zones, "with
+        /// different names", a destination by the found card.
+        #[serde(default)]
+        more: Option<Box<SearchMore>>,
     },
     /// "Put target creature on top of its owner's library", "on the
     /// bottom", "second from the top", "Its owner puts it on their choice

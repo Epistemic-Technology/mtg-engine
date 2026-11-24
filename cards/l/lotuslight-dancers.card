@@ -1,0 +1,8 @@
+card "Lotuslight Dancers" {
+  oracle_id 83c8f1ca-194e-4cb6-9d5f-029133c1edbc
+  cost {2}{B}{G}{U}
+  type Creature — Zombie Bard
+  pt 3/6
+  keywords lifelink
+  triggered when this enters: search black card and green card and blue card to graveyard
+}

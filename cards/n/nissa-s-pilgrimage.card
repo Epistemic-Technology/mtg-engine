@@ -1,0 +1,9 @@
+card "Nissa's Pilgrimage" {
+  oracle_id e83236f8-1c45-4d31-8937-1c76db549955
+  cost {2}{G}
+  type Sorcery
+  spell {
+    search up to 2 basic Forest card reveal to battlefield tapped and hand rest
+    label "Spell mastery" if 2 instant or sorcery cards in your graveyard, search up to 3 basic Forest card reveal to battlefield tapped and hand instead of 2
+  }
+}

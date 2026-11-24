@@ -1,0 +1,6 @@
+card "Deathbellow War Cry" {
+  oracle_id 947835a2-a72f-44e2-a183-99dcb019d6ff
+  cost {5}{R}{R}{R}
+  type Sorcery
+  spell: search up to 4 Minotaur creature card with different names to battlefield
+}

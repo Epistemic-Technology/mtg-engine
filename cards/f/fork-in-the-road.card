@@ -1,0 +1,6 @@
+card "Fork in the Road" {
+  oracle_id 3bc12623-3852-42f0-b458-5c67fe1b7a07
+  cost {1}{G}
+  type Sorcery
+  spell: search up to 2 basic land card reveal to hand and graveyard
+}

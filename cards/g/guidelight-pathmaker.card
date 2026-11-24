@@ -1,0 +1,9 @@
+card "Guidelight Pathmaker" {
+  oracle_id f8103865-5086-4f16-a35a-a56acdab1547
+  cost {4}{W}{U}
+  type Artifact — Vehicle
+  pt 6/5
+  keywords vigilance
+  triggered when this enters: you may search artifact card reveal to battlefield if with mana value 2 or less else hand
+  crew 2
+}

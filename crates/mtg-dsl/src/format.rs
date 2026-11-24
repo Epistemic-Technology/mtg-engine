@@ -251,7 +251,11 @@ impl Fmt {
                     let up_to = matches!(targets[i], Target::UpTo(_));
                     // `1 to 2 target creature`, `any number of targets`.
                     if let Target::Many {
-                        min, max, total, ..
+                        min,
+                        max,
+                        total,
+                        different,
+                        ..
                     } = &targets[i]
                     {
                         let prefix = many_prefix(*min, *max);
@@ -265,9 +269,12 @@ impl Fmt {
                             groups: self.groups.clone(),
                         };
                         // `... with total mana value 3 or less`.
-                        let total = total.map_or(String::new(), |n| {
+                        let mut total = total.map_or(String::new(), |n| {
                             format!(" with total mana value {} or less", num(n))
                         });
+                        if *different {
+                            total.push_str(" with different names");
+                        }
                         return format!(
                             "{prefix} {}{total}",
                             f.recipient(Recipient::Target(i), &inner)
@@ -2347,6 +2354,7 @@ impl Fmt {
                 name,
                 old,
                 those,
+                more,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -2358,8 +2366,21 @@ impl Fmt {
                     (false, true) => "searches ",
                     (false, false) => "search ",
                 });
-                if *graveyard {
-                    t.push_str("library or graveyard ");
+                let zones = more
+                    .as_ref()
+                    .map_or(crate::ast::SearchZones::Library, |m| m.zones);
+                match zones {
+                    crate::ast::SearchZones::HandOr { comma: true } => {
+                        t.push_str("graveyard, hand, or library ");
+                    }
+                    crate::ast::SearchZones::HandOr { comma: false } => {
+                        t.push_str("graveyard, hand or library ");
+                    }
+                    crate::ast::SearchZones::HandAnd => t.push_str("graveyard, hand, and library "),
+                    crate::ast::SearchZones::Library if *graveyard => {
+                        t.push_str("library or graveyard ");
+                    }
+                    crate::ast::SearchZones::Library => {}
                 }
                 if *up_to {
                     t.push_str("up to ");
@@ -2422,23 +2443,39 @@ impl Fmt {
                     };
                     let _ = write!(t, " or {art}{} card", filter(&a));
                 }
+                if let Some(m) = more {
+                    for (f, n) in &m.slots {
+                        if *f == Filter::default() {
+                            t.push_str(" and card");
+                        } else {
+                            let _ = write!(t, " and {} card", filter(f));
+                        }
+                        if let Some(n) = n {
+                            let _ = write!(t, " named \"{n}\"");
+                        }
+                    }
+                    if m.different_names {
+                        t.push_str(" with different names");
+                    }
+                }
                 if *reveal {
                     t.push_str(" reveal");
                 }
-                t.push_str(match to {
-                    mtg_core::card::SearchTo::Hand => " to hand",
-                    mtg_core::card::SearchTo::Battlefield { tapped: true } => {
-                        " to battlefield tapped"
+                // `to battlefield tapped if land else hand`.
+                match more.as_ref().and_then(|m| m.split.as_ref()) {
+                    Some((f, alt)) => {
+                        let _ = write!(
+                            t,
+                            " to {} if {} else {}",
+                            search_to(*alt),
+                            filter(f),
+                            search_to(*to)
+                        );
                     }
-                    mtg_core::card::SearchTo::Battlefield { tapped: false } => " to battlefield",
-                    mtg_core::card::SearchTo::TopOfLibrary => " to top",
-                    mtg_core::card::SearchTo::BattlefieldAndHand => {
-                        " to battlefield tapped and hand"
+                    None => {
+                        let _ = write!(t, " to {}", search_to(*to));
                     }
-                    mtg_core::card::SearchTo::Graveyard => " to graveyard",
-                    mtg_core::card::SearchTo::Exile => " to exile",
-                    mtg_core::card::SearchTo::HandOrGraveyard => " to hand or graveyard",
-                });
+                }
                 if *that_card {
                     t.push_str(" that card");
                 }
@@ -2447,6 +2484,16 @@ impl Fmt {
                 }
                 if *those {
                     t.push_str(" those");
+                }
+                match more.as_ref().map(|m| m.wording) {
+                    Some(crate::ast::SearchWording::Short) => t.push_str(" short"),
+                    Some(crate::ast::SearchWording::Sentence) => t.push_str(" sentence"),
+                    Some(crate::ast::SearchWording::OfThem) => t.push_str(" of them"),
+                    Some(crate::ast::SearchWording::Rest) => t.push_str(" rest"),
+                    Some(crate::ast::SearchWording::InsteadOf(n)) => {
+                        let _ = write!(t, " instead of {n}");
+                    }
+                    Some(crate::ast::SearchWording::Plain) | None => {}
                 }
                 t
             }
@@ -3093,6 +3140,9 @@ impl Fmt {
                 let body = self.line(effects, t);
                 let text = match wording {
                     crate::ast::InsteadWording::Lead => format!("if {cond}, instead {body}"),
+                    crate::ast::InsteadWording::Trail if body.contains(" instead of ") => {
+                        format!("if {cond}, {body}")
+                    }
                     crate::ast::InsteadWording::Trail => format!("if {cond}, {body} instead"),
                     crate::ast::InsteadWording::After => format!("{body} instead if {cond}"),
                     crate::ast::InsteadWording::AfterBare => {
@@ -7666,5 +7716,21 @@ pub fn activated_keyword_word(k: mtg_core::card::ActivatedKeyword) -> &'static s
         mtg_core::card::ActivatedKeyword::Exhaust => "exhaust",
         mtg_core::card::ActivatedKeyword::PowerUp => "power-up",
         mtg_core::card::ActivatedKeyword::Ninjutsu => "ninjutsu",
+    }
+}
+
+/// A search's destination after `to`.
+fn search_to(to: mtg_core::card::SearchTo) -> &'static str {
+    use mtg_core::card::SearchTo;
+    match to {
+        SearchTo::Hand => "hand",
+        SearchTo::Battlefield { tapped: true } => "battlefield tapped",
+        SearchTo::Battlefield { tapped: false } => "battlefield",
+        SearchTo::TopOfLibrary => "top",
+        SearchTo::BattlefieldAndHand => "battlefield tapped and hand",
+        SearchTo::Graveyard => "graveyard",
+        SearchTo::Exile => "exile",
+        SearchTo::HandOrGraveyard => "hand or graveyard",
+        SearchTo::HandAndGraveyard => "hand and graveyard",
     }
 }

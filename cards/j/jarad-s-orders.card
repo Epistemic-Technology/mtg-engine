@@ -1,0 +1,6 @@
+card "Jarad's Orders" {
+  oracle_id 93036f4e-f553-4cc7-a747-6cd087b0994c
+  cost {2}{B}{G}
+  type Sorcery
+  spell: search up to 2 creature card reveal to hand and graveyard
+}

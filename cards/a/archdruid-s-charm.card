@@ -1,0 +1,10 @@
+card "Archdruid's Charm" {
+  oracle_id 3c1ef404-e2c6-486d-a5a2-d5779c71d498
+  cost {G}{G}{G}
+  type Instant
+  choose one {
+    mode: search creature or land card reveal to battlefield tapped if land else hand
+    mode: put 1 +1/+1 counter on target creature you control; target 1 bites target creature you don't control
+    mode: exile target artifact or enchantment
+  }
+}

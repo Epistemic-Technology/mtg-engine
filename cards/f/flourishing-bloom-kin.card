@@ -1,0 +1,9 @@
+card "Flourishing Bloom-Kin" {
+  oracle_id 66e74e8f-036e-4b26-a4a8-2365891765bc
+  cost {1}{G}
+  type Creature — Plant Elemental
+  pt 0/0
+  static this: +1/+1 count each Forest you control
+  disguise {4}{G}
+  triggered when this is turned face up: search up to 2 Forest card reveal to battlefield tapped and hand of them
+}

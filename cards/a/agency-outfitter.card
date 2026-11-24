@@ -1,0 +1,8 @@
+card "Agency Outfitter" {
+  oracle_id 23b2de61-a29c-4a32-b38c-408c723727ce
+  cost {4}{U}{U}
+  type Creature — Sphinx Detective
+  pt 4/3
+  keywords flying
+  triggered when this enters: you may search graveyard, hand or library card named "Magnifying Glass" and card named "Thinking Cap" to battlefield
+}

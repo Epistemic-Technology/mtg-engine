@@ -1,0 +1,6 @@
+card "Reach the Horizon" {
+  oracle_id 14bc29ee-4f84-4e62-8ede-5741b99414c9
+  cost {3}{G}
+  type Sorcery
+  spell: search up to 2 basic land card or Town card with different names to battlefield tapped
+}

@@ -10234,49 +10234,79 @@ impl GameState {
         to: SearchTo,
         may: bool,
         reveal: bool,
-        (graveyard, name): (bool, Option<&str>),
+        (graveyard, name, more): (bool, Option<&str>, Option<&crate::card::SearchMore>),
     ) {
         let to = &to;
-        let filter = &*self.chosen_filter(filter, ctx);
-        let mut found = Vec::new();
+        let filter = self.chosen_filter(filter, ctx).into_owned();
+        let empty = crate::card::SearchMore::default();
+        let more = more.unwrap_or(&empty);
+        // The search's own card(s), then one card for each further slot
+        // ("a black card, a green card, and a blue card").
+        let mut slots: SmallVec<[(crate::card::ObjFilter, Option<&str>, u32); 2]> =
+            smallvec::smallvec![(filter, name, self.eval_num(count, ctx))];
+        for (f, n) in &more.slots {
+            slots.push((self.chosen_filter(f, ctx).into_owned(), n.as_deref(), 1));
+        }
+        let mut found: Vec<ObjId> = Vec::new();
         let mut declined = false;
-        for _ in 0..self.eval_num(count, ctx) {
-            // One option per distinct card (copies are alike) in each
-            // zone searched.
-            let mut seen = Vec::new();
-            let mut options = Vec::new();
-            let ps = self.player(p);
-            let graveyard_cards = if graveyard {
-                ps.graveyard.as_slice()
-            } else {
-                &[]
-            };
-            for id in ps.library.iter().rev().chain(graveyard_cards.iter().rev()) {
-                if found.contains(id) {
-                    continue;
-                }
-                let o = &self.objects[*id];
-                let c = self.base_characteristics(o);
-                if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
-                    && self.status_ok(filter, *id)
-                    // "a card named Heart-Piercer Bow or Vial of
-                    // Dragonfire": the names joined by `|`.
-                    && name.is_none_or(|n| n.split('|').any(|n| self.pool.get(o.def).name == n))
-                    && !seen.contains(&(o.def, o.zone))
+        for (filter, name, n) in &slots {
+            for _ in 0..*n {
+                // One option per distinct card (copies are alike) in each
+                // zone searched.
+                let mut seen = Vec::new();
+                let mut options = Vec::new();
+                let ps = self.player(p);
+                let graveyard_cards = if graveyard {
+                    ps.graveyard.as_slice()
+                } else {
+                    &[]
+                };
+                // "search your graveyard, hand, and/or library".
+                let hand_cards = if more.hand { ps.hand.as_slice() } else { &[] };
+                for id in ps
+                    .library
+                    .iter()
+                    .rev()
+                    .chain(graveyard_cards.iter().rev())
+                    .chain(hand_cards.iter())
                 {
-                    seen.push((o.def, o.zone));
-                    options.push(Choice::Target(Target::Object(*id)));
+                    if found.contains(id) {
+                        continue;
+                    }
+                    let o = &self.objects[*id];
+                    let c = self.base_characteristics(o);
+                    let card_name = &self.pool.get(o.def).name;
+                    if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                        && self.status_ok(filter, *id)
+                        // "a card named Heart-Piercer Bow or Vial of
+                        // Dragonfire": the names joined by `|`.
+                        && name.is_none_or(|n| n.split('|').any(|n| card_name == n))
+                        // "with different names" (CR 201.2).
+                        && !(more.different_names
+                            && found
+                                .iter()
+                                .any(|f| &self.pool.get(self.objects[*f].def).name == card_name))
+                        && !seen.contains(&(o.def, o.zone))
+                    {
+                        seen.push((o.def, o.zone));
+                        options.push(Choice::Target(Target::Object(*id)));
+                    }
+                }
+                if options.is_empty() {
+                    break;
+                }
+                options.push(Choice::Decline);
+                let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                if let Choice::Target(Target::Object(id)) = options[k] {
+                    found.push(id);
+                } else {
+                    declined = true;
+                    break;
                 }
             }
-            if options.is_empty() {
-                break;
-            }
-            options.push(Choice::Decline);
-            let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
-            if let Choice::Target(Target::Object(id)) = options[k] {
-                found.push(id);
-            } else {
-                declined = true;
+            // Declining the only slot ends the search; with several, the
+            // next slot's card may still be found.
+            if declined && slots.len() == 1 {
                 break;
             }
         }
@@ -10288,6 +10318,7 @@ impl GameState {
         // graveyard): searched if a card was found there, or if none was
         // found at all.
         let from_library = !graveyard
+            || more.all
             || found.is_empty()
             || found.iter().any(|id| {
                 self.objects
@@ -10299,7 +10330,11 @@ impl GameState {
         // battlefield tapped; the other goes to the hand (one found
         // goes where they choose).
         let mut to_field = None;
-        if *to == SearchTo::BattlefieldAndHand && !found.is_empty() {
+        if matches!(
+            to,
+            SearchTo::BattlefieldAndHand | SearchTo::HandAndGraveyard
+        ) && !found.is_empty()
+        {
             let mut options: Vec<Choice> = found
                 .iter()
                 .map(|id| Choice::Target(Target::Object(*id)))
@@ -10318,10 +10353,27 @@ impl GameState {
                     &SearchTo::Battlefield { tapped: true }
                 }
                 SearchTo::BattlefieldAndHand => &SearchTo::Hand,
-                other => other,
+                // Fork in the Road: the chosen one into the hand.
+                SearchTo::HandAndGraveyard if to_field == Some(id) => &SearchTo::Hand,
+                SearchTo::HandAndGraveyard => &SearchTo::Graveyard,
+                // Guidelight Pathmaker: "Put it onto the battlefield if its
+                // mana value is 2 or less. Otherwise, put it into your
+                // hand."
+                other => match &more.split {
+                    Some((f, alt))
+                        if {
+                            let o = &self.objects[id];
+                            let c = self.base_characteristics(o);
+                            f.matches(id, p, &c, Some(ctx.source), Some(p)) && self.status_ok(f, id)
+                        } =>
+                    {
+                        alt
+                    }
+                    _ => other,
+                },
             };
             match to {
-                SearchTo::Hand | SearchTo::BattlefieldAndHand => {
+                SearchTo::Hand | SearchTo::BattlefieldAndHand | SearchTo::HandAndGraveyard => {
                     let new = self.move_object(id, Zone::Hand, true);
                     if reveal {
                         self.reveal_in_hand(new);
@@ -10978,6 +11030,7 @@ impl GameState {
                 reveal,
                 graveyard,
                 name,
+                more,
             } => {
                 // "Its controller may search their library": each searcher
                 // searches their own library.
@@ -11001,7 +11054,7 @@ impl GameState {
                         *to,
                         *may,
                         *reveal,
-                        (*graveyard, name.as_deref()),
+                        (*graveyard, name.as_deref(), more.as_deref()),
                     );
                 }
             }

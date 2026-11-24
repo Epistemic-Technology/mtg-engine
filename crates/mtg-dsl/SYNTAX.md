@@ -2524,6 +2524,52 @@ graveyard in a scenario); `reveal to hand that card`:
 card reveal to battlefield tapped and hand that card`: "reveal those
 cards, put one onto the battlefield tapped and the other into your
 hand" (the searcher chooses which; one found goes where they choose);
+several differently-filtered cards, one of each, joined with `and`:
+`search black card and green card and blue card to graveyard` ("Search
+your library for a black card, a green card, and a blue card. Put those
+cards into your graveyard, then shuffle."; with `reveal to hand`,
+"... Reveal those cards, put them into your hand, then shuffle."; two
+print "a basic land card and a Shrine card"): each card is found for
+one filter only, and any may be left unfound (`choose decline` in a
+scenario skips that one); named cards join with "and/or": `search card
+named "Alpine Watchdog" and card named "Igneous Cur" reveal to hand`
+("for a card named Alpine Watchdog and/or a card named Igneous Cur,
+reveal them, put them into your hand, then shuffle."); `with different
+names` after the cards (`search up to 2 basic land card or Town card
+with different names to battlefield tapped`: "... and/or Town cards with
+different names, put them ..."): no two found cards share a name (CR
+201.2); `search graveyard, hand, or library ...` ("Search your
+graveyard, hand, and/or library for ... and put them onto the
+battlefield. If you search your library this way, shuffle.";
+`graveyard, hand or library` prints "your graveyard, hand and/or
+library"; `graveyard, hand, and library` prints "your graveyard, hand,
+and library for ..., put it onto the battlefield, then shuffle." and
+always shuffles): the hand's and graveyard's cards may be found too; a
+destination by the found card, `to battlefield if with mana value 2 or
+less else hand` ("... and reveal it. Put it onto the battlefield if its
+mana value is 2 or less. Otherwise, put it into your hand. Then
+shuffle."; `to battlefield tapped if land else hand`: "Put it onto the
+battlefield tapped if it's a land card."; inside `you may`, "If you
+search your library this way, shuffle."), the card judged by its printed
+characteristics; `search up to 2 basic land card reveal to hand and
+graveyard` ("Search your library for up to two basic land cards and
+reveal them. Put one into your hand and the other into your graveyard.
+Then shuffle.": the searcher chooses the one for the hand). Older
+wordings, after the destination: `of them` ("... for up to two Forest
+cards and reveal them. Put one of them onto the battlefield tapped and
+the other into your hand, then shuffle."), `rest` ("..., reveal those
+cards, and put one onto the battlefield tapped and the rest into your
+hand. Then shuffle."), `short` before an `instead` search that ends
+`sentence` (`search basic land card reveal to hand short; if evidence
+collected, instead search creature or land card reveal to hand
+sentence`: "Search your library for a basic land card. If evidence was
+collected, instead search your library for a creature or land card.
+Reveal that card, put it into your hand, then shuffle."; each search
+has its own destination, printed once), and `instead of 2` closing a
+trailing `instead` sentence (`label "Spell mastery" if 2 instant or
+sorcery cards in your graveyard, search up to 3 basic Forest card reveal
+to battlefield tapped and hand instead of 2`: "... search your library
+for up to three basic Forest cards instead of two.");
 another player searches their own library with a subject: `its
 controller may search basic land card to battlefield tapped` ("Its
 controller may search their library for ..., put it onto the battlefield

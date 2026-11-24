@@ -1578,7 +1578,11 @@ impl<'a> Ctx<'a> {
         // "X target creatures", "one or two targets", "any number of
         // target creature cards from your graveyard".
         if let Target::Many {
-            min, max, total, ..
+            min,
+            max,
+            total,
+            different,
+            ..
         } = &self.targets[i]
         {
             let count = match max {
@@ -1606,8 +1610,14 @@ impl<'a> Ctx<'a> {
             let mut noun = self.plural_target_noun(i);
             // "creature cards with total mana value 3 or less from your
             // graveyard".
-            if let Some(n) = total {
-                let with = format!(" with total mana value {} or less", digits(*n));
+            let mut with = total.map_or(String::new(), |n| {
+                format!(" with total mana value {} or less", digits(n))
+            });
+            // "creature cards with different names from your graveyard".
+            if *different {
+                with.push_str(" with different names");
+            }
+            if !with.is_empty() {
                 noun = match noun.split_once(" from ") {
                     Some((a, b)) => format!("{a}{with} from {b}"),
                     None => format!("{noun}{with}"),
@@ -9211,105 +9221,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("flip {o}"))
         }
         Effect::Search {
-            filter,
             count,
             up_to,
             to,
             reveal,
             that_card,
-            or_card,
             who,
             may,
             graveyard,
             name,
             old,
+            more,
             ..
         } => {
+            // The rarer forms, and the sentence wordings.
+            if more.as_ref().is_some_and(|m| {
+                !m.slots.is_empty()
+                    || m.zones != crate::ast::SearchZones::Library
+                    || m.split.is_some()
+                    || m.wording != crate::ast::SearchWording::Plain
+            }) || *to == mtg_core::card::SearchTo::HandAndGraveyard
+            {
+                return search_more_text(e, ctx);
+            }
             if *graveyard || name.is_some() {
                 return search_named_text(e, ctx);
             }
             let one = *count == Num::N(1) && !*up_to;
-            let any = *count == Num::N(crate::ast::ANY_NUMBER);
-            let what = if *or_card != crate::ast::OrCard::No
-                && let Some(alt) = &filter.or
-            {
-                // "a basic land card or a Gate card", "up to two basic land
-                // cards and/or Gate cards".
-                let mut base = filter.clone();
-                base.or = None;
-                if one {
-                    let a = cards_phrase(alt, ctx.card, false);
-                    let a = if *or_card == crate::ast::OrCard::Article {
-                        with_article(&a)
-                    } else {
-                        a
-                    };
-                    format!(
-                        "{} or {a}",
-                        with_article(&cards_phrase(&base, ctx.card, false))
-                    )
-                } else {
-                    format!(
-                        "{}{} {} and/or {}",
-                        if *up_to { "up to " } else { "" },
-                        count_words(*count, "a"),
-                        cards_phrase(&base, ctx.card, true),
-                        cards_phrase(alt, ctx.card, true)
-                    )
-                }
-            } else if any {
-                format!("any number of {}", cards_phrase(filter, ctx.card, true))
-            } else if filter.same.is_some() {
-                // "a card named ~", "up to three cards named ~".
-                if one {
-                    format!("a {}", cards_phrase(filter, ctx.card, false))
-                } else {
-                    format!(
-                        "{}{} {}",
-                        if *up_to { "up to " } else { "" },
-                        count_words(*count, "a"),
-                        cards_phrase(filter, ctx.card, true)
-                    )
-                }
-            } else if filter == &Filter::default() {
-                // "instead search your library for any card" after a
-                // search for a particular card.
-                let other_search = matches!(ctx.current, Some(Ability::Spell { effects, .. })
-                    if effects.iter().flat_map(|s| &s.effects).any(|e| matches!(e,
-                        Effect::Search { filter, .. } if filter != &Filter::default())));
-                if one && other_search {
-                    "any card".to_string()
-                } else if one {
-                    "a card".to_string()
-                } else {
-                    format!(
-                        "{}{} cards",
-                        if *up_to { "up to " } else { "" },
-                        count_words(*count, "a")
-                    )
-                }
-            } else if one && filter.or.is_none() {
-                // "a Rebel permanent card with mana value 3 or less".
-                with_article(&cards_phrase(filter, ctx.card, false))
-            } else if one {
-                with_article(&format!("{} card", filter_phrase(filter, ctx.card, false)))
-            } else if filter.or.is_none() && filter.mana_value.is_some() {
-                // "up to two creature cards with mana value 1 or less": the
-                // mana value after the noun.
-                format!(
-                    "{}{} {}",
-                    if *up_to { "up to " } else { "" },
-                    count_words(*count, "a"),
-                    cards_phrase(filter, ctx.card, true)
-                )
-            } else {
-                format!(
-                    "{}{} {} cards",
-                    if *up_to { "up to " } else { "" },
-                    count_words(*count, "a"),
-                    filter_phrase(filter, ctx.card, false)
-                )
-            };
+            let what = search_what(e, ctx);
             let (it, them) = if *that_card {
                 ("that card", "those cards")
             } else {
@@ -9395,6 +9334,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SearchTo::Graveyard => {
                     let gy = hand.replace("hand", "graveyard");
                     let _ = write!(text, "{put} {pron} into {gy}, then {shuffle}");
+                }
+                mtg_core::card::SearchTo::HandAndGraveyard => {
+                    text.push_str("(unsupported)");
                 }
                 mtg_core::card::SearchTo::HandOrGraveyard => {
                     let gy = hand.replace("hand", "hand or graveyard");
@@ -10761,6 +10703,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             let text = match wording {
                 InsteadWording::Lead => format!("if {cond}, instead {body}"),
+                // "search your library for up to three basic Forest cards
+                // instead of two".
+                InsteadWording::Trail if body.contains(" instead of ") => {
+                    format!("if {cond}, {body}")
+                }
                 InsteadWording::Trail => format!("if {cond}, {body} instead"),
                 InsteadWording::After => format!("{body} instead if {cond}"),
                 InsteadWording::AfterBare => format!(
@@ -11021,6 +10968,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
                 }
                 return Clause::imperative(text);
+            }
+            // "you may search your library for an artifact card and reveal
+            // it. ... If you search your library this way, shuffle."
+            if let [one] = inner.as_slice()
+                && let [e @ Effect::Search { more: Some(_), .. }] = one.effects.as_slice()
+            {
+                let mut e = e.clone();
+                if let Effect::Search { may, .. } = &mut e {
+                    *may = true;
+                }
+                return search_more_text(&e, ctx);
             }
             let body = sentences(inner, ctx);
             // "You may discard a card. When you do, ...".
@@ -18636,6 +18594,278 @@ fn mode_head_text(head: crate::ast::ModeHead) -> String {
             "choose one that hasn't been chosen{}",
             if this_turn { " this turn" } else { "" }
         ),
+    }
+}
+
+/// The rarer searches: several differently-filtered cards ("a black card,
+/// a green card, and a blue card. Put those cards into your graveyard,
+/// then shuffle."), "your graveyard, hand, and/or library", a destination
+/// by the found card ("Put it onto the battlefield if its mana value is 2
+/// or less. Otherwise, put it into your hand."), and the sentence
+/// wordings.
+#[allow(clippy::too_many_lines)] // one wording per form
+fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
+    use crate::ast::{SearchWording, SearchZones};
+    use mtg_core::card::SearchTo;
+    let Effect::Search {
+        filter,
+        count,
+        up_to,
+        to,
+        reveal,
+        who,
+        may,
+        graveyard,
+        name,
+        more,
+        ..
+    } = e
+    else {
+        unreachable!("a search");
+    };
+    if who.is_some_and(|w| w != Recipient::You) {
+        return Clause::imperative("(unsupported: another player's search)".to_string());
+    }
+    let empty = crate::ast::SearchMore::default();
+    let m = more.as_deref().unwrap_or(&empty);
+    let zones = match m.zones {
+        SearchZones::Library if *graveyard => "your library and/or graveyard",
+        SearchZones::Library => "your library",
+        SearchZones::HandOr { comma: true } => "your graveyard, hand, and/or library",
+        SearchZones::HandOr { comma: false } => "your graveyard, hand and/or library",
+        SearchZones::HandAnd => "your graveyard, hand, and library",
+    };
+    // "If you search your library this way, shuffle.": the library may go
+    // unsearched.
+    let maybe_library = *graveyard && m.zones != SearchZones::HandAnd;
+    let card_a = |f: &Filter, n: &Option<String>, ctx: &Ctx| match n {
+        Some(n) => format!("a card named {}", n.replace('|', " or ")),
+        None if f == &Filter::default() => "a card".to_string(),
+        None => with_article(&cards_phrase(f, ctx.card, false)),
+    };
+    let plural = !m.slots.is_empty() || *count != Num::N(1) || *up_to;
+    let what = if m.slots.is_empty() {
+        if name.is_some() {
+            card_a(filter, name, ctx)
+        } else {
+            search_what(e, ctx)
+        }
+    } else {
+        let mut all = vec![card_a(filter, name, ctx)];
+        all.extend(m.slots.iter().map(|(f, n)| card_a(f, n, ctx)));
+        if name.is_some() || m.slots.iter().any(|(_, n)| n.is_some()) {
+            all.join(" and/or ")
+        } else if all.len() == 2 {
+            all.join(" and ")
+        } else {
+            let last = all.pop().unwrap_or_default();
+            format!("{}, and {last}", all.join(", "))
+        }
+    };
+    let verb = if *may { "may search" } else { "search" };
+    let head = format!("{verb} {zones} for {what}");
+    let place = |to: SearchTo| match to {
+        SearchTo::Hand => "into your hand",
+        SearchTo::Battlefield { tapped: false } => "onto the battlefield",
+        SearchTo::Battlefield { tapped: true } => "onto the battlefield tapped",
+        SearchTo::Graveyard => "into your graveyard",
+        _ => "(unsupported)",
+    };
+    let shuffle_sentence = if *may || maybe_library {
+        "If you search your library this way, shuffle"
+    } else {
+        "Then shuffle"
+    };
+    let (pron, those) = if plural {
+        ("them", "those cards")
+    } else {
+        ("it", "that card")
+    };
+    let text = if let Some((f, alt)) = &m.split {
+        // "Put it onto the battlefield if its mana value is 2 or less.
+        // Otherwise, put it into your hand."
+        let cond = match f.mana_value {
+            Some((cmp, n))
+                if Filter {
+                    mana_value: None,
+                    ..f.clone()
+                } == Filter::default() =>
+            {
+                format!("its mana value is {n}{}", cmp_words(cmp))
+            }
+            _ => format!("it's {}", with_article(&cards_phrase(f, ctx.card, false))),
+        };
+        format!(
+            "{head}{}. Put {pron} {} if {cond}. Otherwise, put {pron} {}. {shuffle_sentence}",
+            if *reveal {
+                format!(" and reveal {pron}")
+            } else {
+                String::new()
+            },
+            place(*alt),
+            place(*to)
+        )
+    } else if *to == SearchTo::HandAndGraveyard {
+        format!(
+            "{head}{}. Put one into your hand and the other into your graveyard. Then shuffle",
+            if *reveal { " and reveal them" } else { "" }
+        )
+    } else {
+        match m.wording {
+            SearchWording::Short => head,
+            SearchWording::InsteadOf(n) => {
+                format!("{head} instead of {}", count_words(Num::N(n), "one"))
+            }
+            SearchWording::OfThem if *to == SearchTo::BattlefieldAndHand => format!(
+                "{head} and reveal them. Put one of them onto the battlefield tapped and the other into your hand, then shuffle"
+            ),
+            SearchWording::Rest if *to == SearchTo::BattlefieldAndHand => format!(
+                "{head}, reveal those cards, and put one onto the battlefield tapped and the rest into your hand. Then shuffle"
+            ),
+            SearchWording::OfThem | SearchWording::Rest => "(unsupported)".to_string(),
+            // "Reveal those cards, put them into your hand, then shuffle."
+            _ if m.wording == SearchWording::Sentence
+                || (!m.slots.is_empty() && name.is_none()) =>
+            {
+                if *reveal {
+                    format!(
+                        "{head}. Reveal {those}, put {pron} {}, then shuffle",
+                        place(*to)
+                    )
+                } else {
+                    format!("{head}. Put {those} {}, then shuffle", place(*to))
+                }
+            }
+            _ if maybe_library => {
+                if *reveal {
+                    format!(
+                        "{head}, reveal {pron}, and put {pron} {}. {shuffle_sentence}",
+                        place(*to)
+                    )
+                } else {
+                    format!("{head} and put {pron} {}. {shuffle_sentence}", place(*to))
+                }
+            }
+            _ => {
+                if *reveal {
+                    format!(
+                        "{head}, reveal {pron}, put {pron} {}, then shuffle",
+                        place(*to)
+                    )
+                } else {
+                    format!("{head}, put {pron} {}, then shuffle", place(*to))
+                }
+            }
+        }
+    };
+    if *may {
+        Clause::with_subject(Recipient::You, "you".to_string(), text)
+    } else {
+        Clause::imperative(text)
+    }
+}
+
+/// What a search looks for: "a basic land card", "up to two basic land
+/// cards and/or Gate cards", "any number of cards named ~" (with "with
+/// different names").
+fn search_what(e: &Effect, ctx: &mut Ctx) -> String {
+    let Effect::Search {
+        filter,
+        count,
+        up_to,
+        or_card,
+        more,
+        ..
+    } = e
+    else {
+        unreachable!("a search");
+    };
+    let one = *count == Num::N(1) && !*up_to;
+    let any = *count == Num::N(crate::ast::ANY_NUMBER);
+    let what = if *or_card != crate::ast::OrCard::No
+        && let Some(alt) = &filter.or
+    {
+        // "a basic land card or a Gate card", "up to two basic land
+        // cards and/or Gate cards".
+        let mut base = filter.clone();
+        base.or = None;
+        if one {
+            let a = cards_phrase(alt, ctx.card, false);
+            let a = if *or_card == crate::ast::OrCard::Article {
+                with_article(&a)
+            } else {
+                a
+            };
+            format!(
+                "{} or {a}",
+                with_article(&cards_phrase(&base, ctx.card, false))
+            )
+        } else {
+            format!(
+                "{}{} {} and/or {}",
+                if *up_to { "up to " } else { "" },
+                count_words(*count, "a"),
+                cards_phrase(&base, ctx.card, true),
+                cards_phrase(alt, ctx.card, true)
+            )
+        }
+    } else if any {
+        format!("any number of {}", cards_phrase(filter, ctx.card, true))
+    } else if filter.same.is_some() {
+        // "a card named ~", "up to three cards named ~".
+        if one {
+            format!("a {}", cards_phrase(filter, ctx.card, false))
+        } else {
+            format!(
+                "{}{} {}",
+                if *up_to { "up to " } else { "" },
+                count_words(*count, "a"),
+                cards_phrase(filter, ctx.card, true)
+            )
+        }
+    } else if filter == &Filter::default() {
+        // "instead search your library for any card" after a
+        // search for a particular card.
+        let other_search = matches!(ctx.current, Some(Ability::Spell { effects, .. })
+            if effects.iter().flat_map(|s| &s.effects).any(|e| matches!(e,
+                Effect::Search { filter, .. } if filter != &Filter::default())));
+        if one && other_search {
+            "any card".to_string()
+        } else if one {
+            "a card".to_string()
+        } else {
+            format!(
+                "{}{} cards",
+                if *up_to { "up to " } else { "" },
+                count_words(*count, "a")
+            )
+        }
+    } else if one && filter.or.is_none() {
+        // "a Rebel permanent card with mana value 3 or less".
+        with_article(&cards_phrase(filter, ctx.card, false))
+    } else if one {
+        with_article(&format!("{} card", filter_phrase(filter, ctx.card, false)))
+    } else if filter.or.is_none() && filter.mana_value.is_some() {
+        // "up to two creature cards with mana value 1 or less": the
+        // mana value after the noun.
+        format!(
+            "{}{} {}",
+            if *up_to { "up to " } else { "" },
+            count_words(*count, "a"),
+            cards_phrase(filter, ctx.card, true)
+        )
+    } else {
+        format!(
+            "{}{} {} cards",
+            if *up_to { "up to " } else { "" },
+            count_words(*count, "a"),
+            filter_phrase(filter, ctx.card, false)
+        )
+    };
+    if more.as_ref().is_some_and(|m| m.different_names) {
+        format!("{what} with different names")
+    } else {
+        what
     }
 }
 

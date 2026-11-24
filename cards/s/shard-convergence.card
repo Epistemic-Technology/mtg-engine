@@ -1,0 +1,6 @@
+card "Shard Convergence" {
+  oracle_id c51fc4f2-76a6-4337-ab8f-1b3e84f82019
+  cost {3}{G}
+  type Sorcery
+  spell: search Plains card and Island card and Swamp card and Mountain card reveal to hand
+}

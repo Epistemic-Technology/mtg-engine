@@ -1,0 +1,420 @@
+# Library searches of the thirteenth wave (CR 701.19): several
+# differently-filtered cards in one search, "with different names", a
+# search of "your graveyard, hand, and/or library", a destination chosen by
+# the found card, a search's destination split between the hand and the
+# graveyard, and the older multi-sentence wordings.
+
+scenario "several filters: Lotuslight Dancers finds a black, a green, and a blue card" {
+  battlefield A: "Swamp", "Forest", "Island", 2 "Plains"
+  hand A: "Lotuslight Dancers"
+  library A: "Doom Blade", "Grizzly Bears", "Counterspell", "Shock"
+  turn 1 A: cast "Lotuslight Dancers"
+  turn 1 A: choose "Doom Blade"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Counterspell"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Doom Blade"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Counterspell"
+  assert library A count 1
+  assert library A contains "Shock"
+}
+
+scenario "several filters: Lotuslight Dancers finds one green card for its green slot only" {
+  battlefield A: "Swamp", "Forest", "Island", 2 "Plains"
+  hand A: "Lotuslight Dancers"
+  library A: "Grizzly Bears", "Llanowar Elves", "Shock"
+  turn 1 A: cast "Lotuslight Dancers"
+  turn 1 A: choose "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert graveyard A count 1
+  assert library A count 2
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "several filters: Lotuslight Dancers may leave a slot unfound and still fill the next" {
+  battlefield A: "Swamp", "Forest", "Island", 2 "Plains"
+  hand A: "Lotuslight Dancers"
+  library A: "Doom Blade", "Grizzly Bears", "Counterspell"
+  turn 1 A: cast "Lotuslight Dancers"
+  turn 1 A: choose decline
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Counterspell"
+  run_to turn 1 postcombat_main
+  assert library A contains "Doom Blade"
+  assert graveyard A count 2
+}
+
+scenario "several filters: a card found for one slot can't fill another (Lotuslight Dancers)" {
+  battlefield A: "Swamp", "Forest", "Island", 2 "Plains"
+  hand A: "Lotuslight Dancers"
+  library A: "Putrefy", "Shock"
+  turn 1 A: cast "Lotuslight Dancers"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Putrefy"
+  assert graveyard A count 1
+  assert library A contains "Shock"
+}
+
+scenario "instead with several filters: Aang's Journey kicked finds a basic land and a Shrine" {
+  battlefield A: 4 "Plains"
+  hand A: "Aang's Journey"
+  library A: "Forest", "Sanctum of Fruitful Harvest", "Grizzly Bears"
+  life A 20
+  turn 1 A: cast "Aang's Journey" kicked
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Sanctum of Fruitful Harvest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A contains "Sanctum of Fruitful Harvest"
+  assert library A count 1
+  assert life A 22
+}
+
+scenario "instead with several filters: Aang's Journey unkicked finds a basic land only" {
+  battlefield A: 2 "Plains"
+  hand A: "Aang's Journey"
+  library A: "Forest", "Sanctum of Fruitful Harvest", "Grizzly Bears"
+  life A 20
+  turn 1 A: cast "Aang's Journey"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 1
+  assert library A contains "Sanctum of Fruitful Harvest"
+  assert life A 22
+}
+
+scenario "different names: Reach the Horizon can't find a second Forest" {
+  battlefield A: 4 "Forest"
+  hand A: "Reach the Horizon"
+  library A: 2 "Forest", "Crossroads Village", "Grizzly Bears"
+  turn 1 A: cast "Reach the Horizon"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Crossroads Village"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Forest"
+  assert battlefield A contains "Crossroads Village"
+  assert tapped "Crossroads Village"
+  assert library A count 2
+}
+
+scenario "different names: Reach the Horizon finds one Forest of three" {
+  battlefield A: 4 "Forest"
+  hand A: "Reach the Horizon"
+  library A: 3 "Forest"
+  turn 1 A: cast "Reach the Horizon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Forest"
+  assert library A count 2
+}
+
+scenario "different names: Shared Summons finds two creatures with different names" {
+  battlefield A: 5 "Forest"
+  hand A: "Shared Summons"
+  library A: "Grizzly Bears", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Shared Summons"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A count 2
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "different names: Three Dreams finds Auras with different names" {
+  battlefield A: 5 "Plains"
+  hand A: "Three Dreams"
+  library A: 2 "Zoetic Glyph", "Sinister Strength", "Grizzly Bears"
+  turn 1 A: cast "Three Dreams"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Zoetic Glyph"
+  assert hand A contains "Sinister Strength"
+  assert hand A count 2
+  assert library A contains "Zoetic Glyph"
+}
+
+scenario "different names: Deathbellow War Cry puts Minotaurs with different names onto the battlefield" {
+  battlefield A: 8 "Mountain"
+  hand A: "Deathbellow War Cry"
+  library A: 2 "Zerapa Minotaur", "Smelt-Ward Minotaur", "Grizzly Bears"
+  turn 1 A: cast "Deathbellow War Cry"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zerapa Minotaur"
+  assert battlefield A contains "Smelt-Ward Minotaur"
+  assert library A contains "Zerapa Minotaur"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "graveyard, hand, and/or library: Agency Outfitter finds one from the hand and one from the graveyard" {
+  battlefield A: 4 "Island", 2 "Plains"
+  hand A: "Agency Outfitter", "Magnifying Glass"
+  graveyard A: "Thinking Cap"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Agency Outfitter"
+  turn 1 A: accept "Agency Outfitter"
+  turn 1 A: choose "Magnifying Glass"
+  turn 1 A: choose "Thinking Cap"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Magnifying Glass"
+  assert battlefield A contains "Thinking Cap"
+  assert hand A count 0
+  assert graveyard A count 0
+}
+
+scenario "graveyard, hand, and/or library: Agency Outfitter finds a Thinking Cap in the library" {
+  battlefield A: 4 "Island", 2 "Plains"
+  hand A: "Agency Outfitter"
+  library A: "Thinking Cap", "Magnifying Glass", "Grizzly Bears"
+  turn 1 A: cast "Agency Outfitter"
+  turn 1 A: accept "Agency Outfitter"
+  turn 1 A: choose decline
+  turn 1 A: choose "Thinking Cap"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Thinking Cap"
+  assert battlefield A lacks "Magnifying Glass"
+  assert library A count 2
+}
+
+scenario "graveyard, hand, and/or library: Agency Outfitter declined finds nothing" {
+  battlefield A: 4 "Island", 2 "Plains"
+  hand A: "Agency Outfitter", "Magnifying Glass"
+  turn 1 A: cast "Agency Outfitter"
+  turn 1 A: decline "Agency Outfitter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Magnifying Glass"
+  assert battlefield A lacks "Magnifying Glass"
+}
+
+scenario "named cards: Alpine Houndmaster finds both hounds" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Alpine Houndmaster"
+  library A: "Alpine Watchdog", "Igneous Cur", "Grizzly Bears"
+  turn 1 A: cast "Alpine Houndmaster"
+  turn 1 A: accept "Alpine Houndmaster"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Alpine Watchdog"
+  assert hand A contains "Igneous Cur"
+  assert library A count 1
+}
+
+scenario "named cards: Alpine Houndmaster gets +X/+0 for each other attacker" {
+  battlefield A: "Alpine Houndmaster", "Grizzly Bears", "Hill Giant"
+  life B 20
+  turn 1 A: attack "Alpine Houndmaster", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 11
+}
+
+scenario "destination by mana value: Guidelight Pathmaker puts a cheap artifact onto the battlefield" {
+  battlefield A: 4 "Plains", 2 "Island"
+  hand A: "Guidelight Pathmaker"
+  library A: "Magnifying Glass", "Ornithopter"
+  turn 1 A: cast "Guidelight Pathmaker"
+  turn 1 A: accept "Guidelight Pathmaker"
+  turn 1 A: choose "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert library A contains "Magnifying Glass"
+}
+
+scenario "destination by mana value: Guidelight Pathmaker puts a three-drop into the hand" {
+  battlefield A: 4 "Plains", 2 "Island"
+  hand A: "Guidelight Pathmaker"
+  library A: "Ornithopter", "Magnifying Glass"
+  turn 1 A: cast "Guidelight Pathmaker"
+  turn 1 A: accept "Guidelight Pathmaker"
+  turn 1 A: choose "Magnifying Glass"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Magnifying Glass"
+  assert battlefield A lacks "Magnifying Glass"
+  assert library A contains "Ornithopter"
+}
+
+scenario "destination by type: Archdruid's Charm puts a land onto the battlefield tapped" {
+  battlefield A: 3 "Forest"
+  hand A: "Archdruid's Charm"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: cast "Archdruid's Charm" mode 1
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "destination by type: Archdruid's Charm puts a creature card into the hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Archdruid's Charm"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: cast "Archdruid's Charm" mode 1
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert library A contains "Plains"
+}
+
+scenario "Archdruid's Charm: the creature given a counter deals damage equal to its power" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Archdruid's Charm"
+  turn 1 A: cast "Archdruid's Charm" mode 2 targeting oldest "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Archdruid's Charm: exile target artifact" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Archdruid's Charm"
+  turn 1 A: cast "Archdruid's Charm" mode 3 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Ornithopter"
+}
+
+scenario "instead search: Analyze the Pollen without evidence finds only a basic land" {
+  battlefield A: "Forest"
+  hand A: "Analyze the Pollen"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: cast "Analyze the Pollen"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "instead search: Analyze the Pollen with evidence collected finds a creature card" {
+  battlefield A: "Forest"
+  hand A: "Analyze the Pollen"
+  graveyard A: "Craw Wurm", "Hill Giant"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: cast "Analyze the Pollen" kicked
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert library A contains "Plains"
+  assert exile A count 2
+}
+
+scenario "hand and graveyard: Fork in the Road puts the chosen land into the hand, the other into the graveyard" {
+  battlefield A: 2 "Forest"
+  hand A: "Fork in the Road"
+  library A: "Plains", "Island", "Grizzly Bears"
+  turn 1 A: cast "Fork in the Road"
+  turn 1 A: choose "Plains"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert graveyard A contains "Plains"
+  assert library A count 1
+}
+
+scenario "hand and graveyard: Jarad's Orders puts one creature card into the hand and the other into the graveyard" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  hand A: "Jarad's Orders"
+  library A: "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Jarad's Orders"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Jarad's Orders"
+  assert library A count 1
+}
+
+scenario "the rest into the hand: Nissa's Pilgrimage puts one Forest onto the battlefield and one into the hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Nissa's Pilgrimage"
+  library A: 3 "Forest", "Plains"
+  turn 1 A: cast "Nissa's Pilgrimage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Forest"
+  assert hand A contains "Forest"
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "the rest into the hand: Nissa's Pilgrimage with spell mastery finds three Forests" {
+  battlefield A: 3 "Forest"
+  hand A: "Nissa's Pilgrimage"
+  graveyard A: "Shock", "Counterspell"
+  library A: 3 "Forest", "Plains"
+  turn 1 A: cast "Nissa's Pilgrimage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Forest"
+  assert hand A contains 2 "Forest"
+  assert library A count 1
+  assert library A contains "Plains"
+}
+
+scenario "one of them: Flourishing Bloom-Kin turned face up finds two Forests" {
+  battlefield A: 8 "Forest"
+  hand A: "Flourishing Bloom-Kin"
+  library A: 2 "Forest", "Plains"
+  turn 1 A: cast "Flourishing Bloom-Kin" face_down
+  turn 1 A: unmorph "Flourishing Bloom-Kin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 9 "Forest"
+  assert hand A contains "Forest"
+  assert library A count 1
+  assert power "Flourishing Bloom-Kin" 9
+}
+
+scenario "several filters: Shard Convergence finds four basic land types" {
+  battlefield A: 4 "Forest"
+  hand A: "Shard Convergence"
+  library A: "Plains", "Island", "Swamp", "Mountain", "Forest"
+  turn 1 A: cast "Shard Convergence"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert hand A contains "Island"
+  assert hand A contains "Swamp"
+  assert hand A contains "Mountain"
+  assert library A count 1
+  assert library A contains "Forest"
+}
+
+scenario "several filters: Conflux finds a card of each color" {
+  battlefield A: 3 "Wastes", "Plains", "Island", "Swamp", "Mountain", "Forest"
+  hand A: "Conflux"
+  library A: "Serra Angel", "Counterspell", "Doom Blade", "Shock", "Grizzly Bears", "Ornithopter"
+  turn 1 A: cast "Conflux"
+  run_to turn 1 postcombat_main
+  assert hand A count 5
+  assert library A count 1
+  assert library A contains "Ornithopter"
+}
+
+scenario "several filters: Gem of Becoming finds an Island, a Swamp, and a Mountain" {
+  battlefield A: "Gem of Becoming", 3 "Plains"
+  library A: "Island", "Swamp", "Mountain", "Forest"
+  turn 1 A: activate "Gem of Becoming"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert hand A contains "Swamp"
+  assert hand A contains "Mountain"
+  assert graveyard A contains "Gem of Becoming"
+  assert library A count 1
+}
+
+scenario "target group with different names: Behold the Sinister Six! returns creature cards with different names" {
+  battlefield A: 7 "Swamp"
+  hand A: "Behold the Sinister Six!"
+  graveyard A: "Grizzly Bears", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Behold the Sinister Six!" targeting oldest "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "target group with different names: Behold the Sinister Six! can't target two cards with the same name" {
+  battlefield A: 7 "Swamp"
+  hand A: "Behold the Sinister Six!"
+  graveyard A: "Grizzly Bears", "Grizzly Bears", "Hill Giant"
+  illegal turn 1 A: cast "Behold the Sinister Six!" targeting oldest "Grizzly Bears", newest "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+}

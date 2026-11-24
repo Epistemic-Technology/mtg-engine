@@ -1,0 +1,8 @@
+card "Alpine Houndmaster" {
+  oracle_id 88939cb3-5f61-4857-95cb-9446c6c1f1aa
+  cost {R}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered when this enters: you may search card named "Alpine Watchdog" and card named "Igneous Cur" reveal to hand
+  triggered whenever this attacks: this gets +1/+0 count where other attacking creature until end of turn
+}
