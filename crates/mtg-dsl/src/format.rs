@@ -8336,6 +8336,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 groups: groups.to_vec(),
             };
             let head = match (&rep.event, &rep.outcome) {
+                (Replaces::Enters, Outcome::EnterTapped)
+                    if rep.wording == crate::ast::ThenWording::Joined =>
+                {
+                    "enters tapped and".to_string()
+                }
                 (Replaces::Enters, o) => format!("enters {}", outcome(o)),
                 (event, Outcome::PlusToken { that_many, .. }) => format!(
                     "replace {}: plus {}\"{}\"",

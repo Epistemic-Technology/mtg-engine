@@ -1,0 +1,9 @@
+card "Tamiyo's Compleation" {
+  oracle_id 71d8b7f5-a5da-4528-815e-51c65626b681
+  cost {3}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant artifact or creature or planeswalker
+  triggered when this enters: tap attached; if attached is Equipment, unattach attached
+  static enchanted permanent: loses all abilities, has doesn't untap
+}

@@ -3208,6 +3208,7 @@ fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
             event: Replaces::Enters,
             outcome: Outcome::EnterTapped,
             then: t1,
+            wording,
             ..
         }),
         Some(Ability::Replacement(Replacement {
@@ -3222,8 +3223,13 @@ fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
     };
     (t1.is_empty() && t2.is_empty()).then(|| {
         format!(
-            "{} enters tapped with {} on {}.",
+            "{} enters tapped {}with {} on {}.",
             capitalize(&this_ref(card)),
+            if *wording == crate::ast::ThenWording::Joined {
+                "and "
+            } else {
+                ""
+            },
             counters(*n, *kind),
             it_obj(card)
         )
@@ -13237,11 +13243,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // Ascension).
                 static_cond_text(c, ctx.card).replacen(&this_ref(ctx.card), "it", 1)
             } else if matches!(c, StaticCond::AttachedIs(_))
-                && matches!(
+                && (matches!(
                     ctx.trigger,
                     Some(Trigger::Attacks(TriggerObj::Filter(f))) if f.enchanted
-                )
+                ) || ctx.attached_mentioned)
             {
+                // "When this Aura enters, tap enchanted permanent. If it's
+                // an Equipment, unattach it." (Tamiyo's Compleation): once
+                // named.
                 // "Whenever enchanted creature attacks, put a +1/+1
                 // counter on it. Then if it has three or more +1/+1
                 // counters on it" (Ordeal of Nylea): the attacker,

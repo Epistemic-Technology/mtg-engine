@@ -4705,13 +4705,21 @@ impl P {
                         more: None,
                     });
                 }
+                // `enters tapped and` before `enters with 3 charge
+                // counters`: "This artifact enters tapped and with three
+                // charge counters on it." (Sphere of the Suns).
+                let joined = outcome == Outcome::EnterTapped && self.eat_word("and");
                 self.end_stmt()?;
                 Ok(Ability::Replacement(Replacement {
                     event: Replaces::Enters,
                     outcome,
                     then: Vec::new(),
                     token: None,
-                    wording: crate::ast::ThenWording::Sentence,
+                    wording: if joined {
+                        crate::ast::ThenWording::Joined
+                    } else {
+                        crate::ast::ThenWording::Sentence
+                    },
                     cond: None,
                 }))
             }
