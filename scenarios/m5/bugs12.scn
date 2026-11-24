@@ -1,0 +1,36 @@
+# The twelfth wave's bug fixes (KNOWN-ISSUES.md sections 1 and 2).
+
+scenario "Giant's Amulet: the granted static gives hexproof while untapped" {
+  battlefield A: "Grizzly Bears", "Giant's Amulet" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  assert has "Grizzly Bears" hexproof
+  assert toughness "Grizzly Bears" 3
+  illegal turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Giant's Amulet: a tapped creature loses hexproof" {
+  battlefield A: "Grizzly Bears" tapped, "Giant's Amulet" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  assert has not "Grizzly Bears" hexproof
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Giant's Amulet: pay {3}{U} as it enters for an equipped 4/4 Giant Wizard" {
+  battlefield A: 5 "Island"
+  hand A: "Giant's Amulet"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant's Amulet"
+  run_to turn 1 begin_combat
+  assert attached "Giant's Amulet" to "Giant Wizard"
+  assert power "Giant Wizard" 4
+  assert toughness "Giant Wizard" 5
+  assert has "Giant Wizard" hexproof
+}

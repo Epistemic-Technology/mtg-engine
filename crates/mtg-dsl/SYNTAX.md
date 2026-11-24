@@ -1917,6 +1917,10 @@ or artifacts (`static artifact you control: has ability { activated {2},
 sacrifice this: ... }`: "Sacrifice this artifact"). A granted loyalty
 ability brackets its cost (`static planeswalker you control: has ability
 { loyalty -4: ... }`: "Planeswalkers you control have \"[−4]: ...\"").
+A granted static ability applies after the grant, in layer 6 and later
+(`static equipped: +0/+1, has ability { static this: has hexproof as
+long as this is untapped }`, Giant's Amulet); one that would change
+types, colors, or control (layers 1 to 5) is a compile error.
 In a quoted ability an Aura or Equipment grants what it is attached to
 (`static enchanted:` or `static equipped:`), `granter` is that Aura or
 Equipment, printed by its name: the cost `sacrifice granter` ("{T},

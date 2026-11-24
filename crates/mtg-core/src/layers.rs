@@ -337,16 +337,45 @@ fn pass(
             }
         }
         gather_statics(&work, &mut live, layer);
+        // A static ability granted in layer 6 ("has 'This creature has
+        // hexproof as long as it's untapped'", Giant's Amulet) exists once
+        // the grant has applied; its own layer-6 effect applies after the
+        // grant in the same layer (CR 613.8a: it depends on the grant).
+        // A later round applies only the effects it newly gathered.
+        let mut from = 0;
+        while apply_layer(&mut work, &mut live, from, layer) && layer == Layer::L6Ability {
+            from = live.len();
+            gather_statics(&work, &mut live, layer);
+            if from == live.len() {
+                break;
+            }
+        }
+        apply_counters(&mut work, layer);
+    }
+
+    let again = work.needs_settled.get() && work.settled.is_none();
+    (
+        Derived::Battlefield(crate::state::CharMap::new(work.ids, work.chars)),
+        again,
+    )
+}
+
+/// Applies the live effects from index `from` on that have a part in
+/// `layer`, in dependency and timestamp order. Returns whether one of them
+/// granted a static ability with a layer-6 part.
+fn apply_layer(work: &mut Work<'_>, live: &mut [Live], from: usize, layer: Layer) -> bool {
+    let mut granted_static = false;
+    {
         // Effects with a part in this layer.
         let mut here: Vec<usize> = live
             .iter()
             .enumerate()
+            .skip(from)
             .filter(|(_, l)| !l.dead && l.parts.iter().any(|p| p.layer() == layer))
             .map(|(i, _)| i)
             .collect();
         if here.is_empty() {
-            apply_counters(&mut work, layer);
-            continue;
+            return false;
         }
         // Lock affected sets of effects starting now (CR 613.6).
         for &i in &here {
@@ -361,7 +390,7 @@ fn pass(
             }
         }
         here.sort_by_key(|i| live[*i].timestamp);
-        let order = dependency_order(&work, &live, &here, layer);
+        let order = dependency_order(work, live, &here, layer);
         for i in order {
             if !live[i].started {
                 // A static ability's effect exists only if the ability still
@@ -383,11 +412,11 @@ fn pass(
                 // "has all activated abilities of ...": the abilities those
                 // objects have now, each granted (CR 613.1f).
                 if let Modification::AddActivatedOf(from) = part {
-                    let granted = activated_of(&work, l.source, l.controller, from);
+                    let granted = activated_of(work, l.source, l.controller, from);
                     for t in &targets {
                         if let Some(&wi) = work.index.get(t) {
                             for a in &granted {
-                                apply(&mut work, wi, &Modification::AddAbility(*a));
+                                apply(work, wi, &Modification::AddAbility(*a));
                             }
                         }
                     }
@@ -400,7 +429,7 @@ fn pass(
                         toughness,
                         count,
                     } => {
-                        let n = per_count(&work, l.source, l.controller, count);
+                        let n = per_count(work, l.source, l.controller, count);
                         Modification::ModifyPt {
                             power: power.saturating_mul(n),
                             toughness: toughness.saturating_mul(n),
@@ -408,21 +437,21 @@ fn pass(
                     }
                     other => other.clone(),
                 };
+                if let Modification::AddAbility(a) = part
+                    && let AbilityDef::Static(sa) = work.state.pool.ability(a)
+                    && sa.parts.iter().any(|p| p.layer() == Layer::L6Ability)
+                {
+                    granted_static = true;
+                }
                 for t in &targets {
                     if let Some(&wi) = work.index.get(t) {
-                        apply(&mut work, wi, &part);
+                        apply(work, wi, &part);
                     }
                 }
             }
         }
-        apply_counters(&mut work, layer);
     }
-
-    let again = work.needs_settled.get() && work.settled.is_none();
-    (
-        Derived::Battlefield(crate::state::CharMap::new(work.ids, work.chars)),
-        again,
-    )
+    granted_static
 }
 
 /// Whether a filter looks at power or toughness.

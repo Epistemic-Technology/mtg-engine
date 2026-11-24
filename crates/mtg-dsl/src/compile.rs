@@ -5601,6 +5601,18 @@ impl Compiler<'_> {
         if let Mod::AddAbility(a) = m {
             let def = self.ability(a)?;
             self.check_granter(&def)?;
+            // A granted static ability exists from layer 6 on (the grant's
+            // layer): what it does in an earlier layer is never applied.
+            if let AbilityDef::Static(sa) = &def
+                && sa
+                    .parts
+                    .iter()
+                    .any(|p| p.layer() < mtg_core::card::Layer::L6Ability)
+            {
+                return self.err(
+                    "a granted static ability can only change abilities, power, and toughness",
+                );
+            }
             return Ok(Modification::AddAbility(self.pool.register_ability(def)));
         }
         let out = self.modification(m);
