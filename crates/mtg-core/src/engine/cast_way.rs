@@ -248,7 +248,21 @@ impl GameState {
         // A copy of a card cast from exile (cipher, CR 702.99a) is a copy
         // on the stack too (CR 707.12).
         let copy = self.objects[card].cast.copy();
+        // CR 601.3: what the permission it is cast by adds to its cost,
+        // kept for the payment (`spell_basis`).
+        let rider = match &self.exile_casts {
+            Some(e) if e.riders => self.permission_rider(player, card),
+            _ => crate::card::CastRider::default(),
+        };
         let spell = self.move_object(card, Zone::Stack, true);
+        if !rider.is_none()
+            && let Some(e) = &mut self.exile_casts
+        {
+            let objects = &self.objects;
+            e.rider_spells
+                .retain(|(s, _)| objects.get(*s).is_some_and(|o| o.zone == Zone::Stack));
+            e.rider_spells.push((spell, rider));
+        }
         if copy {
             self.objects[spell].cast = self.objects[spell].cast.copied();
         }

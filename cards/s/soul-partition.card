@@ -1,0 +1,6 @@
+card "Soul Partition" {
+  oracle_id 2cfd5c18-47d0-4549-aacc-2428db21df2f
+  cost {1}{W}
+  type Instant
+  spell: exile target nonland permanent; owner may play it remains first costs {2} more opponent
+}

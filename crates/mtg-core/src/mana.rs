@@ -381,6 +381,24 @@ pub struct ManaRequirement {
 const MAX_EXPANSIONS: usize = 64;
 
 impl ManaRequirement {
+    /// CR 609.4b: "mana of any type can be spent to cast that spell"
+    /// (`colorless`: also its {C}), "you may spend mana as though it were
+    /// mana of any color": each colored and hybrid symbol is paid with any
+    /// one mana, as generic mana is. Phyrexian symbols keep their life
+    /// payment and snow symbols their source (snow isn't a type).
+    pub fn spend_as_any(&mut self, colorless: bool) {
+        let hybrid: u32 = self.hybrid.iter().map(|n| u32::from(*n)).sum::<u32>()
+            + self.two_hybrid.iter().map(|n| u32::from(*n)).sum::<u32>();
+        self.generic += self.colored.iter().sum::<u32>() + hybrid;
+        self.colored = [0; 5];
+        self.hybrid = [0; 10];
+        self.two_hybrid = [0; 5];
+        if colorless {
+            self.generic += self.colorless;
+            self.colorless = 0;
+        }
+    }
+
     /// Mana symbols to pay, counting `{2/c}` as two and `{c/P}` as one.
     pub fn total(&self) -> u32 {
         self.colored.iter().sum::<u32>()

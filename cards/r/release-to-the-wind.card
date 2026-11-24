@@ -1,0 +1,6 @@
+card "Release to the Wind" {
+  oracle_id 49d6a9be-1d10-4ce4-afa3-aa637f39b898
+  cost {2}{U}
+  type Instant
+  spell: exile target nonland permanent; owner may cast it remains first free
+}

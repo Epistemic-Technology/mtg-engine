@@ -1,0 +1,6 @@
+card "Outrageous Robbery" {
+  oracle_id 5b194438-6946-45dd-8d77-c9de8c115d09
+  cost {X}{B}{B}
+  type Instant
+  spell: impulse X remains face down of target opponent spend any type this way
+}

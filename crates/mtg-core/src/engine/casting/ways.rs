@@ -45,6 +45,9 @@ pub(in crate::engine) struct CostBasis<'a> {
     /// Generic mana the creature tapped for harmonize takes off, its
     /// power (CR 702.180a).
     pub less: u32,
+    /// What the permission it is cast by adds (`CastRider`: "mana of any
+    /// type can be spent to cast that spell").
+    pub rider: crate::card::CastRider,
 }
 
 impl GameState {
@@ -79,7 +82,60 @@ impl GameState {
             } else {
                 0
             },
+            rider: match &self.exile_casts {
+                Some(e) if e.riders => e
+                    .rider_spells
+                    .iter()
+                    .find(|(s, _)| *s == spell)
+                    .map_or_else(crate::card::CastRider::default, |r| r.1),
+                _ => crate::card::CastRider::default(),
+            },
         }
+    }
+
+    /// The rider of a permission `p` has to play the card `id` (CR
+    /// 601.3), the most generous of several; none without one.
+    #[cold]
+    #[inline(never)]
+    pub(in crate::engine) fn permission_rider(
+        &self,
+        p: PlayerId,
+        id: ObjId,
+    ) -> crate::card::CastRider {
+        let Some(e) = &self.exile_casts else {
+            return crate::card::CastRider::default();
+        };
+        e.playable
+            .iter()
+            .filter(|pe| pe.card == id && pe.player == p)
+            .map(|pe| pe.rider)
+            .reduce(|a, b| crate::card::CastRider {
+                spend: a.spend.or(b.spend),
+                more: a.more.min(b.more),
+                exile: a.exile && b.exile,
+            })
+            .unwrap_or_default()
+    }
+
+    /// CR 609.4b: how a static ability lets `b`'s caster spend mana on
+    /// it ("You may spend mana as though it were mana of any color to cast
+    /// planeswalker spells"; a `SpellGrant` of `changers`).
+    #[cold]
+    #[inline(never)]
+    fn granted_spend(&self, b: &CostBasis, changers: &[ObjId]) -> crate::card::SpendAs {
+        let mut spend = crate::card::SpendAs::Normal;
+        for src in changers {
+            for a in &self.pool.get(self.objects[*src].def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && let Some(g) = &cc.grant
+                    && g.spend != crate::card::SpendAs::Normal
+                    && self.cost_change_applies(cc, b.p, b.def, b.id, *src)
+                {
+                    spend = spend.or(g.spend);
+                }
+            }
+        }
+        spend
     }
 
     /// The basis of `p` casting the card `id` as `def` (the card's own
@@ -113,6 +169,10 @@ impl GameState {
             cast: CastInfo::default(),
             stack: false,
             less: 0,
+            rider: match &self.exile_casts {
+                Some(e) if e.riders => self.permission_rider(p, id),
+                _ => crate::card::CastRider::default(),
+            },
         }
     }
 
@@ -126,6 +186,10 @@ impl GameState {
     pub(in crate::engine) fn cost_of(&self, b: &CostBasis, changers: &[ObjId]) -> ManaRequirement {
         let def = b.def;
         let mut req = self.base_cost(b);
+        // "A spell cast this way costs {2} more to cast."
+        if b.rider.more > 0 {
+            req.generic += u32::from(b.rider.more);
+        }
         // What a plain cast from the hand doesn't have, out of line.
         if b.x > 0 || b.stack || b.mode.is_some() || b.other || !def.additional.mana.is_empty() {
             self.add_chosen_costs(b, &mut req);
@@ -152,6 +216,14 @@ impl GameState {
         if b.less > 0 {
             adjust_generic(&mut req, -i32::try_from(b.less).unwrap_or(i32::MAX));
         }
+        // CR 609.4b: the total cost is paid with mana spent as though it
+        // were of any color or type (after the cost is determined).
+        let spend = if self.pool.spend_grants && !changers.is_empty() {
+            b.rider.spend.or(self.granted_spend(b, changers))
+        } else {
+            b.rider.spend
+        };
+        spend.apply(&mut req);
         req
     }
 

@@ -1,0 +1,8 @@
+card "Chromatic Orrery" {
+  oracle_id 95c3976c-33f3-490b-bfd3-7f1af2fe0416
+  cost {7}
+  type Legendary Artifact
+  spells you cast have spend any color and abilities
+  activated {T}: add {C}{C}{C}{C}{C}
+  activated {5}, {T}: draw count each colors among permanents cards
+}

@@ -1,0 +1,7 @@
+card "Extraordinary Journey" {
+  oracle_id 69288566-3015-45de-b391-6fe079865f0c
+  cost {X}{X}{U}{U}
+  type Enchantment
+  triggered when this enters: exile up to X target creature; owner may play target 1 remains
+  triggered once each turn whenever one or more nontoken creature enter if one or more of them entered from exile or was cast from exile: you draw 1 card
+}

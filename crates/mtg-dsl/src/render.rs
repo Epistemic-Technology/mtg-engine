@@ -1150,6 +1150,55 @@ fn sentence(s: &str) -> String {
     }
 }
 
+/// What a play permission's `Rider` adds after it (CR 609.4b, 601.2f):
+/// ", and mana of any type can be spent to cast that spell" (`plural`:
+/// "them"), ". A spell cast this way costs {2} more to cast"; empty for
+/// none.
+fn rider_words(rider: Option<&crate::ast::Rider>, plural: bool) -> String {
+    use crate::ast::SpendWording;
+    use mtg_core::card::SpendAs;
+    let Some(r) = rider else {
+        return String::new();
+    };
+    let kind = match r.spend {
+        SpendAs::Normal => None,
+        SpendAs::AnyColor => Some("any color"),
+        SpendAs::AnyType => Some("any type"),
+    };
+    let spell = if plural { "them" } else { "that spell" };
+    let mut s = match (kind, r.wording) {
+        (None, _) => String::new(),
+        (Some(k), SpendWording::CanBeSpent) => {
+            format!(", and mana of {k} can be spent to cast {spell}")
+        }
+        (Some(k), SpendWording::CanBeSpentIt) => {
+            format!(", and mana of {k} can be spent to cast it")
+        }
+        (Some(k), SpendWording::AsThough) => {
+            format!(", and you may spend mana as though it were mana of {k} to cast {spell}")
+        }
+        (Some(k), SpendWording::ThisWay) => format!(
+            ". If you cast a spell this way, you may spend mana as though it were mana of {k} to cast it"
+        ),
+    };
+    if r.more > 0 {
+        let by = if r.more_opponents {
+            " by an opponent"
+        } else {
+            ""
+        };
+        let _ = write!(
+            s,
+            ". A spell cast{by} this way costs {{{}}} more to cast",
+            r.more
+        );
+    }
+    if r.exile {
+        s.push_str(". If that spell would be put into a graveyard, exile it instead");
+    }
+    s
+}
+
 /// "has all activated abilities of all Elf cards in your graveyard",
 /// "... of creatures you control that don't have the same name as this
 /// creature", "... of each other creature with a +1/+1 counter on it",
@@ -6368,7 +6417,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             remains,
             face_down,
             look_first,
+            look_those,
             cond,
+            rider,
         } => {
             use mtg_core::card::PlayUntil;
             let one = *count == Num::N(1);
@@ -6400,7 +6451,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // them face down."
                 format!(
                     "look at {top} and exile {} face down",
-                    if one { "it" } else { "them" }
+                    match (one, *look_those) {
+                        (true, _) => "it",
+                        (false, true) => "those cards",
+                        (false, false) => "them",
+                    }
                 )
             } else if *count == Num::ThatMuch {
                 // "exile that many cards from the top of your library".
@@ -6489,6 +6544,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Some(c) => format!("{body} if {}", static_cond_text(c, ctx.card)),
                 None => body,
             };
+            let body = format!("{body}{}", rider_words(rider.as_ref(), !(one || *choose)));
             Clause::imperative(format!("{head}. {body}"))
         }
         Effect::RevealTop { who, look, of } => match (who, of) {
@@ -6609,8 +6665,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             it,
             from_exile,
             remains,
+            owner,
+            rider,
         } => {
             use mtg_core::card::PlayUntil;
+            let tail = rider_words(rider.as_ref(), false);
+            // "its owner may play it" (CR 108.3).
+            let you = if *owner { "its owner" } else { "you" };
             let verb = if *cast { "cast" } else { "play" };
             let free_text = if *free {
                 " without paying its mana cost"
@@ -6623,10 +6684,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let what = if *it { "it" } else { "that card" };
                 return Clause::imperative(if *first {
                     format!(
-                        "for as long as that card remains exiled, you may {verb} {what}{free_text}"
+                        "for as long as that card remains exiled, {you} may {verb} {what}{free_text}{tail}"
                     )
                 } else {
-                    format!("you may {verb} {what}{free_text} for as long as it remains exiled")
+                    format!(
+                        "{you} may {verb} {what}{free_text} for as long as it remains exiled{tail}"
+                    )
                 });
             }
             let what = match (*it, *from_exile) {
@@ -6649,7 +6712,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     | PlayUntil::Forever
                     | PlayUntil::WhileYouControlSource => "Until your next end step",
                 };
-                Clause::imperative(format!("{when}, you may {verb} {what}{free}"))
+                Clause::imperative(format!("{when}, {you} may {verb} {what}{free}{tail}"))
             } else {
                 let when = match until {
                     PlayUntil::ThisTurn => " this turn",
@@ -6658,12 +6721,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     PlayUntil::Forever => "",
                     PlayUntil::WhileYouControlSource => {
                         return Clause::imperative(format!(
-                            "you may {verb} {what}{free} for as long as you control {}",
+                            "{you} may {verb} {what}{free} for as long as you control {}{tail}",
                             ctx.source_name()
                         ));
                     }
                 };
-                Clause::imperative(format!("you may {verb} {what}{free}{when}"))
+                Clause::imperative(format!("{you} may {verb} {what}{free}{when}{tail}"))
             }
         }
         // "You may cast target Zombie creature card from your graveyard
@@ -6673,8 +6736,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             until,
             cast,
             adventure,
+            owner,
+            remains,
+            rider,
         } => {
             use mtg_core::card::PlayUntil;
+            let tail = rider_words(rider.as_ref(), *owner);
+            // "For each of those cards, its owner may play it for as long
+            // as it remains exiled." (CR 108.3).
+            if *owner {
+                let verb = if *cast { "cast" } else { "play" };
+                let when = match until {
+                    _ if *remains => " for as long as it remains exiled",
+                    PlayUntil::ThisTurn => " this turn",
+                    PlayUntil::EndOfYourNextTurn => " until the end of their next turn",
+                    PlayUntil::YourNextEndStep => " until their next end step",
+                    PlayUntil::Forever | PlayUntil::WhileYouControlSource => "",
+                };
+                return Clause::imperative(format!(
+                    "for each of those cards, its owner may {verb} it{when}{tail}"
+                ));
+            }
             let o = ctx.obj(*what);
             // "you may cast it from your graveyard as an Adventure until
             // the end of your next turn" (Mosswood Dreadknight).
@@ -6693,9 +6775,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 PlayUntil::ThisTurn => " this turn",
                 PlayUntil::EndOfYourNextTurn => " until the end of your next turn",
                 PlayUntil::YourNextEndStep => " until your next end step",
+                PlayUntil::Forever if *remains => " for as long as it remains exiled",
                 PlayUntil::Forever | PlayUntil::WhileYouControlSource => "",
             };
-            Clause::imperative(format!("you may {verb} {o}{when}"))
+            Clause::imperative(format!("you may {verb} {o}{when}{tail}"))
         }
         Effect::RevealUntil { who, filter } => {
             let pred = card_filter_a(filter, ctx.card);
@@ -12094,6 +12177,7 @@ fn lowercase_first(s: &str) -> String {
                 | "Monocolored"
                 | "Instant"
                 | "Sorcery"
+                | "Planeswalker"
                 | "Your"
                 | "Those"
                 | "Their"
@@ -17979,7 +18063,32 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             storm,
             affinity,
             uncounterable,
+            spend,
         } => {
+            // CR 609.4b: "You may spend mana as though it were mana of any
+            // color to cast planeswalker spells.", "You can spend mana of
+            // any type to cast creature spells."
+            if let Some((kind, can, abilities)) = spend {
+                let k = if *kind == mtg_core::card::SpendAs::AnyType {
+                    "any type"
+                } else {
+                    "any color"
+                };
+                // "You may spend mana as though it were mana of any color."
+                // (Chromatic Orrery: for everything).
+                if *abilities && *filter == Filter::default() && !*from_hand {
+                    return format!("You may spend mana as though it were mana of {k}.");
+                }
+                let from = if *from_hand { " from your hand" } else { "" };
+                let spells = lowercase_first(&cost_spells_subject(filter, card));
+                return if *can {
+                    format!("You can spend mana of {k} to cast {spells}{from}.")
+                } else {
+                    format!(
+                        "You may spend mana as though it were mana of {k} to cast {spells}{from}."
+                    )
+                };
+            }
             if *uncounterable {
                 return format!(
                     "{} you control can't be countered.",

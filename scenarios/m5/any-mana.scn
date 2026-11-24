@@ -1,0 +1,272 @@
+# M5: riders on permissions to play a card (CR 601.3): "mana of any type
+# can be spent to cast that spell" (CR 609.4b), "A spell cast this way
+# costs {2} more to cast.", "If that spell would be put into a graveyard,
+# exile it instead."; permissions given to the card's owner; and "spend
+# mana as though it were mana of any color" for a class of spells or for
+# everything.
+
+scenario "any type: Hostage Taker's controller casts the exiled creature with black mana" {
+  battlefield A: 2 "Island", 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Hostage Taker"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Hostage Taker"
+  turn 1 A: trigger "Hostage Taker" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  run_to turn 3 precombat_main
+  turn 3 A: cast "Hill Giant"
+  run_to turn 3 end
+  assert battlefield A contains "Hill Giant"
+  assert exile B count 0
+}
+
+scenario "any type: Hostage Taker's rider pays {C} too, but not for a card from the hand" {
+  battlefield A: 2 "Island", 4 "Swamp"
+  battlefield B: "Thought-Knot Seer"
+  hand A: "Hostage Taker", "Grizzly Bears"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Hostage Taker"
+  turn 1 A: trigger "Hostage Taker" targeting "Thought-Knot Seer"
+  illegal turn 3 A: cast "Grizzly Bears"
+  turn 3 A: cast "Thought-Knot Seer"
+  run_to turn 3 end
+  assert battlefield A contains "Thought-Knot Seer"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "any type: the card's owner can't cast what Hostage Taker exiled" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  battlefield B: "Grizzly Bears", 2 "Forest"
+  hand A: "Hostage Taker"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Hostage Taker"
+  turn 1 A: trigger "Hostage Taker" targeting "Grizzly Bears"
+  illegal turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "any type: Petty Larceny's cards are played with any mana, and it makes a Treasure" {
+  battlefield A: 6 "Swamp"
+  hand A: "Petty Larceny"
+  library B: "Lightning Bolt", "Mountain", "Island"
+  turn 1 A: cast "Petty Larceny" targeting player B
+  run_to turn 1 postcombat_main
+  assert face_down "Lightning Bolt"
+  assert known A "Lightning Bolt"
+  assert unknown B "Lightning Bolt"
+  assert battlefield A contains "Treasure"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting player B
+  turn 1 postcombat_main A: play "Mountain"
+  run_to turn 1 end
+  assert life B 17
+  assert battlefield A contains "Mountain"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "any type: Outrageous Robbery exiles X cards face down; a spell among them is cast with any mana" {
+  battlefield A: 4 "Swamp"
+  hand A: "Outrageous Robbery"
+  library A: 3 "Island"
+  library B: "Grizzly Bears", "Forest", "Island"
+  turn 1 A: cast "Outrageous Robbery" x 2 targeting player B
+  run_to turn 1 end
+  assert face_down "Grizzly Bears"
+  assert face_down "Forest"
+  assert library B count 1
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "any type, exile instead: Dire Fleet Daredevil's spell is cast with black mana and exiled as it resolves" {
+  battlefield A: "Mountain", 2 "Swamp"
+  hand A: "Dire Fleet Daredevil"
+  graveyard B: "Lightning Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Dire Fleet Daredevil"
+  turn 1 A: trigger "Dire Fleet Daredevil" targeting "Lightning Bolt"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile B contains "Lightning Bolt"
+  assert graveyard B count 0
+}
+
+scenario "any type: Dire Fleet Daredevil's permission ends with the turn" {
+  battlefield A: "Mountain", "Swamp", 2 "Swamp" tapped
+  hand A: "Dire Fleet Daredevil"
+  graveyard B: "Lightning Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Dire Fleet Daredevil"
+  turn 1 A: trigger "Dire Fleet Daredevil" targeting "Lightning Bolt"
+  illegal turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 end
+  assert life B 20
+  assert exile B contains "Lightning Bolt"
+}
+
+scenario "any type, if the gift was promised: Cruelclaw's Heist's card is cast with any mana" {
+  battlefield A: 4 "Swamp"
+  hand A: "Cruelclaw's Heist"
+  hand B: "Grizzly Bears", "Forest"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Cruelclaw's Heist" gift targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert hand B count 2
+}
+
+scenario "any type, gift not promised: Cruelclaw's Heist only exiles the card" {
+  battlefield A: 4 "Swamp"
+  hand A: "Cruelclaw's Heist"
+  hand B: "Grizzly Bears", "Forest"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Cruelclaw's Heist" targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert hand B count 1
+}
+
+scenario "owner: Release to the Wind's card is cast by its owner without paying its mana cost" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Release to the Wind"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Release to the Wind" targeting "Hill Giant"
+  illegal turn 1 postcombat_main A: cast "Hill Giant"
+  turn 2 B: cast "Hill Giant"
+  run_to turn 2 end
+  assert battlefield B contains "Hill Giant"
+  assert exile B count 0
+}
+
+scenario "owner, costs {2} more by an opponent: Soul Partition's card costs its opponent owner {2} more" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", 3 "Forest"
+  hand A: "Soul Partition"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Soul Partition" targeting "Grizzly Bears"
+  illegal turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "owner, costs {2} more by an opponent: the opponent pays four for Grizzly Bears" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", 4 "Forest"
+  hand A: "Soul Partition"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Soul Partition" targeting "Grizzly Bears"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "owner: Soul Partition on its controller's own creature costs no more" {
+  battlefield A: 2 "Plains", "Grizzly Bears", 2 "Forest"
+  hand A: "Soul Partition"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Soul Partition" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "owner, costs {2} more: Elite Spellbinder's card costs its owner {2} more" {
+  battlefield A: 3 "Plains"
+  battlefield B: 2 "Mountain"
+  hand A: "Elite Spellbinder"
+  hand B: "Shock", "Island"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Elite Spellbinder"
+  turn 1 A: trigger "Elite Spellbinder" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert exile B contains "Shock"
+  assert hand B contains "Island"
+}
+
+scenario "owner, costs {2} more: with three lands the owner casts the exiled Shock" {
+  battlefield A: 3 "Plains"
+  battlefield B: 3 "Mountain"
+  hand A: "Elite Spellbinder"
+  hand B: "Shock"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Elite Spellbinder"
+  turn 1 A: trigger "Elite Spellbinder" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  illegal turn 1 postcombat_main A: cast "Shock" targeting player B
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 18
+  assert graveyard B contains "Shock"
+}
+
+scenario "owner: Extraordinary Journey's creatures are played by their owners; one entering from exile draws a card" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears", 2 "Forest"
+  hand A: "Extraordinary Journey"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Extraordinary Journey" x 1
+  turn 1 A: trigger "Extraordinary Journey" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert hand A count 0
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "any color: Oath of Nissa lets planeswalker spells be cast with any mana, other spells not" {
+  battlefield A: "Oath of Nissa", 4 "Mountain"
+  hand A: "Ajani Goldmane", "Grizzly Bears"
+  library A: 3 "Island"
+  illegal turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Ajani Goldmane"
+  run_to turn 1 end
+  assert battlefield A contains "Ajani Goldmane"
+}
+
+scenario "any color: Chromatic Orrery's controller casts and activates with colorless mana" {
+  battlefield A: "Chromatic Orrery", "Shivan Dragon"
+  hand A: "Grizzly Bears"
+  library A: 3 "Island"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "Shivan Dragon"
+  turn 1 A: activate "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Shivan Dragon" 7
+}
+
+scenario "any color: Chromatic Orrery's mana can't pay {C} as colored mana could not" {
+  start turn 1 A precombat_main
+  battlefield A: "Chromatic Orrery" tapped, 4 "Mountain"
+  hand A: "Thought-Knot Seer"
+  library A: 3 "Island"
+  illegal turn 1 A: cast "Thought-Knot Seer"
+  run_to turn 1 end
+  assert hand A contains "Thought-Knot Seer"
+}

@@ -4843,25 +4843,39 @@ impl Compiler<'_> {
             }),
             Effect::MayCastThisFromExile => out.push(CoreEffect::MayCastThisFromExile),
             Effect::MayPlayCard {
-                until, cast, free, ..
+                until,
+                cast,
+                free,
+                owner,
+                rider,
+                ..
             } => out.push(CoreEffect::MayPlayCard {
                 until: *until,
                 cast: *cast,
                 free: *free,
                 what: None,
                 adventure: false,
+                rider: core_rider(rider.as_ref()),
+                owner: *owner,
+                more_opponents: rider.is_some_and(|r| r.more_opponents),
             }),
             Effect::MayPlayTarget {
                 what,
                 until,
                 cast,
                 adventure,
+                owner,
+                rider,
+                ..
             } => out.push(CoreEffect::MayPlayCard {
                 until: *until,
                 cast: *cast,
                 free: false,
                 what: Some(r(*what)),
                 adventure: *adventure,
+                rider: core_rider(rider.as_ref()),
+                owner: *owner,
+                more_opponents: rider.is_some_and(|r| r.more_opponents),
             }),
             Effect::RevealUntil { who, filter } => out.push(CoreEffect::RevealUntil {
                 who: r(who.unwrap_or(Recipient::You)),
@@ -4969,6 +4983,7 @@ impl Compiler<'_> {
                 from,
                 face_down,
                 cond,
+                rider,
                 ..
             } => {
                 let cond = cond.as_ref().map(|c| {
@@ -4982,6 +4997,7 @@ impl Compiler<'_> {
                     from: from.map(r),
                     face_down: *face_down,
                     cond,
+                    rider: core_rider(rider.as_ref()),
                 });
             }
             Effect::Dig {
@@ -6315,6 +6331,8 @@ impl Compiler<'_> {
                             affinity: None,
                             from_hand: false,
                             uncounterable: false,
+                            spend: mtg_core::card::SpendAs::Normal,
+                            spend_abilities: false,
                         })
                     }),
                     per: *per,
@@ -6328,6 +6346,7 @@ impl Compiler<'_> {
                 storm,
                 affinity,
                 uncounterable,
+                spend,
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
                 whose: Who::You,
@@ -6339,6 +6358,8 @@ impl Compiler<'_> {
                     affinity: affinity.as_ref().map(|f| self.filter(f)),
                     from_hand: *from_hand,
                     uncounterable: *uncounterable,
+                    spend: spend.map_or(mtg_core::card::SpendAs::Normal, |s| s.0),
+                    spend_abilities: spend.is_some_and(|s| s.2),
                 })),
                 per: None,
                 first: false,
@@ -8694,4 +8715,15 @@ fn layers_ignore(c: &StaticCondition) -> Option<String> {
         StaticCondition::Not(a) => layers_ignore(a),
         _ => None,
     }
+}
+
+/// A play permission's `Rider` as the engine keeps it.
+fn core_rider(rider: Option<&crate::ast::Rider>) -> mtg_core::card::CastRider {
+    rider.map_or_else(mtg_core::card::CastRider::default, |r| {
+        mtg_core::card::CastRider {
+            spend: r.spend,
+            more: r.more,
+            exile: r.exile,
+        }
+    })
 }

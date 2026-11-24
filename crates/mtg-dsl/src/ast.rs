@@ -20,6 +20,42 @@ pub struct ChoiceForm {
     pub keywords: Vec<mtg_core::card::Keyword>,
 }
 
+/// What a permission to play or cast a card adds (`mtg_core::card::CastRider`),
+/// with its wording: `any type` (", and mana of any type can be spent to
+/// cast that spell"), `any type it` ("... to cast it"), `spend any color`
+/// (", and you may spend mana as though it were mana of any color to cast
+/// that spell"), `spend any type this way` (". If you cast a spell this
+/// way, you may spend mana as though it were mana of any type to cast
+/// it"), `costs {2} more` (". A spell cast this way costs {2} more to
+/// cast"; `costs {2} more opponent`: "A spell cast by an opponent this way
+/// ...", only for an owner who is an opponent).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub struct Rider {
+    pub spend: mtg_core::card::SpendAs,
+    pub wording: SpendWording,
+    pub more: u8,
+    pub more_opponents: bool,
+    /// `exile instead`: ". If that spell would be put into a graveyard,
+    /// exile it instead".
+    pub exile: bool,
+}
+
+/// How a `Rider` words its spending.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum SpendWording {
+    /// "mana of any type can be spent to cast that spell" (or "them").
+    #[default]
+    CanBeSpent,
+    /// "... can be spent to cast it".
+    CanBeSpentIt,
+    /// "you may spend mana as though it were mana of any color to cast
+    /// that spell".
+    AsThough,
+    /// "If you cast a spell this way, you may spend mana as though it
+    /// were mana of any type to cast it."
+    ThisWay,
+}
+
 /// How `Effect::IfTarget` words its check.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
 pub struct TargetCheck {
@@ -1704,6 +1740,15 @@ pub enum Ability {
         /// `spells you control can't be countered`: "Spells you control
         /// can't be countered." (no keywords then).
         uncounterable: bool,
+        /// `spells planeswalker you cast have spend any color`: "You may
+        /// spend mana as though it were mana of any color to cast
+        /// planeswalker spells." (CR 609.4b; no keywords then); `spend any
+        /// type can`: "You can spend mana of any type to cast creature
+        /// spells." (`true`: that wording). `spells you cast have spend
+        /// any color and abilities`: "You may spend mana as though it were
+        /// mana of any color." (spells and activated abilities alike; the
+        /// third field).
+        spend: Option<(mtg_core::card::SpendAs, bool, bool)>,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
@@ -5646,6 +5691,14 @@ pub enum Effect {
         /// ("For as long as that card remains exiled, you may cast it"
         /// with `first`); wording only.
         remains: bool,
+        /// `owner may play that card remains first`: "For as long as that
+        /// card remains exiled, its owner may play it" (the permission is
+        /// the card's owner's).
+        owner: bool,
+        /// `any type`: "..., and mana of any type can be spent to cast that
+        /// spell"; `costs {2} more`: "A spell cast this way costs {2} more
+        /// to cast." (`CastRider`).
+        rider: Option<Rider>,
     },
     /// `may cast target Zombie creature card from your graveyard this
     /// turn`: "You may cast target Zombie creature card from your
@@ -5659,6 +5712,13 @@ pub enum Effect {
         /// "you may cast it from your graveyard as an Adventure until the
         /// end of your next turn" (only the Adventure half, CR 715.3).
         adventure: bool,
+        /// `owner may play target 1 remains`: "For each of those cards,
+        /// its owner may play it for as long as it remains exiled." (the
+        /// targets, wherever they went; each card's owner's permission).
+        owner: bool,
+        /// `remains` for `forever`: "for as long as it remains exiled".
+        remains: bool,
+        rider: Option<Rider>,
     },
     /// `reveal until nonland card` ("reveal cards from the top of your
     /// library until you reveal a nonland card"), `<who> reveals until
@@ -5790,9 +5850,15 @@ pub enum Effect {
         /// library and exile them face down." (the permission then says
         /// "play", not "look at and play"); wording only.
         look_first: bool,
+        /// `look those face down`: "... and exile those cards face down"
+        /// rather than "them"; wording only.
+        look_those: bool,
         /// `if you control Kavu` at the end: "you may play it if you
         /// control a Kavu", judged whenever the card could be played.
         cond: Option<StaticCond>,
+        /// `any type`: "..., and mana of any type can be spent to cast
+        /// them".
+        rider: Option<Rider>,
     },
     /// `exile top 3 cards`: "Exile the top three cards of your library."
     /// (`exile top 1 card`: "the top card"); `each opponent exiles top 1

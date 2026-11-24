@@ -2605,6 +2605,61 @@ pub enum PlayUntil {
     WhileYouControlSource,
 }
 
+/// How a player may spend mana on a spell or an ability (CR 609.4b).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum SpendAs {
+    /// As the mana is.
+    #[default]
+    Normal,
+    /// "... as though it were mana of any color": colored symbols take
+    /// any mana, {C} still colorless mana.
+    AnyColor,
+    /// "mana of any type can be spent": {C} too.
+    AnyType,
+}
+
+impl SpendAs {
+    /// The more permissive of the two.
+    #[must_use]
+    pub const fn or(self, other: Self) -> Self {
+        match (self, other) {
+            (Self::AnyType, _) | (_, Self::AnyType) => Self::AnyType,
+            (Self::AnyColor, _) | (_, Self::AnyColor) => Self::AnyColor,
+            _ => Self::Normal,
+        }
+    }
+
+    /// `req` paid this way (`ManaRequirement::spend_as_any`).
+    pub fn apply(self, req: &mut crate::mana::ManaRequirement) {
+        match self {
+            Self::Normal => {}
+            Self::AnyColor => req.spend_as_any(false),
+            Self::AnyType => req.spend_as_any(true),
+        }
+    }
+}
+
+/// What a permission to play a card adds to casting it that way (CR
+/// 601.3): how mana may be spent ("and mana of any type can be spent to
+/// cast that spell"), and a cost increase ("A spell cast this way costs
+/// {2} more to cast."). Seen by the offer and by payment alike
+/// (`cost_of`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct CastRider {
+    pub spend: SpendAs,
+    /// Generic mana more.
+    pub more: u8,
+    /// "If that spell would be put into a graveyard, exile it instead."
+    /// (CR 614.1a).
+    pub exile: bool,
+}
+
+impl CastRider {
+    pub fn is_none(self) -> bool {
+        self == Self::default()
+    }
+}
+
 /// How an effect exiles cards (CR 406.3).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub enum ExileFace {
@@ -5398,6 +5453,9 @@ pub enum Effect {
         face_down: bool,
         #[serde(default)]
         cond: Option<u16>,
+        /// "..., and mana of any type can be spent to cast them".
+        #[serde(default)]
+        rider: CastRider,
     },
     /// "Look at the top three cards of your library, then put them back in
     /// any order" (the engine keeps the order). `who` owns the library
@@ -5451,6 +5509,19 @@ pub enum Effect {
         /// 715.3): only its Adventure half.
         #[serde(default)]
         adventure: bool,
+        /// "..., and mana of any type can be spent to cast that spell",
+        /// "A spell cast this way costs {2} more to cast."
+        #[serde(default)]
+        rider: CastRider,
+        /// "its owner may play it": the permission is each card's owner's,
+        /// not the controller's. With `more_opponents`, the rider's cost
+        /// increase applies only to an owner who is an opponent of the
+        /// controller ("A spell cast by an opponent this way costs {2}
+        /// more to cast.").
+        #[serde(default)]
+        owner: bool,
+        #[serde(default)]
+        more_opponents: bool,
     },
     /// "Reveal cards from the top of your library until you reveal a land
     /// card" (CR 701.20): the recipient player reveals from the top until a
@@ -8578,6 +8649,7 @@ pub struct CostChange {
 /// have storm", "... from your hand have cascade", "Spells you cast have
 /// affinity for artifacts".
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // independent grants
 pub struct SpellGrant {
     /// Convoke, improvise, delve, cascade.
     pub keywords: KeywordSet,
@@ -8591,6 +8663,15 @@ pub struct SpellGrant {
     /// counters a matching spell does nothing to it.
     #[serde(default)]
     pub uncounterable: bool,
+    /// "You may spend mana as though it were mana of any color to cast
+    /// planeswalker spells." (CR 609.4b).
+    #[serde(default)]
+    pub spend: SpendAs,
+    /// With `spend`: also to activate abilities of the controller's
+    /// permanents matching the filter ("You may spend mana as though it
+    /// were mana of any color.").
+    #[serde(default)]
+    pub spend_abilities: bool,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -10329,6 +10410,7 @@ impl CardDef {
 /// All card definitions a game can use, with name lookup, plus the interned
 /// subtypes and the registered abilities they refer to.
 #[derive(Clone, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent pool-wide flags
 pub struct CardPool {
     defs: Vec<CardDef>,
     by_name: HashMap<String, CardRef>,
@@ -10371,6 +10453,9 @@ pub struct CardPool {
     /// cast or an ability (`AbilityDef::CardGrant`): until one is added,
     /// nothing looks for such grants.
     pub card_grants: bool,
+    /// Whether some card lets mana be spent as though it were of any color
+    /// for a class of spells (`SpellGrant::spend`).
+    pub spend_grants: bool,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -10473,6 +10558,7 @@ impl CardPool {
             granter_abilities: false,
             equip_discounts: false,
             card_grants: false,
+            spend_grants: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -11212,6 +11298,10 @@ impl CardPool {
             .abilities
             .iter()
             .any(|a| matches!(a, AbilityDef::CardGrant(_)));
+        self.spend_grants |= def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::CostChange(cc)
+                if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
+        });
         // CR 702.103b: the Aura a bestowed spell is, registered first so
         // the card's own definition keeps its name.
         if def.bestow.is_some() && def.types.contains(CardType::Creature) {

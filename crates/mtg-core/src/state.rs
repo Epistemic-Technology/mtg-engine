@@ -341,6 +341,12 @@ pub struct ExileCasts {
     pub foretold_this_turn: Vec<ObjId>,
     /// Cards exiled by impulse effects that a player may play.
     pub playable: Vec<PlayableExile>,
+    /// Whether some `playable` entry ever had a `CastRider`: until one
+    /// does, offers don't look for one.
+    pub riders: bool,
+    /// Spells being cast or on the stack by such a permission, with its
+    /// rider, for their payment (`spell_basis`).
+    pub rider_spells: Vec<(ObjId, crate::card::CastRider)>,
 }
 
 /// `PlayableExile::own_ends` for a warped card exiled this turn: castable
@@ -370,6 +376,8 @@ pub struct PlayableExile {
     /// "you may cast it from your graveyard as an Adventure": only the
     /// Adventure half (CR 715.3).
     pub adventure: bool,
+    /// "..., and mana of any type can be spent to cast that spell".
+    pub rider: crate::card::CastRider,
 }
 
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent

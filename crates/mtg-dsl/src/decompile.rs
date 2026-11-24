@@ -1970,14 +1970,26 @@ impl Decompiler<'_> {
                 free: false,
                 what: Some(w),
                 adventure,
+                rider,
+                owner,
+                more_opponents,
             } => Effect::MayPlayTarget {
                 what: r(*w),
                 until: *until,
                 cast: *cast,
                 adventure: *adventure,
+                owner: *owner,
+                remains: false,
+                rider: ast_rider(*rider, *more_opponents),
             },
             CoreEffect::MayPlayCard {
-                until, cast, free, ..
+                until,
+                cast,
+                free,
+                rider,
+                owner,
+                more_opponents,
+                ..
             } => Effect::MayPlayCard {
                 until: *until,
                 cast: *cast,
@@ -1986,6 +1998,8 @@ impl Decompiler<'_> {
                 it: false,
                 from_exile: false,
                 remains: false,
+                owner: *owner,
+                rider: ast_rider(*rider, *more_opponents),
             },
             CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
                 who: match r(*who) {
@@ -2033,6 +2047,7 @@ impl Decompiler<'_> {
                 from,
                 face_down,
                 cond,
+                rider,
             } => Effect::ExilePlayable {
                 count: *count,
                 until: *until,
@@ -2045,7 +2060,9 @@ impl Decompiler<'_> {
                 remains: false,
                 face_down: *face_down,
                 look_first: false,
+                look_those: false,
                 cond: cond.map(|c| self.static_cond(self.pool.condition(c))),
+                rider: ast_rider(*rider, false),
             },
             CoreEffect::Dig {
                 count,
@@ -2858,6 +2875,11 @@ impl Decompiler<'_> {
                     storm: g.storm,
                     affinity: g.affinity.as_ref().map(|f| self.filter(f)),
                     uncounterable: g.uncounterable,
+                    spend: (g.spend != mtg_core::card::SpendAs::Normal).then_some((
+                        g.spend,
+                        false,
+                        g.spend_abilities,
+                    )),
                 }
             }
             AbilityDef::CostChange(c) => Ability::CostChange {
@@ -3139,4 +3161,15 @@ impl Decompiler<'_> {
             CoreChoiceKind::Number { min, max } => ChoiceKind::Number { min, max },
         }
     }
+}
+
+/// The engine's `CastRider` with the default wording; `None` for none.
+fn ast_rider(r: mtg_core::card::CastRider, more_opponents: bool) -> Option<crate::ast::Rider> {
+    (!r.is_none()).then_some(crate::ast::Rider {
+        spend: r.spend,
+        wording: crate::ast::SpendWording::CanBeSpent,
+        more: r.more,
+        more_opponents,
+        exile: r.exile,
+    })
 }

@@ -222,6 +222,7 @@ pub fn add_dungeons(pool: &mut CardPool) {
                 from: None,
                 face_down: false,
                 cond: None,
+                rider: crate::card::CastRider::default(),
             }],
         ),
         room(
