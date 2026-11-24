@@ -161,3 +161,15 @@ scenario "Pariah on an opponent's creature redirects your damage to it" {
   assert life A 20
   assert damage B "Hill Giant" 2
 }
+
+scenario "An indestructible creature with lethal damage keeps its regeneration shield unused" {
+  battlefield A: "Darksteel Myr", 2 "Forest", "Mountain"
+  hand A: "Regenerate", "Shock"
+  turn 1 A: cast "Regenerate" targeting "Darksteel Myr"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Darksteel Myr"
+  run_to turn 1 end
+  assert battlefield A contains "Darksteel Myr"
+  assert untapped "Darksteel Myr"
+  assert damage "Darksteel Myr" 2
+}

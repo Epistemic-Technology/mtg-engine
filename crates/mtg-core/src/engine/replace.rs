@@ -769,13 +769,20 @@ impl GameState {
                     .is_some_and(|c| !c.has(Keyword::Indestructible))
                     && self.affects(to, Target::Object(*obj), source, controller, lock)
             }
+            // A regeneration shield (or another "would be destroyed"
+            // replacement) isn't used by an indestructible permanent: it
+            // isn't destroyed (CR 702.12b, 701.15a).
             (
                 Replaces::Destroy { to },
                 Proposed::Destroy {
                     obj,
                     regenerate: true,
                 },
-            ) => self.affects(to, Target::Object(*obj), source, controller, lock),
+            ) => {
+                self.characteristics(*obj)
+                    .is_some_and(|c| !c.has(Keyword::Indestructible))
+                    && self.affects(to, Target::Object(*obj), source, controller, lock)
+            }
             (
                 Replaces::Dies { to },
                 Proposed::ZoneChange {
