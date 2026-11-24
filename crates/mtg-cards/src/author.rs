@@ -18,6 +18,22 @@ use regex::Regex;
 use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
+/// A compiled regex, built once per pattern: the templates name hundreds
+/// of patterns, most built per card or per line, and compiling them was
+/// most of the author's time (a Modern run took over ten minutes).
+fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
+    use std::collections::HashMap;
+    use std::sync::{Mutex, OnceLock};
+    static CACHE: OnceLock<Mutex<HashMap<String, Regex>>> = OnceLock::new();
+    let cache = CACHE.get_or_init(Default::default);
+    if let Some(r) = cache.lock().unwrap().get(pattern) {
+        return Ok(r.clone());
+    }
+    let r = Regex::new(pattern)?;
+    cache.lock().unwrap().insert(pattern.to_string(), r.clone());
+    Ok(r)
+}
+
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
 const KEYWORDS: &[&str] = &[
     "Split second",
@@ -409,7 +425,7 @@ const TOKEN_PHRASE: &str = r"^[Cc]reate (\S+) ((?:\d+/\d+) (?:colorless|(?:white
 /// The token block for a key from `TOKEN_PHRASE` ("1/1 white Soldier
 /// creature"), or `None` if the key doesn't describe one.
 fn token_block(key: &str) -> Option<String> {
-    let re = Regex::new(
+    let re = cached_regex(
         r"^(\d+)/(\d+) (colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) ((?:[A-Z][a-z]+ )+)(artifact )?creature(?: with ([a-z ,]+))?$",
     )
     .unwrap();
@@ -444,7 +460,7 @@ const LEGENDARY_TOKEN_PHRASE: &str = r"^([Cc]reate|[Yy]ou may create) ((?:[A-Z][
 /// The token block for a key from `LEGENDARY_TOKEN_PHRASE`: a legendary
 /// creature token named by its key's first part.
 fn legendary_token_block(key: &str) -> Option<String> {
-    let re = Regex::new(
+    let re = cached_regex(
         r"^(.+?), a legendary (\d+)/(\d+) (colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) ((?:[A-Z][a-z]+ )+)(artifact )?creature(?: with ([a-z ,]+))?$",
     )
     .unwrap();
@@ -504,8 +520,8 @@ impl Report {
 
 /// A sentence with numbers and mana symbols abstracted, for counting.
 fn shape(s: &str) -> String {
-    let s = Regex::new(r"\{[^}]*\}").unwrap().replace_all(s, "{M}");
-    let s = Regex::new(r"\b\d+\b").unwrap().replace_all(&s, "N");
+    let s = cached_regex(r"\{[^}]*\}").unwrap().replace_all(s, "{M}");
+    let s = cached_regex(r"\b\d+\b").unwrap().replace_all(&s, "N");
     s.into_owned()
 }
 
@@ -563,7 +579,7 @@ fn compiles(
         ),
     };
     let mut text = String::new();
-    let head = Regex::new(r#"^\w+ "([^"]+)""#).unwrap();
+    let head = cached_regex(r#"^\w+ "([^"]+)""#).unwrap();
     for (_, block) in &a.tokens {
         let name = head.captures(block).map(|c| c[1].to_string());
         if name.is_some_and(|n| pool.lookup(&n).is_none()) {
@@ -745,7 +761,7 @@ fn split_dest(s: &str) -> Option<&'static str> {
 /// and the sentences after it.
 fn dig_split(text: &str, targets: &mut usize) -> Option<(String, String)> {
     let dest = r"(into your hand|into your graveyard|on top of your library|on the bottom of your library)";
-    if let Some(c) = Regex::new(&format!(
+    if let Some(c) = cached_regex(&format!(
         r"^Look at the top (\w+) cards of your library\. Put one of those cards {dest}, one {dest}, and one {dest}\.?\s*(.*)$"
     ))
     .unwrap()
@@ -761,7 +777,7 @@ fn dig_split(text: &str, targets: &mut usize) -> Option<(String, String)> {
             cap(&c, 5).to_string(),
         ));
     }
-    if let Some(c) = Regex::new(
+    if let Some(c) = cached_regex(
         r"^Look at the top (\w+) cards of target (opponent|player)'s library, then exile one of them\.?\s*(.*)$",
     )
     .unwrap()
@@ -774,7 +790,7 @@ fn dig_split(text: &str, targets: &mut usize) -> Option<(String, String)> {
             cap(&c, 3).to_string(),
         ));
     }
-    if let Some(c) = Regex::new(
+    if let Some(c) = cached_regex(
         r"^Look at the top (\w+) cards of target (opponent|player)'s library\. Put one back and the rest into that player's graveyard\.?\s*(.*)$",
     )
     .unwrap()
@@ -790,7 +806,7 @@ fn dig_split(text: &str, targets: &mut usize) -> Option<(String, String)> {
             cap(&c, 3).to_string(),
         ));
     }
-    if let Some(c) = Regex::new(
+    if let Some(c) = cached_regex(
         r"^Look at the top (\w+) cards of your library\. Put one of them into your graveyard\.?\s*(.*)$",
     )
     .unwrap()
@@ -802,7 +818,7 @@ fn dig_split(text: &str, targets: &mut usize) -> Option<(String, String)> {
             cap(&c, 2).to_string(),
         ));
     }
-    if let Some(c) = Regex::new(
+    if let Some(c) = cached_regex(
         r"^Reveal the top (\w+) cards of your library\. An opponent chooses one of them\. Put that card (into your hand|into your graveyard) and the rest (into your hand|into your graveyard)\.?\s*(.*)$",
     )
     .unwrap()
@@ -844,7 +860,7 @@ fn dig_general(text: &str) -> Option<(String, String)> {
     // "Reveal cards from the top of your library until you reveal a
     // creature card. Put that card into your hand and the rest on the
     // bottom of your library in a random order."
-    if let Some(c) = Regex::new(
+    if let Some(c) = cached_regex(
         r"^Reveal cards from the top of your library until you reveal an? (.+?) card\. Put that card (into your hand|onto the battlefield(?: tapped)?) and the rest on the bottom of your library in (a random|any) order\.?\s*(.*)$",
     )
     .unwrap()
@@ -869,7 +885,7 @@ fn dig_general(text: &str) -> Option<(String, String)> {
             cap(&c, 4).to_string(),
         ));
     }
-    let head = Regex::new(
+    let head = cached_regex(
         r"^(Look at|Reveal) the top (\w+) cards of your library(?:, where X is ([^.]+?))?\. (.+)$",
     )
     .unwrap();
@@ -887,23 +903,23 @@ fn dig_general(text: &str) -> Option<(String, String)> {
     let body = cap(&c, 4);
     // A filter's "mana value X" after "where X is ..." is the dig's X
     // (Hatchery Spider), as the engine reads it.
-    let reveal = Regex::new(
+    let reveal = cached_regex(
         r"^You may reveal (.+?) from among them and put (it|that card|them) into your hand\. (Then put|Put) the rest (.+?)\.\s*(.*)$",
     )
     .unwrap();
-    let put_hand = Regex::new(
+    let put_hand = cached_regex(
         r"^You may put (.+?) from among them into your hand\. Put the rest (.+?)\.\s*(.*)$",
     )
     .unwrap();
-    let onto = Regex::new(
+    let onto = cached_regex(
         r"^You may put (.+?) from among them onto the battlefield( tapped)?\. Put the rest (.+?)\.\s*(.*)$",
     )
     .unwrap();
-    let one = Regex::new(
+    let one = cached_regex(
         r"^Put one of (them|those cards) into your hand and the (?:rest|other) (.+?)\.\s*(.*)$",
     )
     .unwrap();
-    let several = Regex::new(
+    let several = cached_regex(
         r"^Put (up to )?(two|three) of (them|those cards) into your hand and the rest (.+?)\.\s*(.*)$",
     )
     .unwrap();
@@ -958,7 +974,7 @@ fn dig_general(text: &str) -> Option<(String, String)> {
     }
     // "Put a land card from among them into your hand and the rest ...".
     if let Some(c) =
-        Regex::new(r"^Put (an? .+?) from among them into your hand and the rest (.+?)\.\s*(.*)$")
+        cached_regex(r"^Put (an? .+?) from among them into your hand and the rest (.+?)\.\s*(.*)$")
             .unwrap()
             .captures(body)
     {
@@ -1421,7 +1437,7 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     // target players": a variable group (CR 601.2c).
     // "up to three target creature cards with total mana value 3 or less
     // from your graveyard": the DSL puts the group's bound last.
-    if let Some(c) = Regex::new(r"^(.+?) with total mana value (\w+) or less( from .+)?$")
+    if let Some(c) = cached_regex(r"^(.+?) with total mana value (\w+) or less( from .+)?$")
         .unwrap()
         .captures(s)
         && (cap(&c, 1).starts_with("up to ") || cap(&c, 1).starts_with("any number of "))
@@ -1460,7 +1476,7 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         // "a nonland permanent card" (CR 110.4a): the DSL names the types
         // a permanent card isn't (`nonland permanent card` is a nonland
         // card).
-        let nonperm = Regex::new(r"\b(non[a-z]+) permanent card").unwrap();
+        let nonperm = cached_regex(r"\b(non[a-z]+) permanent card").unwrap();
         return Some(
             nonperm
                 .replace_all(s, "$1 noninstant nonsorcery permanent card")
@@ -1617,7 +1633,7 @@ fn lasting_split(s: &str) -> Option<(String, bool, &'static str)> {
     if let Some(rest) = s.strip_suffix(" until end of combat") {
         return Some((rest.to_string(), false, "until end of combat"));
     }
-    let combat = Regex::new(
+    let combat = cached_regex(
         r"^(.+ (?:can't attack or block|can't attack|can't block|can't be blocked|blocks (?:it|that creature|this creature|~)|attacks|blocks)) this combat( if able)?$",
     )
     .ok()?;
@@ -1629,7 +1645,7 @@ fn lasting_split(s: &str) -> Option<(String, bool, &'static str)> {
         return Some((inner, false, "until end of combat"));
     }
     let this = r"(?:~|this (?:creature|artifact|enchantment|Saga|Vehicle|Equipment|permanent|land|planeswalker))";
-    let re = Regex::new(&format!(
+    let re = cached_regex(&format!(
         r"^(.+?) (until your next turn|for as long as {this} remains on the battlefield|for as long as you control {this}|for as long as it remains tapped)$"
     ))
     .ok()?;
@@ -1654,7 +1670,7 @@ fn cap<'a>(c: &'a regex::Captures, i: usize) -> &'a str {
 impl Templates {
     #[allow(clippy::too_many_lines)]
     fn new() -> Self {
-        let r = |s: &str| Regex::new(s).unwrap();
+        let r = |s: &str| cached_regex(s).unwrap();
         let rules: Vec<Rule> = vec![
             // CR 601.2d: "deals 3 damage divided as you choose among one,
             // two, or three targets".
@@ -3804,7 +3820,7 @@ impl Templates {
             "you gain ",
             "you lose ",
         ];
-        let counters = Regex::new(
+        let counters = cached_regex(
             r"^(a|an|one|two|three|four|five|X) ([+-]\d/[+-]\d|stun|loyalty|charge|oil|shield|lore|time|level) counters? on ",
         )
         .unwrap();
@@ -3955,37 +3971,37 @@ impl Templates {
                 "bottom"
             }
         };
-        let may = Regex::new(
+        let may = cached_regex(
             r"^(Look at|Reveal) the top (\w+) cards of your library\. You may (reveal|put) (an? .+?) card from among them (?:and put it )?into your hand\. Put the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
-        let one = Regex::new(
+        let one = cached_regex(
             r"^Look at the top (\w+) cards of your library\. Put one of them into your hand and the (?:rest|other) (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
-        let all = Regex::new(
+        let all = cached_regex(
             r"^Reveal the top (\w+) cards of your library\. Put all (.+?) cards revealed this way into your hand and the rest (into your graveyard|on the bottom of your library in (?:any|a random) order)\.?\s*(.*)$",
         )
         .unwrap();
         // "You may put a creature card from among them onto the
         // battlefield [tapped]. Put the rest on the bottom ..."
-        let onto = Regex::new(
+        let onto = cached_regex(
             r"^(Look at|Reveal) the top (\w+) cards of your library\. You may put (an? .+?) card from among them onto the battlefield( tapped)?\. Put the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
         // "Put two of them into your hand and the rest ...".
-        let several = Regex::new(
+        let several = cached_regex(
             r"^Look at the top (\w+) cards of your library\. Put (two|three) of them into your hand and the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
         // "look at the top three cards of your library, then put one of
         // them into your hand and the rest ..." (Court Hussar).
-        let then = Regex::new(
+        let then = cached_regex(
             r"^Look at the top (\w+) cards of your library, then put one of them into your hand and the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
         // "Put one into your hand and the other into your graveyard."
-        let short = Regex::new(
+        let short = cached_regex(
             r"^Look at the top two cards of your library\. Put one into your hand and the other (on the bottom of your library|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
@@ -4098,10 +4114,11 @@ impl Templates {
         }
         // "Add {G}. When you spend this mana to cast a Dragon creature
         // spell, you gain 2 life."
-        if let Some(c) =
-            Regex::new(r"^(.+?\.) When you spend this mana to cast an? ([A-Za-z ]+?) spell, (.+)$")
-                .unwrap()
-                .captures(text)
+        if let Some(c) = cached_regex(
+            r"^(.+?\.) When you spend this mana to cast an? ([A-Za-z ]+?) spell, (.+)$",
+        )
+        .unwrap()
+        .captures(text)
         {
             let inner = self.effects(cap(&c, 1), targets)?;
             let then = self.effects(cap(&c, 3), targets)?;
@@ -4128,7 +4145,7 @@ impl Templates {
         }
         // "Target opponent reveals their hand. You choose a nonland card
         // from it. That player discards that card." is one effect.
-        let duress = Regex::new(
+        let duress = cached_regex(
             r"^(.+?) reveals their hand\. You (may )?choose (a|an) (.+? )?card from it( with mana value \d+ or (?:less|greater))?\. That player discards that card\.?(.*)$",
         )
         .unwrap();
@@ -4163,7 +4180,7 @@ impl Templates {
         // If an instant or sorcery card is revealed this way, ..."
         // (Delver of Secrets); "Scry 3, then you may reveal the top card of
         // your library. If a creature card is revealed this way, ..."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(?:([Ll]ook at the top card of your library\. You may reveal that card)|[Ss]cry (\w+), then you may reveal the top card of your library)\. If an? ([a-z][a-z ]*?) card is revealed this way, (.+?)\.?$",
         )
         .unwrap()
@@ -4180,7 +4197,7 @@ impl Templates {
         }
         // "Target player reveals their hand and you choose a card of that
         // color from it. That player discards that card." (Addle).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Choose a color\. )?(.+?) reveals their hand and you choose (?:a|an) (.+? )?card( of that color)? from it\. That player discards that card\.?(.*)$",
         )
         .unwrap()
@@ -4208,7 +4225,7 @@ impl Templates {
         }
         // "Look at target opponent's hand and choose a card from it. Put
         // that card on top of that player's library." (Painful Memories).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^Look at (target opponent|target player)'s hand and choose (?:a|an) (.+? )?card from it\. (Put that card on top of that player's library|That player discards that card)\.?(.*)$",
         )
         .unwrap()
@@ -4231,7 +4248,7 @@ impl Templates {
         // Kinship: "you may look at the top card of your library. If it
         // shares a creature type with this creature, you may reveal it. If
         // you do, ...".
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^[Yy]ou may look at the top card of your library\. If it shares a creature type with this creature, you may reveal it\. If you do, (.+?)\.?$",
         )
         .unwrap()
@@ -4245,7 +4262,7 @@ impl Templates {
         // "Target opponent reveals their hand. You may choose a nonland
         // card from it. If you do, that player discards that card. If you
         // don't, that player discards two cards." (Nightsnare).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(.+?) reveals their hand\. You may choose (a|an) (.+? )?card from it\. If you do, that player discards that card\. If you don't, (.+?)\.?$",
         )
         .unwrap()
@@ -4266,7 +4283,7 @@ impl Templates {
         }
         // "Target opponent reveals their hand. You choose a nonland card
         // from it. Exile that card." / "... and exile that card."
-        let exile_chosen = Regex::new(
+        let exile_chosen = cached_regex(
             r"^(.+?) reveals their hand\. You choose (a|an) (.+? )?card from it(\. Exile| and exile) that card\.?(.*)$",
         )
         .unwrap();
@@ -4292,7 +4309,7 @@ impl Templates {
             }
             return Ok(out);
         }
-        let unless = Regex::new(
+        let unless = cached_regex(
             r"^(.+) unless (you pay|you waterbend|they pay|its controller pays|that player pays) ((?:\{[0-9WUBRGC]+\})+|\d+ life)$",
         )
         .unwrap();
@@ -4304,7 +4321,7 @@ impl Templates {
         // CR 702.34a: "Target instant or sorcery card in your graveyard
         // gains flashback until end of turn. The flashback cost is equal
         // to its mana cost."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^[Tt]arget instant or sorcery card in your graveyard gains flashback until end of turn\. The flashback cost is equal to (its|that card's) mana cost\.?$",
         )
         .unwrap()
@@ -4317,7 +4334,7 @@ impl Templates {
             ));
         }
         // "Target creature gains \"...\" until end of turn."
-        if let Some(c) = Regex::new(r#"^(.+?) gains? "(.+)" until end of turn\.?$"#)
+        if let Some(c) = cached_regex(r#"^(.+?) gains? "(.+)" until end of turn\.?$"#)
             .unwrap()
             .captures(text)
         {
@@ -4340,17 +4357,17 @@ impl Templates {
                 _ => Err(Skip::Sentence(text.to_string())),
             };
         }
-        let manifest_then = Regex::new(
+        let manifest_then = cached_regex(
             r"^Manifest the top card of your library, then put (a|two|three) \+1/\+1 counters? on it$",
         )
         .unwrap();
-        let delayed = Regex::new(
+        let delayed = cached_regex(
             r"^([Ss]acrifice|[Ee]xile|[Dd]estroy|[Rr]eturn) (it|them|that card|that creature|that token|the token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat|the beginning of your next upkeep)$",
         )
         .unwrap();
         // "Put a -1/-1 counter on it at end of combat", "remove a +1/+1
         // counter from it at end of combat" (CR 603.7).
-        let delayed_counter = Regex::new(
+        let delayed_counter = cached_regex(
             r"^([Pp]ut|[Rr]emove) (a|an|two|three) (\S+) counters? (on|from) (it|this creature|~) at end of combat$",
         )
         .unwrap();
@@ -4364,7 +4381,7 @@ impl Templates {
         // "You may search your library and/or graveyard for a card named
         // X, reveal it, and put it into your hand. If you search your
         // library this way, shuffle."
-        let text = Regex::new(
+        let text = cached_regex(
             r"(^|\. )([Yy]ou may s|[Ss])earch your library and/or graveyard for a card named (.+?), reveal it, and put it into your hand\. If you search your library this way, shuffle\.?",
         )
         .map_or(text.clone(), |re| {
@@ -4382,7 +4399,7 @@ impl Templates {
         // search your library this way, shuffle." (Fang-Druid Summoner):
         // the shuffle sentence joins the search's as `\u{2}`, which the
         // search template below reads.
-        let text = Regex::new(
+        let text = cached_regex(
             r"(earch your library and/or graveyard for [^.]+)\. If you search your library this way, shuffle",
         )
         .map_or(text.clone(), |re| {
@@ -4392,7 +4409,7 @@ impl Templates {
         // choose one of them. That player discards that card." (Blackmail,
         // Thieving Sprite, Noggin Whack): one sentence for the template
         // below, joined by `\u{2}`.
-        let text = Regex::new(
+        let text = cached_regex(
             r"(reveals (?:\w+) cards from their hand(?:, where X is [^.]+| and you choose one of them)?)\.( You choose (?:one|two) of (?:them|those cards)\.)? That player discards (that card|those cards)",
         )
         .map_or(text.clone(), |re| {
@@ -4407,7 +4424,7 @@ impl Templates {
         // "Exile target artifact. Search its controller's graveyard, hand,
         // and library for all cards with the same name as that artifact
         // and exile them. Then that player shuffles." (Splinter).
-        let text = Regex::new(
+        let text = cached_regex(
             r"(^|\. )Search its controller's graveyard, hand, and library for all cards with the same name as that [a-z]+ and exile them\. Then that player shuffles\.?",
         )
         .map_or(text.clone(), |re| {
@@ -4417,13 +4434,13 @@ impl Templates {
         let text = text.as_str();
         let mut out: Vec<String> = Vec::new();
         let extra_land =
-            Regex::new(r"^[Yy]ou may play (an|up to two) additional lands? this turn$").unwrap();
-        let ordeal = Regex::new(
+            cached_regex(r"^[Yy]ou may play (an|up to two) additional lands? this turn$").unwrap();
+        let ordeal = cached_regex(
             r"^Then if it has (\w+) or more \+1/\+1 counters on it, sacrifice this Aura$",
         )
         .unwrap();
         let gain_that =
-            Regex::new(r"^[Yy]ou gain life equal to that creature's (toughness|power)$").unwrap();
+            cached_regex(r"^[Yy]ou gain life equal to that creature's (toughness|power)$").unwrap();
         for sentence in merge_impulse(&split_sentences(text)) {
             // A sentence pair `merge_impulse` already wrote as DSL.
             if let Some(dsl) = sentence.strip_prefix('\u{1}') {
@@ -4812,7 +4829,7 @@ impl Templates {
 /// is one effect, `impulse 2 next turn first`; the pair becomes one
 /// sentence holding that DSL after a `\u{1}` marker.
 fn merge_impulse(sentences: &[String]) -> Vec<String> {
-    let exile = Regex::new(
+    let exile = cached_regex(
         r"^(If you do, |you may |You may )?[Ee]xile the top (card|\w+ cards) of your library(?:, where X is (.+))?$",
     )
     .unwrap();
@@ -4960,28 +4977,28 @@ fn split_sentences(text: &str) -> Vec<String> {
 /// A cost prefix of an activated ability as the DSL writes it.
 #[allow(clippy::too_many_lines)] // one arm per cost item
 fn cost_text(s: &str) -> Option<String> {
-    let remove = Regex::new(
+    let remove = cached_regex(
         r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from (?:this (?:artifact|creature|land|enchantment|permanent)|~)$",
     )
     .unwrap();
     // Hybrid symbols too ("{R/W}{R/W}"): the caller has checked that each
     // parses.
-    let symbols = Regex::new(r"^(\{[0-9XWUBRGCSTP/]+\})+$").unwrap();
+    let symbols = cached_regex(r"^(\{[0-9XWUBRGCSTP/]+\})+$").unwrap();
     let mut items = Vec::new();
-    let two = Regex::new(r"^[a-z]+ or [a-z]+$").unwrap();
-    let exile_gy = Regex::new(
+    let two = cached_regex(r"^[a-z]+ or [a-z]+$").unwrap();
+    let exile_gy = cached_regex(
         r"^Exile (an?|two|three|four|five|six|X) (?:([a-z]+) )?cards? from your graveyard$",
     )
     .unwrap();
-    let adj_creature = Regex::new(r"^(?:colorless|nontoken) creature$").unwrap();
+    let adj_creature = cached_regex(r"^(?:colorless|nontoken) creature$").unwrap();
     // "Tap three untapped creatures you control".
     // "Tap two untapped Merfolk you control" (a subtype too).
     let tap_n =
-        Regex::new(r"^Tap (two|three|four|five|six|seven) untapped ([A-Za-z]+) you control$")
+        cached_regex(r"^Tap (two|three|four|five|six|seven) untapped ([A-Za-z]+) you control$")
             .unwrap();
     // "Remove three quest counters from this enchantment and sacrifice it"
     // (the Expeditions and Quests): two costs joined by "and".
-    let remove_and_sac = Regex::new(
+    let remove_and_sac = cached_regex(
         r"^Remove (an?|two|three|four|five|six|seven|eight|nine|ten) ([a-z]+) counters? from this (?:artifact|creature|land|enchantment|permanent) and sacrifice it$",
     )
     .unwrap();
@@ -5405,7 +5422,7 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         _ => {
             // "When you control no Islands" (a state trigger, CR 603.8).
-            let none = Regex::new(
+            let none = cached_regex(
                 r"^When you control no (other creatures|Plains|Islands|Swamps|Mountains|Forests)$",
             )
             .unwrap();
@@ -5418,9 +5435,10 @@ fn trigger_text(head: &str) -> Option<String> {
                 return Some(format!("when you control no {what}"));
             }
             // "Whenever you cast a spell with mana value 4 or greater".
-            let mv =
-                Regex::new(r"^Whenever you cast a spell with mana value (\d+) or (greater|less)$")
-                    .unwrap();
+            let mv = cached_regex(
+                r"^Whenever you cast a spell with mana value (\d+) or (greater|less)$",
+            )
+            .unwrap();
             if let Some(c) = mv.captures(head) {
                 return Some(format!(
                     "whenever you cast with mana value {} or {} spell",
@@ -5430,7 +5448,7 @@ fn trigger_text(head: &str) -> Option<String> {
             }
             // "Whenever you cast a spell that's both white and black" (CR
             // 105.2: every one of the colors).
-            let both = Regex::new(
+            let both = cached_regex(
                 r"^Whenever you cast a spell that's both (white|blue|black|red|green) and (white|blue|black|red|green)$",
             )
             .unwrap();
@@ -5442,7 +5460,7 @@ fn trigger_text(head: &str) -> Option<String> {
                 ));
             }
             // "Whenever this creature or another Ally you control enters".
-            let this_or = Regex::new(
+            let this_or = cached_regex(
                 r"^Whenever this creature or another (creature|Ally|artifact|enchantment) you control enters$",
             )
             .unwrap();
@@ -5454,7 +5472,7 @@ fn trigger_text(head: &str) -> Option<String> {
             }
             // "Whenever this creature blocks a creature with flying",
             // "... becomes blocked by a creature".
-            let pair = Regex::new(
+            let pair = cached_regex(
                 r"^Whenever this creature (blocks|becomes blocked by|blocks or becomes blocked by) (a creature|a creature with flying|a nonblack creature)$",
             )
             .unwrap();
@@ -5466,7 +5484,7 @@ fn trigger_text(head: &str) -> Option<String> {
             }
             // "Whenever you cast an artifact spell", "Whenever a player
             // casts a multicolored spell".
-            let re = Regex::new(
+            let re = cached_regex(
                 r"^Whenever (you cast|a player casts|an opponent casts) an? (.+) spell$",
             )
             .unwrap();
@@ -5617,7 +5635,7 @@ fn trigger_general(head: &str) -> Option<String> {
     }
     // "Whenever enchanted creature attacks", "When equipped creature
     // dies", "Whenever enchanted land becomes tapped".
-    let attached = Regex::new(
+    let attached = cached_regex(
         r"^(When|Whenever) (enchanted|equipped) (creature|land|permanent|artifact) (attacks|blocks|attacks or blocks|dies|becomes tapped|becomes untapped|is dealt damage|deals damage|deals combat damage to a player|becomes blocked|becomes the target of a spell or ability)$",
     )
     .unwrap();
@@ -5636,13 +5654,13 @@ fn trigger_general(head: &str) -> Option<String> {
     // "Whenever another nontoken creature you control dies", "Whenever a
     // Goblin you control attacks", "Whenever an artifact you control
     // enters".
-    let class = Regex::new(
+    let class = cached_regex(
         r"^(When|Whenever) (a|an|another) ((?:[a-z]+ )*?(?:[A-Z][a-z]+ )*?(?:creature|artifact|enchantment|land|permanent|planeswalker|token|[A-Z][a-z]+)(?: creature)?(?: token)?(?: you control| an opponent controls| your opponents control)?) (enters|dies|attacks|blocks|attacks alone|becomes blocked|deals combat damage to a player)$",
     )
     .unwrap();
     // "Whenever you sacrifice a Food", "Whenever you sacrifice another
     // creature".
-    if let Some(c) = Regex::new(r"^Whenever you sacrifice (a|an|another) ([A-Za-z]+)$")
+    if let Some(c) = cached_regex(r"^Whenever you sacrifice (a|an|another) ([A-Za-z]+)$")
         .unwrap()
         .captures(head)
     {
@@ -5805,25 +5823,25 @@ fn static_condition(s: &str) -> Option<String> {
     {
         return Some(format!("{a} and {b}"));
     }
-    if let Some(c) = Regex::new(r"^(\w+) or more creatures died this turn$")
+    if let Some(c) = cached_regex(r"^(\w+) or more creatures died this turn$")
         .unwrap()
         .captures(s)
     {
         return Some(format!("{} creatures died this turn", number(cap(&c, 1))?));
     }
-    if let Some(c) = Regex::new(r"^creatures you control have total toughness (\d+) or greater$")
+    if let Some(c) = cached_regex(r"^creatures you control have total toughness (\d+) or greater$")
         .unwrap()
         .captures(s)
     {
         return Some(format!("total toughness {} or more", cap(&c, 1)));
     }
-    if let Some(c) = Regex::new(r"^a player has (\d+) or less life$")
+    if let Some(c) = cached_regex(r"^a player has (\d+) or less life$")
         .unwrap()
         .captures(s)
     {
         return Some(format!("player life {} or less", cap(&c, 1)));
     }
-    if let Some(c) = Regex::new(r"^you have (\w+) or (fewer|more) cards in hand$")
+    if let Some(c) = cached_regex(r"^you have (\w+) or (fewer|more) cards in hand$")
         .unwrap()
         .captures(s)
     {
@@ -5844,20 +5862,20 @@ fn static_condition(s: &str) -> Option<String> {
     if let Some(rest) = s.strip_prefix("you control another ") {
         return Some(format!("you control other {}", singular(rest)));
     }
-    if let Some(c) = Regex::new(r"^an opponent has (\d+) or less life$")
+    if let Some(c) = cached_regex(r"^an opponent has (\d+) or less life$")
         .unwrap()
         .captures(s)
     {
         return Some(format!("opponent life {} or less", cap(&c, 1)));
     }
-    if let Some(c) = Regex::new(r"^you have (\d+) or (more|less) life$")
+    if let Some(c) = cached_regex(r"^you have (\d+) or (more|less) life$")
         .unwrap()
         .captures(s)
     {
         return Some(format!("your life {} or {}", cap(&c, 1), cap(&c, 2)));
     }
     let more =
-        Regex::new(r"^there are (\S+) or more ((?:[a-z]+ )*)cards in your graveyard$").unwrap();
+        cached_regex(r"^there are (\S+) or more ((?:[a-z]+ )*)cards in your graveyard$").unwrap();
     // Not "card types among cards in your graveyard" (below).
     if let Some(c) = more.captures(s)
         && !cap(&c, 2).contains(" among ")
@@ -5868,13 +5886,13 @@ fn static_condition(s: &str) -> Option<String> {
             cap(&c, 2).replace("instant and/or sorcery", "instant or sorcery")
         ));
     }
-    if let Some(c) = Regex::new(r"^creatures you control have total power (\d+) or greater$")
+    if let Some(c) = cached_regex(r"^creatures you control have total power (\d+) or greater$")
         .unwrap()
         .captures(s)
     {
         return Some(format!("total power {} or more", cap(&c, 1)));
     }
-    if let Some(c) = Regex::new(r"^an opponent has (\w+) or more poison counters$")
+    if let Some(c) = cached_regex(r"^an opponent has (\w+) or more poison counters$")
         .unwrap()
         .captures(s)
     {
@@ -5884,7 +5902,7 @@ fn static_condition(s: &str) -> Option<String> {
     // counters on this enchantment", "this creature has four or more oil
     // counters on it".
     let self_word = r"this (?:creature|artifact|enchantment|land|permanent|Vehicle|Equipment)";
-    if let Some(c) = Regex::new(&format!(
+    if let Some(c) = cached_regex(&format!(
         r"^there are (\S+) or more ([+-]\d/[+-]\d|{}) counters on {self_word}$",
         counter_names()
     ))
@@ -5897,7 +5915,7 @@ fn static_condition(s: &str) -> Option<String> {
             cap(&c, 2)
         ));
     }
-    if let Some(c) = Regex::new(&format!(
+    if let Some(c) = cached_regex(&format!(
         r"^{self_word} has (\S+) or more ([+-]\d/[+-]\d|{}) counters on it$",
         counter_names()
     ))
@@ -5911,8 +5929,8 @@ fn static_condition(s: &str) -> Option<String> {
             cap(&c, 2)
         ));
     }
-    let types =
-        Regex::new(r"^there are (\S+) or more card types among cards in your graveyard$").unwrap();
+    let types = cached_regex(r"^there are (\S+) or more card types among cards in your graveyard$")
+        .unwrap();
     if let Some(c) = types.captures(s) {
         return Some(format!(
             "{} card types in your graveyard",
@@ -5920,13 +5938,13 @@ fn static_condition(s: &str) -> Option<String> {
         ));
     }
     // The fast lands: "you control two or fewer other lands".
-    let fewer = Regex::new(r"^you control (\S+) or fewer ([a-zA-Z ]+)$").unwrap();
+    let fewer = cached_regex(r"^you control (\S+) or fewer ([a-zA-Z ]+)$").unwrap();
     if let Some(c) = fewer.captures(s) {
         let f = control_filter(&singular(cap(&c, 2)))?;
         return Some(format!("you control at most {} {f}", number(cap(&c, 1))?));
     }
     // The check lands: "you control a Mountain or a Plains".
-    let either = Regex::new(r"^you control an? ([A-Z][a-z]+) or an? ([A-Z][a-z]+)$").unwrap();
+    let either = cached_regex(r"^you control an? ([A-Z][a-z]+) or an? ([A-Z][a-z]+)$").unwrap();
     if let Some(c) = either.captures(s) {
         let (a, b) = (cap(&c, 1), cap(&c, 2));
         if ["Plains", "Island", "Swamp", "Mountain", "Forest"].contains(&a)
@@ -5938,12 +5956,12 @@ fn static_condition(s: &str) -> Option<String> {
     if s == "you control a Mount or Vehicle" {
         return Some("you control Mount or Vehicle".to_string());
     }
-    let control = Regex::new(r"^you control (\S+) or more ([a-zA-Z ]+)$").unwrap();
+    let control = cached_regex(r"^you control (\S+) or more ([a-zA-Z ]+)$").unwrap();
     if let Some(c) = control.captures(s) {
         let f = control_filter(&singular(cap(&c, 2)))?;
         return Some(format!("you control {} {f}", number(cap(&c, 1))?));
     }
-    let one = Regex::new(r"^you control an? ([a-zA-Z ]+)$").unwrap();
+    let one = cached_regex(r"^you control an? ([a-zA-Z ]+)$").unwrap();
     if let Some(c) = one.captures(s) {
         return Some(format!("you control {}", control_filter(cap(&c, 1))?));
     }
@@ -5995,8 +6013,8 @@ fn control_filter(s: &str) -> Option<String> {
 /// The modifications of a static ability's predicate ("gets +1/+1 and
 /// has flying").
 fn static_mods(s: &str) -> Option<String> {
-    let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
-    let per = Regex::new(r"^gets? ([+-]\d+/[+-]\d+) for (each|every) (.+)$").unwrap();
+    let gets = cached_regex(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
+    let per = cached_regex(r"^gets? ([+-]\d+/[+-]\d+) for (each|every) (.+)$").unwrap();
     let mut mods = Vec::new();
     for part in s.split(" and ") {
         if let Some(c) = per.captures(part) {
@@ -6078,7 +6096,7 @@ fn conditional_static(line: &str) -> Option<String> {
     let (f, pred) = split_subject(body)?;
     // "~ has indestructible as long as it has a divinity counter on it"
     // (the Myojin): "it" is the subject, the source.
-    let one_counter = Regex::new(&format!(
+    let one_counter = cached_regex(&format!(
         r"^it has an? ([+-]\d/[+-]\d|{}) counter on it$",
         counter_names()
     ))
@@ -6141,7 +6159,7 @@ impl Builder<'_> {
     #[allow(clippy::too_many_lines)]
     fn line(&mut self, line: &str) -> Result<(), Skip> {
         // CR 711.2: "LEVEL 1-4 2/2" (joined above), "LEVEL 5+ 5/5".
-        if let Some(c) = Regex::new(r"^LEVEL (\d+)(?:-(\d+)|\+) (\d+/\d+)$")
+        if let Some(c) = cached_regex(r"^LEVEL (\d+)(?:-(\d+)|\+) (\d+/\d+)$")
             .unwrap()
             .captures(line)
         {
@@ -6154,14 +6172,14 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.152a: "Blitz {3}{G}", "Blitz—{2}{B}{B}, Pay 2 life."
-        if let Some(c) = Regex::new(r"^Blitz ((?:\{[0-9WUBRGC]\})+)$")
+        if let Some(c) = cached_regex(r"^Blitz ((?:\{[0-9WUBRGC]\})+)$")
             .unwrap()
             .captures(line)
         {
             self.statements.push(format!("blitz {}", cap(&c, 1)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Blitz\x{2014}((?:\{[0-9WUBRGC]\})+), Pay (\d+) life\.$")
+        if let Some(c) = cached_regex(r"^Blitz\x{2014}((?:\{[0-9WUBRGC]\})+), Pay (\d+) life\.$")
             .unwrap()
             .captures(line)
         {
@@ -6170,7 +6188,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.160a: "Prototype {2}{R} — 3/2".
-        if let Some(c) = Regex::new(r"^Prototype ((?:\{[0-9WUBRGC]\})+) \x{2014} (\d+/\d+)$")
+        if let Some(c) = cached_regex(r"^Prototype ((?:\{[0-9WUBRGC]\})+) \x{2014} (\d+/\d+)$")
             .unwrap()
             .captures(line)
         {
@@ -6179,7 +6197,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.87a.
-        if let Some(c) = Regex::new(r"^Level up ((?:\{[0-9WUBRGC]\})+)$")
+        if let Some(c) = cached_regex(r"^Level up ((?:\{[0-9WUBRGC]\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -6187,7 +6205,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 716.2a: "{R}{G}: Level 2".
-        if let Some(c) = Regex::new(r"^((?:\{[0-9WUBRGC]+\})+): Level (\d)$")
+        if let Some(c) = cached_regex(r"^((?:\{[0-9WUBRGC]+\})+): Level (\d)$")
             .unwrap()
             .captures(line)
         {
@@ -6216,7 +6234,7 @@ impl Builder<'_> {
         }
         // CR 714.2: "I, II — <effects>", a chapter perhaps named ("I — Wark
         // — <effects>").
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^((?:I|II|III|IV|V|VI|VII)(?:, (?:I|II|III|IV|V|VI|VII))*) \u{2014} (?:([A-Z][^.\u{2014}{}]{0,40}?) \u{2014} )?(.+)$",
         )
         .unwrap()
@@ -6259,7 +6277,7 @@ impl Builder<'_> {
         // first strike" or "2+ | <one ability>".
         // CR 702.181a: "Mobilize 2", "Mobilize X, where X is the number
         // of creature cards in your graveyard."
-        if let Some(c) = Regex::new(r"^Mobilize (\d+)$").unwrap().captures(line) {
+        if let Some(c) = cached_regex(r"^Mobilize (\d+)$").unwrap().captures(line) {
             self.statements.push(format!("mobilize {}", cap(&c, 1)));
             return Ok(());
         }
@@ -6275,7 +6293,7 @@ impl Builder<'_> {
             self.statements.push("station".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^(\d+)\+ \| (.+)$").unwrap().captures(line) {
+        if let Some(c) = cached_regex(r"^(\d+)\+ \| (.+)$").unwrap().captures(line) {
             let (n, rest) = (cap(&c, 1), cap(&c, 2));
             if let Some(k) = keyword_list(rest) {
                 self.statements.push(format!("station {n}: {k}"));
@@ -6313,7 +6331,7 @@ impl Builder<'_> {
         }
         // "Other Elves you control get +1/+1.", "Creature tokens you
         // control get +1/+1.": a lord over a class of permanents.
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Other [A-Za-z ]+?|Creature tokens|Attacking creatures|Nontoken creatures|Tapped creatures|Untapped creatures|Artifact creatures|Legendary creatures) you control ((?:get|have) .+)\.$",
         )
         .unwrap()
@@ -6327,7 +6345,7 @@ impl Builder<'_> {
         }
         // "Zombies you control get +1/+0.", "Skeletons, Vampires, and
         // Zombies you control get +1/+1.": creature types, one or a list.
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^((?:[A-Z][a-z]+, )*(?:[A-Z][a-z]+,? and )?[A-Z][a-z]+) you control ((?:get|have) .+)\.$",
         )
         .unwrap()
@@ -6377,7 +6395,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 113.6b: works in every zone (Darksteel Colossus).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^If (.+) would be put into a graveyard from anywhere, reveal (.+) and shuffle it into its owner's library instead\.$",
         )
         .unwrap()
@@ -6390,7 +6408,7 @@ impl Builder<'_> {
         }
         // CR 614.1a: "If a creature an opponent controls would die, exile
         // it instead." (Misery's Shadow, Stone of Erech).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^If a (creature an opponent controls|creature you don't control|nontoken creature an opponent controls) would die, exile it instead\.$",
         )
         .unwrap()
@@ -6402,7 +6420,7 @@ impl Builder<'_> {
         }
         // "If this creature would die, put it on top of its owner's
         // library instead." (Gravebane Zombie), "exile it instead".
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^If this creature would die, (exile it|return it to its owner's hand|put it on top of its owner's library|put it on the bottom of its owner's library) instead\.$",
         )
         .unwrap()
@@ -6428,7 +6446,7 @@ impl Builder<'_> {
         // "If a red source you control would deal damage to an opponent or
         // a permanent an opponent controls, it deals that much damage plus
         // 2 instead." (Torbran).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^If (a|another) (red |white |blue |black |green )?source you control would deal (noncombat )?damage to an opponent or a permanent an opponent controls, it deals (double that damage|that much damage plus (\d+)) instead\.$",
         )
         .unwrap()
@@ -6456,7 +6474,7 @@ impl Builder<'_> {
         }
         // "Each creature you control with a +1/+1 counter on it has
         // trample." (printed one at a time).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^Each creature you control with an? \+1/\+1 counter on it ((?:has|gets) .+)\.$",
         )
         .unwrap()
@@ -6493,7 +6511,7 @@ impl Builder<'_> {
         }
         // CR 601.3: "You may play lands and cast creature spells from the
         // top of your library."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^You may (play lands|cast (?:(\w+) )?spells|play lands and cast (?:(\w+) )?spells) from the top of your library\.$",
         )
         .unwrap()
@@ -6525,7 +6543,7 @@ impl Builder<'_> {
         // CR 118.9: "You may cast spells from your hand without paying
         // their mana costs." (Omniscience), "You may cast Dragon spells
         // without paying their mana costs."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^You may cast (?:(\w+) )?spells( from your hand)? without paying their mana costs\.$",
         )
         .unwrap()
@@ -6579,7 +6597,7 @@ impl Builder<'_> {
         }
         // "Enchanted creature has \"{T}: ...\"", "Creatures you control
         // have \"...\"", "Equipped creature gets +1/+1 and has \"...\"".
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r#"^(Enchanted creature|Equipped creature|Enchanted land|Enchanted permanent|Creatures you control|Other creatures you control|Lands you control|This creature) (?:(gets [+-]\d+/[+-]\d+) and )?(?:has|have) "(.+)"$"#,
         )
         .unwrap()
@@ -6621,7 +6639,7 @@ impl Builder<'_> {
         // "Elves you control have \"{T}: Add {G}{G}.\"", "Sliver creatures
         // you control have \"...\"", "Artifacts you control have \"...\"".
         if let Some(c) =
-            Regex::new(r#"^([A-Z][a-z]+(?: creatures)?|Artifacts) you control have "(.+)"$"#)
+            cached_regex(r#"^([A-Z][a-z]+(?: creatures)?|Artifacts) you control have "(.+)"$"#)
                 .unwrap()
                 .captures(line)
         {
@@ -6658,7 +6676,7 @@ impl Builder<'_> {
             let parts: Vec<&str> = line.split(", ").collect();
             // "Flying, ward {2}", "Menace, ward {2}, haste": ward with its
             // cost among plain keywords (CR 702.21).
-            let ward = Regex::new(r"^(?:[Ww]ard \{\d+\}|[Ff]irebending \d+)$").unwrap();
+            let ward = cached_regex(r"^(?:[Ww]ard \{\d+\}|[Ff]irebending \d+)$").unwrap();
             if parts.iter().all(|p| {
                 keyword_list(p).is_some()
                     || p.to_ascii_lowercase().starts_with("protection from ")
@@ -6702,7 +6720,8 @@ impl Builder<'_> {
             .strip_prefix("This creature ")
             .and_then(|r| r.strip_suffix('.'))
         {
-            let min = Regex::new(r"^can't be blocked except by (\w+) or more creatures$").unwrap();
+            let min =
+                cached_regex(r"^can't be blocked except by (\w+) or more creatures$").unwrap();
             let rule = if rest == "can't be blocked by more than one creature" {
                 Some("can't be blocked by more than one creature".to_string())
             } else if let Some(c) = min.captures(rest) {
@@ -6760,7 +6779,7 @@ impl Builder<'_> {
             }
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^(Basic land|[A-Z][a-z]+)cycling ((?:\{[0-9XWUBRGC]+\})+)$")
+        if let Some(c) = cached_regex(r"^(Basic land|[A-Z][a-z]+)cycling ((?:\{[0-9XWUBRGC]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -6772,7 +6791,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.148a: the spell's text follows.
-        if let Some(c) = Regex::new(r"^Cleave ((?:\{[0-9WUBRGCX]+\})+)$")
+        if let Some(c) = cached_regex(r"^Cleave ((?:\{[0-9WUBRGCX]+\})+)$")
             .unwrap()
             .captures(line)
             && self.is_spell
@@ -6781,7 +6800,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.72a: "Champion a Goblin", "Champion a Goblin or Shaman".
-        if let Some(c) = Regex::new(r"^Champion an? (creature|[A-Z][a-z]+(?: or [A-Z][a-z]+)?)$")
+        if let Some(c) = cached_regex(r"^Champion an? (creature|[A-Z][a-z]+(?: or [A-Z][a-z]+)?)$")
             .unwrap()
             .captures(line)
         {
@@ -6798,14 +6817,14 @@ impl Builder<'_> {
             self.statements.push("haunt".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Cycling ((?:\{[0-9XWUBRGC]+\})+)$")
+        if let Some(c) = cached_regex(r"^Cycling ((?:\{[0-9XWUBRGC]+\})+)$")
             .unwrap()
             .captures(line)
         {
             self.statements.push(format!("cycling {}", cap(&c, 1)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Kicker ((?:\{[0-9XWUBRGC]+\})+)$")
+        if let Some(c) = cached_regex(r"^Kicker ((?:\{[0-9XWUBRGC]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -6823,14 +6842,14 @@ impl Builder<'_> {
             self.statements.push(format!("kicker {c}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Flashback ((?:\{[0-9XWUBRGC]+\})+)$")
+        if let Some(c) = cached_regex(r"^Flashback ((?:\{[0-9XWUBRGC]+\})+)$")
             .unwrap()
             .captures(line)
         {
             self.statements.push(format!("flashback {}", cap(&c, 1)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Flashback—((?:\{[0-9XWUBRGC]+\})+), Pay (\d+) life\.$")
+        if let Some(c) = cached_regex(r"^Flashback—((?:\{[0-9XWUBRGC]+\})+), Pay (\d+) life\.$")
             .unwrap()
             .captures(line)
         {
@@ -6848,9 +6867,10 @@ impl Builder<'_> {
             self.statements.push("mana chosen".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^\{T\}: Add \{([WUBRG])\} or one mana of the chosen color\.$")
-            .unwrap()
-            .captures(line)
+        if let Some(c) =
+            cached_regex(r"^\{T\}: Add \{([WUBRG])\} or one mana of the chosen color\.$")
+                .unwrap()
+                .captures(line)
         {
             self.statements
                 .push(format!("mana {{{}}} or chosen", cap(&c, 1)));
@@ -6858,7 +6878,7 @@ impl Builder<'_> {
         }
         // "As this land enters, choose a color." (CR 614.12), alone or after
         // "This land enters tapped." on the same line.
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura)) enters, choose a (color|creature type|basic land type|card name|nonland card name)(?: other than (white|blue|black|red|green))?\.$",
         )
         .unwrap()
@@ -6904,7 +6924,7 @@ impl Builder<'_> {
         // "As an additional cost to cast this spell, you may collect
         // evidence 6." (CR 601.2b), and "This spell costs {2} less to cast
         // if evidence was collected." after it.
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^As an additional cost to cast this spell, you may (collect evidence|blight) (\d+)\.(?: (This spell costs \{\d+\} less to cast if evidence was collected\.))?$",
         )
         .unwrap()
@@ -6918,7 +6938,7 @@ impl Builder<'_> {
         }
         // "Equip abilities you activate that target this creature cost {2}
         // less to activate."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^Equip abilities you activate that target (?:this creature|~) cost \{(\d+)\} less to activate\.$",
         )
         .unwrap()
@@ -6933,7 +6953,7 @@ impl Builder<'_> {
         // An alternative cost (CR 118.9): "You may pay {2}{U} rather than
         // pay this spell's mana cost.", "If it's not your turn, you may
         // exile a blue card from your hand rather than ...".
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(?:If (.+?), )?[Yy]ou may (.+?) rather than pay this spell's mana cost\.$",
         )
         .unwrap()
@@ -6941,9 +6961,10 @@ impl Builder<'_> {
         {
             let skip = || Skip::Sentence(line.to_string());
             let mut parts = Vec::new();
-            let hand = Regex::new(r"^exile (a|an|two|three) ((?:[a-z]+ )*?)cards? from your hand$")
-                .unwrap();
-            let sac = Regex::new(r"^sacrifice (a|an|two|three|four|five) ([A-Za-z ]+)$").unwrap();
+            let hand =
+                cached_regex(r"^exile (a|an|two|three) ((?:[a-z]+ )*?)cards? from your hand$")
+                    .unwrap();
+            let sac = cached_regex(r"^sacrifice (a|an|two|three|four|five) ([A-Za-z ]+)$").unwrap();
             for part in cap(&c, 2).split(" and ") {
                 let part = part
                     .strip_prefix("pay ")
@@ -6994,7 +7015,7 @@ impl Builder<'_> {
             let rest = rest.trim_end_matches('.');
             // CR 701.69a: "behold a Kithkin or pay {2}", "behold an Elf
             // and exile it", "you may behold a Dragon".
-            if let Some(c) = Regex::new(
+            if let Some(c) = cached_regex(
                 r"^(you may )?behold (?:a|an) ([A-Z][a-z]+)( and exile it)?(?: or pay ((?:\{[0-9WUBRGC]+\})+))?$",
             )
             .unwrap()
@@ -7040,7 +7061,7 @@ impl Builder<'_> {
             self.statements.push(format!("enchant {spec}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Equip ((?:\{[0-9WUBRGC]\})+)$")
+        if let Some(c) = cached_regex(r"^Equip ((?:\{[0-9WUBRGC]\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -7049,7 +7070,7 @@ impl Builder<'_> {
         }
         // A flavor word before equip ("Perseus's Bow — Equip {6}", job
         // select Equipment).
-        if let Some(c) = Regex::new(r#"^([A-Z][^"—]*) — Equip \{(\d+)\}$"#)
+        if let Some(c) = cached_regex(r#"^([A-Z][^"—]*) — Equip \{(\d+)\}$"#)
             .unwrap()
             .captures(line)
         {
@@ -7057,7 +7078,7 @@ impl Builder<'_> {
                 .push(format!("label \"{}\" equip {{{}}}", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^\{T\}: Add ((?:\{[WUBRGC]\})(?: or \{[WUBRGC]\})*)\.$")
+        if let Some(c) = cached_regex(r"^\{T\}: Add ((?:\{[WUBRGC]\})(?: or \{[WUBRGC]\})*)\.$")
             .unwrap()
             .captures(line)
         {
@@ -7066,7 +7087,7 @@ impl Builder<'_> {
         }
         // "{T}: Add {C}. Spend this mana only to cast an instant or
         // sorcery spell." and the other restricted mana (CR 106.6).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^\{T\}: Add (\{[WUBRGC]\}|one mana of any color)\. (Spend this mana only to (?:cast an? ([A-Za-z ]+?) spell(?:( or to| or) activate an ability)?|activate an ability(?: or cast an? ([A-Za-z ]+?) spell)?)|This mana can't be spent to cast an? ([A-Za-z]+) spell)\.$",
         )
         .unwrap()
@@ -7099,7 +7120,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // "{T}: Add {R}, {G}, or {W}."
-        if let Some(c) = Regex::new(r"^\{T\}: Add ((?:\{[WUBRGC]\}, )+)or (\{[WUBRGC]\})\.$")
+        if let Some(c) = cached_regex(r"^\{T\}: Add ((?:\{[WUBRGC]\}, )+)or (\{[WUBRGC]\})\.$")
             .unwrap()
             .captures(line)
         {
@@ -7111,7 +7132,7 @@ impl Builder<'_> {
             self.statements.push(format!("mana {}", syms.join(" or ")));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(?:This (?:land|creature|artifact|permanent)|~) enters tapped unless (.+)\.$",
         )
         .unwrap()
@@ -7122,7 +7143,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^This creature can't (attack or block|attack|block) unless (.+)\.$")
+            cached_regex(r"^This creature can't (attack or block|attack|block) unless (.+)\.$")
                 .unwrap()
                 .captures(line)
             && let Some(cond) = static_condition(cap(&c, 2))
@@ -7131,7 +7152,7 @@ impl Builder<'_> {
                 .push(format!("can't {} unless {cond}", cap(&c, 1)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Enchanted creature|Enchanted permanent|Enchanted land|Equipped creature|Enchanted artifact) doesn't untap during its controller's untap step\.$",
         )
         .unwrap()
@@ -7142,7 +7163,7 @@ impl Builder<'_> {
                 .push("static enchanted: has doesn't untap".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Enchanted creature|Equipped creature) (can't attack or block|can't block|can't attack|can't be blocked|attacks each combat if able|blocks each combat if able|must be blocked if able|can block an additional creature each combat|can block any number of creatures)\.$",
         )
         .unwrap()
@@ -7163,7 +7184,7 @@ impl Builder<'_> {
         }
         // The Zendikons: "Enchanted land is a 4/2 red Beast creature with
         // trample. It's still a land." (CR 205.1b).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^Enchanted land is an? (\d+)/(\d+) (white|blue|black|red|green) ([A-Z][a-z]+) creature(?: with ([a-z ]+))?\. It's still a land\.$",
         )
         .unwrap()
@@ -7195,7 +7216,7 @@ impl Builder<'_> {
         }
         // CR 502.3: "You may choose not to untap this artifact during your
         // untap step."
-        if Regex::new(
+        if cached_regex(
             r"^You may choose not to untap (?:this (?:creature|artifact|land|permanent)|~) during your untap step\.$",
         )
         .unwrap()
@@ -7296,7 +7317,7 @@ impl Builder<'_> {
         // CR 707.5: "You may have this creature enter as a copy of any
         // creature on the battlefield[, except it's an artifact in addition
         // to its other types]."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^You may have this (?:creature|artifact|enchantment|land|permanent) enter as a copy of (?:any ([a-z]+(?: or [a-z]+)?|nonland permanent|[A-Z][a-z]+ creature) on the battlefield|an? ([a-z]+(?: or [a-z]+)?) you control)(?:, except (.+))?\.$",
         )
         .unwrap()
@@ -7312,7 +7333,7 @@ impl Builder<'_> {
             if !x.is_empty() {
                 let inner = if let Some(pt) = x
                     .strip_prefix("it's ")
-                    .filter(|r| Regex::new(r"^\d+/\d+$").unwrap().is_match(r))
+                    .filter(|r| cached_regex(r"^\d+/\d+$").unwrap().is_match(r))
                 {
                     format!("pt {pt}")
                 } else if let Some(t) = x
@@ -7337,7 +7358,7 @@ impl Builder<'_> {
         }
         // "If this card is in a graveyard, effects from spells named Flame
         // Burst count it as a card named Flame Burst."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^If this card is in a graveyard, effects from spells named (.+) count it as a card named (.+)\.$",
         )
         .unwrap()
@@ -7411,7 +7432,7 @@ impl Builder<'_> {
             self.statements.push(out);
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^As long as (.+), you may play an additional land on each of your turns\.$",
         )
         .unwrap()
@@ -7436,7 +7457,7 @@ impl Builder<'_> {
             self.statements.push(format!("hexproof from {what}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Your|Each opponent's) maximum hand size is (increased|reduced) by (\w+)\.$",
         )
         .unwrap()
@@ -7452,7 +7473,7 @@ impl Builder<'_> {
             self.statements.push(format!("hand size{who} {sign}{n}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing|Fading|Annihilator|Rampage|Amplify|Tribute|Devour|Devour artifact|Devour land) (\d+)$",
         )
         .unwrap()
@@ -7463,7 +7484,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.189a: "Firebending X, where X is the number of ...".
-        if let Some(c) = Regex::new(r"^Firebending X, where X is the number of (.+)\.$")
+        if let Some(c) = cached_regex(r"^Firebending X, where X is the number of (.+)\.$")
             .unwrap()
             .captures(line)
         {
@@ -7496,7 +7517,7 @@ impl Builder<'_> {
         // another creature, both creatures have flying.", "... each of
         // those creatures gets +1/+1.", authored as an Aura's static
         // ability and given the paired subject.
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^As long as (this creature|~) is paired with another creature, (?:both creatures have|each of those creatures (has|gets)) (.+)$",
         )
         .unwrap()
@@ -7516,7 +7537,7 @@ impl Builder<'_> {
         }
         // "You may cast this spell as though it had flash if you pay {2}
         // more to cast it."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^You may cast this spell as though it had flash if you pay \{(\d+)\} more to cast it\.$",
         )
         .unwrap()
@@ -7528,7 +7549,7 @@ impl Builder<'_> {
         // CR 510.1a: "Each creature you control [with toughness greater
         // than its power] assigns combat damage equal to its toughness
         // rather than its power."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Each creature|Each creature you control|This creature)( with toughness greater than its power)? assigns combat damage equal to its toughness rather than its power\.$",
         )
         .unwrap()
@@ -7551,7 +7572,7 @@ impl Builder<'_> {
         }
         // CR 611.3a: "Enchanted creature gets +2/+2 as long as it's a
         // Vampire. Otherwise, it gets -2/-2."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^Enchanted creature gets ([+-]\d+/[+-]\d+) as long as it's (?:an? )?([A-Za-z]+)\. Otherwise, it (.+)\.$",
         )
         .unwrap()
@@ -7582,7 +7603,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb|Recover|Escalate|Prowl|Miracle|Emerge|Reconfigure) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            cached_regex(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb|Recover|Escalate|Prowl|Miracle|Emerge|Reconfigure) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -7591,7 +7612,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.176: "Impending 4—{1}{U}{U}".
-        if let Some(c) = Regex::new(r"^Impending (\d+)—((?:\{[0-9WUBRGCX/]+\})+)$")
+        if let Some(c) = cached_regex(r"^Impending (\d+)—((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -7600,7 +7621,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.188: "Web-slinging {W}".
-        if let Some(c) = Regex::new(r"^Web-slinging ((?:\{[0-9WUBRGCX/]+\})+)$")
+        if let Some(c) = cached_regex(r"^Web-slinging ((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -7608,7 +7629,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.174: "Gift a card", "Gift a tapped Fish".
-        if let Some(c) = Regex::new(r"^Gift (a card|a Food|a tapped Fish|a Treasure)$")
+        if let Some(c) = cached_regex(r"^Gift (a card|a Food|a tapped Fish|a Treasure)$")
             .unwrap()
             .captures(line)
         {
@@ -7623,7 +7644,7 @@ impl Builder<'_> {
         }
         // CR 702.167: "Craft with artifact {2}{R}" (one material).
         if let Some(c) =
-            Regex::new(r"^Craft with (artifact|creature|[A-Z][a-z]+) ((?:\{[0-9WUBRGC]+\})+)$")
+            cached_regex(r"^Craft with (artifact|creature|[A-Z][a-z]+) ((?:\{[0-9WUBRGC]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -7632,7 +7653,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.21: "Ward—Pay 2 life."
-        if let Some(c) = Regex::new(r"^Ward\u{2014}Pay (\d+) life\.?$")
+        if let Some(c) = cached_regex(r"^Ward\u{2014}Pay (\d+) life\.?$")
             .unwrap()
             .captures(line)
         {
@@ -7656,17 +7677,18 @@ impl Builder<'_> {
             "six" => "6",
             _ => "1",
         };
-        if let Some(c) =
-            Regex::new(r"^Ward\u{2014}Sacrifice (two|three|four|five|six) (nonland )?permanents\.$")
-                .unwrap()
-                .captures(line)
+        if let Some(c) = cached_regex(
+            r"^Ward\u{2014}Sacrifice (two|three|four|five|six) (nonland )?permanents\.$",
+        )
+        .unwrap()
+        .captures(line)
         {
             let nonland = if c.get(2).is_some() { "nonland " } else { "" };
             self.statements
                 .push(format!("ward sacrifice {} {nonland}permanent", n(&c[1])));
             return Ok(());
         }
-        if Regex::new(r"^Ward\u{2014}Pay life equal to (?:this creature|[A-Z][^']*)'s power\.$")
+        if cached_regex(r"^Ward\u{2014}Pay life equal to (?:this creature|[A-Z][^']*)'s power\.$")
             .unwrap()
             .is_match(line)
         {
@@ -7675,7 +7697,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^Ward\u{2014}(You g|G)et (two|three|four|five|six) poison counters\.$")
+            cached_regex(r"^Ward\u{2014}(You g|G)et (two|three|four|five|six) poison counters\.$")
                 .unwrap()
                 .captures(line)
         {
@@ -7684,7 +7706,7 @@ impl Builder<'_> {
                 .push(format!("ward {you}get {} poison counters", n(&c[2])));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Ward\u{2014}Collect evidence (\d+)\.$")
+        if let Some(c) = cached_regex(r"^Ward\u{2014}Collect evidence (\d+)\.$")
             .unwrap()
             .captures(line)
         {
@@ -7692,7 +7714,7 @@ impl Builder<'_> {
                 .push(format!("ward collect evidence {}", cap(&c, 1)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Ward\u{2014}Discard a card or pay (\{\d+\})\.$")
+        if let Some(c) = cached_regex(r"^Ward\u{2014}Discard a card or pay (\{\d+\})\.$")
             .unwrap()
             .captures(line)
         {
@@ -7701,7 +7723,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.113: "Awaken 3—{5}{B}".
-        if let Some(c) = Regex::new(r"^Awaken (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
+        if let Some(c) = cached_regex(r"^Awaken (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -7710,7 +7732,7 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.77: "Reinforce 1—{1}{R}".
-        if let Some(c) = Regex::new(r"^Reinforce (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
+        if let Some(c) = cached_regex(r"^Reinforce (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -7719,14 +7741,14 @@ impl Builder<'_> {
             return Ok(());
         }
         // CR 702.47: "Splice onto Arcane {1}{R}".
-        if let Some(c) = Regex::new(r"^Splice onto Arcane ((?:\{[0-9WUBRGCX/]+\})+)$")
+        if let Some(c) = cached_regex(r"^Splice onto Arcane ((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
             .captures(line)
         {
             self.statements.push(format!("splice {}", cap(&c, 1)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^Escape\u{2014}((?:\{[0-9WUBRGCX/]+\})+), Exile (\w+) other cards from your graveyard\.$",
         )
         .unwrap()
@@ -7737,7 +7759,7 @@ impl Builder<'_> {
                 .push(format!("escape {} exile {n}", cap(&c, 1)));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^This (?:creature|permanent) escapes with (an?|\w+) \+1/\+1 counters? on it\.$",
         )
         .unwrap()
@@ -7754,7 +7776,7 @@ impl Builder<'_> {
         }
         // "If this creature was kicked, it enters with two +1/+1 counters
         // on it [and with haste]." (CR 702.33c).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^If this creature was kicked, it enters with (an?|\w+) \+1/\+1 counters? on it(?: and with ([a-z ]+))?\.$",
         )
         .unwrap()
@@ -7773,7 +7795,7 @@ impl Builder<'_> {
                 .push(format!("kicked with {n} +1/+1 counters{with}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Suspend (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
+        if let Some(c) = cached_regex(r"^Suspend (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -7829,14 +7851,18 @@ impl Builder<'_> {
             self.statements.push("for mirrodin".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {
+        if let Some(c) = cached_regex(r"^Affinity for (\w+)$")
+            .unwrap()
+            .captures(line)
+        {
             self.statements
                 .push(format!("affinity for {}", singular(cap(&c, 1))));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^This spell costs \{(\d+)\} (less|more) to cast if (.+?)\.?$")
-            .unwrap()
-            .captures(line)
+        if let Some(c) =
+            cached_regex(r"^This spell costs \{(\d+)\} (less|more) to cast if (.+?)\.?$")
+                .unwrap()
+                .captures(line)
             && !cap(&c, 3).starts_with("it targets")
             && let Some(cond) = static_condition(cap(&c, 3))
         {
@@ -7847,10 +7873,11 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
-        if let Some(c) =
-            Regex::new(r"^This spell costs \{(\d+)\} (less|more) to cast if it targets an? (.+)\.$")
-                .unwrap()
-                .captures(line)
+        if let Some(c) = cached_regex(
+            r"^This spell costs \{(\d+)\} (less|more) to cast if it targets an? (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
         {
             self.statements.push(format!(
                 "this spell costs {{{}}} {} if it targets {}",
@@ -7860,7 +7887,7 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^This spell costs \{(\d+)\} less to cast for each (.+)\.$")
+        if let Some(c) = cached_regex(r"^This spell costs \{(\d+)\} less to cast for each (.+)\.$")
             .unwrap()
             .captures(line)
             && let Some(expr) = count_expr(cap(&c, 2))
@@ -7871,7 +7898,7 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(?:(.+) )?[Ss]pells( you cast| your opponents cast)? cost \{(\d+)\} (less|more) to cast\.$",
         )
         .unwrap()
@@ -7895,7 +7922,7 @@ impl Builder<'_> {
         // "Activated abilities of artifacts you control cost {1} less to
         // activate.", "Power-up abilities of other creatures you control
         // cost {3} less to activate."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(Activated|Power-up|Exhaust|Boast|Ninjutsu) abilities of (.+?) you control cost \{(\d+)\} less to activate\.( This effect can't reduce the mana in that cost to less than one mana\.)?$",
         )
         .unwrap()
@@ -7917,7 +7944,7 @@ impl Builder<'_> {
         }
         // "Untap this creature during each other player's untap step."
         // (CR 502.3); "Untap all artifacts you control during ...".
-        if Regex::new(r"^Untap this (?:creature|artifact|land|permanent) during each other player's untap step\.$")
+        if cached_regex(r"^Untap this (?:creature|artifact|land|permanent) during each other player's untap step\.$")
             .unwrap()
             .is_match(line)
         {
@@ -7926,7 +7953,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^Untap all (.+?) you control during each other player's untap step\.$")
+            cached_regex(r"^Untap all (.+?) you control during each other player's untap step\.$")
                 .unwrap()
                 .captures(line)
         {
@@ -7945,10 +7972,10 @@ impl Builder<'_> {
         }
         // "You may cast noncreature spells as though they had flash.",
         // "Creature spells you control can't be countered."
-        let flash = Regex::new(r"^You may cast (?:(.+) )?spells as though they had flash\.$")
+        let flash = cached_regex(r"^You may cast (?:(.+) )?spells as though they had flash\.$")
             .unwrap()
             .captures(line);
-        let uncounterable = Regex::new(r"^(?:(.+) )?[Ss]pells you control can't be countered\.$")
+        let uncounterable = cached_regex(r"^(?:(.+) )?[Ss]pells you control can't be countered\.$")
             .unwrap()
             .captures(line);
         if let Some(c) = flash.as_ref().or(uncounterable.as_ref()) {
@@ -7968,7 +7995,7 @@ impl Builder<'_> {
         }
         // "Instant and sorcery spells you cast [from your hand] have
         // storm." (convoke, improvise, delve, cascade, affinity for ...).
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(?:(.+) )?[Ss]pells you cast( from your hand)? have (convoke|improvise|delve|cascade|storm|affinity for (artifacts|creatures|enchantments|Auras))\.$",
         )
         .unwrap()
@@ -8016,7 +8043,7 @@ impl Builder<'_> {
                 .push(format!("spells{subject} you cast{from} have {what}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^As this land enters, you may pay (\d+) life\. If you don't, it enters tapped\.$",
         )
         .unwrap()
@@ -8031,7 +8058,7 @@ impl Builder<'_> {
         // snarls, the Lorwyn tribal lands); "... This land enters tapped
         // unless you revealed a Dragon card this way or you control a
         // Dragon."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^As this land enters, you may reveal an? ([A-Z][a-z]+(?: or [A-Z][a-z]+)?) card from your hand\. (?:If you don't, this land enters tapped|This land enters tapped unless you revealed an? ([A-Z][a-z]+) card this way or you control an? ([A-Z][a-z]+))\.$",
         )
         .unwrap()
@@ -8053,7 +8080,7 @@ impl Builder<'_> {
         }
         // CR 604.3: "~'s power and toughness are each equal to the number
         // of creatures you control."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^~'s (power and toughness are each|power is|toughness is) equal to the number of (.+)\.$",
         )
         .unwrap()
@@ -8084,7 +8111,7 @@ impl Builder<'_> {
             self.statements.push("enters tapped".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(&format!(
+        if let Some(c) = cached_regex(&format!(
             r"^(?:This (?:creature|permanent|artifact|land|enchantment|Vehicle)|~) enters with (\S+) (\+1/\+1|-1/-1|{}) counters? on it(?: if (.+))?\.$",
             counter_names()
         ))
@@ -8110,7 +8137,7 @@ impl Builder<'_> {
         }
         // Multikicker (CR 702.33d): "This creature enters with a +1/+1
         // counter on it for each time it was kicked."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^This (?:creature|artifact|enchantment) enters with an? (\+1/\+1|charge) counter on it for each time it was kicked\.$",
         )
         .unwrap()
@@ -8125,7 +8152,7 @@ impl Builder<'_> {
         // "This creature enters with a +1/+1 counter on it for each color
         // of mana spent to cast it." (converge), "... two +1/+1 counters
         // ... for each ...".
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^This (?:creature|permanent|artifact|enchantment|Vehicle) enters with (\S+) (\+1/\+1|-1/-1|[a-z]+) counters? on it for each (.+)\.$",
         )
         .unwrap()
@@ -8144,7 +8171,7 @@ impl Builder<'_> {
         }
         // "Creatures you control of the chosen color get +1/+0.", "All
         // creatures of the chosen type get -1/-1."
-        if let Some(c) = Regex::new(
+        if let Some(c) = cached_regex(
             r"^(All creatures|Creatures|Creatures you control|Other creatures you control) of the chosen (color|type) (.+)\.$",
         )
         .unwrap()
@@ -8156,7 +8183,7 @@ impl Builder<'_> {
                 "Creatures you control" => "creature you control",
                 _ => "other creature you control",
             };
-            let gets = Regex::new(r"^get ([+-]\d+/[+-]\d+)$").unwrap();
+            let gets = cached_regex(r"^get ([+-]\d+/[+-]\d+)$").unwrap();
             let mut mods = Vec::new();
             for part in cap(&c, 3).split(" and ") {
                 if let Some(c2) = gets.captures(part) {
@@ -8184,7 +8211,7 @@ impl Builder<'_> {
         // creatures get -2/-2 until end of turn." is a spell's effect).
         if !line.contains(" until end of turn")
             && !line.contains(" this turn do so")
-            && let Some(c) = Regex::new(
+            && let Some(c) = cached_regex(
             r"^(Enchanted creature|Equipped creature|Creatures you control|Other creatures you control with flying|Other creatures you control|Creatures your opponents control|All creatures|White creatures|Blue creatures|Black creatures|Red creatures|Green creatures|Enchanted land|Enchanted permanent) (.+)\.$",
         )
         .unwrap()
@@ -8209,16 +8236,16 @@ impl Builder<'_> {
                 ),
             };
             let mut mods = Vec::new();
-            let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
+            let gets = cached_regex(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
             // "gets +2/+2, has reach, and is a Bard in addition to its
             // other types" (job select Equipment): a list of three.
             let body = cap(&c, 2);
             let parts: Vec<&str> = if body.ends_with(" in addition to its other types") {
-                Regex::new(r",? and |, ").unwrap().split(body).collect()
+                cached_regex(r",? and |, ").unwrap().split(body).collect()
             } else {
                 body.split(" and ").collect()
             };
-            let subtype = Regex::new(r"^is an? ([A-Z][a-z]+) in addition to its other types$").unwrap();
+            let subtype = cached_regex(r"^is an? ([A-Z][a-z]+) in addition to its other types$").unwrap();
             for part in parts {
                 if let Some(c2) = gets.captures(part) {
                     mods.push(cap(&c2, 1).to_string());
@@ -8237,14 +8264,14 @@ impl Builder<'_> {
             }
         }
         // "All Sliver creatures get +1/+1." / "Minotaur creatures get +1/+0."
-        if let Some(c) = Regex::new(r"^(All )?([A-Z][a-z]+) creatures (.+)\.$")
+        if let Some(c) = cached_regex(r"^(All )?([A-Z][a-z]+) creatures (.+)\.$")
             .unwrap()
             .captures(line)
         {
             let all = if cap(&c, 1).is_empty() { "" } else { "all " };
             let filter = format!("{all}{} creature", cap(&c, 2));
             let mut mods = Vec::new();
-            let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
+            let gets = cached_regex(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
             let mut ok = true;
             for part in cap(&c, 3).split(" and ") {
                 if let Some(c2) = gets.captures(part) {
@@ -8280,7 +8307,7 @@ impl Builder<'_> {
         .find_map(|(prefix, word)| Some((*word, line.strip_prefix(prefix)?)))
         .unwrap_or(("activated", line));
         // Loyalty abilities (CR 606): "+1: ...", "−2: ...", "0: ...".
-        if let Some(c) = Regex::new(r"^([+\u{2212}]?)(\d+|X): (.+)$")
+        if let Some(c) = cached_regex(r"^([+\u{2212}]?)(\d+|X): (.+)$")
             .unwrap()
             .captures(line)
             && word == "activated"
@@ -8376,7 +8403,7 @@ impl Builder<'_> {
             // "This ability costs {1} less to activate for each Shrine you
             // control." (or "... if <condition>."), before the
             // restrictions in the cost.
-            let reduced = Regex::new(
+            let reduced = cached_regex(
                 r"^(.*?) This ability costs (\{\d+\}) less to activate (for each|if) (.+)\.$",
             )
             .unwrap();
@@ -8427,7 +8454,7 @@ impl Builder<'_> {
             self.statements.push(format!("{word} {cost}: {effects}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^Cumulative upkeep ((?:\{[0-9WUBRGC]+\})+)$")
+        if let Some(c) = cached_regex(r"^Cumulative upkeep ((?:\{[0-9WUBRGC]+\})+)$")
             .unwrap()
             .captures(line)
         {
@@ -8571,7 +8598,7 @@ impl Builder<'_> {
             // CR 702.148a: the text as printed, and with the words in
             // square brackets removed.
             let full = line.replace(['[', ']'], "");
-            let short = Regex::new(r" ?\[[^\]]*\]")
+            let short = cached_regex(r" ?\[[^\]]*\]")
                 .unwrap()
                 .replace_all(line, "")
                 .into_owned();
@@ -8753,7 +8780,7 @@ fn singular_type(w: &str) -> &str {
 #[allow(clippy::too_many_lines)] // one rewrite per phrase
 fn filter_phrases(st: &str, oracle: &str) -> String {
     const COLORS: &str = "white|blue|black|red|green";
-    let re = |p: &str| Regex::new(p).expect("a filter phrase pattern");
+    let re = |p: &str| cached_regex(p).expect("a filter phrase pattern");
     // "Counter target spell if it's red.": the line's one target as it
     // resolves.
     let its = re(r"^(.*\btarget [a-z].*) if it's (?:an? )?([a-z]+)$");
@@ -8949,7 +8976,7 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
             let e = bound_amount(&format!("the number of {what}"))
                 .or_else(|| count_expr(&what))
                 .or_else(|| {
-                    Regex::new(r"^(\S+) counter on (?:this creature|~)$")
+                    cached_regex(r"^(\S+) counter on (?:this creature|~)$")
                         .expect("a counter pattern")
                         .captures(&what)
                         .map(|k| format!("{} counters on this", &k[1]))
@@ -9027,7 +9054,7 @@ fn bound_amount(a: &str) -> Option<String> {
         _ => None,
     };
     // "the number of charge counters on this artifact".
-    if let Some(c) = Regex::new(
+    if let Some(c) = cached_regex(
         r"^the number of (\S+) counters on (?:this (?:artifact|creature|land|enchantment)|~)$",
     )
     .expect("a counters pattern")
@@ -9052,7 +9079,7 @@ fn bound_amount(a: &str) -> Option<String> {
 /// ...`, the statement's one target): a characteristic compared with a
 /// count.
 fn bound_phrases(st: &str) -> String {
-    let head = Regex::new(
+    let head = cached_regex(
         r"(with|if its) (power|toughness|mana value) (is )?(less than or equal to|less than|equal to|X or less, where X is) ",
     )
     .expect("a bound pattern");
@@ -9109,7 +9136,7 @@ fn bound_phrases(st: &str) -> String {
         from = at + dsl.len();
     }
     // "target creature with power X or less": X of the spell.
-    let s = Regex::new(r"with (power|toughness) X or less\b(,? where)?")
+    let s = cached_regex(r"with (power|toughness) X or less\b(,? where)?")
         .expect("a bound pattern")
         .replace_all(&s, |c: &regex::Captures| {
             if c.get(2).is_some() {
@@ -9121,7 +9148,7 @@ fn bound_phrases(st: &str) -> String {
         .into_owned();
     // "counter target spell with mana value at most ...": the qualities
     // before `spell`.
-    Regex::new(r"counter target spell (with (?:power|toughness|mana value) (?:at most|less than) count [a-z]+ .+)$")
+    cached_regex(r"counter target spell (with (?:power|toughness|mana value) (?:at most|less than) count [a-z]+ .+)$")
         .expect("a bound pattern")
         .replace(&s, "counter target $1 spell")
         .into_owned()
@@ -9340,14 +9367,14 @@ fn wording_variants(text: &str) -> Vec<String> {
 /// A legendary character's Oracle text with "he"/"she" and their other
 /// forms read as "it"/"its", and which pronoun it used (`he`, `she`).
 fn neuter_pronouns(oracle: &str) -> (String, Option<&'static str>) {
-    let he = Regex::new(r"\b(?:[Hh]e|[Hh]im|[Hh]is)\b").unwrap();
-    let she = Regex::new(r"\b(?:[Ss]he|[Hh]er)\b").unwrap();
+    let he = cached_regex(r"\b(?:[Hh]e|[Hh]im|[Hh]is)\b").unwrap();
+    let she = cached_regex(r"\b(?:[Ss]he|[Hh]er)\b").unwrap();
     let pronoun = match (he.is_match(oracle), she.is_match(oracle)) {
         (true, false) => "he",
         (false, true) => "she",
         _ => return (oracle.to_string(), None),
     };
-    let word = Regex::new(r"\b([Hh]e|[Hh]im|[Hh]is|[Ss]he|[Hh]er)\b( ?)(\w*)").unwrap();
+    let word = cached_regex(r"\b([Hh]e|[Hh]im|[Hh]is|[Ss]he|[Hh]er)\b( ?)(\w*)").unwrap();
     let out = word.replace_all(oracle, |c: &regex::Captures| {
         let w = &c[1];
         let next = &c[3];
@@ -9453,7 +9480,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     }
     // Hybrid, Phyrexian, and snow symbols the engine parses are fine;
     // energy and the rarer hybrids ({W/U/P}, {C/W}) are not.
-    let symbol = Regex::new(r"\{([^}]*)\}").unwrap();
+    let symbol = cached_regex(r"\{([^}]*)\}").unwrap();
     let odd = |text: &str| {
         symbol.captures_iter(text).any(|c| {
             let inner = &c[1];
@@ -9477,7 +9504,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if type_line.contains("Legendary")
         && let Some((short, _)) = s.name.split_once(", ")
     {
-        let word = Regex::new(&format!(r"\b{}\b", regex::escape(short))).unwrap();
+        let word = cached_regex(&format!(r"\b{}\b", regex::escape(short))).unwrap();
         oracle = word.replace_all(&oracle, "~").into_owned();
     }
     // "Ajani" for "Ajani Resolute", "Smaug" for "Smaug the Magnificent":
@@ -9490,7 +9517,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         && first != "The"
         && first.chars().all(char::is_alphabetic)
     {
-        let word = Regex::new(&format!(r"\b{}\b('s )?", regex::escape(first))).unwrap();
+        let word = cached_regex(&format!(r"\b{}\b('s )?", regex::escape(first))).unwrap();
         let mut found = false;
         oracle = word
             .replace_all(&oracle, |c: &regex::Captures| {
@@ -9539,16 +9566,16 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         cleave: None,
     };
     // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
-    let leveler = Regex::new(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
+    let leveler = cached_regex(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
     let oracle = leveler.replace_all(&oracle, "$1 $2").into_owned();
     let lines: Vec<&str> = oracle.lines().collect();
     let mut i = 0;
     // "Choose one. If ..., choose both instead." (CR 700.2).
-    let choose_if = Regex::new(
+    let choose_if = cached_regex(
         r"^Choose one\. If (.+), (you may )?choose (both|one or more|any number) instead\.$",
     )
     .unwrap();
-    let strive = Regex::new(
+    let strive = cached_regex(
         r"^Strive — This spell costs (\{[^ ]+\}) more to cast for each target beyond the first\.$",
     )
     .unwrap();
@@ -9585,7 +9612,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             let text = cap(&c, 1);
             let cond = static_condition(text)
                 .or_else(|| {
-                    let n = Regex::new(
+                    let n = cached_regex(
                         r"^there are (\w+) or more card types among cards in your graveyard$",
                     )
                     .unwrap()
@@ -9777,7 +9804,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     text.push_str("}\n");
     // CR 712.4: a meld card needs its melded permanent, the back face both
     // cards share, in the corpus.
-    let meld = Regex::new(r#"meld with "[^"]+" into "([^"]+)""#).unwrap();
+    let meld = cached_regex(r#"meld with "[^"]+" into "([^"]+)""#).unwrap();
     for c in meld.captures_iter(&text) {
         if !corpus.iter().any(|t| t.name == c[1]) {
             return Err(Skip::Sentence(format!(
@@ -9787,7 +9814,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
     }
     // Tokens it creates that the corpus lacks are generated from their key.
-    let created = Regex::new(r#"create \S+ "([^"]+)""#).unwrap();
+    let created = cached_regex(r#"create \S+ "([^"]+)""#).unwrap();
     let mut tokens = Vec::new();
     let mut token_cards = Vec::new();
     for c in created.captures_iter(&text) {
