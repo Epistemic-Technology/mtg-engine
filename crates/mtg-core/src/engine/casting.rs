@@ -9778,10 +9778,16 @@ impl GameState {
             // "choose a card name": the names of the cards in the game, in
             // name order (`choose "Lightning Bolt"` in a scenario).
             ChoiceKind::CardName { .. } | ChoiceKind::CardNameOf(_) => {
+                // "Look at an opponent's hand": seen by the chooser only
+                // (CR 701.20a reveals to every player; looking doesn't).
                 if let ChoiceKind::CardName { look: true, .. } = kind {
                     let opp = self.next_player(p);
                     if opp != p {
-                        self.reveal_hand(opp);
+                        let bit = 1 << p.index().min(7);
+                        for i in 0..self.player(opp).hand.len() {
+                            let id = self.player(opp).hand[i];
+                            self.objects[id].revealed |= bit;
+                        }
                     }
                 }
                 // Which names may be chosen: "nonland", "creature", "other

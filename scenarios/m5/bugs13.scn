@@ -54,3 +54,17 @@ scenario "Eidolon of Obstruction's tax on a 0: ability is paid with mana" {
   assert tapped "Island"
   assert graveyard B count 10
 }
+
+# "Look at an opponent's hand" shows it to the looking player only (it is
+# not a reveal, CR 701.20a), so the hand's owner isn't told of it either.
+scenario "Sorcerous Spyglass shows the hand to its controller only" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Sorcerous Spyglass"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Sorcerous Spyglass"
+  turn 1 A: choose "Prodigal Sorcerer"
+  run_to turn 1 end
+  assert known A "Grizzly Bears"
+  assert unknown B "Grizzly Bears"
+}
