@@ -51,7 +51,9 @@ abilities call it by name: "Create Galactus, a legendary 16/16 black
 Elder Alien creature token with flying, trample, and \"Whenever Galactus
 attacks, destroy target land.\"" A token with a characteristic-defining
 ability prints its abilities after the sentence ("... token. It has
-\"...\"").
+\"...\""), except a legendary one named first ("Create Beau, a legendary
+blue Ox creature token with \"Beau's power and toughness are each equal
+to the number of lands you control.\"", Bonny Pall, Clearcutter).
 
 ## Multi-face cards
 
@@ -3763,7 +3765,29 @@ do` then sees:
   creature card from among them onto the battlefield"; `from among milled
   cards`: "from among the milled cards"), as `into hand` below
 - `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
-  you control to it": permanents you control, attached to that target)
+  you control to it": permanents you control, attached to that target);
+  `attach 1 Equipment you control to it chosen` (after `return this to
+  battlefield ...`: "Then you may attach an Equipment you control to
+  him", by the card's pronoun; what the resolution last returned, Winter
+  Soldier)
+- `destroy up to 1 Equipment attached to that target 1 chosen` ("Destroy
+  up to one Equipment attached to that creature.", Light of Judgment):
+  permanents of any controller unless the filter names one, not targeted
+- `exile 1 card from your graveyard at random` ("exile a card at random
+  from your graveyard"; `that card` after it is the card exiled: `may play
+  that card this turn`, Tersa Lightshatter)
+- `return target Aura or Equipment card from your graveyard to battlefield
+  attached to chosen creature you control` ("... attached to a creature
+  you control", One Last Job): the host is chosen as the card returns (CR
+  303.4f), not targeted; with none, the card stays where it is
+- `return this and target land card from your graveyard to battlefield
+  tapped` in an ability that works from the graveyard ("Return this card
+  and target land card from your graveyard to the battlefield tapped.",
+  Sandman, Shifting Scoundrel): the source, then the target
+- `reveal until creature card; put that card onto battlefield tapped and
+  attacking and the rest on bottom of library random` ("Put that card onto
+  the battlefield tapped and attacking and the rest ...", CR 508.4; Raph &
+  Mikey, Troublemakers)
 - `return 1 creature or land card from your graveyard to hand chosen`
   ("return a creature or land card from your graveyard to your hand"),
   `return up to 2 creature card from your graveyard to hand chosen`

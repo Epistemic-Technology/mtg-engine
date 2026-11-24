@@ -1,0 +1,6 @@
+card "Rise from the Wreck" {
+  oracle_id 8eeb83b4-dca1-497e-a6b7-0485807aeef3
+  cost {2}{G}
+  type Sorcery
+  spell: return up to 1 target creature card from your graveyard and up to 1 target Mount card from your graveyard and up to 1 target Vehicle card from your graveyard and up to 1 target creature with no abilities card from your graveyard to hand
+}

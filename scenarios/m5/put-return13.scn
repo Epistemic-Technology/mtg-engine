@@ -356,3 +356,233 @@ scenario "Ego Drain: with a Faerie you keep your hand" {
   assert graveyard B contains "Hill Giant"
   assert hand A contains "Forest"
 }
+
+# "Return up to one target creature card, up to one target Mount card, up
+# to one target Vehicle card, and up to one target creature card with no
+# abilities from your graveyard to your hand."
+scenario "Rise from the Wreck: one card for each of the four groups" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Hill Giant", "Alacrian Jaguar", "Smuggler's Copter", "Grizzly Bears", "Serra Angel"
+  hand A: "Rise from the Wreck"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rise from the Wreck" targeting "Hill Giant", "Alacrian Jaguar", "Smuggler's Copter", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Alacrian Jaguar"
+  assert hand A contains "Smuggler's Copter"
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "Rise from the Wreck: a creature with abilities is not a no-abilities target" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Hill Giant", "Serra Angel"
+  hand A: "Rise from the Wreck"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Rise from the Wreck" targeting none, none, none, "Serra Angel"
+  run_to turn 1 postcombat_main
+}
+
+# Spree: "+ {4}{G} — You may put up to two creature cards from your hand
+# onto the battlefield." and "+ {1} — Creatures you control with power 4
+# or greater gain hexproof and indestructible until end of turn."
+scenario "Smuggler's Surprise: two creatures from hand, the big one protected" {
+  battlefield A: 7 "Forest"
+  hand A: "Smuggler's Surprise", "Hill Giant", "Grizzly Bears", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Smuggler's Surprise" mode 6
+  turn 1 A: choose "Serra Angel"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert has "Serra Angel" indestructible
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "Smuggler's Surprise: mill four, keep a creature and a land" {
+  battlefield A: 3 "Forest"
+  hand A: "Smuggler's Surprise"
+  library A: "Hill Giant", "Shock", "Island", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Smuggler's Surprise" mode 1
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Island"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Plains"
+}
+
+# "{3}{G}{G}: Return this card and target land card from your graveyard to
+# the battlefield tapped."
+scenario "Sandman, Shifting Scoundrel: returns itself and a land, tapped" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Sandman, Shifting Scoundrel", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sandman, Shifting Scoundrel" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sandman, Shifting Scoundrel"
+  assert battlefield A contains "Island"
+  assert tapped "Sandman, Shifting Scoundrel"
+  assert tapped "Island"
+  assert power "Sandman, Shifting Scoundrel" 6
+}
+
+# "Whenever Tersa Lightshatter attacks, if there are seven or more cards in
+# your graveyard, exile a card at random from your graveyard. You may play
+# that card this turn."
+scenario "Tersa Lightshatter: a random graveyard card is exiled and cast" {
+  seed 3
+  battlefield A: "Tersa Lightshatter", "Mountain"
+  graveyard A: "Shock", 6 "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Tersa Lightshatter"
+  turn 2 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 2 end
+  assert exile A count 0
+  assert graveyard A contains "Shock"
+  assert life B 15
+}
+
+scenario "Tersa Lightshatter: with six cards in the graveyard nothing is exiled" {
+  battlefield A: "Tersa Lightshatter", "Mountain"
+  graveyard A: 6 "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Tersa Lightshatter"
+  run_to turn 2 end
+  assert exile A count 0
+  assert graveyard A contains 6 "Shock"
+}
+
+scenario "Tersa Lightshatter: discard two, draw two" {
+  battlefield A: 3 "Mountain"
+  hand A: "Tersa Lightshatter", "Swamp", "Island", "Plains"
+  library A: "Forest", "Hill Giant", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tersa Lightshatter"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Plains"
+  assert hand A contains "Swamp"
+  assert hand A contains "Forest"
+  assert hand A contains "Hill Giant"
+  assert hand A count 3
+}
+
+# "Put that card onto the battlefield tapped and attacking and the rest on
+# the bottom of your library in a random order."
+scenario "Raph & Mikey, Troublemakers: the revealed creature enters attacking" {
+  battlefield A: "Raph & Mikey, Troublemakers"
+  library A: "Forest", "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Raph & Mikey, Troublemakers"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert life B 11
+  assert library A count 2
+}
+
+# Spree: "+ {1} — Return target Aura or Equipment card from your graveyard
+# to the battlefield attached to a creature you control."
+scenario "One Last Job: an Equipment returns attached to the chosen creature" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Savannah Lions"
+  graveyard A: "Bonesplitter"
+  hand A: "One Last Job"
+  start turn 1 A precombat_main
+  turn 1 A: cast "One Last Job" mode 4 targeting "Bonesplitter"
+  turn 1 A: choose "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Savannah Lions"
+  assert power "Savannah Lions" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "One Last Job: an Aura returns attached to the chosen creature" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  graveyard A: "Holy Strength"
+  hand A: "One Last Job"
+  start turn 1 A precombat_main
+  turn 1 A: cast "One Last Job" mode 4 targeting "Holy Strength"
+  run_to turn 1 postcombat_main
+  assert attached "Holy Strength" to "Grizzly Bears"
+}
+
+scenario "One Last Job: a creature card and a Vehicle card return" {
+  battlefield A: 6 "Plains"
+  graveyard A: "Hill Giant", "Smuggler's Copter"
+  hand A: "One Last Job"
+  start turn 1 A precombat_main
+  turn 1 A: cast "One Last Job" mode 3 targeting "Hill Giant", "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Smuggler's Copter"
+}
+
+# "Destroy up to one Equipment attached to that creature."
+scenario "Light of Judgment: the Equipment on the target is destroyed, not another" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Serra Angel", "Grizzly Bears", "Bonesplitter" on "Serra Angel", "Short Sword" on "Grizzly Bears"
+  hand A: "Light of Judgment"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Light of Judgment" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Bonesplitter"
+  assert battlefield B contains "Short Sword"
+  assert attached "Short Sword" to "Grizzly Bears"
+}
+
+# "{3}{W}{B}: Return this card from your graveyard to the battlefield with a
+# finality counter on him. Then you may attach an Equipment you control to
+# him." and "+2/+0 for each Equipment attached to him".
+scenario "Winter Soldier, Icy Assassin: returns and takes an Equipment" {
+  battlefield A: 3 "Plains", 2 "Swamp", "Bonesplitter"
+  graveyard A: "Winter Soldier, Icy Assassin"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Winter Soldier, Icy Assassin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Winter Soldier, Icy Assassin"
+  assert counters "Winter Soldier, Icy Assassin" finality 1
+  assert attached "Bonesplitter" to "Winter Soldier, Icy Assassin"
+  assert power "Winter Soldier, Icy Assassin" 6
+}
+
+scenario "Winter Soldier, Icy Assassin: may decline the Equipment" {
+  battlefield A: 3 "Plains", 2 "Swamp", "Bonesplitter"
+  graveyard A: "Winter Soldier, Icy Assassin"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Winter Soldier, Icy Assassin"
+  turn 1 A: decline "Winter Soldier, Icy Assassin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Winter Soldier, Icy Assassin"
+  assert power "Winter Soldier, Icy Assassin" 2
+}
+
+# "create Beau, a legendary blue Ox creature token with \"Beau's power and
+# toughness are each equal to the number of lands you control.\"" and
+# "Whenever you attack, draw a card, then you may put a land card from your
+# hand or graveyard onto the battlefield."
+scenario "Bonny Pall, Clearcutter: Beau counts lands; attacking puts a land from the graveyard" {
+  battlefield A: 5 "Island", "Forest"
+  hand A: "Bonny Pall, Clearcutter"
+  graveyard A: "Plains"
+  library A: "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bonny Pall, Clearcutter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Beau"
+  assert power "Beau" 6
+  assert toughness "Beau" 6
+  run_to turn 3 precombat_main
+  turn 3 A: attack "Beau"
+  turn 3 declare_attackers A: choose "Plains"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Plains"
+  assert power "Beau" 7
+}

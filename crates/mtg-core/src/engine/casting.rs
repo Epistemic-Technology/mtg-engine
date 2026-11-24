@@ -1557,7 +1557,8 @@ impl GameState {
             | ChooseAct::Transform
             | ChooseAct::Exile
             | ChooseAct::Choose
-            | ChooseAct::AttachToTarget(_) => self
+            | ChooseAct::AttachToTarget(_)
+            | ChooseAct::AttachToCreated => self
                 .battlefield
                 .iter()
                 .copied()
@@ -1592,13 +1593,31 @@ impl GameState {
             | ChooseAct::ReturnFromGraveyard
             | ChooseAct::GraveyardToBattlefield { .. }
             | ChooseAct::GraveyardToTop
-            | ChooseAct::ReturnRandomFromGraveyard => self
+            | ChooseAct::ReturnRandomFromGraveyard
+            | ChooseAct::ExileRandomFromGraveyard => self
                 .player(p)
                 .graveyard
                 .iter()
                 .copied()
                 .filter(|id| card_ok(*id))
                 .collect(),
+            // "Destroy up to one Equipment attached to that creature".
+            ChooseAct::Destroy => {
+                let host = filter.attached_to.map(|a| self.attached_host(ctx, a));
+                self.battlefield
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        host.is_none_or(|h| h.is_some() && self.objects[*id].attached_to == h)
+                    })
+                    .filter(|id| {
+                        let ctl = self.objects[*id].controller;
+                        self.characteristics(*id).is_some_and(|c| {
+                            filter.matches(*id, ctl, &c, Some(ctx.source), Some(p))
+                        }) && self.status_ok(filter, *id)
+                    })
+                    .collect()
+            }
             // "from your hand or graveyard": the hand's cards first.
             ChooseAct::HandToBattlefield { graveyard, .. } => {
                 let ps = self.player(p);
@@ -1874,7 +1893,10 @@ impl GameState {
         let mut done = 0;
         let mut picked: Vec<(PlayerId, ObjId)> = Vec::new();
         while done < n && !cands.is_empty() {
-            let id = if act == ChooseAct::ReturnRandomFromGraveyard {
+            let id = if matches!(
+                act,
+                ChooseAct::ReturnRandomFromGraveyard | ChooseAct::ExileRandomFromGraveyard
+            ) {
                 // "at random": from the game's random number generator.
                 cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
             } else if act == ChooseAct::ExileTopOfGraveyard || (!up_to && cands.len() == n - done) {
@@ -1929,6 +1951,20 @@ impl GameState {
                 ChooseAct::Untap => self.untap(id),
                 ChooseAct::Transform => self.transform_by_effect(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
+                ChooseAct::Destroy => {
+                    self.destroy(id);
+                }
+                ChooseAct::AttachToCreated => {
+                    if let Some(host) = ctx.created
+                        && self
+                            .objects
+                            .get(host)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                        && host != id
+                    {
+                        self.attach(id, host);
+                    }
+                }
                 ChooseAct::Discard => self.discard_card(p, id),
                 // CR 701.20a: revealed where it is, for "cards revealed
                 // this way".
@@ -1946,6 +1982,7 @@ impl GameState {
                     ctx.created = Some(self.move_object(id, Zone::Graveyard, false));
                 }
                 ChooseAct::ExileFromGraveyard
+                | ChooseAct::ExileRandomFromGraveyard
                 | ChooseAct::ExileFromAnyGraveyard
                 | ChooseAct::ExileFromHand
                 | ChooseAct::ExileTopOfGraveyard

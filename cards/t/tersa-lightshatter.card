@@ -1,0 +1,9 @@
+card "Tersa Lightshatter" {
+  oracle_id 9918eb7b-054e-4b1c-afc7-1163ab642d50
+  cost {2}{R}
+  type Legendary Creature — Orc Wizard
+  pt 3/3
+  keywords haste
+  triggered when this enters: discard up to 2 cards chosen then draw count that many discarded this way cards
+  triggered whenever this attacks if 7 cards in your graveyard: exile 1 card from your graveyard at random; may play that card this turn
+}

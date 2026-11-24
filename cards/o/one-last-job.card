@@ -1,0 +1,10 @@
+card "One Last Job" {
+  oracle_id 55cba59c-932c-4295-87dc-9179fbdfbd53
+  cost {2}{W}
+  type Sorcery
+  spree {
+  mode {2}: return target creature card from your graveyard to battlefield
+  mode {1}: return target Mount or Vehicle card from your graveyard to battlefield
+  mode {1}: return target Aura or Equipment card from your graveyard to battlefield attached to chosen creature you control
+  }
+}

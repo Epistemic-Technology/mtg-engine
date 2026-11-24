@@ -2129,6 +2129,7 @@ impl Decompiler<'_> {
             CoreEffect::PutCard { what, to, random } => Effect::PutCard {
                 random: *random,
                 rest: None,
+                attacking: false,
                 what: match what {
                     mtg_core::card::CardSet::It => crate::ast::CardWords::It,
                     mtg_core::card::CardSet::Revealed => crate::ast::CardWords::AllRevealed,

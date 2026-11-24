@@ -1339,6 +1339,7 @@ impl Fmt {
                 that_player,
                 random,
                 rest,
+                attacking,
             } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardDest;
@@ -1371,6 +1372,9 @@ impl Fmt {
                     CardDest::LibraryBottom => "on bottom of library",
                 };
                 let mut d = d.to_string();
+                if *attacking {
+                    d.push_str(" and attacking");
+                }
                 if *random {
                     d.push_str(" random");
                 }
@@ -3551,6 +3555,12 @@ impl Fmt {
                     ChooseAct::ReturnRandomFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand at random")
                     }
+                    ChooseAct::ExileRandomFromGraveyard if unfiltered => {
+                        format!("exile {n} {cs} from your graveyard at random")
+                    }
+                    ChooseAct::ExileRandomFromGraveyard => {
+                        format!("exile {n} {f} {cs} from your graveyard at random")
+                    }
                     ChooseAct::MilledToHand if *returns => {
                         format!("return {n} {f} {cs} from among them to hand chosen")
                     }
@@ -3596,6 +3606,8 @@ impl Fmt {
                         "return {n} {f} {cs} put into {} graveyard this way to battlefield under your control chosen",
                         if *any { "a" } else { "your" }
                     ),
+                    ChooseAct::Destroy => format!("destroy {n} {f} chosen"),
+                    ChooseAct::AttachToCreated => format!("attach {n} {f} to it chosen"),
                     ChooseAct::AttachToTarget(i) => {
                         format!("attach {n} {f} to target {} chosen", i + 1)
                     }

@@ -6262,6 +6262,9 @@ pub enum Effect {
         /// bottom of your library in a random order." (the other revealed
         /// cards still in the library; `true`: in a random order).
         rest: Option<(mtg_core::card::CardDest, bool)>,
+        /// `onto battlefield tapped and attacking`: "... onto the
+        /// battlefield tapped and attacking" (CR 508.4; Raph & Mikey).
+        attacking: bool,
     },
     /// `impulse 2 next turn first`: "Exile the top two cards of your
     /// library. Until the end of your next turn, you may play those

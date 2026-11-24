@@ -1,0 +1,8 @@
+card "Sandman, Shifting Scoundrel" {
+  oracle_id 8b205480-b1fb-490c-b1c9-cf5cc3c5acdb
+  cost {1}{G}{G}
+  type Legendary Creature — Sand Elemental Villain
+  static this: cda pt count land you control
+  can't be blocked by creature with power 2 or less
+  activated {3}{G}{G}, from graveyard: return this and target land card from your graveyard to battlefield tapped
+}

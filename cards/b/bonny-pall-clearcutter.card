@@ -1,0 +1,9 @@
+card "Bonny Pall, Clearcutter" {
+  oracle_id fcb811a8-c6e6-4bc4-b64b-8963a7183669
+  cost {3}{G}{U}{U}
+  type Legendary Creature — Giant Scout
+  pt 6/5
+  keywords reach
+  triggered when this enters: create 1 "Beau"
+  triggered whenever you attack: draw 1 card, then you may put 1 land card from hand or graveyard onto battlefield chosen
+}

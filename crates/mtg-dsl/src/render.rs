@@ -2309,6 +2309,11 @@ impl<'a> Ctx<'a> {
             return "permanent".to_string();
         };
         let phrase = filter_phrase(f, self.card, plural_form);
+        self.attached_phrase(f, phrase)
+    }
+
+    /// `phrase` and the filter's "attached to ..." relation.
+    fn attached_phrase(&mut self, f: &Filter, phrase: String) -> String {
         // "all Auras attached to it", "all Equipment attached to that
         // creature", "all Auras and Equipment attached to target creature".
         match f.attached_to {
@@ -4757,6 +4762,10 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
         .unwrap_or(&rest)
         .replace("this token", shown)
         .replace("This token", shown);
+    // "create Beau, a legendary blue Ox creature token with \"Beau's power
+    // and toughness are each equal to ...\"" (Bonny Pall): named first,
+    // its characteristic-defining ability follows "with".
+    let rest = rest.replacen(". It has \"", " with \"", 1);
     format!("{shown}, a legendary {rest}")
 }
 
@@ -7336,6 +7345,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             that_player,
             random,
             rest,
+            attacking,
         } => {
             use crate::ast::CardWords;
             use mtg_core::card::CardDest;
@@ -7367,6 +7377,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardDest::Graveyard if *that_player => "into that player's graveyard".to_string(),
                 CardDest::Graveyard => format!("into {whose} graveyard"),
                 CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
+                CardDest::Battlefield { tapped: true } if *attacking => {
+                    "onto the battlefield tapped and attacking".to_string()
+                }
                 CardDest::Battlefield { tapped: true } => "onto the battlefield tapped".to_string(),
                 CardDest::LibraryBottom if *random => {
                     format!("on the bottom of {whose} library in a random order")
@@ -8582,6 +8595,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("put {o} onto the battlefield under your control{tapped}")
             } else if from_graveyard {
                 format!("return this card from your graveyard to the battlefield{tapped}")
+            } else if let Recipient::SourceAndTarget(_) = what
+                && works_from_graveyard(ctx.current)
+            {
+                // "Return this card and target land card from your
+                // graveyard to the battlefield tapped." (Sandman): `o` is
+                // "<source> and <target>".
+                let t = o.rsplit_once(" and ").map_or(o.as_str(), |(_, t)| t);
+                format!("return this card and {t} to the battlefield{tapped}")
             } else if others || (*put && *under_you) {
                 format!("put {o} onto the battlefield{tapped} under your control")
             } else if *put && yours {
@@ -10322,9 +10343,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
                 }
+                // "destroy up to one Equipment attached to that creature".
+                ChooseAct::Destroy => {
+                    let p = permanents();
+                    let p = ctx.attached_phrase(filter, p);
+                    format!("destroy {p}")
+                }
+                // "Then you may attach an Equipment you control to him."
+                ChooseAct::AttachToCreated => {
+                    let it = match ctx.card.pronoun {
+                        Some(crate::ast::Pronoun::He) => "him",
+                        Some(crate::ast::Pronoun::She) => "her",
+                        Some(crate::ast::Pronoun::They) => "them",
+                        _ => "it",
+                    };
+                    format!("attach {} to {it}", permanents())
+                }
                 ChooseAct::AttachToTarget(i) => {
                     let host = ctx.obj(Recipient::Target(usize::from(*i)));
                     format!("attach {} to {host}", permanents())
+                }
+                ChooseAct::ExileRandomFromGraveyard => {
+                    format!("exile {} at random from your graveyard", cards())
                 }
                 ChooseAct::ReturnRandomFromGraveyard => {
                     format!(

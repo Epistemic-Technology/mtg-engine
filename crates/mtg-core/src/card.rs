@@ -6611,6 +6611,9 @@ pub enum ChooseAct {
     /// "return a Zombie card at random from your graveyard to your hand":
     /// the cards are picked at random, not by the controller.
     ReturnRandomFromGraveyard,
+    /// "exile a card at random from your graveyard" (Tersa Lightshatter):
+    /// picked at random; the card exiled is "that card" after it.
+    ExileRandomFromGraveyard,
     /// "put a permanent card from among the milled cards into your hand":
     /// cards this resolution milled, still in the graveyard.
     MilledToHand,
@@ -6644,6 +6647,14 @@ pub enum ChooseAct {
     /// "you may attach an Equipment you control to it" (permanents you
     /// control): attached to the `n`th target (CR 701.3).
     AttachToTarget(u8),
+    /// "Then you may attach an Equipment you control to him" (Winter
+    /// Soldier): attached to what the resolution last created or moved
+    /// (`Recipient::CreatedObject`), if it is on the battlefield.
+    AttachToCreated,
+    /// "Destroy up to one Equipment attached to that creature" (Light of
+    /// Judgment): permanents of any controller unless the filter names
+    /// one, not targeted (CR 701.7).
+    Destroy,
     /// "put a card from your hand on the bottom of your library" (cards in
     /// your hand).
     HandToBottom,

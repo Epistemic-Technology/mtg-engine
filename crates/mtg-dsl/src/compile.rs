@@ -3602,18 +3602,42 @@ impl Compiler<'_> {
                 transformed,
                 front_up: _,
             } => {
-                out.push(CoreEffect::ReturnToBattlefield {
-                    what: r(*what),
-                    counters: *counters,
-                    tapped: *tapped,
-                    under_you: *under_you,
-                    attached: attached.map(r),
-                    more: *more,
-                    if_creature: *if_creature,
-                    transformed: *transformed,
-                });
-                if *attacking {
-                    out.push(CoreEffect::EnteredAttack);
+                // "Return this card and target land card ...": the source,
+                // then the target.
+                // "attached to a creature you control": chosen first (CR
+                // 303.4f), then the created object.
+                if let Some(Recipient::ChosenOf(i)) = attached {
+                    let Some(f) = self.card.groups.get(usize::from(*i)) else {
+                        return self.err("`chosen` names no filter");
+                    };
+                    let filter = self.filter(f);
+                    out.push(CoreEffect::ChooseAct {
+                        act: mtg_core::card::ChooseAct::Choose,
+                        filter,
+                        count: mtg_core::card::Num::N(1),
+                        up_to: false,
+                    });
+                }
+                let whats: Vec<CoreRecipient> = match what {
+                    Recipient::SourceAndTarget(a) => {
+                        vec![CoreRecipient::Source, r(Recipient::Target(*a))]
+                    }
+                    w => vec![r(*w)],
+                };
+                for what in whats {
+                    out.push(CoreEffect::ReturnToBattlefield {
+                        what,
+                        counters: *counters,
+                        tapped: *tapped,
+                        under_you: *under_you,
+                        attached: attached.map(r),
+                        more: *more,
+                        if_creature: *if_creature,
+                        transformed: *transformed,
+                    });
+                    if *attacking {
+                        out.push(CoreEffect::EnteredAttack);
+                    }
                 }
             }
             Effect::Regenerate { to } => out.push(CoreEffect::Regenerate { to: r(*to) }),
@@ -5131,6 +5155,7 @@ impl Compiler<'_> {
                 to,
                 random,
                 rest,
+                attacking,
                 ..
             } => {
                 use crate::ast::CardWords;
@@ -5157,6 +5182,14 @@ impl Compiler<'_> {
                         to: *to,
                         random: *random,
                     });
+                }
+                // "Put that card onto the battlefield tapped and attacking"
+                // (CR 508.4): the card the first part put.
+                if *attacking {
+                    if !matches!(what, CardWords::It | CardWords::ThatCard) {
+                        return self.err("`tapped and attacking` takes `it` or `that card`");
+                    }
+                    out.push(CoreEffect::EnteredAttack);
                 }
             }
             Effect::ExileTop { count, who, face } => out.push(CoreEffect::ExileTop {
