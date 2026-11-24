@@ -2763,7 +2763,10 @@ impl P {
             }
             // "Equip abilities you activate that target this creature cost
             // {2} less to activate."
-            "equip" if self.at_words(&["equip", "abilities", "targeting", "this", "cost"]) => {
+            "equip" | "equipment"
+                if self.at_words(&[w.as_str(), "abilities", "targeting", "this", "cost"]) =>
+            {
+                let equipment = w == "equipment";
                 self.pos += 5;
                 let cost = self.mana_cost()?;
                 self.expect_word("less")?;
@@ -2772,7 +2775,7 @@ impl P {
                 if n == 0 || cost.to_string() != format!("{{{n}}}") {
                     return self.fail("an equip discount is generic mana");
                 }
-                Ok(Ability::EquipDiscount(n))
+                Ok(Ability::EquipDiscount { n, equipment })
             }
             "this" if self.at_words(&["this", "spell", "can't", "be", "countered"]) => {
                 self.pos += 5;
@@ -4804,11 +4807,13 @@ impl P {
                 _ => return None,
             }
         } else if w(1, "one") && w(2, "unchosen") {
-            if w(3, "this") && w(4, "turn") {
-                (ModeHead::Unchosen { this_turn: true }, 5)
-            } else {
-                (ModeHead::Unchosen { this_turn: false }, 3)
-            }
+            let this_turn = w(3, "this") && w(4, "turn");
+            let n = if this_turn { 5 } else { 3 };
+            let stop = w(n, "stop");
+            (
+                ModeHead::Unchosen { this_turn, stop },
+                n + usize::from(stop),
+            )
         } else {
             return None;
         };
@@ -5767,6 +5772,10 @@ impl P {
         if self.eat_words(&["this", "has"]) {
             return self.source_counters_cond();
         }
+        // "this creature doesn't have a flying counter on it".
+        if self.eat_words(&["this", "doesn't", "have"]) {
+            return Ok(StaticCond::SourceLacksCounter(self.counter_kind()?));
+        }
         if self.eat_words(&["there", "are"]) {
             let n = self.number()?;
             self.expect_words(&["or", "more"])?;
@@ -5993,6 +6002,9 @@ impl P {
                 who: Some(Who::You),
                 ..Default::default()
             }));
+        }
+        if self.eat_words(&["team", "controls"]) {
+            return Ok(StaticCond::TeamControls(self.filter()?));
         }
         if self.eat_words(&["you", "control"]) {
             if matches!(self.peek(), Some(Tok::Num(1)))
@@ -6885,6 +6897,7 @@ impl P {
             return true;
         }
         if self.at_words(&["triggering", "card"])
+            || self.at_words(&["triggering", "it"])
             || self.at_words(&["controller", "of", "that", "creature"])
             || self.at_words(&["controller", "of", "enchanted"])
             || self.at_words(&["controller", "of", "granter"])
@@ -9013,6 +9026,11 @@ impl P {
             }
             // "..., you recruit" (CR 701.70a).
             "recruit" if subject == Recipient::You => Ok(Effect::Recruit { you: true }),
+            // "If they do, you incubate 2.": an explicit "you".
+            "incubate" if subject == Recipient::You => Ok(Effect::Incubate {
+                count: self.num()?,
+                you: true,
+            }),
             // "... and you scry 2": an explicit "you".
             "scries" | "scry" if w == "scries" || subject == Recipient::You => {
                 let count = self.num()?;
@@ -11412,7 +11430,15 @@ impl P {
             }),
             // CR 701.66a: "Target land you control becomes ...": the
             // keyword action declares its target.
+            // CR 701.66a: "Target land you control becomes ...": the
+            // keyword action declares its target.
             "earthbend" => {
+                // A delayed ability's targets would be the spell's (Fatal
+                // Fissure's "When that creature dies this turn, you
+                // earthbend 4" needs targets of its own).
+                if self.in_delayed {
+                    return self.fail("`earthbend` in a delayed ability: its target would be chosen as the spell is cast");
+                }
                 let count = self.num()?;
                 self.targets.push(Target::Filter(Filter {
                     types: vec![mtg_core::card::CardType::Land],
@@ -11447,7 +11473,10 @@ impl P {
                 },
             }),
             "end" if self.eat_words(&["the", "turn"]) => Ok(Effect::EndTurn),
-            "incubate" => Ok(Effect::Incubate(self.num()?)),
+            "incubate" => Ok(Effect::Incubate {
+                count: self.num()?,
+                you: false,
+            }),
             // CR 701.41a: "up to N other target creatures" on a permanent
             // (its triggered ability), "up to N target creatures" on a
             // spell.
@@ -11482,6 +11511,7 @@ impl P {
                 let first = self.eat_word("first");
                 let it = self.eat_word("it");
                 let choose = self.eat_word("choose");
+                let choose_one = choose && self.eat_word("one");
                 let this_way = self.eat_words(&["this", "way"]);
                 let look_those = self.at_words(&["look", "those", "face", "down"]);
                 let look_first = look_those || self.at_words(&["look", "face", "down"]);
@@ -11509,6 +11539,7 @@ impl P {
                     first,
                     it,
                     choose,
+                    choose_one,
                     from,
                     possessive,
                     this_way,
@@ -13056,14 +13087,24 @@ impl P {
                 return None;
             }
             self.pos += len + 1;
-            return Some(CountExpr::TriggerStat { stat, that: false });
+            return Some(CountExpr::TriggerStat {
+                stat,
+                that: false,
+                spell: false,
+            });
         }
         if self.in_trigger
             && at(0).as_deref() == Some("that")
-            && at(1).as_deref() == Some("creature")
+            && matches!(at(1).as_deref(), Some("creature" | "spell"))
+            && !self.no_trigger_obj
         {
+            let spell = at(1).as_deref() == Some("spell");
             self.pos += len + 2;
-            return Some(CountExpr::TriggerStat { stat, that: true });
+            return Some(CountExpr::TriggerStat {
+                stat,
+                that: true,
+                spell,
+            });
         }
         let that = match at(0).as_deref() {
             Some("the") => false,
@@ -14156,6 +14197,16 @@ impl P {
         }
         if self.eat_words(&["triggering", "card"]) {
             return Ok(Recipient::TriggeringCard);
+        }
+        // `triggering it`: the triggering object, printed "it", even after
+        // a target (Super-Soldier Serum's "attach any number of target
+        // Equipment you control to it").
+        if self.at_words(&["triggering", "it"]) {
+            if !self.in_trigger || self.no_trigger_obj {
+                return self.fail("`triggering it`: this ability has no triggering object");
+            }
+            self.pos += 2;
+            return Ok(Recipient::TriggeringIt);
         }
         // `controller of enchanted`: "enchanted creature's controller".
         if self.eat_words(&["controller", "of", "enchanted"]) {
@@ -18679,7 +18730,12 @@ impl P {
                             Mod::AddLandType(c)
                         })
                     }
-                    "chosen" if !set && self.eat_word("type") => Ok(Mod::AddChosenType),
+                    "chosen" if !set && self.eat_word("type") => {
+                        Ok(Mod::AddChosenType { creature: false })
+                    }
+                    "chosen" if !set && self.eat_words(&["creature", "type"]) => {
+                        Ok(Mod::AddChosenType { creature: true })
+                    }
                     // `add supertype snow`: "is snow".
                     "supertype" if !set => {
                         let w = self.word()?;

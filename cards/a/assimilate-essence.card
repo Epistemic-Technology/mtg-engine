@@ -1,0 +1,6 @@
+card "Assimilate Essence" {
+  oracle_id a24d3d60-2bd7-40cb-8002-b092943f61fe
+  cost {1}{U}
+  type Instant
+  spell: counter target creature or battle spell unless its controller pays {4}; if they do, you incubate 2
+}

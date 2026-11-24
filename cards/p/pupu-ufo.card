@@ -1,0 +1,9 @@
+card "PuPu UFO" {
+  oracle_id b1412eda-e3a4-41b2-932e-795a0ba0f7f8
+  cost {2}
+  type Artifact Creature — Construct Alien
+  pt 0/4
+  keywords flying
+  activated {T}: you may put land card from hand onto battlefield
+  activated {3}: until end of turn, this base power becomes count each Town you control
+}

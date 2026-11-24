@@ -1,0 +1,11 @@
+card "Lita, Little Orphan Amphibian" {
+  oracle_id 212fdb7c-1c7e-4eed-b1ed-bcc14a425da8
+  cost {1}{W}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 2/1
+  label "Alliance" triggered whenever other creature you control enters: choose one unchosen this turn stop {
+    mode: put 1 +1/+1 counters on this
+    mode: create 1 "Food"
+    mode: scry 1
+  }
+}

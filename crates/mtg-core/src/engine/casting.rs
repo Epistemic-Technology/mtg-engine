@@ -5440,6 +5440,7 @@ impl GameState {
             .as_ref()
             .is_some_and(|r| r.target.is_some() || r.per_target.is_some())
             || (self.pool.equip_discounts && ab.is_equip())
+            || (self.pool.equip_discounts && !ab.targets.is_empty())
     }
 
     /// CR 601.2f (by way of 602.2b): what `t` as the first target takes
@@ -5480,6 +5481,20 @@ impl GameState {
             && let Target::Object(id) = t
             && let Some(o) = self.objects.get(id)
         {
+            let off = u32::from(self.pool.get(o.def).equip_discount);
+            req.generic -= off.min(req.generic);
+        } else if self.pool.equip_discounts
+            && let Target::Object(id) = t
+            && let Some(o) = self.objects.get(id)
+            && self.pool.get(o.def).equipment_discount
+            && self.objects.get(source).is_some_and(|s| s.controller == p)
+            && self
+                .characteristics(source)
+                .is_some_and(|c| c.has_subtype(crate::card::Subtype::EQUIPMENT))
+        {
+            // "Activated abilities of Equipment you control that target
+            // this creature cost {1} less to activate." (Bladegraft
+            // Aspirant): any ability of an Equipment, equip or not.
             let off = u32::from(self.pool.get(o.def).equip_discount);
             req.generic -= off.min(req.generic);
         }

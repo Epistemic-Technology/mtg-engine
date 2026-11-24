@@ -1,0 +1,7 @@
+card "Emergent Haunting" {
+  oracle_id 9f4d0133-0ecc-4498-8a47-4906321faae2
+  cost {1}{U}
+  type Enchantment
+  triggered at beginning of your end step if not cast from hand this turn and this isnt creature: this becomes 3/3 Spirit creature with flying in addition indefinitely
+  activated {2}{U}: surveil 1
+}

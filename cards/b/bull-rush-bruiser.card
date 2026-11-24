@@ -1,0 +1,7 @@
+card "Bull-Rush Bruiser" {
+  oracle_id d5a7412a-2258-4d3e-9e0f-a150cc69081e
+  cost {3}{R}
+  type Creature — Minotaur Warrior
+  pt 4/3
+  triggered whenever this attacks if team controls other Warrior: this gains first strike until end of turn
+}

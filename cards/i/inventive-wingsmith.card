@@ -1,0 +1,7 @@
+card "Inventive Wingsmith" {
+  oracle_id 96186b7e-3dd3-44e7-ad23-79638787004c
+  cost {2}{W}
+  type Creature — Dwarf Artificer
+  pt 2/4
+  triggered at beginning of your end step if not cast from hand this turn and this doesn't have flying counter: put 1 flying counter on this
+}

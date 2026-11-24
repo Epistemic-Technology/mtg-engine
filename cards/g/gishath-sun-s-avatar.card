@@ -1,0 +1,8 @@
+card "Gishath, Sun's Avatar" {
+  oracle_id a311daab-40dc-4433-9ed8-feab7c558bbf
+  cost {5}{R}{G}{W}
+  type Legendary Creature — Dinosaur Avatar
+  pt 7/6
+  keywords vigilance, trample, haste
+  triggered whenever this deals combat damage to a player: dig that much reveal take any Dinosaur creature card onto battlefield rest bottom random
+}

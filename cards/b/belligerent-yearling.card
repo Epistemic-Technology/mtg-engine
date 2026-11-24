@@ -1,0 +1,8 @@
+card "Belligerent Yearling" {
+  oracle_id 2d785e3e-8e19-4eea-b09f-9a30c792dba1
+  cost {1}{R}
+  type Creature — Dinosaur
+  pt 3/2
+  keywords trample
+  triggered whenever another Dinosaur you control enters: you may this base power becomes count where power of that creature
+}

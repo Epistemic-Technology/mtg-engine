@@ -9922,6 +9922,12 @@ pub struct CardDef {
     /// any equip ability whose target is this permanent.
     #[serde(default)]
     pub equip_discount: u8,
+    /// With `equip_discount`: "Activated abilities of Equipment you
+    /// control that target this creature cost {1} less to activate."
+    /// (Bladegraft Aspirant): the discount is off any activated ability
+    /// of an Equipment, not only equip abilities.
+    #[serde(default)]
+    pub equipment_discount: bool,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
@@ -10818,7 +10824,9 @@ pub struct CardPool {
     /// for granters.
     pub granter_abilities: bool,
     /// Whether some card has `CardDef::equip_discount`, so equip
-    /// abilities' costs depend on their targets.
+    /// abilities' costs depend on their targets (and, with
+    /// `CardDef::equipment_discount`, any targeted ability of an
+    /// Equipment's).
     pub equip_discounts: bool,
     /// Whether some card gives cards in a hand or graveyard a way to be
     /// cast or an ability (`AbilityDef::CardGrant`): until one is added,
@@ -12441,6 +12449,7 @@ impl Builder {
             spree: Vec::new(),
             tiered: Vec::new(),
             equip_discount: 0,
+            equipment_discount: false,
             gift: None,
             entwine: None,
             escalate: None,
@@ -13057,6 +13066,15 @@ impl Builder {
     #[must_use]
     pub fn equip_discount(mut self, n: u8) -> Self {
         self.0.equip_discount = n;
+        self
+    }
+
+    /// "Activated abilities of Equipment you control that target this
+    /// creature cost {N} less to activate."
+    #[must_use]
+    pub fn equipment_discount(mut self, n: u8) -> Self {
+        self.0.equip_discount = n;
+        self.0.equipment_discount = true;
         self
     }
 

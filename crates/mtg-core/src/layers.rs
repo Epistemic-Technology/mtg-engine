@@ -361,8 +361,19 @@ fn pass(
             }
         }
         here.sort_by_key(|i| live[*i].timestamp);
-        let order = dependency_order(&work, &live, &here, layer);
+        let (order, waited) = dependency_order(&work, &live, &here, layer);
         for i in order {
+            // CR 613.6, 613.8: an effect that waited for one it depends on
+            // finds what it applies to once that one has applied ("Vehicle
+            // creatures you control are the chosen creature type" after the
+            // Vehicle is crewed, Lifecraft Engine).
+            if !live[i].started
+                && waited.contains(&i)
+                && let Some(filter) = &live[i].filter
+            {
+                let set = work.matching(filter, live[i].source, live[i].controller);
+                live[i].affected = Some(set);
+            }
             if !live[i].started {
                 // A static ability's effect exists only if the ability still
                 // does once the effects it depends on have applied.
@@ -1058,10 +1069,17 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
 /// CR 613.8: order `here` (already in timestamp order) so that an effect
 /// applies after any effect it depends on. Cycles fall back to timestamps
 /// (CR 613.8c).
-fn dependency_order(work: &Work<'_>, live: &[Live], here: &[usize], layer: Layer) -> Vec<usize> {
+/// Also the effects that depend on another (whose affected sets are found
+/// again once those have applied).
+fn dependency_order(
+    work: &Work<'_>,
+    live: &[Live],
+    here: &[usize],
+    layer: Layer,
+) -> (Vec<usize>, Vec<usize>) {
     let n = here.len();
     if n < 2 {
-        return here.to_vec();
+        return (here.to_vec(), Vec::new());
     }
     // deps[a] = set of b such that here[a] depends on here[b].
     let mut deps: Vec<Vec<usize>> = vec![Vec::new(); n];
@@ -1072,6 +1090,10 @@ fn dependency_order(work: &Work<'_>, live: &[Live], here: &[usize], layer: Layer
             }
         }
     }
+    let waited: Vec<usize> = (0..n)
+        .filter(|a| !deps[*a].is_empty())
+        .map(|a| here[a])
+        .collect();
     // Kahn's algorithm with timestamp (= input order) tiebreak.
     let mut done = vec![false; n];
     let mut out = Vec::with_capacity(n);
@@ -1093,7 +1115,7 @@ fn dependency_order(work: &Work<'_>, live: &[Live], here: &[usize], layer: Layer
             }
         }
     }
-    out
+    (out, waited)
 }
 
 /// Whether `a` depends on `b` in `layer` (CR 613.8a): applying `b` would

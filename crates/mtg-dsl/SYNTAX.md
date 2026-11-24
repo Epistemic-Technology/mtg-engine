@@ -171,7 +171,7 @@ like the card; either half may still be cast alone.
 | `pawprint 5 { mode 1: <effects> mode 2: <effects> mode 3: <effects> }` | "Choose up to five {P} worth of modes. You may choose the same mode more than once." (CR 700.2d, 700.2i), then "{P} — ...", "{P}{P} — ...": each mode with its number of pawprints. The engine's modes are every nonempty combination, a mode repeated allowed, whose pawprints total at most the limit (at most sixteen), each instance with its own targets, in printed order; they are listed in dictionary order of their modes' numbers (for 1, 2, 3 pawprints and five: 1, 1+1, 1+1+1, 1+1+1+1, 1+1+1+1+1, 1+1+1+2, 1+1+2, 1+1+3, 1+2, 1+2+2, 1+3, 2, 2+2, 2+3, 3; in scenarios `mode 13` is 2+2). |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"), as a spell (`choose two { ... }` or `spell: choose two { ... }`) or as a triggered ability's effect (`triggered when this enters: choose two { ... }`: "When this creature enters, choose two —"); the engine offers the pairs of modes, in order. A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
 | `choose one or both if teamwork { mode: ... mode: ... }`, `choose one or both if may descended this turn { ... }`, `choose one or more if 4 card types in your graveyard { ... }`, `choose one or any number if kicked { ... }` | "Choose one. If this spell was cast using teamwork, choose both instead." (`may`: "you may choose both instead"; `one or more`: "choose one or more instead", two to four modes; `one or any number`: "choose any number instead") (CR 700.2): a modal spell whose sets of more than one mode may be chosen only while the condition holds as it is cast; without `may`, choosing both is then required. A condition on a cost announced with the modes (`kicked`, `teamwork`, `additional cost paid`, CR 601.2b) is chosen by the modes instead: the larger choice is offered while that cost can be paid and then pays it (scenarios: `kicked`/`teamwork` still name it), one mode under "choose both instead" declines it. `kicked` prints "this spell was kicked". |
-| `choose one or more { mode: ... }`, `choose up to 2 { mode: ... }`, `choose one unchosen { mode: ... }`, `choose one unchosen this turn { mode: ... }` | Other modal heads (CR 700.2). `choose one or more` ("Choose one or more —", two to four modes) offers every nonempty set of the modes, numbered as bits like spree's (`mode 3` is the first two, `mode 7` the first three); `choose up to 2` ("Choose up to two —"; `choose up to 1`: "choose up to one —") the sets of at most that many in the same order, then no mode at all, last. Each as a spell or as a triggered or activated ability's effect. `choose one unchosen` ("choose one that hasn't been chosen —"), only as a triggered or activated ability's effect: each mode can be chosen once for that object's ability, by whoever controls it (a new object starts fresh, CR 400.7); a mode chosen for an ability that then does nothing still counts. `this turn` ("... that hasn't been chosen this turn —") makes the modes open again as the turn ends. With no mode left, a triggered ability is removed and an activated one can't be activated. |
+| `choose one or more { mode: ... }`, `choose up to 2 { mode: ... }`, `choose one unchosen { mode: ... }`, `choose one unchosen this turn { mode: ... }` | Other modal heads (CR 700.2). `choose one or more` ("Choose one or more —", two to four modes) offers every nonempty set of the modes, numbered as bits like spree's (`mode 3` is the first two, `mode 7` the first three); `choose up to 2` ("Choose up to two —"; `choose up to 1`: "choose up to one —") the sets of at most that many in the same order, then no mode at all, last. Each as a spell or as a triggered or activated ability's effect. `choose one unchosen` ("choose one that hasn't been chosen —"), only as a triggered or activated ability's effect: each mode can be chosen once for that object's ability, by whoever controls it (a new object starts fresh, CR 400.7); a mode chosen for an ability that then does nothing still counts. `this turn` ("... that hasn't been chosen this turn —") makes the modes open again as the turn ends; `stop` after either (`choose one unchosen this turn stop {`) ends the head with a period instead of the dash ("choose one that hasn't been chosen this turn.", wording only). With no mode left, a triggered ability is removed and an activated one can't be activated. |
 | `flash if pay {2} more` | "You may cast this spell as though it had flash if you pay {2} more to cast it." (CR 601.2f): the card may be cast any time its caster could cast an instant, costing {2} more whenever they couldn't cast a sorcery (outside their main phase, or with something on the stack). |
 | `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
 | `activated {1}: add {B}; if activated 4 times this turn, delayed this: sacrifice this at beginning of the next end step` | The condition `activated N times this turn` ("If this ability has been activated four or more times this turn", Initiates of the Ebon Hand): the source's activations of such an ability this turn, this one included, whether a player or payment activated it (the ability then records its activations, `ActivatedAbility::counted`). |
@@ -237,7 +237,7 @@ like the card; either half may still be cast alone.
 | `recover {2}{B}` | Recover (CR 702.59): "Recover {2}{B}", a triggered ability of the card in its owner's graveyard: "When a creature is put into your graveyard from the battlefield, you may pay {2}{B}. If you do, return this card from your graveyard to your hand. Otherwise, exile this card." (`accept`/`decline` in scenarios; unpayable, it is exiled). |
 | `prototype {2}{R} 3/2` | Prototype (CR 702.160, 718): "Prototype {2}{R} — 3/2". The card's alternative cost (`alternative` in scenarios): cast so, the spell and the permanent it becomes have that mana cost (so that mana value), power, and toughness, and the cost's colors (CR 718.3b), the rest of the card unchanged (CR 718.5); copies of it are too (CR 718.3c-d). Off the stack and battlefield it is its card again (CR 718.4). A card with prototype has no other alternative cost of its own. |
 | `sunburst` | Sunburst (CR 702.44): enters with a +1/+1 counter (a creature card) or a charge counter (any other card) for each color of mana spent to cast it (`colors spent`); the printed card decides which, ignoring type-changing effects. Prints `Sunburst`. |
-| `soulbond`, `static paired: has flying` | Soulbond (CR 702.95): as this creature enters, its controller may pair it with another unpaired creature they control; as another creature they control enters, they may pair it with this one if both are unpaired. A pair breaks when either leaves, stops being a creature, or changes controller (702.95e). The filter `paired` (`paired named`) is this creature and the one it's paired with, while paired: "As long as this creature (~) is paired with another creature, both creatures have flying." (keywords) or "... each of those creatures gets +1/+1." Prints `Soulbond`. |
+| `soulbond`, `static paired: has flying` | Soulbond (CR 702.95): as this creature enters, its controller may pair it with another unpaired creature they control; as another creature they control enters, they may pair it with this one if both are unpaired. A pair breaks when either leaves, stops being a creature, or changes controller (702.95e). The filter `paired` (`paired named`) is this creature and the one it's paired with, while paired: "As long as this creature (~) is paired with another creature, both creatures have flying." (keywords and protection: "both creatures have protection from Zombies") or "... each of those creatures gets +1/+1." (and "each of those creatures has" for a quoted ability). Prints `Soulbond`. |
 | `daybound`, `nightbound` | Daybound (CR 702.145b), on a transforming card's front face, and nightbound (CR 702.145e), on its back face: with either on the battlefield it becomes day (daybound) or night (nightbound) if it's neither; at night a daybound permanent transforms, and by day a nightbound one; at night a daybound card enters transformed; no other effect transforms them. Print `Daybound`, `Nightbound`. |
 | `disturb {1}{U}`, `exiled instead of graveyard` | Disturb (CR 702.146), on a transforming card's front face: the card may be cast transformed from its owner's graveyard for this cost, the spell being the back face, which enters as the permanent (CR 702.146b). The back face's "If [name] would be put into a graveyard from anywhere, exile it instead." is `exiled instead of graveyard` (from the stack too). Print `Disturb {1}{U}` and that sentence. |
 | `transmute {1}{B}{B}` | Transmute (CR 702.53): an activated ability of the card in hand, "{1}{B}{B}, Discard this card: Search your library for a card with the same mana value as the discarded card (the printed card's), reveal it, put it into your hand, then shuffle. Activate only as a sorcery." Prints `Transmute {1}{B}{B}`. |
@@ -424,7 +424,11 @@ ability, `equip {3}, reduced {1} each other Equipment you control` prints
 Equipment you control." `static equipped creature: +2/+2, has hexproof
 from monocolored` grants "hexproof from monocolored" (CR 702.11d) bare. The card-level line `equip abilities targeting this cost {2}
 less` prints "Equip abilities you activate that target this creature cost
-{2} less to activate." (generic mana off any equip ability aimed at it).
+{2} less to activate." (generic mana off any equip ability aimed at it);
+`equipment abilities targeting this cost {1} less` prints "Activated
+abilities of Equipment you control that target this creature cost {1}
+less to activate." (off any activated ability of an Equipment you control
+whose first target is it, equip or not).
 An ability whose cost
 includes `discard this` is activated from the hand (cycling, channel).
 `waterbend {3}` (CR 701.67) is generic mana, printed "Waterbend {3}", of
@@ -594,7 +598,9 @@ at most 2 other land` ("you control two or fewer other lands": the fast
 lands), `you control Mountain or a Plains` ("you control a Mountain or a
 Plains"), `you control 2 basic land`, `any player controls black
 permanent` ("any player controls a black permanent"), `you control
-other Goblin` ("you control another Goblin"), `you control Urza's Mine and
+other Goblin` ("you control another Goblin"), `team controls other
+Warrior` ("your team controls another Warrior": outside a team game a
+player's team is that player, CR 810.1, so it is `you control`), `you control Urza's Mine and
 Urza's Power-Plant` ("you control an Urza's Mine and an Urza's
 Power-Plant": one of each), `attacked this turn` (raid),
 `top card is Goblin` ("the top card of your library is a Goblin
@@ -750,7 +756,9 @@ counters", corrupted), `this has 4 or more oil counters` ("this creature
 has four or more oil counters on it"; first, "As long as ..., it gets
 ..."; `this has 3 or more counters`: "this creature has three or more
 counters on it", every kind together; `this has 1 or more +1/+1 counters` prints "a +1/+1 counter on it", `this has one or more +1/+1 counters` "one or more +1/+1 counters on it"), `this has no arrowhead counters` ("there are no arrowhead counters
-on this artifact"), `there are 3 or more brick counters on this` ("there
+on this artifact"), `this doesn't have flying counter` (the same
+condition, "this creature doesn't have a flying counter on it"; after it
+the source is "it": "..., put a flying counter on it"), `there are 3 or more brick counters on this` ("there
 are three or more brick counters on this artifact"), and the shorthands `threshold`, `delirium`,
 `metalcraft`.
 
@@ -970,7 +978,11 @@ draw your third card in a turn".
 Steps: `at beginning of your combat` ("At the beginning of combat on your
 turn"), `your first main`, `your second main` ("... your second main
 phase"). Recipient `controller of that target 1` ("that artifact's
-controller"; `controller of the target 1` is "the creature's controller"); `controller of enchanted` ("enchanted creature's
+controller"; `controller of the target 1` is "the creature's controller";
+after "target player or planeswalker" it is "that player or that
+planeswalker's controller", the player or the planeswalker's controller,
+Blightning; after the target is exiled, "that permanent's controller",
+its last controller, Structural Distortion); `controller of enchanted` ("enchanted creature's
 controller": `controller of enchanted sacrifices attached` prints
 "enchanted creature's controller sacrifices it"); and `each other player` ("each other player": the opponents).
 
@@ -1061,8 +1073,9 @@ error: write `this` or `target N`. In any ability, `it` after `create 1
 ability too ("Target player mills three cards. ... that player mills ten
 cards instead"). In a triggered ability `toughness of
 it`, `power of it`, `mana value of it` ("its toughness") and `power of
-that creature` ("that creature's power") otherwise read the triggering
-object, as it last existed once it has left (CR 608.2h): `triggered when enchanted creature dies: its
+that creature` ("that creature's power"; `mana value of that spell`:
+"that spell's mana value", the spell a cast trigger is about) otherwise
+read the triggering object, as it last existed once it has left (CR 608.2h): `triggered when enchanted creature dies: its
 controller loses count equal power of it life and you gain count equal
 toughness of it life`.
 `count each creature blocking it` ("for each creature blocking it", the
@@ -1202,7 +1215,10 @@ double`) prints "If a source you control would deal damage to a
 permanent or player, it deals double that damage to that permanent or
 player instead." (a filter without a card type names a source;
 `replace damage to you: double` "... to you instead."; written with its
-article, `replace damage from a Wizard you control to any: double`
+article, `replace damage from a Wizard you control to any: double`;
+several creature types, `replace damage from Lizard or Mouse or Otter or
+Raccoon you control to any: plus 1`, print without "source": "If a
+Lizard, Mouse, Otter, or Raccoon you control would deal damage ...";
 prints "If a Wizard you control would deal damage to a permanent or
 player, it deals double that damage instead."). Likewise
 `replace damage from permanent you control to each opponent: prevent {
@@ -1899,13 +1915,20 @@ of CR 613: `+1/+1`, `base 1/1`,
 `loses flying`, `set land Mountain`, `set land Mountain Forest Plains` ("is a
 Mountain, Forest, and Plains": all of them and no other), `add land Swamp`,
 `add subtype Saproling`, `add supertype snow` ("Enchanted land is snow.",
-layer 4: a supertype added to its others, CR 205.4), `goaded` ("is goaded", CR 701.15: attacks each
+layer 4: a supertype added to its others, CR 205.4; `add supertype
+legendary, add subtype Soldier` is one phrase, "is a legendary Soldier in
+addition to its other types"), `goaded` ("is goaded", CR 701.15: attacks each
 combat if able, and a player other than the source's controller if able),
 `control`
 (you control it), `add color white`, `set color blue`, `set color chosen`,
 `has protection from chosen color`, `set land chosen` ("Enchanted land is
 the chosen type") and `add chosen type` ("is the chosen type in addition
-to its other types") (the color or type the source chose as it
+to its other types"; `add chosen creature type`: "the chosen creature
+type", wording only; `static plural Vehicle creature you control: add
+chosen creature type` prints "Vehicle creatures you control are the
+chosen creature type in addition to their other types", the static
+finding what it applies to after the crew effect it depends on, CR
+613.8) (the color or type the source chose as it
 entered), `switch pt`,
 `cda color all`, `cda color colorless` ("Ghostfire is colorless.": a
 color-defining ability, CR 604.3, so the card is colorless in every zone,
@@ -2072,8 +2095,12 @@ target 1 to hand`), `attached to that target 1` ("that creature"), and,
 in a triggered ability, `attached to that creature` (the triggering object:
 "destroy all Auras attached to that creature").
 
-In a triggered ability, `triggering card` is the card the triggering
-object became ("When enchanted creature dies, return that card to its
+In a triggered ability, `triggering it` is the triggering object printed
+"it" even after a target ("Whenever enchanted creature attacks or
+blocks, attach any number of target Equipment you control to it":
+`attach any number of target Equipment you control to triggering it`,
+where `it` would be the last target). `triggering card` is the card the
+triggering object became ("When enchanted creature dies, return that card to its
 owner's hand": `return triggering card to hand`; only that card, CR
 400.7). With no targets, `its controller` is the triggering object's
 controller as it last existed ("When enchanted creature dies, its
@@ -2855,7 +2882,8 @@ the usual timing permissions and a land only with a land play left, CR
 turn.", `first` puts the duration first ("Until end of turn, you may
 play that card."), `it` prints "it" for "that card", and `next end step`
 is "until your next end step", which ends as that step begins; `while you control this` is "You may play that card for as long as you control Lightning" (the source on the battlefield under its controller's control, the same object); `choose`
-adds "Choose one of them." and only that card may be played, `this way`
+adds "Choose one of them." and only that card may be played (`choose
+one`: "Choose one.", wording only), `this way`
 prints "cards exiled this way", `of target opponent` takes the cards from
 that player's library ("Target opponent exiles the top card of their
 library. You may play that card this turn.", the permission still yours; `from target opponent`
@@ -2977,7 +3005,9 @@ creatures; in a triggered ability, other target creatures, as support on a
 permanent means), `populate` (CR 701.36: a token copy of a creature token
 you control, chosen), `incubate 3` (CR 701.53: the token "Incubator", a
 transforming token whose back face is the 0/0 Phyrexian artifact creature,
-entering with three +1/+1 counters), `<what> connives` (CR 701.50), `<what> becomes prepared` (CR 722.3a), `dig 4 take creature
+entering with three +1/+1 counters; `you incubate 2` prints "you
+incubate 2" after another player's choice: "If they do, you incubate
+2."), `<what> connives` (CR 701.50), `<what> becomes prepared` (CR 722.3a), `dig 4 take creature
 card may revealing rest bottom` ("Look at the top four cards of your
 library. You may reveal a creature card from among them and put it into
 your hand. Put the rest on the bottom of your library in any order."; `dig
@@ -3422,7 +3452,8 @@ creature other than enchanted creature"): not what the source is attached
 to. `target creature other than this` ("target creature other than this
 creature") is `target other creature` worded after the noun; so is
 `each creature you control other than this` ("each creature you control
-other than this creature"). A group or count of what a target player controls declares that
+other than this creature"; after a choice, "each creature you control of
+the chosen type other than this Vehicle"). A group or count of what a target player controls declares that
 target in its filter: `each creature target player controls gets -2/-2`
 ("Creatures target player controls get -2/-2 until end of turn"), `you
 gain count each 2 creature target player controls life`; `target opponent

@@ -1,0 +1,478 @@
+# Renderer near-misses (wording12): forms whose meaning the engine already
+# had, now printed with the Oracle wording, and the cards they let in.
+
+# "That player or that planeswalker's controller" (`controller of that
+# target 1` after "target player or planeswalker").
+scenario "Blightning: the targeted player takes 3 and discards two" {
+  battlefield A: "Swamp", "Mountain", "Mountain"
+  hand A: "Blightning"
+  hand B: "Shock", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blightning" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand B count 1
+  assert graveyard B count 2
+}
+
+scenario "Blightning: a planeswalker takes 3 and its controller discards two" {
+  battlefield A: "Swamp", "Mountain", "Mountain"
+  battlefield B: "Jace Beleren"
+  hand A: "Blightning"
+  hand B: "Shock", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blightning" targeting "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert counters "Jace Beleren" loyalty 0
+  assert hand B count 0
+  assert hand A count 0
+}
+
+# "Exile target artifact or land. ... deals 2 damage to that permanent's
+# controller."
+scenario "Structural Distortion: the exiled land's controller takes 2" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Island"
+  hand A: "Structural Distortion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Structural Distortion" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Island"
+  assert life B 18
+  assert life A 20
+}
+
+# "Activated abilities of Equipment you control that target this creature
+# cost {1} less to activate." (any ability of an Equipment, not only equip).
+scenario "Bladegraft Aspirant: equip aimed at it costs {1} less" {
+  battlefield A: "Bladegraft Aspirant", "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bonesplitter" targeting "Bladegraft Aspirant"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Bladegraft Aspirant"
+  assert power "Bladegraft Aspirant" 4
+}
+
+scenario "Bladegraft Aspirant: equip aimed at another creature costs full" {
+  battlefield A: "Bladegraft Aspirant", "Grizzly Bears", "Bonesplitter"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Bladegraft Aspirant: an Equipment's other ability aimed at it costs {1} less" {
+  battlefield A: "Bladegraft Aspirant", "Lightning Spear", "Mountain", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lightning Spear" targeting "Bladegraft Aspirant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bladegraft Aspirant"
+  assert graveyard A contains "Lightning Spear"
+}
+
+scenario "Bladegraft Aspirant: aimed at a player, it costs full" {
+  battlefield A: "Bladegraft Aspirant", "Lightning Spear", "Mountain", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Lightning Spear" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Bladegraft Aspirant: Equipment spells cost {1} less" {
+  battlefield A: "Bladegraft Aspirant"
+  hand A: "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+}
+
+# Soulbond: "both creatures have protection from Zombies".
+scenario "Diregraf Escort: paired, both creatures have protection from Zombies" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Zombie Cannibal"
+  hand A: "Diregraf Escort"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diregraf Escort"
+  turn 2 B: attack "Zombie Cannibal"
+  turn 2 A: block "Zombie Cannibal" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert damage "Grizzly Bears" 0
+  assert graveyard B contains "Zombie Cannibal"
+}
+
+scenario "Diregraf Escort: unpaired, no protection" {
+  battlefield A: "Forest"
+  battlefield B: "Zombie Cannibal"
+  hand A: "Diregraf Escort"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diregraf Escort"
+  turn 2 B: attack "Zombie Cannibal"
+  turn 2 A: block "Zombie Cannibal" with "Diregraf Escort"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Diregraf Escort"
+}
+
+# "if you haven't cast a spell from your hand this turn and this enchantment
+# isn't a creature, it becomes a 3/3 Spirit creature with flying in addition
+# to its other types" (indefinitely).
+scenario "Emergent Haunting: no spell from hand, it becomes a 3/3 flier for good" {
+  battlefield A: "Emergent Haunting"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert is "Emergent Haunting" creature
+  assert is "Emergent Haunting" enchantment
+  assert is "Emergent Haunting" spirit
+  assert power "Emergent Haunting" 3
+  assert toughness "Emergent Haunting" 3
+  assert has "Emergent Haunting" flying
+  run_to turn 4 upkeep
+  assert is "Emergent Haunting" creature
+}
+
+scenario "Emergent Haunting: a spell cast from hand, nothing happens" {
+  battlefield A: "Emergent Haunting", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert is not "Emergent Haunting" creature
+}
+
+# "and this creature doesn't have a flying counter on it, put a flying
+# counter on it."
+scenario "Inventive Wingsmith: one flying counter, only once" {
+  battlefield A: "Inventive Wingsmith"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert counters "Inventive Wingsmith" flying 1
+  assert has "Inventive Wingsmith" flying
+  run_to turn 4 upkeep
+  assert counters "Inventive Wingsmith" flying 1
+}
+
+scenario "Inventive Wingsmith: a spell cast from hand, no counter" {
+  battlefield A: "Inventive Wingsmith", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert counters "Inventive Wingsmith" flying 0
+  assert has not "Inventive Wingsmith" flying
+}
+
+# "If a Lizard, Mouse, Otter, or Raccoon you control would deal damage to a
+# permanent or player, it deals that much damage plus 1 instead."
+scenario "Valley Flamecaller: a Lizard deals 1 more, a Bear doesn't" {
+  battlefield A: "Valley Flamecaller", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Valley Flamecaller", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+# "is a legendary Soldier in addition to its other types"; "attach any
+# number of target Equipment you control to it" (the enchanted creature).
+scenario "Super-Soldier Serum: the creature gets the bonus and the Equipment" {
+  battlefield A: "Grizzly Bears", "Super-Soldier Serum" on "Grizzly Bears", "Bonesplitter"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "Super-Soldier Serum" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert life B 14
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" first_strike
+  assert is "Grizzly Bears" legendary
+  assert is "Grizzly Bears" soldier
+  assert is "Grizzly Bears" bear
+}
+
+# "Thor deals damage equal to that spell's mana value to any target."
+scenario "Thor: the cast spell's mana value in damage, and the exiled card plays" {
+  battlefield A: 4 "Island", 4 "Mountain"
+  hand A: "Thor, God of Thunder"
+  graveyard A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thor, God of Thunder"
+  turn 1 A: trigger "Thor, God of Thunder" targeting "Divination"
+  turn 1 A: wait
+  turn 1 A: cast "Divination"
+  turn 1 A: trigger "Thor, God of Thunder" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "Thor: a creature spell doesn't trigger it" {
+  battlefield A: "Thor, God of Thunder", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+# "this creature's base power becomes equal to the number of Towns you
+# control" (the power only).
+scenario "PuPu UFO: base power becomes the number of Towns" {
+  battlefield A: "PuPu UFO", "Treno, Dark City", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "PuPu UFO" ability 2
+  run_to turn 1 postcombat_main
+  assert power "PuPu UFO" 1
+  assert toughness "PuPu UFO" 4
+  run_to turn 2 upkeep
+  assert power "PuPu UFO" 0
+}
+
+scenario "PuPu UFO: it puts a land from hand onto the battlefield" {
+  battlefield A: "PuPu UFO"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "PuPu UFO" ability 1
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert tapped "PuPu UFO"
+}
+
+# "you may have this creature's base power become equal to that creature's
+# power until end of turn."
+scenario "Belligerent Yearling: its base power becomes the Dinosaur's power" {
+  battlefield A: "Belligerent Yearling", "Forest", "Plains"
+  hand A: "Siegehorn Ceratops"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Siegehorn Ceratops"
+  turn 1 A: accept "Belligerent Yearling"
+  run_to turn 1 postcombat_main
+  assert power "Belligerent Yearling" 2
+  assert toughness "Belligerent Yearling" 2
+  run_to turn 2 upkeep
+  assert power "Belligerent Yearling" 3
+}
+
+scenario "Belligerent Yearling: declined, it keeps its power" {
+  battlefield A: "Belligerent Yearling", "Forest", "Plains"
+  hand A: "Siegehorn Ceratops"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Siegehorn Ceratops"
+  turn 1 A: decline "Belligerent Yearling"
+  run_to turn 1 postcombat_main
+  assert power "Belligerent Yearling" 3
+}
+
+# "Vehicle creatures you control are the chosen creature type ...";
+# "Each creature you control of the chosen type other than this Vehicle
+# gets +1/+1."
+scenario "Lifecraft Engine: crewed, it is the chosen type; others of it get +1/+1" {
+  battlefield A: "Hill Giant", "Elite Vanguard", 3 "Plains"
+  hand A: "Lifecraft Engine"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lifecraft Engine"
+  turn 1 A: choose Human
+  turn 1 A: wait
+  turn 1 A: activate "Lifecraft Engine"
+  run_to turn 1 postcombat_main
+  assert is "Lifecraft Engine" creature
+  assert is "Lifecraft Engine" human
+  assert power "Lifecraft Engine" 4
+  assert power "Elite Vanguard" 3
+  assert toughness "Elite Vanguard" 2
+  assert power "Hill Giant" 3
+}
+
+scenario "Lifecraft Engine: uncrewed, it isn't a creature; other types don't get the bonus" {
+  battlefield A: "Hill Giant", "Elite Vanguard", 3 "Plains"
+  hand A: "Lifecraft Engine"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lifecraft Engine"
+  turn 1 A: choose Giant
+  run_to turn 1 postcombat_main
+  assert is not "Lifecraft Engine" creature
+  assert power "Hill Giant" 4
+  assert power "Elite Vanguard" 2
+}
+
+# "+1: Create a token that's a copy of target creature you control, except
+# it has haste and "At the beginning of the end step, sacrifice this
+# token."" and "+2: ... Choose one. You may play that card this turn."
+scenario "Chandra, Flameshaper: +1 copies a creature with haste, sacrificed at end step" {
+  battlefield A: "Chandra, Flameshaper", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Flameshaper" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert has newest A "Grizzly Bears" haste
+  assert counters "Chandra, Flameshaper" loyalty 7
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains "Chandra, Flameshaper"
+}
+
+scenario "Chandra, Flameshaper: +2 adds {R}{R}{R} and one of three exiled cards plays" {
+  battlefield A: "Chandra, Flameshaper"
+  library A: "Plains", "Lightning Bolt", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Flameshaper" ability 1
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Plains"
+  assert exile A contains "Island"
+  assert counters "Chandra, Flameshaper" loyalty 8
+}
+
+scenario "Chandra, Flameshaper: -4 deals 8 damage among its targets" {
+  battlefield A: "Chandra, Flameshaper"
+  battlefield B: "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra, Flameshaper" ability 3 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+  assert counters "Chandra, Flameshaper" loyalty 2
+}
+
+# "Counter target creature or battle spell unless its controller pays {4}.
+# If they do, you incubate 2."
+scenario "Assimilate Essence: they pay, you incubate 2" {
+  battlefield A: 2 "Island"
+  battlefield B: 6 "Forest"
+  hand A: "Assimilate Essence"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Assimilate Essence" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains "Incubator"
+  assert counters "Incubator" +1/+1 2
+}
+
+scenario "Assimilate Essence: they can't pay, the spell is countered" {
+  battlefield A: 2 "Island"
+  battlefield B: 5 "Forest"
+  hand A: "Assimilate Essence"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Assimilate Essence" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A lacks "Incubator"
+}
+
+# "draw a card. Then discard a card unless you control another creature
+# with power 2 or less."
+scenario "Splitskin Doll: another small creature, no discard" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Splitskin Doll"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Splitskin Doll"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Splitskin Doll: only a big creature, draw then discard" {
+  battlefield A: "Hill Giant", 2 "Plains"
+  hand A: "Splitskin Doll"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Splitskin Doll"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A count 1
+}
+
+# "choose one that hasn't been chosen this turn." (a period before the
+# bullets): each mode once per turn.
+scenario "Lita: two creatures enter, two different modes" {
+  battlefield A: "Lita, Little Orphan Amphibian", 4 "Forest"
+  hand A: "Grizzly Bears", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Lita, Little Orphan Amphibian" +1/+1 1
+  assert battlefield A contains "Food"
+}
+
+# "reveal that many cards from the top of your library. Put any number of
+# Dinosaur creature cards from among them onto the battlefield and the rest
+# on the bottom of your library in a random order."
+scenario "Gishath: combat damage reveals that many; Dinosaurs come in" {
+  battlefield A: "Gishath, Sun's Avatar"
+  library A: "Siegehorn Ceratops", "Grizzly Bears", "Plains", "Plains", "Plains", "Plains", "Plains", "Island", "Island"
+  start turn 1 A
+  turn 1 A: attack "Gishath, Sun's Avatar"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert battlefield A contains "Siegehorn Ceratops"
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A count 8
+}
+
+# "if your team controls another Warrior": outside a team game, you.
+scenario "Sickle Dancer: another Warrior, +1/+1" {
+  battlefield A: "Sickle Dancer", "Aurora Champion"
+  start turn 1 A
+  turn 1 A: attack "Sickle Dancer"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Sickle Dancer: no other Warrior, no bonus" {
+  battlefield A: "Sickle Dancer", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Sickle Dancer"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Aurora Champion: another Warrior, it taps a creature" {
+  battlefield A: "Aurora Champion", "Bull-Rush Bruiser"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Aurora Champion"
+  turn 1 A: trigger "Aurora Champion" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 17
+}
+
+scenario "Aurora Champion: no other Warrior, nothing" {
+  battlefield A: "Aurora Champion"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Aurora Champion"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Bull-Rush Bruiser: another Warrior, first strike" {
+  battlefield A: "Bull-Rush Bruiser", "Sickle Dancer"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Bull-Rush Bruiser"
+  turn 1 B: block "Bull-Rush Bruiser" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Bull-Rush Bruiser" first_strike
+  assert battlefield A contains "Bull-Rush Bruiser"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Bull-Rush Bruiser: alone, no first strike, it trades" {
+  battlefield A: "Bull-Rush Bruiser"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Bull-Rush Bruiser"
+  turn 1 B: block "Bull-Rush Bruiser" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bull-Rush Bruiser"
+  assert graveyard B contains "Hill Giant"
+}

@@ -1,0 +1,9 @@
+card "Thor, God of Thunder" {
+  oracle_id 2842217a-173e-4879-8b25-fefe2fc1123f
+  cost {3}{R}{R}
+  type Legendary Creature — God Warrior Hero
+  pt 5/5
+  keywords flying
+  triggered when this enters: exile target Equipment or instant or sorcery card from your graveyard; may play that card next turn first
+  triggered whenever you cast noncreature spell: deal damage equal mana value of that spell to any target
+}
