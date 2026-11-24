@@ -1,0 +1,8 @@
+card "Izoni, Thousand-Eyed" {
+  oracle_id 5a210b32-6e1f-4578-bd8b-4e481b761159
+  cost {2}{B}{B}{G}{G}
+  type Legendary Creature — Elf Shaman
+  pt 2/3
+  label "Undergrowth" triggered when this enters: create count each graveyard creature "1/1 black and green Insect creature"
+  activated {B}{G}, sacrifice other creature: you gain 1 life and draw 1 card
+}

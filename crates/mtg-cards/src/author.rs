@@ -2441,6 +2441,34 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // "Create a 1/1 green Elf Warrior creature token for each Elf
+            // you control.", "create a Treasure token for each artifact
+            // you control": one token for each, counted as it resolves.
+            (
+                r(
+                    r"^[Cc]reate an? ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+?)?) for each (.+)$",
+                ),
+                |c, _| {
+                    let key = format!("{}{}", cap(c, 1), cap(c, 2));
+                    token_block(&key)?;
+                    Some(format!(
+                        "create count each {} \"{key}\"",
+                        count_expr(cap(c, 3))?
+                    ))
+                },
+            ),
+            (
+                r(
+                    r"^[Cc]reate an? (Treasure|Food|Clue|Blood|Map|Powerstone|Lander) token for each (.+)$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "create count each {} \"{}\"",
+                        count_expr(cap(c, 2))?,
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // "For each land you control, create a Treasure token." (Brass's
             // Bounty), "For each creature you control, create a 1/2 white
             // Moogle creature token with lifelink."
@@ -6838,7 +6866,20 @@ impl Builder<'_> {
             let before = self.statements.len();
             let paragraphs = self.spell_paragraphs.len();
             let keywords = self.keywords.len();
+            let spell_at = self.spell_at;
             self.line(rest)?;
+            // "Domain — Create a 1/1 green Saproling creature token for
+            // each basic land type among lands you control.": a spell's
+            // only paragraph under a label is `label "Domain" spell: ...`.
+            if self.statements.len() == before
+                && paragraphs == 0
+                && self.spell_paragraphs.len() == 1
+                && spell_at.is_none()
+            {
+                let p = self.spell_paragraphs.pop().unwrap_or_default();
+                self.spell_at = None;
+                self.statements.push(format!("spell: {p}"));
+            }
             // "Fear Gas — Wraith can't be blocked.": a keyword line under a
             // label is the permanent's static ability.
             if self.statements.len() == before
@@ -10958,7 +10999,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
     }
     // Tokens it creates that the corpus lacks are generated from their key.
-    let created = cached_regex(r#"create \S+ "([^"]+)""#).unwrap();
+    let created = cached_regex(r#"create (?:count [^"]*?|\S+) "([^"]+)""#).unwrap();
     let mut tokens = Vec::new();
     let mut token_cards = Vec::new();
     for c in created.captures_iter(&text) {

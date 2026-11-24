@@ -1,0 +1,6 @@
+card "Spore Burst" {
+  oracle_id 27a9e0af-76f0-4910-9f93-2a3617b4e79a
+  cost {3}{G}
+  type Sorcery
+  label "Domain" spell: create count each Domain "1/1 green Saproling creature"
+}

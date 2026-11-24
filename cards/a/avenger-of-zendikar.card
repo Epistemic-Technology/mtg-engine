@@ -1,0 +1,8 @@
+card "Avenger of Zendikar" {
+  oracle_id 4ba5b3f6-503b-43e6-b66e-4f8c55cffed7
+  cost {5}{G}{G}
+  type Creature — Elemental
+  pt 5/5
+  triggered when this enters: create count each land you control "0/1 green Plant creature"
+  label "Landfall" triggered whenever land you control enters: you may put 1 +1/+1 counters on each Plant creature you control
+}

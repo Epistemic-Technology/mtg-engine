@@ -1,0 +1,6 @@
+card "Necrotic Wound" {
+  oracle_id a30159ae-f6a6-4e29-bca2-769d3657d310
+  cost {B}
+  type Instant
+  label "Undergrowth" spell: target creature gets -1/-1 count where graveyard creature; this turn, replace target 1 dies: exile
+}

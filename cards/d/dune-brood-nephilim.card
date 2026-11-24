@@ -1,0 +1,7 @@
+card "Dune-Brood Nephilim" {
+  oracle_id 634bd800-8caa-47ae-8b70-2c66baf9a355
+  cost {B}{R}{G}{W}
+  type Creature — Nephilim
+  pt 3/3
+  triggered whenever this deals combat damage to a player: create count each land you control "1/1 colorless Sand creature"
+}

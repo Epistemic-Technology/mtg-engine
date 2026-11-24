@@ -1,0 +1,7 @@
+card "Herd Migration" {
+  oracle_id dfdc0eab-309b-4441-a94c-930c6dde4c48
+  cost {6}{G}
+  type Sorcery
+  label "Domain" spell: create count each Domain "3/3 green Beast creature"
+  activated {1}{G}, discard this: search basic land card reveal to hand; you gains 3 life
+}

@@ -1,0 +1,9 @@
+card "Vilespawn Spider" {
+  oracle_id 3e969073-76cc-4a2c-9abd-3a4094488fe5
+  cost {G}{U}
+  type Creature — Spider
+  pt 2/3
+  keywords reach
+  triggered at beginning of your upkeep: mill 1 cards
+  activated {2}{G}{U}, {T}, sacrifice this, sorcery: create count each graveyard creature "1/1 green Insect creature"
+}

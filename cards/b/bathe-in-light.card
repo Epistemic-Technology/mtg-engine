@@ -1,0 +1,6 @@
+card "Bathe in Light" {
+  oracle_id 8e862a8e-7954-43ad-9bc0-09ce7b9859f0
+  cost {1}{W}
+  type Instant
+  label "Radiance" spell: choose color; target creature and each other creature that shares color with target 1 gains protection from chosen color
+}

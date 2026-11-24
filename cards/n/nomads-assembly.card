@@ -1,0 +1,7 @@
+card "Nomads' Assembly" {
+  oracle_id a9a0088a-3c86-4baf-9754-79006f733ce1
+  cost {4}{W}{W}
+  type Sorcery
+  keywords rebound
+  spell: create count each creature you control "1/1 white Kor Soldier creature"
+}
