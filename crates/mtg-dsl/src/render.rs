@@ -2165,6 +2165,13 @@ impl<'a> Ctx<'a> {
             }
             Recipient::DamagedThisWay => "a creature dealt damage this way".to_string(),
             Recipient::Rest => "the rest".to_string(),
+            Recipient::MostControl(i) => match self.card.groups.get(usize::from(i)) {
+                Some(f) => format!(
+                    "each player who controls the most {}",
+                    filter_phrase(f, self.card, true)
+                ),
+                None => "each player".to_string(),
+            },
             Recipient::OpponentsWithout(i) => match self.card.groups.get(usize::from(i)) {
                 Some(f) => format!(
                     "each opponent who doesn't control {}",
@@ -2218,6 +2225,10 @@ impl<'a> Ctx<'a> {
                 format!("{first} and {rest} that share a creature type with it")
             }
             Recipient::YouAndTarget(a) => format!("you and {}", self.obj(Recipient::Target(a))),
+            Recipient::YouAnd(i) => match self.card.groups.get(usize::from(i)) {
+                Some(f) => format!("you and {}", filter_phrase(f, self.card, true)),
+                None => "you".to_string(),
+            },
             Recipient::SourceAndTarget(a) => {
                 let first = self.obj(Recipient::Source);
                 format!("{first} and {}", self.obj(Recipient::Target(a)))
@@ -2762,6 +2773,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::ChosenTargets(..)
                 | Recipient::TargetAnd(..)
                 | Recipient::AttachedAnd(_)
+                | Recipient::YouAnd(_)
                 | Recipient::YouAndTarget(_)
                 | Recipient::SourceAndTarget(_)
                 | Recipient::CreatedTokens
@@ -7228,8 +7240,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         ),
         Effect::IfYouDont { cant, then, words } => {
             // "If you don't draw a card this way, put a +1/+1 counter on
-            // this creature." (Trade Route Envoy): the source named again.
-            if *words != crate::ast::DontWords::Plain {
+            // this creature." (Trade Route Envoy): the source named again;
+            // so after another player's choice ("If they don't, put two
+            // +1/+1 counters on this creature.", Terrapact Intimidator).
+            let they = *words == crate::ast::DontWords::Plain && !*cant && ctx.player_did;
+            if *words != crate::ast::DontWords::Plain || they {
                 ctx.source_mentioned = false;
             }
             let body = lowercase_first(&sentences(then, ctx));
@@ -7240,7 +7255,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 crate::ast::DontWords::PutHand => "don't put a card into your hand this way",
                 crate::ast::DontWords::DidntPutHand => "didn't put a card into your hand this way",
             };
-            Clause::imperative(format!("if you {verb}, {}", body.trim_end_matches('.')))
+            // "Target opponent may sacrifice ... If they don't, you draw two
+            // cards." (Rakdos, Patron of Chaos).
+            let who = if they {
+                ctx.player_did = false;
+                "they"
+            } else {
+                "you"
+            };
+            Clause::imperative(format!("if {who} {verb}, {}", body.trim_end_matches('.')))
         }
         Effect::IfYouDontPut { to, then, it } => {
             let body = lowercase_first(&sentences(then, ctx));
@@ -11580,6 +11603,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "it ",
                     "they ",
                     "those creatures ",
+                    // "permanents you control also gain indestructible"
+                    // (Dawn's Truce).
+                    "permanents you control ",
+                    "creatures you control ",
                     this.as_str(),
                     name.as_str(),
                     short.as_str(),
@@ -12209,7 +12236,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("{who} may {body}"))
         }
-        Effect::PlayerMay { who, inner } => {
+        Effect::PlayerMay {
+            who,
+            inner,
+            have_you,
+        } => {
             let you = *who == Recipient::You;
             // "If the player does, they may copy this spell and may choose
             // a new target for that copy." (Chain Lightning): the player
@@ -12251,8 +12282,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .replace("your library", "their library")
                     .replace("your graveyard", "their graveyard")
             };
+            // "Target opponent may sacrifice two nonland, nontoken
+            // permanents of their choice." (Rakdos, Patron of Chaos).
+            let body = if !you && !*have_you && body.starts_with("sacrifice ") {
+                let b = body.trim_end_matches('.');
+                format!("{b} of their choice")
+            } else {
+                body
+            };
             ctx.player_did = true;
-            Clause::imperative(format!("{who} may {}", body.trim_end_matches('.')))
+            let have = if *have_you { "have you " } else { "" };
+            Clause::imperative(format!("{who} may {have}{}", body.trim_end_matches('.')))
         }
         Effect::YouMay(inner) => {
             if let [one] = inner.as_slice()
@@ -12501,6 +12541,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "the \"legend rule\" doesn't apply to permanents {s} {verb} this turn"
             ))
         }
+        // "You have no maximum hand size for the rest of the game."
+        Effect::PlayerRule {
+            who,
+            kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
+        } => Clause::with_subject(
+            *who,
+            "you".to_string(),
+            "have no maximum hand size for the rest of the game".to_string(),
+        ),
         Effect::PlayerRule { who, kind } => {
             // "Your opponents can't gain life this turn." (Atarka's
             // Command).
@@ -15894,6 +15943,21 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) -> String {
+    // "you and other Heroes you control have hexproof", "Yuna and
+    // enchantment creatures you control have trample, lifelink, and ward
+    // {2}": the group's sentence, with the extra subject first.
+    if filter.and_you || filter.and_this {
+        let mut f = filter.clone();
+        f.and_you = false;
+        f.and_this = false;
+        let body = static_text(&f, mods, card, lookup);
+        let head = if filter.and_you {
+            "You".to_string()
+        } else {
+            capitalize(&this_ref(card))
+        };
+        return format!("{head} and {}", lowercase_first(&body));
+    }
     // "Untap all permanents you control during each other player's untap
     // step." (Seedborn Muse), "Untap each creature you control with a
     // +1/+1 counter on it during ...".
@@ -16370,6 +16434,16 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             }
             parts[i] = format!("{mark}{rest}");
         }
+    }
+    // "Yuna and enchantment creatures you control have trample, lifelink,
+    // and ward {2}": one "have" for a group's keywords.
+    let mut prev_have = false;
+    for part in &mut parts {
+        let have = part.starts_with("have ") && !part.starts_with("have \"");
+        if have && prev_have {
+            *part = part["have ".len()..].to_string();
+        }
+        prev_have = have;
     }
     // "is a Golem creature with base power and toughness 5/4 in addition
     // to its other types" (Zoetic Glyph), "are Food artifacts in addition
@@ -16900,9 +16974,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         ),
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least && *n == 1 {
-                // "this creature has a +1/+1 counter on it".
+                // "this creature has a +1/+1 counter on it"; "Captain
+                // America has a shield counter on him".
                 let c = kind.name();
-                format!("{} has {} {c} counter on it", this_ref(card), article(c))
+                format!(
+                    "{} has {} {c} counter on {}",
+                    this_ref(card),
+                    article(c),
+                    it_obj(card)
+                )
             } else if *at_least && *kind == CounterKind::Any {
                 // "As long as this creature has three or more counters on
                 // it": every kind.
@@ -19985,6 +20065,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::ProtectionFromOpponents => {
+                    "you have protection from each of your opponents".to_string()
+                }
                 K::EnchantedUntargetable(ban) => format!(
                     "enchanted {} can't be the target of {}",
                     enchanted_noun(card),

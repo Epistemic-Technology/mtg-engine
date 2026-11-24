@@ -4220,6 +4220,16 @@ pub enum Recipient {
     /// didn't", "Each opponent who can't discards a card";
     /// `ThisWayLog::declined`).
     Declined,
+    /// Each player who controls the most permanents matching the pool's
+    /// `n`th interned filter, ties included ("Each player who controls the
+    /// most creatures investigates.", No Witnesses), judged as the effect
+    /// happens.
+    MostControl(u16),
+    /// The players the resolution's last per-player "may" asked who did
+    /// it ("Each player may shuffle their hand and graveyard into their
+    /// library. Each player who does draws seven cards."; the asked less
+    /// `ThisWayLog::declined`).
+    Accepted,
     /// Each opponent who controls no permanent matching the pool's `n`th
     /// interned filter ("each opponent who doesn't control an Elf"),
     /// judged as the effect happens.
@@ -4254,6 +4264,10 @@ pub enum Recipient {
     /// a creature type with it get +1/+1 until end of turn." (Crown of
     /// Vigor). Judged against the host as it is, or as it last existed.
     AttachedAndSharing(u16),
+    /// The controller and every battlefield object matching the pool's
+    /// `n`th interned filter: "You and permanents you control gain
+    /// hexproof until end of turn." (Dawn's Truce).
+    YouAndGroup(u16),
     /// The cards the source's linked ability exiled ("the exiled card",
     /// CR 607.2a: Journey to Nowhere's "When this enchantment leaves the
     /// battlefield, return the exiled card ..."), still in exile; see
@@ -5129,6 +5143,10 @@ pub enum Effect {
     PlayerMay {
         who: Recipient,
         effects: Vec<Effect>,
+        /// "Target opponent may have you create two Lander tokens.": the
+        /// player decides, and the effect's controller does these.
+        #[serde(default)]
+        have_you: bool,
     },
     /// "Any player may pay 5 life", "any opponent may sacrifice a creature
     /// of their choice" (CR 608.2d): starting with the active player and in
@@ -6780,6 +6798,10 @@ pub enum PlayerStaticKind {
     /// "You have shroud." (CR 702.18c): the controller can't be the target
     /// of spells or abilities.
     Shroud,
+    /// "You have protection from each of your opponents." (CR 702.16j,
+    /// 702.16b-e): the controller can't be targeted, enchanted, or dealt
+    /// damage by anything an opponent controls.
+    ProtectionFromOpponents,
     /// A ban on the name the source chose as it entered (`Chosen::Card`,
     /// CR 201.3), for every player: Meddling Mage, Pithing Needle.
     ChosenName(NameBan),
@@ -7158,6 +7180,10 @@ pub enum PlayerRuleKind {
     NoLegendRule,
     /// "Players can't cast spells this turn." (CR 101.2; Bilbo's Gambit).
     CantCastSpells,
+    /// "You have no maximum hand size for the rest of the game." (CR
+    /// 402.2, 514.1): not until end of turn; the player's own maximum is
+    /// removed for good.
+    NoMaxHandSize,
 }
 
 /// Who or what a replacement or prevention effect's event may affect.

@@ -10190,6 +10190,41 @@ impl GameState {
                     out.extend(l.declined.iter().map(|p| Target::Player(*p)));
                 }
             }
+            Recipient::MostControl(f) => {
+                let filter = self.pool.filter(f);
+                let source = self.current_object(ctx.source);
+                let counts: SmallVec<[(PlayerId, usize); 4]> = self
+                    .players_in_game()
+                    .map(|q| {
+                        let n = self
+                            .permanents_of(q)
+                            .filter(|id| {
+                                self.characteristics(*id).is_some_and(|c| {
+                                    filter.matches(*id, q, &c, source, Some(ctx.controller))
+                                }) && self.status_ok(filter, *id)
+                            })
+                            .count();
+                        (q, n)
+                    })
+                    .collect();
+                let most = counts.iter().map(|(_, n)| *n).max().unwrap_or(0);
+                out.extend(
+                    counts
+                        .iter()
+                        .filter(|(_, n)| *n == most)
+                        .map(|(q, _)| Target::Player(*q)),
+                );
+            }
+            Recipient::Accepted => {
+                if let Some(l) = &self.this_way {
+                    out.extend(
+                        l.asked
+                            .iter()
+                            .filter(|p| !l.declined.contains(p))
+                            .map(|p| Target::Player(*p)),
+                    );
+                }
+            }
             // "Destroy the rest.": what the last choice could have chosen
             // and didn't, still on the battlefield.
             Recipient::Rest => {
@@ -10319,6 +10354,10 @@ impl GameState {
             Recipient::Group(f) => {
                 self.group_into(ctx, f, &mut out);
                 self.note_group(&out);
+            }
+            Recipient::YouAndGroup(f) => {
+                out.push(Target::Player(ctx.controller));
+                self.group_into(ctx, f, &mut out);
             }
             Recipient::ExiledCard => {
                 // CR 607.2a: what the source's linked ability exiled, while
@@ -12417,6 +12456,11 @@ impl GameState {
             Effect::PlayerRule { who, kind } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
+                        // "... for the rest of the game" (CR 402.2).
+                        if *kind == crate::card::PlayerRuleKind::NoMaxHandSize {
+                            self.player_mut(p).max_hand_size = usize::MAX;
+                            continue;
+                        }
                         self.player_rules.push(crate::state::PlayerRuleEffect {
                             player: p,
                             kind: *kind,
@@ -14226,7 +14270,11 @@ impl GameState {
             // "That player may pay {4}. If the player does, ...": the
             // player decides (CR 608.2d) and acts as the one doing it; an
             // act they can't complete in full isn't offered (CR 101.3).
-            Effect::PlayerMay { who, effects } => {
+            Effect::PlayerMay {
+                who,
+                effects,
+                have_you,
+            } => {
                 // "Each player may discard their hand and draw seven
                 // cards": each player in turn order decides and acts
                 // (CR 101.4; an approximation of simultaneous actions).
@@ -14253,7 +14301,7 @@ impl GameState {
                 // "Each player who doesn't loses 3 life."
                 let mut declined: SmallVec<[PlayerId; 4]> = SmallVec::new();
                 for &p in &players {
-                    ctx.controller = p;
+                    ctx.controller = if *have_you { you } else { p };
                     let possible = effects.iter().all(|e| match e {
                         Effect::Pay { mana, life } => {
                             (*life == 0

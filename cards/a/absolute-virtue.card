@@ -1,0 +1,9 @@
+card "Absolute Virtue" {
+  oracle_id d4fddf20-6b3a-42c3-a245-002dacbb4725
+  cost {6}{W}{U}
+  type Legendary Creature — Avatar Warrior
+  pt 8/8
+  this spell can't be countered
+  keywords flying
+  you have protection from opponents
+}

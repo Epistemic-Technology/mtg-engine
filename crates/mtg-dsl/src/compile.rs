@@ -1636,6 +1636,45 @@ impl Compiler<'_> {
                     otherwise: Vec::new(),
                 })?);
             }
+            // "Yuna and enchantment creatures you control have ...": the
+            // source has them too; "you and other Heroes you control have
+            // hexproof": so does its controller.
+            if let Ability::Static {
+                filter,
+                mods,
+                condition,
+                ..
+            } = a
+                && (filter.and_you || filter.and_this)
+            {
+                if filter.and_this {
+                    b = b.ability(self.ability(&Ability::Static {
+                        filter: Filter::this(),
+                        mods: mods.clone(),
+                        condition: condition.clone(),
+                        cond_first: false,
+                        cond_if: false,
+                        otherwise: Vec::new(),
+                    })?);
+                }
+                if filter.and_you {
+                    for m in mods {
+                        let kind = match m {
+                            Mod::AddKeywords(ks) if ks.as_slice() == [Keyword::Hexproof] => {
+                                mtg_core::card::PlayerStaticKind::Hexproof
+                            }
+                            Mod::AddKeywords(ks) if ks.as_slice() == [Keyword::Shroud] => {
+                                mtg_core::card::PlayerStaticKind::Shroud
+                            }
+                            _ => return self.err("`you and ...`: only hexproof or shroud"),
+                        };
+                        b = b.ability(self.ability(&Ability::PlayerStatic {
+                            kind,
+                            cond: condition.clone(),
+                        })?);
+                    }
+                }
+            }
             // "Equip—Pay {3} or discard a card.": the second equip ability.
             if let Ability::EquipOr { other, targets, .. } = a {
                 b = b.ability(self.ability(&equip_ability((**other).clone(), targets))?);
@@ -3048,7 +3087,11 @@ impl Compiler<'_> {
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
             Recipient::Rest => CoreRecipient::Rest,
+            Recipient::Declined(d) if d.tense == crate::ast::DeclinedTense::Does => {
+                CoreRecipient::Accepted
+            }
             Recipient::Declined(_) => CoreRecipient::Declined,
+            Recipient::MostControl(i) => CoreRecipient::MostControl(groups[usize::from(i)]),
             Recipient::OpponentsWithout(i) => {
                 CoreRecipient::OpponentsWithout(groups[usize::from(i)])
             }
@@ -3056,6 +3099,7 @@ impl Compiler<'_> {
                 CoreRecipient::TargetAndGroup(ti(t), groups[usize::from(i)])
             }
             Recipient::AttachedAnd(i) => CoreRecipient::AttachedAndSharing(groups[usize::from(i)]),
+            Recipient::YouAnd(i) => CoreRecipient::YouAndGroup(groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)
@@ -4430,12 +4474,46 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
             }
-            Effect::PlayerMay { who, inner } => {
-                let effects = self.sentences(inner)?;
+            Effect::PlayerMay {
+                who,
+                inner,
+                have_you,
+            } => {
+                // "Each player may shuffle ..., then each player who does
+                // draws seven cards." (Turtles in Time): what each player
+                // who does does comes after everyone has decided.
+                let after = |e: &Effect| {
+                    matches!(
+                        e,
+                        Effect::DrawCards {
+                            who: Some(Recipient::Declined(d)),
+                            ..
+                        } if d.tense == crate::ast::DeclinedTense::Does
+                    )
+                };
+                let split = match inner.as_slice() {
+                    [s] => s.effects.iter().position(after),
+                    _ => None,
+                };
+                let (mine, rest) = match split {
+                    Some(at) => {
+                        let mut before = inner[0].clone();
+                        let later = before.effects.split_off(at);
+                        let mut then = inner[0].clone();
+                        then.effects = later;
+                        (vec![before], Some(then))
+                    }
+                    None => (inner.clone(), None),
+                };
+                let effects = self.sentences(&mine)?;
                 out.push(CoreEffect::PlayerMay {
                     who: r(*who),
                     effects,
+                    have_you: *have_you,
                 });
+                if let Some(rest) = rest {
+                    out.extend(self.sentences(std::slice::from_ref(&rest))?);
+                }
             }
             Effect::UnlessAnyPlayer { act, effect } => {
                 let mut acts = Vec::new();

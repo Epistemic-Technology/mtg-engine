@@ -2613,6 +2613,10 @@ impl P {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
             }
+            "you" if self.at_words(&["you", "have", "protection", "from", "opponents"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::ProtectionFromOpponents)
+            }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
@@ -4568,7 +4572,13 @@ impl P {
                 }
                 let each = self.at_word("each");
                 let plural = !each && self.eat_word("plural");
+                // `you and other Hero you control`, `this and enchantment
+                // creature you control`.
+                let and_you = self.eat_words(&["you", "and"]);
+                let and_this = !and_you && self.eat_words(&["this", "and"]);
                 let mut filter = self.filter()?;
+                filter.and_you = and_you;
+                filter.and_this = and_this;
                 // "Each instant and sorcery card in your graveyard has
                 // flashback." (CR 113.6b).
                 if !plural
@@ -8107,8 +8117,12 @@ impl P {
                 words: crate::ast::DontWords::Plain,
             });
         }
-        // "If you don't, ...": after an optional action that didn't happen.
-        if self.at_words(&["if", "you", "don't"]) && self.peek_at(3) == Some(&Tok::Comma) {
+        // "If you don't, ...": after an optional action that didn't happen
+        // (`if they don't,` after another player's: the same, printed
+        // "If they don't").
+        if (self.at_words(&["if", "you", "don't"]) || self.at_words(&["if", "they", "don't"]))
+            && self.peek_at(3) == Some(&Tok::Comma)
+        {
             self.pos += 4;
             let saved = self.subject.take();
             let s = self.sentence()?;
@@ -8487,6 +8501,28 @@ impl P {
                 }
             }
         }
+        // "You have no maximum hand size for the rest of the game."
+        if self.at_words(&[
+            "you", "have", "no", "maximum", "hand", "size", "for", "rest", "of", "game",
+        ]) {
+            self.pos += 10;
+            return Ok(Effect::PlayerRule {
+                who: Recipient::You,
+                kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
+            });
+        }
+        // `you and all permanent you control gain hexproof`: "You and
+        // permanents you control gain hexproof until end of turn."
+        // (Dawn's Truce).
+        if self.at_words(&["you", "and", "all"]) {
+            self.pos += 2;
+            let Recipient::Group(g) = self.recipient()? else {
+                return self.fail("`you and all ...`: a group");
+            };
+            let subject = Recipient::YouAnd(g);
+            self.subject = Some(subject);
+            return self.subject_verb(subject, true);
+        }
         if self.at_recipient() {
             let subjects = self.recipients()?;
             // "up to two target creatures each get": consecutive targets
@@ -8507,6 +8543,7 @@ impl P {
             // and up to one other target creature each get +3/+3".
             let pair = match subjects.as_slice() {
                 [Recipient::You, Recipient::Target(a)] => Some(Recipient::YouAndTarget(*a)),
+                [Recipient::You, Recipient::Group(g)] => Some(Recipient::YouAnd(*g)),
                 [Recipient::Source, Recipient::Target(a)] => Some(Recipient::SourceAndTarget(*a)),
                 _ => None,
             };
@@ -9439,18 +9476,26 @@ impl P {
             // at random": the player decides and acts (`PlayerMay`).
             // "If the player does, they may copy this spell" (Chain
             // Lightning): the copy is that player's.
+            // "Target opponent may sacrifice two nonland, nontoken
+            // permanents of their choice." (Rakdos, Patron of Chaos);
+            // "Target opponent may have you create two Lander tokens."
             "may"
                 if subject != Recipient::You
                     && (self.at_word("pay")
                         || self.at_word("discard")
+                        || self.at_word("sacrifice")
+                        || self.at_word("shuffle")
+                        || self.at_words(&["have", "you"])
                         || self.at_words(&["copy", "this"])) =>
             {
+                let have_you = self.eat_words(&["have", "you"]);
                 let saved = self.subject.take();
                 let s = self.sentence()?;
                 self.subject = saved;
                 Ok(Effect::PlayerMay {
                     who: subject,
                     inner: vec![s],
+                    have_you,
                 })
             }
             // "Its controller may search their library for ...": the
@@ -14505,7 +14550,7 @@ impl P {
             && self.word_at(2).as_deref() == Some("who")
             && matches!(
                 self.word_at(3).as_deref(),
-                Some("didn't" | "doesn't" | "can't")
+                Some("didn't" | "doesn't" | "can't" | "does")
             )
             && self.word_at(4).as_deref() != Some("control")
         {
@@ -14514,6 +14559,7 @@ impl P {
             let tense = match self.word_at(3).as_deref() {
                 Some("didn't") => DeclinedTense::Didnt,
                 Some("doesn't") => DeclinedTense::Doesnt,
+                Some("does") => DeclinedTense::Does,
                 _ => DeclinedTense::Cant,
             };
             self.pos += 4;
@@ -14524,6 +14570,17 @@ impl P {
                 tense,
                 tail,
             }));
+        }
+        // "each player who controls the most creatures".
+        if self.eat_words(&["each", "player", "who", "controls", "most"]) {
+            let f = self.filter()?;
+            self.groups.push(f);
+            return Ok(Recipient::MostControl(
+                u16::try_from(self.groups.len() - 1).map_err(|_| ParseError {
+                    line: self.line(),
+                    message: "too many groups".to_string(),
+                })?,
+            ));
         }
         // "each opponent who doesn't control an Elf".
         if self.eat_words(&["each", "opponent", "who", "doesn't", "control"]) {

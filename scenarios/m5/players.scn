@@ -1,0 +1,300 @@
+# Rules about players: protection from each opponent (CR 702.16j), "you
+# and <group>" subjects, another player deciding ("target opponent may
+# ...; if they don't"), "each player who does", "each player who controls
+# the most creatures", no maximum hand size for the rest of the game.
+
+# ----- Absolute Virtue: "You have protection from each of your opponents." -----
+
+scenario "Absolute Virtue: an opponent's spell can't target its controller" {
+  battlefield A: "Absolute Virtue"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Absolute Virtue: an opponent's creature deals its controller no combat damage" {
+  battlefield A: "Absolute Virtue" tapped
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Absolute Virtue: its controller's own spells may target them" {
+  battlefield A: "Absolute Virtue", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+}
+
+scenario "Absolute Virtue: the opponent is not protected" {
+  battlefield A: "Absolute Virtue"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Absolute Virtue"
+  run_to turn 2 postcombat_main
+  assert damage "Absolute Virtue" 2
+}
+
+# ----- Dawn's Truce: "You and permanents you control gain hexproof" -----
+
+scenario "Dawn's Truce: the player and their permanents gain hexproof" {
+  battlefield A: "Plains", "Plains", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand A: "Dawn's Truce"
+  hand B: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Dawn's Truce"
+  illegal turn 1 end B: cast "Shock" targeting player A
+  illegal turn 1 end B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert life A 20
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Dawn's Truce with the gift: the permanents are indestructible too" {
+  battlefield A: "Plains", "Plains", "Grizzly Bears"
+  battlefield B: 4 "Plains"
+  hand A: "Dawn's Truce"
+  hand B: "Wrath of God"
+  library B: "Island", "Island"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Dawn's Truce" gift
+  turn 2 B: cast "Wrath of God"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand B count 1
+}
+
+scenario "Dawn's Truce without the gift: a wrath still destroys" {
+  battlefield A: "Plains", "Plains", "Grizzly Bears"
+  battlefield B: 4 "Plains"
+  hand A: "Dawn's Truce"
+  hand B: "Wrath of God"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Dawn's Truce"
+  turn 2 B: cast "Wrath of God"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# ----- Captain America: "you and other Heroes you control have hexproof" -----
+
+scenario "Captain America with a shield counter: you and other Heroes have hexproof" {
+  battlefield A: "Captain America, Super-Soldier" with 1 shield, "Agent of Atlas"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B
+  illegal turn 2 B: cast "Shock" targeting player A
+  illegal turn 2 B: cast "Lightning Bolt" targeting "Agent of Atlas"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Captain America: once the shield counter is gone, the player can be targeted" {
+  battlefield A: "Captain America, Super-Soldier" with 1 shield, "Agent of Atlas"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Captain America, Super-Soldier"
+  turn 2 B: wait
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert counters "Captain America, Super-Soldier" shield 0
+  assert life A 17
+}
+
+# ----- Yuna: "Yuna and enchantment creatures you control have ..." -----
+
+scenario "Yuna: during your turn Yuna has lifelink" {
+  battlefield A: "Yuna, Hope of Spira"
+  turn 1 A: attack "Yuna, Hope of Spira"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Yuna: enchantment creatures you control have lifelink and trample too" {
+  battlefield A: "Yuna, Hope of Spira", "Lucent Liminid"
+  turn 1 A: attack "Lucent Liminid"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert has "Lucent Liminid" trample
+  assert has "Yuna, Hope of Spira" trample
+}
+
+scenario "Yuna: not during an opponent's turn" {
+  battlefield A: "Yuna, Hope of Spira", "Lucent Liminid"
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert has not "Lucent Liminid" lifelink
+  assert has not "Yuna, Hope of Spira" lifelink
+}
+
+# ----- Desecration Demon: "any opponent may sacrifice ... If a player does" -----
+
+scenario "Desecration Demon: the opponent sacrifices, the Demon taps and grows" {
+  battlefield A: "Desecration Demon"
+  battlefield B: "Grizzly Bears"
+  turn 1 B: accept "Desecration Demon"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Desecration Demon"
+  assert counters "Desecration Demon" +1/+1 1
+  assert life B 20
+}
+
+scenario "Desecration Demon: the opponent declines and the Demon attacks" {
+  battlefield A: "Desecration Demon"
+  battlefield B: "Grizzly Bears"
+  turn 1 B: decline "Desecration Demon"
+  turn 1 A: attack "Desecration Demon"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert counters "Desecration Demon" +1/+1 0
+  assert life B 14
+}
+
+# ----- Rakdos, Patron of Chaos: "target opponent may sacrifice ... If they don't" -----
+
+scenario "Rakdos: the opponent sacrifices two nonland, nontoken permanents" {
+  battlefield A: "Rakdos, Patron of Chaos"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Forest"
+  library A: "Island", "Island", "Island"
+  turn 1 B: accept "Rakdos, Patron of Chaos"
+  run_to turn 1 cleanup
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Forest"
+  assert hand A count 0
+}
+
+scenario "Rakdos: the opponent declines and its controller draws two" {
+  battlefield A: "Rakdos, Patron of Chaos"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  library A: "Island", "Island", "Island"
+  turn 1 B: decline "Rakdos, Patron of Chaos"
+  run_to turn 1 cleanup
+  assert battlefield B contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "Rakdos: an opponent with too few permanents can't sacrifice, so its controller draws" {
+  battlefield A: "Rakdos, Patron of Chaos"
+  battlefield B: "Grizzly Bears", "Forest"
+  library A: "Island", "Island", "Island"
+  run_to turn 1 cleanup
+  assert battlefield B contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+# ----- Terrapact Intimidator: "target opponent may have you create ..." -----
+
+scenario "Terrapact Intimidator: the opponent lets you create two Landers" {
+  battlefield A: 2 "Mountain"
+  hand A: "Terrapact Intimidator"
+  turn 1 A: cast "Terrapact Intimidator"
+  turn 1 B: accept "Terrapact Intimidator"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Lander"
+  assert battlefield B lacks "Lander"
+  assert counters "Terrapact Intimidator" +1/+1 0
+}
+
+scenario "Terrapact Intimidator: the opponent declines and it gets two counters" {
+  battlefield A: 2 "Mountain"
+  hand A: "Terrapact Intimidator"
+  turn 1 A: cast "Terrapact Intimidator"
+  turn 1 B: decline "Terrapact Intimidator"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Lander"
+  assert counters "Terrapact Intimidator" +1/+1 2
+}
+
+# ----- "Each player may shuffle ... Each player who does draws seven" -----
+
+scenario "Step Between Worlds: only the players who shuffle draw seven" {
+  battlefield A: 5 "Island"
+  hand A: "Step Between Worlds", "Forest"
+  hand B: "Mountain", "Mountain"
+  graveyard A: "Grizzly Bears"
+  library A: 10 "Island"
+  library B: 10 "Swamp"
+  turn 1 A: cast "Step Between Worlds"
+  turn 1 A: accept "Step Between Worlds"
+  turn 1 B: decline "Step Between Worlds"
+  run_to turn 1 postcombat_main
+  assert hand A count 7
+  assert graveyard A lacks "Grizzly Bears"
+  assert hand B count 2
+  assert hand B contains "Mountain"
+  assert exile A contains "Step Between Worlds"
+}
+
+scenario "Turtles in Time: creatures return, and each player who shuffles draws seven" {
+  battlefield A: 7 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Turtles in Time"
+  library A: 10 "Island"
+  library B: 10 "Swamp"
+  turn 1 A: cast "Turtles in Time"
+  turn 1 A: decline "Turtles in Time"
+  turn 1 B: accept "Turtles in Time"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Grizzly Bears"
+  assert hand B count 7
+  assert exile A contains "Turtles in Time"
+}
+
+# ----- No Witnesses: "Each player who controls the most creatures investigates" -----
+
+scenario "No Witnesses: the player with the most creatures investigates, then all creatures are destroyed" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "No Witnesses"
+  turn 1 A: cast "No Witnesses"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Clue"
+  assert battlefield A lacks "Clue"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "No Witnesses: tied players both investigate" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "No Witnesses"
+  turn 1 A: cast "No Witnesses"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Clue"
+  assert battlefield A contains "Clue"
+}
+
+# ----- "You have no maximum hand size for the rest of the game." -----
+
+scenario "Finale of Revelation for less than ten: draw X" {
+  battlefield A: 4 "Island"
+  hand A: "Finale of Revelation"
+  library A: 5 "Island"
+  turn 1 A: cast "Finale of Revelation" x 2
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Finale of Revelation"
+}
+
+scenario "Finale of Revelation for ten: the graveyard is shuffled in, and there is no maximum hand size" {
+  battlefield A: 12 "Island"
+  hand A: "Finale of Revelation"
+  graveyard A: "Grizzly Bears"
+  library A: 10 "Island"
+  turn 1 A: cast "Finale of Revelation" x 10
+  run_to turn 3 upkeep
+  assert hand A count 10
+  assert graveyard A lacks "Grizzly Bears"
+}

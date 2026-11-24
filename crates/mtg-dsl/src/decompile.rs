@@ -419,6 +419,8 @@ impl Decompiler<'_> {
             other_than_this: false,
             not_granter: f.not_granter,
             unchosen_wording: crate::ast::UnchosenWording::Other,
+            and_you: false,
+            and_this: false,
             and_or: false,
             and_list: false,
             that_are: false,
@@ -878,8 +880,14 @@ impl Decompiler<'_> {
             CoreRecipient::RandomOf(i) => Recipient::RandomOf(i),
             CoreRecipient::ExiledWith(i) => Recipient::ExiledWith(i),
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
+            CoreRecipient::MostControl(i) => Recipient::MostControl(i),
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
             CoreRecipient::Rest => Recipient::Rest,
+            CoreRecipient::Accepted => Recipient::Declined(crate::ast::Declined {
+                player: true,
+                tense: crate::ast::DeclinedTense::Does,
+                tail: false,
+            }),
             CoreRecipient::Declined => Recipient::Declined(crate::ast::Declined {
                 player: false,
                 tense: crate::ast::DeclinedTense::Didnt,
@@ -887,6 +895,7 @@ impl Decompiler<'_> {
             }),
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
             CoreRecipient::AttachedAndSharing(i) => Recipient::AttachedAnd(i),
+            CoreRecipient::YouAndGroup(i) => Recipient::YouAnd(i),
             CoreRecipient::Attached => Recipient::Attached,
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
@@ -1647,9 +1656,14 @@ impl Decompiler<'_> {
                 opponents: *opponents,
                 inner: self.sentences(effects),
             },
-            CoreEffect::PlayerMay { who, effects } => Effect::PlayerMay {
+            CoreEffect::PlayerMay {
+                who,
+                effects,
+                have_you,
+            } => Effect::PlayerMay {
                 who: Self::recipient(*who),
                 inner: self.sentences(effects),
+                have_you: *have_you,
             },
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::KeepMana(inner) => Effect::KeepMana(self.sentences(inner)),

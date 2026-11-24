@@ -3096,12 +3096,12 @@ impl GameState {
     pub fn cast_forbidden(&self, p: PlayerId) -> bool {
         !self.player_rules.is_empty() && self.player_rule(p, PlayerRuleKind::CantCastSpells)
             || self.player_static_sources > 0
-            && (self.cant_cast_spells(p)
-                || self.tallied(crate::card::TurnEvent::Cast, p) >= 1
-                    && self.player_statics_of().any(|(who, kind, src)| {
-                        matches!(kind, crate::card::PlayerStaticKind::CastLimit(ps)
+                && (self.cant_cast_spells(p)
+                    || self.tallied(crate::card::TurnEvent::Cast, p) >= 1
+                        && self.player_statics_of().any(|(who, kind, src)| {
+                            matches!(kind, crate::card::PlayerStaticKind::CastLimit(ps)
                             if self.rule_players_include(ps, who, src, p))
-                    }))
+                        }))
     }
 
     /// Whether the legend rule (CR 704.5j) doesn't apply to `p`'s
@@ -3312,7 +3312,8 @@ impl GameState {
                 who == p
                     && match kind {
                         crate::card::PlayerStaticKind::Shroud => true,
-                        crate::card::PlayerStaticKind::Hexproof => caster != p,
+                        crate::card::PlayerStaticKind::Hexproof
+                        | crate::card::PlayerStaticKind::ProtectionFromOpponents => caster != p,
                         _ => false,
                     }
             })
@@ -3323,6 +3324,17 @@ impl GameState {
         self.player_static_sources > 0
             && self.player_statics().any(|(who, kind)| {
                 who == p && kind == crate::card::PlayerStaticKind::LandsFromGraveyard
+            })
+    }
+
+    /// Whether player `p` has protection from player `q` ("You have
+    /// protection from each of your opponents.", CR 702.16j): from each
+    /// object `q` controls.
+    pub fn protected_from_player(&self, p: PlayerId, q: PlayerId) -> bool {
+        p != q
+            && self.player_static_sources > 0
+            && self.player_statics().any(|(who, kind)| {
+                who == p && kind == crate::card::PlayerStaticKind::ProtectionFromOpponents
             })
     }
 
