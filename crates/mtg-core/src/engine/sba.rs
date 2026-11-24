@@ -193,12 +193,15 @@ impl GameState {
                 if plus > 0 && minus > 0 {
                     annihilate.push((id, plus.min(minus)));
                 }
+                let def = self.pool.get(o.def);
+                // Read once: the Aura checks below both want it.
+                let enchant = def.enchant();
                 // 704.5m: an Aura not legally attached goes to its owner's
                 // graveyard.
-                if let Some(spec) = self.pool.get(o.def).enchant()
+                if let Some(spec) = enchant
                     && !o.attached_to.is_some_and(|t| {
                         self.is_legal_attachment(spec, t)
-                            && (self.pool.get(o.def).aura_stays
+                            && (def.aura_stays
                                 || !self.protected_attachment(id, t))
                     })
                     // "Enchant player" (CR 303.4, 702.5): attached to a
@@ -218,7 +221,7 @@ impl GameState {
                     continue;
                 }
                 // 704.5z: Roles, gathered here as legally attached Auras.
-                if let (Some(_), Some(host)) = (self.pool.get(o.def).enchant(), o.attached_to)
+                if let (Some(_), Some(host)) = (enchant, o.attached_to)
                     && self
                         .characteristics(id)
                         .is_some_and(|c| c.has_subtype(Subtype::ROLE))
@@ -227,7 +230,7 @@ impl GameState {
                 }
                 // 704.5n: an Equipment attached to something it cannot
                 // equip becomes unattached.
-                if self.pool.get(o.def).is_equipment()
+                if def.is_equipment()
                     && o.attached_to.is_some_and(|t| {
                         !self.is_legal_attachment(TargetSpec::Creature, t)
                             || self.protected_attachment(id, t)

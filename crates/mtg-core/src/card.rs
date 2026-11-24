@@ -9586,6 +9586,11 @@ pub struct CardDef {
     /// of the turn, so step changes refresh the cache.
     #[serde(skip)]
     pub step_static: bool,
+    /// Filled in by `CardPool::add`: it has a static ability
+    /// (`has_static`), read by the layer pass's fast path for every
+    /// permanent on every cache miss.
+    #[serde(skip)]
+    pub any_static: bool,
     /// Filled in by `CardPool::add`: a static whose condition reads a
     /// record of the turn that changes without a zone change ("as long as
     /// you gained life this turn", "an opponent was dealt damage this
@@ -10160,10 +10165,10 @@ impl CardDef {
                 .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.from_graveyard))
     }
 
+    /// Has a static ability (`AbilityDef::Static`): precomputed by
+    /// `CardPool::add` (`any_static`).
     pub fn has_static(&self) -> bool {
-        self.abilities
-            .iter()
-            .any(|a| matches!(a, AbilityDef::Static(_)))
+        self.any_static
     }
 
     /// Has a printed triggered ability or a keyword that is one. Checked on
@@ -11396,6 +11401,10 @@ impl CardPool {
                         if hand_reader(self.ability(*ability)))
                 })
         });
+        def.any_static = def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::Static(_)));
         def.step_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(StaticCondition::During(_))))
         });
@@ -11818,6 +11827,7 @@ impl Builder {
             hand_static: false,
             spent: SpentUse::default(),
             step_static: false,
+            any_static: false,
             history_static: false,
             other_casts: false,
             no_mana_cost: false,
