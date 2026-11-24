@@ -4105,6 +4105,8 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever you manifest dread` (CR 701.62).
+    ManifestsDread,
     /// `whenever you forage` (CR 701.61).
     Forages,
     /// `whenever one or more creature you control deal combat damage to a
@@ -5820,6 +5822,15 @@ pub enum Effect {
     Manifest,
     /// `manifest dread` (CR 701.62).
     ManifestDread,
+    /// `its controller manifests dread` (CR 701.62a): a player other than
+    /// the controller manifests dread.
+    ManifestDreadBy {
+        who: Recipient,
+    },
+    /// `dread card to hand`: "put a card you put into your graveyard
+    /// this way into your hand" in a "whenever you manifest dread" trigger
+    /// (the triggering card).
+    DreadCardToHand,
     /// `suspect target creature` (CR 701.60a); `<what> no longer
     /// suspected` (`on` false): "... are no longer suspected".
     Suspect {

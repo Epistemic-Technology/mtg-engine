@@ -6076,6 +6076,12 @@ pub enum Effect {
     /// controller's library, manifest one, and put the rest into their
     /// graveyard.
     ManifestDread,
+    /// "Its controller manifests dread.", "the exiled card's owner
+    /// manifests dread" (CR 701.62a): each recipient player manifests
+    /// dread, the manifested creature under their control.
+    ManifestDreadBy {
+        who: Recipient,
+    },
     /// "Target creature gains '...' until end of turn": a registered
     /// ability granted until end of turn (layer 6).
     GrantAbility {
@@ -6408,6 +6414,7 @@ impl Effect {
                 | Effect::DigSplit { .. }
                 | Effect::Piles { .. }
                 | Effect::ManifestDread
+                | Effect::ManifestDreadBy { .. }
                 | Effect::Door { .. }
                 | Effect::Champion(_)
                 | Effect::Blight(_)
@@ -7659,6 +7666,9 @@ pub enum TriggerSpec {
     FullyUnlocks { whose: Who },
     /// "Whenever you collect evidence" (CR 701.59).
     CollectsEvidence { whose: Who },
+    /// "Whenever you manifest dread" (CR 701.62): the card put into the
+    /// graveyard this way, if any, is the triggering object.
+    ManifestsDread { whose: Who },
     /// "Whenever you forage" (CR 701.61).
     Forages { whose: Who },
     /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
@@ -8255,6 +8265,7 @@ impl TriggerSpec {
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::CollectsEvidence { .. }
+            | TriggerSpec::ManifestsDread { .. }
             | TriggerSpec::Forages { .. }
             | TriggerSpec::OpponentGainsControl
             | TriggerSpec::DayNight => WATCH_DESIG,

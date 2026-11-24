@@ -1,0 +1,6 @@
+card "Unwanted Remake" {
+  oracle_id 90aa9113-5148-486b-a1c6-b4230e6d3e41
+  cost {W}
+  type Instant
+  spell: destroy target creature; its controller manifests dread
+}

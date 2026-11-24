@@ -1884,6 +1884,7 @@ impl Decompiler<'_> {
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,
+            CoreEffect::ManifestDreadBy { who } => Effect::ManifestDreadBy { who: r(*who) },
             CoreEffect::Blight(n) => Effect::Blight(*n),
             CoreEffect::CollectEvidence(n) => Effect::CollectEvidence(*n),
             CoreEffect::Forage => Effect::Forage,
@@ -2556,6 +2557,7 @@ impl Decompiler<'_> {
             },
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
+            TriggerSpec::ManifestsDread { .. } => Trigger::ManifestsDread,
             TriggerSpec::Forages { .. } => Trigger::Forages,
             TriggerSpec::CreaturesDealDamage(f) => Trigger::CreaturesDealDamage(self.filter(f)),
             TriggerSpec::CreaturesDealCombatDamage(f) => {

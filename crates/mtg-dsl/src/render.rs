@@ -6637,6 +6637,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
+        Effect::ManifestDreadBy { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(*who, s, "manifests dread".to_string())
+        }
+        Effect::DreadCardToHand => Clause::imperative(
+            "put a card you put into your graveyard this way into your hand".to_string(),
+        ),
         Effect::Blight(n) => Clause::imperative(format!("blight {n}")),
         Effect::CollectEvidence(n) => Clause::imperative(format!("collect evidence {n}")),
         Effect::Forage => Clause::imperative("forage".to_string()),
@@ -13578,6 +13585,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::ManifestsDread => "whenever you manifest dread".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",

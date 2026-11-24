@@ -9866,6 +9866,11 @@ impl P {
                 Ok(Effect::PhaseOut { what: subject })
             }
             "connives" => Ok(Effect::Connive { what: subject }),
+            // "Its controller manifests dread." (CR 701.62a).
+            "manifests" if self.at_word("dread") => {
+                self.pos += 1;
+                Ok(Effect::ManifestDreadBy { who: subject })
+            }
             "becomes" if self.at_word("plotted") => {
                 self.pos += 1;
                 Ok(Effect::BecomePlotted { what: subject })
@@ -11543,6 +11548,10 @@ impl P {
                 })
             }
 
+            "dread" if self.at_words(&["card", "to", "hand"]) => {
+                self.pos += 3;
+                Ok(Effect::DreadCardToHand)
+            }
             "put" => {
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -17216,6 +17225,9 @@ impl P {
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
         }
+        if self.eat_words(&["you", "manifest", "dread"]) {
+            return Ok(Trigger::ManifestsDread);
+        }
         if self.eat_words(&["you", "forage"]) {
             return Ok(Trigger::Forages);
         }
@@ -19498,6 +19510,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::WinsFlip { .. }
         | Trigger::DrawsNth { .. }
         | Trigger::CollectsEvidence
+        | Trigger::ManifestsDread
         | Trigger::Forages
         | Trigger::CreaturesDealCombatDamage(_)
         | Trigger::CreaturesDealDamage(_)

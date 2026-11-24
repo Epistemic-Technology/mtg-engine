@@ -7708,6 +7708,51 @@ impl GameState {
         }
     }
 
+    /// Player `p` manifests dread (CR 701.62a): looks at the top two cards
+    /// of their library, manifests one, and puts the other into their
+    /// graveyard. The manifested permanent, if any; "whenever you manifest
+    /// dread" triggers either way.
+    fn manifest_dread(&mut self, p: PlayerId) -> Option<ObjId> {
+        let top: Vec<ObjId> = self
+            .player(p)
+            .library
+            .iter()
+            .rev()
+            .take(2)
+            .copied()
+            .collect();
+        let mut new = None;
+        let mut milled = None;
+        if let Some(&first) = top.first() {
+            let pick = if top.len() > 1 {
+                let options: Vec<Choice> = top
+                    .iter()
+                    .map(|id| Choice::Target(Target::Object(*id)))
+                    .collect();
+                top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
+            } else {
+                first
+            };
+            self.objects[pick].def = self.pool.face_down(false);
+            new = Some(self.put_onto_battlefield(pick, p));
+            for id in top {
+                if id != pick {
+                    let card = self.move_object(id, Zone::Graveyard, true);
+                    // Not if a replacement put it elsewhere (CR 614.6).
+                    if self
+                        .objects
+                        .get(card)
+                        .is_some_and(|o| o.zone == Zone::Graveyard)
+                    {
+                        milled = Some(card);
+                    }
+                }
+            }
+        }
+        self.emit(Event::ManifestedDread { player: p, milled });
+        new
+    }
+
     /// A card in exile becomes plotted (CR 702.170a, c).
     fn mark_plotted(&mut self, new: ObjId) {
         self.objects[new].alt = AltCast::Plotted;
@@ -16902,34 +16947,16 @@ impl GameState {
                 }
             }
             Effect::ManifestDread => {
-                // CR 701.62a: look at the top two, manifest one, the rest
-                // into the graveyard.
-                let p = ctx.controller;
-                let top: Vec<ObjId> = self
-                    .player(p)
-                    .library
-                    .iter()
-                    .rev()
-                    .take(2)
-                    .copied()
-                    .collect();
-                if let Some(&first) = top.first() {
-                    let pick = if top.len() > 1 {
-                        let options: Vec<Choice> = top
-                            .iter()
-                            .map(|id| Choice::Target(Target::Object(*id)))
-                            .collect();
-                        top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
-                    } else {
-                        first
-                    };
-                    self.objects[pick].def = self.pool.face_down(false);
-                    let new = self.put_onto_battlefield(pick, p);
+                if let Some(new) = self.manifest_dread(ctx.controller) {
                     ctx.created = Some(new);
-                    for id in top {
-                        if id != pick {
-                            self.move_object(id, Zone::Graveyard, true);
-                        }
+                }
+            }
+            Effect::ManifestDreadBy { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && let Some(new) = self.manifest_dread(p)
+                    {
+                        ctx.created = Some(new);
                     }
                 }
             }

@@ -1381,6 +1381,9 @@ impl GameState {
             | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
+            (TriggerSpec::ManifestsDread { whose }, Event::ManifestedDread { player, milled }) => {
+                whose_ok(*whose, *player).then_some((*milled, Some(*player)))
+            }
             // CR 122.6: "Whenever you put one or more +1/+1 counters on a
             // creature you control": counters its controller's effect put.
             (

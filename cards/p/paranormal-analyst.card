@@ -1,0 +1,7 @@
+card "Paranormal Analyst" {
+  oracle_id 8cbe71d3-b77b-49a7-9c51-ed308011b8b0
+  cost {1}{U}
+  type Creature — Human Detective
+  pt 1/3
+  triggered whenever you manifest dread: dread card to hand
+}

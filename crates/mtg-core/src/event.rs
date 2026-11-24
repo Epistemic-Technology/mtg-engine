@@ -73,6 +73,13 @@ pub enum Event {
         stage: u8,
     },
     /// A player collected evidence (CR 701.59a).
+    /// A player manifested dread (CR 701.62), with the card they put into
+    /// their graveyard this way, if any ("Whenever you manifest dread", it
+    /// triggers even if nothing could be manifested).
+    ManifestedDread {
+        player: PlayerId,
+        milled: Option<ObjId>,
+    },
     CollectedEvidence {
         player: PlayerId,
     },
@@ -435,6 +442,7 @@ impl Event {
             | Event::Unlocked { .. }
             | Event::StageChanged { .. }
             | Event::CollectedEvidence { .. }
+            | Event::ManifestedDread { .. }
             | Event::Foraged { .. }
             | Event::ControlChanged { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,

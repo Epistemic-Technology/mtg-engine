@@ -4881,6 +4881,12 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
+            Effect::ManifestDreadBy { who } => {
+                out.push(CoreEffect::ManifestDreadBy { who: r(*who) });
+            }
+            Effect::DreadCardToHand => out.push(CoreEffect::ReturnToHand {
+                what: CoreRecipient::TriggeringObject,
+            }),
             Effect::Blight(n) => out.push(CoreEffect::Blight(*n)),
             Effect::CollectEvidence(n) => out.push(CoreEffect::CollectEvidence(*n)),
             Effect::Forage => out.push(CoreEffect::Forage),
@@ -5658,6 +5664,7 @@ impl Compiler<'_> {
             },
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::ManifestsDread => TriggerSpec::ManifestsDread { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
             Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {

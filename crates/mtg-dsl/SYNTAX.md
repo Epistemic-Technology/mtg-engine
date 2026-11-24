@@ -1577,6 +1577,12 @@ manifested, printed "that creature" ("manifest dread, then put three
 +1/+1 counters on that creature"; `attach to manifested creature`:
 "attach this Equipment to that creature"). `delayed target 1: when it
 dies this turn, manifest dread` prints "When it dies this turn, ...".
+Another player: `counter target spell; its controller manifests dread`
+("Its controller manifests dread.", CR 701.62a: the face-down creature is
+theirs). Trigger `whenever you manifest dread` (it triggers even when the
+library was too small to manifest anything); in it, `dread card to hand`
+prints "put a card you put into your graveyard this way into your hand"
+(the card manifest dread put into the graveyard, if any).
 Trigger `whenever you turn a permanent face up` (a permanent you
 control; "it" is that permanent). `return up to 2 permanent card from
 among them to hand chosen` after a mill prints "return ... from among

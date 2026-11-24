@@ -975,6 +975,10 @@ impl Fmt {
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),
+            Effect::ManifestDreadBy { who } => {
+                format!("{} manifests dread", self.recipient(*who, t))
+            }
+            Effect::DreadCardToHand => "dread card to hand".to_string(),
             Effect::Blight(n) => format!("blight {n}"),
             Effect::CollectEvidence(n) => format!("collect evidence {n}"),
             Effect::Forage => "forage".to_string(),
@@ -1034,7 +1038,11 @@ impl Fmt {
                 self.recipient(*what, t)
             ),
             Effect::PlotOnResolve { what } => {
-                format!("plot {} as it resolves", self.recipient(*what, t))
+                if *what == Recipient::TriggeringObject {
+                    "plot that spell as it resolves".to_string()
+                } else {
+                    format!("plot {} as it resolves", self.recipient(*what, t))
+                }
             }
             Effect::BecomePrepared { what } => {
                 format!("{} becomes prepared", self.recipient(*what, t))
@@ -5933,6 +5941,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::ManifestsDread => "whenever you manifest dread".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
