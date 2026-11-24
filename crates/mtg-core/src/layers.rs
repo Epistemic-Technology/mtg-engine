@@ -1019,9 +1019,30 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
             if live.iter().any(|l| l.origin == origin) {
                 continue;
             }
+            // CR 604.3a: a "power is equal to ..." the object has only by a
+            // grant isn't a characteristic-defining ability: it sets base
+            // power in layer 7b, timestamped as the later of the object and
+            // the grant (CR 613.7a).
+            let granted_cda = sa
+                .parts
+                .iter()
+                .any(|p| matches!(p, Modification::CdaPt { .. }))
+                && !work
+                    .state
+                    .base_characteristics(obj)
+                    .abilities
+                    .contains(&ability);
             // CR 613.2: characteristic-defining abilities apply before
             // other effects in their layer.
-            let timestamp = if sa.parts.iter().all(Modification::is_cda) {
+            let timestamp = if granted_cda {
+                live.iter()
+                    .filter(|l| {
+                        l.parts.contains(&Modification::AddAbility(ability))
+                            && l.affected.as_ref().is_some_and(|a| a.contains(id))
+                    })
+                    .map(|l| l.timestamp)
+                    .fold(obj.timestamp, std::cmp::max)
+            } else if sa.parts.iter().all(Modification::is_cda) {
                 0
             } else {
                 obj.timestamp
@@ -1073,6 +1094,17 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                             crate::state::Chosen::Subtype(s) => Some(Modification::AddSubtype(s)),
                             _ => None,
                         },
+                        Modification::CdaPt {
+                            count,
+                            sets,
+                            plus_toughness,
+                            ..
+                        } if granted_cda => Some(Modification::CdaPt {
+                            count: count.clone(),
+                            sets: *sets,
+                            plus_toughness: *plus_toughness,
+                            granted: true,
+                        }),
                         p => Some(p.clone()),
                     })
                     .collect(),
@@ -1218,6 +1250,7 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
         count,
         sets,
         plus_toughness,
+        ..
     } = part
     {
         // CR 604.3: evaluated against the characteristics as they are

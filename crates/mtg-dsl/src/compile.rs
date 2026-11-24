@@ -5709,6 +5709,7 @@ impl Compiler<'_> {
                 count: self.count_expr(count),
                 sets: *sets,
                 plus_toughness: *plus_toughness,
+                granted: false,
             },
         }
     }

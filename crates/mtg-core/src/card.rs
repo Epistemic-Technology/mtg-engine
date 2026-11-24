@@ -1965,11 +1965,16 @@ pub enum Modification {
     /// (CR 604.3, layer 7a): what `sets` names is the count (toughness the
     /// count plus `plus_toughness`); the other keeps its printed value. The
     /// count is judged from the source's controller as the layer applies
-    /// (`CountExpr`, as for `ModifyPtPer`).
+    /// (`CountExpr`, as for `ModifyPtPer`). `granted`: the ability is on
+    /// the object only by a grant ("this gains '... base power is equal to
+    /// ...'", Ms. Marvel), so it isn't a characteristic-defining ability
+    /// (CR 604.3a) and sets base power in layer 7b by timestamp; set as the
+    /// layers gather it, never by a card definition.
     CdaPt {
         count: CountExpr,
         sets: CdaSets,
         plus_toughness: i32,
+        granted: bool,
     },
 }
 
@@ -2019,8 +2024,10 @@ impl Modification {
             | Modification::AddActivatedOf(_)
             | Modification::RemoveKeywords(_)
             | Modification::RemoveAllAbilities => Layer::L6Ability,
-            Modification::CdaPt { .. } => Layer::L7aCda,
-            Modification::SetPt { .. } => Layer::L7bSetPt,
+            Modification::CdaPt { granted: false, .. } => Layer::L7aCda,
+            Modification::SetPt { .. } | Modification::CdaPt { granted: true, .. } => {
+                Layer::L7bSetPt
+            }
             Modification::ModifyPt { .. } | Modification::ModifyPtPer { .. } => Layer::L7cModifyPt,
             Modification::SwitchPt => Layer::L7dSwitchPt,
         }
@@ -2031,7 +2038,7 @@ impl Modification {
     pub const fn is_cda(&self) -> bool {
         matches!(
             self,
-            Modification::CdaColors(_) | Modification::CdaPt { .. }
+            Modification::CdaColors(_) | Modification::CdaPt { granted: false, .. }
         )
     }
 }
