@@ -8546,7 +8546,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // a group of them is "those creatures" (Smile at Death).
             let moved = match what {
                 Recipient::Target(i) => *i..*i + 1,
-                Recipient::Targets(a, n) => *a..*a + *n,
+                Recipient::Targets(first, len) => *first..*first + *len,
                 _ => 0..0,
             };
             for i in moved {
