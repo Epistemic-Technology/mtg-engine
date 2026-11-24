@@ -2476,8 +2476,7 @@ impl GameState {
         if def.no_mana_cost {
             return false;
         }
-        let instant_speed = def.is_instant() || self.has_flash(p, def, id);
-        if !(instant_speed || sorcery_timing) {
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id)) {
             return false;
         }
         let b = self.offer_basis(p, id, def, AltCast::None);
@@ -3455,13 +3454,6 @@ impl GameState {
         (kw, storm)
     }
 
-    /// Cards in `p`'s hand that could be discarded for a cost of `source`
-    /// with this filter ("discard a creature card").
-    /// Whether `p` could cast `def` (the card `id`) now for the alternative
-    /// cost its text offers (CR 118.9): its condition, timing, the mana,
-    /// enough permanents to sacrifice or return, and targets. Additional
-    /// costs that also choose a permanent aren't combined with it.
-    #[cold]
     /// Whether `p` may cast `def`'s card `id` as though it had flash: the
     /// keyword (CR 702.8), or "This spell has flash as long as you control
     /// a Merfolk" while that holds.
@@ -3469,9 +3461,16 @@ impl GameState {
     fn has_flash(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
         def.keywords.contains(Keyword::Flash)
             || def.flash_cleanup
-            || def
-                .flash_if
-                .is_some_and(|c| self.condition_now(self.pool.condition(c), p, id))
+            || ((def.flash_if.is_some() || self.cost_change_sources > 0)
+                && self.flash_conditional(p, def, id))
+    }
+
+    /// `has_flash`'s conditional ways, out of line: "This spell has flash
+    /// as long as ...", and a static ability granting it.
+    #[inline(never)]
+    fn flash_conditional(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
+        def.flash_if
+            .is_some_and(|c| self.condition_now(self.pool.condition(c), p, id))
             || (self.cost_change_sources > 0 && self.flash_granted(p, def, id))
     }
 

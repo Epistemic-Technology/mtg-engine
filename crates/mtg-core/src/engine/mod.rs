@@ -3324,8 +3324,27 @@ impl GameState {
 
     fn finish_cleanup(&mut self) {
         self.combat_durations = 0;
-        let pool = std::sync::Arc::clone(&self.pool);
-        for (_, o) in &mut self.objects {
+        // Only permanents are dealt damage (CR 120.3), and a permanent
+        // that changes zones is a new object without it (CR 400.7): the
+        // battlefield and the phased-out permanents hold all there is.
+        debug_assert!(
+            self.objects
+                .iter()
+                .filter(|(id, _)| {
+                    !self.battlefield.contains(id) && !self.phased_out.iter().any(|p| p.id == *id)
+                })
+                .all(|(_, o)| o.damage == 0 && !o.deathtouch_damage),
+            "damage on an object that is not a permanent"
+        );
+        let (pool, objects) = (&self.pool, &mut self.objects);
+        let damaged = self
+            .battlefield
+            .iter()
+            .chain(self.phased_out.iter().map(|p| &p.id));
+        for id in damaged {
+            let Some(o) = objects.get_mut(*id) else {
+                continue;
+            };
             // "Damage isn't removed from this creature during cleanup
             // steps." (CR 514.2).
             if o.damage > 0
