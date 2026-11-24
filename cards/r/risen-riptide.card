@@ -1,0 +1,7 @@
+card "Risen Riptide" {
+  oracle_id e682ad51-001c-4465-951e-43df96b7d3b9
+  cost {2}{U}
+  type Creature — Elemental
+  pt 0/5
+  triggered whenever you cast kicked spell: this has base power and toughness 5/5
+}

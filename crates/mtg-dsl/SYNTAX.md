@@ -1955,7 +1955,14 @@ exactly two colors"), `basic`, `legendary`, `snow`,
 CR 603.10a), `adventurer` (CR 715.2a: a card with an Adventure, used or
 not; `graveyard instant or sorcery or adventurer` counts "cards in your
 graveyard that are instant cards, sorcery cards, and/or have an
-Adventure"),
+Adventure"; on a card, `return target adventurer card from your graveyard
+to hand` prints "Return target card that has an Adventure from your
+graveyard to your hand.", Edgewall Inn), `nameless` ("can't be blocked by
+creatures that don't have a name", Pompous Gadabout: a face-down
+permanent, CR 708.2a; a token always has a name), `kicked` ("Whenever you
+cast a kicked spell", CR 702.33d: cast with its kicker or multikicker
+paid; a promised gift, which the engine keeps as the kicker flag, isn't
+kicked; judged in cast triggers, not in a mana restriction),
 colors joined with `or` or listed (`red or green creature`, `red,
 white, or black creature card`: sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,

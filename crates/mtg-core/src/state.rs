@@ -4505,9 +4505,19 @@ impl GameState {
         if q.commander.is_some() || q.except_your_tokens {
             return false;
         }
-        // CR 708.2: a face-down permanent.
-        if q.face_down && !self.pool.is_face_down(o.def) {
+        // CR 708.2: a face-down permanent; CR 708.2a: it has no name.
+        if (q.face_down || q.nameless) && !self.pool.is_face_down(o.def) {
             return false;
+        }
+        // CR 702.33d: a kicked spell, its kicker (or multikicker) paid; a
+        // promised gift keeps the same flag.
+        if q.kicked {
+            let def = self.pool.get(o.def);
+            if !(o.cast.kicked()
+                && (def.kicker.is_some() || def.kicker_cost.is_some() || def.multikicker.is_some()))
+            {
+                return false;
+            }
         }
         // CR 701.27g: "transformed permanent", a double-faced permanent
         // with its back face up.

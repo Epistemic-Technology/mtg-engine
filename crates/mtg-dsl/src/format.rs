@@ -5307,6 +5307,12 @@ fn filter_one(f: &Filter) -> String {
     if f.status.adventure {
         words.push("adventurer".to_string());
     }
+    if f.status.nameless {
+        words.push("nameless".to_string());
+    }
+    if f.status.kicked {
+        words.push("kicked".to_string());
+    }
     if f.status.prepared_spell {
         words.push("prepared".to_string());
     }

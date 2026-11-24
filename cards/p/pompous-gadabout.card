@@ -1,0 +1,8 @@
+card "Pompous Gadabout" {
+  oracle_id 0361b9b7-9097-4aae-aa06-c63a5fb47a76
+  cost {2}{G}
+  type Creature — Human Citizen
+  pt 4/2
+  static during your turn, this: has hexproof
+  can't be blocked by nameless creature
+}

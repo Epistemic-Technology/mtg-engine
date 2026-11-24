@@ -1,0 +1,8 @@
+card "Merfolk Falconer" {
+  oracle_id 77d5d435-d794-46c0-b630-a460973cf75a
+  cost {3}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 4/4
+  keywords flying
+  triggered whenever you cast kicked spell: scry 2
+}

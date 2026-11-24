@@ -1,0 +1,8 @@
+card "Lullmage's Familiar" {
+  oracle_id 2a56fe0b-f8a9-499c-bce1-cec6cb3b66f0
+  cost {1}{G}{U}
+  type Creature — Beast
+  pt 2/4
+  mana {G} or {U}
+  triggered whenever you cast kicked spell: you gain 2 life
+}

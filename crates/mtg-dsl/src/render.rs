@@ -3587,6 +3587,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.prepared_spell {
         words.push("prepared".to_string());
     }
+    // "Whenever you cast a kicked spell" (CR 702.33d).
+    if f.status.kicked {
+        words.push("kicked".to_string());
+    }
     if f.status.face_down {
         words.push("face-down".to_string());
     }
@@ -3939,6 +3943,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             crate::ast::CombatRef::SaddledIt => write!(s, " that saddled it this turn"),
         };
     }
+    // "creatures that don't have a name" (CR 708.2a).
+    if f.status.nameless {
+        that(
+            &mut s,
+            " that doesn't have a name",
+            " that don't have a name",
+        );
+    }
     if f.status.entered_this_turn {
         s.push_str(" that entered this turn");
     }
@@ -4246,6 +4258,16 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         g.chosen = None;
         mv = of_chosen(c).to_string();
+    }
+    // "target card that has an Adventure" (Edgewall Inn, CR 715.2a).
+    if g.or.is_none() && mv.is_empty() && g.status.adventure {
+        g.status.adventure = false;
+        mv = if plural_form {
+            " that have an Adventure"
+        } else {
+            " that has an Adventure"
+        }
+        .to_string();
     }
     // "a creature card with no abilities" (Fang-Druid Summoner).
     if g.or.is_none() && mv.is_empty() && g.no_abilities {

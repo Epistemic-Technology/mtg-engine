@@ -1,0 +1,175 @@
+# Target kinds and filters (fourteenth wave): "a kicked spell" (CR
+# 702.33d), "creatures that don't have a name" (CR 708.2a), "target card
+# that has an Adventure" (CR 715.2a), "a land card with a basic land type"
+# (CR 205.3i).
+
+scenario "kicked spell: Lullmage's Familiar gains 2 life for a kicked spell" {
+  battlefield A: "Lullmage's Familiar", 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  run_to turn 1 postcombat_main
+  assert life A 22
+}
+
+scenario "kicked spell: an unkicked spell doesn't trigger Lullmage's Familiar" {
+  battlefield A: "Lullmage's Familiar", 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "kicked spell: a promised gift isn't a kicker" {
+  battlefield A: "Lullmage's Familiar", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Into the Flood Maw"
+  turn 1 A: cast "Into the Flood Maw" gift targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "kicked spell: an opponent's kicked spell doesn't trigger Merfolk Falconer" {
+  battlefield A: "Merfolk Falconer", "Lullmage's Familiar"
+  battlefield B: 2 "Mountain"
+  hand B: "Goblin Bushwhacker"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Goblin Bushwhacker" kicked
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Goblin Bushwhacker"
+  assert life A 20
+}
+
+scenario "kicked spell: Merfolk Falconer scries 2" {
+  battlefield A: "Merfolk Falconer", 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  library A: "Hill Giant", "Forest", "Island"
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  turn 1 A: scry "Hill Giant", "Forest"
+  run_to turn 1 postcombat_main
+  assert library A count 3
+  assert hand A count 0
+  run_to turn 3 precombat_main
+  # Turn 1 skips the draw; turn 3's draw is the Island, the other two
+  # went to the bottom.
+  assert hand A contains "Island"
+}
+
+scenario "kicked spell: Roost of Drakes kicked makes a Drake, and another for each kicked spell" {
+  battlefield A: 5 "Island", 2 "Mountain"
+  hand A: "Roost of Drakes", "Goblin Bushwhacker"
+  turn 1 A: cast "Roost of Drakes" kicked
+  turn 1 A: wait
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Drake"
+}
+
+scenario "kicked spell: Roost of Drakes unkicked makes no Drake" {
+  battlefield A: "Island", "Mountain"
+  hand A: "Roost of Drakes", "Goblin Bushwhacker"
+  turn 1 A: cast "Roost of Drakes"
+  turn 1 A: wait
+  turn 1 A: cast "Goblin Bushwhacker"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Drake"
+}
+
+scenario "kicked spell: Risen Riptide becomes 5/5 until end of turn" {
+  battlefield A: "Risen Riptide", 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  run_to turn 1 postcombat_main
+  # 5/5, and +1/+0 from the kicked Bushwhacker.
+  assert power "Risen Riptide" 6
+  assert toughness "Risen Riptide" 5
+  run_to turn 2 upkeep
+  assert power "Risen Riptide" 0
+}
+
+scenario "nameless: a face-down creature can't block Pompous Gadabout" {
+  battlefield A: "Pompous Gadabout"
+  battlefield B: 3 "Mountain"
+  hand B: "Atarka Efreet"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Atarka Efreet" face_down
+  turn 2 A: attack "Pompous Gadabout"
+  illegal turn 2 B: block "Pompous Gadabout" with "face-down creature"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "nameless: a creature with a name blocks Pompous Gadabout" {
+  battlefield A: "Pompous Gadabout"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Pompous Gadabout"
+  turn 2 B: block "Pompous Gadabout" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Pompous Gadabout"
+}
+
+scenario "nameless: Pompous Gadabout has hexproof only during its controller's turn" {
+  battlefield A: "Pompous Gadabout", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Shock"
+  hand B: "Shock"
+  start turn 2 A precombat_main
+  illegal turn 2 B: cast "Shock" targeting "Pompous Gadabout"
+  turn 3 B: cast "Shock" targeting "Pompous Gadabout"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Pompous Gadabout"
+}
+
+scenario "has an Adventure: Edgewall Inn returns a card that has an Adventure" {
+  battlefield A: "Edgewall Inn", 3 "Mountain"
+  graveyard A: "Heartflame Duelist", "Grizzly Bears"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Edgewall Inn" targeting "Grizzly Bears"
+  turn 2 A: activate "Edgewall Inn" targeting "Heartflame Duelist"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Heartflame Duelist"
+  assert graveyard A contains "Edgewall Inn"
+}
+
+scenario "has an Adventure: Edgewall Inn taps for the chosen color" {
+  hand A: "Edgewall Inn", "Shock"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: play "Edgewall Inn"
+  turn 1 A: choose red
+  turn 3 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "basic land type: Perilous Forays finds a nonbasic land with a basic land type" {
+  battlefield A: "Perilous Forays", "Grizzly Bears", "Forest"
+  library A: "Mishra's Factory", "Overgrown Tomb"
+  turn 1 A: activate "Perilous Forays" sacrificing "Grizzly Bears"
+  turn 1 A: choose "Overgrown Tomb"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Overgrown Tomb"
+  assert tapped "Overgrown Tomb"
+  assert library A contains "Mishra's Factory"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "basic land type: Sprouting Goblin kicked finds a land card with a basic land type" {
+  battlefield A: 2 "Mountain", "Forest"
+  hand A: "Sprouting Goblin"
+  library A: "Mishra's Factory", "Overgrown Tomb"
+  turn 1 A: cast "Sprouting Goblin" kicked
+  run_to turn 1 postcombat_main
+  assert hand A contains "Overgrown Tomb"
+  assert library A contains "Mishra's Factory"
+}
+
+scenario "basic land type: Sprouting Goblin unkicked searches nothing" {
+  battlefield A: 2 "Mountain"
+  hand A: "Sprouting Goblin"
+  library A: "Overgrown Tomb"
+  turn 1 A: cast "Sprouting Goblin"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

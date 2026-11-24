@@ -1500,6 +1500,15 @@ pub struct StatusQuals {
     /// spell on the stack doesn't (its ruling). Judged on the card.
     #[serde(default)]
     pub adventure: bool,
+    /// "creatures that don't have a name" (Pompous Gadabout): a
+    /// face-down permanent, the only object without one here (CR 708.2a;
+    /// a token always has a name, CR 111.4).
+    #[serde(default)]
+    pub nameless: bool,
+    /// "a kicked spell" (CR 702.33d): a spell cast with its kicker or
+    /// multikicker paid (not a promised gift, which shares the flag).
+    #[serde(default)]
+    pub kicked: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1578,6 +1587,8 @@ impl StatusQuals {
             || self.except_your_tokens
             || self.x_in_cost
             || self.adventure
+            || self.nameless
+            || self.kicked
             || self.warped
             || self.prepared_spell
     }

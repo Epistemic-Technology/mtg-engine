@@ -17949,6 +17949,16 @@ impl P {
                     f.status.adventure = true;
                     self.pos += 1;
                 }
+                // `nameless`: "that doesn't have a name" (CR 708.2a).
+                "nameless" if !f.status.nameless => {
+                    f.status.nameless = true;
+                    self.pos += 1;
+                }
+                // "Whenever you cast a kicked spell" (CR 702.33d).
+                "kicked" if !f.status.kicked && self.word_at(1).as_deref() != Some("with") => {
+                    f.status.kicked = true;
+                    self.pos += 1;
+                }
                 // "Whenever you cast a prepared spell" (CR 722.3c).
                 "prepared" if !f.status.prepared_spell => {
                     f.status.prepared_spell = true;
