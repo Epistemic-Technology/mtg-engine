@@ -1,0 +1,8 @@
+card "Tibalt, Rakish Instigator" {
+  oracle_id 0b768f8f-2213-45b9-bced-8fb1bbb441c3
+  cost {2}{R}
+  type Legendary Planeswalker — Tibalt
+  loyalty 5
+  opponents can't gain life
+  loyalty -2: create 1 "1/1 red Devil creature that pings"
+}

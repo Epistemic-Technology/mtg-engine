@@ -23,7 +23,20 @@ impl GameState {
                 && (!c.has(Keyword::Defender) || c.has(Keyword::AttackDespiteDefender))
                 && !c.has(Keyword::CantAttack)
                 && self.unless_rules_allow(*id, &c, false)
+                && (self.player_static_sources == 0 || self.may_attack_something(*id, p))
         })
+    }
+
+    /// Whether `id` may attack something `p`'s opponent offers despite
+    /// "Creatures with flying can't attack you [or planeswalkers you
+    /// control]" (CR 508.1c): the player, a planeswalker, or a battle.
+    fn may_attack_something(&self, id: ObjId, p: PlayerId) -> bool {
+        let defender = self.opponent(p);
+        !self.attack_banned(id, Target::Player(defender))
+            || self
+                .planeswalkers_of(defender)
+                .any(|pw| !self.attack_banned(id, Target::Object(pw)))
+            || self.attackable_battles(defender).next().is_some()
     }
 
     /// "Can't attack unless ..." / "can't block unless ..." (CR 508.1c,

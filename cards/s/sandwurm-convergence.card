@@ -1,0 +1,7 @@
+card "Sandwurm Convergence" {
+  oracle_id 429eff2b-635b-43f6-b20f-82e25992c0b9
+  cost {6}{G}{G}
+  type Enchantment
+  ban attacking you or planeswalkers creature with flying
+  triggered at the beginning of your end step: create 1 "5/5 green Wurm creature"
+}

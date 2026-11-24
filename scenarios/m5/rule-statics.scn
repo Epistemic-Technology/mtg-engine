@@ -1,0 +1,309 @@
+# Static abilities that change what players may do (CR 101.2, 614.17):
+# spell and draw limits, "can't draw cards", "can't gain life", the legend
+# rule switched off, "can't attack you", "can't be turned face up".
+
+# ----- "Each player can't cast more than one spell each turn." -----
+
+scenario "High Noon: a second spell in a turn isn't offered" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "High Noon"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "High Noon: the next turn the player may cast one again" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "High Noon"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Rule of Law binds its controller's opponent during the controller's turn too" {
+  battlefield A: "Rule of Law", 2 "Plains"
+  battlefield B: 2 "Mountain"
+  hand A: "Grizzly Bears"
+  hand B: "Shock", "Lightning Bolt"
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 B: wait
+  illegal turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert hand B contains "Lightning Bolt"
+}
+
+scenario "Rule of Law: its own controller is limited as well" {
+  battlefield A: "Rule of Law", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Rule of Law: cascade can't cast a second spell" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  battlefield B: "Rule of Law"
+  hand A: "Bloodbraid Elf"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Bloodbraid Elf"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bloodbraid Elf"
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Without Rule of Law cascade casts the spell" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Bloodbraid Elf"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Bloodbraid Elf"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Eidolon of Rhetoric: a land can still be played after a spell" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Eidolon of Rhetoric"
+  hand A: "Shock", "Forest"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+}
+
+scenario "Moderation: only its controller is limited, and each spell draws a card" {
+  battlefield A: "Moderation", 2 "Mountain"
+  battlefield B: 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  hand B: "Shock", "Lightning Bolt"
+  library A: "Island", "Plains", "Swamp"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 B: wait
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 15
+  assert hand A contains "Island"
+  assert hand A count 2
+}
+
+scenario "Curse of Exhaustion limits the enchanted player only" {
+  battlefield A: 2 "Mountain", 4 "Plains"
+  battlefield B: 2 "Mountain"
+  hand A: "Curse of Exhaustion", "Shock"
+  hand B: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Curse of Exhaustion" targeting player B
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 B: wait
+  illegal turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 18
+}
+
+scenario "Archon of Emeria: nonbasic lands an opponent controls enter tapped" {
+  battlefield B: "Archon of Emeria"
+  hand A: "Evolving Wilds"
+  turn 1 A: play "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert tapped "Evolving Wilds"
+}
+
+# ----- "Players can't draw cards." -----
+
+scenario "Mornsong Aria: no draw in the draw step; the trigger costs 3 life and finds a card" {
+  battlefield A: "Mornsong Aria"
+  library A: "Island", "Plains", "Hill Giant"
+  start turn 2 A upkeep
+  turn 2 draw A: choose "Hill Giant"
+  run_to turn 2 precombat_main
+  assert life A 17
+  assert hand A count 1
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Mornsong Aria: a draw effect draws nothing, and no one gains life" {
+  battlefield A: "Mornsong Aria", 3 "Island", "Plains"
+  hand A: "Divination", "Healing Salve"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  # The draw step's trigger found one card (the draw itself is skipped
+  # on the first turn, the step is not); Divination drew none.
+  assert hand A count 1
+  assert life A 17
+}
+
+scenario "Maralen of the Mornsong: no draws, but life can be gained" {
+  battlefield A: "Maralen of the Mornsong", 3 "Island", "Plains"
+  hand A: "Divination", "Healing Salve"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 20
+}
+
+scenario "Spirit of the Labyrinth: the second card in a turn isn't drawn" {
+  battlefield A: 3 "Island"
+  battlefield B: "Spirit of the Labyrinth"
+  hand A: "Divination"
+  library A: "Plains", "Swamp", "Forest"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Plains"
+}
+
+scenario "Spirit of the Labyrinth: after the draw step's card, Divination draws none" {
+  battlefield A: 3 "Island"
+  battlefield B: "Spirit of the Labyrinth"
+  hand A: "Divination"
+  library A: "Plains", "Swamp", "Forest"
+  start turn 3 A
+  turn 3 A: cast "Divination"
+  run_to turn 3 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Plains"
+}
+
+# ----- "Your opponents can't gain life." -----
+
+scenario "Knight of Dusk's Shadow: an opponent gains no life, its controller does" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Knight of Dusk's Shadow", "Plains"
+  hand A: "Healing Salve"
+  hand B: "Healing Salve"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 B: cast "Healing Salve" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 23
+}
+
+scenario "Tibalt, Rakish Instigator: opponents can't gain life; -2 makes a Devil" {
+  battlefield A: "Plains"
+  battlefield B: "Tibalt, Rakish Instigator"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 2 B: activate "Tibalt, Rakish Instigator"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert battlefield B contains "Devil"
+  assert counters "Tibalt, Rakish Instigator" loyalty 3
+}
+
+# ----- The "legend rule" -----
+
+scenario "Mirror Gallery: two legends of the same name both stay" {
+  battlefield A: "Mirror Gallery", "Isamaru, Hound of Konda", "Plains"
+  hand A: "Isamaru, Hound of Konda"
+  turn 1 A: cast "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Isamaru, Hound of Konda"
+}
+
+scenario "Without Mirror Gallery the legend rule applies" {
+  battlefield A: "Isamaru, Hound of Konda", "Plains"
+  hand A: "Isamaru, Hound of Konda"
+  turn 1 A: cast "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert graveyard A contains "Isamaru, Hound of Konda"
+}
+
+scenario "Hall of Echoes copies a legend; both stay this turn" {
+  battlefield A: "Hall of Echoes", "Isamaru, Hound of Konda", 5 "Plains"
+  turn 1 A: activate "Hall of Echoes" ability 2 targeting "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Isamaru, Hound of Konda"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hall of Echoes"
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+}
+
+# ----- "Creatures ... can't attack you." -----
+
+scenario "Blazing Archon: no creature can attack its controller" {
+  battlefield A: "Grizzly Bears", "Serra Angel"
+  battlefield B: "Blazing Archon"
+  illegal turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Blazing Archon: its controller's own creatures attack" {
+  battlefield A: "Blazing Archon"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Blazing Archon"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Reverence: power 2 or less can't attack, power 3 can" {
+  battlefield A: "Grizzly Bears", "Hill Giant"
+  battlefield B: "Reverence"
+  illegal turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 20
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Sandwurm Convergence: a flyer can't attack its controller's planeswalker either" {
+  battlefield A: "Wind Drake", "Grizzly Bears"
+  battlefield B: "Sandwurm Convergence", "Tibalt, Rakish Instigator"
+  illegal turn 1 A: attack "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert counters "Tibalt, Rakish Instigator" loyalty 5
+  assert life B 20
+  run_to turn 2 cleanup
+  assert battlefield B contains "Wurm"
+}
+
+scenario "Sandwurm Convergence: a creature without flying attacks its planeswalker" {
+  battlefield A: "Wind Drake", "Grizzly Bears"
+  battlefield B: "Sandwurm Convergence", "Tibalt, Rakish Instigator"
+  turn 1 A: attack "Grizzly Bears" at "Tibalt, Rakish Instigator"
+  run_to turn 1 postcombat_main
+  assert counters "Tibalt, Rakish Instigator" loyalty 3
+}
+
+# ----- "can't be turned face up" -----
+
+scenario "Karlov Watchdog: an opponent's face-down creature can't be turned up during its controller's turn" {
+  battlefield A: "Karlov Watchdog", 3 "Mountain"
+  battlefield B: 6 "Mountain"
+  hand B: "Atarka Efreet"
+  start turn 2 B
+  turn 2 B: cast "Atarka Efreet" face_down
+  illegal turn 3 B: unmorph "Atarka Efreet"
+  turn 4 B: unmorph "Atarka Efreet"
+  run_to turn 4 postcombat_main
+  assert battlefield B contains "Atarka Efreet"
+}
+
+scenario "Karlov Watchdog: three attackers get +1/+1" {
+  battlefield A: "Karlov Watchdog", "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Karlov Watchdog", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 9
+}

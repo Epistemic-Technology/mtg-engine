@@ -8,7 +8,7 @@ use smallvec::SmallVec;
 
 use super::replace::{Enter, Proposed};
 use crate::card::CounterKind;
-use crate::card::{CardRef, DefFlags, Keyword, RuleKind, TurnEvent};
+use crate::card::{CardRef, DefFlags, Keyword, TurnEvent};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{
@@ -1318,6 +1318,10 @@ impl GameState {
 
     /// Draw a card (CR 121.1), subject to replacement effects (CR 614.11).
     pub(super) fn draw(&mut self, p: PlayerId) {
+        // "Players can't draw cards." (CR 101.2): nothing to replace.
+        if self.cant_draw(p) {
+            return;
+        }
         if self.dredge_cards > 0 && self.dredge(p) {
             return;
         }
@@ -1469,7 +1473,7 @@ impl GameState {
     /// CR 119.3: a player gains life, subject to replacement effects and to
     /// "can't gain life" (CR 614.17c: such an event is not replaced).
     pub(super) fn gain_life(&mut self, p: PlayerId, amount: u32) {
-        if amount == 0 || self.rule_in_force(RuleKind::NoLifeGain) {
+        if amount == 0 || self.cant_gain_life(p) {
             return;
         }
         self.propose(Proposed::GainLife { player: p, amount });

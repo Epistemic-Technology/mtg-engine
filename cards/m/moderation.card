@@ -1,0 +1,7 @@
+card "Moderation" {
+  oracle_id 57f94fcb-a224-410b-a38e-3ed8cca7d0c7
+  cost {1}{W}{U}
+  type Enchantment
+  you can't cast more than one spell each turn
+  triggered whenever you cast a spell: draw 1 card
+}

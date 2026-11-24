@@ -2876,11 +2876,142 @@ impl GameState {
 
     /// Whether a "can't" effect of this kind is in force (CR 614.17).
     pub fn rule_in_force(&self, kind: RuleKind) -> bool {
+        let both = matches!(kind, RuleKind::NoDraw | RuleKind::NoLifeGain);
         self.rules.iter().any(|r| r.kind == kind)
             || self.player_static_sources > 0
-                && self
-                    .player_statics()
-                    .any(|(_, k)| k == crate::card::PlayerStaticKind::Rule(kind))
+                && self.player_statics().any(|(_, k)| {
+                    k == crate::card::PlayerStaticKind::Rule(kind)
+                        || both
+                            && k == crate::card::PlayerStaticKind::Rule(RuleKind::NoDrawOrLifeGain)
+                })
+    }
+
+    /// Whether a player-level "can't" for `players` (relative to its
+    /// source `src`, controlled by `who`) applies to `p`.
+    fn rule_players_include(
+        &self,
+        players: crate::card::RulePlayers,
+        who: PlayerId,
+        src: ObjId,
+        p: PlayerId,
+    ) -> bool {
+        match players {
+            crate::card::RulePlayers::Each => true,
+            crate::card::RulePlayers::You => who == p,
+            crate::card::RulePlayers::Opponents => who != p,
+            crate::card::RulePlayers::Enchanted => self.attached_player_of(src) == Some(p),
+        }
+    }
+
+    /// Whether `p` can't gain life (CR 119.7): "Players can't gain
+    /// life.", "Your opponents can't gain life [this turn].", "Enchanted
+    /// player can't gain life."
+    pub fn cant_gain_life(&self, p: PlayerId) -> bool {
+        self.rule_in_force(RuleKind::NoLifeGain)
+            || !self.player_rules.is_empty() && self.player_rule(p, PlayerRuleKind::CantGainLife)
+            || self.player_static_sources > 0
+                && self.player_statics_of().any(|(who, kind, src)| {
+                    matches!(kind, crate::card::PlayerStaticKind::CantGainLife(ps)
+                        if self.rule_players_include(ps, who, src, p))
+                })
+    }
+
+    /// Whether `p` can't draw a card now (CR 121.1): "Players can't draw
+    /// cards.", or a "can't draw more than one card each turn" once they
+    /// have drawn one.
+    pub fn cant_draw(&self, p: PlayerId) -> bool {
+        self.rule_in_force(RuleKind::NoDraw)
+            || self.player_static_sources > 0
+                && self.tallied(crate::card::TurnEvent::Drew, p) >= 1
+                && self.player_statics_of().any(|(who, kind, src)| {
+                    matches!(kind, crate::card::PlayerStaticKind::DrawLimit(ps)
+                        if self.rule_players_include(ps, who, src, p))
+                })
+    }
+
+    /// Whether `p` may cast no more spells this turn: "Each player can't
+    /// cast more than one spell each turn." once they have cast one, or
+    /// "Your opponents can't cast spells during your turn." (CR 101.2).
+    pub fn cast_forbidden(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && (self.cant_cast_spells(p)
+                || self.tallied(crate::card::TurnEvent::Cast, p) >= 1
+                    && self.player_statics_of().any(|(who, kind, src)| {
+                        matches!(kind, crate::card::PlayerStaticKind::CastLimit(ps)
+                            if self.rule_players_include(ps, who, src, p))
+                    }))
+    }
+
+    /// Whether the legend rule (CR 704.5j) doesn't apply to `p`'s
+    /// permanents: "The "legend rule" doesn't apply [to permanents you
+    /// control] [this turn]."
+    pub fn legend_rule_off(&self, p: PlayerId) -> bool {
+        !self.player_rules.is_empty() && self.player_rule(p, PlayerRuleKind::NoLegendRule)
+            || self.player_static_sources > 0
+                && self.player_statics().any(|(who, kind)| {
+                    matches!(kind, crate::card::PlayerStaticKind::NoLegendRule { yours }
+                        if !yours || who == p)
+                })
+    }
+
+    /// Whether face-down permanent `id` can't be turned face up now (CR
+    /// 702.37e): an Aura's "As long as enchanted creature is face down, it
+    /// can't be turned face up.", or "Permanents your opponents control
+    /// can't be turned face up during your turn."
+    pub fn face_up_banned(&self, id: ObjId) -> bool {
+        self.player_static_sources > 0 && {
+            let ctl = self.objects.get(id).map(|o| o.controller);
+            self.player_statics_of().any(|(who, kind, src)| match kind {
+                crate::card::PlayerStaticKind::FaceUpBan(crate::card::FaceUpBan::Enchanted) => {
+                    self.objects.get(src).and_then(|s| s.attached_to) == Some(id)
+                }
+                crate::card::PlayerStaticKind::FaceUpBan(
+                    crate::card::FaceUpBan::OpponentsYourTurn,
+                ) => self.active_player == who && ctl.is_some_and(|c| c != who),
+                _ => false,
+            })
+        }
+    }
+
+    /// Whether `attacker` can't attack `at` (a player or a planeswalker):
+    /// "Creatures with flying can't attack you [or planeswalkers you
+    /// control]." (CR 508.1c).
+    pub fn attack_banned(&self, attacker: ObjId, at: Target) -> bool {
+        self.player_static_sources > 0 && {
+            let Some(a) = self.objects.get(attacker) else {
+                return false;
+            };
+            let Some(c) = self.characteristics(attacker) else {
+                return false;
+            };
+            self.player_statics_of().any(|(who, kind, src)| {
+                let crate::card::PlayerStaticKind::CantAttackYou {
+                    attackers,
+                    planeswalkers,
+                } = kind
+                else {
+                    return false;
+                };
+                let protected = match at {
+                    Target::Player(p) => p == who,
+                    Target::Object(pw) => {
+                        planeswalkers
+                            && self.objects.get(pw).is_some_and(|o| o.controller == who)
+                            && self
+                                .characteristics(pw)
+                                .is_some_and(|pc| pc.is_planeswalker())
+                    }
+                };
+                protected
+                    && self.pool.filter(attackers).matches(
+                        attacker,
+                        a.controller,
+                        &c,
+                        Some(src),
+                        Some(who),
+                    )
+            })
+        }
     }
 
     /// Whether a "can't" effect of this kind applies to `p` this turn.

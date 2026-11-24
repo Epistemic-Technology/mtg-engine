@@ -1,0 +1,6 @@
+card "Mirror Gallery" {
+  oracle_id 7c9c3060-ca9d-4868-84c6-2a95b0fa8885
+  cost {5}
+  type Artifact
+  legend rule doesn't apply
+}

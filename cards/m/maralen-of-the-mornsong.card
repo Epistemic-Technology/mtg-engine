@@ -1,0 +1,8 @@
+card "Maralen of the Mornsong" {
+  oracle_id 0b40032b-711d-499f-8bb9-87855f1fce9e
+  cost {1}{B}{B}
+  type Legendary Creature — Elf Wizard
+  pt 2/3
+  players can't draw cards
+  triggered at the beginning of each player's draw step: that player loses 3 life, that player searches card to hand
+}

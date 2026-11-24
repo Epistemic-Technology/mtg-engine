@@ -441,6 +441,10 @@ impl GameState {
         let mut out = Vec::new();
         for i in 0..self.num_players() {
             let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            // "The "legend rule" doesn't apply to permanents you control."
+            if self.legend_rule_off(p) {
+                continue;
+            }
             let mut by_name: HashMap<&str, Vec<ObjId>> = HashMap::new();
             for id in self.permanents_of(p) {
                 let def = self.pool.get(self.objects[id].def);

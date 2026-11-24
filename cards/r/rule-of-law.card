@@ -1,0 +1,6 @@
+card "Rule of Law" {
+  oracle_id 53e88e64-6f82-4154-a66e-6aeb0154b368
+  cost {2}{W}
+  type Enchantment
+  each player can't cast more than one spell each turn
+}

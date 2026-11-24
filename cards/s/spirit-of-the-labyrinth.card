@@ -1,0 +1,7 @@
+card "Spirit of the Labyrinth" {
+  oracle_id 1463795b-ec0c-44d6-ae1a-55f78d9843ec
+  cost {1}{W}
+  type Enchantment Creature — Spirit
+  pt 3/1
+  each player can't draw more than one card each turn
+}

@@ -6180,6 +6180,19 @@ impl Compiler<'_> {
                 cause: *cause,
                 suppress: *suppress,
             },
+            Ability::CantAttackYou {
+                filter,
+                planeswalkers,
+            } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CantAttackYou {
+                        attackers: self.pool.intern_filter(f),
+                        planeswalkers: *planeswalkers,
+                    },
+                    condition: None,
+                }
+            }
             Ability::ActivationCost {
                 filter,
                 by,

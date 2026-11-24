@@ -1,0 +1,9 @@
+card "Knight of Dusk's Shadow" {
+  oracle_id 815ae30f-f455-4795-96eb-4bcc41d415e8
+  cost {1}{B}
+  type Creature — Human Knight
+  pt 2/2
+  keywords menace
+  opponents can't gain life
+  activated {1}{B}: this gets +1/+1 until end of turn
+}

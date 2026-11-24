@@ -1,0 +1,9 @@
+card "Karlov Watchdog" {
+  oracle_id 73f44500-fe83-40fa-b6f2-ed5673d0edcc
+  cost {3}{W}
+  type Creature — Dog
+  pt 3/2
+  keywords vigilance
+  opponents permanents can't be turned face up during your turn
+  triggered whenever you attack with 3 or more creatures: each creature you control gets +1/+1
+}

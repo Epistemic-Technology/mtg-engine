@@ -1,0 +1,7 @@
+card "Mornsong Aria" {
+  oracle_id 8ca2f668-2a4d-4a1e-abcc-093ccbc29295
+  cost {1}{B}{B}
+  type Legendary Enchantment
+  players can't draw cards or gain life
+  triggered at the beginning of each player's draw step: that player loses 3 life, that player searches card to hand
+}

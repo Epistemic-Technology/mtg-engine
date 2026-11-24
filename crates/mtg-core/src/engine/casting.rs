@@ -791,8 +791,9 @@ impl GameState {
                 _ => true,
             });
         }
-        // "Your opponents can't cast spells during your turn."
-        if self.player_static_sources > 0 && self.cant_cast_spells(p) {
+        // "Your opponents can't cast spells during your turn.", "Each
+        // player can't cast more than one spell each turn." (CR 101.2).
+        if self.cast_forbidden(p) {
             options.retain(|c| match c {
                 Choice::CastFace { card, face } => self.land_face(*card, *face).is_some(),
                 Choice::Cast(_)
@@ -801,6 +802,9 @@ impl GameState {
                 | Choice::CastFree(_)
                 | Choice::CastWarp(_)
                 | Choice::CastSneak(_)
+                | Choice::CastImpending(_)
+                | Choice::CastWebSlinging(_)
+                | Choice::CastHarmonize { .. }
                 | Choice::CastAlt(_)
                 | Choice::CastBestow(_)
                 | Choice::CastOverload(_)
@@ -2701,6 +2705,7 @@ impl GameState {
     fn face_up_options(&self, p: PlayerId, sources: &Sources, options: &mut Vec<Choice>) {
         for id in self.permanents_of(p) {
             if let Some(cost) = self.face_up_cost(id)
+                && !self.face_up_banned(id)
                 && self.payable_for(
                     p,
                     sources,
@@ -4470,7 +4475,9 @@ impl GameState {
         face: crate::card::CardRef,
     ) -> bool {
         let def = self.pool.get(face);
-        if def.is_land() {
+        // "Each player can't cast more than one spell each turn." (CR
+        // 101.2): an effect's permission doesn't override it.
+        if def.is_land() || self.cast_forbidden(p) {
             return false;
         }
         let targets_ok = match def.modes() {
@@ -13940,7 +13947,7 @@ impl GameState {
                         continue;
                     };
                     let o = &self.objects[id];
-                    if !self.pool.is_face_down(o.def) {
+                    if !self.pool.is_face_down(o.def) || self.face_up_banned(id) {
                         continue;
                     }
                     if self.pool.get(o.card).is_permanent_card() {

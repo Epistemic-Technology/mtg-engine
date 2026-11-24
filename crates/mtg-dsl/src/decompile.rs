@@ -2612,6 +2612,17 @@ impl Decompiler<'_> {
                 min_one: *min_one,
                 keyword: *keyword,
             },
+            AbilityDef::PlayerStatic {
+                kind:
+                    mtg_core::card::PlayerStaticKind::CantAttackYou {
+                        attackers,
+                        planeswalkers,
+                    },
+                ..
+            } => Ability::CantAttackYou {
+                filter: self.filter(self.pool.filter(*attackers)),
+                planeswalkers: *planeswalkers,
+            },
             AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
                 kind: *kind,
                 cond: condition.map(|c| self.static_cond(self.pool.condition(c))),

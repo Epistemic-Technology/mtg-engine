@@ -1,0 +1,7 @@
+card "Curse of Exhaustion" {
+  oracle_id 6659fae5-09d9-4095-8de3-643afd6ad3be
+  cost {2}{W}{W}
+  type Enchantment — Aura Curse
+  enchant player
+  enchanted player can't cast more than one spell each turn
+}
