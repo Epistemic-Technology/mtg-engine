@@ -740,7 +740,8 @@ impl GameState {
                         .contains(crate::card::Keyword::SplitSecond)
                         // "Instant and sorcery spells you control have
                         // split second."
-                        || ((self.cost_change_sources > 0 || !self.spell_gains.is_empty())
+                        || (((self.pool.stack_grants && self.cost_change_sources > 0)
+                            || !self.spell_gains.is_empty())
                             && self
                                 .stack_spell_keywords(*s)
                                 .contains(crate::card::Keyword::SplitSecond))
@@ -3799,7 +3800,7 @@ impl GameState {
                 kw = kw.union(*k);
             }
         }
-        if self.cost_change_sources > 0 {
+        if self.pool.stack_grants && self.cost_change_sources > 0 {
             let def = self.pool.get(o.def);
             kw = kw.union(self.spell_keywords(o.controller, def, id).0);
         }

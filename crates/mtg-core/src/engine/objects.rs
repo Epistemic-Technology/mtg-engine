@@ -1752,7 +1752,8 @@ impl GameState {
         // A resolving spell's keywords from a static ability ("Instant and
         // sorcery spells you control have lifelink") or an effect ("That
         // spell gains deathtouch and lifelink").
-        if (self.cost_change_sources > 0 || !self.spell_gains.is_empty())
+        if ((self.pool.stack_grants && self.cost_change_sources > 0)
+            || !self.spell_gains.is_empty())
             && let Some(c) = src.as_mut()
         {
             c.keywords = c.keywords.union(self.stack_spell_keywords(source));

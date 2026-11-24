@@ -8905,10 +8905,10 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
 pub fn target_cost_mana(delta: i32, colors: &[mtg_core::mana::Color]) -> String {
     let mut s = String::new();
     if delta != 0 || colors.is_empty() {
-        s.push_str(&format!("{{{}}}", delta.unsigned_abs()));
+        let _ = write!(s, "{{{}}}", delta.unsigned_abs());
     }
     for c in colors {
-        s.push_str(&format!("{{{}}}", c.letter()));
+        let _ = write!(s, "{{{}}}", c.letter());
     }
     s
 }

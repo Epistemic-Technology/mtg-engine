@@ -5252,11 +5252,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                     .map(|t| format!("{} cards", type_noun(*t)))
                     .collect();
                 items.push("have an Adventure".to_string());
-                let last = items.pop().unwrap_or_default();
-                let list = format!("{}, and/or {last}", items.join(", "));
+                let final_item = items.pop().unwrap_or_default();
+                let joined = format!("{}, and/or {final_item}", items.join(", "));
                 (
-                    format!("card in your graveyard that's {list}"),
-                    format!("cards in your graveyard that are {list}"),
+                    format!("card in your graveyard that's {joined}"),
+                    format!("cards in your graveyard that are {joined}"),
                 )
             }
             Some(f) => {

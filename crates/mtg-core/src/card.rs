@@ -11135,6 +11135,10 @@ pub struct CardPool {
     /// Whether some card lets mana be spent as though it were of any color
     /// for a class of spells (`SpellGrant::spend`).
     pub spend_grants: bool,
+    /// Whether some card gives spells on the stack a keyword that acts
+    /// there ("Instant and sorcery spells you control have lifelink",
+    /// "... split second"; `SpellGrant::keywords`).
+    pub stack_grants: bool,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -11238,6 +11242,7 @@ impl CardPool {
             equip_discounts: false,
             card_grants: false,
             spend_grants: false,
+            stack_grants: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -12021,6 +12026,15 @@ impl CardPool {
         self.spend_grants |= def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
+        });
+        self.stack_grants |= def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::CostChange(cc)
+            if cc.grant.as_ref().is_some_and(|g| g.keywords.intersects(KeywordSet::of([
+                Keyword::Lifelink,
+                Keyword::Deathtouch,
+                Keyword::Wither,
+                Keyword::SplitSecond,
+            ]))))
         });
         // CR 702.103b: the Aura a bestowed spell is, registered first so
         // the card's own definition keeps its name.
@@ -13322,6 +13336,7 @@ impl Builder {
 
     /// The colored part of a target cost reduction (see
     /// `CardDef::target_cost_colors`).
+    #[must_use]
     pub fn target_cost_colors(mut self, colors: crate::mana::ColorSet) -> Self {
         self.0.target_cost_colors = colors;
         self
