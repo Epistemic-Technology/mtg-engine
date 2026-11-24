@@ -5319,7 +5319,7 @@ pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool) -> String {
     match whose {
         Who::Opponents => format!("whenever an opponent draws their {nth} card {turn}"),
         Who::Any => format!("whenever a player draws their {nth} card {turn}"),
-        _ => format!("whenever you draw your {nth} card {turn}"),
+        Who::You => format!("whenever you draw your {nth} card {turn}"),
     }
 }
 

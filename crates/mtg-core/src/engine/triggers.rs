@@ -1440,17 +1440,11 @@ impl GameState {
             // CR 122.1: "Whenever one or more +1/+1 counters are put on
             // this creature": once per event, however many counters.
             // `CounterKind::Any`: "Whenever a counter is put on a creature
-            // you control", of any kind.
-            (TriggerSpec::CountersPut { what, kind }, Event::CountersAdded { obj, kind: k, .. }) => {
-                if *kind != crate::card::CounterKind::Any && k != kind {
-                    return None;
-                }
-                let p = on_battlefield(what, *obj)?;
-                Some((Some(*obj), Some(p)))
-            }
-            // "Whenever a +1/+1 counter is removed from this creature":
-            // once for each counter (`chapter_copies`).
-            (
+            // you control", of any kind. "Whenever a +1/+1 counter is
+            // removed from this creature": once for each counter
+            // (`chapter_copies`).
+            (TriggerSpec::CountersPut { what, kind }, Event::CountersAdded { obj, kind: k, .. })
+            | (
                 TriggerSpec::CountersRemoved { what, kind, .. },
                 Event::CountersRemoved { obj, kind: k, .. },
             ) => {
