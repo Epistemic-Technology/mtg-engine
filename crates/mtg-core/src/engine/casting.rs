@@ -650,20 +650,33 @@ impl GameState {
         if !self.player_rules.is_empty() {
             self.forbid_by_player_rules(p, &mut options);
         }
-        // "Spells with the chosen name can't be cast." (CR 201.3).
-        if self.player_static_sources > 0 {
-            let banned = |def: crate::card::CardRef| self.name_cant_be_cast(def);
+        // "Spells with the chosen name can't be cast." (CR 201.3); "lands
+        // with the chosen name can't be played" (Conjurer's Ban).
+        if self.player_static_sources > 0 || !self.name_rules.is_empty() {
+            let banned = |def: crate::card::CardRef| {
+                self.name_cant_be_cast(def, p) || self.spell_cant_be_cast(def)
+            };
+            let unplayable = |def: crate::card::CardRef| {
+                !self.name_rules.is_empty() && self.name_cant_be_played(def, p)
+            };
             options.retain(|c| match c {
-                Choice::CastFace { card, face } => {
-                    self.land_face(*card, *face).is_some()
-                        || !self.objects.get(*card).is_some_and(|o| {
-                            self.pool
-                                .get(o.def)
-                                .faces
-                                .get(usize::from(*face))
-                                .is_some_and(|f| banned(*f))
-                        })
+                Choice::PlayLand(id) => !self.objects.get(*id).is_some_and(|o| unplayable(o.def)),
+                Choice::CastFace { card, face } if self.land_face(*card, *face).is_some() => {
+                    !self.objects.get(*card).is_some_and(|o| {
+                        self.pool
+                            .get(o.def)
+                            .faces
+                            .get(usize::from(*face))
+                            .is_some_and(|f| unplayable(*f))
+                    })
                 }
+                Choice::CastFace { card, face } => !self.objects.get(*card).is_some_and(|o| {
+                    self.pool
+                        .get(o.def)
+                        .faces
+                        .get(usize::from(*face))
+                        .is_some_and(|f| banned(*f))
+                }),
                 Choice::Cast(id)
                 | Choice::CastEvoke(id)
                 | Choice::CastDash(id)
@@ -9167,6 +9180,10 @@ impl GameState {
             // "Choose odd or even.": `choose "1"` (odd) or `"2"` (even).
             // "Choose a number between 0 and 10.": `choose "7"`.
             ChoiceKind::Number { min, max } => {
+                // "Choose a number." (`max` 255, any number): the numbers
+                // up to 20 are offered, past any card's mana value but
+                // Gleemax's (CR 202.3).
+                let max = if max == u8::MAX { 20 } else { max };
                 let options: Vec<Choice> = (min..=max).map(|n| Choice::X(u32::from(n))).collect();
                 let k = self.choose_mid(p, DecisionKind::ChooseOption { def }, options);
                 return Chosen::Number(min.saturating_add(u8::try_from(k).unwrap_or(0)).min(max));
@@ -9198,14 +9215,24 @@ impl GameState {
             ),
             // "choose a card name": the names of the cards in the game, in
             // name order (`choose "Lightning Bolt"` in a scenario).
-            ChoiceKind::CardName { nonland } => {
+            ChoiceKind::CardName { .. } | ChoiceKind::CardNameOf(_) => {
+                // Which names may be chosen: "nonland", "creature", "other
+                // than a basic land card name".
+                let allowed = |d: &crate::card::CardDef| match kind {
+                    ChoiceKind::CardName { nonland } => !(nonland && d.is_land()),
+                    ChoiceKind::CardNameOf(crate::card::NameKind::Creature) => d.is_creature(),
+                    ChoiceKind::CardNameOf(crate::card::NameKind::NotBasicLand) => {
+                        !(d.is_land() && d.supertypes.contains(crate::card::Supertype::Basic))
+                    }
+                    _ => true,
+                };
                 let mut seen: Vec<(&str, ObjId, crate::card::CardRef)> = Vec::new();
                 for (id, o) in &self.objects {
                     if o.kind != ObjKind::Card {
                         continue;
                     }
                     let d = self.pool.get(o.card);
-                    if d.name.is_empty() || (nonland && d.is_land()) {
+                    if d.name.is_empty() || !allowed(d) {
                         continue;
                     }
                     if !seen.iter().any(|(n, _, _)| *n == d.name) {
@@ -9216,7 +9243,7 @@ impl GameState {
                 // object stands for it; the choice is read by its name).
                 let own = self.pool.get(def);
                 if !own.name.is_empty()
-                    && (!nonland || !own.is_land())
+                    && allowed(own)
                     && !seen.iter().any(|(n, _, _)| *n == own.name)
                 {
                     seen.push((own.name.as_str(), ObjId::default(), def));
@@ -11738,7 +11765,22 @@ impl GameState {
             }
             // CR 701.19b: the searcher may fail to find cards; the engine
             // finds as many as it may, the hand's first.
-            Effect::ExileChosenName { who, limit } => {
+            Effect::BanChosenName { opponents, lands } => {
+                if let Some(name) = self.resolution_chosen(ctx).card_ref() {
+                    self.name_rules.push(crate::state::NameRule {
+                        name,
+                        until: ctx.controller,
+                        opponents: *opponents,
+                        lands: *lands,
+                    });
+                    self.bump();
+                }
+            }
+            Effect::ExileChosenName {
+                who,
+                limit,
+                per_hand,
+            } => {
                 let Some(def) = self.resolution_chosen(ctx).card_ref() else {
                     return;
                 };
@@ -11761,10 +11803,31 @@ impl GameState {
                         .filter(|c| self.pool.get(self.objects[*c].def).name == name)
                         .take(cap)
                         .collect();
+                    let mut from_hand = 0u32;
                     for c in cards {
+                        from_hand += u32::from(self.objects[c].zone == Zone::Hand);
                         self.move_object(c, Zone::Exile, true);
                     }
                     self.shuffle_library(p);
+                    // "That player shuffles, then draws a card for each card
+                    // exiled from their hand this way."
+                    match per_hand {
+                        Some(crate::card::PerHandExiled::Draw) => {
+                            self.set_acting(Some(p));
+                            for _ in 0..from_hand {
+                                self.draw(p);
+                            }
+                            self.set_acting(None);
+                        }
+                        Some(crate::card::PerHandExiled::Create(token)) => {
+                            for (def, k) in self.tokens_to_create(p, *token, from_hand) {
+                                for _ in 0..k {
+                                    self.create_token_with(def, p, false);
+                                }
+                            }
+                        }
+                        None => {}
+                    }
                 }
             }
             Effect::TapOrUntap { to } => {
@@ -13088,7 +13151,15 @@ impl GameState {
                     }
                 }
             }
-            Effect::DiscardAll { who, filter } => {
+            Effect::DiscardAll { who, filter, one } => {
+                // "discards all cards with that name": the name chosen
+                // earlier in the resolution.
+                let filter = filter
+                    .as_ref()
+                    .map(|f| self.chosen_filter(f, ctx).into_owned());
+                if *one {
+                    ctx.couldnt = 0;
+                }
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
@@ -13096,7 +13167,7 @@ impl GameState {
                     if filter.is_some() {
                         self.reveal_hand(p);
                     }
-                    let cards: Vec<ObjId> = self
+                    let mut cards: Vec<ObjId> = self
                         .player(p)
                         .hand
                         .iter()
@@ -13109,6 +13180,10 @@ impl GameState {
                             })
                         })
                         .collect();
+                    if *one {
+                        cards.truncate(1);
+                        ctx.couldnt += u32::from(cards.is_empty());
+                    }
                     for c in cards {
                         self.discard_card(p, c);
                     }

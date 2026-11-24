@@ -1376,6 +1376,24 @@ pub struct StatusQuals {
     /// doesn't restrict.
     #[serde(default)]
     pub protector: Option<Who>,
+    /// "Noncreature spells with mana value equal to the chosen number",
+    /// "a spell with mana value, power, or toughness equal to the chosen
+    /// number" (Sanctum Prelate, Talion): the number the source chose as
+    /// it entered (`Chosen::Number`), filled in by
+    /// `ObjFilter::with_chosen` (with `ObjFilter::chosen` set, so an
+    /// unfilled one matches nothing).
+    #[serde(default)]
+    pub equal_chosen: Option<EqualChosen>,
+}
+
+/// What a chosen number is compared with (`StatusQuals::equal_chosen`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum EqualChosen {
+    /// "with mana value equal to the chosen number".
+    ManaValue,
+    /// "with mana value, power, or toughness equal to the chosen number":
+    /// any of the three.
+    ManaValuePowerToughness,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -1634,6 +1652,22 @@ impl ObjFilter {
             // "with mana value of the chosen quality" (odd or even).
             crate::state::Chosen::Parity(odd) => {
                 f.mana_value = Some((if odd { Cmp::Odd } else { Cmp::Even }, 0));
+            }
+            // "with mana value equal to the chosen number"; "with mana
+            // value, power, or toughness equal to ...": three alternatives
+            // (`ObjFilter::or`), the mana value judged by `status_ok`.
+            crate::state::Chosen::Number(n) if f.status.equal_chosen.is_some() => {
+                let any =
+                    f.status.equal_chosen.take() == Some(EqualChosen::ManaValuePowerToughness);
+                let mut base = f.clone();
+                f.mana_value = Some((Cmp::Exactly, n));
+                if any {
+                    let mut toughness = base.clone();
+                    toughness.toughness = Some((Cmp::Exactly, i16::from(n)));
+                    base.power = Some((Cmp::Exactly, i16::from(n)));
+                    base.or = Some(Box::new(toughness));
+                    f.or = Some(Box::new(base));
+                }
             }
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
@@ -4729,6 +4763,21 @@ pub enum Effect {
     ExileChosenName {
         who: Recipient,
         limit: NameSearch,
+        /// "That player shuffles, then draws a card for each card exiled
+        /// from their hand this way." (Unmoored Ego), "... creates a 2/2
+        /// black Zombie creature token for each ..." (Necromentia).
+        #[serde(default)]
+        per_hand: Option<PerHandExiled>,
+    },
+    /// "Until your next turn, your opponents can't cast spells with the
+    /// chosen name." (Failure // Comply), "Until your next turn, spells
+    /// with the chosen name can't be cast and lands with the chosen name
+    /// can't be played." (Conjurer's Ban, CR 201.3, 611.2b): the name
+    /// chosen earlier in the resolution; `opponents`, only the
+    /// controller's opponents; `lands`, lands too.
+    BanChosenName {
+        opponents: bool,
+        lands: bool,
     },
     Untap {
         to: Recipient,
@@ -5947,6 +5996,11 @@ pub enum Effect {
     DiscardAll {
         who: Recipient,
         filter: Option<ObjFilter>,
+        /// "That player discards a card with that name." (Brain Pry): one
+        /// matching card, the player's hand revealed; "If they can't"
+        /// (`Effect::ForEachCouldnt`) counts the players with none.
+        #[serde(default)]
+        one: bool,
     },
     /// Ninjutsu's effect (CR 702.49a, c): the source card, if still in its
     /// owner's hand, onto the battlefield tapped and attacking the player or
@@ -6336,6 +6390,9 @@ pub enum ChoiceKind {
     /// game (any zone, either player's), since naming another card has no
     /// effect on play.
     CardName { nonland: bool },
+    /// "choose a creature card name", "choose a card name other than a
+    /// basic land card name": `Chosen::Card`, offered as for `CardName`.
+    CardNameOf(NameKind),
     /// One of these creature types ("choose Elemental, Elf, Faerie, Giant,
     /// Goblin, Kithkin, Merfolk, or Treefolk"): the first `len`.
     CreatureTypeIn { types: [Subtype; 8], len: u8 },
@@ -6353,6 +6410,25 @@ pub enum NameSearch {
     AnyNumber,
     /// "up to four cards with that name".
     UpTo(u8),
+}
+
+/// What the searched player does for each card `Effect::ExileChosenName`
+/// exiled from their hand, after shuffling.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PerHandExiled {
+    /// "then draws a card for each card exiled from their hand this way".
+    Draw,
+    /// "then creates a 2/2 black Zombie creature token for each ...".
+    Create(CardRef),
+}
+
+/// A kind of card name chosen beyond `ChoiceKind::CardName`'s.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum NameKind {
+    /// "Choose a creature card name."
+    Creature,
+    /// "Choose a card name other than a basic land card name."
+    NotBasicLand,
 }
 
 /// What a chosen-name ban forbids (`PlayerStaticKind::ChosenName`).
@@ -6448,6 +6524,12 @@ pub enum PlayerStaticKind {
     /// nor with `planeswalkers` the planeswalkers they control ("... you or
     /// planeswalkers you control").
     CantAttackYou { attackers: u16, planeswalkers: bool },
+    /// "Noncreature spells with mana value equal to the chosen number
+    /// can't be cast." (Sanctum Prelate, CR 601.2): no player may cast a
+    /// spell matching the pooled filter `spells` (judged for the source,
+    /// so "the chosen number" is its choice; the card as it would be cast,
+    /// X as 0).
+    CantCast { spells: u16 },
     /// Permanents can't be turned face up (CR 702.37e, 708.7): "As long as
     /// enchanted creature is face down, it can't be turned face up.",
     /// "Permanents your opponents control can't be turned face up during

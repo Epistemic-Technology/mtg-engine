@@ -1849,14 +1849,39 @@ impl Fmt {
                 "exile same name as {} from its controller zones",
                 self.recipient(*what, t)
             ),
-            Effect::ExileChosenName { who, limit } => format!(
-                "exile {} with chosen name from zones of {}",
+            Effect::ExileChosenName {
+                who,
+                limit,
+                per_hand,
+            } => format!(
+                "exile {} with chosen name from zones of {}{}",
                 match limit {
                     mtg_core::card::NameSearch::All => "all".to_string(),
                     mtg_core::card::NameSearch::AnyNumber => "any number".to_string(),
                     mtg_core::card::NameSearch::UpTo(n) => format!("up to {n}"),
                 },
-                self.recipient(*who, t)
+                self.recipient(*who, t),
+                match per_hand {
+                    None => String::new(),
+                    Some(crate::ast::PerHand::Draw) => " then draws for each from hand".to_string(),
+                    Some(crate::ast::PerHand::Create(tok)) => {
+                        format!(" then creates \"{tok}\" for each from hand")
+                    }
+                }
+            ),
+            Effect::BanChosenName {
+                opponents,
+                lands,
+                late,
+            } => format!(
+                "ban chosen name until your next turn{}{}{}",
+                match opponents {
+                    None => "",
+                    Some(true) => " your opponents",
+                    Some(false) => " opponents",
+                },
+                if *lands { " and lands" } else { "" },
+                if *late { " late" } else { "" }
             ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::NextSpellFree(f) => format!("next {} spell free", filter(f)),
@@ -1883,7 +1908,11 @@ impl Fmt {
                     self.recipient(*who, t)
                 )
             }
-            Effect::Detain { what } => format!("detain {}", self.recipient(*what, t)),
+            Effect::Detain { what, spelled } => format!(
+                "detain {}{}",
+                if *spelled { "spelled " } else { "" },
+                self.recipient(*what, t)
+            ),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::RemoveFromCombat { what } => {
                 format!("remove {} from combat", self.recipient(*what, t))
@@ -2990,6 +3019,9 @@ impl Fmt {
                 self.recipient(*who, t),
                 filter(f)
             ),
+            Effect::IfTheyCant(inner) => {
+                format!("if they can't, {}", self.line(inner, t))
+            }
             Effect::ForEachCouldnt { opponent, inner } => format!(
                 "for each {} who can't, {}",
                 if *opponent { "opponent" } else { "player" },
@@ -3271,8 +3303,10 @@ impl Fmt {
                 who,
                 filter: f,
                 all_cards,
+                one,
             } => {
                 let what = match (f, all_cards) {
+                    (Some(f), _) if *one => format!("1 {} card", filter(f)),
                     (Some(f), _) => format!("all {} card", filter(f)),
                     (None, true) => "all cards in hand".to_string(),
                     (None, false) => "hand".to_string(),
@@ -4595,6 +4629,15 @@ fn filter_one(f: &Filter) -> String {
     if let Some(n) = &f.named_card {
         words.push(format!("named \"{n}\""));
     }
+    match f.status.equal_chosen {
+        Some(mtg_core::card::EqualChosen::ManaValue) => {
+            words.push("with mana value equal chosen number".to_string());
+        }
+        Some(mtg_core::card::EqualChosen::ManaValuePowerToughness) => {
+            words.push("with mana value or power or toughness equal chosen number".to_string());
+        }
+        None => {}
+    }
     // Last: the count's own filter would take the words after it.
     if let Some(b) = f.status.bound {
         words.push(format!(
@@ -4654,6 +4697,8 @@ fn of_chosen(c: crate::ast::OfChosen) -> &'static str {
         OfChosen::ColorOfChoice => "of color of choice",
         OfChosen::CreatureTypeOfChoice => "of creature type of choice",
         OfChosen::ChosenQuality => "of chosen quality",
+        OfChosen::ThatName => "with that name",
+        OfChosen::ChosenName => "with chosen name",
     }
 }
 
@@ -7856,6 +7901,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 filter(f)
             );
         }
+        Ability::CantBeCast(f) => {
+            let _ = writeln!(out, "{indent}ban casting {}", filter(f));
+        }
         Ability::ActivationCost {
             filter: f,
             by,
@@ -7874,6 +7922,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             use mtg_core::card::PlayerStaticKind as K;
             let head = match kind {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
+                K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::EnchantedUntargetable(mtg_core::card::TargetBan::Opponents) => {
@@ -7994,7 +8043,17 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
             .join(" or "),
         ChoiceKind::CardName { nonland: false } => "card name".to_string(),
         ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
+        ChoiceKind::CardNameOf(mtg_core::card::NameKind::Creature) => {
+            "creature card name".to_string()
+        }
+        ChoiceKind::CardNameOf(mtg_core::card::NameKind::NotBasicLand) => {
+            "card name except basic land".to_string()
+        }
         ChoiceKind::Parity => "odd or even".to_string(),
+        ChoiceKind::Number {
+            min: 0,
+            max: u8::MAX,
+        } => "number".to_string(),
         ChoiceKind::Number { min, max } => format!("number between {min} and {max}"),
         ChoiceKind::CreatureTypeIn(types) => format!("creature type among {}", types.join(", ")),
     }

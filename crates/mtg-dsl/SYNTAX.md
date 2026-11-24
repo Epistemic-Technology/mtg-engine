@@ -289,6 +289,7 @@ like the card; either half may still be cast alone.
 | `as turned face up put 4 +1/+1 counters`, `as enters or turned face up put count where other creature you control +1/+1 counters` | "As this creature is turned face up, put four +1/+1 counters on it.", "As this creature enters or is turned face up, put X +1/+1 counters on it, where X is the number of other creatures you control." CR 708.11: the counters are put on while it turns face up (by its cost or by an effect), before "turned face up" triggers look; with `enters or` it also enters with them (CR 614.1c, the count judged as it enters). |
 | `may look face-down`, `may look face-down opponents`, `may look top`, `may look top face-down` | "You may look at face-down creatures you don't control any time." ("... your opponents control ...", the same in a two-player game), "You may look at the top card of your library any time.", "You may look at the top card of your library and at face-down creatures you don't control any time." Information only (CR 401.2, 708.5): the controller's view shows those cards. |
 | `additional land`, `additional land 2`, `additional land each player`, `additional land as long as you control other Elf` | "You may play an additional land on each of your turns.", "You may play two additional lands on each of your turns.", "Each player may play an additional land on each of their turns.", "As long as you control another Elf, you may play an additional land on each of your turns." (CR 305.2): more land plays on its controller's turns (each player's own turns with `each player`), while the condition holds. The effect `play additional land this turn` ("You may play an additional land this turn.") and `play 2 additional land this turn` ("You may play up to two additional lands this turn.") add plays for the rest of the turn. |
+| `as this enters choose number between 1 and 10`, `as this enters choose number`; `ban casting noncreature with mana value equal chosen number` | "As Talion enters, choose a number between 1 and 10." / "As this creature enters, choose a number." (any number: 0 to 20 are offered; `choose "3"` in scenarios). The filter qualifiers `with mana value equal chosen number` ("with mana value equal to the chosen number") and `with mana value or power or toughness equal chosen number` ("with mana value, power, or toughness equal to the chosen number": any of the three) read the source's choice; unfilled, they match nothing. `ban casting <filter>`: "Noncreature spells with mana value equal to the chosen number can't be cast." (Sanctum Prelate, CR 601.2): no player is offered casting a matching spell, judged from the card's printed characteristics (X as 0). In a cast trigger: `whenever an opponent casts with mana value or power or toughness equal chosen number spell` ("Whenever an opponent casts a spell with mana value, power, or toughness equal to the chosen number", Talion). |
 | `as this enters choose card name`, `as this enters choose nonland card name`; `spells with chosen name can't be cast`, `activated abilities of sources with chosen name can't be activated [unless mana]` | "As this artifact enters, choose a [nonland] card name." (CR 201.3): the names offered are those of the cards in the game (any zone, either player's, the entering card's own included), in name order (`choose "Lightning Bolt"` in scenarios), since naming a card not in the game changes nothing. "Spells with the chosen name can't be cast." (Meddling Mage, Nevermore): no player is offered casting a spell of that name. "Activated abilities of sources with the chosen name can't be activated [unless they're mana abilities]." (Pithing Needle, Phyrexian Revoker): in any zone, and without `unless mana` not even its mana abilities to pay costs (Voidstone Gargoyle). |
 | `each player can't cast more than one spell each turn`, `you can't ...`, `opponents can't ...`, `enchanted player can't ...` | "Each player can't cast more than one spell each turn." ("You can't ...", "Your opponents can't ...", "Enchanted player can't ...": a Curse's player; CR 101.2): once one of those players has cast a spell this turn, no other spell of theirs is offered, by any permission (an effect's "you may cast it" included). Copies aren't cast. Lands may still be played. |
 | `each player can't draw more than one card each turn`, `opponents can't draw more than one card each turn` | "Each player can't draw more than one card each turn." ("Each opponent can't ..."): a draw after the player's first this turn doesn't happen (nor any replacement of it). |
@@ -847,8 +848,29 @@ opponent's graveyard, hand, and library for up to four cards with that
 name and exile them. Then that player shuffles."; `any number` "any
 number of cards", `all` "all cards": the engine finds every one it may,
 from the hand first, then the library, then the graveyard, up to the
-limit; CR 701.19b); `choose number between 0 and 10` ("Choose a number
-between 0 and 10.", `choose "7"` in scenarios; unscripted, the least),
+limit; CR 701.19b; `then draws for each from hand`: "That player
+shuffles, then draws a card for each card exiled from their hand this
+way."; `then creates "2/2 black Zombie creature" for each from hand`:
+"... creates a 2/2 black Zombie creature token for each card exiled from
+their hand this way."), `choose creature card name` ("Choose a creature
+card name."), `choose card name except basic land` ("Choose a card name
+other than a basic land card name."); after a card name, `ban chosen
+name until your next turn` ("Until your next turn, spells with the
+chosen name can't be cast", CR 611.2b: by any player, until the
+controller's next turn begins; `and lands`: "... and lands with the
+chosen name can't be played"; `your opponents`: "Until your next turn,
+your opponents can't cast spells with the chosen name."; `opponents
+late`: "Opponents can't cast spells with the chosen name until your next
+turn."), `that player discards 1 with that name card` ("That player
+discards a card with that name.", the hand revealed; the filter `with
+that name` / `with chosen name` is "with that name" / "with the chosen
+name", the name chosen earlier in the resolution) then `if they can't,
+you draw 1 card` ("If they can't, you draw a card.": once if that player
+had no such card), `<who> reveals hand and discards all with that name
+card` ("... reveals their hand and discards all cards with that name");
+`choose number between 0 and 10` ("Choose a number
+between 0 and 10.", `choose "7"` in scenarios; unscripted, the least;
+`choose number`: "Choose a number.", any number, 0 to 20 offered),
 read by the count `chosen number` ("the chosen number": `destroy all
 creature with power at least count equal chosen number`, "Destroy all
 creatures with power greater than or equal to the chosen number."; `with
@@ -1156,7 +1178,10 @@ face-down creatures they control." Information only: an agent's view shows a fac
 card to its controller and to whoever has looked at it.
 `detain target creature an opponent controls` (CR 701.35): until the
 controller's next turn the permanent can't attack or block and its
-activated abilities can't be activated.
+activated abilities can't be activated. `detain spelled target nonland
+permanent` prints it out: "Choose target nonland permanent. Until your
+next turn, it can't attack or block, and its activated abilities can't
+be activated." (Academic Probation).
 `earthbend 2` (CR 701.66), `earthbend count where Forest you control`
 ("Earthbend X, where X is the number of Forests you control"): declares
 its own target, "target land you control", which becomes a 0/0 creature

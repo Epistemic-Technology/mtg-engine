@@ -1,0 +1,6 @@
+card "Necromentia" {
+  oracle_id 92acbbeb-f82b-413b-b243-f7a012f5400c
+  cost {1}{B}{B}
+  type Sorcery
+  spell: choose card name except basic land; exile any number with chosen name from zones of target opponent then creates "2/2 black Zombie creature" for each from hand
+}

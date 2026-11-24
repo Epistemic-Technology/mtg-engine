@@ -1,0 +1,6 @@
+card "Brain Pry" {
+  oracle_id 94dc9937-91e3-4c38-a544-c1cdb6989222
+  cost {1}{B}
+  type Sorcery
+  spell: choose nonland card name; target player reveals hand; that player discards 1 with that name card; if they can't, you draw 1 card
+}

@@ -1,0 +1,6 @@
+card "Unmoored Ego" {
+  oracle_id 1206b672-e075-45ba-97d4-7c3012be062d
+  cost {1}{U}{B}
+  type Sorcery
+  spell: choose card name; exile up to 4 with chosen name from zones of target opponent then draws for each from hand
+}

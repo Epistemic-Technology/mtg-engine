@@ -1,0 +1,8 @@
+card "Sanctum Prelate" {
+  oracle_id 7e0cdba8-45e0-4fe5-b440-2d8fcf4d6b2b
+  cost {1}{W}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  as this enters choose number
+  ban casting noncreature with mana value equal chosen number
+}

@@ -1,0 +1,15 @@
+card "Failure // Comply" {
+  oracle_id ed8184f8-f6a7-4f97-9f4e-bf72077af754
+  layout split
+  face "Failure" {
+    cost {1}{U}
+    type Instant
+    spell: return target spell to hand
+  }
+  face "Comply" {
+    cost {W}
+    type Sorcery
+    keywords aftermath
+    spell: choose card name; ban chosen name until your next turn your opponents
+  }
+}

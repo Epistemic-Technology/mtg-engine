@@ -1,0 +1,9 @@
+card "Conjurer's Ban" {
+  oracle_id 5e6cbe03-6d6a-413e-9f3c-2770d408cc79
+  cost {W}{B}
+  type Sorcery
+  spell {
+    choose card name; ban chosen name until your next turn and lands
+    draw 1 card
+  }
+}

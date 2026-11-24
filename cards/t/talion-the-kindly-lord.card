@@ -1,0 +1,9 @@
+card "Talion, the Kindly Lord" {
+  oracle_id a019e34d-00c4-4687-9d41-fe550bf1dbdc
+  cost {2}{U}{B}
+  type Legendary Creature — Faerie Noble
+  pt 3/4
+  keywords flying
+  as this enters choose number between 1 and 10
+  triggered whenever an opponent casts with mana value or power or toughness equal chosen number spell: that player loses 2 life and you draw 1 card
+}

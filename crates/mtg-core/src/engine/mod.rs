@@ -601,6 +601,7 @@ impl GameState {
             replacements: Vec::new(),
             rules: Vec::new(),
             player_rules: Vec::new(),
+            name_rules: Vec::new(),
             untargetable: Vec::new(),
             player_grants: Vec::new(),
             replacement_sources: 0,
@@ -3687,6 +3688,10 @@ impl GameState {
             }
             if self.rules.iter().any(|e| e.duration == ends) {
                 self.rules.retain(|e| e.duration != ends);
+            }
+            if !self.name_rules.is_empty() {
+                let p = self.active_player;
+                self.name_rules.retain(|r| r.until != p);
             }
             if !self.player_grants.is_empty() {
                 self.player_grants.retain(|g| g.duration != ends);

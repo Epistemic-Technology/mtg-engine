@@ -1915,7 +1915,8 @@ impl Compiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             status: f.status,
-            chosen: f.chosen.is_some(),
+            // "equal to the chosen number" is filled in with the choice.
+            chosen: f.chosen.is_some() || f.status.equal_chosen.is_some(),
             attached_to: f.attached_to.map(|a| {
                 use crate::ast::AttachedRef;
                 use mtg_core::card::AttachedTo;
@@ -3221,6 +3222,7 @@ impl Compiler<'_> {
                 CoreChoiceKind::Named(u8::try_from(names.len()).unwrap_or(u8::MAX))
             }
             ChoiceKind::CardName { nonland } => CoreChoiceKind::CardName { nonland: *nonland },
+            ChoiceKind::CardNameOf(k) => CoreChoiceKind::CardNameOf(*k),
             ChoiceKind::Parity => CoreChoiceKind::Parity,
             ChoiceKind::CreatureTypeIn(names) => {
                 let mut types = [mtg_core::card::Subtype::default(); 8];
@@ -3622,12 +3624,33 @@ impl Compiler<'_> {
             Effect::ExileSameName { what } => {
                 out.push(CoreEffect::ExileSameName { what: r(*what) });
             }
-            Effect::ExileChosenName { who, limit } => {
+            Effect::ExileChosenName {
+                who,
+                limit,
+                per_hand,
+            } => {
+                let per_hand = match per_hand {
+                    None => None,
+                    Some(crate::ast::PerHand::Draw) => Some(mtg_core::card::PerHandExiled::Draw),
+                    Some(crate::ast::PerHand::Create(token)) => {
+                        let Some(t) = self.pool.lookup(token) else {
+                            return self.err(format!("unknown token \"{token}\""));
+                        };
+                        Some(mtg_core::card::PerHandExiled::Create(t))
+                    }
+                };
                 out.push(CoreEffect::ExileChosenName {
                     who: r(*who),
                     limit: *limit,
+                    per_hand,
                 });
             }
+            Effect::BanChosenName {
+                opponents, lands, ..
+            } => out.push(CoreEffect::BanChosenName {
+                opponents: opponents.is_some(),
+                lands: *lands,
+            }),
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::NextSpellFree(f) => {
                 let f = self.filter(f);
@@ -3645,7 +3668,7 @@ impl Compiler<'_> {
             }
             Effect::LookAtPlayer { who } => out.push(CoreEffect::LookAtPlayer { who: r(*who) }),
             // CR 701.35a: until the detaining player's next turn.
-            Effect::Detain { what } => out.push(CoreEffect::UntilYourNextTurn {
+            Effect::Detain { what, .. } => out.push(CoreEffect::UntilYourNextTurn {
                 to: r(*what),
                 parts: vec![Modification::AddKeywords(KeywordSet::DETAINED)],
             }),
@@ -5163,12 +5186,19 @@ impl Compiler<'_> {
                     filter: self.filter(filter),
                 });
             }
-            Effect::DiscardAll { who, filter, .. } => {
+            Effect::DiscardAll {
+                who, filter, one, ..
+            } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::DiscardAll {
                     who: who.map_or(CoreRecipient::You, r),
                     filter,
+                    one: *one,
                 });
+            }
+            Effect::IfTheyCant(inner) => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::ForEachCouldnt(effects));
             }
             Effect::AddPoison { count, who } => out.push(CoreEffect::AddPoison {
                 count: *count,
@@ -6390,6 +6420,15 @@ impl Compiler<'_> {
                     kind: mtg_core::card::PlayerStaticKind::CantAttackYou {
                         attackers: self.pool.intern_filter(f),
                         planeswalkers: *planeswalkers,
+                    },
+                    condition: None,
+                }
+            }
+            Ability::CantBeCast(filter) => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CantCast {
+                        spells: self.pool.intern_filter(f),
                     },
                     condition: None,
                 }
