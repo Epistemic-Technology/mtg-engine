@@ -1,0 +1,7 @@
+card "Graceblade Artisan" {
+  oracle_id 2fa4e241-6b2f-4372-8bb6-a876e5ae7c50
+  cost {2}{W}
+  type Creature — Human Monk
+  pt 2/3
+  static this: +2/+2 count each Aura attached to this
+}

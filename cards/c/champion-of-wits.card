@@ -1,0 +1,8 @@
+card "Champion of Wits" {
+  oracle_id 3fd8ba0c-75ec-43ea-8706-f71e6cf1d236
+  cost {2}{U}
+  type Creature — Snake Wizard
+  pt 2/1
+  triggered when this enters: you may draw count equal power of it cards; if you do, discard 2 cards
+  eternalize {5}{U}{U}
+}

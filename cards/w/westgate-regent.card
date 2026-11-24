@@ -1,0 +1,9 @@
+card "Westgate Regent" {
+  oracle_id 2df30a75-4957-4eab-8b0b-4c973f00642d
+  cost {3}{B}{B}
+  type Creature — Vampire
+  pt 4/4
+  keywords flying
+  ward discard 1 card
+  triggered whenever this deals combat damage to a player: put that much +1/+1 counters on it
+}

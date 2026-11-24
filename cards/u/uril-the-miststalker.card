@@ -1,0 +1,8 @@
+card "Uril, the Miststalker" {
+  oracle_id 4308a020-48cf-45fe-8074-dd5d0ac6d12d
+  cost {2}{R}{G}{W}
+  type Legendary Creature — Beast
+  pt 5/5
+  keywords hexproof
+  static this: +2/+2 count each Aura attached to this
+}

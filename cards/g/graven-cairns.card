@@ -1,0 +1,6 @@
+card "Graven Cairns" {
+  oracle_id 5004b84a-33b7-4f6f-b2c2-7086b9087535
+  type Land
+  mana {C}
+  activated {B/R}, {T}: add {B}{B} or {B}{R} or {R}{R}
+}

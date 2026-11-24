@@ -1250,6 +1250,7 @@ impl Decompiler<'_> {
                 count: *count,
                 colors: *colors,
                 different: *different,
+                listed: false,
             },
             CoreEffect::AddManaTwoColors(n) => Effect::AddManaTwoColors(*n),
             CoreEffect::AddManaLandCould {

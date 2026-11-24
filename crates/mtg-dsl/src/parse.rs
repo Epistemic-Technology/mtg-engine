@@ -1803,6 +1803,7 @@ impl P {
                     count,
                     colors: mtg_core::mana::ColorSet::ALL,
                     different: true,
+                    listed: false,
                 });
             }
             self.expect_words(&["any", "combination"])?;
@@ -1827,6 +1828,7 @@ impl P {
                 count,
                 colors,
                 different: false,
+                listed: false,
             });
         }
         let cost = self.mana_cost()?;
@@ -1840,6 +1842,56 @@ impl P {
         }
         if out.is_empty() {
             return self.unexpected("mana to add");
+        }
+        // `add {W}{W} or {W}{U} or {U}{U}` (the filter lands): each
+        // combination of two mana of two colors, listed.
+        if out.len() == 2 && self.at_word("or") {
+            let mut options = vec![out.clone()];
+            while self.eat_word("or") {
+                let c = self.mana_cost()?;
+                let mut o = Vec::new();
+                for s in c.symbols() {
+                    match s {
+                        mtg_core::mana::ManaSymbol::Colored(c) => o.push(Mana::Colored(*c)),
+                        _ => return self.unexpected("two colored mana symbols after `or`"),
+                    }
+                }
+                options.push(o);
+            }
+            let mut set = mtg_core::mana::ColorSet::COLORLESS;
+            for m in options.iter().flatten() {
+                if let Mana::Colored(c) = m {
+                    set = set.with(*c);
+                }
+            }
+            let pair: Vec<mtg_core::mana::Color> = set.iter().collect();
+            let key = |o: &Vec<Mana>| {
+                let mut k: Vec<String> = o.iter().map(|m| format!("{m:?}")).collect();
+                k.sort();
+                k
+            };
+            let mut got: Vec<Vec<String>> = options.iter().map(key).collect();
+            got.sort();
+            let fits = pair.len() == 2 && {
+                let (a, b) = (Mana::Colored(pair[0]), Mana::Colored(pair[1]));
+                let mut want: Vec<Vec<String>> = [vec![a, a], vec![a, b], vec![b, b]]
+                    .iter()
+                    .map(key)
+                    .collect();
+                want.sort();
+                got == want
+            };
+            if !fits {
+                return self.fail(
+                    "`add {W}{W} or {W}{U} or {U}{U}` lists the three combinations of two mana of two colors",
+                );
+            }
+            return Ok(Effect::AddManaCombination {
+                count: Num::N(2),
+                colors: set,
+                different: false,
+                listed: true,
+            });
         }
         if out.len() == 1 && self.at_word("or") {
             while self.eat_word("or") {
@@ -16000,6 +16052,8 @@ impl P {
                                 | "Octopus"
                                 | "Platypus"
                                 | "Walrus"
+                                | "Pegasus"
+                                | "Nautilus"
                                 | "Aurochs"
                                 | "Bolas"
                         ) || raw.ends_with("'s");

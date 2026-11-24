@@ -1973,6 +1973,82 @@ impl Templates {
             (r(r"^[Yy]ou gain that much life$"), |_, _| {
                 Some("you gain that much life".to_string())
             }),
+            // "When this creature dies, you gain life equal to its power."
+            // (Packsong Pup): "its" is the triggering object, as `of it`
+            // is.
+            (
+                r(r"^[Yy]ou gain life equal to its (power|toughness)$"),
+                |c, _| Some(format!("you gain count equal {} of it life", cap(c, 1))),
+            ),
+            // "Whenever this creature attacks, you may draw cards equal to
+            // its power." (Horrid Shadowspinner).
+            (
+                r(r"^[Yy]ou (may )?draw cards equal to its (power|toughness)$"),
+                |c, _| {
+                    Some(format!(
+                        "you {}draw count equal {} of it cards",
+                        c.get(1).map_or("", |m| m.as_str()),
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            (
+                r(r"^[Dd]raw cards equal to its (power|toughness)$"),
+                |c, _| Some(format!("draw count equal {} of it cards", cap(c, 1))),
+            ),
+            // "Whenever Eivor deals combat damage to a player, you mill
+            // that many cards."
+            (r(r"^[Yy]ou mill that many cards$"), |_, _| {
+                Some("you mill that much cards".to_string())
+            }),
+            // "{T}: Add {G} or {W}. This land doesn't untap during your next
+            // untap step." (the bounce-tap lands, Arbalest Elite).
+            (
+                r(
+                    r"^(?:[Tt]his (?:land|creature|artifact|permanent)|~) doesn't untap during your next untap step$",
+                ),
+                |_, _| Some("this doesn't untap next untap step".to_string()),
+            ),
+            // "At the beginning of your upkeep, sacrifice this creature
+            // unless you discard a card." (the Masticores).
+            (
+                r(
+                    r"^[Ss]acrifice (?:this (?:creature|enchantment|artifact)|it|~) unless you discard (a|two|three) cards?$",
+                ),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    let noun = if n == "1" { "card" } else { "cards" };
+                    Some(format!("sacrifice this unless you discard {n} {noun}"))
+                },
+            ),
+            // "Whenever this creature deals combat damage to a player, put
+            // that many +1/+1 counters on it." (Westgate Regent): the amount
+            // of the trigger's damage, on the triggering object.
+            (
+                r(r"^[Pp]ut that many \+1/\+1 counters on (it|this creature|~)$"),
+                |c, _| {
+                    let on = if cap(c, 1) == "it" { "it" } else { "this" };
+                    Some(format!("put that much +1/+1 counters on {on}"))
+                },
+            ),
+            // "Whenever this creature is dealt damage, it deals that much
+            // damage to any target." (Spitemare, Brash Taunter).
+            (
+                r(
+                    r"^[Ii]t deals that much damage to (any target|any other target|target opponent|target player|you)$",
+                ),
+                |c, t| {
+                    let to = match cap(c, 1) {
+                        "any other target" => {
+                            *t += 1;
+                            "any other target".to_string()
+                        }
+                        "you" => "you".to_string(),
+                        other => recipient(other, t)?,
+                    };
+                    Some(format!("it deals that much damage to {to}"))
+                },
+            ),
             // "this Aura deals 2 damage to that creature's controller".
             (
                 r(
@@ -2926,6 +3002,20 @@ impl Templates {
             (r(r"^Add ((?:\{[WUBRGC]\})+)$"), |c, _| {
                 Some(format!("add {}", cap(c, 1)))
             }),
+            // "Add {W}{W}, {W}{U}, or {U}{U}." (the filter lands).
+            (
+                r(
+                    r"^Add (\{[WUBRG]\}\{[WUBRG]\}), (\{[WUBRG]\}\{[WUBRG]\}), or (\{[WUBRG]\}\{[WUBRG]\})$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "add {} or {} or {}",
+                        cap(c, 1),
+                        cap(c, 2),
+                        cap(c, 3)
+                    ))
+                },
+            ),
             (r(r"^Add (\{[WUBRGC]\}) or (\{[WUBRGC]\})$"), |c, _| {
                 Some(format!("add {} or {}", cap(c, 1), cap(c, 2)))
             }),
@@ -6532,6 +6622,23 @@ fn conditional_static(line: &str) -> Option<String> {
             return None;
         }
         let (f, pred) = split_subject(line)?;
+        // "This creature gets +2/+2 for each Aura attached to it." (Kor
+        // Spiritdancer), "... for each oil counter on it." (Trawler
+        // Drake): "it" is the source.
+        if f == "this"
+            && let Some(c) = cached_regex(&format!(
+                r"^gets ([+-]\d+/[+-]\d+) for each (Aura attached to it|({}) counter on it)\.?$",
+                counter_names()
+            ))
+            .unwrap()
+            .captures(&pred)
+        {
+            let what = match c.get(3) {
+                Some(k) => format!("{} counter on it", k.as_str()),
+                None => "Aura attached to this".to_string(),
+            };
+            return Some(format!("static this: {} count each {what}", cap(&c, 1)));
+        }
         return Some(format!("static {f}: {}", static_mods(&pred)?));
     };
     let (f, pred) = split_subject(body)?;
@@ -6779,7 +6886,16 @@ impl Builder<'_> {
         .captures(line)
             && let Some(mods) = static_mods(cap(&c, 2))
         {
+            // "Other Orcs and Goblins you control" (Warg Rider): either
+            // creature type, `or` in the DSL.
             let class = singular(&lowercase_first(cap(&c, 1)));
+            let class = match cached_regex(r"^other ([A-Z][a-z]+) and ([A-Z][a-z]+)$")
+                .unwrap()
+                .captures(&class)
+            {
+                Some(t) => format!("other {} or {}", cap(&t, 1), cap(&t, 2)),
+                None => class,
+            };
             self.statements
                 .push(format!("static {class} you control: {mods}"));
             return Ok(());
@@ -6876,6 +6992,19 @@ impl Builder<'_> {
                     .push(format!("static {} you control: {mods}", types.join(" or ")));
                 return Ok(());
             }
+        }
+        // CR 615: "Prevent all combat damage that would be dealt to this
+        // creature." (Seraph of the Sword), "Prevent all damage ..."
+        // (Glittering Lynx's first line).
+        if line == "Prevent all combat damage that would be dealt to this creature." {
+            self.statements
+                .push("replace combat damage to this: prevent".to_string());
+            return Ok(());
+        }
+        if line == "Prevent all damage that would be dealt to this creature." {
+            self.statements
+                .push("replace damage to this: prevent".to_string());
+            return Ok(());
         }
         if line == "If you would gain life, you gain twice that much life instead." {
             self.statements
@@ -7230,6 +7359,13 @@ impl Builder<'_> {
                 _ => singular(q),
             };
             self.statements.push(format!("protection from {what}"));
+            return Ok(());
+        }
+        // "This creature can't block and can't be blocked." (Inkfathom
+        // Infiltrator): two restrictions in one sentence.
+        if line == "This creature can't block and can't be blocked." {
+            self.statements
+                .push("static this: has can't block, has can't be blocked".to_string());
             return Ok(());
         }
         // Blocking restrictions with a filter.
@@ -9492,6 +9628,51 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         )
         .replace("exile each graveyards", "exile all graveyards")
         .replace("to each of two targets", "to 2 targets");
+    // "Radiance — {T}: This creature deals 1 damage to target creature and
+    // each other creature that shares a color with it." (Wojek
+    // Embermage): "it" is the line's one target.
+    s = s
+        .lines()
+        .map(|l| {
+            if l.matches("target ").count() == 1 {
+                re(r"\beach other ([a-z]+) that shares a color with it\b")
+                    .replace_all(l, "each other $1 that shares color with target 1")
+                    .into_owned()
+            } else {
+                l.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    // "Nonwhite creatures get -1/-1." (Crovax, Ascendant Hero): a color
+    // the class lowercased.
+    s = re(r"\bstatic Non(white|blue|black|red|green) ")
+        .replace_all(&s, "static non$1 ")
+        .into_owned();
+    // "Return two target cards from your graveyard", "Exile five target
+    // cards from an opponent's graveyard": the DSL's noun after a count is
+    // singular.
+    s = re(r"\b((?:\d+|X) (?:another )?target (?:[\w-]+ )*?)cards\b")
+        .replace_all(&s, "${1}card")
+        .into_owned();
+    // "deals 4 damage to target player or planeswalker and each creature
+    // that player or that planeswalker's controller controls" (Flame
+    // Wave): the first target's player, either way.
+    s = s
+        .lines()
+        .map(|l| {
+            let first = l.find("target ");
+            if first.is_some() && first == l.find("target player or planeswalker") {
+                l.replace(
+                    "that player or that planeswalker's controller controls",
+                    "that player or planeswalker 1 controls",
+                )
+            } else {
+                l.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     // "Put X +1/+1 counters on target creature, where X is that creature's
     // power": the line's one target, declared by the counters phrase.
     s = re(r"put X (\S+) counters on (target [^,;]+), where X is that creature's (power|toughness|mana value)$")
@@ -9913,7 +10094,12 @@ fn wording_variants(text: &str) -> Vec<String> {
         for (j, w) in words.iter().enumerate().skip(start) {
             let prev = if j > 0 { words[j - 1] } else { "" };
             let next = words.get(j + 1).copied().unwrap_or("");
-            let after_clause = prev.ends_with(':') || prev.ends_with(';') || VERBS.contains(&prev);
+            // "if you do, each creature you control gains flying"
+            // (Waterspout Weavers): after a condition's comma too.
+            let after_clause = prev.ends_with(':')
+                || prev.ends_with(';')
+                || (prev.ends_with(',') && w == &"each")
+                || VERBS.contains(&prev);
             let mut alts: Vec<String> = Vec::new();
             match *w {
                 "each" if after_clause && next != "counters" => {
@@ -9944,12 +10130,19 @@ fn wording_variants(text: &str) -> Vec<String> {
                         .copied()
                         .collect::<Vec<_>>()
                         .join(" ");
+                    // "create two tokens that are copies of it" (Skitterbeam
+                    // Battalion): the copy names nothing before "it".
+                    let copy_of = prev == "of"
+                        && j >= 2
+                        && matches!(words[j - 2], "copy" | "copies")
+                        && words[start..j].first() == Some(&"create");
                     let named = [
                         "create", "target", "that", "return", "exile", "search", "reveal", "dig",
                         "put", "attach", "copy", "mill", "discard",
                     ]
                     .iter()
-                    .any(|w| before.split(' ').any(|b| b == *w));
+                    .any(|w| before.split(' ').any(|b| b == *w))
+                        && !(copy_of && !before.contains("target") && !before.contains(';'));
                     if it_ok && !named {
                         alts.push("it".to_string());
                     }

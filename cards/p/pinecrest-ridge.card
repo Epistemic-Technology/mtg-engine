@@ -1,0 +1,6 @@
+card "Pinecrest Ridge" {
+  oracle_id d8ef7c7b-0201-4978-ac73-fd376a19830f
+  type Land
+  mana {C}
+  activated {T}: add {R} or {G}; this land doesn't untap next untap step
+}

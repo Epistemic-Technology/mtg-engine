@@ -1,0 +1,9 @@
+card "Archon of Sun's Grace" {
+  oracle_id 48a99dce-0aa9-4aac-81df-cec5f94c639d
+  cost {2}{W}{W}
+  type Creature — Archon
+  pt 3/4
+  keywords flying, lifelink
+  static Pegasus creature you control: has lifelink
+  label "Constellation" triggered whenever enchantment you control enters: create 1 "2/2 white Pegasus creature with flying"
+}

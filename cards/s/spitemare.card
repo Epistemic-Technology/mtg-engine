@@ -1,0 +1,7 @@
+card "Spitemare" {
+  oracle_id cf4d8b19-fd11-4200-9871-896772019f4c
+  cost {2}{R/W}{R/W}
+  type Creature — Elemental
+  pt 3/3
+  triggered whenever this is dealt damage: it deals that much damage to any target
+}

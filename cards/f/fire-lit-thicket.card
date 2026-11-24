@@ -1,0 +1,6 @@
+card "Fire-Lit Thicket" {
+  oracle_id d99a1d9a-7721-4331-bf22-1c6ee0bd825a
+  type Land
+  mana {C}
+  activated {R/G}, {T}: add {R}{R} or {R}{G} or {G}{G}
+}

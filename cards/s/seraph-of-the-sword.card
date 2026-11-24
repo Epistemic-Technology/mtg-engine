@@ -1,0 +1,8 @@
+card "Seraph of the Sword" {
+  oracle_id 84ee74e9-b3e3-4f47-8b3c-5c1a70f5cad6
+  cost {3}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  replace combat damage to this: prevent
+}

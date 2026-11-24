@@ -1,0 +1,6 @@
+card "Twilight Mire" {
+  oracle_id db623754-e078-4030-ba07-818803c348a8
+  type Land
+  mana {C}
+  activated {B/G}, {T}: add {B}{B} or {B}{G} or {G}{G}
+}

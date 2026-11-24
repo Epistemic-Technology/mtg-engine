@@ -1,0 +1,10 @@
+card "Trawler Drake" {
+  oracle_id 4fe38c9e-6fa0-4e05-9d3f-8fd635c457fb
+  cost {2}{U}
+  type Creature — Phyrexian Drake
+  pt 0/0
+  keywords flying
+  enters with 1 oil counters
+  static this: +1/+1 count each oil counter on it
+  triggered whenever you cast a noncreature spell: put 1 oil counters on this
+}

@@ -1,0 +1,9 @@
+card "Warg Rider" {
+  oracle_id 3f4dd9e2-6460-413e-a3b8-96b20bf57f8b
+  cost {4}{B}
+  type Creature — Orc Warrior
+  pt 4/3
+  keywords menace
+  static other Orc or Goblin you control: has menace
+  triggered at beginning of your combat: amass Orcs 2
+}

@@ -1,0 +1,7 @@
+card "Bonfire of the Damned" {
+  oracle_id 13822dcf-0639-4852-9a7f-e1d55719e82c
+  cost {X}{X}{R}
+  type Sorcery
+  spell: deal X damage to target player or planeswalker and each creature that player or planeswalker 1 controls
+  miracle {X}{R}
+}

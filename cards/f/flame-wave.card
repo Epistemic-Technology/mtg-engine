@@ -1,0 +1,6 @@
+card "Flame Wave" {
+  oracle_id cee8ec5f-e36d-4bca-9b19-cb33113835b1
+  cost {3}{R}{R}{R}{R}
+  type Sorcery
+  spell: deal 4 damage to target player or planeswalker and each creature that player or planeswalker 1 controls
+}

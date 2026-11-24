@@ -1,0 +1,6 @@
+card "Rugged Prairie" {
+  oracle_id 8e7641e1-e814-4d5a-9cb3-71ad2f4ceee8
+  type Land
+  mana {C}
+  activated {R/W}, {T}: add {R}{R} or {R}{W} or {W}{W}
+}

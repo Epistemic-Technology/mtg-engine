@@ -1,0 +1,7 @@
+card "Arbalest Elite" {
+  oracle_id 1d79b7a8-2b4c-4893-afdb-879c74957288
+  cost {2}{W}{W}
+  type Creature — Human Archer
+  pt 2/3
+  activated {2}{W}, {T}: deal 3 damage to target attacking or blocking creature; this creature doesn't untap next untap step
+}

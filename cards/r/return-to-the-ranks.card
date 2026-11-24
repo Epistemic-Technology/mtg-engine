@@ -1,0 +1,7 @@
+card "Return to the Ranks" {
+  oracle_id 0d4ee553-f206-4e70-a7b2-a3670440aee7
+  cost {X}{W}{W}
+  type Sorcery
+  keywords convoke
+  spell: return X target creature card with mana value 2 or less from your graveyard to battlefield
+}

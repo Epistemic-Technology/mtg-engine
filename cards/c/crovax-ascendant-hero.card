@@ -1,0 +1,9 @@
+card "Crovax, Ascendant Hero" {
+  oracle_id 0cbf6ad8-9bf1-455d-bd74-9c142e17acb0
+  cost {4}{W}{W}
+  type Legendary Creature — Human Noble
+  pt 4/4
+  static other white creature: +1/+1
+  static nonwhite creature: -1/-1
+  activated pay 2 life: return this to its owner's hand
+}

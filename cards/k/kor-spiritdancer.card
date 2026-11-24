@@ -1,0 +1,8 @@
+card "Kor Spiritdancer" {
+  oracle_id 2bfc7467-1316-43d3-9ca6-ff36cc2de607
+  cost {1}{W}
+  type Creature — Kor Wizard
+  pt 0/2
+  static this: +2/+2 count each Aura attached to this
+  triggered whenever you cast Aura spell: you may draw 1 cards
+}

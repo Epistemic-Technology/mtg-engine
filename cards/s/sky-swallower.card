@@ -1,0 +1,8 @@
+card "Sky Swallower" {
+  oracle_id b345c413-df5a-4dae-8b92-5fab54a097fc
+  cost {3}{U}{U}
+  type Creature — Leviathan
+  pt 8/8
+  keywords flying
+  triggered when this enters: target opponent gains control of all other permanent you control
+}

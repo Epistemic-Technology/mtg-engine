@@ -1,0 +1,6 @@
+card "Restock" {
+  oracle_id 8b641cd3-bb08-4f2e-9dad-24f58a9c32e1
+  cost {3}{G}{G}
+  type Sorcery
+  spell: return 2 target card from your graveyard to hand; exile this
+}

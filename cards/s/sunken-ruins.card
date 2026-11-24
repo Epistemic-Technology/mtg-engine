@@ -1,0 +1,6 @@
+card "Sunken Ruins" {
+  oracle_id e6415ffb-8b7a-41c3-bedf-0d4112b7b795
+  type Land
+  mana {C}
+  activated {U/B}, {T}: add {U}{U} or {U}{B} or {B}{B}
+}

@@ -3853,6 +3853,7 @@ impl Compiler<'_> {
                 count,
                 colors,
                 different,
+                ..
             } => out.push(CoreEffect::AddManaCombination {
                 count: *count,
                 colors: *colors,

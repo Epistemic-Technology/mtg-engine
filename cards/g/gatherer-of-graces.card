@@ -1,0 +1,8 @@
+card "Gatherer of Graces" {
+  oracle_id 3b19054c-ba33-44b4-b328-bb8ea3f52dab
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/2
+  static this: +1/+1 count each Aura attached to this
+  activated sacrifice Aura: regenerate this
+}

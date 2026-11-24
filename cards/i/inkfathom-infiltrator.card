@@ -1,0 +1,7 @@
+card "Inkfathom Infiltrator" {
+  oracle_id 2b43c7de-8c21-4137-b6b8-45965e4bb558
+  cost {U/B}{U/B}
+  type Creature — Merfolk Rogue
+  pt 2/1
+  static this: has can't block, has can't be blocked
+}

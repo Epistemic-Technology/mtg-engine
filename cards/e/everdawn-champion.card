@@ -1,0 +1,7 @@
+card "Everdawn Champion" {
+  oracle_id 964e065f-380d-491b-9225-244c5f9edda7
+  cost {1}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  replace combat damage to this: prevent
+}
