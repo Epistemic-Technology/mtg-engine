@@ -826,6 +826,7 @@ impl GameState {
                 card,
                 until,
                 to_hand: false,
+                face_down: false,
             });
         }
         // Counts and conditions read the links.
@@ -1626,6 +1627,7 @@ impl GameState {
                     return;
                 }
                 self.log_event(TurnEvent::Damaged, p, 1);
+                self.log_event(TurnEvent::DamageTaken, p, amount);
                 if !combat {
                     self.log_event(TurnEvent::NoncombatDamaged, p, 1);
                 }

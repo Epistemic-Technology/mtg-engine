@@ -1,0 +1,7 @@
+card "Rabble Rousing" {
+  oracle_id 2e420001-2b3d-4eb7-b01c-3a49d5e241c2
+  cost {4}{W}
+  type Enchantment
+  hideaway 5
+  triggered whenever you attack with one or more creatures: create count that many attacking creature "1/1 green and white Citizen creature"; then if you control 10 creature, play free exiled card
+}

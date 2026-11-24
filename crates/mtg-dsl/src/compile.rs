@@ -1521,6 +1521,7 @@ impl Compiler<'_> {
                 unlabeled(a),
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
+                    | Ability::Companion(_)
                     | Ability::Uncounterable
                     | Ability::EquipDiscount(_)
                     | Ability::AuraStays
@@ -2437,6 +2438,13 @@ impl Compiler<'_> {
                 at_most: *at_most,
             },
             StaticCond::NoCardInHand(f) => StaticCondition::NoCardInHand(self.filter(f)),
+            StaticCond::EachHandEmpty => StaticCondition::EachHandEmpty,
+            StaticCond::LibraryAtMost(n) => StaticCondition::LibraryAtMost(*n),
+            StaticCond::OpponentDamageThisTurn(n) => StaticCondition::Happened {
+                count: mtg_core::card::TurnCount::of(TurnEvent::DamageTaken, TurnWho::Opponent),
+                cmp: mtg_core::card::Cmp::AtLeast,
+                n: *n,
+            },
             StaticCond::GraveyardCards {
                 filter, at_least, ..
             } => StaticCondition::GraveyardCards {
@@ -3770,6 +3778,7 @@ impl Compiler<'_> {
                 filter,
                 max,
                 exile,
+                play,
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::CastFree {
@@ -3777,6 +3786,7 @@ impl Compiler<'_> {
                     filter,
                     max_mv: *max,
                     exile: *exile,
+                    play: *play,
                 });
             }
             Effect::IsNow { to, types } => out.push(CoreEffect::Animate {
@@ -5654,7 +5664,9 @@ impl Compiler<'_> {
             Ability::LevelBand { .. } => {
                 return self.err("a level symbol is not an ability definition");
             }
-            Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::DeckAnyNumber | Ability::Companion(_) => {
+                return self.err("a deck-building rule is not an ability");
+            }
             Ability::BecomesChoice { .. } => {
                 return self.err("`becomes choice` is a card's ability, not a granted one");
             }
@@ -6412,6 +6424,18 @@ impl Compiler<'_> {
                         effects: vec![CoreEffect::Fabricate { count: *n, token }],
                     })
                 }
+                // CR 702.75a: "When this permanent enters, look at the top
+                // N cards of your library. Exile one of them face down and
+                // put the rest on the bottom of your library in a random
+                // order."
+                Mechanic::Hideaway(n) => AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::Hideaway { count: *n }],
+                }),
                 // CR 702.112a: "When this creature deals combat damage to a
                 // player, if it isn't renowned, put N +1/+1 counters on it
                 // and it becomes renowned."
@@ -7631,6 +7655,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: one(E::YouMay(one(E::ReturnToHand {
                 what: vec![Recipient::Target(0)],
                 owner_hand: false,
+                put: false,
             }))),
         },
         Mechanic::Ward(cost) => Ability::Triggered {
@@ -7942,6 +7967,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Daybound
         | Mechanic::Nightbound
         | Mechanic::Fabricate(_)
+        | Mechanic::Hideaway(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Haunt

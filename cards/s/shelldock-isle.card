@@ -1,0 +1,8 @@
+card "Shelldock Isle" {
+  oracle_id f748b2fb-6c2a-400a-8e96-fa4e4a1dfe80
+  type Land
+  hideaway 4
+  enters tapped
+  mana {U}
+  activated {U}, {T}: play free exiled card if library 20 or less
+}

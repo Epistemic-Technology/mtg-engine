@@ -1,0 +1,7 @@
+card "Widespread Thieving" {
+  oracle_id 2c2e4b19-ac88-426a-9f1b-ac305cd512e8
+  cost {2}{R}
+  type Enchantment
+  hideaway 5
+  triggered whenever you cast multicolored spell: create 1 "Treasure"; then you may pay {W}{U}{B}{R}{G}; if you do, play free exiled card
+}

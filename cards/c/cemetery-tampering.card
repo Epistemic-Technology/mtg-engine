@@ -1,0 +1,7 @@
+card "Cemetery Tampering" {
+  oracle_id 9babcd0a-531f-417d-905e-b916a87112bb
+  cost {2}{B}
+  type Enchantment
+  hideaway 5
+  triggered at beginning of your upkeep: you may mill 3 cards; then if 20 cards in your graveyard, play free exiled card
+}

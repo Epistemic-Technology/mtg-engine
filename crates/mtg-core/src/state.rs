@@ -1567,6 +1567,10 @@ pub struct LinkedExile {
     /// Exiled from a hand "until": it returns there (CR 610.3), not to
     /// the battlefield.
     pub to_hand: bool,
+    /// Exiled face down by hideaway (CR 702.75a, 406.3): only a player
+    /// who has controlled the source may look at it, so the views show
+    /// it to others as a face-down card.
+    pub face_down: bool,
 }
 
 impl Moved {
@@ -4274,6 +4278,12 @@ impl GameState {
                     .count()
                     >= *n as usize
             }
+            C::EachHandEmpty => self
+                .players_in_game()
+                .all(|p| self.player(p).hand.is_empty()),
+            C::LibraryAtMost(n) => self
+                .players_in_game()
+                .any(|p| self.player(p).library.len() <= *n as usize),
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {

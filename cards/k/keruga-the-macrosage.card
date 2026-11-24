@@ -1,0 +1,8 @@
+card "Keruga, the Macrosage" {
+  oracle_id ca5121b2-e6d9-40bc-a2d2-05852c4efbe8
+  cost {3}{G/U}{G/U}
+  type Legendary Creature — Dinosaur Hippo
+  pt 5/4
+  companion "Your starting deck contains only cards with mana value 3 or greater and land cards."
+  triggered when this enters: draw count each other permanent you control with mana value 3 or greater cards
+}

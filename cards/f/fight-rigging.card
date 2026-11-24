@@ -1,0 +1,7 @@
+card "Fight Rigging" {
+  oracle_id 117d89b2-b4c0-4421-a631-37810c0e0969
+  cost {2}{G}
+  type Enchantment
+  hideaway 5
+  triggered at beginning of your combat: put 1 +1/+1 counter on target creature you control; then if you control creature with power 7 or greater, play free exiled card
+}

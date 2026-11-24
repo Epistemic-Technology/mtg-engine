@@ -1,0 +1,8 @@
+card "Windbrisk Heights" {
+  oracle_id 3589bcfc-42b0-414a-adce-bc690dc631c8
+  type Land
+  hideaway 4
+  enters tapped
+  mana {W}
+  activated {W}, {T}: play free exiled card if attacked with 3 creature this turn
+}

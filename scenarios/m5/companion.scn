@@ -1,0 +1,24 @@
+# Companion (CR 702.139): a deck-building condition for a card chosen from
+# outside the game. Here a companion is simply a card in the deck; its
+# companion line has no effect in a game, and the rest of its text works
+# as usual.
+
+scenario "Lutri, the Spellchaser: cast with flash, it copies your spell" {
+  battlefield A: 4 "Mountain"
+  hand A: "Shock", "Lutri, the Spellchaser"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Lutri, the Spellchaser"
+  turn 1 A: trigger "Lutri, the Spellchaser" targeting "Shock"
+  run_to turn 1 end
+  assert life B 16
+  assert battlefield A contains "Lutri, the Spellchaser"
+}
+
+scenario "Keruga, the Macrosage: a card for each other permanent with mana value 3 or greater" {
+  battlefield A: 5 "Forest", "Hill Giant", "Craw Wurm", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Keruga, the Macrosage"
+  turn 1 A: cast "Keruga, the Macrosage"
+  run_to turn 1 end
+  assert hand A count 2
+}

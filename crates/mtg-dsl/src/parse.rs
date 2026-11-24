@@ -2633,6 +2633,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::DeckAnyNumber)
             }
+            "companion" if matches!(self.peek_at(1), Some(Tok::Str(_))) => {
+                self.pos += 1;
+                let text = self.string()?;
+                self.end_stmt()?;
+                Ok(Ability::Companion(text))
+            }
             // An attack or block tax (CR 508.1d, 509.1d).
             "tax" => {
                 self.pos += 1;
@@ -2978,7 +2984,7 @@ impl P {
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
             | "afterlife" | "casualty" | "teamwork" | "ripple" | "dredge" | "devour"
-            | "amplify" | "tribute"
+            | "amplify" | "tribute" | "hideaway"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -2999,6 +3005,7 @@ impl P {
                     "frenzy" => Mechanic::Frenzy(n),
                     "absorb" => Mechanic::Absorb(n),
                     "fabricate" => Mechanic::Fabricate(n),
+                    "hideaway" => Mechanic::Hideaway(n),
                     "renown" => Mechanic::Renown(n),
                     "afterlife" => Mechanic::Afterlife(n),
                     "casualty" => Mechanic::Casualty(n),
@@ -5192,6 +5199,23 @@ impl P {
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
         }
+        if self.at_words(&["opponent", "was", "dealt"])
+            && matches!(self.peek_at(3), Some(Tok::Num(_)))
+        {
+            self.pos += 3;
+            let n = self.number()?;
+            self.expect_words(&["damage", "this", "turn"])?;
+            return Ok(StaticCond::OpponentDamageThisTurn(n));
+        }
+        if self.eat_words(&["no", "cards", "in", "any", "hand"]) {
+            return Ok(StaticCond::EachHandEmpty);
+        }
+        if self.at_word("library") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            self.expect_words(&["or", "less"])?;
+            return Ok(StaticCond::LibraryAtMost(n));
+        }
         if self.at_words(&["opponent", "dealt", "noncombat"])
             || self.at_words(&["opponent", "was", "dealt", "noncombat"])
         {
@@ -5856,7 +5880,7 @@ impl P {
                 message: "too many groups".to_string(),
             })?;
             (Some(Recipient::ExiledWith(i)), None, None)
-        } else if self.at_word("target") {
+        } else if self.at_word("target") || self.at_words(&["exiled", "card"]) {
             (Some(self.recipient()?), None, None)
         } else {
             let filter = if self.at_word("spell") {
@@ -5878,6 +5902,7 @@ impl P {
             filter,
             max,
             exile,
+            play: false,
         })
     }
 
@@ -6970,6 +6995,23 @@ impl P {
         // "You may cast ... without paying its mana cost" (CR 608.2g).
         if self.eat_words(&["cast", "free"]) {
             return self.cast_free();
+        }
+        // "You may play the exiled card without paying its mana cost"
+        // (hideaway, CR 702.75a).
+        // "put the exiled card into its owner's hand" (CR 607.2a).
+        if self.eat_words(&["put", "exiled", "card", "into", "hand"]) {
+            return Ok(Effect::ReturnToHand {
+                what: vec![Recipient::ExiledCard],
+                owner_hand: false,
+                put: true,
+            });
+        }
+        if self.eat_words(&["play", "free"]) {
+            let mut e = self.cast_free()?;
+            if let Effect::CastFree { play, .. } = &mut e {
+                *play = true;
+            }
+            return Ok(e);
         }
         // Designations (CR 701.54, 725, 726, 701.49).
         if self.at_words(&["the", "ring", "tempts", "you"]) {
@@ -10156,6 +10198,7 @@ impl P {
                     return Ok(Effect::ReturnToHand {
                         what: all,
                         owner_hand,
+                        put: false,
                     });
                 }
                 // "Return up to two target creature cards ... to the

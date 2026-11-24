@@ -66,6 +66,7 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
         (TurnEvent::LifeLost, TurnWho::You, ..) => StaticCond::LostLifeThisTurn { gained: false },
         (TurnEvent::LifeLost, ..) => StaticCond::OpponentLostLifeThisTurn,
         (TurnEvent::Damaged, ..) => StaticCond::OpponentDamagedThisTurn,
+        (TurnEvent::DamageTaken, _, _, n) => StaticCond::OpponentDamageThisTurn(n),
         (TurnEvent::NoncombatDamaged, ..) => {
             StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
         }
@@ -826,6 +827,8 @@ impl Decompiler<'_> {
                 at_most: *at_most,
             },
             StaticCondition::NoCardInHand(f) => StaticCond::NoCardInHand(self.filter(f)),
+            StaticCondition::EachHandEmpty => StaticCond::EachHandEmpty,
+            StaticCondition::LibraryAtMost(n) => StaticCond::LibraryAtMost(*n),
         }
     }
 
@@ -1044,6 +1047,7 @@ impl Decompiler<'_> {
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
                 owner_hand: false,
+                put: false,
             },
             CoreEffect::ReturnToBattlefield {
                 what,
@@ -1435,11 +1439,13 @@ impl Decompiler<'_> {
                 filter,
                 max_mv,
                 exile,
+                play,
             } => Effect::CastFree {
                 what: what.map(r),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 max: *max_mv,
                 exile: *exile,
+                play: *play,
             },
             CoreEffect::Animate {
                 to,
@@ -1817,7 +1823,9 @@ impl Decompiler<'_> {
                 what: vec![r(*what)],
             },
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
-            CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
+            CoreEffect::Fabricate { .. }
+            | CoreEffect::Hideaway { .. }
+            | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
             CoreEffect::ExileTop { who, count } => Effect::ExileTop {
@@ -2873,6 +2881,14 @@ impl Decompiler<'_> {
                     unreachable!("matched above")
                 };
                 Ability::Mechanic(crate::ast::Mechanic::Fabricate(*count))
+            }
+            AbilityDef::Triggered(t)
+                if matches!(t.effects.as_slice(), [CoreEffect::Hideaway { .. }]) =>
+            {
+                let [CoreEffect::Hideaway { count }] = t.effects.as_slice() else {
+                    unreachable!("matched above")
+                };
+                Ability::Mechanic(crate::ast::Mechanic::Hideaway(*count))
             }
             AbilityDef::Triggered(t)
                 if matches!(

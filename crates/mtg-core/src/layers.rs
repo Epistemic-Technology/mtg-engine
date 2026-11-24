@@ -731,6 +731,12 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 .count()
                 >= *n as usize
         }
+        StaticCondition::EachHandEmpty => state
+            .players_in_game()
+            .all(|p| state.player(p).hand.is_empty()),
+        StaticCondition::LibraryAtMost(n) => state
+            .players_in_game()
+            .any(|p| state.player(p).library.len() <= *n as usize),
         StaticCondition::CardsInHand { n, at_most } => {
             let h = state.player(you).hand.len();
             if *at_most {

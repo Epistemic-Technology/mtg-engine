@@ -1,0 +1,8 @@
+card "Mosswort Bridge" {
+  oracle_id 7cb9e29f-835f-4155-a2a5-4b778866c773
+  type Land
+  hideaway 4
+  enters tapped
+  mana {G}
+  activated {G}, {T}: play free exiled card if total power 10 or more
+}

@@ -1621,7 +1621,12 @@ impl Fmt {
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }
-            Effect::ReturnToHand { what, owner_hand } => format!(
+            Effect::ReturnToHand {
+                what, put: true, ..
+            } => format!("put {} into hand", self.recipients(what, t)),
+            Effect::ReturnToHand {
+                what, owner_hand, ..
+            } => format!(
                 "return {} to {}",
                 self.recipients(what, t),
                 if *owner_hand { "owner's hand" } else { "hand" }
@@ -2020,8 +2025,9 @@ impl Fmt {
                 filter: f,
                 max,
                 exile,
+                play,
             } => {
-                let mut s = "cast free ".to_string();
+                let mut s = if *play { "play free " } else { "cast free " }.to_string();
                 if let Some(r) = what {
                     let o = self.recipient(*r, t);
                     // `cast free card exiled with this`: one of them.
@@ -5871,6 +5877,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
+        StaticCond::OpponentDamageThisTurn(n) => format!("opponent was dealt {n} damage this turn"),
+        StaticCond::EachHandEmpty => "no cards in any hand".to_string(),
+        StaticCond::LibraryAtMost(n) => format!("library {n} or less"),
         StaticCond::OpponentLostLifeThisTurn => "opponent lost life this turn".to_string(),
         StaticCond::PermanentLeftThisTurn => "permanent left this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
@@ -7112,6 +7121,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Daybound => "daybound".to_string(),
                 crate::ast::Mechanic::Nightbound => "nightbound".to_string(),
                 crate::ast::Mechanic::Fabricate(n) => format!("fabricate {n}"),
+                crate::ast::Mechanic::Hideaway(n) => format!("hideaway {n}"),
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
                 crate::ast::Mechanic::Increment => "increment".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
@@ -7201,6 +7211,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let word = if *negated { "if" } else { "unless" };
             let _ = writeln!(out, "{indent}can't {what} {word} {}", static_cond(cond));
+        }
+        Ability::Companion(text) => {
+            let _ = writeln!(out, "{indent}companion \"{text}\"");
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
