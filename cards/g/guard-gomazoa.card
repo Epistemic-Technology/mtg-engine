@@ -1,0 +1,8 @@
+card "Guard Gomazoa" {
+  oracle_id 7c565975-aebc-4599-ac32-5594c718e2cb
+  cost {2}{U}
+  type Creature — Jellyfish
+  pt 1/3
+  keywords defender, flying
+  replace combat damage to this: prevent
+}

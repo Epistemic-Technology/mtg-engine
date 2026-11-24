@@ -1,0 +1,6 @@
+card "Waterveil Cavern" {
+  oracle_id 3debfa0d-9945-4a85-a714-7c3d3d74de4e
+  type Land
+  mana {C}
+  activated {T}: add {U} or {B}; this land doesn't untap next untap step
+}

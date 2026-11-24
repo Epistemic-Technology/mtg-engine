@@ -1,0 +1,8 @@
+card "Truefire Captain" {
+  oracle_id 3677e743-8d3d-4ec7-8bfe-21e36979a79b
+  cost {R}{R}{W}{W}
+  type Creature — Human Knight
+  pt 4/3
+  mentor
+  triggered whenever this is dealt damage: it deals that much damage to target player
+}

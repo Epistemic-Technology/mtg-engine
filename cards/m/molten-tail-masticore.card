@@ -1,0 +1,9 @@
+card "Molten-Tail Masticore" {
+  oracle_id 15fb3a7a-a6c3-4bef-9f72-1d04b623063e
+  cost {4}
+  type Artifact Creature — Masticore
+  pt 4/4
+  triggered at beginning of your upkeep: sacrifice this unless you discard 1 card
+  activated {4}, exile creature card from graveyard: deal 4 damage to any target
+  activated {2}: regenerate this
+}

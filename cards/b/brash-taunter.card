@@ -1,0 +1,9 @@
+card "Brash Taunter" {
+  oracle_id 3e41648f-c5a9-4b26-b97e-8176fe5e9c85
+  cost {4}{R}
+  type Creature — Goblin
+  pt 1/1
+  keywords indestructible
+  triggered whenever this is dealt damage: it deals that much damage to target opponent
+  activated {2}{R}, {T}: this fights another target creature
+}

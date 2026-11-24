@@ -1972,6 +1972,52 @@ impl Templates {
             (r(r"^[Yy]ou gain that much life$"), |_, _| {
                 Some("you gain that much life".to_string())
             }),
+            // "{T}: Add {G} or {W}. This land doesn't untap during your next
+            // untap step." (the bounce-tap lands, Arbalest Elite).
+            (
+                r(
+                    r"^(?:[Tt]his (?:land|creature|artifact|permanent)|~) doesn't untap during your next untap step$",
+                ),
+                |_, _| Some("this doesn't untap next untap step".to_string()),
+            ),
+            // "At the beginning of your upkeep, sacrifice this creature
+            // unless you discard a card." (the Masticores).
+            (
+                r(
+                    r"^[Ss]acrifice (?:this (?:creature|enchantment|artifact)|it|~) unless you discard (a|two|three) cards?$",
+                ),
+                |c, _| {
+                    let n = number(cap(c, 1))?;
+                    let noun = if n == "1" { "card" } else { "cards" };
+                    Some(format!("sacrifice this unless you discard {n} {noun}"))
+                },
+            ),
+            // "Whenever this creature deals combat damage to a player, put
+            // that many +1/+1 counters on it." (Westgate Regent): the amount
+            // of the trigger's damage, on the triggering object.
+            (
+                r(r"^[Pp]ut that many \+1/\+1 counters on (it|this creature|~)$"),
+                |c, _| {
+                    let on = if cap(c, 1) == "it" { "it" } else { "this" };
+                    Some(format!("put that much +1/+1 counters on {on}"))
+                },
+            ),
+            // "Whenever this creature is dealt damage, it deals that much
+            // damage to any target." (Spitemare, Brash Taunter).
+            (
+                r(r"^[Ii]t deals that much damage to (any target|any other target|target opponent|target player|you)$"),
+                |c, t| {
+                    let to = match cap(c, 1) {
+                        "any other target" => {
+                            *t += 1;
+                            "any other target".to_string()
+                        }
+                        "you" => "you".to_string(),
+                        other => recipient(other, t)?,
+                    };
+                    Some(format!("it deals that much damage to {to}"))
+                },
+            ),
             // "this Aura deals 2 damage to that creature's controller".
             (
                 r(
@@ -6531,6 +6577,23 @@ fn conditional_static(line: &str) -> Option<String> {
             return None;
         }
         let (f, pred) = split_subject(line)?;
+        // "This creature gets +2/+2 for each Aura attached to it." (Kor
+        // Spiritdancer), "... for each oil counter on it." (Trawler
+        // Drake): "it" is the source.
+        if f == "this"
+            && let Some(c) = cached_regex(&format!(
+                r"^gets ([+-]\d+/[+-]\d+) for each (Aura attached to it|({}) counter on it)\.?$",
+                counter_names()
+            ))
+            .unwrap()
+            .captures(&pred)
+        {
+            let what = match c.get(3) {
+                Some(k) => format!("{} counter on it", k.as_str()),
+                None => "Aura attached to this".to_string(),
+            };
+            return Some(format!("static this: {} count each {what}", cap(&c, 1)));
+        }
         return Some(format!("static {f}: {}", static_mods(&pred)?));
     };
     let (f, pred) = split_subject(body)?;
@@ -6888,6 +6951,19 @@ impl Builder<'_> {
                     .push(format!("static {} you control: {mods}", types.join(" or ")));
                 return Ok(());
             }
+        }
+        // CR 615: "Prevent all combat damage that would be dealt to this
+        // creature." (Seraph of the Sword), "Prevent all damage ..."
+        // (Glittering Lynx's first line).
+        if line == "Prevent all combat damage that would be dealt to this creature." {
+            self.statements
+                .push("replace combat damage to this: prevent".to_string());
+            return Ok(());
+        }
+        if line == "Prevent all damage that would be dealt to this creature." {
+            self.statements
+                .push("replace damage to this: prevent".to_string());
+            return Ok(());
         }
         if line == "If you would gain life, you gain twice that much life instead." {
             self.statements
@@ -9439,6 +9515,22 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         )
         .replace("exile each graveyards", "exile all graveyards")
         .replace("to each of two targets", "to 2 targets");
+    // "Radiance — {T}: This creature deals 1 damage to target creature and
+    // each other creature that shares a color with it." (Wojek
+    // Embermage): "it" is the line's one target.
+    s = s
+        .lines()
+        .map(|l| {
+            if l.matches("target ").count() == 1 {
+                re(r"\beach other ([a-z]+) that shares a color with it\b")
+                    .replace_all(l, "each other $1 that shares color with target 1")
+                    .into_owned()
+            } else {
+                l.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     // "Nonwhite creatures get -1/-1." (Crovax, Ascendant Hero): a color
     // the class lowercased.
     s = re(r"\bstatic Non(white|blue|black|red|green) ")

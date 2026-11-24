@@ -1,0 +1,291 @@
+# Fourteenth-wave template phrases, second round: "This land doesn't
+# untap during your next untap step", "This creature gets +2/+2 for each
+# Aura attached to it" and "... for each oil counter on it", "sacrifice
+# this creature unless you discard a card", "put that many +1/+1 counters
+# on it", "it deals that much damage to any target", and "Prevent all
+# combat damage that would be dealt to this creature."
+
+scenario "Tranquil Garden: two colors, then it stays tapped" {
+  battlefield A: "Tranquil Garden"
+  hand A: "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tranquil Garden"
+  turn 1 A: choose white
+  turn 1 A: cast "Savannah Lions"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Savannah Lions"
+  assert tapped "Tranquil Garden"
+}
+
+scenario "Tranquil Garden: colorless, and it untaps" {
+  battlefield A: "Tranquil Garden"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 3 precombat_main
+  assert untapped "Tranquil Garden"
+}
+
+scenario "Pinecrest Ridge: red mana for a red spell" {
+  battlefield A: "Pinecrest Ridge"
+  battlefield B: "Savannah Lions"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pinecrest Ridge"
+  turn 1 A: choose red
+  turn 1 A: cast "Lightning Bolt" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "Cloudcrest Lake, Lantern-Lit Graveyard, Waterveil Cavern: their colors" {
+  battlefield A: "Cloudcrest Lake", "Lantern-Lit Graveyard", "Waterveil Cavern"
+  hand A: "Savannah Lions", "Duress", "Opt"
+  library A: "Plains", "Plains", "Plains"
+  hand B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cloudcrest Lake"
+  turn 1 A: choose white
+  turn 1 A: cast "Savannah Lions"
+  turn 1 A: activate "Lantern-Lit Graveyard"
+  turn 1 A: choose black
+  turn 1 A: cast "Duress" targeting player B
+  turn 1 A: activate "Waterveil Cavern"
+  turn 1 A: choose blue
+  turn 1 A: cast "Opt"
+  run_to turn 1 end
+  assert battlefield A contains "Savannah Lions"
+  assert graveyard A contains "Duress"
+  assert graveyard A contains "Opt"
+  assert tapped "Waterveil Cavern"
+}
+
+scenario "Arbalest Elite: 3 to an attacker, and it stays tapped" {
+  battlefield A: "Arbalest Elite", 3 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: activate "Arbalest Elite" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert graveyard B contains "Hill Giant"
+  assert tapped "Arbalest Elite"
+}
+
+scenario "Arbalest Elite: not a creature that isn't in combat" {
+  battlefield A: "Arbalest Elite", 3 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Arbalest Elite" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Westgate Regent: that many +1/+1 counters after combat damage" {
+  battlefield A: "Westgate Regent"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Westgate Regent"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert counters "Westgate Regent" +1/+1 4
+}
+
+scenario "Necropolis Regent: the creature that dealt the damage gets the counters" {
+  battlefield A: "Necropolis Regent", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert counters "Hill Giant" +1/+1 3
+  assert counters "Necropolis Regent" +1/+1 0
+}
+
+scenario "Hungering Hydra: dealt damage, that many counters" {
+  battlefield A: "Hungering Hydra" with 4 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting "Hungering Hydra"
+  run_to turn 1 postcombat_main
+  assert counters "Hungering Hydra" +1/+1 6
+}
+
+scenario "Spitemare: dealt damage, deals that much to any target" {
+  battlefield A: "Spitemare"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting "Spitemare"
+  turn 1 A: trigger "Spitemare" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Boros Reckoner: dealt damage, deals that much to a creature" {
+  battlefield A: "Boros Reckoner"
+  battlefield B: "Mountain", "Hill Giant"
+  hand B: "Shock"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting "Boros Reckoner"
+  turn 1 A: trigger "Boros Reckoner" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "Brash Taunter: dealt damage, deals that much to an opponent" {
+  battlefield A: "Brash Taunter"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Brash Taunter"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Brash Taunter"
+}
+
+scenario "Brash Taunter: fights another creature, and the damage it takes goes on" {
+  battlefield A: "Brash Taunter", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Brash Taunter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert life B 17
+}
+
+scenario "Truefire Captain: dealt damage, deals that much to target player" {
+  battlefield A: "Truefire Captain"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting "Truefire Captain"
+  turn 1 A: trigger "Truefire Captain" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Molten-Tail Masticore: discard a card at upkeep, or sacrifice it" {
+  battlefield A: "Molten-Tail Masticore"
+  hand A: "Forest"
+  start turn 2 A untap
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Molten-Tail Masticore"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Molten-Tail Masticore: no card to discard" {
+  battlefield A: "Molten-Tail Masticore"
+  start turn 2 A untap
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Molten-Tail Masticore"
+}
+
+scenario "Avatar of Discord: discard two cards or sacrifice it" {
+  battlefield A: 3 "Swamp", 3 "Mountain"
+  hand A: "Avatar of Discord", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Avatar of Discord"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Avatar of Discord"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+}
+
+scenario "Avatar of Discord: one card is not enough" {
+  battlefield A: 3 "Swamp", 3 "Mountain"
+  hand A: "Avatar of Discord", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Avatar of Discord"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Avatar of Discord"
+}
+
+scenario "Kor Spiritdancer: +2/+2 for each Aura, and a card for each Aura spell" {
+  battlefield A: "Kor Spiritdancer", "Forest", "Holy Strength" on "Kor Spiritdancer"
+  hand A: "Rancor"
+  library A: "Plains", "Plains"
+  start turn 1 A precombat_main
+  assert power "Kor Spiritdancer" 3
+  turn 1 A: cast "Rancor" targeting "Kor Spiritdancer"
+  run_to turn 1 postcombat_main
+  assert power "Kor Spiritdancer" 7
+  assert toughness "Kor Spiritdancer" 8
+  assert hand A count 1
+}
+
+scenario "Graceblade Artisan and Gatherer of Graces: per Aura" {
+  battlefield A: "Graceblade Artisan", "Gatherer of Graces", "Holy Strength" on "Graceblade Artisan", "Holy Strength" on "Gatherer of Graces"
+  start turn 1 A precombat_main
+  assert power "Graceblade Artisan" 5
+  assert toughness "Graceblade Artisan" 7
+  assert power "Gatherer of Graces" 3
+  assert toughness "Gatherer of Graces" 5
+}
+
+scenario "Gatherer of Graces: sacrifice an Aura to regenerate" {
+  battlefield A: "Gatherer of Graces", "Holy Strength" on "Gatherer of Graces"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gatherer of Graces"
+  turn 1 B: wait
+  turn 1 B: cast "Murder" targeting "Gatherer of Graces"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gatherer of Graces"
+  assert graveyard A contains "Holy Strength"
+}
+
+scenario "Uril, the Miststalker: +2/+2 for each Aura" {
+  battlefield A: "Uril, the Miststalker", "Holy Strength" on "Uril, the Miststalker", "Rancor" on "Uril, the Miststalker"
+  start turn 1 A precombat_main
+  assert power "Uril, the Miststalker" 12
+  assert toughness "Uril, the Miststalker" 11
+}
+
+scenario "Trawler Drake: one oil counter, then another for a noncreature spell" {
+  battlefield A: "Island"
+  hand A: "Trawler Drake", "Opt"
+  battlefield A: 4 "Island"
+  library A: "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trawler Drake"
+  run_to turn 1 postcombat_main
+  assert power "Trawler Drake" 1
+  turn 1 postcombat_main A: cast "Opt"
+  run_to turn 1 end
+  assert counters "Trawler Drake" oil 2
+  assert power "Trawler Drake" 2
+  assert toughness "Trawler Drake" 2
+}
+
+scenario "Seraph of the Sword: no combat damage to it" {
+  battlefield A: "Seraph of the Sword"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Seraph of the Sword"
+  run_to turn 2 postcombat_main
+  assert damage "Seraph of the Sword" 0
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Seraph of the Sword: noncombat damage still dealt" {
+  battlefield A: "Seraph of the Sword"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting "Seraph of the Sword"
+  run_to turn 1 postcombat_main
+  assert damage "Seraph of the Sword" 2
+}
+
+scenario "Guard Gomazoa and Everdawn Champion: no combat damage" {
+  battlefield A: "Guard Gomazoa", "Everdawn Champion"
+  battlefield B: "Hill Giant", "Craw Wurm"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant", "Craw Wurm"
+  turn 2 A: block "Hill Giant" with "Guard Gomazoa"
+  turn 2 A: block "Craw Wurm" with "Everdawn Champion"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Guard Gomazoa"
+  assert battlefield A contains "Everdawn Champion"
+  assert life A 20
+}

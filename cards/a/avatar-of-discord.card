@@ -1,0 +1,8 @@
+card "Avatar of Discord" {
+  oracle_id 3f806353-592e-431c-a7dd-a4c64034f94d
+  cost {B/R}{B/R}{B/R}
+  type Creature — Avatar
+  pt 5/3
+  keywords flying
+  triggered when this enters: sacrifice this unless you discard 2 cards
+}

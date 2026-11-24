@@ -1934,11 +1934,16 @@ impl GameState {
                     || self.act_candidates(ctx, *act, filter).len()
                         >= self.eval_num(*count, ctx) as usize
             }
+            // "Sacrifice it unless you discard two cards" (Avatar of
+            // Discord): one card in hand can't pay it.
             Effect::Discard {
                 who: crate::card::Recipient::You,
-                ..
+                count,
+            } => {
+                let n = self.eval_num(*count, ctx) as usize;
+                self.player(ctx.controller).hand.len() >= n.max(1)
             }
-            | Effect::HandToLibrary {
+            Effect::HandToLibrary {
                 who: crate::card::Recipient::You,
                 ..
             }

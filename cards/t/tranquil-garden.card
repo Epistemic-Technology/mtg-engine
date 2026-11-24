@@ -1,0 +1,6 @@
+card "Tranquil Garden" {
+  oracle_id d9dfef08-b824-4d56-a0e9-3dcefb7e4612
+  type Land
+  mana {C}
+  activated {T}: add {G} or {W}; this land doesn't untap next untap step
+}

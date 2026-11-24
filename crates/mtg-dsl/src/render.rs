@@ -7440,7 +7440,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "It doesn't untap during your next untap step": the source,
             // or a target you control.
             let yours = match *to {
-                Recipient::Source => true,
+                // "This land doesn't untap during your next untap step."
+                Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => true,
                 Recipient::Target(n) | Recipient::ThatTarget(n) => {
                     match ctx.targets.get(n).map(Target::base) {
                         Some(Target::Filter(f)) => f.who == Some(Who::You) && f.or.is_none(),

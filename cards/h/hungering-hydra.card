@@ -1,0 +1,9 @@
+card "Hungering Hydra" {
+  oracle_id d1dde190-8124-4590-9507-801ea4c8cde3
+  cost {X}{G}
+  type Creature — Hydra
+  pt 0/0
+  enters with X +1/+1 counters
+  can't be blocked by more than one creature
+  triggered whenever this is dealt damage: put that much +1/+1 counters on it
+}
