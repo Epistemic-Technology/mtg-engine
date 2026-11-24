@@ -1,0 +1,8 @@
+card "Flamerush Rider" {
+  oracle_id f797a325-ec2a-4142-b0ff-90cac1356da9
+  cost {4}{R}
+  type Creature — Human Warrior
+  pt 3/3
+  triggered whenever this attacks: create token copy of another target attacking creature entering tapped and attacking; delayed that token: exile the token at end of combat
+  dash {2}{R}{R}
+}

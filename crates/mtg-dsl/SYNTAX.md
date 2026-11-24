@@ -313,7 +313,11 @@ like the card; either half may still be cast alone.
 | `hands revealed players` | "Players play with their hands revealed.": every card in a hand is known to every player while it is there. |
 | `activated abilities of artifact you control cost {1} less min one`, `activated abilities of land you control cost {1} less`, `power-up abilities of other creature you control cost {3} less`, `exhaust abilities of other permanent you control cost {2} less` | "Activated abilities of artifacts you control cost {1} less to activate. This effect can't reduce the mana in that cost to less than one mana." (`min one`), "Power-up abilities of other creatures you control cost {3} less to activate." (CR 601.2f by way of 602.2b): the generic mana of the matching permanents' activated abilities (of that keyword: `power-up`, `exhaust`, `boast`, `ninjutsu`) is reduced as they are activated; with `min one`, never below one mana in all. |
 | `hand size none`, `hand size +1`, `hand size opponents -1`, `hand size 8` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one.", "Your maximum hand size is eight." (CR 402.2). The count `difference 10 hand` ("draw cards equal to the difference", after the condition `hand fewer than 10`: "if you have fewer than ten cards in hand") is ten minus the count, at least 0. |
-| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy; `its not legendary` prints "it's not legendary", Ran and Shaw), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
+| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy; `its not legendary`: "it's not legendary"), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token); `legendary` ("it's legendary": the legend rule then applies to it); `exactly` with `pt`, `colors`, and `subtypes` ("it's a 1/1 green Frog", "a 4/4 black Zombie", no "in addition": its colors and creature types are these instead, its card types stay); `pt 1/1` alone ("it's 1/1"); `the token` (wording: "except the token isn't legendary"); a card with a
+`pronoun` becoming a copy itself prints it ("Oko becomes a copy of ...,
+except he has hexproof"). The template author writes the block from the
+sentence ("Create a token that's a copy of target creature, except it's an
+artifact in addition to its other types."). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
 Effects written after `:` sit on one line; write `{` instead of `:` and put
 one line per paragraph for text that spans paragraphs:
@@ -2219,7 +2223,11 @@ land.", else ". It's still a land."; an Aura's `static enchanted: base 4/2,
 set color red, add subtype Beast, add type creature, has trample` prints
 "Enchanted land is a 4/2 red Beast creature with trample. It's still a
 land."), `this becomes a
-copy of <what> [with exceptions]` (any subject: `target Shapeshifter
+copy of <what> [with exceptions]` (`you may this becomes a copy of chosen
+other creature you control until end of turn`: "you may have it become a
+copy of another creature you control until end of turn", the creature
+chosen as the effect resolves, not targeted, CR 608.2d; scenarios `choose
+"X"`; any subject: `target Shapeshifter
 becomes a copy of target creature until your next turn`, `each single
 other creature becomes a copy of target nonlegendary creature until end of
 turn`, "Each other creature becomes ..."; `until end of turn` and `until
@@ -2412,7 +2420,16 @@ Wicked Role token attached to that Rat."; `each` after a variable target
 group before `gain` prints "One or two target creatures each gain haste"), `<who> creates 2
 "Treasure"` (`its controller creates`, `each player creates`, `you
 create`: "Its controller creates two Treasure tokens"),
-`create token copy of <what> [with exceptions]` (of a group, `create
+`create token copy of <what> [with exceptions]` (`create tapped token
+copy of ...`, `create 2 tapped token copies of this artifact`: "create a
+tapped token that's a copy of ...", "create two tapped tokens that are
+copies of this artifact", entering tapped; `create tapped and attacking
+token copy of ...` "create a tapped and attacking token that's a copy of
+...", and the older `create token copy of <what> [with exceptions] entering tapped
+and attacking` "create a token that's a copy of ... and that's tapped and
+attacking": CR 508.4, attacking what the source attacks; in a delayed
+trigger about it, `the token` prints "the token": `delayed that token:
+exile the token at end of combat`; of a group, `create
 token copy of each nontoken creature you control` prints "For each
 nontoken creature you control, create a token that's a copy of that
 creature"; `create 2 token copies of it` prints "create two tokens that
@@ -2940,7 +2957,14 @@ random` ("At the beginning of your next upkeep, ..."), `delayed that
 token: at beginning of the end step on your next turn, sacrifice that
 token` ("At the beginning of the end step on your next turn, ...": the
 controller's end step, but not in the turn it was created), and
-`at end of combat` ("destroy it at end of combat"). Inside a delayed ability `it` is the object
+`at end of combat` ("destroy it at end of combat"). A delayed trigger
+about a triggering object that has left the battlefield whose effects make
+a token copy of it is about that permanent as it last existed (`whenever
+you sacrifice this or artifact: you may pay {2}; if you do, delayed that
+creature: at beginning of the next end step, create token copy of it`:
+"... create a token that's a copy of that artifact", printed so when the
+sacrifice trigger's filter is artifacts; a token or a card works alike).
+Inside a delayed ability `it` is the object
 the ability is about, and so is `that card`, which prints so where `it`
 prints "it" (`delayed target 1: return that card to battlefield at
 beginning of the next end step`: "Return that card to the battlefield

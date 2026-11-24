@@ -1884,12 +1884,16 @@ impl<'a> Ctx<'a> {
             {
                 "that spell or ability".to_string()
             }
+            Recipient::TriggeringObject if self.trigger_sacrificed_artifact() => {
+                "that artifact".to_string()
+            }
             Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
                 "that creature".to_string()
             }
             Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::TriggeringOneOfThem => "one of them".to_string(),
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
+            Recipient::SameTheToken => "the token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
@@ -1930,6 +1934,9 @@ impl<'a> Ctx<'a> {
             Recipient::EachPermanentYouControl => {
                 self.groups_mentioned.insert(r);
                 "each permanent you control".to_string()
+            }
+            Recipient::SameObject if self.delayed_that && self.trigger_sacrificed_artifact() => {
+                "that artifact".to_string()
             }
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens | Recipient::CreatedThose => {
@@ -1974,6 +1981,11 @@ impl<'a> Ctx<'a> {
             Recipient::RandomOf(i) => match self.card.groups.get(usize::from(i)) {
                 Some(f) => format!("{} chosen at random", filter_a(f, self.card)),
                 None => "a permanent chosen at random".to_string(),
+            },
+            // "become a copy of another creature you control".
+            Recipient::ChosenOf(i) => match self.card.groups.get(usize::from(i)) {
+                Some(f) => filter_a(f, self.card),
+                None => "a permanent".to_string(),
             },
             // "When this Aura enters, if enchanted creature is a Wolf or
             // Werewolf, untap that creature." (Howl of the Hunt).
@@ -2140,6 +2152,19 @@ impl<'a> Ctx<'a> {
                     if f.enchanted
             )
         })
+    }
+
+    /// "Whenever you sacrifice this artifact or another artifact, ...
+    /// create a token that's a copy of that artifact": the sacrificed
+    /// object's noun when the trigger's filter is artifacts only.
+    fn trigger_sacrificed_artifact(&self) -> bool {
+        matches!(
+            self.trigger,
+            Some(Trigger::Sacrificed {
+                obj: TriggerObj::Filter(f) | TriggerObj::ThisOr(f),
+                ..
+            }) if f.types == [CardType::Artifact]
+        )
     }
 
     fn trigger_is_enchanted(&self) -> bool {
@@ -4545,7 +4570,9 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
     let mut parts = Vec::new();
     if x.not_legendary {
         parts.push(
-            if x.its_not {
+            if x.the_token {
+                "the token isn't legendary"
+            } else if x.its_not {
                 "it's not legendary"
             } else {
                 "it isn't legendary"
@@ -4553,8 +4580,27 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
             .to_string(),
         );
     }
+    if x.legendary {
+        parts.push("it's legendary".to_string());
+    }
+    // "it's a 1/1 green Frog", "it's a 4/4 black Zombie": its colors and
+    // creature types are these.
+    if x.exactly {
+        let mut words: Vec<String> = Vec::new();
+        if let Some((p, t)) = x.pt {
+            words.push(format!("{p}/{t}"));
+        }
+        words.extend(x.colors.iter().map(|c| color_name(*c).to_string()));
+        words.extend(x.subtypes.iter().cloned());
+        words.extend(x.types.iter().map(|t| type_noun(*t).to_string()));
+        parts.push(format!("it's {}", with_article(&words.join(" "))));
+    } else if x.pt.is_some() && x.subtypes.is_empty() && x.types.is_empty() {
+        // "except it's 1/1".
+        let (p, t) = x.pt.unwrap_or_default();
+        parts.push(format!("it's {p}/{t}"));
+    }
     // "it's a Vehicle artifact in addition to its other types".
-    if !x.subtypes.is_empty() || !x.types.is_empty() {
+    if !x.exactly && (!x.subtypes.is_empty() || !x.types.is_empty()) {
         // "it's a 1/1 red Balloon creature in addition to its other
         // colors and types".
         let mut words: Vec<String> = Vec::new();
@@ -8420,14 +8466,30 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.those_tokens = None;
             Clause::imperative(text)
         }
-        Effect::CreateTokenCopy { of, except, count } => {
+        Effect::CreateTokenCopy {
+            of,
+            except,
+            count,
+            tapped,
+            attacking,
+            trailing,
+        } => {
             let o = ctx.obj(*of);
             // "create a token that's a copy of", "create two tokens that are
-            // copies of", "Create X tokens that are copies of".
+            // copies of", "Create X tokens that are copies of"; "a tapped
+            // [and attacking] token that's a copy of".
+            let entry = match (*tapped && !*trailing, *attacking) {
+                (false, _) => "",
+                (true, false) => "tapped ",
+                (true, true) => "tapped and attacking ",
+            };
             let copies = if *count == Num::N(1) {
-                "a token that's a copy of".to_string()
+                format!("a {entry}token that's a copy of")
             } else {
-                format!("{} tokens that are copies of", count_words(*count, "one"))
+                format!(
+                    "{} {entry}tokens that are copies of",
+                    count_words(*count, "one")
+                )
             };
             let noun = |rest: &str| {
                 if rest.contains("creature") {
@@ -8450,6 +8512,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
+            }
+            // "... and that's tapped and attacking" (Flamerush Rider).
+            if *trailing {
+                text.push_str(if *count == Num::N(1) {
+                    " and that's tapped and attacking"
+                } else {
+                    " and that are tapped and attacking"
+                });
             }
             Clause::imperative(text)
         }
@@ -8541,7 +8611,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::CopyUntil::YourNextTurn => text.push_str(" until your next turn"),
             }
             if *except {
-                let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
+                let mut x = except_text(ctx.card, ctx.current);
+                // "Oko becomes a copy of ..., except he has hexproof": a
+                // character copying keeps its pronoun.
+                if source
+                    && matches!(
+                        ctx.card.pronoun,
+                        Some(crate::ast::Pronoun::He | crate::ast::Pronoun::She)
+                    )
+                {
+                    let he = it_subj(ctx.card);
+                    x = x
+                        .replace("it has ", &format!("{he} has "))
+                        .replace("it isn't ", &format!("{he} isn't "))
+                        .replace("it's ", &format!("{} ", its_is(ctx.card)));
+                }
+                let _ = write!(text, ", except {x}");
             }
             Clause::with_subject(if source { Recipient::Source } else { *who }, s, text)
         }

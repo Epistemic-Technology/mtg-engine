@@ -3527,7 +3527,20 @@ impl GameState {
                 self.cbump();
             }
         } else {
-            self.lki.clear();
+            // A delayed trigger about an object that has left keeps its
+            // last known information ("at the beginning of the next end
+            // step, create a token that's a copy of that artifact").
+            if self.delayed_triggers.is_empty() {
+                self.lki.clear();
+            } else {
+                let keep: Vec<ObjId> = self
+                    .delayed_triggers
+                    .iter()
+                    .filter_map(|d| d.ability.trigger_obj)
+                    .filter(|id| !self.objects.contains_key(*id))
+                    .collect();
+                self.lki.retain(|id, _| keep.contains(id));
+            }
             // Costs of spells and abilities that never resolved.
             self.paid_costs.clear();
             self.granters.clear();

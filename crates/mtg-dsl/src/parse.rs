@@ -562,6 +562,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "creature"], Recipient::TriggeringObject),
     (&["that", "permanent"], Recipient::TriggeringObject),
     (&["that", "Vehicle"], Recipient::TriggeringObject),
+    (&["that", "artifact"], Recipient::TriggeringObject),
     (&["that", "object"], Recipient::TriggeringObject),
     (&["that", "spell"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),
@@ -1444,6 +1445,24 @@ impl P {
                         Some("not") if self.word_at(1).as_deref() == Some("legendary") => {
                             self.pos += 2;
                             except.not_legendary = true;
+                            self.end_stmt()?;
+                        }
+                        // "it's legendary".
+                        Some("legendary") => {
+                            self.pos += 1;
+                            except.legendary = true;
+                            self.end_stmt()?;
+                        }
+                        // "it's a 1/1 green Frog": not in addition.
+                        Some("exactly") => {
+                            self.pos += 1;
+                            except.exactly = true;
+                            self.end_stmt()?;
+                        }
+                        // "except the token isn't legendary".
+                        Some("the") if self.word_at(1).as_deref() == Some("token") => {
+                            self.pos += 2;
+                            except.the_token = true;
                             self.end_stmt()?;
                         }
                         // "except it's not legendary" (Ran and Shaw).
@@ -9085,7 +9104,23 @@ impl P {
                     // The subject becomes the copy (`Effect::BecomeCopy`):
                     // the source, a target, or a group.
                     self.expect_word("of")?;
-                    let of = self.recipient()?;
+                    // `chosen other creature you control`: not targeted,
+                    // chosen as it resolves (CR 608.2d).
+                    let of = if self.eat_word("chosen") {
+                        let f = self.filter()?;
+                        let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+                            i
+                        } else {
+                            self.groups.push(f);
+                            self.groups.len() - 1
+                        };
+                        Recipient::ChosenOf(u16::try_from(i).map_err(|_| ParseError {
+                            line: self.line(),
+                            message: "too many groups".to_string(),
+                        })?)
+                    } else {
+                        self.recipient()?
+                    };
                     let except = self.except_clause();
                     let until = if self.eat_words(&["until", "end", "of", "turn"]) {
                         mtg_core::card::CopyUntil::EndOfTurn
@@ -11502,31 +11537,66 @@ impl P {
             }
             // `creates` after a subject (`its controller creates ...`).
             "create" | "creates" => {
-                if self.eat_word("token") || self.eat_words(&["a", "token"]) {
+                // `create tapped [and attacking] token copy of ...`.
+                let entry = |p: &Self, at: usize| -> Option<(usize, bool)> {
+                    match (p.word_at(at).as_deref(), p.word_at(at + 1).as_deref()) {
+                        (Some("tapped"), Some("and"))
+                            if p.word_at(at + 2).as_deref() == Some("attacking") =>
+                        {
+                            Some((3, true))
+                        }
+                        (Some("tapped"), _) => Some((1, false)),
+                        _ => None,
+                    }
+                };
+                let (skip, attack) = entry(self, 0).unwrap_or((0, false));
+                if matches!(self.word_at(skip).as_deref(), Some("token"))
+                    && matches!(self.word_at(skip + 1).as_deref(), Some("copy"))
+                    || skip == 0 && self.at_words(&["a", "token", "copy"])
+                {
+                    self.pos += skip;
+                    if !self.eat_word("token") {
+                        self.expect_words(&["a", "token"])?;
+                    }
                     self.expect_word("copy")?;
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
+                    let trailing =
+                        skip == 0 && self.eat_words(&["entering", "tapped", "and", "attacking"]);
                     self.created_at = Some(self.targets.len());
                     return Ok(Effect::CreateTokenCopy {
                         of,
                         except,
                         count: Num::N(1),
+                        tapped: skip > 0 || trailing,
+                        attacking: attack || trailing,
+                        trailing,
                     });
                 }
                 // `create 2 token copies of this`, `create x token copies
-                // of target ...`.
+                // of target ...`, `create 2 tapped token copies of this`.
                 if (matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("x"))
-                    && self.word_at(1).as_deref() == Some("token")
-                    && self.word_at(2).as_deref() == Some("copies")
+                    && let (skip, attack) = entry(self, 1).unwrap_or((0, false))
+                    && self.word_at(1 + skip).as_deref() == Some("token")
+                    && self.word_at(2 + skip).as_deref() == Some("copies")
                 {
                     let count = self.num()?;
-                    self.pos += 2;
+                    self.pos += 2 + skip;
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
+                    let trailing =
+                        skip == 0 && self.eat_words(&["entering", "tapped", "and", "attacking"]);
                     self.created_at = Some(self.targets.len());
-                    return Ok(Effect::CreateTokenCopy { of, except, count });
+                    return Ok(Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count,
+                        tapped: skip > 0 || trailing,
+                        attacking: attack || trailing,
+                        trailing,
+                    });
                 }
                 let count = self.num()?;
                 self.created_at = (count == Num::N(1)).then_some(self.targets.len());
@@ -13496,6 +13566,10 @@ impl P {
         if self.in_delayed && self.at_words(&["that", "token"]) {
             self.pos += 2;
             return Ok(Recipient::SameToken);
+        }
+        if self.in_delayed && self.at_words(&["the", "token"]) {
+            self.pos += 2;
+            return Ok(Recipient::SameTheToken);
         }
         // In a spell or an activated ability there is no triggering object:
         // "that creature" is the target named before.

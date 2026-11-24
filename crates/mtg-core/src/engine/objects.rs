@@ -601,7 +601,7 @@ impl GameState {
         if old.zone == Zone::Battlefield {
             // CR 506.4: a permanent that leaves the battlefield leaves combat.
             self.remove_from_combat(id);
-            self.count_sources(old_flags, self.pool.get(old.def).is_legendary(), false);
+            self.count_sources(old_flags, self.legend_of(&old), false);
         }
         if to == Zone::Battlefield {
             self.entered_this_turn.push((controller, new));
@@ -621,7 +621,7 @@ impl GameState {
                 self.log_event(TurnEvent::NonlandEntered, controller, 1);
             }
             let flags = self.flags_of(&self.objects[new]);
-            self.count_sources(flags, self.pool.get(def).is_legendary(), true);
+            self.count_sources(flags, self.legend_of(&self.objects[new]), true);
             if self.pool.is_face_down(def) {
                 self.face_down_count += 1;
                 // "if a face-down creature entered the battlefield under
@@ -1037,12 +1037,13 @@ impl GameState {
         of: ObjId,
         controller: PlayerId,
         except: Option<CardRef>,
+        tapped: bool,
     ) -> ObjId {
         let (def, x, sized) = {
             let o = &self.objects[of];
             (o.def, except.or(o.except), o.sized)
         };
-        self.create_token_copy_of(def, x, sized, controller)
+        self.create_token_copy_of(def, x, sized, controller, tapped)
     }
 
     /// A token copy of the definition `def` with the copy exceptions of
@@ -1054,13 +1055,22 @@ impl GameState {
         x: Option<CardRef>,
         sized: u8,
         controller: PlayerId,
+        tapped: bool,
     ) -> ObjId {
         let id = self.new_object(def, controller, Zone::Command);
         let t = &mut self.objects[id];
         t.kind = ObjKind::Token;
         t.except = x;
         t.sized = sized;
-        let new = self.put_onto_battlefield(id, controller);
+        // "create a tapped token that's a copy of ..." (CR 614.1c).
+        let new = self.put_onto_battlefield_with(
+            id,
+            controller,
+            Enter {
+                tapped,
+                ..Enter::default()
+            },
+        );
         self.emit(Event::TokenCreated {
             obj: new,
             def,
@@ -1137,7 +1147,7 @@ impl GameState {
     /// what anyone has looked at is forgotten.
     pub(super) fn turn_face_down(&mut self, id: ObjId) {
         let o = &self.objects[id];
-        let (old_flags, legend) = (self.flags_of(o), self.pool.get(o.def).is_legendary());
+        let (old_flags, legend) = (self.flags_of(o), self.legend_of(o));
         self.count_sources(old_flags, legend, false);
         let face_down = self.pool.face_down(false);
         let o = &mut self.objects[id];
@@ -1194,7 +1204,7 @@ impl GameState {
     fn set_copy_def(&mut self, id: ObjId, def: CardRef, x: Option<CardRef>, sized: u8) {
         let (old_flags, old_legend) = {
             let o = &self.objects[id];
-            (self.flags_of(o), self.pool.get(o.def).is_legendary())
+            (self.flags_of(o), self.legend_of(o))
         };
         self.count_sources(old_flags, old_legend, false);
         let o = &mut self.objects[id];
@@ -1203,7 +1213,7 @@ impl GameState {
         o.sized = sized;
         let (flags, legend) = {
             let o = &self.objects[id];
-            (self.flags_of(o), self.pool.get(o.def).is_legendary())
+            (self.flags_of(o), self.legend_of(o))
         };
         self.count_sources(flags, legend, true);
         self.cbump();
@@ -2078,7 +2088,7 @@ impl GameState {
             return;
         }
         let flags = self.flags_of(&self.objects[id]);
-        let legendary = self.pool.get(self.objects[id].def).is_legendary();
+        let legendary = self.legend_of(&self.objects[id]);
         self.count_sources(flags, legendary, false);
         self.objects[id].def = to;
         let flags = self.flags_of(&self.objects[id]);

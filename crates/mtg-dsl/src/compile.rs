@@ -1730,6 +1730,8 @@ impl Compiler<'_> {
                     .colors
                     .iter()
                     .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
+                legendary: x.legendary,
+                exactly: x.exactly,
             });
         }
         if haunted.is_some() || haunt_spell.is_some() {
@@ -3053,6 +3055,7 @@ impl Compiler<'_> {
             | Recipient::SameCard
             | Recipient::SameThat
             | Recipient::SameToken
+            | Recipient::SameTheToken
             | Recipient::SameTokens
             | Recipient::SameCards
             | Recipient::SameExiledCards
@@ -3060,7 +3063,10 @@ impl Compiler<'_> {
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens
             }
-            Recipient::Manifested
+            // `ChosenOf`: chosen by the `ChooseAct` compiled before the
+            // effect.
+            Recipient::ChosenOf(_)
+            | Recipient::Manifested
             | Recipient::CreatedObject
             | Recipient::CreatedThat
             | Recipient::CreatedThatToken
@@ -3654,12 +3660,24 @@ impl Compiler<'_> {
                     out.push(CoreEffect::CreatedAttack);
                 }
             }
-            Effect::CreateTokenCopy { of, except, count } => {
+            Effect::CreateTokenCopy {
+                of,
+                except,
+                count,
+                tapped,
+                attacking,
+                ..
+            } => {
                 out.push(CoreEffect::CreateTokenCopy {
                     of: r(*of),
                     except: *except,
                     count: *count,
+                    tapped: *tapped,
                 });
+                // CR 508.4: "a tapped and attacking token that's a copy".
+                if *attacking {
+                    out.push(CoreEffect::CreatedAttack);
+                }
             }
             Effect::CastCopy { what, free, .. } => out.push(CoreEffect::CastCopy {
                 what: r(*what),
@@ -3682,16 +3700,33 @@ impl Compiler<'_> {
                 except,
                 who,
                 until,
-            } => out.push(CoreEffect::BecomeCopy {
-                of: r(*of),
-                except: *except,
-                who: (!matches!(
-                    who,
-                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
-                ))
-                .then(|| r(*who)),
-                until: *until,
-            }),
+            } => {
+                // "become a copy of another creature you control": the
+                // controller chooses it as the effect resolves (CR 608.2d);
+                // the chosen permanent is the created object.
+                if let Recipient::ChosenOf(i) = of {
+                    let Some(f) = self.card.groups.get(usize::from(*i)) else {
+                        return self.err("`chosen` names no filter");
+                    };
+                    let filter = self.filter(f);
+                    out.push(CoreEffect::ChooseAct {
+                        act: mtg_core::card::ChooseAct::Choose,
+                        filter,
+                        count: mtg_core::card::Num::N(1),
+                        up_to: false,
+                    });
+                }
+                out.push(CoreEffect::BecomeCopy {
+                    of: r(*of),
+                    except: *except,
+                    who: (!matches!(
+                        who,
+                        Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                    ))
+                    .then(|| r(*who)),
+                    until: *until,
+                });
+            }
             Effect::Counter { to, dest } => out.push(CoreEffect::Counter {
                 to: r(*to),
                 dest: *dest,

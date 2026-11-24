@@ -2903,6 +2903,20 @@ impl GameState {
 
     /// The precomputed flags of an object's definition, including what a
     /// copy effect's exceptions add (CR 707.9b).
+    /// Whether `o` counts as legendary for the legend rule's count: its
+    /// definition is, or a copy exception makes it so ("except it's
+    /// legendary", CR 707.9b).
+    pub fn legend_of(&self, o: &GameObject) -> bool {
+        self.pool.get(o.def).is_legendary()
+            || o.except.is_some_and(|x| {
+                self.pool
+                    .get(x)
+                    .copy_except
+                    .as_ref()
+                    .is_some_and(|c| c.legendary)
+            })
+    }
+
     pub fn flags_of(&self, o: &GameObject) -> crate::card::DefFlags {
         let f = self.pool.get(o.def).flags();
         match o.except {
@@ -3545,6 +3559,12 @@ impl GameState {
             return c;
         };
         let xd = self.pool.get(except);
+        // "except it's a 1/1 green Frog": its colors and creature types are
+        // these instead (CR 707.9b).
+        if xd.copy_except.as_ref().is_some_and(|ce| ce.exactly) {
+            c.subtypes.retain(|s| !s.is_creature_type());
+            c.colors = crate::mana::ColorSet::default();
+        }
         for s in &xd.except_subtype_ids {
             if !c.subtypes.contains(s) {
                 c.subtypes.push(*s);
@@ -3562,6 +3582,9 @@ impl GameState {
             }
             if ce.not_legendary {
                 c.supertypes = c.supertypes.without(crate::card::Supertype::Legendary);
+            }
+            if ce.legendary {
+                c.supertypes = c.supertypes.with(crate::card::Supertype::Legendary);
             }
         }
         for a in &xd.except_ability_ids {

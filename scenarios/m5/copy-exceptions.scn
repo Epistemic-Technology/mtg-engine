@@ -1,0 +1,414 @@
+# Token copies with exceptions written as a sentence (CR 707.9b): "except
+# it's legendary", "except it's a 1/1 green Frog" (its colors and creature
+# types replaced), "except the token isn't legendary", a 1/1 Soldier
+# creature in addition to its other types; tapped token copies (CR
+# 614.1c) and tapped-and-attacking ones (CR 508.4).
+
+scenario "saheeli's artistry: both modes, the creature's copy is an artifact" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant", "Darksteel Relic"
+  hand A: "Saheeli's Artistry"
+  turn 1 A: cast "Saheeli's Artistry" mode 3 targeting "Darksteel Relic", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Darksteel Relic"
+  assert battlefield A contains "Hill Giant"
+  assert is A "Hill Giant" artifact
+  assert is A "Hill Giant" creature
+  assert is not B "Hill Giant" artifact
+  assert power A "Hill Giant" 3
+}
+
+scenario "saheeli's artistry: the artifact mode alone adds nothing" {
+  battlefield A: 6 "Island", "Grizzly Bears"
+  hand A: "Saheeli's Artistry"
+  battlefield B: "Ornithopter"
+  turn 1 A: cast "Saheeli's Artistry" mode 1 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "urza, prince of kroog: an artifact's copy is a 1/1 Soldier creature, then +2/+2" {
+  battlefield A: "Urza, Prince of Kroog", "Darksteel Relic", 6 "Plains"
+  turn 1 A: activate "Urza, Prince of Kroog" targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Darksteel Relic"
+  assert is newest A "Darksteel Relic" creature
+  assert is newest A "Darksteel Relic" Soldier
+  assert is newest A "Darksteel Relic" artifact
+  assert power newest A "Darksteel Relic" 3
+  assert toughness newest A "Darksteel Relic" 3
+  assert is not oldest A "Darksteel Relic" creature
+}
+
+scenario "croaking counterpart: a 1/1 green Frog, no longer red or a Giant" {
+  battlefield A: 2 "Island", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Croaking Counterpart"
+  turn 1 A: cast "Croaking Counterpart" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert power A "Hill Giant" 1
+  assert toughness A "Hill Giant" 1
+  assert is A "Hill Giant" green
+  assert is not A "Hill Giant" red
+  assert is A "Hill Giant" Frog
+  assert is not A "Hill Giant" Giant
+  assert is A "Hill Giant" creature
+  assert is B "Hill Giant" Giant
+  assert power B "Hill Giant" 3
+}
+
+scenario "croaking counterpart: a Frog can't be targeted" {
+  battlefield A: 2 "Island", "Forest"
+  battlefield B: "Spore Frog"
+  hand A: "Croaking Counterpart"
+  illegal turn 1 A: cast "Croaking Counterpart" targeting "Spore Frog"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Spore Frog"
+}
+
+scenario "croaking counterpart: flashback from the graveyard" {
+  battlefield A: 3 "Island", 2 "Forest", "Grizzly Bears"
+  graveyard A: "Croaking Counterpart"
+  turn 1 A: cast "Croaking Counterpart" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert is newest A "Grizzly Bears" Frog
+  assert exile A contains "Croaking Counterpart"
+}
+
+scenario "adagia: the copy of an artifact is legendary" {
+  battlefield A: "Adagia, Windswept Bastion" with 12 charge, "Darksteel Relic", 4 "Plains"
+  turn 1 A: activate "Adagia, Windswept Bastion" targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Darksteel Relic"
+  assert is newest A "Darksteel Relic" legendary
+  assert is not oldest A "Darksteel Relic" legendary
+}
+
+scenario "adagia: two legendary copies meet the legend rule" {
+  battlefield A: "Adagia, Windswept Bastion" with 12 charge, "Darksteel Relic", 8 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Adagia, Windswept Bastion" targeting "Darksteel Relic"
+  turn 3 A: activate "Adagia, Windswept Bastion" targeting oldest A "Darksteel Relic"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Darksteel Relic"
+  assert graveyard A count 0
+}
+
+scenario "adagia: not with fewer than twelve charge counters" {
+  battlefield A: "Adagia, Windswept Bastion" with 11 charge, "Darksteel Relic", 4 "Plains"
+  illegal turn 1 A: activate "Adagia, Windswept Bastion" targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Darksteel Relic"
+}
+
+scenario "helm of the host: a hasty nonlegendary copy each combat" {
+  battlefield A: "Helm of the Host", "Kitsa, Otterball Elite"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 1 "Kitsa, Otterball Elite"
+  run_to turn 3 declare_attackers
+  assert battlefield A contains 1 "Kitsa, Otterball Elite"
+}
+
+scenario "helm of the host: equipped legend's copy isn't legendary and has haste" {
+  battlefield A: "Helm of the Host" on "Kitsa, Otterball Elite", "Kitsa, Otterball Elite"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Kitsa, Otterball Elite"
+  assert is not newest A "Kitsa, Otterball Elite" legendary
+  assert has newest A "Kitsa, Otterball Elite" haste
+  assert is oldest A "Kitsa, Otterball Elite" legendary
+  run_to turn 3 declare_attackers
+  assert battlefield A contains 3 "Kitsa, Otterball Elite"
+}
+
+scenario "skyclave relic: kicked, two tapped copies" {
+  battlefield A: 6 "Plains"
+  hand A: "Skyclave Relic"
+  turn 1 A: cast "Skyclave Relic" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Skyclave Relic"
+  assert untapped oldest A "Skyclave Relic"
+  assert tapped newest A "Skyclave Relic"
+  assert has newest A "Skyclave Relic" indestructible
+}
+
+scenario "skyclave relic: unkicked, no copies" {
+  battlefield A: 6 "Plains"
+  hand A: "Skyclave Relic"
+  turn 1 A: cast "Skyclave Relic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Skyclave Relic"
+}
+
+scenario "skyclave relic: a token copy entering doesn't copy again" {
+  battlefield A: 6 "Plains"
+  hand A: "Skyclave Relic"
+  turn 1 A: cast "Skyclave Relic" kicked
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 3 "Skyclave Relic"
+}
+
+scenario "felhide spiritbinder: an enchantment copy with haste, exiled at end step" {
+  battlefield A: "Felhide Spiritbinder" tapped, 2 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 3 A untap
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert is A "Hill Giant" enchantment
+  assert is A "Hill Giant" creature
+  assert life B 17
+  run_to turn 4 upkeep
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "felhide spiritbinder: declining to pay makes no copy" {
+  battlefield A: "Felhide Spiritbinder" tapped, 2 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 3 A untap
+  turn 3 A: decline "Felhide Spiritbinder"
+  run_to turn 3 postcombat_main
+  assert battlefield A lacks "Hill Giant"
+  assert untapped oldest A "Mountain"
+  assert untapped newest A "Mountain"
+}
+
+scenario "renegade doppelganger: becomes a copy of the creature that entered until end of turn" {
+  battlefield A: "Renegade Doppelganger", 5 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Hill Giant"
+  assert battlefield A lacks "Renegade Doppelganger"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Hill Giant"
+  assert battlefield A contains "Renegade Doppelganger"
+  assert power "Renegade Doppelganger" 0
+}
+
+scenario "renegade doppelganger: may decline" {
+  battlefield A: "Renegade Doppelganger", 5 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: decline "Renegade Doppelganger"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+  assert battlefield A contains "Renegade Doppelganger"
+}
+
+scenario "renegade doppelganger: an opponent's creature doesn't trigger it" {
+  battlefield A: "Renegade Doppelganger"
+  battlefield B: 5 "Mountain"
+  hand B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Renegade Doppelganger"
+}
+
+scenario "flamerush rider: a tapped and attacking copy, exiled at end of combat" {
+  battlefield A: "Flamerush Rider", "Hill Giant"
+  turn 1 A: attack "Flamerush Rider", "Hill Giant"
+  turn 1 A: trigger "Flamerush Rider" targeting "Hill Giant"
+  run_to turn 1 end_combat
+  assert life B 11
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+}
+
+scenario "flamerush rider: the copy can't be of itself" {
+  battlefield A: "Flamerush Rider"
+  turn 1 A: attack "Flamerush Rider"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains 1 "Flamerush Rider"
+}
+
+# A delayed token copy of a sacrificed permanent (CR 603.7, 707.2): made
+# at the next end step from the artifact as it last existed.
+
+scenario "esoteric duplicator: a sacrificed Mind Stone comes back as a token at end step" {
+  battlefield A: "Esoteric Duplicator", "Mind Stone", 4 "Island"
+  turn 1 A: activate "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Mind Stone"
+  assert graveyard A contains "Mind Stone"
+  assert hand A count 1
+  run_to turn 1 cleanup
+  assert battlefield A contains "Mind Stone"
+  assert graveyard A contains "Mind Stone"
+}
+
+scenario "esoteric duplicator: sacrificing itself copies itself" {
+  battlefield A: "Esoteric Duplicator", 4 "Island"
+  turn 1 A: activate "Esoteric Duplicator"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Esoteric Duplicator"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Esoteric Duplicator"
+}
+
+scenario "esoteric duplicator: a sacrificed token Clue is copied too" {
+  battlefield A: "Esoteric Duplicator", "Clue", 4 "Island"
+  turn 1 A: activate "Clue"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Clue"
+  assert hand A count 1
+}
+
+scenario "esoteric duplicator: declining to pay makes no copy" {
+  battlefield A: "Esoteric Duplicator", "Mind Stone", 4 "Island"
+  turn 1 A: activate "Mind Stone"
+  turn 1 A: decline "Esoteric Duplicator"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Mind Stone"
+}
+
+scenario "esoteric duplicator: a sacrificed creature isn't copied" {
+  battlefield A: "Esoteric Duplicator", "Grizzly Bears", 4 "Swamp"
+  hand A: "Bone Splinters"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Bone Splinters" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+# "Then you may have it become a copy of another creature you control
+# until end of turn": the creature is chosen as the ability resolves, not
+# targeted (CR 608.2d).
+
+scenario "deepfathom echo: explores, then becomes a copy of the chosen creature" {
+  battlefield A: "Deepfathom Echo", "Grizzly Bears", "Serra Angel"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: choose "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert hand A contains "Forest"
+  assert battlefield A contains 2 "Serra Angel"
+  assert battlefield A lacks "Deepfathom Echo"
+  assert has oldest A "Serra Angel" flying
+  run_to turn 2 upkeep
+  assert battlefield A contains "Deepfathom Echo"
+  assert power "Deepfathom Echo" 4
+  assert battlefield A contains 1 "Serra Angel"
+}
+
+scenario "deepfathom echo: the explore counter stays on the copy" {
+  battlefield A: "Deepfathom Echo", "Grizzly Bears"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert power oldest A "Grizzly Bears" 3
+  assert counters oldest A "Grizzly Bears" +1/+1 1
+}
+
+scenario "deepfathom echo: may decline to copy" {
+  battlefield A: "Deepfathom Echo", "Grizzly Bears"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: decline "Deepfathom Echo"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Deepfathom Echo"
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "deepfathom echo: an opponent's creature can't be chosen" {
+  battlefield A: "Deepfathom Echo"
+  battlefield B: "Serra Angel"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Deepfathom Echo"
+  assert battlefield A lacks "Serra Angel"
+}
+
+# A planeswalker becoming a copy "except he has hexproof" until end of
+# turn; "For each other nonland permanent you control, create a token
+# that's a copy of that permanent."
+
+scenario "oko, the ringleader: a hexproof copy of a creature until end of turn" {
+  battlefield A: "Oko, the Ringleader" with 3 loyalty, "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Oko, the Ringleader" targeting "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Serra Angel"
+  assert has oldest A "Serra Angel" hexproof
+  assert has not newest A "Serra Angel" hexproof
+  assert is not oldest A "Serra Angel" planeswalker
+  run_to turn 2 upkeep
+  assert battlefield A contains "Oko, the Ringleader"
+  assert counters "Oko, the Ringleader" loyalty 3
+}
+
+scenario "oko, the ringleader: no target, no copy" {
+  battlefield A: "Oko, the Ringleader" with 3 loyalty
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Oko, the Ringleader"
+  assert is "Oko, the Ringleader" planeswalker
+}
+
+scenario "oko, the ringleader: -5 copies each other nonland permanent" {
+  battlefield A: "Oko, the Ringleader" with 6 loyalty, "Grizzly Bears", "Darksteel Relic", "Forest"
+  turn 1 A: activate "Oko, the Ringleader" ability 3
+  turn 1 begin_combat A: trigger "Oko, the Ringleader" targeting none
+  run_to turn 1 end
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert battlefield A contains 2 "Darksteel Relic"
+  assert battlefield A contains 1 "Forest"
+  assert battlefield A contains 1 "Oko, the Ringleader"
+}
+
+scenario "oko, the ringleader: +1 draws two and discards two without a crime" {
+  battlefield A: "Oko, the Ringleader" with 3 loyalty
+  hand A: "Shock"
+  library A: "Island", "Forest", "Plains"
+  turn 1 A: activate "Oko, the Ringleader" ability 1
+  run_to turn 1 end
+  assert hand A count 1
+  assert graveyard A count 2
+  assert counters "Oko, the Ringleader" loyalty 4
+}
+
+# Written by the template author: "That token gains haste. Exile it at
+# the beginning of the next end step." after a token copy; "except it's
+# 7/7".
+
+scenario "cogwork assembler: a hasty artifact copy, exiled at end step" {
+  battlefield A: "Cogwork Assembler", "Ornithopter", 7 "Island"
+  turn 1 A: activate "Cogwork Assembler" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Ornithopter"
+  assert has newest A "Ornithopter" haste
+  assert has not oldest A "Ornithopter" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Ornithopter"
+}
+
+scenario "quicksilver gargantuan: a copy that's 7/7" {
+  battlefield A: "Grizzly Bears", 7 "Island"
+  hand A: "Quicksilver Gargantuan"
+  turn 1 A: cast "Quicksilver Gargantuan"
+  turn 1 A: copy "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert power newest A "Grizzly Bears" 7
+  assert toughness newest A "Grizzly Bears" 7
+  assert power oldest A "Grizzly Bears" 2
+}
+
+scenario "quicksilver gargantuan: copying nothing, a 7/7 Shapeshifter" {
+  battlefield A: "Grizzly Bears", 7 "Island"
+  hand A: "Quicksilver Gargantuan"
+  turn 1 A: cast "Quicksilver Gargantuan"
+  turn 1 A: copy nothing
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Quicksilver Gargantuan"
+  assert power "Quicksilver Gargantuan" 7
+}

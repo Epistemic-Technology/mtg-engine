@@ -1,0 +1,14 @@
+card "Oko, the Ringleader" {
+  oracle_id 4372b729-dc3d-4469-8fc5-811cc787d653
+  cost {2}{G}{U}
+  type Legendary Planeswalker — Oko
+  loyalty 3
+  pronoun he
+  triggered at beginning of your combat step: this becomes a copy of up to 1 target creature you control with exceptions until end of turn
+  loyalty +1: draw 2 cards; if committed crime this turn, discard 1 card; otherwise, discard 2 cards
+  loyalty -1: create 1 "3/3 green Elk creature"
+  loyalty -5: create token copy of each other nonland permanent you control
+  except {
+    keywords hexproof
+  }
+}

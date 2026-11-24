@@ -1,0 +1,7 @@
+card "Esoteric Duplicator" {
+  oracle_id 0752fe67-9b8a-42c0-90e3-087d426b2f3b
+  cost {2}{U}
+  type Artifact — Clue
+  triggered whenever you sacrifice this or artifact: you may pay {2}; if you do, delayed that creature: at beginning of the next end step, create token copy of it
+  activated {2}, sacrifice this: draw 1 card
+}

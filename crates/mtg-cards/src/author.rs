@@ -1498,6 +1498,183 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     None
 }
 
+/// Brackets the lines of a copy effect's exceptions inside a templated
+/// effect (`token_copy`); `author_card` moves them to the card's `except`
+/// block (one per card).
+const EXCEPT_MARK: char = '\u{1f}';
+/// Separates those lines.
+const EXCEPT_LINE: char = '\u{1e}';
+
+/// "Create a [tapped [and attacking]] token that's a copy of <what>[,
+/// except <exceptions>]", "create two tokens that are copies of ...".
+fn token_copy(n: &str, entry: &str, what: &str, except: &str, t: &mut usize) -> Option<String> {
+    let what = match what {
+        // "a copy of this creature" names it in full.
+        w @ ("this creature" | "this artifact" | "this enchantment") => w.to_string(),
+        w => recipient(w, t)?,
+    };
+    let entry = match entry.trim() {
+        "" => String::new(),
+        e => format!("{e} "),
+    };
+    let mut s = if n == "1" {
+        format!("create {entry}token copy of {what}")
+    } else {
+        format!(
+            "create {} {entry}token copies of {what}",
+            number(n)?.to_lowercase()
+        )
+    };
+    if !except.is_empty() {
+        let lines = copy_exceptions(except)?;
+        s.push_str(" with exceptions");
+        s.push(EXCEPT_MARK);
+        s.push_str(&lines.join(&EXCEPT_LINE.to_string()));
+        s.push(EXCEPT_MARK);
+    }
+    Some(s)
+}
+
+/// Quoted abilities a copy exception grants, in the DSL.
+const EXCEPT_ABILITIES: [(&str, &str); 2] = [
+    (
+        "\"At the beginning of the end step, sacrifice this token.\"",
+        "triggered at the beginning of the end step: sacrifice this",
+    ),
+    (
+        "\"At the beginning of the end step, sacrifice this creature.\"",
+        "triggered at the beginning of the end step: sacrifice this",
+    ),
+];
+
+/// A copy effect's exceptions (CR 707.9b) as `except` block lines: "it
+/// isn't legendary", "the token isn't legendary", "it's legendary", "it's
+/// an artifact in addition to its other types", "it's a 1/1 Soldier
+/// creature in addition to its other types", "it's a 1/1 green Frog",
+/// "it has haste and \"...\"", joined by "and" or commas.
+#[allow(clippy::too_many_lines)] // one arm per exception
+fn copy_exceptions(x: &str) -> Option<Vec<String>> {
+    let pt_word = Regex::new(r"^\d+/\d+$").unwrap();
+    let (head, has) = if let Some(h) = x.strip_prefix("it has ") {
+        ("", h)
+    } else if let Some(i) = x.find(" it has ") {
+        let head = x[..i]
+            .strip_suffix(" and")
+            .or_else(|| x[..i].strip_suffix(", and"))
+            .or_else(|| x[..i].strip_suffix(','))?;
+        (head, &x[i + " it has ".len()..])
+    } else {
+        (x, "")
+    };
+    let mut lines = Vec::new();
+    if !head.is_empty() {
+        let head = head.replace(", and ", ", ").replace(" and ", ", ");
+        for clause in head.split(", ") {
+            match clause {
+                "it isn't legendary" => lines.push("not legendary".to_string()),
+                "the token isn't legendary" => {
+                    lines.insert(0, "the token".to_string());
+                    lines.push("not legendary".to_string());
+                }
+                "it's legendary" => lines.push("legendary".to_string()),
+                c => {
+                    let body = c.strip_prefix("it's ")?;
+                    let (body, exactly, colors_too) =
+                        if let Some(b) = body.strip_suffix(" in addition to its other types") {
+                            (b, false, false)
+                        } else if let Some(b) =
+                            body.strip_suffix(" in addition to its other colors and types")
+                        {
+                            (b, false, true)
+                        } else {
+                            (body, true, false)
+                        };
+                    let body = body
+                        .strip_prefix("a ")
+                        .or_else(|| body.strip_prefix("an "))
+                        .unwrap_or(body);
+                    let (mut pt, mut colors, mut types, mut subtypes) =
+                        (None, Vec::new(), Vec::new(), Vec::new());
+                    for w in body.split(' ') {
+                        if pt_word.is_match(w) && pt.is_none() {
+                            pt = Some(w);
+                        } else if ["white", "blue", "black", "red", "green"].contains(&w) {
+                            colors.push(w);
+                        } else if card_type_word(w) {
+                            types.push(capitalize(w));
+                        } else if w.chars().next().is_some_and(char::is_uppercase) {
+                            subtypes.push(w);
+                        } else {
+                            return None;
+                        }
+                    }
+                    if colors.is_empty() == colors_too && !exactly {
+                        return None;
+                    }
+                    if exactly {
+                        // "it's 1/1", or "it's a 1/1 green Frog".
+                        if subtypes.is_empty() {
+                            if pt.is_none() || !colors.is_empty() || !types.is_empty() {
+                                return None;
+                            }
+                        } else if !types.is_empty() {
+                            return None;
+                        } else {
+                            lines.push("exactly".to_string());
+                        }
+                    } else if types.is_empty() && subtypes.is_empty() {
+                        return None;
+                    }
+                    if let Some(p) = pt {
+                        lines.push(format!("pt {p}"));
+                    }
+                    if !colors.is_empty() {
+                        lines.push(format!("colors {}", colors.join(" ")));
+                    }
+                    if !types.is_empty() {
+                        lines.push(format!("types {}", types.join(" ")));
+                    }
+                    if !subtypes.is_empty() {
+                        lines.push(format!("subtypes {}", subtypes.join(" ")));
+                    }
+                }
+            }
+        }
+    }
+    if !has.is_empty() {
+        let mut keywords = Vec::new();
+        let mut abilities = Vec::new();
+        let mut rest = has;
+        while !rest.is_empty() {
+            if let Some((quoted, dsl)) = EXCEPT_ABILITIES.iter().find(|(q, _)| rest.starts_with(q))
+            {
+                abilities.push((*dsl).to_string());
+                rest = &rest[quoted.len()..];
+            } else {
+                let end = rest
+                    .find(" and \"")
+                    .or_else(|| rest.find(", \""))
+                    .unwrap_or(rest.len());
+                keywords.push(keyword_list(&rest[..end])?);
+                rest = &rest[end..];
+            }
+            rest = rest
+                .strip_prefix(", and ")
+                .or_else(|| rest.strip_prefix(" and "))
+                .or_else(|| rest.strip_prefix(", "))
+                .unwrap_or(rest);
+            if rest.starts_with('"') && !EXCEPT_ABILITIES.iter().any(|(q, _)| rest.starts_with(q)) {
+                return None;
+            }
+        }
+        if !keywords.is_empty() {
+            lines.push(format!("keywords {}", keywords.join(", ")));
+        }
+        lines.extend(abilities);
+    }
+    (!lines.is_empty()).then_some(lines)
+}
+
 /// A group subject Oracle introduces with "each" and a singular verb
 /// ("each other Bird you control deals damage equal to its power"):
 /// `each single`, which prints one at a time.
@@ -2854,36 +3031,23 @@ impl Templates {
             ),
             // CR 707.2, 111.4: "Create a token that's a copy of target
             // creature you control".
+            // "Create a tapped [and attacking] token that's a copy of ...",
+            // "..., except it's an artifact in addition to its other types"
+            // (CR 707.9b: the exceptions go to the card's `except` block).
             (
-                r(r"^[Cc]reate a token that's a copy of ([^,]+)$"),
-                |c, t| {
-                    let what = match cap(c, 1) {
-                        // "a copy of this creature" names it in full.
-                        w @ ("this creature" | "this artifact" | "this enchantment") => {
-                            w.to_string()
-                        }
-                        w => recipient(w, t)?,
-                    };
-                    Some(format!("create token copy of {what}"))
-                },
+                r(
+                    r"^[Cc]reate an? (tapped |tapped and attacking )?token that's a copy of ([^,]+?)(?:, except (.+))?$",
+                ),
+                |c, t| token_copy("1", cap(c, 1), cap(c, 2), cap(c, 3), t),
             ),
             // "Create two tokens that are copies of target creature you
-            // control", "Create X tokens that are copies of ...".
+            // control", "Create X tokens that are copies of ...", "create
+            // two tapped tokens that are copies of this artifact".
             (
-                r(r"^[Cc]reate (\S+) tokens that are copies of ([^,]+)$"),
-                |c, t| {
-                    let n = number(cap(c, 1))?;
-                    let what = match cap(c, 2) {
-                        w @ ("this creature" | "this artifact" | "this enchantment") => {
-                            w.to_string()
-                        }
-                        w => recipient(w, t)?,
-                    };
-                    Some(format!(
-                        "create {} token copies of {what}",
-                        n.to_lowercase()
-                    ))
-                },
+                r(
+                    r"^[Cc]reate (\S+) (tapped |tapped and attacking )?tokens that are copies of ([^,]+?)(?:, except (.+))?$",
+                ),
+                |c, t| token_copy(cap(c, 1), cap(c, 2), cap(c, 3), cap(c, 4), t),
             ),
             (r(r"^Surveil (\d+)$"), |c, _| {
                 Some(format!("surveil {}", cap(c, 1)))
@@ -4442,6 +4606,30 @@ impl Templates {
                     _ => return Err(Skip::Sentence(sentence)),
                 }
             }
+            // After a token copy, "it" and "that token" are the token, not
+            // the target it copied: "It gains haste." (indefinitely), "It
+            // gains haste until end of turn.", "That token gains haste."
+            // (`that created token` prints "that token").
+            if out
+                .last()
+                .is_some_and(|l| l.contains("token copy of ") || l.contains("token copies of "))
+            {
+                let haste = match sentence.as_str() {
+                    "It gains haste" => Some("that token gains haste indefinitely"),
+                    "It gains haste until end of turn" => {
+                        Some("that token gains haste until end of turn")
+                    }
+                    "That token gains haste" => Some("that created token gains haste indefinitely"),
+                    "That token gains haste until end of turn" => {
+                        Some("that created token gains haste until end of turn")
+                    }
+                    _ => None,
+                };
+                if let Some(h) = haste {
+                    out.push(h.to_string());
+                    continue;
+                }
+            }
             if sentence == "It can't be regenerated" || sentence == "They can't be regenerated" {
                 match out.last_mut() {
                     Some(last) if last.starts_with("destroy ") => {
@@ -4529,7 +4717,18 @@ impl Templates {
                     "the token" => "that token",
                     o => o,
                 };
-                let made_token = out.last().is_some_and(|l| l.contains("create "));
+                // "Create a token that's a copy of ... It gains haste.
+                // Sacrifice it at the beginning of the next end step.": the
+                // token, also after a sentence about it.
+                let made_token = out.last().is_some_and(|l| {
+                    l.contains("create ")
+                        || (l.starts_with("that token ") || l.starts_with("that created token "))
+                            && out
+                                .iter()
+                                .rev()
+                                .nth(1)
+                                .is_some_and(|p| p.contains("create "))
+                });
                 let who = if made_token && matches!(obj, "it" | "that token") {
                     "that token".to_string()
                 } else if made_token && matches!(obj, "them" | "those tokens") {
@@ -9682,6 +9881,24 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         b.line(line)?;
         i += 1;
     }
+    // A copy effect's exceptions (`token_copy`): the card's one `except`
+    // block.
+    let mut except: Option<String> = None;
+    for st in b.statements.iter_mut().chain(b.spell_paragraphs.iter_mut()) {
+        while let Some(i) = st.find(EXCEPT_MARK) {
+            let Some(len) = st[i + 1..].find(EXCEPT_MARK) else {
+                break;
+            };
+            let lines = st[i + 1..i + 1 + len].to_string();
+            st.replace_range(i..i + 2 + len, "");
+            if except.as_ref().is_some_and(|x| *x != lines) {
+                return Err(Skip::Sentence(
+                    "two copy effects with different exceptions".to_string(),
+                ));
+            }
+            except = Some(lines);
+        }
+    }
     // Oracle's filter phrases the templates copied, in the DSL's words.
     for st in b.statements.iter_mut().chain(b.spell_paragraphs.iter_mut()) {
         *st = filter_phrases(st, &oracle);
@@ -9773,6 +9990,13 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     }
     for st in &b.statements[split..] {
         let _ = writeln!(text, "  {st}");
+    }
+    if let Some(x) = &except {
+        text.push_str("  except {\n");
+        for line in x.split(EXCEPT_LINE) {
+            let _ = writeln!(text, "    {line}");
+        }
+        text.push_str("  }\n");
     }
     text.push_str("}\n");
     // CR 712.4: a meld card needs its melded permanent, the back face both

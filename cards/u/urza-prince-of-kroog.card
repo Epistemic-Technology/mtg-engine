@@ -1,0 +1,13 @@
+card "Urza, Prince of Kroog" {
+  oracle_id 6a448862-e8d8-4a08-8e3d-5460afa29b4d
+  cost {2}{W}{U}
+  type Legendary Creature — Human Artificer
+  pt 2/3
+  static artifact creature you control: +2/+2
+  activated {6}: create token copy of target artifact you control with exceptions
+  except {
+    pt 1/1
+    subtypes Soldier
+    types Creature
+  }
+}

@@ -1,0 +1,11 @@
+card "Helm of the Host" {
+  oracle_id 83b43aba-bf9c-4da2-967d-9daa632e97d2
+  cost {4}
+  type Legendary Artifact — Equipment
+  triggered at beginning of your combat step: create token copy of equipped creature with exceptions; that created token gains haste indefinitely
+  equip {5}
+  except {
+    the token
+    not legendary
+  }
+}

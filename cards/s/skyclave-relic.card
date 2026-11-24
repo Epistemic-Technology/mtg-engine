@@ -1,0 +1,9 @@
+card "Skyclave Relic" {
+  oracle_id eb44b65d-6b56-4f20-a4fb-c5dd147a54c4
+  cost {3}
+  type Artifact
+  kicker {3}
+  keywords indestructible
+  triggered when this enters if kicked: create 2 tapped token copies of this artifact
+  mana any
+}

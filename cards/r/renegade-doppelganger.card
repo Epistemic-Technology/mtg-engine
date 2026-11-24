@@ -1,0 +1,7 @@
+card "Renegade Doppelganger" {
+  oracle_id 08528c5e-9a01-42a4-a00b-c1ec5eaae64d
+  cost {1}{U}
+  type Creature — Shapeshifter
+  pt 0/1
+  triggered whenever another creature you control enters: you may this becomes a copy of that creature until end of turn
+}

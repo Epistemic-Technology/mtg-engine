@@ -1,0 +1,11 @@
+card "Adagia, Windswept Bastion" {
+  oracle_id 70d35dbd-1d91-4a2a-a643-6870d168f4f5
+  type Land — Planet
+  enters tapped
+  mana {W}
+  station
+  station 12: activated {3}{W}, {T}, sorcery: create token copy of target artifact or enchantment you control with exceptions
+  except {
+    legendary
+  }
+}
