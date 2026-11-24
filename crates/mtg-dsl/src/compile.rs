@@ -1756,6 +1756,7 @@ impl Compiler<'_> {
                     .fold(mtg_core::mana::ColorSet::default(), |s, c| s.with(*c)),
                 legendary: x.legendary,
                 exactly: x.exactly,
+                own_name: x.own_name,
             });
         }
         if haunted.is_some() || haunt_spell.is_some() {
@@ -3841,6 +3842,7 @@ impl Compiler<'_> {
                 count,
                 tapped,
                 attacking,
+                who,
                 ..
             } => {
                 out.push(CoreEffect::CreateTokenCopy {
@@ -3848,6 +3850,7 @@ impl Compiler<'_> {
                     except: *except,
                     count: *count,
                     tapped: *tapped,
+                    who: who.map(r),
                 });
                 // CR 508.4: "a tapped and attacking token that's a copy".
                 if *attacking {
@@ -4420,6 +4423,7 @@ impl Compiler<'_> {
                 indefinite,
                 loses_abilities,
                 in_addition,
+                ability,
                 ..
             } => {
                 let subtypes = self.subtypes(subtypes);
@@ -4434,6 +4438,24 @@ impl Compiler<'_> {
                     loses_abilities: *loses_abilities,
                     in_addition: *in_addition,
                 });
+                // "becomes a 2/4 Wizard creature with \"...\"": the
+                // ability for as long as the animation lasts (layer 6).
+                if let Some(a) = ability {
+                    let def = self.ability(a)?;
+                    let id = self.pool.register_ability(def);
+                    let grant = CoreEffect::GrantAbility {
+                        ability: id,
+                        to: r(*to),
+                    };
+                    out.push(if *indefinite {
+                        CoreEffect::Lasting {
+                            lasting: mtg_core::card::Lasting::Forever,
+                            effects: vec![grant],
+                        }
+                    } else {
+                        grant
+                    });
+                }
             }
             Effect::BecomeColor {
                 to,
@@ -8558,6 +8580,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     loses_abilities: false,
                     in_addition: false,
                     is_word: false,
+                    ability: None,
                 }),
                 equip: false,
                 cycling: false,

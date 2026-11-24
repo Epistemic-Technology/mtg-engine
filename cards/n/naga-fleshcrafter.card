@@ -1,0 +1,8 @@
+card "Naga Fleshcrafter" {
+  oracle_id a4f8012e-9880-45b0-9eba-d74c207d3242
+  cost {3}{U}
+  type Creature — Snake Shapeshifter
+  pt 0/0
+  enters as copy of creature
+  label "Renew" activated {2}{U}, exile this from graveyard, sorcery: put 1 +1/+1 counters on target nonlegendary creature you control; each single other creature you control becomes a copy of that target 1 until end of turn
+}

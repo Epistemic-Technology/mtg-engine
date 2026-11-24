@@ -17252,7 +17252,20 @@ impl GameState {
                 except,
                 count,
                 tapped,
+                who,
             } => {
+                // "Target player creates a token that's a copy of ...": the
+                // token is that player's (CR 111.2).
+                let maker = match who {
+                    None => ctx.controller,
+                    Some(w) => match self.recipients(ctx, *w).into_iter().find_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    }) {
+                        Some(p) => p,
+                        None => return,
+                    },
+                };
                 let x = except.then(|| {
                     self.objects
                         .get(ctx.source)
@@ -17282,18 +17295,12 @@ impl GameState {
                         .filter(|l| l.object.zone == Zone::Battlefield)
                     {
                         let (def, was, sized) = (l.object.def, l.object.except, l.object.sized);
-                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
+                        for (d, k) in self.tokens_to_create(maker, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy_of(
-                                        def,
-                                        x.or(was),
-                                        sized,
-                                        ctx.controller,
-                                        *tapped,
-                                    )
+                                    self.create_token_copy_of(def, x.or(was), sized, maker, *tapped)
                                 } else {
-                                    self.create_token(d, ctx.controller)
+                                    self.create_token(d, maker)
                                 };
                                 ctx.created = Some(new);
                                 ctx.created_tokens.push(new);
@@ -17323,12 +17330,12 @@ impl GameState {
                         // CR 614.1a: token-creation replacement effects
                         // ("twice that many of those tokens").
                         let def = self.objects[id].def;
-                        for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
+                        for (d, k) in self.tokens_to_create(maker, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy(id, ctx.controller, x, *tapped)
+                                    self.create_token_copy(id, maker, x, *tapped)
                                 } else {
-                                    self.create_token(d, ctx.controller)
+                                    self.create_token(d, maker)
                                 };
                                 ctx.created = Some(new);
                                 ctx.created_tokens.push(new);

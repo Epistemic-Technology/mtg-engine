@@ -1,0 +1,13 @@
+card "The Notary Hobbits" {
+  oracle_id dc20b29b-856e-4d45-99cd-5e12cfc2324d
+  cost {3}{G}{G}
+  type Legendary Creature — Halfling Advisor
+  pt 1/1
+  pronoun they
+  except {
+    not legendary
+    the token
+  }
+  triggered when this enters if this is nontoken: create 2 token copies of it with exceptions
+  activated {T}: add {C} count each Halfling you control
+}

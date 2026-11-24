@@ -318,9 +318,16 @@ like the card; either half may still be cast alone.
 | `activated abilities of artifact you control cost {1} less min one`, `activated abilities of land you control cost {1} less`, `power-up abilities of other creature you control cost {3} less`, `exhaust abilities of other permanent you control cost {2} less` | "Activated abilities of artifacts you control cost {1} less to activate. This effect can't reduce the mana in that cost to less than one mana." (`min one`), "Power-up abilities of other creatures you control cost {3} less to activate." (CR 601.2f by way of 602.2b): the generic mana of the matching permanents' activated abilities (of that keyword: `power-up`, `exhaust`, `boast`, `ninjutsu`) is reduced as they are activated; with `min one`, never below one mana in all. |
 | `activated abilities of creature cost {1} less min one`, `activated abilities of enchanted creature cost {3} more`, `activated abilities cost {2} more unless mana`, `abilities you activate cost {2} less unless mana min one`, `abilities your opponents activate cost {1} more unless mana`, `equip abilities you activate cost {1} less`, `equip abilities you activate of other Equipment cost {1} less`, `loyalty abilities of planeswalker your opponents control cost {1} more`, `activated abilities of sources with chosen name cost {2} more` | The general form: `<class> abilities [you activate \| your opponents activate] [of <filter> \| of sources with chosen name] cost {N} less\|more [unless mana] [min one]`. "Activated abilities of creatures cost {1} less to activate." (Heartstone: any player's), "Activated abilities of enchanted creature cost {3} more to activate." (Oppressive Rays), "Activated abilities cost {2} more to activate unless they're mana abilities." (Suppression Field: with no `of`, every activated ability, in any zone: cycling and loyalty abilities too), "Abilities you activate that aren't mana abilities cost {2} less to activate." (`unless mana` after `you activate` prints so; `you activate`: only those the source's controller activates, whoever controls their source), "Equip abilities you activate cost {1} less to activate.", "Loyalty abilities of planeswalkers your opponents control cost {1} more to activate.", "Activated abilities of sources with the chosen name cost {2} more to activate." (Skyseer's Chariot, CR 201.3). Classes: `activated` (all), `power-up`, `exhaust`, `boast`, `ninjutsu`, `equip` (CR 702.6a), `loyalty` (CR 606.3). Increases apply before reductions (CR 601.2f); `min one` holds the reduction to leave at least one mana. A filter (`of ...`) matches only permanents. |
 | `hand size none`, `hand size +1`, `hand size opponents -1`, `hand size 8` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one.", "Your maximum hand size is eight." (CR 402.2). The count `difference 10 hand` ("draw cards equal to the difference", after the condition `hand fewer than 10`: "if you have fewer than ten cards in hand") is ten minus the count, at least 0. |
-| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy; `its not legendary`: "it's not legendary"), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token); `legendary` ("it's legendary": the legend rule then applies to it); `exactly` with `pt`, `colors`, and `subtypes` ("it's a 1/1 green Frog", "a 4/4 black Zombie", no "in addition": its colors and creature types are these instead, its card types stay); `pt 1/1` alone ("it's 1/1"); `the token` (wording: "except the token isn't legendary"); `and is` (wording: "it isn't legendary and is a Mutant in addition to its other types", not "and it's"); a card with a
+| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy; `its not legendary`: "it's not legendary"), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, `pt 1/1` and `colors red` ("it's a 1/1 red Balloon creature in addition to its other colors and types": base power and toughness, and colors added), and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token); `legendary` ("it's legendary": the legend rule then applies to it); `exactly` with `pt`, `colors`, and `subtypes` ("it's a 1/1 green Frog", "a 4/4 black Zombie", no "in addition": its colors and creature types are these instead, its card types stay); `pt 1/1` alone ("it's 1/1"); `the token` (wording: "except the token isn't legendary"; "the tokens aren't legendary" for two or more, and with `pronoun they` "if they're not a token ... copies of them", The Notary Hobbits); `and is` (wording: "it isn't legendary and is a Mutant in addition to its other types", not "and it's"); a card with a
 `pronoun` becoming a copy itself prints it ("Oko becomes a copy of ...,
-except he has hexproof"). The template author writes the block from the
+except he has hexproof"; "his other types"); `named this` ("except his name
+is Absorbing Man", first: the copy keeps the name of the card whose copy
+effect made it, CR 707.9b, for the legend rule and wherever a name is
+shown; "named" filters still compare the copied card), and with types or
+subtypes `legendary` joins them ("he's a legendary 4/4 Human Villain
+creature in addition to his other types"); `noun creature` (wording: a
+spell's token copies' abilities say "sacrifice this creature", Face
+Yourself, not "this token"). The template author writes the block from the
 sentence ("Create a token that's a copy of target creature, except it's an
 artifact in addition to its other types."). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
@@ -828,7 +835,7 @@ Dragon ... (It loses all other creature types.)"), `this becomes
 Shapeshifter artifact creature base 5/5` ("... with base power and
 toughness 5/5"), `this becomes artifact creature` (no new P/T), `this
 becomes 2/2 Gargoyle creature with flying indefinitely` (keywords after
-`with`; `indefinitely`: no duration, Opal Caryatid), `this becomes 3/3 creature with vigilance and all creature types indefinitely` (Soulstone Sanctuary: every creature type, CR 205.3m; `with all creature types` without keywords), `until end of turn,
+`with`; `indefinitely`: no duration, Opal Caryatid), `this becomes 2/4 Wizard creature with ability { triggered whenever you cast instant or sorcery spell: this gets +1/+0 } indefinitely` ("it becomes a 2/4 Wizard creature with \"Whenever ...\" It's still a land.", Great Hall of the Biblioplex; `with flying and ability { ... }`: "with flying and \"This creature gets ...\"", Iron Man Armor: it gains the ability for as long as the rest lasts), `this becomes 3/3 creature with vigilance and all creature types indefinitely` (Soulstone Sanctuary: every creature type, CR 205.3m; `with all creature types` without keywords), `until end of turn,
 target creature becomes Dragon base 4/4 and target 1 gains flying`;
 `return this to battlefield; it is now enchantment` prints "return it to
 the battlefield under its owner's control. It's an enchantment." (the
@@ -1342,7 +1349,7 @@ control: double` prints "If one or more tokens would be created under your
 control, twice that many of those tokens are created instead." (`... by
 an effect: double` is the older "If an effect would create one or more
 tokens under your control, it creates twice that many of those tokens
-instead."); `replace creature tokens created under your control: plus
+instead."; `triple` prints "three times that many", Ojer Taq); `replace creature tokens created under your control: plus
 "1/1 white Soldier creature"` prints "If one or more creature tokens would
 be created under your control, those tokens plus a 1/1 white Soldier
 creature token are created instead." (`plus that many "..."`: "plus that
@@ -2120,7 +2127,17 @@ black, enchanted: ...` is "As long as enchanted creature is black, it
 `loses all abilities, set color blue, set subtype Frog, set type
 creature, base 1/1` prints "loses all abilities and is a blue Frog
 creature with base power and toughness 1/1" (Frogify): `set type` replaces
-all its card types, land included, keeping its supertypes (layer 4);
+all its card types, land included, keeping its supertypes (layer 4), and
+it loses the subtypes of the types it lost (CR 205.3d: no creature types
+unless it is still a creature, no basic land types unless still a land);
+`set colorless` is "colorless" ("loses all abilities, set colorless, set
+subtype Noggle, base 1/1": "... is a colorless Noggle with base power and
+toughness 1/1", Noggle the Mind); `set colorless, set type land, has
+ability { activated {T}: add {C} }, loses all abilities` prints "is a
+colorless land with \"{T}: Add {C}\" and loses all other card types and
+abilities" (Imprisoned in the Moon; `set subtype Food, set type artifact`
+in the middle, "a colorless Food artifact with \"...\"", Sugar Coat: an
+"Enchant creature or Food" Aura says "Enchanted permanent");
 colors, a creature type, and card types set together are one noun
 phrase, with the base P/T after it. `add subtype every` is "is every
 creature type" and `add subtype all` "is all creature types" (layer 4,
@@ -2731,7 +2748,14 @@ nontoken creature you control, create a token that's a copy of that
 creature"; `create 2 token copies of it` prints "create two tokens that
 are copies of it", `create x token copies of x target permanent` "For
 each of X target permanents, create X tokens that are copies of that
-permanent."; `those copies gain haste` then prints "Those tokens gain
+permanent."; after a copy of a target, `if kicked, create 5 token copies of
+that target 1 instead` prints "If this spell was kicked, create five of
+those tokens instead." (Rite of Replication); `target player creates token
+copy of target creature you control` "Target player creates a token
+that's a copy of ..." (Echocasting Symposium: that player creates and
+controls it); `create token copy of each creature target player controls`
+"For each creature target player controls, create a token that's a copy
+of that creature"; `those copies gain haste` then prints "Those tokens gain
 haste until end of turn." where `those tokens` prints "They"), `copy <what> [times
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or

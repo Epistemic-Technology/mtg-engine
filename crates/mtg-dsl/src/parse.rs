@@ -1505,6 +1505,18 @@ impl P {
                             except.not_legendary = true;
                             self.end_stmt()?;
                         }
+                        // "... sacrifice this creature" in a spell's copy.
+                        Some("noun") if self.word_at(1).as_deref() == Some("creature") => {
+                            self.pos += 2;
+                            except.creature_noun = true;
+                            self.end_stmt()?;
+                        }
+                        // "except his name is Absorbing Man".
+                        Some("named") if self.word_at(1).as_deref() == Some("this") => {
+                            self.pos += 2;
+                            except.own_name = true;
+                            self.end_stmt()?;
+                        }
                         // "it's legendary".
                         Some("legendary") => {
                             self.pos += 1;
@@ -8954,6 +8966,7 @@ impl P {
                     loses_abilities,
                     in_addition: true,
                     is_word: true,
+                    ability: None,
                 })
             }
             // "It's an enchantment." (indefinitely, layer 4).
@@ -9304,6 +9317,7 @@ impl P {
                         loses_abilities: true,
                         in_addition: false,
                         is_word: false,
+                        ability: None,
                     });
                 }
                 if !(self.at_word("becomes") || self.at_word("become")) {
@@ -9320,6 +9334,7 @@ impl P {
                         keywords,
                         indefinite,
                         in_addition,
+                        ability,
                         ..
                     } => Ok(Effect::Animate {
                         to,
@@ -9333,6 +9348,7 @@ impl P {
                         loses_abilities: true,
                         in_addition,
                         is_word: false,
+                        ability,
                     }),
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
@@ -10347,13 +10363,24 @@ impl P {
                     base = true;
                 }
                 let mut keywords = Vec::new();
+                let mut ability = None;
                 if self.eat_word("with") {
                     loop {
+                        // `with ability { ... }`, `with flying and ability
+                        // { ... }`: a quoted ability it gains.
+                        if self.at_word("ability") && self.peek_at(1) == Some(&Tok::LBrace) {
+                            self.pos += 1;
+                            ability = Some(Box::new(self.nested_ability()?));
+                            break;
+                        }
                         let Some(k) = self.keyword() else {
                             return self.fail("expected a keyword after `with`");
                         };
                         keywords.push(k);
-                        if self.peek() == Some(&Tok::Comma) {
+                        if self.peek() == Some(&Tok::Comma)
+                            || (self.at_word("and")
+                                && self.word_at(1).as_deref() == Some("ability"))
+                        {
                             self.pos += 1;
                         } else {
                             break;
@@ -10386,6 +10413,7 @@ impl P {
                     loses_abilities: false,
                     in_addition,
                     is_word: false,
+                    ability,
                 })
             }
             // "and you create a 1/1 ... token", "Its controller creates a
@@ -10411,6 +10439,25 @@ impl P {
                         it_has,
                         attached,
                         sized,
+                    }),
+                    // "Target player creates a token that's a copy of
+                    // target creature you control" (Echocasting Symposium).
+                    Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count,
+                        tapped,
+                        attacking,
+                        trailing,
+                        ..
+                    } if !attacking => Ok(Effect::CreateTokenCopy {
+                        of,
+                        except,
+                        count,
+                        tapped,
+                        attacking,
+                        trailing,
+                        who: Some(subject),
                     }),
                     _ => self.fail("expected a token after `create`"),
                 }
@@ -13124,6 +13171,7 @@ impl P {
                         tapped: skip > 0 || trailing,
                         attacking: attack || trailing,
                         trailing,
+                        who: None,
                     });
                 }
                 // `create 2 token copies of this`, `create x token copies
@@ -13148,6 +13196,7 @@ impl P {
                         tapped: skip > 0 || trailing,
                         attacking: attack || trailing,
                         trailing,
+                        who: None,
                     });
                 }
                 let count = self.num()?;
@@ -19494,6 +19543,7 @@ impl P {
                 }
             }
             "double" => Outcome::Double,
+            "triple" => Outcome::Triple,
             // "reveal it and shuffle it into its owner's library instead".
             "shuffle" => {
                 self.eat_words(&["into", "library"]);
@@ -19808,6 +19858,8 @@ impl P {
                         })
                     }
                     "color" if set && self.eat_word("chosen") => Ok(Mod::ChosenColor),
+                    // `set colorless`: "is a colorless land" (layer 5).
+                    "colorless" if set => Ok(Mod::SetColors(Vec::new())),
                     "color" | "colors" => {
                         let colors = self.color_list()?;
                         Ok(if set {

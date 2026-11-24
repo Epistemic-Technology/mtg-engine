@@ -187,6 +187,12 @@ fn format_inner(card: &Card) -> String {
         if x.and_is {
             out.push_str("    and is\n");
         }
+        if x.own_name {
+            out.push_str("    named this\n");
+        }
+        if x.creature_noun {
+            out.push_str("    noun creature\n");
+        }
         if x.not_legendary && x.its_not {
             out.push_str("    its not legendary\n");
         } else if x.not_legendary {
@@ -2300,17 +2306,22 @@ impl Fmt {
                 tapped,
                 attacking,
                 trailing,
+                who,
             } => {
                 let entry = match (*tapped && !*trailing, *attacking) {
                     (false, _) => "",
                     (true, false) => "tapped ",
                     (true, true) => "tapped and attacking ",
                 };
+                let create = match who {
+                    None => String::from("create"),
+                    Some(w) => format!("{} creates", self.recipient(*w, t)),
+                };
                 let mut s = if *count == Num::N(1) {
-                    format!("create {entry}token copy of {}", self.recipient(*of, t))
+                    format!("{create} {entry}token copy of {}", self.recipient(*of, t))
                 } else {
                     format!(
-                        "create {} {entry}token copies of {}",
+                        "{create} {} {entry}token copies of {}",
                         num(*count),
                         self.recipient(*of, t)
                     )
@@ -3313,6 +3324,7 @@ impl Fmt {
                 loses_abilities,
                 in_addition,
                 is_word,
+                ability,
             } => {
                 // `target 1 is Spirit in addition and has no abilities`.
                 if *is_word {
@@ -3366,6 +3378,13 @@ impl Fmt {
                 }
                 if !ks.is_empty() {
                     words.push(format!("with {}", keywords(ks)));
+                }
+                if let Some(a) = ability {
+                    words.push(format!(
+                        "{} ability {{ {} }}",
+                        if ks.is_empty() { "with" } else { "and" },
+                        nested(a, &self.groups)
+                    ));
                 }
                 if every {
                     words.push(
@@ -4607,6 +4626,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::Prevent => "prevent".to_string(),
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
+        Outcome::Triple => "triple".to_string(),
         Outcome::PlusToken { .. } => "plus \"\"".to_string(),
         Outcome::TokensInstead { .. } => "that many \"\"".to_string(),
         Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),
@@ -6581,6 +6601,7 @@ fn modification(m: &Mod) -> String {
                 .collect::<Vec<_>>()
                 .join(" ")
         ),
+        Mod::SetColors(cs) if cs.is_empty() => "set colorless".to_string(),
         Mod::SetColors(cs) => format!(
             "set color {}",
             cs.iter()

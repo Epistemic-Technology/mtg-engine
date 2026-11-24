@@ -1,0 +1,7 @@
+card "Rite of Replication" {
+  oracle_id fb60739e-1dc3-481d-a056-ad72e665c680
+  cost {2}{U}{U}
+  type Sorcery
+  kicker {5}
+  spell: create token copy of target creature; if kicked, create 5 token copies of that target 1 instead
+}

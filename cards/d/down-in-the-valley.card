@@ -1,0 +1,8 @@
+card "Down in the Valley" {
+  oracle_id e3491542-569e-48a8-b625-fa7c4aa2792a
+  cost {2}{G}
+  type Enchantment — Saga
+  triggered chapter 1: search basic land card reveal to hand
+  triggered chapter 2: this gains ability { label "Landfall" triggered whenever land you control enters: create 1 "1/1 green Elf creature" } indefinitely
+  triggered chapter 3, 4: each Elf you control gets +1/+0 and gains vigilance
+}

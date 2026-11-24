@@ -1,0 +1,7 @@
+card "Imprisoned in the Moon" {
+  oracle_id 339a7418-9a29-4eae-a3c2-ea590d175936
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature, land, or planeswalker
+  static enchanted: set colorless, set type land, has ability { activated {T}: add {C} }, loses all abilities
+}

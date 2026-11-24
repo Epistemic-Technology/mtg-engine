@@ -2794,7 +2794,20 @@ impl GameState {
     }
 
     pub fn name_of(&self, id: ObjId) -> &str {
-        self.def_of(id).map_or("?", |d| d.name.as_str())
+        self.objects.get(id).map_or("?", |o| self.obj_name(o))
+    }
+
+    /// An object's name: its definition's, or, for a copy whose exception
+    /// keeps its own name ("except his name is Absorbing Man", CR 707.9b),
+    /// the name of the card whose copy effect made it.
+    pub fn obj_name(&self, o: &GameObject) -> &str {
+        if let Some(x) = o.except {
+            let xd = self.pool.get(x);
+            if xd.copy_except.as_ref().is_some_and(|c| c.own_name) {
+                return xd.name.as_str();
+            }
+        }
+        self.pool.get(o.def).name.as_str()
     }
 
     pub fn tick(&mut self) -> Timestamp {
