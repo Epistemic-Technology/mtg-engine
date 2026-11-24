@@ -599,10 +599,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::TopCard(_) => state.condition_now(cond, you, source),
         StaticCondition::SourceAttackedBattle => state.battle_attackers_this_turn.contains(&source),
         StaticCondition::NotYourTurn => state.active_player != you,
-        // No "they" in a static ability.
-        StaticCondition::NotTheirTurn
-        | StaticCondition::Attacking { .. }
-        | StaticCondition::TriggerIs(_) => false,
         StaticCondition::YourMainPhase => state.active_player == you && state.step.is_main(),
         StaticCondition::YourCombatPhase => {
             state.active_player == you && state.step.phase() == crate::turn::Phase::Combat
@@ -748,12 +744,16 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 )
         }),
         // Judged as attackers are declared, or as a permanent enters; not
-        // by a static ability.
+        // by a static ability. A static ability has no "they" or
+        // triggering object, and doesn't read who is attacking.
         StaticCondition::DefenderControls { .. }
         | StaticCondition::DefenderPoisoned
         | StaticCondition::OthersInCombat { .. }
         | StaticCondition::MoreCreaturesThanOpponent { .. }
-        | StaticCondition::Escaped => false,
+        | StaticCondition::Escaped
+        | StaticCondition::NotTheirTurn
+        | StaticCondition::Attacking { .. }
+        | StaticCondition::TriggerIs(_) => false,
         StaticCondition::AttackedLastTurn => state.attacked_last_turn.contains(&(you, source)),
         // Fixed as the permanent enters (CR 702.33c), so no cache bump.
         StaticCondition::Kicked => state.objects.get(source).is_some_and(|o| o.cast.kicked()),

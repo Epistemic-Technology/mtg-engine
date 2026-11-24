@@ -14041,13 +14041,13 @@ impl GameState {
             } => {
                 // `ctx.did` for an "Otherwise" after it ("If it's
                 // suspected, exile it. Otherwise, suspect it.").
-                if self.nth_target_matches(ctx, *n, filter) != *negated {
+                if self.nth_target_matches(ctx, *n, filter) == *negated {
+                    ctx.did = false;
+                } else {
                     ctx.did = true;
                     for e in then {
                         self.apply_effect(ctx, e);
                     }
-                } else {
-                    ctx.did = false;
                 }
             }
             Effect::Instead { cond, base, alt } => {

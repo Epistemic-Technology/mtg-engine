@@ -4654,8 +4654,6 @@ impl GameState {
             C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::NotYourTurn => self.active_player != you,
             // Judged by `condition_about`, which knows "they".
-            // Judged by `condition_for`, which knows the triggering object.
-            C::NotTheirTurn | C::TriggerIs(_) => false,
             C::Attacking {
                 filter,
                 you: at_you,
@@ -4734,7 +4732,14 @@ impl GameState {
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
             // Judged by `condition_for`, which knows the triggering spell;
             // the vote is the resolution's (`IfCondition` reads it).
-            C::ManaSpent { that: true, .. } | C::ThatKicked | C::MoreVotes { .. } => false,
+            // `NotTheirTurn` is judged by `condition_about` (it knows
+            // "they"), `TriggerIs` by `condition_for` (the triggering
+            // object).
+            C::ManaSpent { that: true, .. }
+            | C::ThatKicked
+            | C::MoreVotes { .. }
+            | C::NotTheirTurn
+            | C::TriggerIs(_) => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::XIs { n, at_least } => {
                 let x = self.x_of(source);

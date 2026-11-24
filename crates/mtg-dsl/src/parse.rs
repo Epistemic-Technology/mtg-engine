@@ -7410,6 +7410,7 @@ impl P {
 
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
     /// judged on the target's last state.
+    #[allow(clippy::too_many_lines)] // one branch per tense
     fn if_target(&mut self) -> R<Effect> {
         self.pos += 1;
         let full = self.eat_words(&["the", "full"]);
