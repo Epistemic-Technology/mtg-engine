@@ -267,3 +267,133 @@ scenario "nexus of becoming: an instant card can't be exiled" {
   assert hand A contains "Lightning Bolt"
   assert exile A count 0
 }
+
+scenario "ardyn, the usurper: a 5/5 black Demon copy with menace, lifelink, and haste" {
+  battlefield A: "Ardyn, the Usurper"
+  graveyard B: "Serra Angel"
+  turn 1 A: trigger "Ardyn, the Usurper" targeting "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert exile B contains "Serra Angel"
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 5
+  assert is A "Serra Angel" Demon
+  assert is A "Serra Angel" black
+  assert has A "Serra Angel" flying
+  assert has A "Serra Angel" menace
+  assert has A "Serra Angel" haste
+  assert has A "Serra Angel" lifelink
+}
+
+scenario "ardyn, the usurper: no target, no token" {
+  battlefield A: "Ardyn, the Usurper"
+  run_to turn 1 declare_attackers
+  assert battlefield A count 1
+}
+
+scenario "dimir doppelganger: exiles a creature card and becomes a copy, keeping the ability" {
+  battlefield A: "Dimir Doppelganger", 3 "Island", 3 "Swamp"
+  graveyard B: "Serra Angel", "Hill Giant"
+  turn 1 A: activate "Dimir Doppelganger" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Dimir Doppelganger"
+  assert power A "Serra Angel" 4
+  turn 3 A: activate A "Serra Angel" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "body double: enters as a copy of a creature card in a graveyard" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  graveyard B: "Serra Angel"
+  hand A: "Body Double"
+  turn 1 A: cast "Body Double"
+  turn 1 A: copy "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert graveyard B contains "Serra Angel"
+  assert power A "Serra Angel" 4
+  assert has A "Serra Angel" flying
+}
+
+scenario "body double: a creature on the battlefield isn't offered" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Body Double"
+  turn 1 A: cast "Body Double"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Body Double"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "hour of eternity: a 4/4 black Zombie copy of each card exiled" {
+  battlefield A: 7 "Island"
+  graveyard A: "Serra Angel", "Hill Giant", "Grizzly Bears"
+  hand A: "Hour of Eternity"
+  turn 1 A: cast "Hour of Eternity" x 2 targeting "Serra Angel", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Serra Angel"
+  assert exile A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains "Hill Giant"
+  assert power A "Serra Angel" 4
+  assert power A "Hill Giant" 4
+  assert is A "Hill Giant" Zombie
+  assert is A "Hill Giant" black
+}
+
+scenario "séance: a Spirit copy at the beginning of each upkeep, exiled at the end step" {
+  battlefield A: "Séance"
+  graveyard A: "Hill Giant"
+  turn 1 upkeep A: accept "Séance"
+  run_to turn 1 precombat_main
+  assert exile A contains "Hill Giant"
+  assert battlefield A contains "Hill Giant"
+  assert is A "Hill Giant" Spirit
+  assert is A "Hill Giant" Giant
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "offspring's revenge: a 1/1 copy with haste of a red, white, or black creature card" {
+  battlefield A: "Offspring's Revenge"
+  graveyard A: "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert exile A contains "Hill Giant"
+  assert battlefield A contains "Hill Giant"
+  assert power A "Hill Giant" 1
+  assert toughness A "Hill Giant" 1
+  assert has A "Hill Giant" haste
+}
+
+scenario "offspring's revenge: a green creature card isn't a legal target" {
+  battlefield A: "Offspring's Revenge"
+  graveyard A: "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A count 1
+}
+
+scenario "shifting woodland: with delirium, a copy of a permanent card in your graveyard until end of turn" {
+  battlefield A: "Shifting Woodland", "Forest", 3 "Forest"
+  graveyard A: "Serra Angel", "Lightning Bolt", "Darksteel Relic", "Island"
+  turn 1 A: activate "Shifting Woodland" targeting "Serra Angel"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Serra Angel"
+  assert power A "Serra Angel" 4
+  run_to turn 2 upkeep
+  assert battlefield A contains "Shifting Woodland"
+}
+
+scenario "shifting woodland: without delirium it can't be activated" {
+  battlefield A: "Shifting Woodland", 4 "Forest"
+  graveyard A: "Serra Angel", "Hill Giant"
+  illegal turn 1 A: activate "Shifting Woodland" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Shifting Woodland"
+}

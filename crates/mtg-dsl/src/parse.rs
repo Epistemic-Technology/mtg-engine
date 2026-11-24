@@ -13396,6 +13396,30 @@ impl P {
     }
 
     fn recipient(&mut self) -> R<Recipient> {
+        // `each card exiled this way`, `each creature card exiled this
+        // way`: the targets the ability exiled, each in turn ("For each
+        // card exiled this way, create a token that's a copy of that
+        // card", Hour of Eternity).
+        for (words, creature) in [
+            (&["each", "card", "exiled", "this", "way"][..], false),
+            (
+                &["each", "creature", "card", "exiled", "this", "way"][..],
+                true,
+            ),
+        ] {
+            if self.at_words(words) {
+                if self.targets.is_empty() {
+                    return self
+                        .fail("`each card exiled this way` needs targets declared before it");
+                }
+                self.pos += words.len();
+                return Ok(Recipient::EachExiledThisWay(
+                    0,
+                    self.targets.len(),
+                    creature,
+                ));
+            }
+        }
         // `them`, `those creatures`: the objects a group named earlier in
         // the ability denoted (CR 608.2c).
         if let Some((t, n)) = self.at_those() {

@@ -1,0 +1,9 @@
+card "Séance" {
+  oracle_id a375b935-c02b-44bc-a942-37c5de58b1e4
+  cost {2}{W}{W}
+  type Enchantment
+  triggered at beginning of every upkeep: you may exile target creature card from your graveyard; if you do, create token copy of that created card with exceptions; delayed that token: exile it at beginning of the next end step
+  except {
+    subtypes Spirit
+  }
+}

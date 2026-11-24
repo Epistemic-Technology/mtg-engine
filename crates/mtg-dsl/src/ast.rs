@@ -4179,6 +4179,13 @@ pub enum Recipient {
     /// If you do, create a token that's a copy of the exiled card", Nexus
     /// of Becoming); `exiled card` is a linked ability's (CR 607.2a).
     CreatedExiledCard,
+    /// `each card exiled this way` (`each creature card exiled this
+    /// way` when `.2`): the targets `.0` to `.0 + .1` (the core
+    /// `Targets`), found in exile after the effect before it moved them;
+    /// a token copy of them prints "For each card exiled this way, create
+    /// a token that's a copy of that card" ("For each creature card
+    /// exiled this way, ... a copy of it", Foggy Swamp Visions).
+    EachExiledThisWay(usize, usize, bool),
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).

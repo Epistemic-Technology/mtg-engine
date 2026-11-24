@@ -2203,15 +2203,19 @@ impl GameState {
         let Some(log) = &self.this_way else {
             return nothing;
         };
+        // "If you exiled a card this way" (Ardyn, the Usurper): the
+        // ability's controller exiled it, whoever owns it; "if you
+        // discarded" is about the cards you owned.
+        let by_you = cond.by_you && cond.verb != crate::card::ThisWay::Exiled;
         if nothing {
             return !log
                 .moved
                 .iter()
-                .any(|m| m.is(cond.verb) && (!cond.by_you || m.owner == ctx.controller));
+                .any(|m| m.is(cond.verb) && (!by_you || m.owner == ctx.controller));
         }
         log.moved.iter().any(|m| {
             m.is(cond.verb)
-                && (!cond.by_you || m.owner == ctx.controller)
+                && (!by_you || m.owner == ctx.controller)
                 && cond
                     .filter
                     .as_ref()
@@ -16026,7 +16030,18 @@ impl GameState {
                     // A permanent, or a card in a graveyard or exile ("Exile
                     // target creature card from a graveyard. Create a token
                     // that's a copy of it."): a card's copiable values are
-                    // its printed ones (CR 707.2).
+                    // its printed ones (CR 707.2). "Exile X target creature
+                    // cards from your graveyard. For each card exiled this
+                    // way, create a token that's a copy of that card": a
+                    // target this resolution exiled is found in exile (CR
+                    // 400.7).
+                    let t = match t {
+                        Target::Object(id) if !self.objects.contains_key(id) => self
+                            .current_object(id)
+                            .filter(|n| self.objects[*n].zone == Zone::Exile)
+                            .map_or(t, Target::Object),
+                        _ => t,
+                    };
                     if let Some(id) = on_battlefield(self, t).or_else(|| self.copiable_card(t)) {
                         // CR 614.1a: token-creation replacement effects
                         // ("twice that many of those tokens").

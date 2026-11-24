@@ -2088,6 +2088,10 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
+            Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
+            Recipient::EachExiledThisWay(_, _, true) => {
+                "each creature card exiled this way".to_string()
+            }
             Recipient::SameExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(a, n) => format!("those {}", self.group_noun(a, n)),
         }
@@ -8619,12 +8623,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "For each of X target permanents, create X tokens that are
             // copies of that permanent." (Doppelgang).
             let many = ctx.is_many(*of);
-            let mut text = match o.strip_prefix("each ") {
-                Some(rest) => {
-                    format!("for each {rest}, create {copies} that {}", noun(rest))
-                }
-                None if many => format!("for each of {o}, create {copies} that {}", noun(&o)),
-                None => format!("create {copies} {o}"),
+            let mut text = match (of, o.strip_prefix("each ")) {
+                // "For each card exiled this way, create a token that's a
+                // copy of that card" (Hour of Eternity); "For each creature
+                // card exiled this way, ... a copy of it" (Foggy Swamp
+                // Visions).
+                (Recipient::EachExiledThisWay(_, _, creature), Some(rest)) => format!(
+                    "for each {rest}, create {copies} {}",
+                    if *creature { "it" } else { "that card" }
+                ),
+                (_, rest) => match rest {
+                    Some(rest) => {
+                        format!("for each {rest}, create {copies} that {}", noun(rest))
+                    }
+                    None if many => format!("for each of {o}, create {copies} that {}", noun(&o)),
+                    None => format!("create {copies} {o}"),
+                },
             };
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));

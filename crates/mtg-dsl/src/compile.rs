@@ -3037,12 +3037,15 @@ impl Compiler<'_> {
             // "X target attacking creatures become blocked. ... deals 1
             // damage to each of those creatures": through a variable
             // group, to the end of the list.
-            Recipient::ThoseTargets(a, n) if many.is_some_and(|m| a <= m && m < a + n) => {
+            Recipient::ThoseTargets(a, n) | Recipient::EachExiledThisWay(a, n, _)
+                if many.is_some_and(|m| a <= m && m < a + n) =>
+            {
                 CoreRecipient::Targets(u8::try_from(ti(a)).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Targets(a, n)
             | Recipient::ChosenTargets(a, n)
             | Recipient::ThoseCards(a, n)
+            | Recipient::EachExiledThisWay(a, n, _)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
                 u8::try_from(ti(a)).unwrap_or(u8::MAX),
                 u8::try_from(n).unwrap_or(u8::MAX),
