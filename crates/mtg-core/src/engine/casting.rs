@@ -11540,6 +11540,12 @@ impl GameState {
                 .objects
                 .get(ctx.source)
                 .is_some_and(|o| o.zone == Zone::Stack);
+        // A permanent's "Create a token ... Then exile all other Nightmare
+        // tokens you control." (Abyssal Harvester): "other" tokens are
+        // other than the ones just created, as well as the source.
+        let other_than_created = filter.relation == crate::card::Relation::Other
+            && filter.status.token == Some(true)
+            && !ctx.created_tokens.is_empty();
         out.extend(
             self.battlefield
                 .iter()
@@ -11549,6 +11555,7 @@ impl GameState {
                         || !(ctx.targets.contains(&Target::Object(*id))
                             || ctx.created_tokens.contains(id))
                 })
+                .filter(|id| !other_than_created || !ctx.created_tokens.contains(id))
                 .filter(|id| host.is_none_or(|h| self.objects[*id].attached_to == h))
                 .filter(|id| that.is_none_or(|p| self.objects[*id].controller == p))
                 // "all Auras you own".

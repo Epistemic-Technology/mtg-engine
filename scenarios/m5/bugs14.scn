@@ -1,0 +1,38 @@
+# M5: faults fixed by the fourteenth wave's bugs branch.
+
+# ----- "Create a token ... Then exile all other Nightmare tokens you
+# control." (Abyssal Harvester): "other" spares the token just created. -----
+
+scenario "Abyssal Harvester copies a creature card that died this turn and keeps the new token" {
+  battlefield A: "Abyssal Harvester", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: activate "Abyssal Harvester" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert is A "Grizzly Bears" Nightmare
+  assert is A "Grizzly Bears" Bear
+}
+
+scenario "Abyssal Harvester: the next activation exiles the older Nightmare token" {
+  battlefield A: "Abyssal Harvester", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: activate "Abyssal Harvester" targeting "Grizzly Bears"
+  turn 3 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 3 A: activate "Abyssal Harvester" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+  assert is A "Hill Giant" Nightmare
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Abyssal Harvester can't target a creature card put into a graveyard last turn" {
+  battlefield A: "Abyssal Harvester"
+  graveyard B: "Grizzly Bears"
+  illegal turn 1 A: activate "Abyssal Harvester" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
