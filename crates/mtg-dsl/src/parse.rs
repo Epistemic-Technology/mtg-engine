@@ -10475,6 +10475,21 @@ impl P {
                 let twice = self.eat_word("twice");
                 let to = if !twice && self.eat_word("itself") {
                     subject
+                } else if matches!(self.peek(), Some(Tok::Num(_))) {
+                    // "deals damage equal to its power to each of two
+                    // other target creatures" (Betrayal at the Vault).
+                    let rs = self.recipient_group()?;
+                    match rs.as_slice() {
+                        [Recipient::Target(a), ..]
+                            if rs
+                                .iter()
+                                .enumerate()
+                                .all(|(k, r)| *r == Recipient::Target(a + k)) =>
+                        {
+                            Recipient::Targets(*a, rs.len())
+                        }
+                        _ => return self.fail("`bites N target ...`: one group of targets"),
+                    }
                 } else {
                     self.recipient()?
                 };

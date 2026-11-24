@@ -1,0 +1,28 @@
+# "Each nonland permanent you control is all colors. Lands you control
+# are every basic land type in addition to their other types." (Leyline
+# of the Guildpact).
+
+scenario "Leyline of the Guildpact: your nonland permanents are all colors" {
+  battlefield A: "Leyline of the Guildpact", "Grizzly Bears", "Millstone"
+  battlefield B: "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" white
+  assert is "Grizzly Bears" blue
+  assert is "Grizzly Bears" black
+  assert is "Grizzly Bears" red
+  assert is "Grizzly Bears" green
+  assert is "Millstone" blue
+  assert is "Leyline of the Guildpact" white
+  assert is not "Hill Giant" green
+}
+
+scenario "Leyline of the Guildpact: lands are every basic land type, not all colors" {
+  battlefield A: "Leyline of the Guildpact", "Mountain"
+  battlefield B: "Forest"
+  run_to turn 1 postcombat_main
+  assert is "Mountain" island
+  assert is "Mountain" forest
+  assert is "Mountain" mountain
+  assert is not "Mountain" red
+  assert is not "Forest" island
+}

@@ -12511,6 +12511,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // damage equal to its power to itself" (Wisecrack).
             let o = match (source, to) {
                 (Recipient::Target(a), Recipient::ThatTarget(b)) if a == b => "itself".to_string(),
+                // "... to each of two other target creatures" (Betrayal at
+                // the Vault).
+                (_, Recipient::Targets(_, n)) if *n > 1 => format!("each of {}", ctx.obj(*to)),
                 _ => ctx.obj(*to),
             };
             let twice = if *twice { "twice " } else { "" };
@@ -18094,9 +18097,12 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             }
         }
         Mod::SetSubtype(s) => format!("{} {}", v("is", "are"), with_article(s)),
+        // "Lands you control are every basic land type in addition to
+        // their other types." (Leyline of the Guildpact).
         Mod::AddAllLandTypes => format!(
-            "{} every basic land type in addition to its other types",
-            v("is", "are")
+            "{} every basic land type in addition to {} other types",
+            v("is", "are"),
+            if plural_form { "their" } else { "its" }
         ),
         // "Enchanted land is snow."
         Mod::AddSupertype(s) => format!(
@@ -18146,6 +18152,8 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             )
         ),
         Mod::SetColors(cs) if cs.is_empty() => format!("{} colorless", v("is", "are")),
+        // "Each nonland permanent you control is all colors." (CR 105.2).
+        Mod::SetColors(cs) if cs.len() == 5 => format!("{} all colors", v("is", "are")),
         Mod::SetColors(cs) => format!(
             "{} {}",
             v("is", "are"),

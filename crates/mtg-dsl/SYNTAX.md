@@ -2340,7 +2340,9 @@ can't be activated."; on a group of several types, `static artifact,
 creature, or planeswalker: has can't activate`, "Activated abilities of
 artifacts, creatures, and planeswalkers can't be activated." `set subtype Treefolk` is "is a Treefolk" (it loses
 its other creature types, CR 205.1b); `add land all` is "is every basic
-land type in addition to its other types". A type followed by a base P/T
+land type in addition to its other types" ("are ... their other types"
+for a group, Leyline of the Guildpact); `set color white blue black red
+green` prints "is all colors". A type followed by a base P/T
 is one phrase: `set subtype Treefolk, base 0/4, loses all abilities`
 ("is a Treefolk with base power and toughness 0/4 and loses all
 abilities"), `add type creature, base 4/4` ("is a creature with base power
@@ -2747,7 +2749,10 @@ equal to its power to"; the creature is the damage's source, so its
 deathtouch, lifelink, infect, and wither apply, and it deals none if
 either target is illegal as the spell resolves), `<what> bites itself`
 ("deals damage to itself equal to its power"), `<what> bites twice <what>`
-("deals damage equal to twice its power to"); `up to two target creatures
+("deals damage equal to twice its power to"); `target creature you control
+bites 2 another target creature` ("... to each of two other target
+creatures", Betrayal at the Vault: each dealt damage equal to its power);
+`up to two target creatures
 you control each bites <what>` prints "each deal damage equal to their
 power to", each creature dealing its own damage. A group recipient is
 dealt damage by each creature: `target creature you control bites each
