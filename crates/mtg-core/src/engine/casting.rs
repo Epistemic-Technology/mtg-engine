@@ -9959,7 +9959,9 @@ impl GameState {
         let source = self.current_object(ctx.source);
         // "Target creature you control gets +3/+3 and each other creature
         // you control gets +1/+1": a spell's "other" is other than its
-        // targets.
+        // targets, and than the tokens it created ("Create X 1/1 white
+        // Soldier creature tokens. If X is 5 or more, destroy all other
+        // creatures.", Martial Coup).
         let other_than_targets = filter.relation == crate::card::Relation::Other
             && self
                 .objects
@@ -9969,7 +9971,11 @@ impl GameState {
             self.battlefield
                 .iter()
                 .copied()
-                .filter(|id| !other_than_targets || !ctx.targets.contains(&Target::Object(*id)))
+                .filter(|id| {
+                    !other_than_targets
+                        || !(ctx.targets.contains(&Target::Object(*id))
+                            || ctx.created_tokens.contains(id))
+                })
                 .filter(|id| host.is_none_or(|h| self.objects[*id].attached_to == h))
                 .filter(|id| that.is_none_or(|p| self.objects[*id].controller == p))
                 // "all Auras you own".

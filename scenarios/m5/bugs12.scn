@@ -101,6 +101,30 @@ scenario "Sandwurm Convergence: a flying token put onto the battlefield attackin
   assert life B 14
 }
 
+scenario "Martial Coup: X 5 destroys all creatures but the Soldiers it made" {
+  battlefield A: 7 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Soldier"
+  hand A: "Martial Coup"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Martial Coup" x 5
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Soldier"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B lacks "Soldier"
+}
+
+scenario "Martial Coup: X 4 only makes Soldiers" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Martial Coup"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Martial Coup" x 4
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Soldier"
+  assert battlefield B contains "Hill Giant"
+}
+
 # The creatures tapped for a cost are chosen so the mana can still be paid:
 # Birds of Paradise, first on the battlefield, is kept for {U}.
 scenario "Shared Discovery: tap four Elves and pay {U} with Birds of Paradise" {

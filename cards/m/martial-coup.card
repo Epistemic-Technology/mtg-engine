@@ -1,0 +1,6 @@
+card "Martial Coup" {
+  oracle_id 2b7c4dab-e432-4b34-b058-3cec5c0d72df
+  cost {X}{W}{W}
+  type Sorcery
+  spell: create X "1/1 white Soldier creature"; if x 5 or more, destroy each other creature
+}
