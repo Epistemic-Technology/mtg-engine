@@ -5842,6 +5842,12 @@ pub enum Effect {
         filter: Filter,
         n: u32,
     },
+    /// `reduce speed of <player>`: "If that opponent's speed is greater
+    /// than each other player's speed, reduce that opponent's speed by 1.
+    /// This effect can't reduce their speed below 1." (CR 702.179).
+    ReduceSpeed {
+        who: Recipient,
+    },
     /// `dread card to hand`: "put a card you put into your graveyard
     /// this way into your hand" in a "whenever you manifest dread" trigger
     /// (the triggering card).

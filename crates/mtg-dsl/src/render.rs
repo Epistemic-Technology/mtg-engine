@@ -6654,6 +6654,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("behold {what}"))
         }
+        Effect::ReduceSpeed { who } => {
+            // "that opponent": the controller of the target the ability
+            // named first.
+            let p = ctx.obj(*who);
+            let p = if p.ends_with("controller") {
+                "that opponent".to_string()
+            } else {
+                p
+            };
+            Clause::imperative(format!(
+                "if {p}'s speed is greater than each other player's speed, reduce {p}'s speed by 1. This effect can't reduce their speed below 1"
+            ))
+        }
         Effect::DreadCardToHand => Clause::imperative(
             "put a card you put into your graveyard this way into your hand".to_string(),
         ),

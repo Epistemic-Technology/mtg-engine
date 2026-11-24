@@ -113,3 +113,20 @@ scenario "Kolodin: a Vehicle that enters is an artifact creature with haste" {
   run_to turn 2 upkeep
   assert is not "Smuggler's Copter" creature
 }
+
+scenario "Cloudspire Captain: crews as though its power were 2 greater" {
+  battlefield A: "Cloudspire Captain", "Cultivator's Caravan"
+  turn 1 A: activate "Cultivator's Caravan"
+  run_to turn 1 postcombat_main
+  assert tapped "Cloudspire Captain"
+  assert is "Cultivator's Caravan" creature
+  assert power "Cultivator's Caravan" 6
+  assert toughness "Cultivator's Caravan" 6
+}
+
+scenario "Cloudspire Captain: a 2-power creature alone can't crew 3" {
+  battlefield A: "Grizzly Bears", "Cultivator's Caravan"
+  illegal turn 1 A: activate "Cultivator's Caravan"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}

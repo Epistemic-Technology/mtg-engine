@@ -16969,6 +16969,21 @@ impl GameState {
                     self.pay_behold(ctx.controller, b, ctx.source);
                 }
             }
+            Effect::ReduceSpeed { who } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let s = self.desig.speed(p);
+                    let greatest = self
+                        .players_in_game()
+                        .filter(|q| *q != p)
+                        .all(|q| self.desig.speed(q) < s);
+                    if greatest && s > 1 {
+                        self.set_speed(p, s - 1);
+                    }
+                }
+            }
             Effect::GaveGift => self.emit(Event::GaveGift {
                 player: ctx.controller,
             }),

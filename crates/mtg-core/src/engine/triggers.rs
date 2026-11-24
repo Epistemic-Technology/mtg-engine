@@ -1380,10 +1380,8 @@ impl GameState {
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. })
             | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player })
-            | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
-                whose_ok(*whose, *player).then_some((None, Some(*player)))
-            }
-            (TriggerSpec::Discovers { whose }, Event::Discovered { player, .. })
+            | (TriggerSpec::Forages { whose }, Event::Foraged { player })
+            | (TriggerSpec::Discovers { whose }, Event::Discovered { player, .. })
             | (TriggerSpec::GivesGift { whose }, Event::GaveGift { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }

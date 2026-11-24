@@ -1,0 +1,37 @@
+# "If that opponent's speed is greater than each other player's speed,
+# reduce that opponent's speed by 1. This effect can't reduce their speed
+# below 1." (CR 702.179).
+
+scenario "Spikeshell Harrier: the fastest opponent slows down" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Spikeshell Harrier"
+  speed A: 1
+  speed B: 3
+  turn 1 A: cast "Spikeshell Harrier"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert speed B 2
+}
+
+scenario "Spikeshell Harrier: an opponent no faster than you keeps their speed" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Spikeshell Harrier"
+  speed A: 3
+  speed B: 3
+  turn 1 A: cast "Spikeshell Harrier"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert speed B 3
+}
+
+scenario "Spikeshell Harrier: never below 1" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Spikeshell Harrier"
+  speed B: 1
+  turn 1 A: cast "Spikeshell Harrier"
+  run_to turn 1 postcombat_main
+  assert speed B 1
+}

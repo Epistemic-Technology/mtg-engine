@@ -4132,6 +4132,9 @@ dungeons (CR 309):
   one, at most once each turn, when an opponent loses life during your
   turn, to at most 4), `becomes day as this enters` ("If it's neither day
   nor night, it becomes day as this creature enters.").
+- Effect `reduce speed of controller of that target 1`: "If that
+  opponent's speed is greater than each other player's speed, reduce that
+  opponent's speed by 1. This effect can't reduce their speed below 1."
 - `label "Max speed" <static, activated, or triggered ability>`, `label
   "Max speed" spells you cast cost {1} less`: "Max speed — ..." (CR
   702.179e): the ability works only while its controller's speed is 4 (a

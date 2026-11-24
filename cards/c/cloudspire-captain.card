@@ -1,0 +1,8 @@
+card "Cloudspire Captain" {
+  oracle_id c86bac69-96d6-4b9f-87e4-2d7faecaa112
+  cost {2}{W}
+  type Creature — Human Pilot
+  pt 2/3
+  static Mount or Vehicle you control: +1/+1
+  saddles and crews plus 2
+}

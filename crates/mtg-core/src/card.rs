@@ -6088,6 +6088,14 @@ pub enum Effect {
     /// control or revealing a matching card from their hand; with too
     /// few, nothing happens and "If you do" sees that.
     Behold(Box<Behold>),
+    /// "If that opponent's speed is greater than each other player's
+    /// speed, reduce that opponent's speed by 1. This effect can't reduce
+    /// their speed below 1." (CR 702.179): each recipient player whose
+    /// speed is greater than every other player's loses 1 speed, never
+    /// below 1.
+    ReduceSpeed {
+        who: Recipient,
+    },
     /// The gift has been given (CR 702.174): after a gift's effects, for
     /// "Whenever you give a gift".
     GaveGift,

@@ -4896,6 +4896,7 @@ impl Compiler<'_> {
                     x: false,
                 })));
             }
+            Effect::ReduceSpeed { who } => out.push(CoreEffect::ReduceSpeed { who: r(*who) }),
             Effect::DreadCardToHand => out.push(CoreEffect::ReturnToHand {
                 what: CoreRecipient::TriggeringObject,
             }),

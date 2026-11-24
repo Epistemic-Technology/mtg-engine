@@ -1885,6 +1885,7 @@ impl Decompiler<'_> {
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,
             CoreEffect::ManifestDreadBy { who } => Effect::ManifestDreadBy { who: r(*who) },
+            CoreEffect::ReduceSpeed { who } => Effect::ReduceSpeed { who: r(*who) },
             CoreEffect::Behold(b) => Effect::Behold {
                 filter: self.filter(&b.filter),
                 n: b.n,

@@ -11574,6 +11574,11 @@ impl P {
                 let filter = self.filter()?;
                 Ok(Effect::Behold { filter, n })
             }
+            "reduce" if self.at_words(&["speed", "of"]) => {
+                self.pos += 2;
+                let who = self.recipient()?;
+                Ok(Effect::ReduceSpeed { who })
+            }
             "dread" if self.at_words(&["card", "to", "hand"]) => {
                 self.pos += 3;
                 Ok(Effect::DreadCardToHand)

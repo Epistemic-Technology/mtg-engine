@@ -979,6 +979,7 @@ impl Fmt {
                 format!("{} manifests dread", self.recipient(*who, t))
             }
             Effect::DreadCardToHand => "dread card to hand".to_string(),
+            Effect::ReduceSpeed { who } => format!("reduce speed of {}", self.recipient(*who, t)),
             Effect::Behold { filter: f, n: 1 } => format!("behold {}", filter(f)),
             Effect::Behold { filter: f, n } => format!("behold {n} {}", filter(f)),
             Effect::Blight(n) => format!("blight {n}"),
