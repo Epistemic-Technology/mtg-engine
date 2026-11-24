@@ -109,3 +109,82 @@ scenario "Hoarding Dragon: declining leaves the artifact in exile" {
   run_to turn 2 upkeep
   assert exile A contains "Ornithopter"
 }
+
+scenario "Null Summoner: with threshold, cast the exiled card with mana of any type" {
+  battlefield A: 4 "Island", 4 "Swamp"
+  hand A: "Null Summoner"
+  hand B: "Hill Giant", "Forest"
+  graveyard A: 7 "Island"
+  turn 1 A: cast "Null Summoner"
+  run_to turn 1 begin_combat
+  assert exile B contains "Hill Giant"
+  assert hand B contains "Forest"
+  turn 1 main2 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Null Summoner: without threshold, the exiled card can't be cast" {
+  battlefield A: 4 "Island", 4 "Swamp"
+  hand A: "Null Summoner"
+  hand B: "Hill Giant", "Forest"
+  graveyard A: 6 "Island"
+  turn 1 A: cast "Null Summoner"
+  illegal turn 1 main2 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Intrepid Paleontologist: a Dinosaur you own enters with a finality counter" {
+  battlefield A: "Intrepid Paleontologist", 8 "Forest"
+  graveyard A: "Colossal Dreadmaw"
+  turn 1 A: activate "Intrepid Paleontologist" targeting "Colossal Dreadmaw"
+  turn 1 main2 A: cast "Colossal Dreadmaw"
+  run_to turn 1 end
+  assert battlefield A contains "Colossal Dreadmaw"
+  assert counters "Colossal Dreadmaw" finality 1
+}
+
+scenario "Intrepid Paleontologist: not a Dinosaur, nor one an opponent owns" {
+  battlefield A: "Intrepid Paleontologist", 8 "Forest"
+  graveyard A: "Grizzly Bears"
+  graveyard B: "Colossal Dreadmaw"
+  turn 1 A: activate "Intrepid Paleontologist" targeting "Grizzly Bears"
+  turn 1 A: activate "Intrepid Paleontologist" targeting "Colossal Dreadmaw"
+  illegal turn 1 main2 A: cast "Grizzly Bears"
+  illegal turn 1 main2 A: cast "Colossal Dreadmaw"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  assert exile B contains "Colossal Dreadmaw"
+}
+
+scenario "Azula: cast exiled cards during your turn as though they had flash, with any mana" {
+  battlefield A: 4 "Island", 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Azula, Cunning Usurper"
+  graveyard B: "Shock", "Forest"
+  turn 1 A: cast "Azula, Cunning Usurper"
+  run_to turn 1 begin_combat
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+  assert graveyard B contains "Forest"
+  turn 1 begin_combat A: cast "Shock" targeting player B
+  turn 1 begin_combat A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Azula: not during an opponent's turn" {
+  battlefield A: 6 "Island", 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Azula, Cunning Usurper"
+  graveyard B: "Shock"
+  turn 1 A: cast "Azula, Cunning Usurper"
+  illegal turn 2 upkeep A: cast "Shock" targeting player B
+  illegal turn 2 upkeep A: cast "Grizzly Bears"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert battlefield A contains "Grizzly Bears"
+  assert exile B contains "Shock"
+}

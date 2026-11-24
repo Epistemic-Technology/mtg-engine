@@ -864,6 +864,17 @@ impl GameState {
                 to_hand: false,
             });
         }
+        // A permission to cast the linked cards with a rider ("Mana of any
+        // type can be spent to cast those spells", a finality counter):
+        // offers and payment look for it from now on (`permission_rider`).
+        if let Some(s) = self.objects.get(source)
+            && self.pool.get(s.def).ability_ids.iter().any(|a| {
+                matches!(self.pool.ability(*a), crate::card::AbilityDef::PlayExiled { more, .. }
+                    if more.spend != crate::card::SpendAs::Normal || more.finality)
+            })
+        {
+            self.exile_casts.get_or_insert_with(Box::default).riders = true;
+        }
         // Counts and conditions read the links.
         self.cbump();
     }

@@ -2678,6 +2678,23 @@ pub enum PlayUntil {
     WhileYouControlSource,
 }
 
+/// The rest of a permission to play the cards exiled with a permanent
+/// (`AbilityDef::PlayExiled`, CR 601.3, 607.2a).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct PlayExiledMore {
+    /// "Mana of any type can be spent to cast those spells." (CR 609.4b).
+    pub spend: SpendAs,
+    /// "... and you may cast them as though they had flash" (CR 702.8a).
+    pub flash: bool,
+    /// "As long as there are seven or more cards in your graveyard, ...":
+    /// a pool condition judged for the permanent whenever the card could
+    /// be played (CR 611.3a).
+    pub condition: Option<u16>,
+    /// "If you cast a spell this way, that creature enters with a finality
+    /// counter on it." (CR 122.1h).
+    pub finality: bool,
+}
+
 /// How a player may spend mana on a spell or an ability (CR 609.4b).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub enum SpendAs {
@@ -4607,6 +4624,10 @@ pub enum Effect {
         /// choice (`count` is unused).
         #[serde(default)]
         all: bool,
+        /// "then they exile a nonland card from their graveyard": only
+        /// cards matching this, judged as cards.
+        #[serde(default)]
+        filter: Option<ObjFilter>,
     },
     /// "Exile all cards from your library face down." (Inverter of
     /// Truth), "each player exiles all but the bottom six cards of their
@@ -9507,6 +9528,9 @@ pub enum AbilityDef {
         /// nor spells, a permission to look only).
         #[serde(default)]
         look: bool,
+        /// The permission's riders and condition.
+        #[serde(default)]
+        more: PlayExiledMore,
     },
     /// "Play with the top card of your library revealed." (`players`:
     /// "Players play with the top card of their libraries revealed."):

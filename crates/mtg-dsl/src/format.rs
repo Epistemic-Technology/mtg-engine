@@ -2565,6 +2565,7 @@ impl Fmt {
                 graveyard,
                 face,
                 all,
+                filter: f,
             } => {
                 let face = match face {
                     mtg_core::card::ExileFace::Up => "",
@@ -2574,6 +2575,13 @@ impl Fmt {
                 let zone = if *graveyard { "graveyard" } else { "hand" };
                 let what = if *all {
                     zone.to_string()
+                } else if let Some(f) = f {
+                    format!(
+                        "{} {} {} from {zone}",
+                        num(*count),
+                        filter(f),
+                        cards(*count)
+                    )
                 } else {
                     format!("{} {} from {zone}", num(*count), cards(*count))
                 };
@@ -8292,6 +8300,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             your_turn,
             owned,
             look,
+            more,
         } => {
             let mut s = format!("{indent}play exiled");
             if *look {
@@ -8302,6 +8311,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             }
             if *owned {
                 s.push_str(" owned");
+            }
+            if more.the_card {
+                s.push_str(" the card");
+            }
+            if more.flash {
+                s.push_str(" flash");
+            }
+            if more.any_type {
+                s.push_str(" any type");
+            }
+            if more.finality {
+                s.push_str(" finality");
             }
             if *lands {
                 s.push_str(" lands");
@@ -8314,6 +8335,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *f != Filter::default() {
                     let _ = write!(s, " {}", filter(f));
                 }
+            }
+            if let Some(c) = &more.condition {
+                let _ = write!(s, " if {}", static_cond(c));
             }
             let _ = writeln!(out, "{s}");
         }

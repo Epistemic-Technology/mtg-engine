@@ -1,0 +1,9 @@
+card "Intrepid Paleontologist" {
+  oracle_id d6026309-aae9-43e7-938b-69db7af7139c
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 2/2
+  mana any
+  activated {2}: exile target card from a graveyard
+  play exiled owned finality spells Dinosaur creature
+}

@@ -4152,12 +4152,14 @@ impl Compiler<'_> {
                 graveyard,
                 face,
                 all,
+                filter,
             } => out.push(CoreEffect::ExileFromHand {
                 count: *count,
                 who: r(*who),
                 graveyard: *graveyard,
                 face: *face,
                 all: *all,
+                filter: filter.as_ref().map(|f| self.filter(f)),
             }),
             Effect::ExileLibrary { who, keep, face } => out.push(CoreEffect::ExileLibrary {
                 who: who.map_or(CoreRecipient::You, r),
@@ -7525,12 +7527,26 @@ impl Compiler<'_> {
                 your_turn,
                 owned,
                 look,
+                more,
             } => AbilityDef::PlayExiled {
                 lands: *lands,
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 your_turn: *your_turn,
                 owned: *owned,
                 look: *look,
+                more: mtg_core::card::PlayExiledMore {
+                    spend: if more.any_type {
+                        mtg_core::card::SpendAs::AnyType
+                    } else {
+                        mtg_core::card::SpendAs::Normal
+                    },
+                    flash: more.flash,
+                    condition: more.condition.as_deref().map(|c| {
+                        let c = self.static_cond(c);
+                        self.pool.intern_condition(c)
+                    }),
+                    finality: more.finality,
+                },
             },
             Ability::TopRevealed { players, hands } => AbilityDef::TopRevealed {
                 players: *players,
@@ -8578,6 +8594,15 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // card its abilities exile is linked to the permanent (the engine
     // records them as the abilities resolve).
     if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
+    // "As long as ..., you may cast the exiled card" (Null Summoner): a
+    // permission to play what its abilities exile.
+    if def
+        .abilities
+        .iter()
+        .any(|a| matches!(a, AbilityDef::PlayExiled { .. }))
+    {
         def.links_exile = true;
     }
     // "When this creature leaves the battlefield, return the exiled card

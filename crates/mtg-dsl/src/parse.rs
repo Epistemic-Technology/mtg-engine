@@ -3044,6 +3044,7 @@ impl P {
                     your_turn: false,
                     owned: false,
                     look: true,
+                    more: crate::ast::PlayExiledMore::default(),
                 })
             }
             "play" if self.at_words(&["play", "exiled"]) => {
@@ -3051,9 +3052,16 @@ impl P {
                 let look = self.eat_word("look");
                 let your_turn = self.eat_words(&["your", "turn"]);
                 let owned = self.eat_word("owned");
+                let mut more = crate::ast::PlayExiledMore {
+                    the_card: self.eat_words(&["the", "card"]),
+                    flash: self.eat_word("flash"),
+                    any_type: self.eat_words(&["any", "type"]),
+                    finality: self.eat_word("finality"),
+                    condition: None,
+                };
                 let lands = self.eat_word("lands");
                 let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
-                    if self.at_stmt_end() {
+                    if self.at_stmt_end() || self.at_word("if") {
                         Some(Filter::default())
                     } else {
                         Some(self.filter()?)
@@ -3064,6 +3072,9 @@ impl P {
                 if !lands && spells.is_none() {
                     return self.fail("expected `lands` or `spells`".to_string());
                 }
+                if self.eat_word("if") {
+                    more.condition = Some(Box::new(self.static_cond()?));
+                }
                 self.end_stmt()?;
                 Ok(Ability::PlayExiled {
                     lands,
@@ -3071,6 +3082,7 @@ impl P {
                     your_turn,
                     owned,
                     look,
+                    more,
                 })
             }
             "top" if self.at_words(&["top", "revealed"]) => {
@@ -9515,6 +9527,7 @@ impl P {
                     graveyard,
                     face,
                     all: true,
+                    filter: None,
                 })
             }
             "exiles" => {
@@ -9538,9 +9551,31 @@ impl P {
                         graveyard,
                         face,
                         all: false,
+                        filter: None,
                     });
                 }
                 let mut filter = self.filter()?;
+                // `that player exiles 1 nonland card from graveyard`: "they
+                // exile a nonland card from their graveyard".
+                if (self.at_word("card") || self.at_word("cards"))
+                    && self.word_at(1).as_deref() == Some("from")
+                    && matches!(self.word_at(2).as_deref(), Some("graveyard" | "hand"))
+                {
+                    self.pos += 2;
+                    let graveyard = self.eat_word("graveyard");
+                    if !graveyard {
+                        self.expect_word("hand")?;
+                    }
+                    let face = self.exile_face();
+                    return Ok(Effect::ExileFromHand {
+                        count,
+                        who: subject,
+                        graveyard,
+                        face,
+                        all: false,
+                        filter: Some(filter),
+                    });
+                }
                 if filter.they_control {
                     filter.they_control = false;
                     filter.who = None;
@@ -11663,6 +11698,7 @@ impl P {
                         graveyard: false,
                         face,
                         all: true,
+                        filter: None,
                     });
                 }
                 if matches!(self.peek(), Some(Tok::Num(_)))
@@ -11680,6 +11716,7 @@ impl P {
                         graveyard: false,
                         face,
                         all: false,
+                        filter: None,
                     });
                 }
                 // `exile same name as target 1 from its controller zones`:

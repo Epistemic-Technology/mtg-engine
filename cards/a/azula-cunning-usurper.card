@@ -1,0 +1,9 @@
+card "Azula, Cunning Usurper" {
+  oracle_id 7c9e351d-2e6c-4050-9c3d-b15bb9255a4d
+  cost {2}{U}{B}{B}
+  type Legendary Creature — Human Noble Rogue
+  pt 4/4
+  firebending 2
+  triggered when this enters: target opponent exiles 1 nontoken creature they control then they exiles 1 nonland card from graveyard
+  play exiled your turn flash any type spells
+}
