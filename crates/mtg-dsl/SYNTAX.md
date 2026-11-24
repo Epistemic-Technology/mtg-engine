@@ -2321,7 +2321,7 @@ copy of ...`, `create 2 tapped token copies of this artifact`: "create a
 tapped token that's a copy of ...", "create two tapped tokens that are
 copies of this artifact", entering tapped; `create tapped and attacking
 token copy of ...` "create a tapped and attacking token that's a copy of
-...", and the older `create token copy of <what> [with exceptions] tapped
+...", and the older `create token copy of <what> [with exceptions] entering tapped
 and attacking` "create a token that's a copy of ... and that's tapped and
 attacking": CR 508.4, attacking what the source attacks; in a delayed
 trigger about it, `the token` prints "the token": `delayed that token:

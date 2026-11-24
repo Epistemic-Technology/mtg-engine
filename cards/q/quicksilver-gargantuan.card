@@ -1,0 +1,10 @@
+card "Quicksilver Gargantuan" {
+  oracle_id c30ffe3f-ec1b-4af5-b817-7ef9a1c5d2f3
+  cost {5}{U}{U}
+  type Creature — Shapeshifter
+  pt 7/7
+  enters as copy of creature
+  except {
+    pt 7/7
+  }
+}

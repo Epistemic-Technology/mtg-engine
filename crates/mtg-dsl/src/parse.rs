@@ -10992,7 +10992,8 @@ impl P {
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
-                    let trailing = skip == 0 && self.eat_words(&["tapped", "and", "attacking"]);
+                    let trailing =
+                        skip == 0 && self.eat_words(&["entering", "tapped", "and", "attacking"]);
                     self.created_at = Some(self.targets.len());
                     return Ok(Effect::CreateTokenCopy {
                         of,
@@ -11015,7 +11016,8 @@ impl P {
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
-                    let trailing = skip == 0 && self.eat_words(&["tapped", "and", "attacking"]);
+                    let trailing =
+                        skip == 0 && self.eat_words(&["entering", "tapped", "and", "attacking"]);
                     self.created_at = Some(self.targets.len());
                     return Ok(Effect::CreateTokenCopy {
                         of,

@@ -375,3 +375,40 @@ scenario "oko, the ringleader: +1 draws two and discards two without a crime" {
   assert graveyard A count 2
   assert counters "Oko, the Ringleader" loyalty 4
 }
+
+# Written by the template author: "That token gains haste. Exile it at
+# the beginning of the next end step." after a token copy; "except it's
+# 7/7".
+
+scenario "cogwork assembler: a hasty artifact copy, exiled at end step" {
+  battlefield A: "Cogwork Assembler", "Ornithopter", 7 "Island"
+  turn 1 A: activate "Cogwork Assembler" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Ornithopter"
+  assert has newest A "Ornithopter" haste
+  assert has not oldest A "Ornithopter" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Ornithopter"
+}
+
+scenario "quicksilver gargantuan: a copy that's 7/7" {
+  battlefield A: "Grizzly Bears", 7 "Island"
+  hand A: "Quicksilver Gargantuan"
+  turn 1 A: cast "Quicksilver Gargantuan"
+  turn 1 A: copy "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert power newest A "Grizzly Bears" 7
+  assert toughness newest A "Grizzly Bears" 7
+  assert power oldest A "Grizzly Bears" 2
+}
+
+scenario "quicksilver gargantuan: copying nothing, a 7/7 Shapeshifter" {
+  battlefield A: "Grizzly Bears", 7 "Island"
+  hand A: "Quicksilver Gargantuan"
+  turn 1 A: cast "Quicksilver Gargantuan"
+  turn 1 A: copy nothing
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Quicksilver Gargantuan"
+  assert power "Quicksilver Gargantuan" 7
+}

@@ -2963,8 +2963,6 @@ impl Compiler<'_> {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
-            // Chosen by the `ChooseAct` compiled before the effect.
-            Recipient::ChosenOf(_) => CoreRecipient::CreatedObject,
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
             Recipient::OpponentsWithout(i) => {
@@ -3043,7 +3041,10 @@ impl Compiler<'_> {
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens
             }
-            Recipient::Manifested
+            // `ChosenOf`: chosen by the `ChooseAct` compiled before the
+            // effect.
+            Recipient::ChosenOf(_)
+            | Recipient::Manifested
             | Recipient::CreatedObject
             | Recipient::CreatedThat
             | Recipient::CreatedThatToken

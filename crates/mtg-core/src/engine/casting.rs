@@ -15590,7 +15590,13 @@ impl GameState {
                         for (d, k) in self.tokens_to_create(ctx.controller, def, n) {
                             for _ in 0..k {
                                 let new = if d == def {
-                                    self.create_token_copy_of(def, x.or(was), sized, ctx.controller, *tapped)
+                                    self.create_token_copy_of(
+                                        def,
+                                        x.or(was),
+                                        sized,
+                                        ctx.controller,
+                                        *tapped,
+                                    )
                                 } else {
                                     self.create_token(d, ctx.controller)
                                 };

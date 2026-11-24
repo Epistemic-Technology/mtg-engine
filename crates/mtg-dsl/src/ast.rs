@@ -655,6 +655,7 @@ pub enum TargetNoun {
 pub const ANY_NUMBER: u32 = u32::MAX;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // one per exception line
 pub struct Except {
     pub subtypes: Vec<String>,
     pub keywords: Vec<Keyword>,
@@ -4302,7 +4303,7 @@ pub enum Effect {
         /// `create tapped and attacking token copy of ...`: "create a
         /// tapped and attacking token that's a copy of ..." (CR 508.4).
         attacking: bool,
-        /// `create token copy of <what> tapped and attacking`: the older
+        /// `create token copy of <what> entering tapped and attacking`: the older
         /// wording "create a token that's a copy of ... and that's tapped
         /// and attacking". Wording only.
         trailing: bool,

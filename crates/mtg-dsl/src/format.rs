@@ -1868,7 +1868,7 @@ impl Fmt {
                     s.push_str(" with exceptions");
                 }
                 if *trailing {
-                    s.push_str(" tapped and attacking");
+                    s.push_str(" entering tapped and attacking");
                 }
                 s
             }

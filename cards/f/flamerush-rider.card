@@ -3,6 +3,6 @@ card "Flamerush Rider" {
   cost {4}{R}
   type Creature — Human Warrior
   pt 3/3
-  triggered whenever this attacks: create token copy of another target attacking creature tapped and attacking; delayed that token: exile the token at end of combat
+  triggered whenever this attacks: create token copy of another target attacking creature entering tapped and attacking; delayed that token: exile the token at end of combat
   dash {2}{R}{R}
 }

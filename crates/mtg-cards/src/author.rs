@@ -1552,7 +1552,9 @@ const EXCEPT_ABILITIES: [(&str, &str); 2] = [
 /// an artifact in addition to its other types", "it's a 1/1 Soldier
 /// creature in addition to its other types", "it's a 1/1 green Frog",
 /// "it has haste and \"...\"", joined by "and" or commas.
+#[allow(clippy::too_many_lines)] // one arm per exception
 fn copy_exceptions(x: &str) -> Option<Vec<String>> {
+    let pt_word = Regex::new(r"^\d+/\d+$").unwrap();
     let (head, has) = if let Some(h) = x.strip_prefix("it has ") {
         ("", h)
     } else if let Some(i) = x.find(" it has ") {
@@ -1577,17 +1579,16 @@ fn copy_exceptions(x: &str) -> Option<Vec<String>> {
                 "it's legendary" => lines.push("legendary".to_string()),
                 c => {
                     let body = c.strip_prefix("it's ")?;
-                    let (body, exactly, colors_too) = if let Some(b) =
-                        body.strip_suffix(" in addition to its other types")
-                    {
-                        (b, false, false)
-                    } else if let Some(b) =
-                        body.strip_suffix(" in addition to its other colors and types")
-                    {
-                        (b, false, true)
-                    } else {
-                        (body, true, false)
-                    };
+                    let (body, exactly, colors_too) =
+                        if let Some(b) = body.strip_suffix(" in addition to its other types") {
+                            (b, false, false)
+                        } else if let Some(b) =
+                            body.strip_suffix(" in addition to its other colors and types")
+                        {
+                            (b, false, true)
+                        } else {
+                            (body, true, false)
+                        };
                     let body = body
                         .strip_prefix("a ")
                         .or_else(|| body.strip_prefix("an "))
@@ -1595,7 +1596,7 @@ fn copy_exceptions(x: &str) -> Option<Vec<String>> {
                     let (mut pt, mut colors, mut types, mut subtypes) =
                         (None, Vec::new(), Vec::new(), Vec::new());
                     for w in body.split(' ') {
-                        if Regex::new(r"^\d+/\d+$").unwrap().is_match(w) && pt.is_none() {
+                        if pt_word.is_match(w) && pt.is_none() {
                             pt = Some(w);
                         } else if ["white", "blue", "black", "red", "green"].contains(&w) {
                             colors.push(w);
@@ -1645,11 +1646,15 @@ fn copy_exceptions(x: &str) -> Option<Vec<String>> {
         let mut abilities = Vec::new();
         let mut rest = has;
         while !rest.is_empty() {
-            if let Some((quoted, dsl)) = EXCEPT_ABILITIES.iter().find(|(q, _)| rest.starts_with(q)) {
+            if let Some((quoted, dsl)) = EXCEPT_ABILITIES.iter().find(|(q, _)| rest.starts_with(q))
+            {
                 abilities.push((*dsl).to_string());
                 rest = &rest[quoted.len()..];
             } else {
-                let end = rest.find(" and \"").or_else(|| rest.find(", \"")).unwrap_or(rest.len());
+                let end = rest
+                    .find(" and \"")
+                    .or_else(|| rest.find(", \""))
+                    .unwrap_or(rest.len());
                 keywords.push(keyword_list(&rest[..end])?);
                 rest = &rest[end..];
             }
@@ -4718,7 +4723,11 @@ impl Templates {
                 let made_token = out.last().is_some_and(|l| {
                     l.contains("create ")
                         || (l.starts_with("that token ") || l.starts_with("that created token "))
-                            && out.iter().rev().nth(1).is_some_and(|p| p.contains("create "))
+                            && out
+                                .iter()
+                                .rev()
+                                .nth(1)
+                                .is_some_and(|p| p.contains("create "))
                 });
                 let who = if made_token && matches!(obj, "it" | "that token") {
                     "that token".to_string()
