@@ -16879,6 +16879,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
         StaticCond::NotTheirTurn => "it's not their turn".to_string(),
+        StaticCond::AttackerIs { filter, you } => format!(
+            "{} is attacking{}",
+            with_article(&filter_phrase(filter, card, false)),
+            if *you { " you" } else { "" }
+        ),
         StaticCond::CastDuringMain => "you cast this spell during your main phase".to_string(),
         StaticCond::ControlledAsCast(f) => format!(
             "you controlled {} as you cast this spell",
@@ -18468,6 +18473,26 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     } else {
                         ", if it had a counter on it"
                     });
+                }
+                Some(crate::ast::TrigCond::Outstats) => {
+                    let this = this_ref(card);
+                    let _ = write!(
+                        out,
+                        ", if its power is greater than {this}'s power or its toughness is greater than {this}'s toughness"
+                    );
+                }
+                Some(crate::ast::TrigCond::ItsStat {
+                    stat,
+                    cmp,
+                    less_than,
+                    n,
+                }) => {
+                    let word = crate::format::its_stat_word(*stat);
+                    let _ = if *less_than {
+                        write!(out, ", if its {word} was less than {}", n + 1)
+                    } else {
+                        write!(out, ", if its {word} was {n}{}", cmp_words(*cmp))
+                    };
                 }
                 Some(crate::ast::TrigCond::Core(c)) => {
                     out.push_str(", ");

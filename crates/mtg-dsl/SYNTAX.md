@@ -550,7 +550,7 @@ end of turn".
 deal ..." and `you may each Ally creature you control gets +1/+0` "you may
 have Ally creatures you control get +1/+0 ...".
 
-Conditions (intervening "if", CR 603.4): `if it wasn't blocking` and `if it was blocking` (in a dies trigger, as it last existed), `if this is untapped`, `if
+Conditions (intervening "if", CR 603.4): `if its toughness was less than 1` (also `power`, `mana value`, and `was N or less` / `was N or greater`: the triggering object as it is or last existed, "Whenever a creature an opponent controls dies, if its toughness was less than 1, ..."), `if its power or toughness greater than this` (evolve's check, printed "if its power is greater than this creature's power or its toughness is greater than this creature's toughness"), `if it wasn't blocking` and `if it was blocking` (in a dies trigger, as it last existed), `if this is untapped`, `if
 this is tapped` ("if this creature is tapped"),
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
 CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`
@@ -577,7 +577,7 @@ Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
 artifact` ("you control three or more artifacts"), `you control Island`
 ("you control an Island"), `you control 1 or more Egg` ("you control one
-or more Eggs", the same condition), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"), `not their turn` ("it's not their turn": the player the ability triggered for, or a spell's targeted player; "Whenever a player casts a spell, if it's not their turn, ..."),
+or more Eggs", the same condition), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"), `not their turn` ("it's not their turn": the player the ability triggered for, or a spell's targeted player; "Whenever a player casts a spell, if it's not their turn, ..."), `attacker Rat` ("a Rat is attacking": any attacking creature that matches; `attacker creature at you`, "a creature is attacking you", attacking that player rather than a planeswalker or battle; not in a static ability),
 `cast during main phase` ("you cast this spell during your main phase")
 and `controlled Mount as cast` ("you controlled a Mount as you cast this
 spell"), both judged as the spell is cast and remembered by it, `attacking`,

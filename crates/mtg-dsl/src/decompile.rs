@@ -620,6 +620,10 @@ impl Decompiler<'_> {
             StaticCondition::YourTurn => StaticCond::YourTurn,
             StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
             StaticCondition::NotTheirTurn => StaticCond::NotTheirTurn,
+            StaticCondition::Attacking { filter, you } => StaticCond::AttackerIs {
+                filter: self.filter(filter),
+                you: *you,
+            },
             StaticCondition::AsCast(inner) => match &**inner {
                 StaticCondition::YouControl { filter, .. } => {
                     StaticCond::ControlledAsCast(self.filter(filter))
@@ -697,6 +701,9 @@ impl Decompiler<'_> {
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::ProwlDamage(_) => unreachable!("only prowl's alternative cost"),
+            StaticCondition::TriggerIs(_) => {
+                unreachable!("only a trigger's condition (`TrigCond::ItsStat`)")
+            }
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,

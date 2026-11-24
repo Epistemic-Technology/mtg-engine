@@ -6571,6 +6571,13 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
         StaticCond::NotYourTurn => "not your turn".to_string(),
         StaticCond::NotTheirTurn => "not their turn".to_string(),
+        StaticCond::AttackerIs { filter: f, you } => {
+            format!(
+                "attacker {}{}",
+                filter(f),
+                if *you { " at you" } else { "" }
+            )
+        }
         StaticCond::CastDuringMain => "cast during main phase".to_string(),
         StaticCond::ControlledAsCast(f) => format!("controlled {} as cast", filter(f)),
         StaticCond::Attacking => "attacking".to_string(),
@@ -7459,6 +7466,27 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                         " if it had one or more counters"
                     } else {
                         " if it had counter"
+                    });
+                    None
+                }
+                Some(crate::ast::TrigCond::Outstats) => {
+                    head.push_str(" if its power or toughness greater than this");
+                    None
+                }
+                Some(crate::ast::TrigCond::ItsStat {
+                    stat,
+                    cmp,
+                    less_than,
+                    n,
+                }) => {
+                    let _ = write!(head, " if its {} was {}", its_stat_word(*stat), {
+                        if *less_than {
+                            format!("less than {}", n + 1)
+                        } else if *cmp == mtg_core::card::Cmp::AtLeast {
+                            format!("{n} or greater")
+                        } else {
+                            format!("{n} or less")
+                        }
                     });
                     None
                 }
@@ -8833,5 +8861,14 @@ fn spell_from(from: mtg_core::card::SpellFrom) -> &'static str {
         SpellFrom::Graveyard => " from graveyard",
         SpellFrom::Exile => " from exile",
         SpellFrom::NotHand => " from other than hand",
+    }
+}
+
+/// The word `TrigCond::ItsStat` writes and prints for its stat.
+pub(crate) fn its_stat_word(s: crate::ast::ItStat) -> &'static str {
+    match s {
+        crate::ast::ItStat::Power => "power",
+        crate::ast::ItStat::Toughness => "toughness",
+        crate::ast::ItStat::ManaValue => "mana value",
     }
 }

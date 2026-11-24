@@ -1,0 +1,7 @@
+card "Charging Hooligan" {
+  oracle_id c808892a-83d5-4b09-b0da-118b0d6fe58e
+  cost {3}{R}
+  type Creature — Human Peasant
+  pt 3/3
+  triggered whenever this attacks: this gets +1/+0 count each attacking creature until end of turn; if attacker Rat, this creature gains trample until end of turn
+}

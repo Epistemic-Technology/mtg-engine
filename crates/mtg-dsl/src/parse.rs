@@ -4165,6 +4165,20 @@ impl P {
                         Some(crate::ast::TrigCond::HadCounter { one_or_more: false })
                     } else if self.eat_words(&["it", "had", "one", "or", "more", "counters"]) {
                         Some(crate::ast::TrigCond::HadCounter { one_or_more: true })
+                    } else if self.eat_words(&[
+                        "its",
+                        "power",
+                        "or",
+                        "toughness",
+                        "greater",
+                        "than",
+                        "this",
+                    ]) {
+                        Some(crate::ast::TrigCond::Outstats)
+                    } else if self.at_word("its")
+                        && let Some(c) = self.its_stat()?
+                    {
+                        Some(c)
                     } else if let Ok(c) = self.condition() {
                         Some(crate::ast::TrigCond::Core(c))
                     } else {
@@ -5393,6 +5407,11 @@ impl P {
         }
         if self.eat_words(&["not", "their", "turn"]) {
             return Ok(StaticCond::NotTheirTurn);
+        }
+        if self.eat_word("attacker") {
+            let filter = self.filter()?;
+            let you = self.eat_words(&["at", "you"]);
+            return Ok(StaticCond::AttackerIs { filter, you });
         }
         if self.eat_words(&["cast", "during", "main", "phase"]) {
             return Ok(StaticCond::CastDuringMain);
@@ -7502,6 +7521,53 @@ impl P {
                 ..crate::ast::TargetCheck::default()
             },
         ))
+    }
+
+    /// `its toughness was less than 1`, `its power was 4 or greater`, `its
+    /// mana value was 2 or less` after a trigger's `if` (`None` if `its`
+    /// starts something else).
+    fn its_stat(&mut self) -> R<Option<crate::ast::TrigCond>> {
+        use crate::ast::ItStat;
+        use mtg_core::card::Cmp;
+        let at = self.pos;
+        self.pos += 1;
+        let stat = if self.eat_word("power") {
+            ItStat::Power
+        } else if self.eat_word("toughness") {
+            ItStat::Toughness
+        } else if self.eat_words(&["mana", "value"]) {
+            ItStat::ManaValue
+        } else {
+            self.pos = at;
+            return Ok(None);
+        };
+        if !self.eat_word("was") {
+            self.pos = at;
+            return Ok(None);
+        }
+        if self.eat_words(&["less", "than"]) {
+            let n = i16::try_from(self.number()?).unwrap_or(i16::MAX);
+            return Ok(Some(crate::ast::TrigCond::ItsStat {
+                stat,
+                cmp: Cmp::AtMost,
+                less_than: true,
+                n: n - 1,
+            }));
+        }
+        let n = i16::try_from(self.number()?).unwrap_or(i16::MAX);
+        self.expect_word("or")?;
+        let cmp = if self.eat_word("less") {
+            Cmp::AtMost
+        } else {
+            self.expect_word("greater")?;
+            Cmp::AtLeast
+        };
+        Ok(Some(crate::ast::TrigCond::ItsStat {
+            stat,
+            cmp,
+            less_than: false,
+            n,
+        }))
     }
 
     /// Whether `if it is ...`, `if it wasnt ...` or `if that land is ...`

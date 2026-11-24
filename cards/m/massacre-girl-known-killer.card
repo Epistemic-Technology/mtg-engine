@@ -1,0 +1,9 @@
+card "Massacre Girl, Known Killer" {
+  oracle_id ccb39f4a-2684-4eb7-9066-aad81ae08962
+  cost {2}{B}{B}
+  type Legendary Creature — Human Assassin
+  pt 4/4
+  keywords menace
+  static creature you control: has wither
+  triggered whenever creature an opponent controls dies if its toughness was less than 1: draw 1 card
+}

@@ -2299,6 +2299,29 @@ pub enum TrigCond {
     HadCounter {
         one_or_more: bool,
     },
+    /// `if its power or toughness greater than this`: the core `Evolves`
+    /// printed "if its power is greater than this creature's power or its
+    /// toughness is greater than this creature's toughness" (Sharp-Eyed
+    /// Rookie).
+    Outstats,
+    /// `if its toughness was less than 1` (also `power`, `mana value`; `N
+    /// or less`, `N or greater`): the triggering object as it last existed
+    /// (`StaticCondition::TriggerIs`, Massacre Girl, Known Killer).
+    ItsStat {
+        stat: ItStat,
+        cmp: mtg_core::card::Cmp,
+        /// `less than N`: printed so, the check "N-1 or less".
+        less_than: bool,
+        n: i16,
+    },
+}
+
+/// What `TrigCond::ItsStat` compares.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum ItStat {
+    Power,
+    Toughness,
+    ManaValue,
 }
 
 /// Keyword abilities with a parameter (CR 702).
@@ -2804,6 +2827,12 @@ pub enum StaticCond {
     /// `not their turn`: "it's not their turn", the player the ability
     /// triggered for (Scytheclaw Raptor).
     NotTheirTurn,
+    /// `attacker Rat`: "a Rat is attacking"; `attacker creature at you`:
+    /// "a creature is attacking you".
+    AttackerIs {
+        filter: Filter,
+        you: bool,
+    },
     /// `cast during main phase`: "you cast this spell during your main
     /// phase" (judged as it was cast).
     CastDuringMain,

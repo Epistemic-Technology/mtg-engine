@@ -3068,6 +3068,18 @@ pub enum StaticCondition {
     /// triggered for ("Whenever a player casts a spell, if it's not their
     /// turn, ...") or a spell's targeted player; false without one.
     NotTheirTurn,
+    /// "if a Rat is attacking" (any attacking creature matching), "if a
+    /// creature is attacking you" (`you`: attacking the controller, not a
+    /// planeswalker or battle, CR 506.3). Judged as the effect happens or
+    /// the cost is determined; not in a static ability.
+    Attacking {
+        filter: ObjFilter,
+        you: bool,
+    },
+    /// "if its toughness was less than 1" in "Whenever a creature an
+    /// opponent controls dies, ...": the triggering object matches, as it
+    /// is or as it last existed (CR 603.10a); false without one.
+    TriggerIs(ObjFilter),
     /// "it's your main phase" (CR 505.1), "it's your combat phase" (CR
     /// 506.1), and "it's the first combat phase of the turn": for effects
     /// that add phases (`Effect::AdditionalPhases`), judged as they
