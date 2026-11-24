@@ -1999,6 +1999,37 @@ impl GameState {
         left
     }
 
+    /// Whether what `source` has done may show in a cached characteristic
+    /// (`StaticCondition::SourceHistory` is read of the object whose
+    /// ability it is): an ability of it, printed, copied, or had now, that
+    /// isn't one of those judged afresh as it is used (a spell's, a
+    /// triggered or activated ability, a mana ability, enchant). Most
+    /// damage sources have none, and skip the bump.
+    fn history_may_show(&self, source: ObjId) -> bool {
+        use crate::card::AbilityDef as A;
+        let fresh = |a: &crate::card::AbilityId| {
+            matches!(
+                self.pool.ability(*a),
+                A::Spell { .. }
+                    | A::Modal(_)
+                    | A::TapForMana(_)
+                    | A::SacForMana(_)
+                    | A::Triggered(_)
+                    | A::Activated(_)
+                    | A::Enchant(_)
+            )
+        };
+        let Some(o) = self.objects.get(source) else {
+            return true;
+        };
+        o.except.is_some()
+            || !self.pool.get(o.def).ability_ids.iter().all(fresh)
+            || !self.pool.get(o.card).ability_ids.iter().all(fresh)
+            || self
+                .characteristics(source)
+                .is_some_and(|c| !c.abilities.iter().all(fresh))
+    }
+
     /// Remember that `source` dealt damage this turn ("creature that dealt
     /// damage this turn").
     fn note_damage_source(&mut self, source: ObjId, combat: bool) {
@@ -2008,7 +2039,9 @@ impl GameState {
             && !self.dealt_damage_ever.contains(&(source, combat))
         {
             self.dealt_damage_ever.push((source, combat));
-            self.cbump();
+            if self.history_may_show(source) {
+                self.cbump();
+            }
         }
         if !self.dealt_damage_this_turn.contains(&source) {
             self.dealt_damage_this_turn.push(source);

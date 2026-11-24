@@ -35,7 +35,7 @@ impl GameState {
         let sorcery_timing =
             p == self.active_player && self.step.is_main() && self.stack.is_empty();
         let ps = self.player(p);
-        let sources = self.mana_sources(p);
+        let sources = self.mana_sources_ref(p);
         let changers = self.cost_changers();
         let free_from_hand = (self.player_static_sources > 0 && self.may_cast_free(p))
             || self.next_spell_free.iter().any(|(who, _)| *who == p);
@@ -5707,7 +5707,18 @@ impl GameState {
                 }
                 let mut req = self.activation_mana(id, ab, p);
                 // A cost that depends on the target: the cheapest target.
-                if self.target_reduces(ab) {
+                // `pool.equip_discounts` holds for the whole corpus; a
+                // discount for the target applies only to an equip ability
+                // or an Equipment's (`reduce_for_target`), so the others
+                // skip listing the targets.
+                if self.target_reduces(ab)
+                    && (ab.is_equip()
+                        || c.has_subtype(crate::card::Subtype::EQUIPMENT)
+                        || ab
+                            .reduction
+                            .as_ref()
+                            .is_some_and(|r| r.target.is_some() || r.per_target.is_some()))
+                {
                     req = self.cheapest_target_mana(p, id, ab, req);
                 }
                 // CR 701.67a: artifacts and creatures help pay a waterbend
@@ -7742,6 +7753,45 @@ impl GameState {
     /// on the card. Both are read from current characteristics, so a land
     /// turned into a Mountain taps for red.
     pub(super) fn mana_sources(&self, p: PlayerId) -> Sources {
+        let Some((slot, key)) = self.mana_key(p) else {
+            return self.mana_sources_uncached(p);
+        };
+        {
+            let cache = self.mana_cache.borrow();
+            let (cv, taps, turn, cached) = &cache[slot];
+            if (*cv, *taps, *turn) == key {
+                // A copy of the slice, not `clone` (which pushes entry by
+                // entry).
+                return Sources::from_slice(cached);
+            }
+        }
+        let fresh = self.mana_sources_uncached(p);
+        // Not while a priority listing holds the cache (`mana_sources_ref`):
+        // the list is then worked out afresh each time.
+        if let Ok(mut cache) = self.mana_cache.try_borrow_mut() {
+            cache[slot] = (key.0, key.1, key.2, Sources::from_slice(&fresh));
+        }
+        fresh
+    }
+
+    /// `mana_sources` for a priority listing, which runs at every priority:
+    /// the cached list itself, borrowed, rather than a copy.
+    pub(super) fn mana_sources_ref(&self, p: PlayerId) -> SourcesRef<'_> {
+        if let Some((slot, key)) = self.mana_key(p) {
+            let cache = self.mana_cache.borrow();
+            let (cv, taps, turn, _) = &cache[slot];
+            if (*cv, *taps, *turn) == key {
+                return SourcesRef::Cached(std::cell::Ref::map(cache, |c| &c[slot].3));
+            }
+        }
+        SourcesRef::Fresh(self.mana_sources(p))
+    }
+
+    /// The slot of `mana_cache` that holds `p`'s mana sources and the key
+    /// they are good for; `None` for a player it doesn't keep (beyond the
+    /// first two: each player's list has a slot of its own) or a state it
+    /// can't key (characteristics version 0).
+    fn mana_key(&self, p: PlayerId) -> Option<(usize, (u64, u32, u32))> {
         // A mana ability borrowed from the top card of a library
         // (Conspicuous Snoop) changes with that card, which no `cbump`
         // marks: the tops are mixed in while such a static is in play.
@@ -7750,20 +7800,7 @@ impl GameState {
         } else {
             self.cversion
         };
-        let key = (cv, self.tap_epoch, self.turn_number);
-        let slot = p.index().min(1);
-        {
-            let cache = self.mana_cache.borrow();
-            let (cv, taps, turn, cached) = &cache[slot];
-            if (*cv, *taps, *turn) == key && *cv != 0 {
-                // A copy of the slice, not `clone` (which pushes entry by
-                // entry): this runs at every priority.
-                return Sources::from_slice(cached);
-            }
-        }
-        let fresh = self.mana_sources_uncached(p);
-        self.mana_cache.borrow_mut()[slot] = (key.0, key.1, key.2, Sources::from_slice(&fresh));
-        fresh
+        (p.index() < 2 && cv != 0).then_some((p.index(), (cv, self.tap_epoch, self.turn_number)))
     }
 
     fn mana_sources_uncached(&self, p: PlayerId) -> Sources {
@@ -19939,6 +19976,24 @@ pub(super) fn divisions(total: u32, k: usize) -> Vec<Vec<u32>> {
 /// exact; multi-type lands are assigned to the first color that needs them.
 /// Mana sources, inline for typical board sizes.
 pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
+
+/// `mana_sources_ref`'s list: the cache's own, borrowed, or one worked out
+/// now.
+pub(super) enum SourcesRef<'a> {
+    Cached(std::cell::Ref<'a, Sources>),
+    Fresh(Sources),
+}
+
+impl std::ops::Deref for SourcesRef<'_> {
+    type Target = Sources;
+
+    fn deref(&self) -> &Sources {
+        match self {
+            SourcesRef::Cached(s) => s,
+            SourcesRef::Fresh(s) => s,
+        }
+    }
+}
 
 /// `sources` less the permanents in `gone` (tapped for a cost).
 pub(super) fn without(sources: &Sources, gone: &[ObjId]) -> Sources {

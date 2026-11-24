@@ -3655,6 +3655,22 @@ impl GameState {
         None
     }
 
+    /// The players (one bit each) who don't lose unspent red mana as this
+    /// step ends: for the turn ("until end of turn, you don't lose"; not
+    /// through the cleanup step) or by a static ability.
+    #[cold]
+    #[inline(never)]
+    fn keep_red_players(&self, cleanup: bool) -> u64 {
+        let mut keep_red: u64 = 0;
+        for i in 0..self.players.len().min(64) {
+            let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            if (self.players[i].keep_red_turn && !cleanup) || self.keeps_red_mana(p) {
+                keep_red |= 1 << i;
+            }
+        }
+        keep_red
+    }
+
     /// The current step ends (CR 500.2): mana empties, combat clears, and the
     /// next step or turn begins.
     #[allow(clippy::too_many_lines)] // one line per turn record
@@ -3670,13 +3686,12 @@ impl GameState {
         );
         let cleanup = self.step == Step::Cleanup;
         // "You don't lose unspent red mana as steps and phases end."
-        let mut keep_red: u64 = 0;
-        for i in 0..self.players.len().min(64) {
-            let p = PlayerId(u8::try_from(i).unwrap_or(0));
-            if (self.players[i].keep_red_turn && !cleanup) || self.keeps_red_mana(p) {
-                keep_red |= 1 << i;
-            }
-        }
+        let keep_red =
+            if self.player_static_sources > 0 || self.players.iter().any(|p| p.keep_red_turn) {
+                self.keep_red_players(cleanup)
+            } else {
+                0
+            };
         for (i, p) in self.players.iter_mut().enumerate() {
             let red = crate::mana::Color::Red as usize;
             let all_red = i < 64 && keep_red & (1 << i) != 0;
