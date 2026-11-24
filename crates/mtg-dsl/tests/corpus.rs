@@ -149,6 +149,27 @@ fn it_in_a_trigger_without_a_triggering_object_is_rejected() {
 }
 
 #[test]
+fn put_into_a_graveyard_from_anywhere_for_a_group_is_rejected() {
+    // It would compile to a dies trigger, missing a card discarded or
+    // milled.
+    let e = creature_error("triggered whenever creature is put into a graveyard: draw 1 card");
+    assert!(e.contains("from the battlefield"), "{e}");
+    assert!(compiles(
+        "triggered whenever creature is put into a graveyard from the battlefield: draw 1 card"
+    ));
+}
+
+#[test]
+fn a_granted_static_that_changes_types_is_rejected() {
+    // A granted static ability exists only from layer 6 on.
+    let e = creature_error("static this: has ability { static this: add type artifact }");
+    assert!(e.contains("granted static"), "{e}");
+    assert!(compiles(
+        "static this: has ability { static this: has hexproof as long as this is untapped }"
+    ));
+}
+
+#[test]
 fn a_delayed_triggered_mana_ability_is_an_error() {
     // A compile error, not a panic.
     let e = spell_error(

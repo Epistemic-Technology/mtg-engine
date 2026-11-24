@@ -5976,6 +5976,22 @@ impl Compiler<'_> {
                     effects,
                 }
             }
+            // "Whenever a creature is put into a graveyard" means from
+            // anywhere, a card from a hand or library too; it compiles to a
+            // dies trigger, right only for what can be only on the
+            // battlefield ("enchanted artifact").
+            Ability::Triggered {
+                trigger:
+                    Trigger::PutInGraveyard {
+                        obj: TriggerObj::Filter(f) | TriggerObj::ThisOr(f),
+                        from_battlefield: false,
+                    },
+                ..
+            } if !f.enchanted => {
+                return self.err(
+                    "`is put into a graveyard` without `from the battlefield` would mean from anywhere; only `enchanted ...` may omit it",
+                );
+            }
             Ability::Triggered {
                 trigger,
                 condition,
