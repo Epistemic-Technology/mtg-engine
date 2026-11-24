@@ -2112,7 +2112,9 @@ creature card with mana value X or less from your graveyard`; several targets pr
 counter` / `with counter` ("creature you control with a +1/+1 counter on
 it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on
 them"; printed after the controller; any kind: `permanent you control with
-oil counter`, "permanents you control with oil counters on them"), `with
+oil counter`, "permanents you control with oil counters on them"; `with
+counters` is `with counter` printed "with one or more counters on it",
+Shadow Urchin), `with
 3 or more level counters` ("a creature with three or more level counters
 on it"), `with no counters` ("target creature with no counters on it": none
 of any kind, Heartless Act), and `modified` ("a modified
@@ -4910,6 +4912,7 @@ Forms that change only how Oracle words what an existing form does:
 | `whenever you put one or more +1/+1 counters on one or more other Hero you control` | "Whenever you put one or more +1/+1 counters on one or more other Heroes you control": once for the permanents counters were put on together (CR 603.2c; without `one or more` before the filter, once for each permanent) |
 | `triggered at beginning of your draw step ...: you lose 1 life, and you draw 1 card` | "you lose 1 life and you draw an additional card" (in your own draw step; Lord Skitter's Blessing) |
 | `return count that many sacrificed this way creature card from your graveyard to battlefield chosen` | "Return that many creature cards from your graveyard to the battlefield." (Lich-Knights' Conquest) |
+| `impulse count that many counters on it next end step first` | "exile that many cards from the top of your library. Until your next end step, you may play those cards." (Shadow Urchin's dies trigger: the dying creature's counters of every kind, as it last existed) |
 | `impulse count where plus one mana value of the sacrificed artifact this turn` | "Exile the top X cards of your library, where X is one plus the mana value of the sacrificed artifact." (`plus 1 ...` with a digit prints "1 plus the sacrificed creature's mana value") |
 | `triggered whenever you discard a card: you may exile triggering card; ...` | "you may exile that card from your graveyard" (Moonstone) |
 | `as this enters choose land type` then `enters tapped unless pay 2 life` | "As this land enters, choose a basic land type. Then you may pay 2 life. If you don't, it enters tapped." (one line, Multiversal Passage) |

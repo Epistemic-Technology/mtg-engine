@@ -3925,6 +3925,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             counter_name(k),
             if plural_form { "them" } else { "it" }
         );
+    } else if f.counter_many && f.status.counter == Some(mtg_core::card::CounterQual::Any) {
+        s.push_str(if plural_form {
+            " with one or more counters on them"
+        } else {
+            " with one or more counters on it"
+        });
     } else if f.status.counter == Some(mtg_core::card::CounterQual::NoCounters) {
         s.push_str(if plural_form {
             " with no counters on them"
@@ -7647,7 +7653,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             let what = if one {
                 format!("the top card of {whose} library")
-            } else if *count == Num::ThatMuch {
+            } else if *count == Num::ThatMuch
+                || matches!(count, Num::Count(i) if ctx.card.counts.get(usize::from(*i))
+                    .is_some_and(|c| c.style == crate::ast::CountStyle::ThatMany))
+            {
                 // "exile that many cards from the top of your library"
                 // (Gloom Surgeon).
                 format!("that many cards from the top of {whose} library")
@@ -7732,7 +7741,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         (false, false) => "them",
                     }
                 )
-            } else if *count == Num::ThatMuch {
+            } else if *count == Num::ThatMuch
+                || matches!(count, Num::Count(i) if ctx.card.counts.get(usize::from(*i))
+                    .is_some_and(|c| c.style == crate::ast::CountStyle::ThatMany))
+            {
                 // "exile that many cards from the top of your library".
                 format!("{exile} that many cards from the top of {whose} library")
             } else {

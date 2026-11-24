@@ -1276,6 +1276,10 @@ pub struct Filter {
     /// `that dealt damage this turn`, `that blocked this turn`, `with mana
     /// value X` (`ObjFilter::status`).
     pub status: mtg_core::card::StatusQuals,
+    /// `with counters`: `status.counter` any kind, printed "with one or
+    /// more counters on it" (Shadow Urchin) rather than "with a counter on
+    /// it"; wording only.
+    pub counter_many: bool,
     /// `creature or Vehicle`: an alternative filter.
     pub or: Option<Box<Filter>>,
     /// `Knight or a Soldier`: the alternative written with its own article,

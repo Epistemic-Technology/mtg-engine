@@ -17709,6 +17709,16 @@ impl P {
                     self.pos += 3;
                     f.status.counter = Some(mtg_core::card::CounterQual::NoCounters);
                 }
+                // "with one or more counters on it" (Shadow Urchin).
+                "with"
+                    if f.status.counter.is_none()
+                        && self.word_at(1).as_deref() == Some("counters")
+                        && self.word_at(2).as_deref() != Some("put") =>
+                {
+                    self.pos += 2;
+                    f.status.counter = Some(mtg_core::card::CounterQual::Any);
+                    f.counter_many = true;
+                }
                 // "with a +1/+1 counter on it", "with a counter on it".
                 "with" if f.status.counter.is_none() && self.at_counter_qual() => {
                     self.pos += 1;

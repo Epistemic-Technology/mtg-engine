@@ -5471,6 +5471,9 @@ fn filter_one(f: &Filter) -> String {
         None => {}
     }
     match f.status.counter {
+        Some(mtg_core::card::CounterQual::Any) if f.counter_many => {
+            words.push("with counters".to_string());
+        }
         Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
         Some(mtg_core::card::CounterQual::Kind(k)) => {
             words.push(format!("with {} counter", k.name()));

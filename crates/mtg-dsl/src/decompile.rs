@@ -396,6 +396,7 @@ impl Decompiler<'_> {
             put_there_anywhere: false,
             each: false,
             status: f.status,
+            counter_many: false,
             chosen: (f.chosen && f.status.equal_chosen.is_none())
                 .then_some(crate::ast::OfChosen::ChosenType),
             same: f.same.map(|r| {
