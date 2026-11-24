@@ -1,0 +1,9 @@
+card "Unesh, Criosphinx Sovereign" {
+  oracle_id 7492ea06-24d5-4a1f-a6ac-c33743e91aa7
+  cost {4}{U}{U}
+  type Legendary Creature — Sphinx
+  pt 4/4
+  keywords flying
+  spells Sphinx you cast cost {2} less
+  triggered whenever this or Sphinx you control enters: piles reveal 4 separated by opponent
+}

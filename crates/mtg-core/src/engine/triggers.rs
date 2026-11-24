@@ -539,8 +539,12 @@ impl GameState {
                     entering: e,
                     cause: k,
                     suppress,
+                    condition,
                     ..
                 } = self.pool.ability(a)
+                    && condition.is_none_or(|i| {
+                        self.condition_now(self.pool.condition(i), controller, id)
+                    })
                     && e.as_ref().is_none_or(|e| {
                         cause.as_ref().is_some_and(|(kind, obj, ctl, c)| {
                             kind == k && e.matches(*obj, *ctl, c, Some(id), Some(controller))

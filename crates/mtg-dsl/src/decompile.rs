@@ -2608,6 +2608,7 @@ impl Decompiler<'_> {
                 battlefield,
                 cause,
                 suppress,
+                ..
             } => Ability::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),

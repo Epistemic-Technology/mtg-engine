@@ -8441,6 +8441,11 @@ pub enum AbilityDef {
         cause: TriggerCause,
         #[serde(default)]
         suppress: bool,
+        /// While this pool condition holds (judged for the source): a
+        /// named option's ability ("• Mardu — If a creature attacking
+        /// causes ...").
+        #[serde(default)]
+        condition: Option<u16>,
     },
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).

@@ -2055,6 +2055,11 @@ impl Compiler<'_> {
             AbilityDef::Replacement(r) if r.condition.is_none() => {
                 r.condition = Some(self.pool.intern_condition(c));
             }
+            // "• Mardu — If a creature attacking causes a triggered ability
+            // ... to trigger, that ability triggers an additional time."
+            AbilityDef::TriggerAgain { condition, .. } if condition.is_none() => {
+                *condition = Some(self.pool.intern_condition(c));
+            }
             // "• Sultai — You may play lands from your graveyard." (a
             // player-level static, judged for its source, CR 611.3a).
             AbilityDef::PlayerStatic { condition, .. } => {
@@ -6225,6 +6230,7 @@ impl Compiler<'_> {
                 battlefield: *battlefield,
                 cause: *cause,
                 suppress: *suppress,
+                condition: None,
             },
             Ability::ActivationCost {
                 filter,

@@ -463,3 +463,67 @@ scenario "Bloodline Bidding: every creature card of the chosen type returns" {
   assert battlefield A contains "Elvish Visionary"
   assert graveyard A contains "Grizzly Bears"
 }
+
+# A named option labeling a "triggers an additional time" ability.
+
+scenario "Windcrag Siege: Mardu doubles an attack trigger" {
+  battlefield A: "Mountain", "Plains", "Mountain", "Sanguine Syphoner"
+  hand A: "Windcrag Siege"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Windcrag Siege"
+  turn 2 A: choose "1"
+  turn 2 A: attack "Sanguine Syphoner"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 22
+}
+
+scenario "Windcrag Siege: Jeskai doesn't double it" {
+  battlefield A: "Mountain", "Plains", "Mountain", "Sanguine Syphoner"
+  hand A: "Windcrag Siege"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Windcrag Siege"
+  turn 2 A: choose "2"
+  turn 2 A: attack "Sanguine Syphoner"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 21
+}
+
+scenario "Windcrag Siege: Jeskai makes a Goblin with lifelink and haste each upkeep" {
+  battlefield A: "Mountain", "Plains", "Mountain"
+  hand A: "Windcrag Siege"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Windcrag Siege"
+  turn 2 A: choose "2"
+  run_to turn 4 draw
+  assert battlefield A contains "Goblin"
+  assert has "Goblin" haste
+  assert has "Goblin" lifelink
+}
+
+scenario "Unesh, Criosphinx Sovereign: piles once as it enters" {
+  battlefield A: 6 "Island"
+  hand A: "Unesh, Criosphinx Sovereign"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains", "Island", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unesh, Criosphinx Sovereign"
+  turn 1 B: choose "Shock"
+  turn 1 B: choose done
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Shock"
+  assert library A count 5
+}
+
+scenario "Unesh, Criosphinx Sovereign: another Sphinx costs {2} less and triggers it" {
+  battlefield A: 5 "Island", "Unesh, Criosphinx Sovereign"
+  hand A: "Sphinx of Uthuun"
+  library A: "Shock", "Lightning Bolt", "Giant Growth", "Murder", "Divination", "Plains", "Island", "Forest", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sphinx of Uthuun"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sphinx of Uthuun"
+  assert library A count 1
+}

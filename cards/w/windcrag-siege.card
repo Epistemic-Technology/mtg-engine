@@ -1,0 +1,8 @@
+card "Windcrag Siege" {
+  oracle_id 64df560a-905f-45d1-bc70-14d99e3112d3
+  cost {1}{R}{W}
+  type Enchantment
+  as this enters choose "Mardu" or "Jeskai"
+  label "Mardu" trigger again permanent you control when creature attacks
+  label "Jeskai" triggered at beginning of your upkeep step: create 1 "1/1 red Goblin creature"; that token gains lifelink, haste until end of turn
+}
