@@ -233,6 +233,20 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::AssignsToughness,
     ),
     (
+        &[
+            "stations",
+            "permanents",
+            "using",
+            "its",
+            "toughness",
+            "rather",
+            "than",
+            "its",
+            "power",
+        ],
+        Keyword::StationsToughness,
+    ),
+    (
         &["stations", "using", "toughness"],
         Keyword::StationsToughness,
     ),
@@ -16153,10 +16167,7 @@ impl P {
                     self.pos += 1;
                 }
                 // "Whenever you cast a prepared spell" (CR 722.3c).
-                "prepared"
-                    if !f.status.prepared_spell
-                        && matches!(self.word_at(1).as_deref(), Some("spell" | "spells")) =>
-                {
+                "prepared" if !f.status.prepared_spell => {
                     f.status.prepared_spell = true;
                     self.pos += 1;
                 }
