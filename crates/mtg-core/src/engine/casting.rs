@@ -418,7 +418,7 @@ impl GameState {
         // lets its controller play them ("You may cast spells from among
         // cards exiled with this creature").
         if !self.linked_exiles.is_empty() {
-            for (card, land_ok, spell_ok) in self.exiled_permissions(p) {
+            for (card, land_ok, spell_ok, flash) in self.exiled_permissions(p) {
                 let def = self.pool.get(self.objects[card].def);
                 if def.is_land() {
                     if land_ok
@@ -430,7 +430,7 @@ impl GameState {
                     }
                 } else if spell_ok
                     && !options.contains(&Choice::Cast(card))
-                    && self.castable(p, def, card, sorcery_timing, &sources, &changers)
+                    && self.castable(p, def, card, sorcery_timing || flash, &sources, &changers)
                 {
                     options.push(Choice::Cast(card));
                 }
@@ -1625,6 +1625,16 @@ impl GameState {
                     filter.matches(*id, o.owner, &c, Some(ctx.source), Some(p))
                 })
                 .collect(),
+            // CR 607.2a: "a creature card exiled with this land", judged
+            // as a card for its owner ("you own").
+            ChooseAct::ExiledWith => self
+                .exiled_with(ctx.source)
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    let c = self.base_characteristics(o);
+                    filter.matches(*id, o.owner, &c, None, Some(p))
+                })
+                .collect(),
             // "from among the milled cards": those still in the graveyard.
             ChooseAct::MilledToHand | ChooseAct::MilledToBattlefield => {
                 self.this_way.as_ref().map_or_else(Vec::new, |log| {
@@ -1840,6 +1850,11 @@ impl GameState {
     ) -> usize {
         use crate::card::ChooseAct;
         let mut cands = self.act_candidates(ctx, act, filter);
+        // "Return a creature card exiled with this land ...": with none,
+        // "it" is nothing, not an earlier object.
+        if act == ChooseAct::ExiledWith {
+            ctx.created = None;
+        }
         if n == 0 || (!up_to && cands.len() < n) {
             return 0;
         }
@@ -1874,7 +1889,7 @@ impl GameState {
             };
             cands.retain(|c| *c != id);
             match act {
-                ChooseAct::Choose => {
+                ChooseAct::Choose | ChooseAct::ExiledWith => {
                     ctx.created = Some(id);
                     picked.push((self.objects[id].controller, id));
                 }
@@ -1964,7 +1979,7 @@ impl GameState {
             done += 1;
         }
         // "Choose up to one creature. Destroy the rest." (Duneblast).
-        if act == ChooseAct::Choose
+        if matches!(act, ChooseAct::Choose | ChooseAct::ExiledWith)
             && let Some(log) = self.this_way.as_mut()
         {
             log.chosen = picked;
@@ -3473,8 +3488,11 @@ impl GameState {
     /// (card, as a land, as a spell).
     #[cold]
     #[inline(never)]
-    pub(super) fn exiled_permissions(&self, p: PlayerId) -> SmallVec<[(ObjId, bool, bool); 2]> {
-        let mut out: SmallVec<[(ObjId, bool, bool); 2]> = SmallVec::new();
+    pub(super) fn exiled_permissions(
+        &self,
+        p: PlayerId,
+    ) -> SmallVec<[(ObjId, bool, bool, bool); 2]> {
+        let mut out: SmallVec<[(ObjId, bool, bool, bool); 2]> = SmallVec::new();
         for l in &self.linked_exiles {
             let Some(s) = self.objects.get(l.source) else {
                 continue;
@@ -3487,13 +3505,14 @@ impl GameState {
             }
             let def = self.pool.get(o.def);
             let chars = self.card_characteristics(o);
-            let (mut land_ok, mut spell_ok) = (false, false);
+            let (mut land_ok, mut spell_ok, mut flash) = (false, false, false);
             for a in &self.pool.get(s.def).ability_ids {
                 let AbilityDef::PlayExiled {
                     lands,
                     spells,
                     your_turn,
                     owned,
+                    more,
                     ..
                 } = self.pool.ability(*a)
                 else {
@@ -3502,16 +3521,26 @@ impl GameState {
                 if (*your_turn && self.active_player != p) || (*owned && o.owner != p) {
                     continue;
                 }
+                // "As long as there are seven or more cards in your
+                // graveyard, you may cast the exiled card" (CR 611.3a).
+                if let Some(c) = more.condition
+                    && !self.condition_for(self.pool.condition(c), p, l.source, None)
+                {
+                    continue;
+                }
                 land_ok |= *lands;
                 // The mana value isn't a characteristic `matches` sees.
-                spell_ok |= spells.as_ref().is_some_and(|f| {
+                let spell = spells.as_ref().is_some_and(|f| {
                     f.mana_value
                         .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)))
                         && f.matches(l.card, p, &chars, Some(l.source), Some(p))
                 });
+                spell_ok |= spell;
+                // "... and you may cast them as though they had flash".
+                flash |= spell && more.flash;
             }
             if (land_ok || spell_ok) && !out.iter().any(|(c, ..)| *c == l.card) {
-                out.push((l.card, land_ok, spell_ok));
+                out.push((l.card, land_ok, spell_ok, flash));
             }
         }
         out
@@ -9184,6 +9213,21 @@ impl GameState {
                             ..Default::default()
                         },
                     );
+                } else if self
+                    .exile_casts
+                    .as_ref()
+                    .is_some_and(|e| e.finality.contains(&spell))
+                {
+                    // "If you cast a spell this way, that creature enters
+                    // with a finality counter on it." (CR 122.1h).
+                    self.put_onto_battlefield_with(
+                        spell,
+                        obj.controller,
+                        super::replace::Enter {
+                            counters: Some((CounterKind::Finality, 1)),
+                            ..Default::default()
+                        },
+                    );
                 } else {
                     self.put_onto_battlefield(spell, obj.controller);
                 }
@@ -10336,12 +10380,31 @@ impl GameState {
                     .retain(|l| objects.get(l.card).is_some_and(|o| o.zone == Zone::Exile));
                 let filter = self.pool.filter(f);
                 let you = ctx.controller;
+                // "Return each other card exiled with this land": other
+                // than the one the resolution chose from them.
+                let other = filter.relation == crate::card::Relation::Other;
+                let chosen: &[(PlayerId, ObjId)] = if other {
+                    self.this_way.as_ref().map_or(&[], |l| &l.chosen)
+                } else {
+                    &[]
+                };
+                let any;
+                let filter = if other {
+                    any = crate::card::ObjFilter {
+                        relation: crate::card::Relation::Any,
+                        ..filter.clone()
+                    };
+                    &any
+                } else {
+                    filter
+                };
                 out.extend(
                     self.exiled_with(ctx.source)
                         .filter(|id| {
                             let o = &self.objects[*id];
                             let c = self.base_characteristics(o);
-                            filter.matches(*id, o.owner, &c, None, Some(you))
+                            !chosen.iter().any(|(_, ch)| ch == id)
+                                && filter.matches(*id, o.owner, &c, None, Some(you))
                         })
                         .map(Target::Object),
                 );
@@ -11725,6 +11788,11 @@ impl GameState {
                                     crate::card::Recipient::ExiledCard
                                         | crate::card::Recipient::ExiledWith(_)
                                 ))
+                            // "Put a card exiled with this Saga into its
+                            // owner's hand": the one chosen from them.
+                            || (o.zone == Zone::Exile
+                                && *what == crate::card::Recipient::CreatedObject
+                                && self.linked_exiles.iter().any(|l| l.card == id && l.source == ctx.source))
                             || (o.zone == Zone::Stack
                                 && (id == ctx.source
                                     || matches!(what, crate::card::Recipient::Target(_)))
@@ -13079,6 +13147,7 @@ impl GameState {
                 graveyard,
                 face,
                 all,
+                filter,
             } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
@@ -13112,6 +13181,13 @@ impl GameState {
                         let options: Vec<Choice> =
                             if *graveyard { &ps.graveyard } else { &ps.hand }
                                 .iter()
+                                .filter(|id| {
+                                    filter.as_ref().is_none_or(|f| {
+                                        let o = &self.objects[**id];
+                                        let c = self.base_characteristics(o);
+                                        f.matches(**id, o.owner, &c, None, Some(p))
+                                    })
+                                })
                                 .map(|id| Choice::Discard {
                                     card: *id,
                                     def: self.objects[*id].def,

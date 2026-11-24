@@ -346,6 +346,10 @@ pub struct ExileCasts {
     /// Spells being cast or on the stack by such a permission, with its
     /// rider, for their payment (`spell_basis`).
     pub rider_spells: Vec<(ObjId, crate::card::CastRider)>,
+    /// Spells cast from among cards exiled with a permanent whose
+    /// permission says "If you cast a spell this way, that creature enters
+    /// with a finality counter on it." (`PlayExiledMore::finality`).
+    pub finality: Vec<ObjId>,
 }
 
 /// `PlayableExile::own_ends` for a warped card exiled this turn: castable

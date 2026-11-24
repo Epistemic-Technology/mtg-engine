@@ -1411,12 +1411,14 @@ impl Decompiler<'_> {
                 graveyard,
                 face,
                 all,
+                filter,
             } => Effect::ExileFromHand {
                 count: *count,
                 who: r(*who),
                 graveyard: *graveyard,
                 face: *face,
                 all: *all,
+                filter: filter.as_ref().map(|f| self.filter(f)),
             },
             CoreEffect::ExileLibrary { who, keep, face } => Effect::ExileLibrary {
                 who: match who {
@@ -3011,12 +3013,22 @@ impl Decompiler<'_> {
                 your_turn,
                 owned,
                 look,
+                more,
             } => Ability::PlayExiled {
                 lands: *lands,
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 your_turn: *your_turn,
                 owned: *owned,
                 look: *look,
+                more: crate::ast::PlayExiledMore {
+                    any_type: more.spend != mtg_core::card::SpendAs::Normal,
+                    flash: more.flash,
+                    finality: more.finality,
+                    the_card: false,
+                    condition: more
+                        .condition
+                        .map(|c| Box::new(self.static_cond(self.pool.condition(c)))),
+                },
             },
             AbilityDef::TopRevealed { players, hands } => Ability::TopRevealed {
                 players: *players,

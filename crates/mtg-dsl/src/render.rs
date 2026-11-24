@@ -2258,6 +2258,24 @@ impl<'a> Ctx<'a> {
                     )
                 }
             }
+            // "a creature card exiled with this land", "... with it".
+            Recipient::OneExiledWith(i, it) => {
+                let f = self
+                    .card
+                    .groups
+                    .get(usize::from(i))
+                    .cloned()
+                    .unwrap_or_default();
+                format!(
+                    "{} exiled with {}",
+                    with_article(&cards_phrase(&f, self.card, false)),
+                    if it {
+                        "it".to_string()
+                    } else {
+                        this_ref(self.card)
+                    }
+                )
+            }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
@@ -9831,9 +9849,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             graveyard,
             face,
             all,
+            filter,
         } => {
             let what = if *all {
                 "all cards".to_string()
+            } else if let Some(f) = filter {
+                // "a nonland card from their graveyard".
+                if *count == Num::N(1) {
+                    with_article(&cards_phrase(f, ctx.card, false))
+                } else {
+                    format!(
+                        "{} {}",
+                        count_words(*count, "a"),
+                        cards_phrase(f, ctx.card, true)
+                    )
+                }
             } else {
                 format!("{} {}", count_words(*count, "a"), plural(*count, "card"))
             };
@@ -10220,6 +10250,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ExileFromAnyGraveyard => {
                     format!("exile {} from a graveyard", cards())
                 }
+                // Written as its recipient (`1 card exiled with this`).
+                ChooseAct::ExiledWith => format!(
+                    "choose {} exiled with {}",
+                    cards(),
+                    this_ref(ctx.card)
+                ),
                 // CR 404.2: "exile the top creature card of your graveyard".
                 ChooseAct::ExileTopOfGraveyard => {
                     let what = if one {
@@ -19622,6 +19658,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             your_turn,
             owned,
             look,
+            more,
         } => {
             // CR 607.2a: "You may cast spells from among cards exiled with
             // Rona.", "During your turn, you may play cards exiled with
@@ -19629,6 +19666,40 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let all = spells.as_ref().is_some_and(|f| *f == Filter::default());
             let whose = if *owned { "cards you own" } else { "cards" };
             let with = this_ref(card);
+            let lead = if *your_turn {
+                "During your turn, you"
+            } else {
+                "You"
+            };
+            // "As long as there are seven or more cards in your graveyard,
+            // you may cast the exiled card, and mana of any type can be
+            // spent to cast that spell." (Null Summoner).
+            if more.the_card {
+                let mut s = String::new();
+                if let Some(c) = &more.condition {
+                    let _ = write!(s, "As long as {}, you", static_cond_text(c, card));
+                } else {
+                    s.push_str(lead);
+                }
+                s.push_str(" may cast the exiled card");
+                if more.any_type {
+                    s.push_str(", and mana of any type can be spent to cast that spell");
+                }
+                s.push('.');
+                return s;
+            }
+            // "During your turn, you may cast cards exiled with Azula and you
+            // may cast them as though they had flash. Mana of any type can be
+            // spent to cast those spells."
+            if more.flash && all && !*lands {
+                let mut s = format!(
+                    "{lead} may cast {whose} exiled with {with} and you may cast them as though they had flash."
+                );
+                if more.any_type {
+                    s.push_str(" Mana of any type can be spent to cast those spells.");
+                }
+                return s;
+            }
             let what = match (*lands, spells) {
                 (true, Some(_)) if all && *your_turn => {
                     format!("play {whose} exiled with {with}")
@@ -19644,11 +19715,6 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 ),
                 (false, None) => String::new(),
             };
-            let lead = if *your_turn {
-                "During your turn, you"
-            } else {
-                "You"
-            };
             // "You may look at the cards exiled with this enchantment, and
             // you may play lands and cast spells from among those cards."
             // (Colfenor's Plans).
@@ -19658,7 +19724,18 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     "You may look at the {whose} exiled with {with}, and you may {what}."
                 );
             }
-            format!("{lead} may {what}.")
+            let mut s = format!("{lead} may {what}.");
+            if more.any_type {
+                s.push_str(" Mana of any type can be spent to cast those spells.");
+            }
+            // "If you cast a spell this way, that creature enters with a
+            // finality counter on it." (Intrepid Paleontologist).
+            if more.finality {
+                s.push_str(
+                    " If you cast a spell this way, that creature enters with a finality counter on it.",
+                );
+            }
+            s
         }
         Ability::TopRevealed { hands: true, .. } => {
             "Players play with their hands revealed.".to_string()

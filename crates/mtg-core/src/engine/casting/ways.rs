@@ -105,7 +105,8 @@ impl GameState {
         let Some(e) = &self.exile_casts else {
             return crate::card::CastRider::default();
         };
-        e.playable
+        let mut rider = e
+            .playable
             .iter()
             .filter(|pe| pe.card == id && pe.player == p)
             .map(|pe| pe.rider)
@@ -114,7 +115,41 @@ impl GameState {
                 more: a.more.min(b.more),
                 exile: a.exile && b.exile,
             })
-            .unwrap_or_default()
+            .unwrap_or_default();
+        // "Mana of any type can be spent to cast those spells." (a
+        // permanent's permission to cast the cards exiled with it).
+        let more = self.linked_permission(p, id);
+        rider.spend = rider.spend.or(more.spend);
+        rider
+    }
+
+    /// The riders of the permissions permanents `p` controls give to cast
+    /// `id`, a card exiled with them (`AbilityDef::PlayExiled`, CR 607.2a),
+    /// combined.
+    #[cold]
+    #[inline(never)]
+    pub(in crate::engine) fn linked_permission(
+        &self,
+        p: PlayerId,
+        id: ObjId,
+    ) -> crate::card::PlayExiledMore {
+        let mut out = crate::card::PlayExiledMore::default();
+        for l in self.linked_exiles.iter().filter(|l| l.card == id) {
+            let Some(s) = self.objects.get(l.source) else {
+                continue;
+            };
+            if s.zone != crate::state::Zone::Battlefield || s.controller != p {
+                continue;
+            }
+            for a in &self.pool.get(s.def).ability_ids {
+                if let AbilityDef::PlayExiled { more, .. } = self.pool.ability(*a) {
+                    out.spend = out.spend.or(more.spend);
+                    out.finality |= more.finality;
+                    out.flash |= more.flash;
+                }
+            }
+        }
+        out
     }
 
     /// CR 609.4b: how a static ability lets `b`'s caster spend mana on

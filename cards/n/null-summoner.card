@@ -1,0 +1,8 @@
+card "Null Summoner" {
+  oracle_id 56c412be-daab-4461-931f-1e2ea8ecd75d
+  cost {2}{U}{B}
+  type Creature — Human Warlock
+  pt 4/2
+  triggered when this enters if you cast it: target opponent reveals hand exiling nonland card split
+  label "Threshold" play exiled the card any type spells if 7 cards in your graveyard
+}

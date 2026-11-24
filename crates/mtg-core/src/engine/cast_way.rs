@@ -277,7 +277,18 @@ impl GameState {
             Some(e) if e.riders => self.permission_rider(player, card),
             _ => crate::card::CastRider::default(),
         };
+        // "If you cast a spell this way, that creature enters with a
+        // finality counter on it."
+        let finality = from == Zone::Exile
+            && self.exile_casts.as_ref().is_some_and(|e| e.riders)
+            && self.linked_permission(player, card).finality;
         let spell = self.move_object(card, Zone::Stack, true);
+        if finality && let Some(e) = &mut self.exile_casts {
+            let objects = &self.objects;
+            e.finality
+                .retain(|s| objects.get(*s).is_some_and(|o| o.zone == Zone::Stack));
+            e.finality.push(spell);
+        }
         if !rider.is_none()
             && let Some(e) = &mut self.exile_casts
         {

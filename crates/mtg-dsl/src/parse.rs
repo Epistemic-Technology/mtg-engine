@@ -3044,6 +3044,7 @@ impl P {
                     your_turn: false,
                     owned: false,
                     look: true,
+                    more: crate::ast::PlayExiledMore::default(),
                 })
             }
             "play" if self.at_words(&["play", "exiled"]) => {
@@ -3051,9 +3052,16 @@ impl P {
                 let look = self.eat_word("look");
                 let your_turn = self.eat_words(&["your", "turn"]);
                 let owned = self.eat_word("owned");
+                let mut more = crate::ast::PlayExiledMore {
+                    the_card: self.eat_words(&["the", "card"]),
+                    flash: self.eat_word("flash"),
+                    any_type: self.eat_words(&["any", "type"]),
+                    finality: self.eat_word("finality"),
+                    condition: None,
+                };
                 let lands = self.eat_word("lands");
                 let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
-                    if self.at_stmt_end() {
+                    if self.at_stmt_end() || self.at_word("if") {
                         Some(Filter::default())
                     } else {
                         Some(self.filter()?)
@@ -3064,6 +3072,9 @@ impl P {
                 if !lands && spells.is_none() {
                     return self.fail("expected `lands` or `spells`".to_string());
                 }
+                if self.eat_word("if") {
+                    more.condition = Some(Box::new(self.static_cond()?));
+                }
                 self.end_stmt()?;
                 Ok(Ability::PlayExiled {
                     lands,
@@ -3071,6 +3082,7 @@ impl P {
                     your_turn,
                     owned,
                     look,
+                    more,
                 })
             }
             "top" if self.at_words(&["top", "revealed"]) => {
@@ -7897,6 +7909,16 @@ impl P {
         // hands." (`put all card exiled with this into hand`).
         if self.at_words(&["put", "exiled", "card", "into", "hand"])
             || self.at_words(&["put", "all", "card", "exiled", "with"])
+            || (self.at_word("put") && {
+                // `put 1 card exiled with this into hand` ("Put a card
+                // exiled with this Saga into its owner's hand").
+                let at = self.pos;
+                self.pos += 1;
+                let one = self.one_exiled_with().ok().flatten().is_some()
+                    && self.at_words(&["into", "hand"]);
+                self.pos = at;
+                one
+            })
         {
             self.pos += 1;
             let what = vec![self.recipient()?];
@@ -9505,6 +9527,7 @@ impl P {
                     graveyard,
                     face,
                     all: true,
+                    filter: None,
                 })
             }
             "exiles" => {
@@ -9528,9 +9551,31 @@ impl P {
                         graveyard,
                         face,
                         all: false,
+                        filter: None,
                     });
                 }
                 let mut filter = self.filter()?;
+                // `that player exiles 1 nonland card from graveyard`: "they
+                // exile a nonland card from their graveyard".
+                if (self.at_word("card") || self.at_word("cards"))
+                    && self.word_at(1).as_deref() == Some("from")
+                    && matches!(self.word_at(2).as_deref(), Some("graveyard" | "hand"))
+                {
+                    self.pos += 2;
+                    let graveyard = self.eat_word("graveyard");
+                    if !graveyard {
+                        self.expect_word("hand")?;
+                    }
+                    let face = self.exile_face();
+                    return Ok(Effect::ExileFromHand {
+                        count,
+                        who: subject,
+                        graveyard,
+                        face,
+                        all: false,
+                        filter: Some(filter),
+                    });
+                }
                 if filter.they_control {
                     filter.they_control = false;
                     filter.who = None;
@@ -11653,6 +11698,7 @@ impl P {
                         graveyard: false,
                         face,
                         all: true,
+                        filter: None,
                     });
                 }
                 if matches!(self.peek(), Some(Tok::Num(_)))
@@ -11670,6 +11716,7 @@ impl P {
                         graveyard: false,
                         face,
                         all: false,
+                        filter: None,
                     });
                 }
                 // `exile same name as target 1 from its controller zones`:
@@ -14389,6 +14436,11 @@ impl P {
     }
 
     fn recipient(&mut self) -> R<Recipient> {
+        // `1 creature card exiled with this`: one of the cards this
+        // permanent's abilities exiled, chosen as it resolves (CR 607.2a).
+        if let Some(r) = self.one_exiled_with()? {
+            return Ok(r);
+        }
         // `each card exiled this way`, `each creature card exiled this
         // way`: the targets the ability exiled, each in turn ("For each
         // card exiled this way, create a token that's a copy of that
@@ -14437,6 +14489,44 @@ impl P {
             self.group_named = true;
         }
         Ok(r)
+    }
+
+    /// `1 [<filter>] card exiled with this` / `... with it`, if there.
+    fn one_exiled_with(&mut self) -> R<Option<Recipient>> {
+        if !matches!(self.peek(), Some(Tok::Num(1))) {
+            return Ok(None);
+        }
+        let at = self.pos;
+        self.pos += 1;
+        let f = if self.at_word("card") {
+            Filter::default()
+        } else if let Ok(f) = self.filter() {
+            f
+        } else {
+            self.pos = at;
+            return Ok(None);
+        };
+        if !self.eat_words(&["card", "exiled", "with"]) {
+            self.pos = at;
+            return Ok(None);
+        }
+        let it = if self.eat_word("it") {
+            true
+        } else {
+            self.expect_word("this")?;
+            false
+        };
+        let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+            i
+        } else {
+            self.groups.push(f);
+            self.groups.len() - 1
+        };
+        let i = u16::try_from(i).map_err(|_| ParseError {
+            line: self.line(),
+            message: "too many groups".to_string(),
+        })?;
+        Ok(Some(Recipient::OneExiledWith(i, it)))
     }
 
     #[allow(clippy::too_many_lines)] // one check per recipient form

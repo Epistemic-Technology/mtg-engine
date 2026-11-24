@@ -3132,7 +3132,9 @@ impl Compiler<'_> {
             }
             // `ChosenOf`: chosen by the `ChooseAct` compiled before the
             // effect.
-            Recipient::ChosenOf(_)
+            // Chosen first (`Compiler::effect`), then "it".
+            Recipient::OneExiledWith(..)
+            | Recipient::ChosenOf(_)
             | Recipient::Manifested
             | Recipient::CreatedObject
             | Recipient::CreatedThat
@@ -3286,8 +3288,23 @@ impl Compiler<'_> {
     /// An effect; one on "all enchantments of the color of your choice"
     /// asks first (CR 608.2d), unless the resolution already chose.
     fn effect(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
-        let start = out.len();
         self.implied_used.set(None);
+        // "Return a creature card exiled with this land to the
+        // battlefield": the card is chosen from the pile first (CR 607.2a,
+        // 608.2d), then the effect acts on it.
+        if let Some(i) = one_exiled_with(e) {
+            let Some(f) = self.card.groups.get(usize::from(i)) else {
+                return self.err("`1 card exiled with this` names no filter");
+            };
+            let filter = self.filter(f);
+            out.push(CoreEffect::ChooseAct {
+                act: mtg_core::card::ChooseAct::ExiledWith,
+                filter,
+                count: mtg_core::card::Num::N(1),
+                up_to: false,
+            });
+        }
+        let start = out.len();
         self.effect_inner(e, out)?;
         // "When this Aura enters, tap enchanted creature and put X sleep
         // counters on it.": `it` is the creature just tapped, not the
@@ -4135,12 +4152,14 @@ impl Compiler<'_> {
                 graveyard,
                 face,
                 all,
+                filter,
             } => out.push(CoreEffect::ExileFromHand {
                 count: *count,
                 who: r(*who),
                 graveyard: *graveyard,
                 face: *face,
                 all: *all,
+                filter: filter.as_ref().map(|f| self.filter(f)),
             }),
             Effect::ExileLibrary { who, keep, face } => out.push(CoreEffect::ExileLibrary {
                 who: who.map_or(CoreRecipient::You, r),
@@ -7523,12 +7542,26 @@ impl Compiler<'_> {
                 your_turn,
                 owned,
                 look,
+                more,
             } => AbilityDef::PlayExiled {
                 lands: *lands,
                 spells: spells.as_ref().map(|f| self.filter(f)),
                 your_turn: *your_turn,
                 owned: *owned,
                 look: *look,
+                more: mtg_core::card::PlayExiledMore {
+                    spend: if more.any_type {
+                        mtg_core::card::SpendAs::AnyType
+                    } else {
+                        mtg_core::card::SpendAs::Normal
+                    },
+                    flash: more.flash,
+                    condition: more.condition.as_deref().map(|c| {
+                        let c = self.static_cond(c);
+                        self.pool.intern_condition(c)
+                    }),
+                    finality: more.finality,
+                },
             },
             Ability::TopRevealed { players, hands } => AbilityDef::TopRevealed {
                 players: *players,
@@ -8547,6 +8580,21 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
     }
 }
 
+/// The group of `e`'s `1 card exiled with this` recipient, if it acts on
+/// one (`Recipient::OneExiledWith`).
+fn one_exiled_with(e: &Effect) -> Option<u16> {
+    let one = |r: &Recipient| match r {
+        Recipient::OneExiledWith(i, _) => Some(*i),
+        _ => None,
+    };
+    match e {
+        Effect::ReturnToHand { what, .. } => what.iter().find_map(one),
+        Effect::ReturnToBattlefield { what, .. } => one(what),
+        Effect::BecomeCopy { of, .. } => one(of),
+        _ => None,
+    }
+}
+
 /// The token embalm or eternalize (CR 702.128a, 702.129a) makes of the
 /// card: a copy of it, except a white (black) Zombie with no mana cost
 /// (eternalize: 4/4). The token's copiable values are these (CR 707.9b),
@@ -8561,6 +8609,15 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // card its abilities exile is linked to the permanent (the engine
     // records them as the abilities resolve).
     if def.oracle_text.contains("exiled with") {
+        def.links_exile = true;
+    }
+    // "As long as ..., you may cast the exiled card" (Null Summoner): a
+    // permission to play what its abilities exile.
+    if def
+        .abilities
+        .iter()
+        .any(|a| matches!(a, AbilityDef::PlayExiled { .. }))
+    {
         def.links_exile = true;
     }
     // "When this creature leaves the battlefield, return the exiled card

@@ -2161,6 +2161,8 @@ pub enum Ability {
         /// may look at the cards exiled with this enchantment, and you may
         /// play lands and cast spells from among those cards." (CR 406.3).
         look: bool,
+        /// Riders, a condition, and wordings.
+        more: PlayExiledMore,
     },
     /// `top revealed`: "Play with the top card of your library
     /// revealed."; `top revealed players`: "Players play with the top card
@@ -2761,6 +2763,27 @@ pub enum GraveyardWording {
     /// `8 cards are in your graveyard`: "eight or more cards are in your
     /// graveyard" (Sidequest: Card Collection).
     AreIn,
+}
+
+/// The rest of `Ability::PlayExiled`, written before `lands` / `spells`
+/// (and the condition last).
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // one per clause of the text
+pub struct PlayExiledMore {
+    /// `any type`: "Mana of any type can be spent to cast those spells."
+    /// (", and mana of any type can be spent to cast that spell" with
+    /// `the card`).
+    pub any_type: bool,
+    /// `flash`: "During your turn, you may cast cards exiled with Azula and
+    /// you may cast them as though they had flash."
+    pub flash: bool,
+    /// `finality`: "If you cast a spell this way, that creature enters with
+    /// a finality counter on it."
+    pub finality: bool,
+    /// `the card`: "you may cast the exiled card" (spells only).
+    pub the_card: bool,
+    /// `if <condition>` last: "As long as <condition>, you may ...".
+    pub condition: Option<Box<StaticCond>>,
 }
 
 /// What a conditional static ability checks.
@@ -4619,6 +4642,12 @@ pub enum Recipient {
     /// "all cards exiled with this artifact", what this permanent's
     /// abilities exiled (CR 607.2a) matching the `n`th group's filter.
     ExiledWith(u16),
+    /// `1 creature card exiled with this` (`exiled with it` when `.1`):
+    /// "a creature card exiled with this land" ("... exiled with it"),
+    /// one of the cards this permanent's abilities exiled matching the
+    /// `n`th group's filter, chosen as the effect resolves (CR 607.2a,
+    /// 608.2d; the core `ChooseAct::ExiledWith`, then `CreatedObject`).
+    OneExiledWith(u16, bool),
     /// `those cards`: the targets declared so far (`first`, `count`),
     /// after an effect moved them ("Exile two target creatures you
     /// control, then return those cards to the battlefield").
@@ -5291,6 +5320,9 @@ pub enum Effect {
         /// `exile hand face down`: "Exile all cards from your hand face
         /// down."; `target player exiles hand face down`.
         all: bool,
+        /// `that player exiles 1 nonland card from graveyard`: "they exile
+        /// a nonland card from their graveyard".
+        filter: Option<Filter>,
     },
     /// `exile library face down`: "Exile all cards from your library face
     /// down."; `each player exiles library but bottom 6 face down`: "each
