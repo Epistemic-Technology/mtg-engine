@@ -1,0 +1,8 @@
+card "Infinite Coursework" {
+  oracle_id 666b34b5-a0c2-43e3-befd-7c3979313682
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature; enchanted creature becomes unprepared
+  static enchanted: loses all abilities, has doesn't untap
+}

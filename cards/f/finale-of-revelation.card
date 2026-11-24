@@ -1,0 +1,9 @@
+card "Finale of Revelation" {
+  oracle_id 755bd5d8-67f1-4f24-a4e8-d98edf2f2e03
+  cost {X}{U}{U}
+  type Sorcery
+  spell {
+    draw X cards; if x 10 or more, instead shuffle graveyard into library, draw X cards, untap up to 5 land chosen, and you have no maximum hand size for the rest of the game
+    exile this
+  }
+}

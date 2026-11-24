@@ -1,0 +1,7 @@
+card "Ruinous Waterbending" {
+  oracle_id 7d3a0216-871b-4c1b-adb1-de99b832f577
+  cost {1}{B}{B}
+  type Sorcery — Lesson
+  additional cost may waterbend {4}
+  spell: all creatures get -2/-2 until end of turn; if additional cost paid, delayed this: whenever creature dies this turn, you gain 1 life
+}

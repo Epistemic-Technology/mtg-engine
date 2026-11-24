@@ -1,0 +1,10 @@
+card "Spirit Water Revival" {
+  oracle_id 68979160-b5ce-4787-8a1e-1f40e614c3b0
+  cost {1}{U}{U}
+  type Sorcery
+  additional cost may waterbend {6}
+  spell {
+    draw 2 cards; if additional cost paid, instead shuffle graveyard into library, draw 7 cards, and you have no maximum hand size for the rest of the game
+    exile this
+  }
+}

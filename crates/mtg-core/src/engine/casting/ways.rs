@@ -322,6 +322,14 @@ impl GameState {
         {
             req.add(&c.requirements(0));
         }
+        // "As an additional cost to cast this spell, you may waterbend
+        // {4}": its mana, when paid (CR 601.2b, 701.67a).
+        if b.cast.optional_paid()
+            && let Some(c) = def.optional_cost.as_deref()
+            && !c.mana.is_empty()
+        {
+            req.add(&c.mana.requirements(0));
+        }
         let targets = self.objects[b.id].targets.len();
         self.add_splice_and_strive(b.id, def, targets, req);
     }
@@ -497,7 +505,8 @@ impl GameState {
     ) -> Option<Sources> {
         let (p, def) = (b.p, b.def);
         let keywords = self.spell_keywords(p, def, b.id).0;
-        let helped = Keyword::helps_pay(keywords) || def.additional.waterbend;
+        let bend = Self::bend_cap(def, b.cast);
+        let helped = Keyword::helps_pay(keywords) || bend > 0;
         let restricted = match (self.restricted_mana_possible(), &def.printed) {
             (false, _) | (_, None) => None,
             (true, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c, b.id)),
@@ -507,7 +516,7 @@ impl GameState {
         }
         let mut all = restricted.unwrap_or_else(|| sources.clone());
         if helped {
-            all.extend(self.helper_sources(p, def, keywords));
+            all.extend(self.helper_sources(p, keywords, bend));
         }
         Some(all)
     }

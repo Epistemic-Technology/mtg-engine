@@ -1,0 +1,164 @@
+# Crossover-set pieces (wave 13), part two: power-up's extra activation
+# and Kang's extra turn, the teamwork-tap trigger, prepared spells, equip
+# worthy, and an earthbend in a delayed trigger with its own target.
+
+scenario "Wonder Man: a power-up ability can be activated a second time" {
+  battlefield A: "Wonder Man, Hollywood Hero", 14 "Mountain"
+  turn 1 A: activate "Wonder Man, Hollywood Hero"
+  turn 1 main2 A: activate "Wonder Man, Hollywood Hero"
+  run_to turn 1 end
+  assert counters "Wonder Man, Hollywood Hero" +1/+1 4
+}
+
+scenario "Wonder Man: not a third time" {
+  battlefield A: "Wonder Man, Hollywood Hero", 21 "Mountain"
+  turn 1 A: activate "Wonder Man, Hollywood Hero"
+  turn 1 A: activate "Wonder Man, Hollywood Hero"
+  illegal turn 1 main2 A: activate "Wonder Man, Hollywood Hero"
+  run_to turn 1 end
+  assert counters "Wonder Man, Hollywood Hero" +1/+1 4
+}
+
+scenario "Wonder Man: another permanent's power-up ability twice too" {
+  battlefield A: "Wonder Man, Hollywood Hero", "Serpent Specialist", 8 "Forest"
+  turn 1 A: activate "Serpent Specialist"
+  turn 1 main2 A: activate "Serpent Specialist"
+  run_to turn 1 end
+  assert counters "Serpent Specialist" +1/+1 4
+}
+
+scenario "power-up: only once without Wonder Man" {
+  battlefield A: "Serpent Specialist", 8 "Forest"
+  turn 1 A: activate "Serpent Specialist"
+  illegal turn 1 main2 A: activate "Serpent Specialist"
+  run_to turn 1 end
+  assert counters "Serpent Specialist" +1/+1 2
+}
+
+scenario "Kang: an extra turn during which power-up abilities can't be activated" {
+  battlefield A: "Kang the Conqueror", 8 "Island", "Serpent Specialist", 4 "Forest"
+  turn 1 A: activate "Kang the Conqueror"
+  illegal turn 2 precombat_main A: activate "Serpent Specialist"
+  run_to turn 2 end
+  assert turn 2
+  assert counters "Kang the Conqueror" +1/+1 1
+  assert counters "Serpent Specialist" +1/+1 0
+}
+
+scenario "Kang: after the extra turn power-up works again" {
+  battlefield A: "Kang the Conqueror", 8 "Island", "Serpent Specialist", 4 "Forest"
+  turn 1 A: activate "Kang the Conqueror"
+  turn 4 precombat_main A: activate "Serpent Specialist"
+  run_to turn 4 end
+  assert counters "Serpent Specialist" +1/+1 2
+}
+
+scenario "Agent Maria Hill: tapped to pay a teamwork cost, a counter and a card" {
+  battlefield A: 3 "Swamp", "Agent Maria Hill", "Hill Giant"
+  graveyard A: "Serra Angel"
+  hand A: "Too Evil to Stay Dead"
+  library A: "Island", "Island"
+  turn 1 A: cast "Too Evil to Stay Dead" teamwork targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Agent Maria Hill"
+  assert counters "Agent Maria Hill" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "Agent Maria Hill: tapped otherwise, nothing" {
+  battlefield A: "Agent Maria Hill"
+  library A: "Island"
+  turn 1 A: attack "Agent Maria Hill"
+  run_to turn 1 postcombat_main
+  assert counters "Agent Maria Hill" +1/+1 0
+  assert hand A count 0
+}
+
+scenario "Codie: a prepared spell is copied" {
+  battlefield A: "Codie, Ravenous Codex", 3 "Forest"
+  hand A: "Studious First-Year"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: cast "Studious First-Year"
+  turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 1 end
+  assert battlefield A contains 5 "Forest"
+}
+
+scenario "Codie: a spell cast from hand isn't a prepared spell" {
+  battlefield A: "Codie, Ravenous Codex", 2 "Forest"
+  hand A: "Rampant Growth"
+  library A: "Forest", "Forest", "Island"
+  turn 1 A: cast "Rampant Growth"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Forest"
+}
+
+scenario "Codie: each creature you control becomes prepared" {
+  battlefield A: "Codie, Ravenous Codex", "Studious First-Year", "Plains", "Island", "Swamp", "Mountain", 3 "Forest"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: activate "Codie, Ravenous Codex"
+  turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 1 end
+  assert battlefield A contains 5 "Forest"
+}
+
+scenario "Mjölnir: equip worthy onto a legendary white creature, its damage doubled" {
+  battlefield A: "Mjölnir, Hammer of Thor", "Isamaru, Hound of Konda", "Mountain"
+  turn 1 A: activate "Mjölnir, Hammer of Thor" targeting "Isamaru, Hound of Konda"
+  turn 1 A: attack "Isamaru, Hound of Konda"
+  run_to turn 1 postcombat_main
+  assert attached "Mjölnir, Hammer of Thor" to "Isamaru, Hound of Konda"
+  assert life B 16
+}
+
+scenario "Mjölnir: a nonlegendary creature isn't worthy" {
+  battlefield A: "Mjölnir, Hammer of Thor", "Grizzly Bears", "Mountain"
+  illegal turn 1 A: activate "Mjölnir, Hammer of Thor" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Fatal Fissure: when that creature dies this turn, you earthbend 4" {
+  battlefield A: 2 "Swamp", "Mountain", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Fatal Fissure", "Lightning Bolt"
+  turn 1 A: cast "Fatal Fissure" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Fatal Fissure" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert is "Forest" creature
+  assert counters "Forest" +1/+1 4
+}
+
+scenario "Fatal Fissure: the creature doesn't die, no earthbend" {
+  battlefield A: 2 "Swamp", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Fatal Fissure"
+  turn 1 A: cast "Fatal Fissure" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert is not "Forest" creature
+}
+
+scenario "Finale of Revelation: X 10, shuffle the graveyard in, draw X, no maximum hand size" {
+  battlefield A: 12 "Island"
+  hand A: "Finale of Revelation"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  library A: "Plains", "Plains", "Plains", "Plains", "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Finale of Revelation" x 10
+  run_to turn 2 upkeep
+  assert exile A contains "Finale of Revelation"
+  assert graveyard A count 0
+  assert hand A count 10
+}
+
+scenario "Finale of Revelation: X 2, draw two" {
+  battlefield A: 4 "Island"
+  hand A: "Finale of Revelation"
+  graveyard A: "Grizzly Bears"
+  library A: "Plains", "Plains", "Plains"
+  turn 1 A: cast "Finale of Revelation" x 2
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+}

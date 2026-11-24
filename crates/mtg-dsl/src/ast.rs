@@ -836,6 +836,9 @@ pub struct WardAlt {
 #[allow(clippy::struct_excessive_bools)] // each is one printed cost part
 pub struct Cost {
     pub mana: ManaCost,
+    /// `x can't be 0` (with the restrictions): "X can't be 0.", printed
+    /// after the effects, before "Activate only ...".
+    pub x_not_zero: bool,
     pub tap: bool,
     pub life: u32,
     pub discard: u32,
@@ -1265,10 +1268,36 @@ pub struct Filter {
 }
 
 impl Filter {
+    /// "Equip worthy {1}" (Mjölnir, Hammer of Thor): "A creature is worthy
+    /// if it's a legendary non-Villain that's red and/or white", one you
+    /// control.
+    pub fn worthy() -> Filter {
+        Filter {
+            who: Some(Who::You),
+            types: vec![CardType::Creature],
+            supertypes: vec![Supertype::Legendary],
+            not_subtypes: vec!["Villain".to_string()],
+            colors: Some(vec![Color::Red, Color::White]),
+            ..Filter::default()
+        }
+    }
+
     /// Anything you control: `if you controlled target 1, ...`.
     pub fn controlled_by_you() -> Filter {
         Filter {
             who: Some(Who::You),
+            ..Filter::default()
+        }
+    }
+
+    /// A permanent cast for its warp cost (CR 702.185): `if target 1
+    /// warped, ...`.
+    pub fn warped() -> Filter {
+        Filter {
+            status: mtg_core::card::StatusQuals {
+                warped: true,
+                ..Default::default()
+            },
             ..Filter::default()
         }
     }
@@ -2075,6 +2104,9 @@ pub enum Ability {
         per: Option<Num>,
         cond: Option<StaticCond>,
     },
+    /// `power-up again`: "Each power-up ability of permanents you control
+    /// can be activated an additional time." (Wonder Man, Hollywood Hero).
+    PowerUpAgain,
     /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
     /// have no maximum hand size.", "Your maximum hand size is increased
     /// by one.", "Each opponent's maximum hand size is reduced by one."
@@ -3237,6 +3269,11 @@ pub enum StaticCond {
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
     SneakPaid(u8),
+    /// `her sneak paid this turn`: "her sneak cost was paid this turn"
+    /// (Karai, Future of the Foot); the pronoun as for `SneakPaid`.
+    SneakPaidThisTurn(u8),
+    /// `mayhem paid`: "this spell's mayhem cost was paid".
+    MayhemPaid,
     /// `prowl paid`: "its prowl cost was paid", "this spell's prowl cost
     /// was paid" (CR 702.76a).
     ProwlPaid,
@@ -3895,6 +3932,9 @@ pub enum Trigger {
     /// creatures) where `when ...` prints "When".
     BecomesTargetWhenever(TriggerObj),
     BecomesTapped(TriggerObj),
+    /// `whenever this becomes tapped for teamwork`: "Whenever Agent Maria
+    /// Hill becomes tapped to pay a teamwork cost".
+    TappedForTeamwork(TriggerObj),
     BecomesUntapped(TriggerObj),
     /// `whenever one or more +1/+1 counters put on this`: "Whenever one or
     /// more +1/+1 counters are put on this creature" (CR 122.1).
@@ -5439,6 +5479,9 @@ pub enum Effect {
         to: Recipient,
         toughness: bool,
         of: bool,
+        /// `triple ...`: "Triple target creature's power and toughness
+        /// until end of turn" (Tifa's Limit Break).
+        triple: bool,
     },
     /// `double the number of +1/+1 counters on this`, `double the number
     /// of each kind of counter on target permanent` (`kind` None) (CR
@@ -5450,6 +5493,17 @@ pub enum Effect {
     /// `double your life total`, `double target player life total`,
     /// `double its controller life total` (CR 701.10d).
     DoubleLife {
+        who: Recipient,
+    },
+    /// `create 3 "..."; if sneak paid, they enter tapped and attacking`
+    /// (The Last Ronin's Technique, CR 508.4): only after a sentence
+    /// creating tokens, inside `if <condition>,`: the tokens enter tapped
+    /// and attacking while the condition holds (compiled as the creation
+    /// with an `instead`).
+    EnterTappedAttacking,
+    /// `you have no maximum hand size for the rest of the game` (CR
+    /// 402.2; Spirit Water Revival).
+    NoMaxHandSize {
         who: Recipient,
     },
     /// `who` is `None` for the imperative "discard a card".
@@ -5864,6 +5918,11 @@ pub enum Effect {
     Earthbend {
         count: Num,
         to: Recipient,
+        /// `you earthbend 4` in a delayed trigger ("When that creature
+        /// dies this turn, you earthbend 4.", Fatal Fissure): the land is
+        /// the delayed ability's own target, chosen as it triggers; `to`
+        /// is unused.
+        delayed: bool,
     },
     /// `cloak top` (CR 701.58a): "cloak the top card of your library".
     CloakTop,
@@ -5908,6 +5967,8 @@ pub enum Effect {
     Support(Vec<Recipient>),
     /// `populate` (CR 701.36).
     Populate,
+    /// `harness this`: "Harness The Mind Stone." (its ∞ ability active).
+    Harness,
     /// `turn face up exiled card put creature onto battlefield`: "turn the
     /// exiled card face up. If it's a creature card, put it onto the
     /// battlefield under your control." (Clone Shell, Summoner's Egg; CR
@@ -5958,9 +6019,10 @@ pub enum Effect {
         what: Recipient,
     },
     /// `this becomes prepared`: "this creature becomes prepared" (CR
-    /// 722.3a).
+    /// 722.3a); not `on`, `target creature becomes unprepared`.
     BecomePrepared {
         what: Recipient,
+        on: bool,
     },
     /// `this connives` (CR 701.50).
     Connive {
@@ -6325,6 +6387,9 @@ pub enum Effect {
     ExtraTurns {
         who: Recipient,
         n: u8,
+        /// `... without power-up`: "During that turn, power-up abilities
+        /// can't be activated." (Kang the Conqueror).
+        no_powerup: bool,
     },
     /// `after this phase, additional combat phase`: "After this phase,
     /// there is an additional combat phase."; `after this main phase,

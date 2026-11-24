@@ -166,6 +166,7 @@ pub fn add_card(
             implied_used: std::rc::Rc::default(),
             scavenge: None,
             station: None,
+            delayed_targets: Vec::new(),
             sunburst: None,
             extort: None,
             they_twins: Vec::new(),
@@ -211,6 +212,7 @@ pub fn add_card(
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
                 station: None,
+                delayed_targets: Vec::new(),
                 sunburst: None,
                 extort: None,
                 they_twins: Vec::new(),
@@ -245,6 +247,7 @@ pub fn add_card(
         implied_used: std::rc::Rc::default(),
         scavenge: None,
         station: None,
+        delayed_targets: Vec::new(),
         sunburst: None,
         extort: None,
         they_twins: Vec::new(),
@@ -344,6 +347,7 @@ fn add_stages(
             implied_used: std::rc::Rc::default(),
             scavenge: None,
             station: None,
+            delayed_targets: Vec::new(),
             extort: None,
             they_twins: Vec::new(),
             rampage: None,
@@ -453,6 +457,9 @@ struct Compiler<'a> {
     scavenge: Option<u8>,
     /// Station's count (the tapped creature's power), likewise.
     station: Option<u8>,
+    /// A delayed ability's own targets (`you earthbend 4`), gathered as its
+    /// effects compile.
+    delayed_targets: Vec<TargetSpec>,
     /// Sunburst's count (colors of mana spent), in `counts`.
     sunburst: Option<u8>,
     /// Extort's count (the life lost this way), once added to the counts.
@@ -2461,6 +2468,8 @@ impl Compiler<'_> {
             StaticCond::ThatKicked => StaticCondition::ThatKicked,
             StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
+            StaticCond::SneakPaidThisTurn(p) => StaticCondition::SneakPaidThisTurn(*p),
+            StaticCond::MayhemPaid => StaticCondition::MayhemPaid,
             StaticCond::ProwlPaid => StaticCondition::ProwlPaid,
             StaticCond::MoreVotes { index, ties, .. } => StaticCondition::MoreVotes {
                 index: *index,
@@ -2975,6 +2984,7 @@ impl Compiler<'_> {
         CoreCost {
             craft: None,
             mana: c.mana.clone(),
+            x_not_zero: c.x_not_zero,
             discard_self: c.discard_self,
             exile_self: c.exile_self,
             exile_hand: c.exile_hand,
@@ -3150,11 +3160,46 @@ impl Compiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     fn sentences(&mut self, ss: &[Sentence]) -> Result<Vec<CoreEffect>, CompileError> {
-        let mut out = Vec::new();
+        let mut out: Vec<CoreEffect> = Vec::new();
         // Where the previous sentence's effects start, and that sentence.
         let mut prev: Option<(usize, &Sentence)> = None;
         for s in ss {
+            // "Create three ... tokens. If this spell's sneak cost was
+            // paid, they enter tapped and attacking." (CR 508.4): the
+            // creation, tapped and attacking instead while the condition
+            // holds.
+            if let [Effect::IfCondition(c, inner, _)] = s.effects.as_slice()
+                && let [Sentence { effects: e, .. }] = inner.as_slice()
+                && matches!(e.as_slice(), [Effect::EnterTappedAttacking])
+            {
+                let Some((start, _)) = prev.take() else {
+                    return self.err("`they enter tapped and attacking` follows a sentence");
+                };
+                let base = out.split_off(start);
+                let mut alt = Vec::with_capacity(base.len() + 1);
+                for e in &base {
+                    let mut e = e.clone();
+                    if let CoreEffect::CreateToken { tapped, .. } = &mut e {
+                        *tapped = true;
+                    }
+                    alt.push(e);
+                }
+                if !base
+                    .iter()
+                    .any(|e| matches!(e, CoreEffect::CreateToken { .. }))
+                {
+                    return self.err(
+                        "`they enter tapped and attacking` follows a sentence creating tokens",
+                    );
+                }
+                alt.push(CoreEffect::CreatedAttack);
+                let c = self.static_cond(c);
+                let cond = EffectCond::Static(self.pool.intern_condition(c));
+                out.push(CoreEffect::Instead { cond, base, alt });
+                continue;
+            }
             if let [Effect::Instead { cond, effects, .. }] = s.effects.as_slice() {
                 // CR 608.2c: the sentence before happens unless the
                 // condition holds; these happen instead.
@@ -4294,15 +4339,27 @@ impl Compiler<'_> {
                 out.push(CoreEffect::YouMay(self.sentences(&[discard])?));
                 out.push(CoreEffect::IfYouDo(self.sentences(&[draw])?));
             }
-            Effect::DoublePt { to, toughness, .. } => out.push(CoreEffect::DoublePt {
+            Effect::DoublePt {
+                to,
+                toughness,
+                triple,
+                ..
+            } => out.push(CoreEffect::DoublePt {
                 to: r(*to),
                 toughness: *toughness,
+                triple: *triple,
             }),
             Effect::DoubleCounters { kind, to } => out.push(CoreEffect::DoubleCounters {
                 kind: *kind,
                 to: r(*to),
             }),
             Effect::DoubleLife { who } => out.push(CoreEffect::DoubleLife { who: r(*who) }),
+            Effect::NoMaxHandSize { who } => out.push(CoreEffect::NoMaxHandSize { who: r(*who) }),
+            Effect::EnterTappedAttacking => {
+                return self.err(
+                    "`they enter tapped and attacking` follows a sentence creating tokens, after `if <condition>,`",
+                );
+            }
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -4742,8 +4799,10 @@ impl Compiler<'_> {
                 let outer = self.tmap;
                 self.tmap.put_creature = false;
                 self.tmap.spell = false;
+                let outer_targets = std::mem::take(&mut self.delayed_targets);
                 let effects = self.sentences(effects);
                 self.tmap = outer;
+                let own_targets = std::mem::replace(&mut self.delayed_targets, outer_targets);
                 let effects = effects?;
                 // A delayed triggered mana ability ("whenever a land is
                 // tapped for mana this turn, add ...", CR 605.1b) has no
@@ -4766,7 +4825,7 @@ impl Compiler<'_> {
                         from_graveyard: false,
                         trigger,
                         condition: None,
-                        targets: Vec::new(),
+                        targets: own_targets,
                         effects,
                     }));
                 out.push(CoreEffect::Delayed {
@@ -4894,11 +4953,31 @@ impl Compiler<'_> {
                 n: *n,
             }),
             Effect::Firebend(n) => out.push(CoreEffect::Firebend(*n)),
+            // A delayed ability's own target (CR 603.7): "target land you
+            // control", chosen as it triggers.
+            Effect::Earthbend {
+                count,
+                delayed: true,
+                ..
+            } => {
+                let f = mtg_core::card::ObjFilter {
+                    types: TypeSet::of([mtg_core::card::CardType::Land]),
+                    ..mtg_core::card::ObjFilter::default()
+                }
+                .who(mtg_core::card::Who::You);
+                let spec = TargetSpec::Filtered(self.pool.intern_filter(f));
+                self.delayed_targets.push(spec);
+                out.push(CoreEffect::Earthbend {
+                    count: *count,
+                    to: CoreRecipient::Target(self.delayed_targets.len() - 1),
+                });
+            }
             Effect::Earthbend { count, to, .. } => out.push(CoreEffect::Earthbend {
                 count: *count,
                 to: r(*to),
             }),
             Effect::Populate => out.push(CoreEffect::Populate),
+            Effect::Harness => out.push(CoreEffect::Harness),
             Effect::TurnFaceUpExiled => {
                 out.push(CoreEffect::TurnFaceUp {
                     what: CoreRecipient::ExiledCard,
@@ -4962,8 +5041,11 @@ impl Compiler<'_> {
             Effect::BecomeSaddledTarget { what } => {
                 out.push(CoreEffect::BecomeSaddledTarget { what: r(*what) });
             }
-            Effect::BecomePrepared { what } => {
-                out.push(CoreEffect::BecomePrepared { what: r(*what) });
+            Effect::BecomePrepared { what, on } => {
+                out.push(CoreEffect::BecomePrepared {
+                    what: r(*what),
+                    on: *on,
+                });
             }
             Effect::LookAtTop { count, of, by, .. } => out.push(CoreEffect::LookAtTop {
                 count: *count,
@@ -5272,9 +5354,10 @@ impl Compiler<'_> {
                 what: *what,
             }),
             Effect::SkipNextUntap { to, .. } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
-            Effect::ExtraTurns { who, n } => out.push(CoreEffect::ExtraTurns {
+            Effect::ExtraTurns { who, n, no_powerup } => out.push(CoreEffect::ExtraTurns {
                 who: r(*who),
                 n: *n,
+                no_powerup: *no_powerup,
             }),
             Effect::AdditionalPhases { combats, main, .. } => {
                 out.push(CoreEffect::AdditionalPhases {
@@ -5543,6 +5626,7 @@ impl Compiler<'_> {
                 n: *n,
             },
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
+            Trigger::TappedForTeamwork(o) => TriggerSpec::TappedForTeamwork(self.trigger_obj(o)),
             Trigger::BecomesAttachedTo(f) => TriggerSpec::BecomesAttachedTo(self.filter(f)),
             // Compiled as `AbilityDef::ManaTrigger` by `ability`.
             Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
@@ -7337,6 +7421,7 @@ impl Compiler<'_> {
                     condition,
                 })
             }
+            Ability::PowerUpAgain => AbilityDef::PowerUpAgain,
             Ability::HandSize { whose, delta, set } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,

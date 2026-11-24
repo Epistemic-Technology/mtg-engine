@@ -190,6 +190,7 @@ fn pluralize(word: &str) -> String {
 /// CR 702.6c), if any.
 pub(crate) fn equip_subtype(targets: &[Target]) -> Option<&str> {
     match targets {
+        [Target::Filter(f)] if *f == Filter::worthy() => Some("worthy"),
         [Target::Filter(f)] if f.subtypes.len() == 1 => Some(f.subtypes[0].as_str()),
         [Target::CreatureOfSubtype(s)] => Some(s.as_str()),
         _ => None,
@@ -302,6 +303,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::MayNotUntap
             | Keyword::CantBeEquipped
             | Keyword::AssignsToughness
+            | Keyword::StationsToughness
             | Keyword::CantTransform
     )
 }
@@ -382,6 +384,7 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
                 | Keyword::DoesntUntap
                 | Keyword::CantBecomeUntapped
                 | Keyword::AssignsToughness
+                | Keyword::StationsToughness
         ) || is_block_rule(*k)
         {
             parts.push(keyword_name(*k).to_string());
@@ -3333,6 +3336,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.modified {
         words.push("modified".to_string());
     }
+    if f.status.prepared_spell {
+        words.push("prepared".to_string());
+    }
     if f.status.face_down {
         words.push("face-down".to_string());
     }
@@ -4073,6 +4079,7 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
             mtg_core::card::ChosenCost::Tap => format!("tap {what}"),
             mtg_core::card::ChosenCost::Unattach => format!("unattach {what}"),
             mtg_core::card::ChosenCost::Sacrifice => format!("sacrifice {what}"),
+            mtg_core::card::ChosenCost::Exile => format!("exile {what}"),
         });
     }
     if let Some(g) = &a.cost.exile_cards {
@@ -4372,6 +4379,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                         }
                         mtg_core::card::ChosenCost::Tap => format!("Tap {what}"),
                         mtg_core::card::ChosenCost::Unattach => format!("Unattach {what}"),
+                        mtg_core::card::ChosenCost::Exile => format!("Exile {what}"),
                     });
                 }
                 None => {}
@@ -6668,11 +6676,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "add {} {{R}}. Until end of combat, you don't lose this mana as steps and phases end",
             digits(*n)
         )),
+        Effect::Earthbend {
+            count,
+            delayed: true,
+            ..
+        } => Clause::imperative(format!("you earthbend {}", digits(*count))),
         Effect::Earthbend { count, .. } => {
             Clause::imperative(format!("earthbend {}", digits(*count)))
         }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
+        Effect::Harness => Clause::imperative(format!("harness {}", this_ref(ctx.card))),
         Effect::TurnFaceUpExiled => Clause::imperative(
             "turn the exiled card face up. If it's a creature card, put it onto the battlefield under your control"
                 .to_string(),
@@ -6772,9 +6786,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "connives".to_string())
         }
-        Effect::BecomePrepared { what } => {
+        Effect::BecomePrepared { what, on } => {
             let s = ctx.subj(*what);
-            Clause::with_subject(*what, s, "becomes prepared".to_string())
+            let v = ctx.verb(*what, "becomes", "become");
+            let state = if *on { "prepared" } else { "unprepared" };
+            Clause::with_subject(*what, s, format!("{v} {state}"))
         }
         Effect::BecomeSaddledTarget { what } => {
             let s = ctx.subj(*what);
@@ -7907,13 +7923,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "assigns no combat damage this turn".to_string())
         }
-        Effect::ExtraTurns { who, n } => {
+        Effect::ExtraTurns { who, n, no_powerup } => {
             let turns = if *n == 1 {
                 "an extra turn".to_string()
             } else {
                 format!("{} extra turns", count_words(Num::N(u32::from(*n)), "one"))
             };
-            if *who == Recipient::You {
+            if *who == Recipient::You && *no_powerup {
+                // Kang the Conqueror.
+                Clause::imperative(format!(
+                    "take {turns} after this one. During that turn, power-up abilities can't be activated"
+                ))
+            } else if *who == Recipient::You {
                 Clause::imperative(format!("take {turns} after this one"))
             } else {
                 let s = ctx.subj(*who);
@@ -9100,11 +9121,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         // "choose target artifact card in your graveyard" (Daretti,
         // Rocketeer Engineer): "in", where a move says "from".
-        Effect::ChooseTarget(r) => Clause::imperative(format!(
-            "choose {}",
-            ctx.obj(*r)
-                .replacen(" from your graveyard", " in your graveyard", 1)
-        )),
+        // "Choose target creature card in your graveyard with mana value 4
+        // or less" (Too Evil to Stay Dead): the zone right after the noun.
+        Effect::ChooseTarget(r) => {
+            let o = ctx.obj(*r);
+            let text = match o
+                .strip_suffix(" from your graveyard")
+                .and_then(|rest| rest.find(" card with ").map(|i| (rest, i)))
+            {
+                Some((rest, i)) => format!(
+                    "{} card in your graveyard with {}",
+                    &rest[..i],
+                    &rest[i + " card with ".len()..]
+                ),
+                None => o.replacen(" from your graveyard", " in your graveyard", 1),
+            };
+            Clause::imperative(format!("choose {text}"))
+        }
         Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
         Effect::Clash => Clause::imperative("clash with an opponent".to_string()),
         Effect::IfWonClash(inner) => {
@@ -10702,7 +10735,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Learn => Clause::imperative("learn".to_string()),
-        Effect::DoublePt { to, toughness, of } => {
+        Effect::DoublePt {
+            to,
+            toughness,
+            of,
+            triple,
+        } => {
+            let verb = if *triple { "triple" } else { "double" };
             let pt = if *toughness {
                 "power and toughness"
             } else {
@@ -10717,10 +10756,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             if *of {
                 let o = ctx.obj(*to);
-                Clause::imperative(format!("double the {pt} of {o}{eot}"))
+                Clause::imperative(format!("{verb} the {pt} of {o}{eot}"))
             } else {
                 let s = ctx.subj(*to);
-                Clause::imperative(format!("double {} {pt}{eot}", possessive(&s)))
+                Clause::imperative(format!("{verb} {} {pt}{eot}", possessive(&s)))
             }
         }
         Effect::DoubleCounters { kind, to } => {
@@ -10735,6 +10774,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 o
             };
             Clause::imperative(format!("double the number of {what} on {o}"))
+        }
+        Effect::EnterTappedAttacking => {
+            Clause::imperative("they enter tapped and attacking".to_string())
+        }
+        Effect::NoMaxHandSize { who } => {
+            let s = ctx.subj(*who);
+            let v = ctx.verb(*who, "has", "have");
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{v} no maximum hand size for the rest of the game"),
+            )
         }
         Effect::DoubleLife { who } => {
             let s = ctx.subj(*who);
@@ -11799,6 +11850,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // Investigators).
                 (TargetTense::Is, _) if *f == Filter::controlled_by_you() => {
                     "you controlled it".to_string()
+                }
+                // "If that creature was cast for its warp cost, it also
+                // gains trample and haste until end of turn." (Full Bore).
+                (TargetTense::Is, _) if *f == Filter::warped() => {
+                    format!("that {noun} was cast for its warp cost")
                 }
                 // "If an opponent protects it, remove a defense counter
                 // from it." (Portent Tracker).
@@ -14033,6 +14089,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             this(ctx)
         ),
         Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_subject(o, ctx)),
+        Trigger::TappedForTeamwork(o) => format!(
+            "whenever {} becomes tapped to pay a teamwork cost",
+            trigger_subject(o, ctx)
+        ),
         Trigger::BecomesAttachedTo(f) => format!(
             "whenever {} becomes attached to {}",
             trigger_filter_a(f, ctx.card),
@@ -14467,6 +14527,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::WasBlocking(true) => "if it was blocking".to_string(),
         Condition::WasBlocking(false) => "if it wasn't blocking".to_string(),
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
+        Condition::Harnessed => unreachable!("printed as the ∞ label"),
         Condition::Evolves => format!(
             "if it has greater power or toughness than {}",
             this_ref(ctx.card)
@@ -14896,6 +14957,12 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             },
             Outcome::Double,
         ) => match f {
+            // "Double all damage equipped creature would deal." (Mjölnir,
+            // Hammer of Thor): the one object it is attached to.
+            Affects::Objects(g) if g.enchanted => {
+                let p = filter_phrase(g, ctx.card, false);
+                format!("Double all damage {p} would deal.")
+            }
             Affects::Objects(g) => {
                 let p = filter_phrase(g, ctx.card, true).replacen("permanents", "sources", 1);
                 format!("Double all damage that {p} would deal.")
@@ -17220,6 +17287,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         ),
         StaticCond::ProwlPaid if is_spell(card) => "this spell's prowl cost was paid".to_string(),
         StaticCond::ProwlPaid => "its prowl cost was paid".to_string(),
+        StaticCond::MayhemPaid if is_spell(card) => "this spell's mayhem cost was paid".to_string(),
+        StaticCond::MayhemPaid => "its mayhem cost was paid".to_string(),
+        StaticCond::SneakPaidThisTurn(p) => format!(
+            "{} sneak cost was paid this turn",
+            match p {
+                1 => "his",
+                2 => "her",
+                _ => "its",
+            }
+        ),
         StaticCond::SneakPaid(_) if is_spell(card) => {
             "this spell's sneak cost was paid".to_string()
         }
@@ -17901,6 +17978,11 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
         }
     }
     let mut out = String::new();
+    // "X can't be 0. Activate only during your turn." (Katara, Water
+    // Tribe's Hope).
+    if cost.x_not_zero {
+        out.push_str(" X can't be 0.");
+    }
     if cost.restrict.is_empty() {
         // Written without an order: each its own sentence.
         for i in &items {
@@ -18421,6 +18503,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         ", if it had a counter on it"
                     });
                 }
+                // An ∞ ability: the label says it.
+                #[allow(clippy::match_same_arms)]
+                Some(crate::ast::TrigCond::Core(Condition::Harnessed)) => {}
                 Some(crate::ast::TrigCond::Core(c)) => {
                     out.push_str(", ");
                     let cond = condition_text(*c, &mut ctx);
@@ -19731,6 +19816,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Some(c) => format!("As long as {}, {text}", static_cond_text(c, card)),
                 None => capitalize(&text),
             }
+        }
+        Ability::PowerUpAgain => {
+            "Each power-up ability of permanents you control can be activated an additional time."
+                .to_string()
         }
         Ability::HandSize { whose, delta, set } => {
             let (subject, have) = if *whose == Who::Opponents {

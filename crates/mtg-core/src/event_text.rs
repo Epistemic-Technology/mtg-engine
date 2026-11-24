@@ -158,6 +158,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         }
         Event::Tapped { .. }
         | Event::TappedBy { .. }
+        | Event::TappedForTeamwork { .. }
         | Event::TappedForMana { .. }
         | Event::Untapped { .. }
         | Event::Pass { .. }

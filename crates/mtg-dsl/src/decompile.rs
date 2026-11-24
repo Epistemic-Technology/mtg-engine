@@ -532,6 +532,7 @@ impl Decompiler<'_> {
     fn cost(&self, c: &CoreCost) -> Cost {
         Cost {
             mana: c.mana.clone(),
+            x_not_zero: c.x_not_zero,
             discard_self: c.discard_self,
             per_turn: 0,
             keyword: None,
@@ -736,6 +737,8 @@ impl Decompiler<'_> {
             },
             StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
+            StaticCondition::SneakPaidThisTurn(p) => StaticCond::SneakPaidThisTurn(*p),
+            StaticCondition::MayhemPaid => StaticCond::MayhemPaid,
             StaticCondition::ProwlPaid => StaticCond::ProwlPaid,
             StaticCondition::MoreVotes { .. } => unreachable!("a vote's words are the card's"),
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
@@ -1912,21 +1915,29 @@ impl Decompiler<'_> {
                 n: *n,
             },
             CoreEffect::Firebend(n) => Effect::Firebend(*n),
-            CoreEffect::DoublePt { to, toughness } => Effect::DoublePt {
+            CoreEffect::DoublePt {
+                to,
+                toughness,
+                triple,
+            } => Effect::DoublePt {
                 to: r(*to),
                 toughness: *toughness,
                 of: false,
+                triple: *triple,
             },
             CoreEffect::DoubleCounters { kind, to } => Effect::DoubleCounters {
                 kind: *kind,
                 to: r(*to),
             },
             CoreEffect::DoubleLife { who } => Effect::DoubleLife { who: r(*who) },
+            CoreEffect::NoMaxHandSize { who } => Effect::NoMaxHandSize { who: r(*who) },
             CoreEffect::Earthbend { count, to } => Effect::Earthbend {
                 count: *count,
                 to: r(*to),
+                delayed: false,
             },
             CoreEffect::Populate => Effect::Populate,
+            CoreEffect::Harness => Effect::Harness,
             CoreEffect::EndTurn => Effect::EndTurn,
             CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
             CoreEffect::GraveyardToBattlefield { filter, tapped } => {
@@ -1976,7 +1987,10 @@ impl Decompiler<'_> {
                 to: Self::recipient(*to),
             },
             CoreEffect::CumulativeUpkeep(c) => Effect::CumulativeUpkeep(c.clone()),
-            CoreEffect::BecomePrepared { what } => Effect::BecomePrepared { what: r(*what) },
+            CoreEffect::BecomePrepared { what, on } => Effect::BecomePrepared {
+                what: r(*what),
+                on: *on,
+            },
             CoreEffect::BecomeSaddledTarget { what } => {
                 Effect::BecomeSaddledTarget { what: r(*what) }
             }
@@ -2220,9 +2234,10 @@ impl Decompiler<'_> {
             CoreEffect::AssignsNoCombatDamage { to } => Effect::AssignsNoCombatDamage {
                 to: Self::recipient(*to),
             },
-            CoreEffect::ExtraTurns { who, n } => Effect::ExtraTurns {
+            CoreEffect::ExtraTurns { who, n, no_powerup } => Effect::ExtraTurns {
                 who: r(*who),
                 n: *n,
+                no_powerup: *no_powerup,
             },
             CoreEffect::AdditionalPhases { combats, main } => Effect::AdditionalPhases {
                 combats: *combats,
@@ -2459,6 +2474,7 @@ impl Decompiler<'_> {
                 in_a_turn: false,
             },
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
+            TriggerSpec::TappedForTeamwork(o) => Trigger::TappedForTeamwork(self.trigger_obj(o)),
             TriggerSpec::TapsForMana { what, whose } => Trigger::TapsForMana {
                 what: self.trigger_obj(what),
                 whose: *whose,
@@ -2920,6 +2936,7 @@ impl Decompiler<'_> {
                     .condition
                     .map(|c| self.static_cond(self.pool.condition(c))),
             },
+            AbilityDef::PowerUpAgain => Ability::PowerUpAgain,
             AbilityDef::HandSize { whose, delta, set } => Ability::HandSize {
                 whose: *whose,
                 delta: *delta,

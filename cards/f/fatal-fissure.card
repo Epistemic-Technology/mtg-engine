@@ -1,0 +1,6 @@
+card "Fatal Fissure" {
+  oracle_id 202e45d6-8c7a-46db-85fb-634aa77b4097
+  cost {1}{B}
+  type Instant
+  spell: choose target creature; delayed target 1: when that creature dies this turn, you earthbend 4
+}

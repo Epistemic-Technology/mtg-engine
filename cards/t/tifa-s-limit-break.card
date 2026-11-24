@@ -1,0 +1,10 @@
+card "Tifa's Limit Break" {
+  oracle_id d0d90dd8-0642-489f-9afc-11c307f258f2
+  cost {G}
+  type Instant
+  tiered {
+    mode "Somersault" {0}: target creature gets +2/+2 until end of turn
+    mode "Meteor Strikes" {2}: double target creature power and toughness until end of turn
+    mode "Final Heaven" {6}{G}: triple target creature power and toughness until end of turn
+  }
+}

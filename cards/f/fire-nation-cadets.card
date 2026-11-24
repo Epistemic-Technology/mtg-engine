@@ -1,0 +1,8 @@
+card "Fire Nation Cadets" {
+  oracle_id 5ebfa3f5-f80a-4845-bba7-75c4ddb88682
+  cost {R}
+  type Creature — Human Soldier
+  pt 1/2
+  static this: has firebending 2 as long as there's Lesson card in your graveyard
+  activated {2}: this gets +1/+0 until end of turn
+}

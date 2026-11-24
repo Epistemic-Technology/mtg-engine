@@ -4266,6 +4266,34 @@ instead."; `replace this dies: library top`: "If this creature would die,
 put it on top of its owner's library instead." (`library bottom`: "on the
 bottom of its owner's library").
 
+### Crossover-set pieces
+
+Small forms the Avatar, Marvel, Final Fantasy, Turtles and Strixhaven
+cards need:
+
+| Form | Oracle and meaning |
+|---|---|
+| `additional cost may waterbend {4}` | "As an additional cost to cast this spell, you may waterbend {4}." (CR 601.2b, 701.67): an optional additional cost, chosen as the spell is cast (scenarios: `kicked`) and offered only when it can be paid; its generic mana may be paid by tapping artifacts and creatures, and only once it is chosen (the spell's own generic mana never). `if additional cost paid` reads it. |
+| `you have no maximum hand size for the rest of the game` | The effect (CR 402.2): the player's maximum hand size is gone for good. |
+| `triple target creature power and toughness` | "Triple target creature's power and toughness until end of turn" (CR 701.10): +2X/+2Y, X and Y as it resolves. |
+| `if mayhem paid, ...` | "If this spell's mayhem cost was paid, ..." (the spell cast from its owner's graveyard for its mayhem cost). |
+| `if her sneak paid this turn, instead ...` | "If her sneak cost was paid this turn, instead ..." (Karai): the source was cast for its sneak cost and entered this turn (`his`, `this`, or none for "its"). |
+| `if target 1 warped, also target 1 gains trample and haste` | "If that creature was cast for its warp cost, it also gains trample and haste until end of turn." (Full Bore): the target, still on the battlefield, was a spell cast for its warp cost. |
+| `create 3 "..."; if sneak paid, they enter tapped and attacking` | "Create three ... tokens. If this spell's sneak cost was paid, they enter tapped and attacking." (CR 508.4): only right after a sentence creating tokens; while the condition holds the tokens are created tapped and attacking (what the source attacks, else an opponent). |
+| `target creature becomes unprepared`, `each single creature you control becomes prepared` | "... becomes unprepared" removes the prepared designation (CR 722.3a); `each single` prints "Each creature you control becomes prepared". |
+| `whenever you cast prepared spell` | "Whenever you cast a prepared spell" (Codie, Ravenous Codex): a copy of a prepare spell cast from a prepared permanent (CR 722.3c); `copy it new targets` copies it. |
+| `activated waterbend {X}, x can't be 0, during your turn: ...` | "X can't be 0." printed after the effects, before "Activate only ...": the activation's X is chosen from 1 up, and it is offered only when X 1 could be paid. |
+| `activated {5}{W}, {T}: harness this`, `label "∞" triggered ... if harnessed: ...` | "Harness The Mind Stone." marks the permanent harnessed (until it leaves); an "∞ — ..." ability is the labeled trigger with the condition `if harnessed`, which prints nothing: it triggers only while the source is harnessed. |
+| `activated {6}{B}, {T}, exile creature you control: ...` | "Exile a creature you control" as an activation cost: the payer chooses a matching permanent they control (`sacrificing "X"` in scenarios) and it is exiled. |
+| `static each creature you control with toughness greater than power: has stations using toughness` | "... stations permanents using its toughness rather than its power." (Tapestry Warden): tapped for a station cost (CR 702.184a), the creature counts its toughness. |
+| `power-up again` | "Each power-up ability of permanents you control can be activated an additional time." (Wonder Man): its controller's power-up abilities (CR 702.193a) may each be activated once more per such permanent. |
+| `you take extra turn without power-up` | "Take an extra turn after this one. During that turn, power-up abilities can't be activated." (Kang the Conqueror): no player activates a power-up ability during that extra turn. |
+| `whenever this becomes tapped for teamwork` | "Whenever Agent Maria Hill becomes tapped to pay a teamwork cost": the creature was one the engine tapped for a spell's teamwork cost. |
+| `equip worthy {1}` | "Equip worthy {1}" (Mjölnir): equip onto a legendary non-Villain creature you control that's red and/or white. `replace damage equipped creature would deal: double` prints "Double all damage equipped creature would deal." |
+| `delayed target 1: when that creature dies this turn, you earthbend 4` | "When that creature dies this turn, you earthbend 4." (Fatal Fissure): the earthbend's land is the delayed ability's own target, chosen as it triggers (`trigger "X" targeting "Forest"` in scenarios), not the spell's. |
+| `activated {2}, {T}, sorcery: target creature that attacked this turn becomes prepared` | A target with "that attacked this turn" as an effect's subject. |
+| `spell: choose target creature card with mana value 4 or less from your graveyard; ...` | "Choose target creature card in your graveyard with mana value 4 or less." (`choose` prints the graveyard right after the noun). |
+
 ### Wording variants
 
 Forms that change only how Oracle words what an existing form does:

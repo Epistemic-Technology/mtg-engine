@@ -669,6 +669,8 @@ impl GameState {
             cleanup_repeat: false,
             end_turn: false,
             extra_turns: Vec::new(),
+            no_powerup_extra: Vec::new(),
+            no_powerup_turn: false,
             effect_controller: None,
             resume_player: None,
             extra_phases: Vec::new(),
@@ -2760,10 +2762,32 @@ impl GameState {
         let o = &self.objects[spell];
         if let Some(c) = self.pool.get(o.def).optional_cost.as_deref()
             && self.other_costs_payable(o.controller, c, spell)
+            && (c.mana.is_empty() || self.optional_mana_payable(spell))
         {
             return Flow::ChoosingOptionalCost { spell };
         }
         self.after_optional_cost(spell)
+    }
+
+    /// Whether `spell` (being cast) could be paid for with its optional
+    /// additional cost's mana on top ("you may waterbend {4}", CR
+    /// 701.67a: its artifacts and creatures helping).
+    fn optional_mana_payable(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let mut cast = o.cast;
+        cast.set_optional_paid(true);
+        let def = self.pool.get(o.def);
+        let mut sources = self.mana_sources(o.controller);
+        let keywords = self.spell_keywords(o.controller, def, spell).0;
+        let bend = Self::bend_cap(def, cast);
+        if Keyword::helps_pay(keywords) || bend > 0 {
+            sources.extend(self.helper_sources(o.controller, keywords, bend));
+        }
+        let mut req = self.spell_requirements(spell, 0);
+        if let Some(c) = def.optional_cost.as_deref() {
+            req.add(&c.mana.requirements(0));
+        }
+        self.payable_tapping(o.controller, &sources, &req, None, &[])
     }
 
     fn after_optional_cost(&self, spell: ObjId) -> Flow {
@@ -3283,6 +3307,10 @@ impl GameState {
     /// CR 402.2, 514.1: the hand size `p` discards down to, after static
     /// abilities that change it (`usize::MAX` for none).
     fn max_hand_size(&self, p: PlayerId) -> usize {
+        // "You have no maximum hand size for the rest of the game."
+        if self.player(p).max_hand_size == usize::MAX {
+            return usize::MAX;
+        }
         let mut n = i64::try_from(self.player(p).max_hand_size).unwrap_or(7);
         for id in &self.battlefield {
             let o = &self.objects[*id];
@@ -3543,8 +3571,17 @@ impl GameState {
 
     /// The player whose extra turn comes next, if one is in the game.
     fn next_extra_turn(&mut self) -> Option<PlayerId> {
+        self.no_powerup_turn = false;
         while let Some(p) = self.extra_turns.pop() {
+            // Kang the Conqueror: "During that turn, power-up abilities
+            // can't be activated."
+            let at = self.extra_turns.len();
+            let banned = self.no_powerup_extra.iter().position(|i| *i == at);
+            if let Some(i) = banned {
+                self.no_powerup_extra.swap_remove(i);
+            }
             if self.player(p).lost.is_none() {
+                self.no_powerup_turn = banned.is_some();
                 return Some(p);
             }
         }
