@@ -3014,6 +3014,7 @@ impl Compiler<'_> {
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
             Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
+            Recipient::Rest => CoreRecipient::Rest,
             Recipient::Declined(_) => CoreRecipient::Declined,
             Recipient::OpponentsWithout(i) => {
                 CoreRecipient::OpponentsWithout(groups[usize::from(i)])
@@ -3966,6 +3967,60 @@ impl Compiler<'_> {
                 who: r(*who),
                 filter: self.filter(filter),
             }),
+            Effect::ChooseFor {
+                who,
+                by,
+                filter,
+                count,
+                up_to,
+                types,
+                each_type,
+                among,
+            } => {
+                use mtg_core::card::{CardType as T, ChooseSlot};
+                let Num::N(n) = count else {
+                    return self.err("a choice for each player counts a fixed number");
+                };
+                let count = u8::try_from(*n).unwrap_or(u8::MAX);
+                let base = self.filter(filter);
+                let typed = |t: T| {
+                    let mut f = base.clone();
+                    f.types = f.types.with(t);
+                    ChooseSlot {
+                        filter: f,
+                        count: 1,
+                    }
+                };
+                let slots: Vec<ChooseSlot> = if *each_type {
+                    // CR 110.4: the permanent types.
+                    [
+                        T::Artifact,
+                        T::Battle,
+                        T::Creature,
+                        T::Enchantment,
+                        T::Land,
+                        T::Planeswalker,
+                    ]
+                    .into_iter()
+                    .map(typed)
+                    .collect()
+                } else if types.is_empty() {
+                    vec![ChooseSlot {
+                        filter: base.clone(),
+                        count,
+                    }]
+                } else {
+                    types.iter().map(|t| typed(*t)).collect()
+                };
+                let among = among.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::ChooseFor(Box::new(mtg_core::card::ChooseFor {
+                    who: Some(r(*who)),
+                    by_you: *by != crate::ast::ChooseBy::Each,
+                    slots,
+                    among,
+                    up_to: *up_to,
+                })));
+            }
             Effect::CantBeTargeted { what, ban } => out.push(CoreEffect::CantBeTargeted {
                 what: r(*what),
                 ban: *ban,

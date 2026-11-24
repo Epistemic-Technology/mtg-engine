@@ -1376,6 +1376,20 @@ pub struct StatusQuals {
     /// doesn't restrict.
     #[serde(default)]
     pub protector: Option<Who>,
+    /// "all other creatures" after a choice, "all nonland permanents not
+    /// chosen this way", "all creatures except creatures chosen this
+    /// way": not chosen by the resolution's last `Effect::ChooseFor` or
+    /// `PlayerChooses` (`ThisWayLog::chosen`). Judged for an effect's
+    /// groups; elsewhere it doesn't restrict.
+    #[serde(default)]
+    pub unchosen: bool,
+    /// "that don't share a creature type with the chosen creature they
+    /// control" (Winnowing, CR 205.3m): shares no creature type with the
+    /// permanent chosen for its controller (`false`), or shares one
+    /// (`true`). Judged for an effect's groups like `unchosen`; nothing
+    /// was chosen for a player, then nothing shares.
+    #[serde(default)]
+    pub shares_chosen: Option<bool>,
 }
 
 /// A characteristic compared with an amount the source counts
@@ -4028,6 +4042,11 @@ pub enum Recipient {
     /// interned filter ("each opponent who doesn't control an Elf"),
     /// judged as the effect happens.
     OpponentsWithout(u16),
+    /// "the rest" after a choice (`Effect::ChooseFor`, `PlayerChooses`):
+    /// the permanents that could have been chosen and weren't
+    /// (`ThisWayLog::unchosen`), still on the battlefield ("Destroy the
+    /// rest.", "then sacrifices the rest").
+    Rest,
     /// Each permanent the resolution has dealt damage to so far ("A
     /// creature dealt damage this way can't be regenerated this turn", CR
     /// 608.2c), still on the battlefield.
@@ -5804,6 +5823,15 @@ pub enum Effect {
         who: Recipient,
         filter: ObjFilter,
     },
+    /// Permanents chosen for each player and remembered for the rest of
+    /// the resolution, not targeted (CR 608.2d): "Each player chooses an
+    /// artifact, a creature, an enchantment, and a planeswalker from among
+    /// the nonland permanents they control", "For each player, you choose
+    /// a creature that player controls", "Choose up to one creature."
+    /// What was chosen is `ThisWayLog::chosen`; the rest of what could
+    /// have been, `ThisWayLog::unchosen` (`Recipient::Rest`, "Destroy the
+    /// rest."; `StatusQuals::unchosen`, "all other creatures").
+    ChooseFor(Box<ChooseFor>),
     /// "Choose two target creatures controlled by the same player. That
     /// player sacrifices one of them of their choice." (Incriminate,
     /// Cannibalize, Trial of Agony): targets `first` and `first + 1`; the
@@ -6054,6 +6082,7 @@ impl Effect {
                 | Effect::ReturnChosen { .. }
                 | Effect::ExileChosen { .. }
                 | Effect::PlayerChooses { .. }
+                | Effect::ChooseFor(_)
                 | Effect::PickTarget { .. }
                 // "Move any number of +1/+1 counters": how many is asked as
                 // it resolves (Bioshift; it panicked outside a "you may").
@@ -6235,6 +6264,38 @@ pub enum SkipWhat {
 /// `Effect::MoveCounters::count` for "move any number of +1/+1 counters":
 /// the controller chooses how many as it resolves.
 pub const MOVE_ANY_NUMBER: u32 = u32::MAX;
+
+/// `Effect::ChooseFor`: what is chosen, for whom, and by whom.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ChooseFor {
+    /// The players whose permanents are chosen among ("each player", "each
+    /// opponent", "that player"), in turn order from the active player
+    /// (as Divine Reckoning's ruling has it: each knows the choices made
+    /// before theirs); `None`: one choice among every permanent, by the
+    /// controller ("Choose up to one creature.").
+    pub who: Option<Recipient>,
+    /// "you choose": the controller chooses for each player; otherwise
+    /// each player chooses among their own.
+    pub by_you: bool,
+    /// `count` permanents matching each filter, distinct within a slot;
+    /// one permanent may fill several slots (Cataclysmic Gearhulk's
+    /// ruling: "an artifact creature may be chosen as the artifact, the
+    /// creature, or both").
+    pub slots: Vec<ChooseSlot>,
+    /// "from among the nonland permanents they control": the permanents
+    /// chosen among and of which the unchosen are "the rest"; `None`:
+    /// those matching a slot's filter.
+    pub among: Option<ObjFilter>,
+    /// "up to two creatures": the chooser may choose fewer.
+    pub up_to: bool,
+}
+
+/// One kind of permanent `Effect::ChooseFor` chooses.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ChooseSlot {
+    pub filter: ObjFilter,
+    pub count: u8,
+}
 
 /// What `Effect::ChooseAct` does to each object its controller chooses.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

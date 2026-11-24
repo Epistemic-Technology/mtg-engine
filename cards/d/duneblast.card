@@ -1,0 +1,6 @@
+card "Duneblast" {
+  oracle_id 14104a52-c4e8-4755-8196-7fa5c5a35f36
+  cost {4}{W}{B}{G}
+  type Sorcery
+  spell: choose up to 1 creature chosen; destroy the rest
+}

@@ -414,6 +414,7 @@ impl Decompiler<'_> {
             not_attached: f.not_attached,
             enchanted_player: f.enchanted_player,
             other_than_this: false,
+            unchosen_wording: crate::ast::UnchosenWording::Other,
             and_or: false,
             and_list: false,
             that_are: false,
@@ -866,6 +867,7 @@ impl Decompiler<'_> {
             CoreRecipient::ExiledWith(i) => Recipient::ExiledWith(i),
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
+            CoreRecipient::Rest => Recipient::Rest,
             CoreRecipient::Declined => Recipient::Declined(crate::ast::Declined {
                 player: false,
                 tense: crate::ast::DeclinedTense::Didnt,
@@ -1312,6 +1314,40 @@ impl Decompiler<'_> {
                 who: r(*who),
                 filter: self.filter(filter),
             },
+            CoreEffect::ChooseFor(c) => {
+                let each_type = c.slots.len() == 6;
+                let (filter, count, types) = match c.slots.as_slice() {
+                    [one] if !each_type => (
+                        self.filter(&one.filter),
+                        mtg_core::card::Num::N(u32::from(one.count)),
+                        Vec::new(),
+                    ),
+                    slots => {
+                        let mut base = slots.first().map(|s| s.filter.clone()).unwrap_or_default();
+                        base.types = mtg_core::card::TypeSet::default();
+                        let types = if each_type {
+                            Vec::new()
+                        } else {
+                            slots.iter().flat_map(|s| types(s.filter.types)).collect()
+                        };
+                        (self.filter(&base), mtg_core::card::Num::N(1), types)
+                    }
+                };
+                Effect::ChooseFor {
+                    who: c.who.map_or(Recipient::EachPlayer, r),
+                    by: if c.by_you {
+                        crate::ast::ChooseBy::You
+                    } else {
+                        crate::ast::ChooseBy::Each
+                    },
+                    filter,
+                    count,
+                    up_to: c.up_to,
+                    types,
+                    each_type,
+                    among: c.among.as_ref().map(|f| self.filter(f)),
+                }
+            }
             CoreEffect::CantBeTargeted { what, ban } => Effect::CantBeTargeted {
                 what: r(*what),
                 ban: *ban,

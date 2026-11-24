@@ -1,0 +1,8 @@
+card "Fall of the First Civilization" {
+  oracle_id dd0494f5-58bf-46ae-ad69-90b063f6f660
+  cost {2}{W}
+  type Enchantment — Saga
+  triggered chapter 1: you and target opponent each draw 2 cards
+  triggered chapter 2: exile target artifact an opponent controls
+  triggered chapter 3: each player chooses 3 nonland permanent they control; destroy all unchosen nonland permanent
+}

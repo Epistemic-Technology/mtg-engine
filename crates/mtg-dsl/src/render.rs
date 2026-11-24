@@ -1994,6 +1994,7 @@ impl<'a> Ctx<'a> {
                 )
             }
             Recipient::DamagedThisWay => "a creature dealt damage this way".to_string(),
+            Recipient::Rest => "the rest".to_string(),
             Recipient::OpponentsWithout(i) => match self.card.groups.get(usize::from(i)) {
                 Some(f) => format!(
                     "each opponent who doesn't control {}",
@@ -3024,6 +3025,50 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
 
 #[allow(clippy::too_many_lines)] // one clause per qualifier
 fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
+    // After a choice: "all other creatures", "all nonland permanents not
+    // chosen this way", "all creatures except creatures chosen this way",
+    // "... that don't share a creature type with the chosen creature they
+    // control".
+    if f.status.unchosen || f.status.shares_chosen.is_some() {
+        use crate::ast::UnchosenWording;
+        let mut g = f.clone();
+        g.status.unchosen = false;
+        g.status.shares_chosen = None;
+        if f.status.unchosen && f.unchosen_wording == UnchosenWording::Other {
+            g.relation = Relation::Other;
+        }
+        let mut s = filter_phrase_one(&g, card, plural_form);
+        if f.status.unchosen {
+            match f.unchosen_wording {
+                UnchosenWording::Other => {}
+                UnchosenWording::NotChosen => s.push_str(" not chosen this way"),
+                UnchosenWording::Except => {
+                    let mut n = g.clone();
+                    n.who = None;
+                    n.they_control = false;
+                    n.all = false;
+                    let _ = write!(
+                        s,
+                        " except {} chosen this way",
+                        filter_phrase_one(&n, card, true)
+                    );
+                }
+            }
+        }
+        if let Some(share) = f.status.shares_chosen {
+            let verb = match (share, plural_form) {
+                (false, true) => "don't share",
+                (false, false) => "doesn't share",
+                (true, true) => "share",
+                (true, false) => "shares",
+            };
+            let _ = write!(
+                s,
+                " that {verb} a creature type with the chosen creature they control"
+            );
+        }
+        return s;
+    }
     // "a spell that's both white and black" (CR 105.2).
     if f.status.all_colors
         && let Some(cs) = &f.colors
@@ -3314,6 +3359,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(Who::Opponents) if f.per_opponent => s.push_str(" that player controls"),
         Some(Who::Opponents) if f.defending => s.push_str(" defending player controls"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
+        // "each player sacrifices all other nonland permanents they
+        // control": each their own.
+        None if f.they_control && f.that_player.is_none() => s.push_str(" they control"),
         Some(Who::You | Who::Any) | None => {}
     }
     match f.that_player {
@@ -5913,6 +5961,71 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
 #[allow(clippy::too_many_lines)] // one arm per effect kind
 fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
     match e {
+        // "Each player chooses an artifact, a creature, an enchantment, and
+        // a planeswalker from among the nonland permanents they control",
+        // "For each player, you choose a creature that player controls".
+        Effect::ChooseFor {
+            who,
+            by,
+            filter,
+            count,
+            up_to,
+            types,
+            each_type,
+            among,
+        } => {
+            use crate::ast::ChooseBy;
+            let owner = if *by == ChooseBy::Each {
+                "they control"
+            } else {
+                "that player controls"
+            };
+            let what = if types.is_empty() {
+                let one = matches!(count, Num::N(1));
+                let noun = filter_phrase(filter, ctx.card, !one);
+                let n = if one && !*up_to {
+                    with_article(&noun)
+                } else {
+                    format!("{} {noun}", count_words(*count, "one"))
+                };
+                if *up_to { format!("up to {n}") } else { n }
+            } else {
+                let items: Vec<String> =
+                    types.iter().map(|t| with_article(type_noun(*t))).collect();
+                match items.as_slice() {
+                    [a, b] => format!("{a} and {b}"),
+                    [rest @ .., last] => format!("{}, and {last}", rest.join(", ")),
+                    [] => String::new(),
+                }
+            };
+            let among = among.as_ref().map(|a| {
+                format!(
+                    "from among the {} {owner}",
+                    filter_phrase(a, ctx.card, true)
+                )
+            });
+            let mut text = match among {
+                Some(a) if *by != ChooseBy::Each => format!("{a} {what}"),
+                Some(a) => format!("{what} {a}"),
+                None if types.is_empty() => format!("{what} {owner}"),
+                None => what,
+            };
+            if *each_type {
+                text.push_str(" of each permanent type");
+            }
+            match by {
+                ChooseBy::Each => {
+                    let s = ctx.subj(*who);
+                    Clause::with_subject(
+                        *who,
+                        s,
+                        format!("{} {text}", ctx.verb(*who, "chooses", "choose")),
+                    )
+                }
+                ChooseBy::You => Clause::imperative(format!("for each player, you choose {text}")),
+                ChooseBy::Bare => Clause::imperative(format!("for each player, choose {text}")),
+            }
+        }
         // "Target opponent chooses a creature they control."
         Effect::PlayerChooses { who, filter } => {
             let s = ctx.subj(*who);
@@ -8138,7 +8251,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::SacrificeBy { who, what } => {
             let s = ctx.subj(*who);
-            let o = ctx.obj(*what);
+            // "Then each player sacrifices all other nonland permanents
+            // they control."
+            let o = match what {
+                Recipient::Group(i)
+                    if ctx.card.groups.get(usize::from(*i)).is_some_and(|f| f.all) =>
+                {
+                    ctx.obj_all(*what)
+                }
+                _ => ctx.obj(*what),
+            };
             let v = ctx.verb(*who, "sacrifices", "sacrifice");
             Clause::with_subject(*who, s, format!("{v} {o}"))
         }
@@ -9493,14 +9615,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else if one {
                     filter_a(filter, ctx.card)
                 } else {
-                    format!("{n} {}", filter_phrase(filter, ctx.card, true))
+                    // "Choose up to one creature." (Duneblast).
+                    format!(
+                        "{n} {}",
+                        filter_phrase(filter, ctx.card, *count != Num::N(1))
+                    )
                 }
             };
             let cards = || {
                 if one {
                     with_article(&cards_phrase(filter, ctx.card, false))
                 } else {
-                    format!("{n} {}", cards_phrase(filter, ctx.card, true))
+                    format!(
+                        "{n} {}",
+                        cards_phrase(filter, ctx.card, *count != Num::N(1))
+                    )
                 }
             };
             Clause::imperative(match act {

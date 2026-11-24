@@ -1,0 +1,7 @@
+card "Winnowing" {
+  oracle_id 8b834f83-951b-4b5c-b9f1-3d860baa3c0e
+  cost {4}{W}{W}
+  type Sorcery
+  keywords convoke
+  spell: for each player, you choose creature that player controls; then each player sacrifices all unchosen creature they control that doesn't share creature type with chosen
+}

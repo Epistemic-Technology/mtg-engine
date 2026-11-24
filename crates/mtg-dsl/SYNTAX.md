@@ -2530,7 +2530,34 @@ hand"; `from graveyard`: "a card from their graveyard"; the player
 chooses), `<who> chooses creature they control; destroy that created creature`
 ("Target opponent chooses a creature they control. Destroy that
 creature.": not targeted, the player chooses as it resolves; the chosen
-permanent is `that created creature`), `<who> exiles 1 creature they control` ("Target opponent
+permanent is `that created creature`; it is also remembered for `the
+rest` and `unchosen`, below), choices remembered for each player (not
+targeted, CR 608.2d; each player in turn order from the active player):
+`each player chooses 3 permanent they control` ("Each player chooses
+three permanents they control"), `that player chooses up to 2 creature
+they control`, `each player chooses each of artifact, creature,
+enchantment, planeswalker from among nonland permanent they control`
+("... an artifact, a creature, an enchantment, and a planeswalker from
+among the nonland permanents they control"; one permanent may be chosen
+for several types), `each opponent chooses permanent they control of
+each permanent type`, `for each player, you choose creature that player
+controls` (you choose for every player), `for each player, you choose
+from among permanent that player controls each of artifact, ...` ("For
+each player, you choose from among the permanents that player controls
+an artifact, ..."), `for each player, choose creature with power 2 or
+less that player controls` (no "you"); `choose up to 1 creature chosen`
+("Choose up to one creature.", any player's) is remembered the same way.
+After such a choice, the recipient `the rest` is what could have been
+chosen and wasn't (`destroy the rest`, `... then sacrifices the rest`),
+and a group filter's `unchosen` ("all other nonland permanents"), `not
+chosen this way` ("all nonland permanents not chosen this way"), `except
+chosen this way` ("all creatures except creatures chosen this way") leave
+out what was chosen; `that doesn't share creature type with chosen` ("that
+don't share a creature type with the chosen creature they control") is
+judged against the permanent chosen for the object's controller. `each
+player sacrifices all unchosen nonland permanent they control` ("Then each
+player sacrifices all other nonland permanents they control"): each their
+own. `<who> exiles 1 creature they control` ("Target opponent
 exiles a creature they control", their choice; `... they control and
 their graveyard` then exiles their graveyard: "Target opponent exiles a
 creature they control and their graveyard"), `<who> reveals hand

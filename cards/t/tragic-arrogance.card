@@ -1,0 +1,6 @@
+card "Tragic Arrogance" {
+  oracle_id 8a29bd35-33ef-4317-9fe5-8aaff5d7d64d
+  cost {3}{W}{W}
+  type Sorcery
+  spell: for each player, you choose from among permanent that player controls each of artifact, creature, enchantment, planeswalker; then each player sacrifices all unchosen nonland permanent they control
+}
