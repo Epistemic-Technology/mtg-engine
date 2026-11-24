@@ -16360,7 +16360,7 @@ impl P {
         let event = self.replaces()?;
         // `while this has 1 or more +1/+1 counters` (Ugin's Conjurant).
         let cond = if self.eat_word("while") {
-            Some(self.static_cond()?)
+            Some(Box::new(self.static_cond()?))
         } else {
             None
         };
@@ -16701,6 +16701,7 @@ impl P {
         Ok(a)
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per outcome
     fn outcome(&mut self) -> R<Outcome> {
         let w = self.word()?;
         let out = match w.as_str() {

@@ -5868,22 +5868,24 @@ impl Effect {
                 | Effect::Forage
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
-                // A source of the controller's choice (CR 609.7a).
-                | Effect::CreateReplacement(ReplacementAbility {
-                    replaces: Replaces::Damage {
-                        from: Some(Affects::Chosen(_)),
-                        ..
-                    },
-                    ..
-                })
+                // A source of the controller's choice (CR 609.7a), or
                 // "Choose a creature or planeswalker you control."
-                | Effect::CreateReplacement(ReplacementAbility {
-                    replacement: Replacement::Redirect {
-                        to: RedirectTo::ChosenCreatureOrPlaneswalker,
+                | Effect::CreateReplacement(
+                    ReplacementAbility {
+                        replaces: Replaces::Damage {
+                            from: Some(Affects::Chosen(_)),
+                            ..
+                        },
+                        ..
+                    }
+                    | ReplacementAbility {
+                        replacement: Replacement::Redirect {
+                            to: RedirectTo::ChosenCreatureOrPlaneswalker,
+                            ..
+                        },
                         ..
                     },
-                    ..
-                })
+                )
                 | Effect::Vote { .. }
                 | Effect::VoteReturn { .. }
                 // Each clashing player puts their card on the top or

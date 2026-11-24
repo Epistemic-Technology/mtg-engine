@@ -3104,7 +3104,7 @@ pub struct Replacement {
     /// ...`: "If damage would be dealt to this creature while it has a
     /// +1/+1 counter on it, ..." (Ugin's Conjurant). The ability applies
     /// only while the condition holds (a static ability only).
-    pub cond: Option<StaticCond>,
+    pub cond: Option<Box<StaticCond>>,
 }
 
 /// How a prevention's effects (`{ ... }`) are printed.
