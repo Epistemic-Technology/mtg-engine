@@ -1,0 +1,21 @@
+# Ares, God of War: "attacking" in a dies trigger is judged as the
+# creature last existed (CR 603.10a).
+
+scenario "Ares attacks unscripted; a dying attacker returns to hand" {
+  battlefield A: "Ares, God of War", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Ares, God of War", "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "Ares: a nonattacking creature that dies stays in the graveyard" {
+  battlefield A: "Ares, God of War", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
