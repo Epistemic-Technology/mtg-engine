@@ -15366,7 +15366,7 @@ pub(crate) fn or_shared(a: &str, b: &str, whenever: bool) -> String {
 
 /// "for mana", "for {C}", "for mana of the chosen color": what a
 /// triggered mana ability's permanent is tapped for.
-fn tapped_for_kind(form: &mtg_core::card::ManaTriggerForm) -> &'static str {
+fn tapped_for_kind(form: mtg_core::card::ManaTriggerForm) -> &'static str {
     match form.made {
         None => "mana",
         Some(mtg_core::mana::Mana::Chosen) => "mana of the chosen color",
@@ -16181,7 +16181,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!(
                 "whenever you tap {} for {}",
                 trigger_filter_a(&g, ctx.card),
-                tapped_for_kind(form)
+                tapped_for_kind(*form)
             )
         }
         // "Whenever a player taps a basic land for mana" (Mana Flare):
@@ -16192,7 +16192,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!(
                 "whenever a player taps {} for {}",
                 trigger_filter_a(f, ctx.card),
-                tapped_for_kind(form)
+                tapped_for_kind(*form)
             )
         }
         // "Whenever a basic land is tapped for mana of the chosen color".
@@ -16200,7 +16200,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!(
                 "whenever {} is tapped for {}",
                 trigger_subject(o, ctx),
-                tapped_for_kind(form)
+                tapped_for_kind(*form)
             )
         }
         // "Whenever you tap this creature for mana", "Whenever a player

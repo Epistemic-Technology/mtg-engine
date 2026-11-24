@@ -2303,7 +2303,9 @@ impl P {
             self.expect_words(&["to", "cast"])?;
             // `not to cast spells from hand`: "This mana can't be spent to
             // cast spells from your hand."
-            let (f, plural) = if self.eat_word("spells") {
+            // (The formatter writes the empty filter as `permanent`.)
+            let (f, plural) = if self.eat_word("spells") || self.eat_words(&["permanent", "spells"])
+            {
                 (crate::ast::Filter::default(), SpendPlural::Or)
             } else {
                 let f = self.filter()?;
@@ -17352,11 +17354,9 @@ impl P {
                     self.pos += 1;
                 }
                 // "a permanent card": not an instant or sorcery (CR
-                // 110.4a); "a permanent spell" likewise (CR 110.4b).
+                // 110.4a).
                 "permanent"
                     if (matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
-                        || (f == Filter::default()
-                            && matches!(self.word_at(1).as_deref(), Some("spell" | "spells")))
                         || (self.card_filter && self.word_at(1).as_deref() == Some("with")))
                         && (f == Filter::default()
                             || (f.types.is_empty()

@@ -8,6 +8,6 @@ card "Brass's Tunnel-Grinder // Tecutlan, the Searing Rift" {
   face "Tecutlan, the Searing Rift" {
     type Legendary Land — Cave
     mana {R}
-    triggered whenever you cast permanent spell using mana from this: discover count where mana value of that spell
+    triggered whenever you cast noninstant nonsorcery spell using mana from this: discover count where mana value of that spell
   }
 }
