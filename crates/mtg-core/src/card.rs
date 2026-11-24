@@ -9381,6 +9381,13 @@ pub struct Cost {
     /// than the source (the engine picks the one with the most of them).
     #[serde(default)]
     pub remove_from_creature: bool,
+    /// "Remove two +1/+1 counters from among artifacts you control",
+    /// "removing six counters from among creatures you control" (CR
+    /// 118.3): the `remove_counters` come off any permanents the payer
+    /// controls matching this, the source among them, together (the engine
+    /// takes them from the one with the most first).
+    #[serde(default)]
+    pub remove_among: Option<Box<ObjFilter>>,
     /// "As an additional cost to cast this spell, sacrifice any number of
     /// creatures" (1; "you may sacrifice any number of Spirits", 2): X
     /// announced as the spell is cast (CR 601.2b, 107.3), at most the
@@ -9527,6 +9534,7 @@ impl Cost {
             blight_put: false,
             process: 0,
             remove_from_creature: false,
+            remove_among: None,
             sacrifice_any: 0,
             remove_x: false,
             untap: false,

@@ -1057,6 +1057,10 @@ pub struct Cost {
     /// `remove 1 +1/+1 counter from creature you control`: the
     /// `remove_counters` from a creature the payer controls.
     pub remove_from_creature: bool,
+    /// `remove 2 +1/+1 counters from among artifact you control`,
+    /// `remove 6 counters from among creature you control`: the
+    /// `remove_counters` from among the payer's matching permanents.
+    pub remove_among: Option<Filter>,
     /// `sacrifice any number creature` (1): "sacrifice any number of
     /// creatures"; `may sacrifice any number Spirit` (2): "you may
     /// sacrifice any number of Spirits".

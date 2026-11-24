@@ -4818,6 +4818,48 @@ impl GameState {
             && c.craft
                 .as_deref()
                 .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())
+            && match (&c.remove_among, c.remove_counters) {
+                (Some(f), Some((k, n))) => self.counters_among(p, f, k, n, except).is_some(),
+                _ => true,
+            }
+    }
+
+    /// The permanents `p` controls matching `f` (judged for the source
+    /// `except`: "other artifacts") a
+    /// "Remove two +1/+1 counters from among artifacts you control" cost
+    /// takes counters of `k` from, and how many each: `n` in all, from the
+    /// one with the most first; `None` if they have fewer than `n`.
+    pub fn counters_among(
+        &self,
+        p: PlayerId,
+        f: &crate::card::ObjFilter,
+        k: CounterKind,
+        n: u32,
+        except: ObjId,
+    ) -> Option<Vec<(ObjId, u32)>> {
+        let mut have: Vec<(ObjId, u32)> = self
+            .permanents_of(p)
+            .filter_map(|id| {
+                let c = self.objects[id].counters(k);
+                (c > 0
+                    && self
+                        .characteristics(id)
+                        .is_some_and(|ch| f.matches(id, p, &ch, Some(except), Some(p))))
+                .then_some((id, c))
+            })
+            .collect();
+        have.sort_by_key(|(_, c)| std::cmp::Reverse(*c));
+        let mut left = n;
+        let mut out = Vec::new();
+        for (id, c) in have {
+            if left == 0 {
+                break;
+            }
+            let take = c.min(left);
+            out.push((id, take));
+            left -= take;
+        }
+        (left == 0).then_some(out)
     }
 
     /// The creature `p` controls a "Remove a +1/+1 counter from a creature

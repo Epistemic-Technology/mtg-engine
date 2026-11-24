@@ -508,6 +508,7 @@ impl GameState {
             || cost.blight > 0
             || cost.process > 0
             || cost.remove_from_creature
+            || cost.remove_among.is_some()
             || cost.evidence > 0
             || cost.behold.is_some()
             || cost.reveal_hand

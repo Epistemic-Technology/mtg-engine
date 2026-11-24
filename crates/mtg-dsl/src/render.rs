@@ -3450,8 +3450,9 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // you control", "Bears, Spiders, and Wolves"; `andor` prints
     // "and/or" ("up to two target Mounts and/or Vehicles").
     // `andlist`: "each Pest, Bat, Insect, Snake, and Spider".
+    // "each artifact creature and/or Vehicle you control" (Iron Spider).
     let conj = match (plural_form, f.and_or) {
-        (true, true) => "and/or",
+        (_, true) => "and/or",
         (true, false) => "and",
         (false, _) if f.and_list => "and",
         (false, _) => "or",
@@ -4737,6 +4738,15 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
                 None => {}
             },
+            CostItem::RemoveCounters if cost.remove_among.is_some() => {
+                if let (Some((k, n)), Some(f)) = (cost.remove_counters, &cost.remove_among) {
+                    let what = counters(Num::N(n), k);
+                    parts.push(format!(
+                        "Remove {what} from among {}",
+                        filter_phrase(f, ctx.card, true)
+                    ));
+                }
+            }
             CostItem::RemoveCounters if cost.remove_from_creature => {
                 if let Some((k, n)) = cost.remove_counters {
                     let what = counters(Num::N(n), k);
@@ -22884,6 +22894,14 @@ fn graveyard_cast_text(card: &Card, g: &crate::ast::GraveyardCast) -> String {
         }
         if let Some(SacCost::Filter(f)) = &c.sacrifice {
             parts.push(format!("sacrificing {}", filter_a(f, card)));
+        }
+        // "removing six counters from among creatures you control".
+        if let (Some((k, n)), Some(f)) = (c.remove_counters, &c.remove_among) {
+            parts.push(format!(
+                "removing {} from among {}",
+                counters(Num::N(n), k),
+                filter_phrase(f, card, true)
+            ));
         }
         if c.discard > 0 {
             parts.push(if c.discard == 1 {

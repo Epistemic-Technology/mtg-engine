@@ -824,6 +824,14 @@ first, then kinds that don't change power or toughness, then the rest),
 `remove 1 +1/+1 counter from creature you control` ("Remove a +1/+1
 counter from a creature you control": the engine takes it from the
 creature with the most such counters, the source included),
+`remove 2 +1/+1 counters from among artifact you control` ("Remove two
++1/+1 counters from among artifacts you control", Iron Spider; `remove 6
+counters from among creature you control`, any kind; CR 118.3: the
+counters come off any of the payer's permanents matching the filter, the
+source included, together, the engine taking them from the one with the
+most first; payable only with that many among them; also after `cast from
+graveyard with`, "by removing six counters from among creatures you
+control in addition to paying its other costs"; not in a mana ability),
 `remove X ki counters from this` ("Remove X ki counters from this
 creature": X is the ability's, announced as it is activated, at most the
 counters of that kind on the source; with {X} in the mana cost too, the

@@ -6738,6 +6738,12 @@ fn cost_text(c: &Cost) -> String {
                 )),
                 None => {}
             },
+            CostItem::RemoveCounters if c.remove_among.is_some() => {
+                if let (Some((k, n)), Some(f)) = (c.remove_counters, &c.remove_among) {
+                    let what = counter(k, Num::N(n));
+                    parts.push(format!("remove {n} {what} from among {}", filter(f)));
+                }
+            }
             CostItem::RemoveCounters => {
                 if let Some((k, n)) = c.remove_counters {
                     let from = if c.remove_from_creature {

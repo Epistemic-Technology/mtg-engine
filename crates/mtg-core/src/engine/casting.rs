@@ -5734,6 +5734,7 @@ impl GameState {
                     continue;
                 }
                 if let Some((k, n)) = ab.cost.remove_counters
+                    && ab.cost.remove_among.is_none()
                     && if ab.cost.remove_from_creature {
                         self.counter_cost_creature(p, k, n).is_none()
                     } else {
@@ -8458,12 +8459,17 @@ impl GameState {
         }
         if let Some((k, n)) = cost.remove_counters {
             // "Remove a +1/+1 counter from a creature you control".
-            let from = if cost.remove_from_creature {
+            // "Remove two +1/+1 counters from among artifacts you
+            // control".
+            if let Some(f) = &cost.remove_among {
+                for (from, m) in self.counters_among(p, f, k, n, this).unwrap_or_default() {
+                    self.remove_counters(from, k, m);
+                }
+            } else if let Some(from) = if cost.remove_from_creature {
                 self.counter_cost_creature(p, k, n)
             } else {
                 Some(this)
-            };
-            if let Some(from) = from {
+            } {
                 self.remove_counters(from, k, n);
             }
         }

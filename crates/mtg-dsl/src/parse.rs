@@ -20261,6 +20261,27 @@ impl P {
                         cost.remove_counters = Some((k, n));
                         cost.order.push(CostItem::RemoveCounters);
                     }
+                    // `remove 2 +1/+1 counters from among artifact you
+                    // control`, `remove 6 counters from among creature you
+                    // control` (CR 118.3).
+                    "remove"
+                        if (2..5).any(|k| {
+                            self.word_at(k).as_deref() == Some("from")
+                                && self.word_at(k + 1).as_deref() == Some("among")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        let k = if self.eat_word("counter") || self.eat_word("counters") {
+                            CounterKind::Any
+                        } else {
+                            self.counter_kind()?
+                        };
+                        self.expect_words(&["from", "among"])?;
+                        cost.remove_counters = Some((k, n));
+                        cost.remove_among = Some(self.filter()?);
+                        cost.order.push(CostItem::RemoveCounters);
+                    }
                     // `remove 1 +1/+1 counter from creature you control`.
                     "remove"
                         if (2..5).any(|k| {

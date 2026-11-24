@@ -620,6 +620,7 @@ impl Decompiler<'_> {
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
+            remove_among: c.remove_among.as_deref().map(|f| self.filter(f)),
             sacrifice_any: c.sacrifice_any,
             remove_x: c.remove_x,
             remove_any: false,
