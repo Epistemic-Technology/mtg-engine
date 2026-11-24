@@ -9800,7 +9800,9 @@ impl P {
             }
             // "Target player shuffles their library."
             "shuffle" | "shuffles"
-                if self.at_word("library") && !matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+                if self.at_word("library")
+                    && (!matches!(self.peek_at(1), Some(Tok::Word(_)))
+                        || self.word_at(1).as_deref() == Some("then")) =>
             {
                 self.pos += 1;
                 Ok(Effect::Shuffle {
