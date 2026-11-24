@@ -2347,6 +2347,7 @@ impl<'a> Ctx<'a> {
                 ),
                 None => "each player".to_string(),
             },
+            Recipient::WithoutMaxSpeed => "each player who doesn't have max speed".to_string(),
             Recipient::OpponentsWithout(i) => match self.card.groups.get(usize::from(i)) {
                 Some(f) => format!(
                     "each opponent who doesn't control {}",
@@ -3097,6 +3098,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         yours,
         single,
         instant_sorcery,
+        noncreature,
         listed,
     } = s
     {
@@ -3104,6 +3106,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
             _ if instant_sorcery => {
                 "instant spell, sorcery spell, activated ability, or triggered ability"
             }
+            _ if noncreature => "activated ability, triggered ability, or noncreature spell",
             _ if listed => "spell, activated ability, or triggered ability",
             (true, true) if spells => "spell or ability",
             (true, true) => "activated or triggered ability",

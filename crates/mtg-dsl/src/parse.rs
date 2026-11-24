@@ -320,6 +320,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -344,6 +345,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -357,6 +359,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -370,6 +373,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: true,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -396,6 +400,33 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: true,
+            noncreature: false,
+            listed: true,
+        },
+    ),
+    // "target activated ability, triggered ability, or noncreature
+    // spell" (Louisoix's Sacrifice).
+    (
+        &[
+            "activated",
+            "ability",
+            ",",
+            "triggered",
+            "ability",
+            ",",
+            "or",
+            "noncreature",
+            "spell",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: true,
             listed: true,
         },
     ),
@@ -418,6 +449,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: true,
         },
     ),
@@ -431,6 +463,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: true,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -444,6 +477,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: true,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -457,6 +491,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: true,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -470,6 +505,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -483,6 +519,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -496,6 +533,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -509,6 +547,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -522,6 +561,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             yours: false,
             single: false,
             instant_sorcery: false,
+            noncreature: false,
             listed: false,
         },
     ),
@@ -16120,6 +16160,10 @@ impl P {
         // "each opponent who didn't", "each player who doesn't", "each
         // opponent who can't": those who didn't do what the last
         // per-player act asked.
+        // "each player who doesn't have max speed" (Outpace Oblivion).
+        if self.eat_words(&["each", "player", "who", "doesn't", "have", "max", "speed"]) {
+            return Ok(Recipient::WithoutMaxSpeed);
+        }
         if self.at_word("each")
             && matches!(self.word_at(1).as_deref(), Some("opponent" | "player"))
             && self.word_at(2).as_deref() == Some("who")

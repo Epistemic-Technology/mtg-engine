@@ -4355,6 +4355,10 @@ pub enum TargetSpec {
         /// triggered ability": a spell only if it is an instant or sorcery.
         #[serde(default)]
         instant_sorcery: bool,
+        /// "target activated ability, triggered ability, or noncreature
+        /// spell": a spell only if it isn't a creature spell.
+        #[serde(default)]
+        noncreature: bool,
         /// Printed as a list: "target spell, activated ability, or
         /// triggered ability" (the same objects as "spell or ability").
         #[serde(default)]
@@ -4561,6 +4565,11 @@ pub enum Recipient {
     /// interned filter ("each opponent who doesn't control an Elf"),
     /// judged as the effect happens.
     OpponentsWithout(u16),
+    /// Each player who doesn't have max speed (CR 702.179e: speed below
+    /// 4; no speed is speed 0), judged as the effect happens: "It deals 2
+    /// damage to each player who doesn't have max speed." (Outpace
+    /// Oblivion).
+    WithoutMaxSpeed,
     /// "the rest" after a choice (`Effect::ChooseFor`, `PlayerChooses`):
     /// the permanents that could have been chosen and weren't
     /// (`ThisWayLog::unchosen`), still on the battlefield ("Destroy the

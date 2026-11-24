@@ -507,6 +507,7 @@ impl Fmt {
                 Some(f) => format!("each player who controls most {}", filter(f)),
                 None => "each player".to_string(),
             },
+            Recipient::WithoutMaxSpeed => "each player who doesn't have max speed".to_string(),
             Recipient::OpponentsWithout(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("each opponent who doesn't control {}", filter(f)),
                 None => "each opponent".to_string(),

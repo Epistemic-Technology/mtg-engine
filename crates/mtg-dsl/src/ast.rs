@@ -4896,6 +4896,8 @@ pub enum Recipient {
     /// `each opponent who doesn't control Elf`: "each opponent who doesn't
     /// control an Elf" (the group's filter).
     OpponentsWithout(u16),
+    /// `each player who doesn't have max speed` (CR 702.179e).
+    WithoutMaxSpeed,
     /// `each player who controls most creature`: "each player who controls
     /// the most creatures" (ties included), judged as it happens.
     MostControl(u16),

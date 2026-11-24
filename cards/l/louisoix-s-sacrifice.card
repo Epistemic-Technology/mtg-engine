@@ -1,0 +1,8 @@
+card "Louisoix's Sacrifice" {
+  oracle_id 42d8ab49-703a-4fd3-84d0-0a3ac1eafca8
+  cost {U}
+  type Instant
+  additional cost sacrifice legendary creature
+  additional cost or {2}
+  spell: counter target activated ability, triggered ability, or noncreature spell
+}

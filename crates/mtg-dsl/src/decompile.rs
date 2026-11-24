@@ -964,6 +964,7 @@ impl Decompiler<'_> {
             CoreRecipient::ExiledWith(i) => Recipient::ExiledWith(i),
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
             CoreRecipient::MostControl(i) => Recipient::MostControl(i),
+            CoreRecipient::WithoutMaxSpeed => Recipient::WithoutMaxSpeed,
             CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
             CoreRecipient::Rest => Recipient::Rest,
             CoreRecipient::Accepted => Recipient::Declined(crate::ast::Declined {

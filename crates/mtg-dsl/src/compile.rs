@@ -3280,6 +3280,7 @@ impl Compiler<'_> {
             }
             Recipient::Declined(_) => CoreRecipient::Declined,
             Recipient::MostControl(i) => CoreRecipient::MostControl(groups[usize::from(i)]),
+            Recipient::WithoutMaxSpeed => CoreRecipient::WithoutMaxSpeed,
             Recipient::OpponentsWithout(i) => {
                 CoreRecipient::OpponentsWithout(groups[usize::from(i)])
             }

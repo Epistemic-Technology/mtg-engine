@@ -1121,7 +1121,9 @@ land card reveal to hand`, `each player puts 1 creature card from
 graveyard onto battlefield` ("... from their graveyard onto the
 battlefield": each chooses, then the cards enter together). `each opponent
 who doesn't control Elf loses 1 life` ("each opponent who doesn't control
-an Elf", judged as it resolves). After a discard, `for each opponent who
+an Elf", judged as it resolves). `deal 2 damage to each player who
+doesn't have max speed` (Outpace Oblivion: speed below 4, CR 702.179e,
+no speed included). After a discard, `for each opponent who
 can't, you gain 4 life` ("For each opponent who can't, ..."): once for each
 player who had too few cards to discard. Halves counted for each player
 as the effect happens for them (CR 107.1a), written right after the verb:
@@ -2994,7 +2996,9 @@ activated or triggered ability you control [from a creature source | from
 an artifact source]` (targets "you control" only the ability's
 controller's; `copy target instant spell, sorcery spell, activated
 ability, or triggered ability` a spell only if it is an instant or
-sorcery), `change target of target spell or ability with a single target`
+sorcery; `counter target activated ability, triggered ability, or
+noncreature spell`, Louisoix's Sacrifice, a spell only if it isn't a
+creature spell), `change target of target spell or ability with a single target`
 ("Change the target of target spell or ability with a single target.",
 CR 115.7a: the effect's controller changes it to another target legal for
 that spell or ability, judged for its controller and source; with none,

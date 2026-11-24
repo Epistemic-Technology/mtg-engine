@@ -11369,6 +11369,13 @@ impl GameState {
                     );
                 }
             }
+            Recipient::WithoutMaxSpeed => {
+                let players: SmallVec<[PlayerId; 4]> = self
+                    .players_in_game()
+                    .filter(|q| self.desig.speed(*q) < 4)
+                    .collect();
+                out.extend(players.into_iter().map(Target::Player));
+            }
             Recipient::OpponentsWithout(f) => {
                 let filter = self.pool.filter(f);
                 let source = self.current_object(ctx.source);

@@ -6310,6 +6310,7 @@ impl GameState {
                     yours,
                     single,
                     instant_sorcery,
+                    noncreature,
                     ..
                 } = spec
                 {
@@ -6326,7 +6327,9 @@ impl GameState {
                                 || self.characteristics(id).is_some_and(|c| {
                                     c.types.contains(CardType::Instant)
                                         || c.types.contains(CardType::Sorcery)
-                                }));
+                                }))
+                            && (!noncreature
+                                || self.characteristics(id).is_some_and(|c| !c.is_creature()));
                     };
                     let kind_ok = match self.pool.ability(sa.ability) {
                         crate::card::AbilityDef::Activated(_) => activated,
