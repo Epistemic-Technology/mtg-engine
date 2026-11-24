@@ -2910,6 +2910,9 @@ pub enum StaticCond {
     /// flying counter on it" (Inventive Wingsmith; the same condition as
     /// `this has no flying counters`, worded from the source).
     SourceLacksCounter(CounterKind),
+    /// `this has even counters`: "it has an even number of counters on
+    /// it"; `odd`: "an odd number".
+    SourceCounterParity(bool),
     /// `defending player controls Island`: "defending player controls an
     /// Island"; `at_least` 0, `defending player controls no Glimmer
     /// creature`: "... controls no Glimmer creatures".
@@ -6484,6 +6487,9 @@ pub enum Effect {
         /// "this main phase" rather than "this phase" (wording only).
         main_phase: bool,
     },
+    /// `only land creature can attack during that combat phase` (Bumi,
+    /// Unleashed): after `after this phase, additional combat phase`.
+    AddedCombatAttackers(Filter),
     /// `that creature can't be regenerated`: "That creature can't be
     /// regenerated this turn."
     CantBeRegenerated {

@@ -2505,6 +2505,11 @@ pub struct GameState {
     /// by the step that begins it (`BeginningOfCombat` or
     /// `PostcombatMain`, CR 505.1a), in the order they come.
     pub extra_phases: Vec<Step>,
+    /// "Only land creatures can attack during that combat phase": the
+    /// restriction waiting for the next additional combat phase, and the
+    /// one on the combat phase under way (CR 508.1c).
+    pub pending_combat_attackers: Option<crate::card::ObjFilter>,
+    pub combat_attackers: Option<crate::card::ObjFilter>,
     /// While additional phases run: the step the turn goes on with after
     /// them (what would have followed the phase they were added after).
     pub resume_step: Option<Step>,
@@ -4695,6 +4700,13 @@ impl GameState {
             C::SourceCounters { kind, n, at_least } => {
                 let have = self.objects.get(source).map_or(0, |o| o.counters(*kind));
                 if *at_least { have >= *n } else { have <= *n }
+            }
+            C::SourceCounterParity { even } => {
+                let have = self
+                    .objects
+                    .get(source)
+                    .map_or(0, |o| o.counters(crate::card::CounterKind::Any));
+                (have % 2 == 0) == *even
             }
             C::OpponentPoisonAtLeast(n) => self
                 .players_in_game()

@@ -234,6 +234,12 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (
         &[
+            "assigns", "combat", "damage", "as", "though", "its", "power", "were", "positive",
+        ],
+        Keyword::AssignsNegativePower,
+    ),
+    (
+        &[
             "untaps", "during", "each", "other", "player's", "untap", "step",
         ],
         Keyword::UntapsDuringOthers,
@@ -5084,6 +5090,13 @@ impl P {
 
     /// After `this has`: `4 or more oil counters`, `no arrowhead counters`.
     fn source_counters_cond(&mut self) -> R<StaticCond> {
+        // `this has even counters`, `this has odd counters` (Sab-Sunen).
+        if self.eat_words(&["even", "counters"]) {
+            return Ok(StaticCond::SourceCounterParity(true));
+        }
+        if self.eat_words(&["odd", "counters"]) {
+            return Ok(StaticCond::SourceCounterParity(false));
+        }
         if self.eat_words(&["one", "or", "more"]) {
             return Ok(StaticCond::SourceCountersOneOrMore(self.counter_kind()?));
         }
@@ -10952,6 +10965,15 @@ impl P {
         })
     }
 
+    /// After `only`: a filter then `can attack during that combat phase`.
+    fn at_ahead_words_until_can_attack(&self) -> bool {
+        (1..8).any(|k| {
+            self.word_at(k).as_deref() == Some("can")
+                && self.word_at(k + 1).as_deref() == Some("attack")
+                && self.word_at(k + 2).as_deref() == Some("during")
+        })
+    }
+
     /// `[2] additional combat phase[s] [after this phase] [then main
     /// phase]` (CR 500.8): how many combat phases, and whether a main
     /// phase follows them.
@@ -11226,6 +11248,12 @@ impl P {
             "flip" if self.eat_word("coin") => Ok(Effect::FlipCoin),
             // CR 701.23: "clash with an opponent".
             "clash" => Ok(Effect::Clash),
+            // "Only land creatures can attack during that combat phase."
+            "only" if self.at_ahead_words_until_can_attack() => {
+                let f = self.filter()?;
+                self.expect_words(&["can", "attack", "during", "that", "combat", "phase"])?;
+                Ok(Effect::AddedCombatAttackers(f))
+            }
             // CR 500.8: "After this phase, there is an additional combat
             // phase."
             "after" if self.at_word("this") => {

@@ -673,6 +673,8 @@ impl GameState {
             effect_controller: None,
             resume_player: None,
             extra_phases: Vec::new(),
+            pending_combat_attackers: None,
+            combat_attackers: None,
             resume_step: None,
             combats_this_turn: 0,
             result: None,
@@ -3328,6 +3330,8 @@ impl GameState {
         if self.combat.take().is_some() {
             self.combat_bump();
         }
+        self.pending_combat_attackers = None;
+        self.combat_attackers = None;
         self.extra_phases.clear();
         self.resume_step = None;
         self.cleanup_repeat = false;
@@ -3537,7 +3541,14 @@ impl GameState {
         if !phase_ends {
             return;
         }
+        // The restricted combat phase is over.
+        if self.step == Step::EndOfCombat {
+            self.combat_attackers = None;
+        }
         if self.extra_phases.first() == Some(&next) {
+            if next == Step::BeginningOfCombat && self.pending_combat_attackers.is_some() {
+                self.combat_attackers = self.pending_combat_attackers.take();
+            }
             self.extra_phases.remove(0);
             if self.resume_step.is_none() {
                 self.resume_step = self.step.next();

@@ -2374,6 +2374,9 @@ impl Compiler<'_> {
                 n: 1,
                 at_least: true,
             },
+            StaticCond::SourceCounterParity(even) => {
+                StaticCondition::SourceCounterParity { even: *even }
+            }
             StaticCond::SourceLacksCounter(kind) => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: 0,
@@ -3071,7 +3074,9 @@ impl Compiler<'_> {
             // "X target attacking creatures become blocked. ... deals 1
             // damage to each of those creatures": through a variable
             // group, to the end of the list.
-            Recipient::ThoseTargets(a, n) | Recipient::EachExiledThisWay(a, n, _)
+            Recipient::ThoseTargets(a, n)
+            | Recipient::EachExiledThisWay(a, n, _)
+            | Recipient::ThoseCards(a, n)
                 if many.is_some_and(|m| a <= m && m < a + n) =>
             {
                 CoreRecipient::Targets(u8::try_from(ti(a)).unwrap_or(u8::MAX), u8::MAX)
@@ -5335,6 +5340,9 @@ impl Compiler<'_> {
                     combats: *combats,
                     main: *main,
                 });
+            }
+            Effect::AddedCombatAttackers(f) => {
+                out.push(CoreEffect::AddedCombatAttackers(self.filter(f)));
             }
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });

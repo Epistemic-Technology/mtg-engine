@@ -214,3 +214,23 @@ scenario "three times that many tokens: not a noncreature token" {
   run_to turn 1 postcombat_main
   assert battlefield A contains 1 "Food"
 }
+
+scenario "Realm of Koh: untapped with a basic land; its Spirit can't block a non-Spirit" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Realm of Koh"
+  turn 1 A: play "Realm of Koh"
+  turn 1 A: activate "Realm of Koh"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Spirit"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Spirit"
+  assert life A 18
+}
+
+scenario "Realm of Koh: tapped without a basic land" {
+  hand A: "Realm of Koh"
+  turn 1 A: play "Realm of Koh"
+  run_to turn 1 postcombat_main
+  assert tapped "Realm of Koh"
+}

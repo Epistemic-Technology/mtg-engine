@@ -1,0 +1,78 @@
+# "After this phase, there is an additional combat phase. Only land
+# creatures can attack during that combat phase." (Bumi, Unleashed, CR
+# 500.8, 508.1c), and "Until your next turn, prevent all damage that would
+# be dealt to you." (Morningtide's Light, CR 611.2b).
+
+scenario "Bumi: the additional combat lets only land creatures attack" {
+  battlefield A: "Bumi, Unleashed", "Grizzly Bears", "Dryad Arbor"
+  turn 1 A: attack "Bumi, Unleashed"
+  turn 1 declare_attackers combat 2 A: attack "Dryad Arbor"
+  illegal turn 1 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Bumi: combat damage untaps the lands you control" {
+  battlefield A: "Bumi, Unleashed", 2 "Forest" tapped
+  turn 1 A: attack "Bumi, Unleashed"
+  run_to turn 1 end
+  assert untapped oldest A "Forest"
+  assert untapped newest A "Forest"
+  assert life B 15
+}
+
+scenario "Bumi: the restriction ends with that combat phase" {
+  battlefield A: "Bumi, Unleashed", "Grizzly Bears"
+  turn 1 A: attack "Bumi, Unleashed"
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 13
+}
+
+scenario "Bumi: no combat damage to a player, no additional combat" {
+  battlefield A: "Bumi, Unleashed"
+  battlefield B: 2 "Hill Giant"
+  turn 1 A: attack "Bumi, Unleashed"
+  turn 1 B: block "Bumi, Unleashed" with "Hill Giant"
+  turn 1 B: block "Bumi, Unleashed" with "Hill Giant"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Morningtide's Light: exiled creatures return tapped at the next end step" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  hand A: "Morningtide's Light"
+  turn 1 A: cast "Morningtide's Light" targeting "Grizzly Bears", B "Hill Giant", B "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert exile A contains "Morningtide's Light"
+  run_to turn 2 untap
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B contains "Savannah Lions"
+}
+
+scenario "Morningtide's Light: damage to you is prevented until your next turn" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Morningtide's Light"
+  hand B: "Shock"
+  turn 1 A: cast "Morningtide's Light" targeting B "Hill Giant"
+  turn 2 B: attack "Hill Giant"
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 3 upkeep
+  assert life A 20
+}
+
+scenario "Morningtide's Light: from your next turn, damage is dealt again" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand A: "Morningtide's Light"
+  hand B: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Morningtide's Light" targeting "Grizzly Bears"
+  turn 3 B: cast "Lightning Bolt" targeting player A
+  run_to turn 3 postcombat_main
+  assert life A 17
+}

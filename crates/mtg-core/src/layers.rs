@@ -672,6 +672,13 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             let have = state.objects.get(source).map_or(0, |o| o.counters(*kind));
             if *at_least { have >= *n } else { have <= *n }
         }
+        StaticCondition::SourceCounterParity { even } => {
+            let have = state
+                .objects
+                .get(source)
+                .map_or(0, |o| o.counters(crate::card::CounterKind::Any));
+            (have % 2 == 0) == *even
+        }
         // CR 702.176a: cast for its impending cost, with a time counter.
         StaticCondition::Impending => state.objects.get(source).is_some_and(|o| {
             o.alt == crate::state::AltCast::Impending

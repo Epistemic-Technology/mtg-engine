@@ -652,6 +652,7 @@ impl Decompiler<'_> {
             },
             StaticCondition::AnyPlayerLifeAtMost(n) => StaticCond::AnyPlayerLifeAtMost(*n),
             StaticCondition::OpponentPoisonAtLeast(n) => StaticCond::OpponentPoisonAtLeast(*n),
+            StaticCondition::SourceCounterParity { even } => StaticCond::SourceCounterParity(*even),
             StaticCondition::SourceCounters { kind, n, at_least } => StaticCond::SourceCounters {
                 kind: *kind,
                 n: *n,
@@ -2268,6 +2269,7 @@ impl Decompiler<'_> {
                 who: r(*who),
                 n: *n,
             },
+            CoreEffect::AddedCombatAttackers(f) => Effect::AddedCombatAttackers(self.filter(f)),
             CoreEffect::AdditionalPhases { combats, main } => Effect::AdditionalPhases {
                 combats: *combats,
                 main: *main,

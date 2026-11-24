@@ -1,0 +1,8 @@
+card "The Kingpin of Crime" {
+  oracle_id 3eeeb159-aa45-4a9b-9618-8542604b9830
+  cost {1}{W}{B}
+  type Legendary Creature — Human Villain
+  pt 1/5
+  extort
+  triggered whenever you attack: you may pay 2 life; if you do, until end of turn, each creature with toughness greater than power you control gains assigns combat damage equal to toughness
+}

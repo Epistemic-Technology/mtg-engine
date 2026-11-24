@@ -1778,6 +1778,9 @@ impl Fmt {
                     format!("{} {v} {n} extra turns", self.recipient(*who, t))
                 }
             }
+            Effect::AddedCombatAttackers(f) => {
+                format!("only {} can attack during that combat phase", filter(f))
+            }
             Effect::AdditionalPhases {
                 combats,
                 main,
@@ -6734,6 +6737,9 @@ fn static_cond(c: &StaticCond) -> String {
         }
         StaticCond::SourceCountersOneOrMore(kind) => {
             format!("this has one or more {} counters", kind.name())
+        }
+        StaticCond::SourceCounterParity(even) => {
+            format!("this has {} counters", if *even { "even" } else { "odd" })
         }
         StaticCond::SourceLacksCounter(kind) => {
             format!("this doesn't have {} counter", kind.name())

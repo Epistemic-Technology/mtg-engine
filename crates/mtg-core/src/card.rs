@@ -351,6 +351,10 @@ pub enum Keyword {
     /// "assigns combat damage equal to its toughness rather than its
     /// power" (CR 510.1a): its combat damage is its toughness.
     AssignsToughness,
+    /// "If Loot's power is negative, he assigns combat damage as though
+    /// his power were positive." (CR 510.1a): a negative power assigns
+    /// its absolute value.
+    AssignsNegativePower,
     /// CR 702.147: "This creature can't block. When this creature
     /// attacks, sacrifice it at end of combat." Its triggered half is
     /// `CardPool::keyword_trigger`.
@@ -619,7 +623,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 79] = [
+    pub const ALL: [Keyword; 80] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -699,6 +703,7 @@ impl Keyword {
         Keyword::LandwalkFilter,
         Keyword::MayNotUntap,
         Keyword::CantBeEquipped,
+        Keyword::AssignsNegativePower,
     ];
 
     /// The keyword as Oracle prints it.
@@ -786,6 +791,9 @@ impl Keyword {
             Keyword::CantBeEquipped => "can't be equipped",
             Keyword::AssignsToughness => {
                 "assigns combat damage equal to its toughness rather than its power"
+            }
+            Keyword::AssignsNegativePower => {
+                "assigns combat damage as though its power were positive"
             }
         }
     }
@@ -3152,6 +3160,11 @@ pub enum StaticCondition {
         kind: CounterKind,
         n: u32,
         at_least: bool,
+    },
+    /// "it has an even number of counters on it" (`even`; zero is even),
+    /// "an odd number": of every kind together (Sab-Sunen).
+    SourceCounterParity {
+        even: bool,
     },
     /// "defending player controls an Island" (the opponent, judged as
     /// attackers are declared); `at_least` 0: "defending player controls
@@ -6234,6 +6247,10 @@ pub enum Effect {
         combats: u8,
         main: bool,
     },
+    /// "Only land creatures can attack during that combat phase." (Bumi,
+    /// Unleashed, CR 508.1c): in the next additional combat phase to
+    /// begin, only creatures matching the filter can attack.
+    AddedCombatAttackers(ObjFilter),
     /// "That creature can't be regenerated this turn" (CR 701.15): no
     /// regeneration shield replaces its destruction this turn.
     CantBeRegenerated {

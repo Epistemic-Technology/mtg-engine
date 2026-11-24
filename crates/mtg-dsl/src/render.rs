@@ -302,6 +302,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::MayNotUntap
             | Keyword::CantBeEquipped
             | Keyword::AssignsToughness
+            | Keyword::AssignsNegativePower
             | Keyword::CantTransform
     )
 }
@@ -417,6 +418,22 @@ fn keyword_line(card: &Card, k: Keyword) -> String {
     if k == Keyword::Lure {
         let what = this_ref(card);
         return format!("{}.", capitalize(&lure_sentence(&what, false)));
+    }
+    // "If Loot's power is negative, he assigns combat damage as though his
+    // power were positive."
+    if k == Keyword::AssignsNegativePower {
+        let this = this_ref(card);
+        let its = match card.pronoun {
+            Some(crate::ast::Pronoun::He) => "his",
+            Some(crate::ast::Pronoun::She) => "her",
+            Some(crate::ast::Pronoun::They) => "their",
+            None => "its",
+        };
+        return format!(
+            "If {}'s power is negative, {} assigns combat damage as though {its} power were positive.",
+            capitalize(&this),
+            it_subj(card)
+        );
     }
     if is_restriction(k) {
         format!("{} {}.", capitalize(&this_ref(card)), keyword_name(k))
@@ -8085,6 +8102,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Clause::with_subject(*who, s, format!("{v} {turns} after this one"))
             }
         }
+        // "Only land creatures can attack during that combat phase."
+        Effect::AddedCombatAttackers(f) => Clause::imperative(format!(
+            "only {} can attack during that combat phase",
+            filter_phrase(f, ctx.card, true)
+        )),
         // CR 500.8.
         Effect::AdditionalPhases {
             combats,
@@ -8734,7 +8756,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     o
                 };
-                format!("return {o} to the battlefield{tapped} under their owner's control")
+                // "Exile any number of target creatures. At the beginning of
+                // the next end step, return those cards to the battlefield
+                // tapped under their owners' control." (Morningtide's
+                // Light): any number of them.
+                let owners = if matches!(
+                    ctx.targets.first(),
+                    Some(Target::Many { max: None, .. })
+                ) {
+                    "owners'"
+                } else {
+                    "owner's"
+                };
+                format!("return {o} to the battlefield{tapped} under their {owners} control")
             } else if matches!(what, Recipient::Targets(..) | Recipient::SameExiledCards) {
                 // "exile up to one target artifact you control and up to
                 // one target creature you control. Then return them to the
@@ -9044,6 +9078,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 return Clause::imperative(lure_sentence(&o, true));
             }
             let s = ctx.subj(*to);
+            // "Target creature attacks or blocks this turn if able."
+            // (Hustle): on its controller's turn it attacks, on another's
+            // it blocks.
+            if keywords.as_slice() == [Keyword::MustAttack, Keyword::MustBlock] {
+                let v = ctx.verb(*to, "attacks or blocks", "attack or block");
+                return Clause::with_subject(*to, s, format!("{v} this turn if able"));
+            }
             if keywords.iter().any(|k| is_block_rule(*k))
                 && keywords.iter().all(|k| is_restriction(*k))
             {
@@ -9082,6 +9123,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if keywords.len() == 1 && is_activation_bar(keywords[0]) {
                 let mut c =
                     Clause::imperative(format!("{} {}", possessive(&s), &keywords[0].name()[4..]));
+                c.suffix = Some("this turn");
+                return c;
+            }
+            // "creatures you control with toughness greater than their
+            // power assign combat damage equal to their toughness rather
+            // than their power" (The Kingpin of Crime).
+            if keywords.as_slice() == [Keyword::AssignsToughness] {
+                let v = ctx.verb(
+                    *to,
+                    "assigns combat damage equal to its toughness rather than its power",
+                    "assign combat damage equal to their toughness rather than their power",
+                );
+                let mut c = Clause::with_subject(*to, s, v.to_string());
                 c.suffix = Some("this turn");
                 return c;
             }
@@ -11685,7 +11739,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Some(rest) => format!("{who} is {rest}"),
                     None => format!("{who}{}", &t["it".len()..]),
                 }
-            } else if matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
+            } else if (matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
+                || matches!(c, StaticCond::SourceCounterParity(_)))
                 && ctx.source_mentioned
                 && !is_spell(ctx.card)
             {
@@ -14802,6 +14857,9 @@ fn damage_source(a: &Affects, ctx: &mut Ctx) -> String {
 fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
     let lasting = ctx.lasting.as_ref().map(|t| format!(" {t}"));
     let turn = match &lasting {
+        // "Until your next turn, prevent all damage that would be dealt to
+        // you." (Morningtide's Light): the duration printed first.
+        Some(_) if this_turn && ctx.eot_first => "",
         Some(t) if this_turn => t.as_str(),
         _ if this_turn => " this turn",
         _ => "",
@@ -17163,6 +17221,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             this_ref(card),
             kind.name()
         ),
+        // "Sab-Sunen has an even number of counters on it".
+        StaticCond::SourceCounterParity(even) => format!(
+            "{} has an {} number of counters on {}",
+            this_ref(card),
+            if *even { "even" } else { "odd" },
+            it_obj(card)
+        ),
         StaticCond::SourceLacksCounter(kind) => {
             let c = kind.name();
             format!(
@@ -18341,6 +18406,7 @@ fn conditional_static(
             StaticCond::SourceCounters { .. }
                 | StaticCond::SourceCountersOneOrMore(_)
                 | StaticCond::SourceLacksCounter(_)
+                | StaticCond::SourceCounterParity(_)
         ) && body.starts_with(&this)
         {
             // "As long as this creature has four or more oil counters on
@@ -18917,6 +18983,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             StaticCond::SourceCounters { .. }
                                 | StaticCond::SourceCountersOneOrMore(_)
                                 | StaticCond::SourceLacksCounter(_)
+                                | StaticCond::SourceCounterParity(_)
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
                         );
@@ -19749,6 +19816,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             // "unless an opponent has been dealt damage this turn".
             let cond = static_cond_text(cond, card).replace(" was dealt ", " has been dealt ");
+            // "Sab-Sunen can't attack or block unless it has an even
+            // number of counters on it.": named just before.
+            let cond = match cond.strip_prefix(&format!("{} has ", this_ref(card))) {
+                Some(rest) => format!("{} has {rest}", it_subj(card)),
+                None => cond,
+            };
             format!(
                 "{} can't {what} {} {cond}.",
                 capitalize(&this_ref(card)),

@@ -1,0 +1,9 @@
+card "Bumi, Unleashed" {
+  oracle_id 1fef13d8-5da2-46a6-91ed-7a31bd46e538
+  cost {3}{R}{G}
+  type Legendary Creature — Human Noble Ally
+  pt 5/4
+  keywords trample
+  triggered when this enters: earthbend 4
+  triggered whenever this deals combat damage to a player: untap all land you control; after this phase, additional combat phase; only land creature can attack during that combat phase
+}

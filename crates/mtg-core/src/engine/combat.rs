@@ -24,6 +24,12 @@ impl GameState {
                 && !c.has(Keyword::CantAttack)
                 && self.unless_rules_allow(*id, &c, false)
                 && (self.player_static_sources == 0 || self.may_attack_something(*id, p))
+                // "Only land creatures can attack during that combat
+                // phase." (Bumi, Unleashed).
+                && self
+                    .combat_attackers
+                    .as_ref()
+                    .is_none_or(|f| f.matches(*id, o.controller, &c, None, Some(p)))
         })
     }
 
@@ -1455,6 +1461,8 @@ mod tests {
 fn combat_damage_of(c: &crate::state::Characteristics) -> u32 {
     let n = if c.has(Keyword::AssignsToughness) {
         c.toughness
+    } else if c.power < 0 && c.has(Keyword::AssignsNegativePower) {
+        -c.power
     } else {
         c.power
     };

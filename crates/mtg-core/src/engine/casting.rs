@@ -13017,6 +13017,9 @@ impl GameState {
                 }
                 self.extra_phases.splice(0..0, added);
             }
+            Effect::AddedCombatAttackers(f) => {
+                self.pending_combat_attackers = Some(f.clone());
+            }
             Effect::SkipNextUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
