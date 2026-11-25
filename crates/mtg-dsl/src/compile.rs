@@ -3395,6 +3395,7 @@ impl Compiler<'_> {
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
             Recipient::ExiledCard | Recipient::ACardExiledWith => CoreRecipient::ExiledCard,
+            Recipient::ExiledCardOwner => CoreRecipient::ExiledCardOwner,
             Recipient::Granter | Recipient::GranterIt => CoreRecipient::Granter,
             Recipient::GranterController => CoreRecipient::GranterController,
             Recipient::Those(_) => CoreRecipient::ThoseObjects,
@@ -9323,6 +9324,21 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
                 e,
                 CoreEffect::ReturnToHand {
                     what: CoreRecipient::ExiledCard
+                }
+            )
+        })
+    }) {
+        def.links_exile = true;
+    }
+    // "When this Vehicle leaves the battlefield, the exiled card's owner
+    // manifests dread." (Unidentified Hovership): what its abilities
+    // exile.
+    if def.abilities.iter().any(|a| {
+        a.all_effects().iter().any(|e| {
+            matches!(
+                e,
+                CoreEffect::ManifestDreadBy {
+                    who: CoreRecipient::ExiledCardOwner
                 }
             )
         })

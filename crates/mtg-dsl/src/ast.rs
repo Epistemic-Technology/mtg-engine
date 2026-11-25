@@ -5115,6 +5115,8 @@ pub enum Recipient {
     /// `exiled card`: "the exiled card", what this permanent's linked
     /// ability exiled (CR 607.2a).
     ExiledCard,
+    /// `exiled card owner`: "the exiled card's owner".
+    ExiledCardOwner,
     /// `granter`: in an ability an Aura or Equipment grants the permanent
     /// it is attached to, that Aura or Equipment, printed by its name
     /// ("Return Trusty Boomerang to its owner's hand").

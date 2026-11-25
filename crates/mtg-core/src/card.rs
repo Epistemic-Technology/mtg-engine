@@ -4646,6 +4646,9 @@ pub enum Recipient {
     /// battlefield, return the exiled card ..."), still in exile; see
     /// `Effect::ExileLinked`.
     ExiledCard,
+    /// The owners of the `ExiledCard` cards: "the exiled card's owner
+    /// manifests dread" (Unidentified Hovership).
+    ExiledCardOwner,
     /// The Aura or Equipment that granted the resolving ability to the
     /// permanent it is attached to, named in the quoted ability ("Equipped
     /// creature has '{1}, {T}: Tap target creature. Return Trusty

@@ -1743,7 +1743,9 @@ manifested, printed "that creature" ("manifest dread, then put three
 dies this turn, manifest dread` prints "When it dies this turn, ...".
 Another player: `counter target spell; its controller manifests dread`
 ("Its controller manifests dread.", CR 701.62a: the face-down creature is
-theirs). Trigger `whenever you manifest dread` (it triggers even when the
+theirs); `exiled card owner manifests dread` ("the exiled card's owner
+manifests dread", Unidentified Hovership: the owner of each card the
+source's abilities exiled, still in exile; nobody with none, CR 607.2a). Trigger `whenever you manifest dread` (it triggers even when the
 library was too small to manifest anything); in it, `dread card to hand`
 prints "put a card you put into your graveyard this way into your hand"
 (the card manifest dread put into the graveyard, if any).

@@ -992,6 +992,7 @@ impl Decompiler<'_> {
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
             CoreRecipient::ExiledCard => Recipient::ExiledCard,
+            CoreRecipient::ExiledCardOwner => Recipient::ExiledCardOwner,
             CoreRecipient::Granter => Recipient::Granter,
             CoreRecipient::GranterController => Recipient::GranterController,
             // Only `Effect::MayCastExiled` names the cards exiled this way,

@@ -606,6 +606,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "created", "land"], Recipient::CreatedThatLand),
     (&["that", "created", "card"], Recipient::CreatedThatCard),
     (&["that", "exiled", "card"], Recipient::CreatedExiledCard),
+    (&["exiled", "card", "owner"], Recipient::ExiledCardOwner),
     (
         &["a", "card", "exiled", "with", "this"],
         Recipient::ACardExiledWith,
@@ -16477,6 +16478,9 @@ impl P {
                 return self.fail("`those targets` needs targets declared before it");
             }
             return Ok(Recipient::ThoseTargets(0, self.targets.len()));
+        }
+        if self.eat_words(&["exiled", "card", "owner"]) {
+            return Ok(Recipient::ExiledCardOwner);
         }
         if self.eat_words(&["exiled", "card"]) {
             return Ok(Recipient::ExiledCard);

@@ -2450,6 +2450,7 @@ impl<'a> Ctx<'a> {
                 format!("{first} and {}", self.obj(Recipient::Target(a)))
             }
             Recipient::ExiledCard | Recipient::CreatedExiledCard => "the exiled card".to_string(),
+            Recipient::ExiledCardOwner => "the exiled card's owner".to_string(),
             // The granting card is the quoted ability's holder's name
             // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
             // deals 2 damage to any target."

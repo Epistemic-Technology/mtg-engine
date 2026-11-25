@@ -11328,6 +11328,19 @@ impl GameState {
                         .map(|l| Target::Object(l.card)),
                 );
             }
+            Recipient::ExiledCardOwner => {
+                for l in &self.linked_exiles {
+                    if l.source != ctx.source {
+                        continue;
+                    }
+                    if let Some(o) = self.objects.get(l.card)
+                        && o.zone == Zone::Exile
+                        && !out.contains(&Target::Player(o.owner))
+                    {
+                        out.push(Target::Player(o.owner));
+                    }
+                }
+            }
             Recipient::ExiledWith(f) => {
                 // CR 607.2a: what the source's abilities exiled, still in
                 // exile, matching the filter as cards there.

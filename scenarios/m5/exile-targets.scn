@@ -191,3 +191,42 @@ scenario "Pinnacle Starcage: the exiled cards go to their owners' graveyards, a 
   assert graveyard A contains "Pinnacle Starcage"
   assert battlefield B lacks "Grizzly Bears"
 }
+
+# "When this Vehicle leaves the battlefield, the exiled card's owner
+# manifests dread." (CR 607.2a, 701.62a).
+
+scenario "Unidentified Hovership: the exiled card's owner manifests dread" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Unidentified Hovership", "Disenchant"
+  library A: "Forest", "Island"
+  library B: "Serra Angel", "Mountain"
+  turn 1 A: cast "Unidentified Hovership"
+  turn 1 A: trigger "Unidentified Hovership" targeting "Hill Giant"
+  turn 1 main2 A: cast "Disenchant" targeting "Unidentified Hovership"
+  turn 1 B: choose "Serra Angel"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert graveyard A contains "Unidentified Hovership"
+  assert battlefield B contains "face-down creature"
+  assert battlefield A lacks "face-down creature"
+  assert graveyard B contains "Mountain"
+  assert library A count 2
+}
+
+scenario "Unidentified Hovership: with nothing exiled, nobody manifests dread" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Unidentified Hovership", "Disenchant"
+  library A: "Forest", "Island"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Unidentified Hovership"
+  turn 1 A: trigger "Unidentified Hovership" targeting none
+  turn 1 main2 A: cast "Disenchant" targeting "Unidentified Hovership"
+  run_to turn 1 end
+  assert battlefield B contains "Serra Angel"
+  assert battlefield B lacks "face-down creature"
+  assert battlefield A lacks "face-down creature"
+  assert library B count 2
+  assert library A count 2
+}
