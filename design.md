@@ -3071,3 +3071,34 @@ of 10,881), 89.2% of Standard (4,608 of 5,164), 73.3% of Modern
 (16,660 of 22,718); 19,811 card files, gate 19,405 match. Throughput
 fell: 3,967 games/s on the mono-red mirror against 4,148 at the wave's
 start, and about 15% a decision on random decks; not profiled.
+
+Status 2026-11-25, the fourteenth wave: seventeen Opus agents, each
+given one group of the thirteenth wave's "left" list in
+KNOWN-ISSUES.md as its card list, plus a profiling agent and a bug-fix
+agent. 282 cards by the gate (286 card files): the template author 83
+(its line index now swaps colors, types, subtypes, keywords and
+counter kinds one to one), event triggers 32, mana 21, targets and
+filters 19, wording 18, players and turns 18, counts and tallies 16,
+attack and delayed triggers 16, digs 15, put and other effects 13,
+casting from exile and graveyards 12, linked exile 12, conditions 11,
+copies and names 11, costs 7, bugs 1. The profiling agent measured the
+thirteenth wave merge by merge in instructions per game: it had cost
+the mirror 2.5%, two merges most of it (a red-mana loop at every step
+end, a characteristics bump on every first damage), and random decks
+far more through checks that were on for every game because a pool
+flag is set by any card in the corpus; after its changes the mirror
+runs 2.0% fewer instructions than after the thirteenth wave (0.5% more
+than before it) and random:3 v random:4 29.7% fewer. The bug-fix agent
+collapsed the two duplicates the thirteenth wave left and made the
+compiler refuse the wrong-meaning forms it had recorded. Three merges
+needed more than keep-both: a mana rider giving a spell haste, which
+one branch built while another made the compiler refuse it; "those
+creatures" in a delayed trigger, given two meanings by two branches;
+and a card on the removed duplicate spelling. Three cards were written
+by two agents (my assignment lists overlapped). The verification after
+the merges was clean at the first run: release and debug tests, 14,788
+scenarios in both builds, both fuzzes, all 400 sweep pairs. Coverage:
+96.1% of Pauper (10,456 of 10,881), 91.8% of Standard (4,742 of
+5,164), 74.6% of Modern (16,938 of 22,718); 20,097 card files, gate
+19,687 match. Throughput: 4,037 games/s on the mono-red mirror (3,985
+after the thirteenth wave, 4,158 before it); random decks 680 a core.
