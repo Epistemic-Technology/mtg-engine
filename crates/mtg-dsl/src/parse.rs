@@ -15042,6 +15042,14 @@ impl P {
                 // "a card named ~", "cards not named ~".
                 if self.eat_words(&["named", "this"]) {
                     filter.same = Some(SameRef::NamedThis);
+                // "When that creature dies this turn, search your library
+                // for a creature card with lesser mana value" (Rushed
+                // Rebirth): less than the triggering object's.
+                } else if filter.same.is_none()
+                    && (self.in_trigger || self.in_delayed)
+                    && self.eat_words(&["with", "lesser", "mana", "value"])
+                {
+                    filter.same = Some(SameRef::LesserManaValue);
                 } else if filter.same.is_none() && self.eat_words(&["not", "named", "this"]) {
                     filter.same = Some(SameRef::NotNamedThis);
                 }

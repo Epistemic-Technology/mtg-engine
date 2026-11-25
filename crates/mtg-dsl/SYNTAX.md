@@ -2226,7 +2226,10 @@ control enters, return up to 1 target creature with lesser mana value you
 control to hand": "... target creature you control with lesser mana
 value ...", Clement; on a card, `return another target creature card with
 lesser mana value from your graveyard to battlefield`, Jackdaw Savior: its
-mana value less than the triggering object's, as it is or last existed)
+mana value less than the triggering object's, as it is or last existed;
+so is a searched card, `delayed target 1: when that creature dies this
+turn, search creature card with lesser mana value to battlefield tapped`,
+Rushed Rebirth)
 and `other than that creature` ("put a +1/+1 counter on target creature
 you control other than that creature", Pawpatch Recruit: neither it nor
 the card it became). Both are judged as targets are chosen and again as

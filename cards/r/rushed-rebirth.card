@@ -1,0 +1,6 @@
+card "Rushed Rebirth" {
+  oracle_id 8ee64f9d-54c4-4a75-a8ac-6bb0a060b960
+  cost {B}{G}
+  type Instant
+  spell: choose target creature; delayed target 1: when that creature dies this turn, search creature card with lesser mana value to battlefield tapped
+}
