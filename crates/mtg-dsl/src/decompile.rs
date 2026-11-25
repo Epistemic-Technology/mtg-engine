@@ -515,6 +515,15 @@ impl Decompiler<'_> {
                 who,
                 graveyards,
             },
+            TargetSpec::ExileCard {
+                filter,
+                who,
+                linked,
+            } => Target::ExileCard {
+                filter: self.filter(self.pool.filter(filter)),
+                who,
+                linked,
+            },
             TargetSpec::UpTo(_) => Target::UpTo(Box::new(self.target(self.pool.base_spec(t)))),
             TargetSpec::Many(i) => {
                 let m = self.pool.many(i);
@@ -1009,6 +1018,7 @@ impl Decompiler<'_> {
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
             CoreRecipient::ExiledCard => Recipient::ExiledCard,
+            CoreRecipient::ExiledCardOwner => Recipient::ExiledCardOwner,
             CoreRecipient::Granter => Recipient::Granter,
             CoreRecipient::GranterController => Recipient::GranterController,
             // Only `Effect::MayCastExiled` names the cards exiled this way,
@@ -1509,6 +1519,7 @@ impl Decompiler<'_> {
                 times: *times,
                 to: r(*to),
             },
+            CoreEffect::PutInGraveyard { what } => Effect::PutInGraveyard(r(*what), false),
             CoreEffect::PutInLibrary { what, place } => Effect::PutInLibrary {
                 what: r(*what),
                 place: *place,

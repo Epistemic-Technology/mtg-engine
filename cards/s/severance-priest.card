@@ -1,0 +1,9 @@
+card "Severance Priest" {
+  oracle_id 3a38bf69-511f-4851-870f-8a65641d832e
+  cost {W}{B}{G}
+  type Creature — Djinn Cleric
+  pt 3/3
+  keywords deathtouch
+  triggered when this enters: target opponent reveals hand exiling may nonland card split
+  triggered when this leaves the battlefield: exiled card owner creates 1 "0/0 white Spirit creature" sized count where mana value of exiled card
+}

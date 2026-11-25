@@ -1173,6 +1173,16 @@ impl GameState {
                 });
                 return def.map_or(0, |d| self.pool.get(d).mana_cost.mana_value());
             }
+            CountExpr::ExiledCardManaValue => {
+                return self
+                    .linked_exiles
+                    .iter()
+                    .filter(|l| l.source == ctx.source)
+                    .filter_map(|l| self.objects.get(l.card))
+                    .filter(|o| o.zone == Zone::Exile)
+                    .map(|o| self.pool.get(o.def).mana_cost.mana_value())
+                    .sum();
+            }
             CountExpr::TargetManaValue(n) => {
                 let Some(Target::Object(id)) = ctx.targets.get(*n) else {
                     return 0;
@@ -1891,7 +1901,7 @@ impl GameState {
                 .collect(),
             // CR 607.2a: "a creature card exiled with this land", judged
             // as a card for its owner ("you own").
-            ChooseAct::ExiledWith => self
+            ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom => self
                 .exiled_with(ctx.source)
                 .filter(|id| {
                     let o = &self.objects[*id];
@@ -2124,7 +2134,7 @@ impl GameState {
         let mut cands = self.act_candidates(ctx, act, filter);
         // "Return a creature card exiled with this land ...": with none,
         // "it" is nothing, not an earlier object.
-        if act == ChooseAct::ExiledWith {
+        if matches!(act, ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom) {
             ctx.created = None;
         }
         // "put all Elf cards from among them into your hand": every
@@ -2156,7 +2166,9 @@ impl GameState {
             }
             let id = if matches!(
                 act,
-                ChooseAct::ReturnRandomFromGraveyard | ChooseAct::ExileRandomFromGraveyard
+                ChooseAct::ReturnRandomFromGraveyard
+                    | ChooseAct::ExileRandomFromGraveyard
+                    | ChooseAct::ExiledWithRandom
             ) {
                 // "at random": from the game's random number generator.
                 cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
@@ -2187,7 +2199,7 @@ impl GameState {
                 *b = b.saturating_sub(self.pool.get(self.objects[id].def).mana_cost.mana_value());
             }
             match act {
-                ChooseAct::Choose | ChooseAct::ExiledWith => {
+                ChooseAct::Choose | ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom => {
                     ctx.created = Some(id);
                     picked.push((self.objects[id].controller, id));
                 }
@@ -2332,8 +2344,10 @@ impl GameState {
             log.group = picked.iter().map(|(_, id)| *id).collect();
         }
         // "Choose up to one creature. Destroy the rest." (Duneblast).
-        if matches!(act, ChooseAct::Choose | ChooseAct::ExiledWith)
-            && let Some(log) = self.this_way.as_mut()
+        if matches!(
+            act,
+            ChooseAct::Choose | ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom
+        ) && let Some(log) = self.this_way.as_mut()
         {
             log.chosen = picked;
             log.unchosen = cands;
@@ -6912,7 +6926,8 @@ impl GameState {
                     && match self.pool.base_spec(*s) {
                         TargetSpec::Filtered(f)
                         | TargetSpec::SpellFiltered(f)
-                        | TargetSpec::GraveyardCard { filter: f, .. } => {
+                        | TargetSpec::GraveyardCard { filter: f, .. }
+                        | TargetSpec::ExileCard { filter: f, .. } => {
                             self.pool.filter(f).status.mana_value_x
                         }
                         _ => false,
@@ -6953,6 +6968,9 @@ impl GameState {
         if self.pool.base_spec(spec).is_graveyard() {
             self.players_in_game()
                 .any(|p| self.player(p).graveyard.iter().any(fits))
+        } else if self.pool.base_spec(spec).is_exile() {
+            self.players_in_game()
+                .any(|p| self.player(p).exile.iter().any(fits))
         } else if self.pool.base_spec(spec).is_spell() {
             // "counter target spell with mana value X".
             self.stack.iter().any(fits)
@@ -7913,6 +7931,17 @@ impl GameState {
                         && self.is_legal_target_for(caster, spec, t, source)
                         && !f(t)
                     {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        if spec.is_exile() {
+            for p in self.players_in_game() {
+                for id in &self.player(p).exile {
+                    let t = Target::Object(*id);
+                    if self.is_legal_target_for(caster, spec, t, source) && !f(t) {
                         return false;
                     }
                 }
@@ -11698,6 +11727,19 @@ impl GameState {
                         .map(|l| Target::Object(l.card)),
                 );
             }
+            Recipient::ExiledCardOwner => {
+                for l in &self.linked_exiles {
+                    if l.source != ctx.source {
+                        continue;
+                    }
+                    if let Some(o) = self.objects.get(l.card)
+                        && o.zone == Zone::Exile
+                        && !out.contains(&Target::Player(o.owner))
+                    {
+                        out.push(Target::Player(o.owner));
+                    }
+                }
+            }
             Recipient::ExiledWith(f) => {
                 // CR 607.2a: what the source's abilities exiled, still in
                 // exile, matching the filter as cards there.
@@ -13381,11 +13423,14 @@ impl GameState {
                     // 607.2a): a linked card, from exile.
                     let in_zone = self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard)
+                            // "Return target card you own in exile that has an
+                            // Adventure to your hand": a target card in exile.
                             || (o.zone == Zone::Exile
                                 && matches!(
                                     what,
                                     crate::card::Recipient::ExiledCard
                                         | crate::card::Recipient::ExiledWith(_)
+                                        | crate::card::Recipient::Target(_)
                                 ))
                             // "Put a card exiled with this Saga into its
                             // owner's hand": the one chosen from them.
@@ -14710,13 +14755,34 @@ impl GameState {
                     let Target::Object(id) = t else {
                         continue;
                     };
+                    // "Put target exiled card with warp on the bottom of its
+                    // owner's library": a target card in exile.
                     if !self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard | Zone::Stack)
+                            || (o.zone == Zone::Exile
+                                && matches!(what, crate::card::Recipient::Target(_)))
                     }) {
                         continue;
                     }
                     self.put_in_library(id, *place);
                 }
+            }
+            // "Put target creature card with mana value X exiled with this
+            // creature into its owner's graveyard", "Put each card exiled
+            // with this artifact into its owner's graveyard" (CR 400.3):
+            // cards in exile.
+            Effect::PutInGraveyard { what } => {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    if self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.move_object(id, Zone::Graveyard, false);
+                    }
+                }
+                self.end_together(together);
             }
             Effect::CantBeTargeted { what, ban } => {
                 for t in self.recipients(ctx, *what) {

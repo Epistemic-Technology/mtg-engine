@@ -586,6 +586,9 @@ pub enum CountExpr {
     /// revealed before; `mana value of the card`: "the card's mana
     /// value"; `its mana value`: "its mana value".
     CardManaValue(CardWord),
+    /// `mana value of exiled card`: "the mana value of the exiled card"
+    /// (the source's linked exiled card, CR 607.2a).
+    ExiledCardManaValue,
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this
@@ -1808,6 +1811,15 @@ pub enum Target {
         filter: Filter,
         who: Who,
         graveyards: bool,
+    },
+    /// `target creature card exiled with this` (`linked`, CR 607.2a),
+    /// `target exiled card with warp`, `target card you own in exile that
+    /// has adventure`: a face-up card in exile (whose owner: `Any`, `You`,
+    /// `Opponents`).
+    ExileCard {
+        filter: Filter,
+        who: Who,
+        linked: bool,
     },
     /// `up to 2 target creatures`: an optional target (CR 601.2c); the
     /// optional targets of an ability come last.
@@ -5335,6 +5347,11 @@ pub enum Recipient {
     /// `exiled card`: "the exiled card", what this permanent's linked
     /// ability exiled (CR 607.2a).
     ExiledCard,
+    /// `exiled card owner`: "the exiled card's owner".
+    ExiledCardOwner,
+    /// `exiled cards`: "the exiled cards", `ExiledCard` where the linked
+    /// ability may exile several (The Spot, Living Portal).
+    ExiledCards,
     /// `granter`: in an ability an Aura or Equipment grants the permanent
     /// it is attached to, that Aura or Equipment, printed by its name
     /// ("Return Trusty Boomerang to its owner's hand").
@@ -5355,6 +5372,11 @@ pub enum Recipient {
     /// `n`th group's filter, chosen as the effect resolves (CR 607.2a,
     /// 608.2d; the core `ChooseAct::ExiledWith`, then `CreatedObject`).
     OneExiledWith(u16, bool),
+    /// `1 card exiled with this at random`: as `OneExiledWith`, the card
+    /// picked at random ("choose a card at random exiled with this
+    /// enchantment and put it onto the battlefield tapped", Omenpath
+    /// Journey; the core `ChooseAct::ExiledWithRandom`).
+    RandomExiledWith(u16),
     /// `those cards`: the targets declared so far (`first`, `count`),
     /// after an effect moved them ("Exile two target creatures you
     /// control, then return those cards to the battlefield").
@@ -5866,6 +5888,12 @@ pub enum Effect {
         place: LibraryPlace,
         wording: LibraryWording,
     },
+    /// `put target creature card exiled with this into graveyard`, `put
+    /// each card exiled with this into graveyard`: "Put ... into its
+    /// owner's graveyard", from exile (CR 400.3).
+    /// `return exiled cards to graveyard` (`.1`): "return the exiled cards
+    /// to their owner's graveyard" (Gravegouger).
+    PutInGraveyard(Recipient, bool),
     /// `each opponent sacrifices 1 creature`: "Each opponent sacrifices a
     /// creature of their choice."
     SacrificeChosen {

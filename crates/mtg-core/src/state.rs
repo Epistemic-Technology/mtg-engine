@@ -4575,12 +4575,17 @@ impl GameState {
     pub fn card_quals_ok(q: &crate::card::StatusQuals, def: &crate::card::CardDef) -> bool {
         (!q.x_in_cost || def.mana_cost.has_x())
             && (!q.adventure || def.layout == crate::card::Layout::Adventure)
+            && (!q.has_warp || def.warp.is_some())
+            && (!q.has_flashback
+                || (def.flashback.is_some() && !def.retrace && def.graveyard_cast.is_none()))
     }
 
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
     #[allow(clippy::too_many_lines)] // one check per qualifier
     fn status_quals_ok(&self, q: crate::card::StatusQuals, id: ObjId, o: &GameObject) -> bool {
-        if (q.x_in_cost || q.adventure) && !Self::card_quals_ok(&q, self.pool.get(o.def)) {
+        if (q.x_in_cost || q.adventure || q.has_warp || q.has_flashback)
+            && !Self::card_quals_ok(&q, self.pool.get(o.def))
+        {
             return false;
         }
         if let Some(b) = q.blocked {
@@ -4874,6 +4879,7 @@ impl GameState {
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::SpellOr(_)
             | TargetSpec::GraveyardCard { .. }
+            | TargetSpec::ExileCard { .. }
             | TargetSpec::UpTo(_)
             | TargetSpec::Many(_)
             | TargetSpec::CreatureCardInYourGraveyard => false,
@@ -6566,6 +6572,42 @@ impl GameState {
                         && f.matches(id, obj.owner, &c, source, None)
                         && self.status_ok(&f, id);
                 }
+                // "target exiled card with warp", "target creature card
+                // exiled with The Darkness Crystal" (CR 607.2a): a face-up
+                // card in exile (a face-down one has no characteristics a
+                // filter could match, CR 406.3a).
+                if let TargetSpec::ExileCard {
+                    filter,
+                    who,
+                    linked,
+                } = spec
+                {
+                    let whose = match who {
+                        crate::card::Who::Any => true,
+                        crate::card::Who::You => obj.owner == caster,
+                        crate::card::Who::Opponents => obj.owner != caster,
+                    };
+                    if obj.zone != Zone::Exile
+                        || !whose
+                        || obj.marks & OBJ_FACE_DOWN_EXILE != 0
+                        || obj.kind != crate::state::ObjKind::Card
+                    {
+                        return false;
+                    }
+                    if linked
+                        && !source.is_some_and(|s| {
+                            self.linked_exiles
+                                .iter()
+                                .any(|l| l.source == s && l.card == id)
+                        })
+                    {
+                        return false;
+                    }
+                    let c = self.base_characteristics(obj);
+                    let source = source.map(|s| self.current_object(s).unwrap_or(s));
+                    let f = self.source_filter(self.pool.filter(filter), source, x);
+                    return f.matches(id, obj.owner, &c, source, None) && self.status_ok(&f, id);
+                }
                 if let TargetSpec::OnStack {
                     spells,
                     activated,
@@ -6732,6 +6774,7 @@ impl GameState {
                     }
                     TargetSpec::SpellFiltered(_)
                     | TargetSpec::GraveyardCard { .. }
+                    | TargetSpec::ExileCard { .. }
                     | TargetSpec::Player
                     | TargetSpec::Opponent
                     | TargetSpec::Spell

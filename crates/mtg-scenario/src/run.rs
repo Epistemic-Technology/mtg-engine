@@ -2659,6 +2659,16 @@ impl Runner {
                 .filter(|id| st.name_of(*id) == r.name)
                 .collect();
         }
+        if matches.is_empty() {
+            // A card in exile, for "target exiled card with warp".
+            matches = st
+                .players
+                .iter()
+                .flat_map(|p| p.exile.iter().copied())
+                .filter(|id| r.player.is_none_or(|p| st.objects[*id].owner == p))
+                .filter(|id| st.name_of(*id) == r.name)
+                .collect();
+        }
         matches.sort_by_key(|id| st.objects[*id].timestamp);
         match (matches.len(), r.player, r.pick) {
             (0, None, _) => fail(line, format!("no \"{}\" on the battlefield", r.name)),

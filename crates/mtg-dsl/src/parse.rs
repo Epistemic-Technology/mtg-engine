@@ -648,6 +648,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "created", "land"], Recipient::CreatedThatLand),
     (&["that", "created", "card"], Recipient::CreatedThatCard),
     (&["that", "exiled", "card"], Recipient::CreatedExiledCard),
+    (&["exiled", "card", "owner"], Recipient::ExiledCardOwner),
     (
         &["a", "card", "exiled", "with", "this"],
         Recipient::ACardExiledWith,
@@ -10382,6 +10383,9 @@ impl P {
                 // "You choose a nonland card from that player's graveyard
                 // or hand and exile it."
                 if and_choose || self.eat_word("exiling") {
+                    // `exiling may nonland card split`: "You may choose a
+                    // nonland card from it. If you do, exile that card."
+                    let may = !and_choose && self.eat_word("may");
                     let filter = if self.at_word("card") {
                         Filter::default()
                     } else {
@@ -10393,11 +10397,14 @@ impl P {
                     if !self.at_word("from") {
                         let joined = !self.eat_word("split");
                         let until = self.eat_words(&["until", "this", "leaves"]);
+                        if may && joined {
+                            return self.unexpected("`split` after `exiling may`");
+                        }
                         return Ok(Effect::DiscardChosen {
                             reveal: None,
                             who: subject,
                             filter: (filter != Filter::default()).then_some(filter),
-                            may: false,
+                            may,
                             look: false,
                             exile: Some(joined),
                             until,
@@ -10405,7 +10412,7 @@ impl P {
                             top: false,
                         });
                     }
-                    if and_choose {
+                    if and_choose || may {
                         return self.unexpected("`split` or `until this leaves`");
                     }
                     self.expect_words(&["from", "graveyard", "or", "hand"])?;
@@ -13251,6 +13258,9 @@ impl P {
                     }) =>
             {
                 let what = self.recipient()?;
+                if self.eat_words(&["into", "graveyard"]) {
+                    return Ok(Effect::PutInGraveyard(what, false));
+                }
                 let place = self.library_place(false)?;
                 if matches!(
                     place,
@@ -13545,6 +13555,11 @@ impl P {
                         owner_hand,
                         put: false,
                     });
+                }
+                // `return exiled cards to graveyard`: from exile to their
+                // owners' graveyards (CR 400.3).
+                if !owner_hand && self.eat_word("graveyard") {
+                    return Ok(Effect::PutInGraveyard(what, true));
                 }
                 // "Return up to two target creature cards ... to the
                 // battlefield": the targets of one phrase, together.
@@ -15652,6 +15667,15 @@ impl P {
             self.expect_words(&["this", "way"])?;
             return Ok(Some(CountExpr::ThisWay { verb, filter: None }));
         }
+        // `card graveyarded this way`: "card put into a graveyard this
+        // way" (any player's; without `card`, "into your graveyard").
+        if self.at_words(&["card", "graveyarded", "this", "way"]) {
+            self.pos += 4;
+            return Ok(Some(CountExpr::ThisWay {
+                verb: mtg_core::card::ThisWay::PutInGraveyard,
+                filter: Some(Filter::default()),
+            }));
+        }
         // Within this clause: "draw X cards, where X is ...; If you draw
         // one or more cards this way" is another sentence's.
         let end = (0..10)
@@ -15822,6 +15846,9 @@ impl P {
         }
         if self.revealed && self.eat_words(&["its", "mana", "value"]) {
             return Ok(CountExpr::CardManaValue(crate::ast::CardWord::Its));
+        }
+        if self.eat_words(&["mana", "value", "of", "exiled", "card"]) {
+            return Ok(CountExpr::ExiledCardManaValue);
         }
         if let Some(c) = self.stat_of() {
             return Ok(c);
@@ -16971,6 +16998,7 @@ impl P {
             self.expect_word("this")?;
             false
         };
+        let random = !it && self.eat_words(&["at", "random"]);
         let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
             i
         } else {
@@ -16981,7 +17009,11 @@ impl P {
             line: self.line(),
             message: "too many groups".to_string(),
         })?;
-        Ok(Some(Recipient::OneExiledWith(i, it)))
+        Ok(Some(if random {
+            Recipient::RandomExiledWith(i)
+        } else {
+            Recipient::OneExiledWith(i, it)
+        }))
     }
 
     #[allow(clippy::too_many_lines)] // one check per recipient form
@@ -17281,6 +17313,12 @@ impl P {
                 return self.fail("`those targets` needs targets declared before it");
             }
             return Ok(Recipient::ThoseTargets(0, self.targets.len()));
+        }
+        if self.eat_words(&["exiled", "card", "owner"]) {
+            return Ok(Recipient::ExiledCardOwner);
+        }
+        if self.eat_words(&["exiled", "cards"]) {
+            return Ok(Recipient::ExiledCards);
         }
         if self.eat_words(&["exiled", "card"]) {
             return Ok(Recipient::ExiledCard);
@@ -17873,7 +17911,7 @@ impl P {
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
-                        && matches!(after.as_deref(), Some("from" | "with" | "each")))
+                        && matches!(after.as_deref(), Some("from" | "with" | "each" | "exiled")))
                     // "target permanent not named ~".
                     || (matches!(next.as_deref(), Some("named" | "not"))
                         && matches!(after.as_deref(), Some("named" | "this")));
@@ -17907,6 +17945,22 @@ impl P {
             self.pos += 2;
             return Ok(Target::CreatureOfSubtype(sub));
         }
+        // `target exiled card with warp`, `target exiled adventurer card you
+        // own`: a card in exile.
+        if self.eat_word("exiled") {
+            let mut f = if self.at_word("card") {
+                Filter::default()
+            } else {
+                self.filter()?
+            };
+            self.expect_word("card")?;
+            let who = self.exile_card_tail(&mut f)?;
+            return Ok(Target::ExileCard {
+                filter: f,
+                who,
+                linked: false,
+            });
+        }
         // "card from a graveyard" / "instant card from your graveyard";
         // "card named ~ from your graveyard".
         // "Copy target spell you control." (Slick Imitator): a spell of
@@ -17920,6 +17974,23 @@ impl P {
         } else {
             self.filter()?
         };
+        // `target creature card [with mana value X] exiled with this` (CR
+        // 607.2a).
+        if self.at_word("card") {
+            let at = self.pos;
+            self.pos += 1;
+            let mut g = f.clone();
+            if let Ok(who) = self.exile_card_tail(&mut g)
+                && self.eat_words(&["exiled", "with", "this"])
+            {
+                return Ok(Target::ExileCard {
+                    filter: g,
+                    who,
+                    linked: true,
+                });
+            }
+            self.pos = at;
+        }
         if self.eat_word("spell") || self.eat_word("spells") {
             // "target instant or sorcery spell you control"; "target
             // spell you don't control" (Counterflux), "target spell an
@@ -18089,6 +18160,30 @@ impl P {
             });
         }
         Ok(Target::Filter(f))
+    }
+
+    /// After `card` in a target card in exile: `with mana value X`, `with
+    /// warp`, `with flashback`, and the owner (`you own`, `you don't
+    /// own`).
+    fn exile_card_tail(&mut self, f: &mut Filter) -> R<Who> {
+        if self.at_words(&["with", "mana", "value"]) {
+            let g = self.filter()?;
+            f.mana_value = g.mana_value;
+            f.status.mana_value_x = g.status.mana_value_x;
+        }
+        if self.eat_words(&["with", "warp"]) {
+            f.status.has_warp = true;
+        }
+        if self.eat_words(&["with", "flashback"]) {
+            f.status.has_flashback = true;
+        }
+        Ok(if self.eat_words(&["you", "own"]) {
+            Who::You
+        } else if self.eat_words(&["you", "don't", "own"]) {
+            Who::Opponents
+        } else {
+            Who::Any
+        })
     }
 
     // ---- filters ----

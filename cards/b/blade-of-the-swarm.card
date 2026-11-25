@@ -1,0 +1,10 @@
+card "Blade of the Swarm" {
+  oracle_id 33042d12-f08b-4b3e-b106-c424ef868c13
+  cost {3}{B}
+  type Creature — Insect Assassin
+  pt 3/1
+  triggered when this enters: choose one {
+    mode: put 2 +1/+1 counters on this
+    mode: put target exiled card with warp on bottom of library
+  }
+}

@@ -1,0 +1,8 @@
+card "Gelatinous Cube" {
+  oracle_id 3c2e2e69-cd44-458f-a5b0-8591baa24e65
+  cost {2}{B}{B}
+  type Creature — Ooze
+  pt 4/3
+  label "Engulf" triggered when this enters: exile target non-Ooze creature an opponent controls until this leaves
+  label "Dissolve" activated {X}{B}: put target creature card with mana value X exiled with this into graveyard
+}

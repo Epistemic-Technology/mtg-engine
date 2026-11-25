@@ -1,0 +1,7 @@
+card "Pinnacle Starcage" {
+  oracle_id 10e0b563-4dfc-4530-a010-0ba40bdf02ac
+  cost {1}{W}{W}
+  type Artifact
+  triggered when this enters: exile all andlist artifact or creature with mana value 2 or less until this leaves
+  activated {6}{W}{W}: put each card exiled with this into graveyard, then create count each card graveyarded this way "2/2 colorless Robot artifact creature"; sacrifice this
+}

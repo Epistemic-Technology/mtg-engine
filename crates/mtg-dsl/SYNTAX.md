@@ -1844,7 +1844,14 @@ manifested, printed "that creature" ("manifest dread, then put three
 dies this turn, manifest dread` prints "When it dies this turn, ...".
 Another player: `counter target spell; its controller manifests dread`
 ("Its controller manifests dread.", CR 701.62a: the face-down creature is
-theirs). Trigger `whenever you manifest dread` (it triggers even when the
+theirs); `exiled card owner manifests dread` ("the exiled card's owner
+manifests dread", Unidentified Hovership: the owner of each card the
+source's abilities exiled, still in exile; nobody with none, CR 607.2a);
+`exiled card owner creates 1 "0/0 blue Illusion creature" sized count
+where mana value of exiled card` prints "the exiled card's owner creates
+an X/X blue Illusion creature token, where X is the mana value of the
+exiled card" (Skyclave Apparition: the total mana value of the source's
+linked cards still in exile, as its ruling has it for several). Trigger `whenever you manifest dread` (it triggers even when the
 library was too small to manifest anything); in it, `dread card to hand`
 prints "put a card you put into your graveyard this way into your hand"
 (the card manifest dread put into the graveyard, if any).
@@ -2948,7 +2955,10 @@ land to the battlefield under your control"; `put ... onto battlefield`
 ("Put a card exiled with this Saga into its owner's hand"), and `you may
 this becomes a copy of 1 creature card exiled with it until end of turn`
 ("you may have Lazav become a copy of a creature card exiled with it
-until end of turn"); with none, nothing happens. After it, `each other
+until end of turn"); with none, nothing happens. `put 1 card exiled with
+this at random onto battlefield tapped` prints "choose a card at random
+exiled with this enchantment and put it onto the battlefield tapped"
+(Omenpath Journey: picked by the game's random number generator). After it, `each other
 card exiled with this` ("Return each other card exiled with this land to
 its owner's hand") is the rest of them.
 `exile <what> until this leaves` ("exile target creature an opponent
@@ -4632,7 +4642,9 @@ hand. You may choose ..."), `look at hand of target player discarding card`
 reveals hand exiling nonland card` ("Target opponent reveals their hand.
 You choose a nonland card from it and exile that card."; `exiling
 nonland card split`: "You choose a nonland card from it. Exile that
-card."; `... split until this leaves`: "Exile that card until this
+card."; `exiling may nonland card split`: "You may choose a nonland card
+from it. If you do, exile that card." (Severance Priest; the controller
+may choose none); `... split until this leaves`: "Exile that card until this
 creature leaves the battlefield.", CR 610.3: linked to the creature, it
 returns to its owner's hand when the creature leaves, and nothing is
 exiled if the creature has already left; `reveals hand and exiling
@@ -5098,7 +5110,37 @@ Vehicle` is the attacking Vehicle.
 `replace this dies: exile`: "If this creature would die, exile it
 instead."; `replace this dies: library top`: "If this creature would die,
 put it on top of its owner's library instead." (`library bottom`: "on the
-bottom of its owner's library").
+bottom of its owner's library"). `replace nontoken creature an opponent
+controls dies: exile and { you gain 2 life }` prints "If a nontoken
+creature an opponent controls would die, instead exile it and you gain 2
+life." (The Darkness Crystal: the effects are part of the replacement); on
+a card that refers to "cards exiled with" it, what its static "instead
+exile it" exiles is linked to it (CR 607.2a).
+
+Targets in exile (face-up cards, CR 406.3): `target creature card exiled
+with this` ("target creature card exiled with The Darkness Crystal": only
+one of the cards the source's abilities exiled, CR 607.2a; `target creature
+card with mana value X exiled with this` "... with mana value X exiled with
+this creature"), `target exiled card with warp` ("target exiled card with
+warp": a card that has warp; `with flashback`, one with flashback, not
+retrace), with the owner after it (`target exiled card with flashback you
+own` "target exiled card with flashback you own"), and `target exiled
+adventurer card you own` / `you don't own` ("target card you own in exile
+that has an Adventure", "target card you don't own in exile that has an
+Adventure"). `return <it> to hand` from exile prints "to your hand" for a
+card you own; `put <it> on bottom of library` takes a target from exile
+too, and `put <what> into graveyard` ("Put target creature card ...
+exiled with this creature into its owner's graveyard", `each card exiled
+with this` "Put each card exiled with this artifact into its owner's
+graveyard") moves cards still in exile to their owners' graveyards (CR
+400.3); `return exiled cards to graveyard` is the same, printed "return
+the exiled cards to their owner's graveyard" (Gravegouger, whose cards
+come from a single graveyard). In scenarios a target name not on the battlefield, the stack or in
+a graveyard is found in exile. `exiled cards` is `exiled card` printed
+plural ("return the exiled cards to their owners' hands", The Spot,
+Living Portal, whose linked ability exiles two); with `pronoun he`, `put
+this on bottom of library` prints "put him on the bottom of his owner's
+library".
 
 ### Crossover-set pieces
 

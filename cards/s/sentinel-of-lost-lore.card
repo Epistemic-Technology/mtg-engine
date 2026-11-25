@@ -1,0 +1,11 @@
+card "Sentinel of Lost Lore" {
+  oracle_id 683775ac-481e-4c26-ab2f-5d2813af0268
+  cost {1}{G}{G}
+  type Creature — Elf Knight
+  pt 3/4
+  triggered when this enters: choose one or more {
+    mode: return target exiled adventurer card you own to hand
+    mode: put target exiled adventurer card you don't own on bottom of library
+    mode: exile graveyard of target player
+  }
+}

@@ -333,6 +333,11 @@ impl Fmt {
                             who,
                             graveyards,
                         } => graveyard_target(f, *who, *graveyards),
+                        Target::ExileCard {
+                            filter: f,
+                            who,
+                            linked,
+                        } => exile_target(f, *who, *linked),
                         Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
                     };
                     if up_to {
@@ -439,6 +444,8 @@ impl Fmt {
             Recipient::AttachedController => "controller of enchanted".to_string(),
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
+            Recipient::ExiledCardOwner => "exiled card owner".to_string(),
+            Recipient::ExiledCards => "exiled cards".to_string(),
             Recipient::Granter => "granter".to_string(),
             Recipient::GranterIt => "granter as it".to_string(),
             Recipient::GranterController => "controller of granter".to_string(),
@@ -546,6 +553,15 @@ impl Fmt {
                     format!("{} card", filter(&f))
                 };
                 format!("1 {noun} exiled with {}", if it { "it" } else { "this" })
+            }
+            Recipient::RandomExiledWith(i) => {
+                let f = self.groups.get(usize::from(i)).cloned().unwrap_or_default();
+                let noun = if f == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", filter(&f))
+                };
+                format!("1 {noun} exiled with this at random")
             }
             Recipient::RandomOf(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("random {}", filter(f)),
@@ -2700,6 +2716,12 @@ impl Fmt {
                 self.recipient(*to, t),
                 num(*times)
             ),
+            Effect::PutInGraveyard(what, false) => {
+                format!("put {} into graveyard", self.recipient(*what, t))
+            }
+            Effect::PutInGraveyard(what, true) => {
+                format!("return {} to graveyard", self.recipient(*what, t))
+            }
             Effect::PutInLibrary {
                 what,
                 place,
@@ -3118,8 +3140,9 @@ impl Fmt {
                 }
                 let split = if *joined || *and_choose { "" } else { " split" };
                 let and = if *and_choose { "and " } else { "" };
+                let may = if *may { "may " } else { "" };
                 format!(
-                    "{} reveals hand {and}exiling {what}{split}{until}",
+                    "{} reveals hand {and}exiling {may}{what}{split}{until}",
                     self.recipient(*who, t)
                 )
             }
@@ -4060,6 +4083,9 @@ impl Fmt {
                     ChooseAct::Choose => format!("choose {n} {f} chosen"),
                     // Written as its recipient (`1 card exiled with this`).
                     ChooseAct::ExiledWith => format!("choose {n} {f} card exiled with this chosen"),
+                    ChooseAct::ExiledWithRandom => {
+                        format!("choose {n} {f} card exiled with this at random")
+                    }
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Transform => format!("transform {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
@@ -4875,6 +4901,10 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             verb: mtg_core::card::ThisWay::Revealed,
             filter: Some(f),
         } => format!("{} card revealed this way", filter(f)),
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::PutInGraveyard,
+            filter: Some(f),
+        } if *f == Filter::default() => "card graveyarded this way".to_string(),
         CountExpr::ThisWay { verb, filter: f } => {
             let verb = crate::ast::this_way_word(*verb);
             match f {
@@ -4930,6 +4960,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             "other instant and sorcery spells cast before it this turn".to_string()
         }
         CountExpr::SourceToughness => "toughness".to_string(),
+        CountExpr::ExiledCardManaValue => "mana value of exiled card".to_string(),
         CountExpr::CardManaValue(w) => match w {
             crate::ast::CardWord::ThatCard => "mana value of that card",
             crate::ast::CardWord::TheCard => "mana value of the card",
@@ -5261,6 +5292,45 @@ fn take_shared_mana_value(g: &mut Filter) -> Option<String> {
         alt = a.or.as_deref_mut();
     }
     Some(format!(" with mana value {n}{}", cmp_suffix(cmp)))
+}
+
+/// A target card in exile: `target creature card exiled with this`
+/// (`linked`), `target exiled card with warp`, `target exiled adventurer
+/// card you own`, `target exiled creature card with mana value X you don't
+/// own`.
+pub fn exile_target(f: &Filter, who: Who, linked: bool) -> String {
+    let mut g = f.clone();
+    let mut tail = String::new();
+    if let Some((cmp, n)) = g.mana_value.take() {
+        let n = if g.status.mana_value_x {
+            "X".to_string()
+        } else {
+            n.to_string()
+        };
+        g.status.mana_value_x = false;
+        tail = format!(" with mana value {n}{}", cmp_suffix(cmp));
+    }
+    if std::mem::take(&mut g.status.has_warp) {
+        tail.push_str(" with warp");
+    }
+    if std::mem::take(&mut g.status.has_flashback) {
+        tail.push_str(" with flashback");
+    }
+    match who {
+        Who::Any => {}
+        Who::You => tail.push_str(" you own"),
+        Who::Opponents => tail.push_str(" you don't own"),
+    }
+    let noun = if g == Filter::default() {
+        "card".to_string()
+    } else {
+        format!("{} card", filter(&g))
+    };
+    if linked {
+        format!("target {noun}{tail} exiled with this")
+    } else {
+        format!("target exiled {noun}{tail}")
+    }
 }
 
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
@@ -8402,7 +8472,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Target::Filter(f)
                 | Target::Spell(f)
                 | Target::SpellOr(f)
-                | Target::GraveyardCard { filter: f, .. } => filter(f),
+                | Target::GraveyardCard { filter: f, .. }
+                | Target::ExileCard { filter: f, .. } => filter(f),
                 Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");

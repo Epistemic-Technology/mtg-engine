@@ -1556,6 +1556,13 @@ pub struct StatusQuals {
     /// and an attack ban; elsewhere nothing matches.
     #[serde(default)]
     pub aura_yours: bool,
+    /// "with warp" (CR 702.185): the card has warp. Judged on the card.
+    #[serde(default)]
+    pub has_warp: bool,
+    /// "with flashback" (CR 702.34): the card has flashback (not retrace
+    /// or another graveyard cast). Judged on the card.
+    #[serde(default)]
+    pub has_flashback: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1637,6 +1644,8 @@ impl StatusQuals {
             || self.nameless
             || self.kicked
             || self.aura_yours
+            || self.has_warp
+            || self.has_flashback
             || self.warped
             || self.prepared_spell
     }
@@ -2494,6 +2503,11 @@ pub enum CountExpr {
     /// filter, still in exile ("for each card exiled with this
     /// enchantment").
     ExiledWith(Option<ObjFilter>),
+    /// "the mana value of the exiled card" (Skyclave Apparition): the
+    /// total mana value of the cards the source's linked ability exiled
+    /// (`Recipient::ExiledCard`), still in exile (its ruling: the sum for
+    /// several); 0 with none.
+    ExiledCardManaValue,
     /// Cards you own in exile, all or matching the filter ("the number of
     /// cards you own in exile"); with `graveyard`, and in your graveyard
     /// too ("for each creature card you own in exile and in your
@@ -2751,6 +2765,7 @@ impl CountExpr {
             | CountExpr::BlockingIt { .. }
             | CountExpr::TargetManaValue(_)
             | CountExpr::CardManaValue
+            | CountExpr::ExiledCardManaValue
             | CountExpr::GreatestPower(_)
             | CountExpr::DifferentlyNamed(_)
             | CountExpr::Devoured(_)
@@ -4532,6 +4547,16 @@ pub enum TargetSpec {
         who: Who,
         graveyards: bool,
     },
+    /// A face-up card in exile matching the filter ("target exiled card
+    /// with warp", "target card you own in exile that has an Adventure");
+    /// `who` is its owner, judged from the caster. `linked`: only one of
+    /// the cards the source's abilities exiled ("target creature card
+    /// exiled with The Darkness Crystal", CR 607.2a).
+    ExileCard {
+        filter: u16,
+        who: Who,
+        linked: bool,
+    },
     /// "up to two target creatures" (CR 601.2c, 115.1d): the pool's `n`th
     /// optional spec (`CardPool::up_to`). The caster may stop choosing at
     /// an optional target; the optional targets come last.
@@ -4608,6 +4633,11 @@ impl TargetSpec {
             self,
             TargetSpec::CreatureCardInYourGraveyard | TargetSpec::GraveyardCard { .. }
         )
+    }
+
+    /// Targets in exile.
+    pub const fn is_exile(self) -> bool {
+        matches!(self, TargetSpec::ExileCard { .. })
     }
 }
 
@@ -4742,6 +4772,9 @@ pub enum Recipient {
     /// battlefield, return the exiled card ..."), still in exile; see
     /// `Effect::ExileLinked`.
     ExiledCard,
+    /// The owners of the `ExiledCard` cards: "the exiled card's owner
+    /// manifests dread" (Unidentified Hovership).
+    ExiledCardOwner,
     /// The Aura or Equipment that granted the resolving ability to the
     /// permanent it is attached to, named in the quoted ability ("Equipped
     /// creature has '{1}, {T}: Tap target creature. Return Trusty
@@ -5061,6 +5094,13 @@ pub enum Effect {
     PutInLibrary {
         what: Recipient,
         place: LibraryPlace,
+    },
+    /// "Put target creature card with mana value X exiled with this
+    /// creature into its owner's graveyard", "Put each card exiled with
+    /// this artifact into its owner's graveyard" (CR 400.3): the
+    /// recipients still in exile.
+    PutInGraveyard {
+        what: Recipient,
     },
     /// "Each opponent sacrifices a creature of their choice" (an edict):
     /// each player chooses `count` permanents matching the filter.
@@ -7517,6 +7557,9 @@ pub enum ChooseAct {
     /// and the last choice for "each other card exiled with this"
     /// (`StatusQuals::unchosen` on an `ExiledWith` group).
     ExiledWith,
+    /// "choose a card at random exiled with this enchantment" (Omenpath
+    /// Journey): as `ExiledWith`, the card picked at random.
+    ExiledWithRandom,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,

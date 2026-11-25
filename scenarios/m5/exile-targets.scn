@@ -1,0 +1,368 @@
+# A target card in exile: "target creature card exiled with The Darkness
+# Crystal" (CR 607.2a: only one of the cards its abilities exiled, here by
+# its static "instead exile it"), "target exiled card with warp", "target
+# card you own in exile that has an Adventure", "target exiled card with
+# flashback you own" (face-up cards in exile, CR 406.3).
+
+scenario "The Darkness Crystal: an opponent's creature is exiled instead and you gain 2 life" {
+  battlefield A: "The Darkness Crystal", "Mountain", 6 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert life A 22
+  turn 1 main2 A: activate "The Darkness Crystal" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+  assert exile B count 0
+  assert tapped "The Darkness Crystal"
+}
+
+scenario "The Darkness Crystal: your creatures and tokens die as usual" {
+  battlefield A: "The Darkness Crystal", 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Soldier"
+  hand A: 2 "Shock"
+  turn 1 A: cast "Shock" targeting A "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting B "Soldier"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B lacks "Soldier"
+  assert exile A count 0
+  assert exile B count 0
+  assert life A 20
+}
+
+scenario "The Darkness Crystal: a card exiled by something else is not a target" {
+  battlefield A: "The Darkness Crystal", 6 "Swamp"
+  exile B: "Hill Giant"
+  illegal turn 1 A: activate "The Darkness Crystal" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "The Darkness Crystal: black spells cost {1} less" {
+  battlefield A: "The Darkness Crystal", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Blade of the Swarm: put target exiled card with warp on the bottom of its owner's library" {
+  battlefield A: 4 "Swamp"
+  hand A: "Blade of the Swarm"
+  exile B: "Starbreach Whale", "Grizzly Bears"
+  library B: "Forest", "Island"
+  turn 1 A: cast "Blade of the Swarm"
+  turn 1 A: trigger "Blade of the Swarm" mode 2 targeting "Starbreach Whale"
+  run_to turn 1 end
+  assert exile B lacks "Starbreach Whale"
+  assert library B contains "Starbreach Whale"
+  assert library B count 3
+  assert exile B contains "Grizzly Bears"
+  assert counters "Blade of the Swarm" +1/+1 0
+}
+
+scenario "Blade of the Swarm: a card without warp is not a target" {
+  battlefield A: 4 "Swamp"
+  hand A: "Blade of the Swarm"
+  exile B: "Grizzly Bears", "Starbreach Whale"
+  turn 1 A: cast "Blade of the Swarm"
+  illegal turn 1 A: trigger "Blade of the Swarm" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Blade of the Swarm: with no card with warp in exile, only the counters" {
+  battlefield A: 4 "Swamp"
+  hand A: "Blade of the Swarm"
+  exile B: "Grizzly Bears"
+  turn 1 A: cast "Blade of the Swarm"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert counters "Blade of the Swarm" +1/+1 2
+}
+
+scenario "Sentinel of Lost Lore: all three modes" {
+  battlefield A: 3 "Forest"
+  hand A: "Sentinel of Lost Lore"
+  exile A: "Heartflame Duelist"
+  exile B: "Heartflame Duelist"
+  graveyard B: "Shock", "Hill Giant"
+  library B: "Forest"
+  turn 1 A: cast "Sentinel of Lost Lore"
+  turn 1 A: trigger "Sentinel of Lost Lore" mode 7 targeting A "Heartflame Duelist", B "Heartflame Duelist", player B
+  run_to turn 1 end
+  assert hand A contains "Heartflame Duelist"
+  assert exile A count 0
+  assert library B contains "Heartflame Duelist"
+  assert library B count 2
+  assert graveyard B count 0
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Sentinel of Lost Lore: the first mode needs a card you own with an Adventure" {
+  battlefield A: 3 "Forest"
+  hand A: "Sentinel of Lost Lore"
+  exile A: "Grizzly Bears", "Heartflame Duelist"
+  exile B: "Heartflame Duelist"
+  turn 1 A: cast "Sentinel of Lost Lore"
+  illegal turn 1 A: trigger "Sentinel of Lost Lore" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Sentinel of Lost Lore: the second mode needs a card you don't own" {
+  battlefield A: 3 "Forest"
+  hand A: "Sentinel of Lost Lore"
+  exile A: "Heartflame Duelist"
+  exile B: "Heartflame Duelist"
+  turn 1 A: cast "Sentinel of Lost Lore"
+  illegal turn 1 A: trigger "Sentinel of Lost Lore" mode 2 targeting A "Heartflame Duelist"
+  run_to turn 1 end
+  assert exile A contains "Heartflame Duelist"
+}
+
+scenario "Gelatinous Cube: dissolve the engulfed creature card with mana value X" {
+  battlefield A: 7 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Gelatinous Cube"
+  turn 1 A: cast "Gelatinous Cube"
+  turn 1 A: trigger "Gelatinous Cube" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile B contains "Grizzly Bears"
+  turn 1 main2 A: activate "Gelatinous Cube" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert exile B count 0
+}
+
+scenario "Gelatinous Cube: a card it didn't exile is not a target" {
+  battlefield A: "Gelatinous Cube", 3 "Swamp"
+  exile B: "Grizzly Bears"
+  illegal turn 1 A: activate "Gelatinous Cube" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "Runic Repetition: return target exiled card with flashback you own" {
+  battlefield A: 3 "Island"
+  hand A: "Runic Repetition"
+  exile A: "Think Twice", "Divination"
+  exile B: "Think Twice"
+  illegal turn 1 A: cast "Runic Repetition" targeting "Divination"
+  illegal turn 1 A: cast "Runic Repetition" targeting B "Think Twice"
+  turn 1 A: cast "Runic Repetition" targeting A "Think Twice"
+  run_to turn 1 end
+  assert hand A contains "Think Twice"
+  assert exile A contains "Divination"
+  assert exile B contains "Think Twice"
+}
+
+# "Put each card exiled with this artifact into its owner's graveyard,
+# then create a ... token for each card put into a graveyard this way."
+
+scenario "Pinnacle Starcage: the exiled cards go to their owners' graveyards, a Robot for each" {
+  battlefield A: 11 "Plains", "Soldier", "Ornithopter"
+  battlefield B: "Grizzly Bears", "Ornithopter", "Hill Giant"
+  hand A: "Pinnacle Starcage"
+  turn 1 A: cast "Pinnacle Starcage"
+  run_to turn 1 begin_combat
+  assert exile B count 2
+  assert exile A count 1
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Soldier"
+  turn 1 main2 A: activate "Pinnacle Starcage"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Ornithopter"
+  assert graveyard A contains "Ornithopter"
+  assert exile B count 0
+  assert exile A count 0
+  assert battlefield A contains 3 "Robot"
+  assert graveyard A contains "Pinnacle Starcage"
+  assert battlefield B lacks "Grizzly Bears"
+}
+
+# "At the beginning of your end step, choose a card at random exiled with
+# this enchantment and put it onto the battlefield tapped."
+
+scenario "Omenpath Journey: one exiled land at random each end step" {
+  battlefield A: 4 "Forest"
+  hand A: "Omenpath Journey"
+  library A: "Island", "Swamp", "Island", "Plains"
+  turn 1 A: cast "Omenpath Journey"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Swamp"
+  turn 1 A: choose decline
+  run_to turn 1 end
+  assert exile A count 2
+  assert library A count 2
+  run_to turn 1 cleanup
+  assert exile A count 1
+  run_to turn 3 cleanup
+  assert exile A count 0
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Swamp"
+  assert battlefield A count 7
+}
+
+scenario "Omenpath Journey: the land enters tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Omenpath Journey"
+  library A: "Island", "Plains", "Plains"
+  turn 1 A: cast "Omenpath Journey"
+  turn 1 A: choose "Island"
+  turn 1 A: choose decline
+  run_to turn 1 cleanup
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert exile A count 0
+}
+
+# "When The Spot dies, put him on the bottom of his owner's library. If
+# you do, return the exiled cards to their owners' hands."
+
+scenario "The Spot, Living Portal: the exiled cards return to their owners' hands" {
+  battlefield A: 2 "Plains", 6 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  hand A: "The Spot, Living Portal", "Murder"
+  library A: "Forest", "Island"
+  turn 1 A: cast "The Spot, Living Portal"
+  turn 1 A: trigger "The Spot, Living Portal" targeting "Hill Giant", "Grizzly Bears"
+  turn 1 main2 A: cast "Murder" targeting "The Spot, Living Portal"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert exile B count 0
+  assert library A count 3
+  assert graveyard A lacks "The Spot, Living Portal"
+}
+
+# "When this creature leaves the battlefield, the exiled card's owner
+# creates an X/X blue Illusion creature token, where X is the mana value of
+# the exiled card."
+
+scenario "Skyclave Apparition: the exiled card's owner gets an X/X Illusion" {
+  battlefield A: 3 "Plains", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Skyclave Apparition", "Murder"
+  turn 1 A: cast "Skyclave Apparition"
+  turn 1 A: trigger "Skyclave Apparition" targeting "Hill Giant"
+  turn 1 main2 A: cast "Murder" targeting "Skyclave Apparition"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert battlefield B contains "Illusion"
+  assert power B "Illusion" 4
+  assert toughness B "Illusion" 4
+  assert battlefield A lacks "Illusion"
+}
+
+scenario "Gravegouger: the exiled cards go back to their owner's graveyard" {
+  battlefield A: 6 "Swamp"
+  hand A: "Gravegouger", "Murder"
+  graveyard B: "Hill Giant", "Shock", "Grizzly Bears"
+  exile B: "Serra Angel"
+  turn 1 A: cast "Gravegouger"
+  turn 1 A: trigger "Gravegouger" targeting "Hill Giant", "Shock"
+  run_to turn 1 begin_combat
+  assert exile B count 3
+  assert graveyard B count 1
+  turn 1 main2 A: cast "Murder" targeting "Gravegouger"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert graveyard B count 3
+  assert exile B contains "Serra Angel"
+  assert exile B count 1
+}
+
+scenario "Severance Priest: exile a nonland card from the hand; its owner gets an X/X Spirit" {
+  battlefield A: "Plains", "Forest", 4 "Swamp"
+  hand A: "Severance Priest", "Murder"
+  hand B: "Hill Giant", "Forest"
+  turn 1 A: cast "Severance Priest"
+  turn 1 A: trigger "Severance Priest" targeting player B
+  turn 1 precombat_main A: discard "Hill Giant"
+  turn 1 main2 A: cast "Murder" targeting "Severance Priest"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert hand B contains "Forest"
+  assert battlefield B contains "Spirit"
+  assert power B "Spirit" 4
+  assert toughness B "Spirit" 4
+}
+
+scenario "Severance Priest: choosing nothing exiles nothing, and no token" {
+  battlefield A: "Plains", "Forest", 4 "Swamp"
+  hand A: "Severance Priest", "Murder"
+  hand B: "Hill Giant", "Forest"
+  turn 1 A: cast "Severance Priest"
+  turn 1 A: trigger "Severance Priest" targeting player B
+  turn 1 A: choose done
+  turn 1 main2 A: cast "Murder" targeting "Severance Priest"
+  run_to turn 1 end
+  assert hand B count 2
+  assert exile B count 0
+  assert battlefield B lacks "Spirit"
+}
+
+scenario "Skyclave Apparition: with nothing exiled, no token" {
+  battlefield A: 3 "Plains", 3 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Skyclave Apparition", "Murder"
+  turn 1 A: cast "Skyclave Apparition"
+  turn 1 main2 A: cast "Murder" targeting "Skyclave Apparition"
+  run_to turn 1 end
+  assert battlefield B contains "Serra Angel"
+  assert battlefield B lacks "Illusion"
+  assert battlefield A lacks "Illusion"
+}
+
+# "When this Vehicle leaves the battlefield, the exiled card's owner
+# manifests dread." (CR 607.2a, 701.62a).
+
+scenario "Unidentified Hovership: the exiled card's owner manifests dread" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Unidentified Hovership", "Disenchant"
+  library A: "Forest", "Island"
+  library B: "Serra Angel", "Mountain"
+  turn 1 A: cast "Unidentified Hovership"
+  turn 1 A: trigger "Unidentified Hovership" targeting "Hill Giant"
+  turn 1 main2 A: cast "Disenchant" targeting "Unidentified Hovership"
+  turn 1 B: choose "Serra Angel"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert graveyard A contains "Unidentified Hovership"
+  assert battlefield B contains "face-down creature"
+  assert battlefield A lacks "face-down creature"
+  assert graveyard B contains "Mountain"
+  assert library A count 2
+}
+
+scenario "Unidentified Hovership: with nothing exiled, nobody manifests dread" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Unidentified Hovership", "Disenchant"
+  library A: "Forest", "Island"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Unidentified Hovership"
+  turn 1 A: trigger "Unidentified Hovership" targeting none
+  turn 1 main2 A: cast "Disenchant" targeting "Unidentified Hovership"
+  run_to turn 1 end
+  assert battlefield B contains "Serra Angel"
+  assert battlefield B lacks "face-down creature"
+  assert battlefield A lacks "face-down creature"
+  assert library B count 2
+  assert library A count 2
+}

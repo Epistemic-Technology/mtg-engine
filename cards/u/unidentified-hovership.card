@@ -1,0 +1,10 @@
+card "Unidentified Hovership" {
+  oracle_id bde67dfb-706b-4942-a365-984ea6e97a2b
+  cost {1}{W}{W}
+  type Artifact — Vehicle
+  pt 2/2
+  keywords flying
+  triggered when this enters: exile up to 1 target creature with toughness 5 or less
+  triggered when this leaves the battlefield: exiled card owner manifests dread
+  crew 1
+}

@@ -1,0 +1,8 @@
+card "Skyclave Apparition" {
+  oracle_id d90af00a-d322-4265-9954-7b1e80702e18
+  cost {1}{W}{W}
+  type Creature — Kor Spirit
+  pt 2/2
+  triggered when this enters: exile up to 1 target nonland nontoken permanent you don't control with mana value 4 or less
+  triggered when this leaves the battlefield: exiled card owner creates 1 "0/0 blue Illusion creature" sized count where mana value of exiled card
+}

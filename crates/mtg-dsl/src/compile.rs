@@ -3036,6 +3036,7 @@ impl Compiler<'_> {
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
             A::CardManaValue(_) => C::CardManaValue,
+            A::ExiledCardManaValue => C::ExiledCardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors(crate::ast::SpentOf::That) => C::ThatSpellSpentColors,
             A::SpentColors(_) => C::SpentColors,
@@ -3194,6 +3195,18 @@ impl Compiler<'_> {
                     filter: self.pool.intern_filter(f),
                     who: *who,
                     graveyards: *graveyards,
+                }
+            }
+            Target::ExileCard {
+                filter,
+                who,
+                linked,
+            } => {
+                let f = self.filter(filter);
+                TargetSpec::ExileCard {
+                    filter: self.pool.intern_filter(f),
+                    who: *who,
+                    linked: *linked,
                 }
             }
             Target::UpTo(t) => {
@@ -3478,6 +3491,7 @@ impl Compiler<'_> {
             // effect.
             // Chosen first (`Compiler::effect`), then "it".
             Recipient::OneExiledWith(..)
+            | Recipient::RandomExiledWith(_)
             | Recipient::ChosenOf(_)
             | Recipient::Manifested
             | Recipient::CreatedObject
@@ -3489,7 +3503,10 @@ impl Compiler<'_> {
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
-            Recipient::ExiledCard | Recipient::ACardExiledWith => CoreRecipient::ExiledCard,
+            Recipient::ExiledCard | Recipient::ExiledCards | Recipient::ACardExiledWith => {
+                CoreRecipient::ExiledCard
+            }
+            Recipient::ExiledCardOwner => CoreRecipient::ExiledCardOwner,
             Recipient::Granter | Recipient::GranterIt => CoreRecipient::Granter,
             Recipient::GranterController => CoreRecipient::GranterController,
             Recipient::Those(_) => CoreRecipient::ThoseObjects,
@@ -3697,13 +3714,17 @@ impl Compiler<'_> {
         // "Return a creature card exiled with this land to the
         // battlefield": the card is chosen from the pile first (CR 607.2a,
         // 608.2d), then the effect acts on it.
-        if let Some(i) = one_exiled_with(e) {
+        if let Some((i, random)) = one_exiled_with(e) {
             let Some(f) = self.card.groups.get(usize::from(i)) else {
                 return self.err("`1 card exiled with this` names no filter");
             };
             let filter = self.filter(f);
             out.push(CoreEffect::ChooseAct {
-                act: mtg_core::card::ChooseAct::ExiledWith,
+                act: if random {
+                    mtg_core::card::ChooseAct::ExiledWithRandom
+                } else {
+                    mtg_core::card::ChooseAct::ExiledWith
+                },
                 filter,
                 count: mtg_core::card::Num::N(1),
                 up_to: false,
@@ -4483,6 +4504,9 @@ impl Compiler<'_> {
                         place: *place,
                     });
                 }
+            }
+            Effect::PutInGraveyard(what, _) => {
+                out.push(CoreEffect::PutInGraveyard { what: r(*what) });
             }
             Effect::PutInLibrary { what, place, .. } => out.push(CoreEffect::PutInLibrary {
                 what: r(*what),
@@ -9761,9 +9785,10 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
 
 /// The group of `e`'s `1 card exiled with this` recipient, if it acts on
 /// one (`Recipient::OneExiledWith`).
-fn one_exiled_with(e: &Effect) -> Option<u16> {
+fn one_exiled_with(e: &Effect) -> Option<(u16, bool)> {
     let one = |r: &Recipient| match r {
-        Recipient::OneExiledWith(i, _) => Some(*i),
+        Recipient::OneExiledWith(i, _) => Some((*i, false)),
+        Recipient::RandomExiledWith(i) => Some((*i, true)),
         _ => None,
     };
     match e {
@@ -9815,6 +9840,26 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
             matches!(
                 e,
                 CoreEffect::ReturnToHand {
+                    what: CoreRecipient::ExiledCard
+                }
+            )
+        })
+    }) {
+        def.links_exile = true;
+    }
+    // "When this Vehicle leaves the battlefield, the exiled card's owner
+    // manifests dread." (Unidentified Hovership), "... creates an X/X
+    // blue Illusion creature token, where X is the mana value of the
+    // exiled card" (Skyclave Apparition): what its abilities exile.
+    if def.oracle_text.contains("the exiled card's owner") {
+        def.links_exile = true;
+    }
+    // "return the exiled cards to their owner's graveyard" (Gravegouger).
+    if def.abilities.iter().any(|a| {
+        a.all_effects().iter().any(|e| {
+            matches!(
+                e,
+                CoreEffect::PutInGraveyard {
                     what: CoreRecipient::ExiledCard
                 }
             )
