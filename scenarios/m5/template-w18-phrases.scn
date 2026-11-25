@@ -1,0 +1,272 @@
+# Phrases the template author spells as the card language now takes
+# them (eighteenth wave): "tap ... and it doesn't untap during its
+# controller's next untap step", "Those creatures can't block this turn"
+# after a group of targets, "that's a Fungus or a Saproling", "You and
+# permanents you control gain hexproof", "Two target creatures each get",
+# "you may have Ally creatures you control gain", a flicker of a group of
+# targets, and a delayed "destroy all permanents".
+
+scenario "Winterthorn Blessing: a counter on yours, and theirs is tapped and skips its next untap" {
+  battlefield A: "Forest", "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Winterthorn Blessing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winterthorn Blessing" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert tapped "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  run_to turn 4 precombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Winterthorn Blessing: either target may be left out" {
+  battlefield A: "Forest", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Winterthorn Blessing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winterthorn Blessing" targeting none, "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "Quiet Contemplation: pay {1} after a noncreature spell to tap a creature that stays tapped" {
+  battlefield A: "Quiet Contemplation", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  turn 1 A: trigger "Quiet Contemplation" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped A "Island"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  run_to turn 4 precombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Quiet Contemplation: declining to pay leaves the creature untapped" {
+  battlefield A: "Quiet Contemplation", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  turn 1 A: trigger "Quiet Contemplation" targeting "Hill Giant"
+  turn 1 A: decline "Quiet Contemplation"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Quiet Contemplation: a creature spell doesn't trigger it" {
+  battlefield A: "Quiet Contemplation", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert untapped newest A "Forest"
+}
+
+scenario "Pallid Mycoderm: Fungi and Saprolings you control get +1/+1" {
+  battlefield A: "Pallid Mycoderm", 2 "Saproling", "Grizzly Bears"
+  battlefield B: "Saproling"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pallid Mycoderm" ability 2 sacrificing "Saproling"
+  run_to turn 1 postcombat_main
+  assert power "Pallid Mycoderm" 3
+  assert power A "Saproling" 2
+  assert power B "Saproling" 1
+  assert power "Grizzly Bears" 2
+  run_to turn 2 precombat_main
+  assert power "Pallid Mycoderm" 2
+}
+
+scenario "Lazotep Plating: in response, the Shock aimed at you has no legal target; amass 1" {
+  battlefield A: "Island", "Island", "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand A: "Lazotep Plating"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Lazotep Plating"
+  illegal turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert life A 20
+  assert graveyard B contains "Shock"
+  assert counters "Zombie Army" +1/+1 1
+  assert has "Grizzly Bears" hexproof
+}
+
+scenario "Lazotep Plating: the player can't be targeted" {
+  battlefield A: "Island", "Island"
+  battlefield B: "Mountain", "Mountain"
+  hand A: "Lazotep Plating"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lazotep Plating"
+  illegal turn 1 postcombat_main B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "Invigorated Rampage: two target creatures each get +2/+0 and trample" {
+  battlefield A: "Mountain", "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Invigorated Rampage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Invigorated Rampage" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+  assert has "Hill Giant" trample
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Invigorated Rampage: the first mode gives one creature +4/+0" {
+  battlefield A: "Mountain", "Mountain", "Grizzly Bears"
+  hand A: "Invigorated Rampage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Invigorated Rampage" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Rowan, Fearless Sparkmage: -2 deals 1 to each of two creatures, which can't block" {
+  battlefield A: "Rowan, Fearless Sparkmage", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Wall of Wood", "Elite Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rowan, Fearless Sparkmage" ability 2 targeting "Grizzly Bears", "Wall of Wood"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Wall of Wood"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert damage "Wall of Wood" 1
+  assert counters "Rowan, Fearless Sparkmage" loyalty 3
+}
+
+scenario "Rowan, Fearless Sparkmage: a creature it didn't target can still block" {
+  battlefield A: "Rowan, Fearless Sparkmage", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Wall of Wood", "Elite Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rowan, Fearless Sparkmage" ability 2 targeting "Grizzly Bears", "Wall of Wood"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Elite Vanguard"
+}
+
+scenario "Rowan, Fearless Sparkmage: -9 gains control of all creatures, untapped, with haste" {
+  battlefield A: "Rowan, Fearless Sparkmage" with 9 loyalty
+  battlefield B: "Grizzly Bears", "Hill Giant" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rowan, Fearless Sparkmage" ability 3
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Seascape Aerialist: an Ally entering gives Allies flying" {
+  battlefield A: "Seascape Aerialist", "Affa Protector", "Grizzly Bears", 3 "Plains"
+  hand A: "Affa Protector"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Affa Protector"
+  run_to turn 1 postcombat_main
+  assert has oldest "Affa Protector" flying
+  assert has "Seascape Aerialist" flying
+  assert has not "Grizzly Bears" flying
+  run_to turn 2 precombat_main
+  assert has not "Seascape Aerialist" flying
+}
+
+scenario "Seascape Aerialist: the grant may be declined" {
+  battlefield A: "Seascape Aerialist", "Affa Protector", 3 "Plains"
+  hand A: "Affa Protector"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Affa Protector"
+  turn 1 A: decline "Seascape Aerialist"
+  run_to turn 1 postcombat_main
+  assert has not "Seascape Aerialist" flying
+}
+
+scenario "Illusionist's Stratagem: two creatures flicker, and a card is drawn" {
+  battlefield A: 4 "Island", "Elvish Visionary", "Grizzly Bears"
+  hand A: "Illusionist's Stratagem"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Illusionist's Stratagem" targeting "Elvish Visionary", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elvish Visionary"
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "Illusionist's Stratagem: one target is enough" {
+  battlefield A: 4 "Island", "Elvish Visionary"
+  hand A: "Illusionist's Stratagem"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Illusionist's Stratagem" targeting "Elvish Visionary"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elvish Visionary"
+  assert hand A count 2
+}
+
+scenario "Bearer of the Heavens: dying destroys all permanents at the next end step" {
+  battlefield A: "Bearer of the Heavens", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant", "Mountain", "Swamp", "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Bearer of the Heavens"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  run_to turn 3 precombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield A lacks "Forest"
+  assert battlefield B lacks "Hill Giant"
+  assert battlefield B lacks "Mountain"
+}
+
+scenario "Academic Dispute: the creature must block, and may gain reach to block a flyer" {
+  battlefield A: "Mountain", "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  hand A: "Academic Dispute"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Academic Dispute" targeting "Grizzly Bears"
+  turn 1 A: attack "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Wind Drake"
+}
+
+scenario "Academic Dispute: declining reach, the creature can't block the flyer" {
+  battlefield A: "Mountain", "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  hand A: "Academic Dispute"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Academic Dispute" targeting "Grizzly Bears"
+  turn 1 A: decline "Academic Dispute"
+  turn 1 A: attack "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has not "Grizzly Bears" reach
+}
+
+scenario "Windborne Charge: two creatures you control each get +2/+2 and flying" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Elite Vanguard"
+  hand A: "Windborne Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Windborne Charge" targeting "Grizzly Bears", "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Elite Vanguard" 3
+  assert has "Elite Vanguard" flying
+  assert has "Grizzly Bears" flying
+}

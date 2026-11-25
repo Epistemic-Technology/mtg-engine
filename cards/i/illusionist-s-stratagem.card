@@ -1,0 +1,9 @@
+card "Illusionist's Stratagem" {
+  oracle_id 1225bee2-c829-4a93-9f75-3495277c23bc
+  cost {3}{U}
+  type Instant
+  spell {
+    exile up to 2 target creatures you control then return those cards to battlefield
+    draw 1 cards
+  }
+}

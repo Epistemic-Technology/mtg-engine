@@ -1,0 +1,7 @@
+card "Bearer of the Heavens" {
+  oracle_id 54e86bc8-ff48-49be-902c-4923d59901a7
+  cost {7}{R}
+  type Creature — Giant
+  pt 10/10
+  triggered when this dies: delayed this: destroy every permanent at beginning of the next end step
+}

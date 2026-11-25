@@ -1418,6 +1418,14 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     if PLAIN.contains(&s) {
         return Some(s.to_string());
     }
+    // "deals 1 damage to each of up to two target creatures": the group
+    // of targets (`up to 2 target creature` prints "each of").
+    if let Some(rest) = s.strip_prefix("each of ")
+        && rest.starts_with("up to ")
+        && rest.contains(" target ")
+    {
+        return recipient(rest, targets);
+    }
     if (s == "its controller" || s == "its owner") && *targets > 0 {
         return Some(s.to_string());
     }
@@ -1891,6 +1899,84 @@ impl Templates {
             (r(r"^They gain haste until end of turn$"), |_, _| {
                 Some("they gain haste".to_string())
             }),
+            // Eighteenth-wave phrases the card language already says.
+            // "Exile up to two target creatures you control, then return
+            // those cards to the battlefield under their owner's control."
+            // (Illusionist's Stratagem): a group of targets flickered.
+            (
+                r(
+                    r"^[Ee]xile (.+), then return those cards to the battlefield under (your|their owner's|their owners') control$",
+                ),
+                |c, t| {
+                    let before = *t;
+                    let what = recipient(cap(c, 1), t)?;
+                    if *t < before + 2 {
+                        return None;
+                    }
+                    let under = if cap(c, 2) == "your" {
+                        " under your control"
+                    } else {
+                        ""
+                    };
+                    Some(format!(
+                        "exile {what} then return those cards to battlefield{under}"
+                    ))
+                },
+            ),
+            // "Rowan deals 1 damage to each of up to two target creatures.
+            // Those creatures can't block this turn.": every target so
+            // far (`those targets`).
+            (r(r"^Those creatures can't block this turn$"), |_, t| {
+                (*t > 0).then(|| "those targets can't block".to_string())
+            }),
+            // "Each creature you control that's a Fungus or a Saproling
+            // gets +1/+1 until end of turn." (Pallid Mycoderm).
+            (
+                r(
+                    r"^Each (other )?creature you control that's an? ([A-Z][a-z]+) or an? ([A-Z][a-z]+) gets? ([+-]\d+/[+-]\d+) until end of turn$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "each single thatare {}{} creature or {} creature you control gets {}",
+                        cap(c, 1),
+                        cap(c, 2),
+                        cap(c, 3),
+                        cap(c, 4)
+                    ))
+                },
+            ),
+            // "You and permanents you control gain hexproof until end of
+            // turn." (Lazotep Plating).
+            (
+                r(r"^You and permanents you control gain ([a-z ,]+?) until end of turn$"),
+                |c, _| {
+                    Some(format!(
+                        "you and all permanent you control gain {}",
+                        keyword_list(cap(c, 1))?
+                    ))
+                },
+            ),
+            // "When this creature dies, destroy all permanents at the
+            // beginning of the next end step." (Bearer of the Heavens).
+            (
+                r(r"^[Dd]estroy all (permanents|creatures|lands|artifacts) at the beginning of the next end step$"),
+                |c, _| {
+                    Some(format!(
+                        "delayed this: destroy every {} at beginning of the next end step",
+                        singular(cap(c, 1))
+                    ))
+                },
+            ),
+            // "you may have Ally creatures you control gain flying until end
+            // of turn" (Seascape Aerialist; Joraga Bard's line): after "you
+            // may", `you may <who> gains ...`.
+            (
+                r(r"^Have (.+?) gain ([a-z ,]+?) until end of turn$"),
+                |c, t| {
+                    let who = recipient(cap(c, 1), t)?;
+                    Some(format!("{who} gains {}", keyword_list(cap(c, 2))?))
+                },
+            ),
             // "At the beginning of your upkeep, sacrifice a creature other
             // than this creature." (Demonic Taskmaster).
             (
@@ -2169,7 +2255,19 @@ impl Templates {
                     r"^(.+?) gets? ([+-]\d+/[+-]\d+)(?: and gains? ([a-z ,]+?))?(?: until end of turn)?$",
                 ),
                 |c, t| {
-                    let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
+                    // "Two target creatures each get +2/+0 and gain trample
+                    // until end of turn." (Invigorated Rampage).
+                    let who = match cap(c, 1).strip_suffix(" each") {
+                        Some(group) if group.contains(" target ") => {
+                            let before = *t;
+                            let who = recipient(&lowercase_first(group), t)?;
+                            if *t < before + 2 {
+                                return None;
+                            }
+                            format!("{} each", who.replacen("two ", "2 ", 1).replace("creatures", "creature"))
+                        }
+                        _ => all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?),
+                    };
                     let mut s = format!("{who} gets {}", cap(c, 2));
                     if !cap(c, 3).is_empty() {
                         let _ = write!(s, " and gains {}", keyword_list(cap(c, 3))?);
@@ -4128,6 +4226,31 @@ impl Templates {
                 r(r"^Those creatures don't untap during their controller's next untap step$"),
                 |_, t| (*t > 1).then(|| format!("targets 1 to {t} doesn't untap next untap step")),
             ),
+            // "Tap target creature an opponent controls and it doesn't
+            // untap during its controller's next untap step." (Quiet
+            // Contemplation), "tap up to one target creature you don't
+            // control, and that creature doesn't untap ..." (Winterthorn
+            // Blessing): one sentence, the tapped target named again.
+            (
+                r(
+                    r"^[Tt]ap (.+?),? and (it|that creature) doesn't untap during its controller's next untap step$",
+                ),
+                |c, t| {
+                    let before = *t;
+                    let what = recipient(cap(c, 1), t)?;
+                    if *t != before + 1 {
+                        return None;
+                    }
+                    let again = if cap(c, 2) == "it" {
+                        format!("target {t}")
+                    } else {
+                        format!("that target {t}")
+                    };
+                    Some(format!(
+                        "tap {what}, and {again} doesn't untap next untap step"
+                    ))
+                },
+            ),
             (
                 r(r"^If a creature dealt damage this way would die this turn, exile it instead$"),
                 |_, _| {
@@ -4278,10 +4401,14 @@ impl Templates {
                     } else {
                         ""
                     };
-                    Some(format!(
-                        "gain control of {}{forever}",
-                        recipient(cap(c, 1), t)?
-                    ))
+                    // "Gain control of all creatures until end of turn"
+                    // (Rowan, Fearless Sparkmage): `all creature`, which
+                    // prints "all".
+                    let what = match recipient(cap(c, 1), t)?.as_str() {
+                        "all creatures" => "all creature".to_string(),
+                        other => other.to_string(),
+                    };
+                    Some(format!("gain control of {what}{forever}"))
                 },
             ),
             (
@@ -4467,6 +4594,9 @@ impl Templates {
             if let Some(c) = re.captures(s) {
                 let before = *targets;
                 if let Some(out) = f(&c, targets) {
+                    if std::env::var_os("MTG_AUTHOR_TRACE").is_some() {
+                        eprintln!("rule {} | {s} | {out}", re.as_str());
+                    }
                     return Some(out);
                 }
                 *targets = before;
@@ -5325,6 +5455,7 @@ impl Templates {
                 || body.contains(", then meld them into ")
                 || body == "Exile ~, then return it to the battlefield"
                 || body.contains(", then return that card to the battlefield under ")
+                || body.contains(", then return those cards to the battlefield under ")
                 || body.contains("ach player discards their hand, then draws ")
                 || (body.starts_with("Target player draws ") && body.contains(", then discards "))
             {
@@ -10672,7 +10803,7 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
     // "Return two target cards from your graveyard", "Exile five target
     // cards from an opponent's graveyard": the DSL's noun after a count is
     // singular.
-    s = re(r"\b((?:\d+|X) (?:another )?target (?:[\w-]+ )*?)cards\b")
+    s = re(r"\b((?:\d+|X) (?:another )?target (?:[\w-]+ ){0,4}?)cards\b")
         .replace_all(&s, "${1}card")
         .into_owned();
     // "deals 4 damage to target player or planeswalker and each creature

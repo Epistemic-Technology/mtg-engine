@@ -1,0 +1,9 @@
+card "Invigorated Rampage" {
+  oracle_id d1a665f1-b06f-4775-bcb1-c57a476fa651
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: target creature gets +4/+0 and gains trample
+    mode: 2 target creature each gets +2/+0 and gains trample
+  }
+}

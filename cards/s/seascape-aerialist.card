@@ -1,0 +1,7 @@
+card "Seascape Aerialist" {
+  oracle_id 877c6bb4-487c-4eea-b4af-f28fe1515fb6
+  cost {4}{U}
+  type Creature — Merfolk Wizard Ally
+  pt 2/3
+  triggered whenever this or Ally you control enters: you may each Ally creature you control gains flying
+}
