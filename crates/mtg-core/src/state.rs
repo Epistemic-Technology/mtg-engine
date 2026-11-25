@@ -3878,6 +3878,19 @@ impl GameState {
             })
     }
 
+    /// Whether a definition, one of its faces, or one of its Room door
+    /// states is legendary.
+    fn may_be_legendary(&self, r: crate::card::CardRef) -> bool {
+        let d = self.pool.get(r);
+        d.is_legendary()
+            || d.faces.iter().any(|f| self.pool.get(*f).is_legendary())
+            || d.doors.as_ref().is_some_and(|x| {
+                [x.root, x.left, x.right, x.both, x.none]
+                    .into_iter()
+                    .any(|s| self.pool.get(s).is_legendary())
+            })
+    }
+
     /// With two or more legendary permanents on the battlefield, whether
     /// an action with nothing new entering could meet the legend rule (CR
     /// 704.5j): two of them already share a name (a change of control, or
@@ -3898,7 +3911,16 @@ impl GameState {
             let o = &self.objects[*id];
             let d = self.pool.get(o.def);
             if o.def != o.card || o.except.is_some() || !d.faces.is_empty() {
-                return true;
+                // One that could never be legendary (a Room, an adventurer
+                // card, with no legendary face or door) meets no legend;
+                // making it legendary or naming it is `renamed`'s.
+                if o.except.is_some()
+                    || self.may_be_legendary(o.def)
+                    || self.may_be_legendary(o.card)
+                {
+                    return true;
+                }
+                continue;
             }
             if self.legend_of(o) {
                 let name = self.obj_name(o);
@@ -3920,19 +3942,23 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn linked_return_may_ask(&self, replacers: usize) -> bool {
+        // A card returning to its owner's hand (Kitesail Freebooter) asks
+        // nothing: no replacement effect applies to a move to a hand
+        // (`GameState::applies` knows moves to a graveyard or the
+        // battlefield only).
         self.linked_exiles.iter().any(|le| {
             le.until
+                && !le.to_hand
                 && (replacers >= 1
-                    || !le.to_hand
-                        && self.objects.get(le.card).is_some_and(|o| {
-                            [o.def, o.card].into_iter().any(|r| {
-                                let d = self.pool.get(r);
-                                d.flags().has_enters_choice()
-                                    || d.read_ahead
-                                    || d.has_mid_choice()
-                                    || d.is_legendary()
-                            })
-                        }))
+                    || self.objects.get(le.card).is_some_and(|o| {
+                        [o.def, o.card].into_iter().any(|r| {
+                            let d = self.pool.get(r);
+                            d.flags().has_enters_choice()
+                                || d.read_ahead
+                                || d.has_mid_choice()
+                                || d.is_legendary()
+                        })
+                    }))
         })
     }
 
