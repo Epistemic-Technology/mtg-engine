@@ -1555,7 +1555,10 @@ pub struct CharMap {
     /// Per arena slot: 1 + the position in `entries` of that slot's
     /// object, or 0.
     slots: Vec<u32>,
-    entries: Vec<(ObjId, Characteristics)>,
+    /// The objects and their characteristics, pairwise: the pass's own
+    /// vectors, kept as they are rather than zipped into a new one.
+    ids: Vec<ObjId>,
+    chars: Vec<Characteristics>,
 }
 
 impl CharMap {
@@ -1571,18 +1574,18 @@ impl CharMap {
     pub fn new(ids: Vec<ObjId>, chars: Vec<Characteristics>) -> CharMap {
         let len = ids.iter().map(|id| Self::slot(*id) + 1).max().unwrap_or(0);
         let mut slots = vec![0u32; len];
-        let entries: Vec<(ObjId, Characteristics)> = ids.into_iter().zip(chars).collect();
-        for (i, (id, _)) in entries.iter().enumerate() {
+        debug_assert_eq!(ids.len(), chars.len());
+        for (i, id) in ids.iter().enumerate() {
             slots[Self::slot(*id)] = u32::try_from(i + 1).expect("fewer objects than u32::MAX");
         }
-        CharMap { slots, entries }
+        CharMap { slots, ids, chars }
     }
 
     #[inline]
     pub fn get(&self, id: &ObjId) -> Option<&Characteristics> {
-        let i = *self.slots.get(Self::slot(*id))? as usize;
-        match self.entries.get(i.wrapping_sub(1)) {
-            Some((k, c)) if k == id => Some(c),
+        let i = (*self.slots.get(Self::slot(*id))? as usize).wrapping_sub(1);
+        match self.ids.get(i) {
+            Some(k) if k == id => self.chars.get(i),
             _ => None,
         }
     }
