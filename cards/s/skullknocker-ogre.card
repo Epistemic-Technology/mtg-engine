@@ -1,0 +1,7 @@
+card "Skullknocker Ogre" {
+  oracle_id 980a0d4d-b070-46c1-be8d-31bdda0d1c33
+  cost {3}{R}
+  type Creature — Ogre
+  pt 4/3
+  triggered whenever this deals damage to an opponent: that player discards 1 card at random; if they do, they draw 1 card
+}

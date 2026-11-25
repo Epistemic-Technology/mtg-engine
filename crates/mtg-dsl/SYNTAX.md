@@ -5311,6 +5311,11 @@ Forms that change only how Oracle words what an existing form does:
 | `return all attacking creature to owner's hand` | "Return all attacking creatures to their owner's hand." (the newer singular; `to hand` prints "their owners' hands") |
 | `if you dont put it itself into hand, ...` | "If you don't put it into your hand, ..." (`put it` prints "the card") |
 | `alternative cost {B}, if on battlefield 13 creature late` | "You may pay {B} rather than pay this spell's mana cost if there are thirteen or more creatures on the battlefield." (the condition last) |
+| `label "Raid" alternative cost {U}, if attacked this turn` | "Raid — If you attacked this turn, you may pay {U} rather than pay this spell's mana cost." (Admiral's Order; the label is wording only) |
+| `triggered at beginning of your end step if permanent you controlled left this turn: ...` | "if a permanent you controlled left the battlefield this turn" (Shortcut to Mushrooms); `permanent left this turn` prints "if a permanent left the battlefield under your control this turn" (revolt). The same condition. |
+| `this gets +1/+0 count eachfirst hand until end of turn` | "this creature gets +1/+0 for each card in your hand until end of turn" (Ral's Staticaster): `count each`, the count printed before the duration. |
+| `replace damage to you or creature you control: prevent next 1` | "If a source would deal damage to you or a creature you control, prevent 1 of that damage." (Hedron-Field Purists): `you or <filter>`, the same as `you and <filter>`. |
+| `except {` with lines `named this` and `legendary in addition` | "except its name is Sarkhan, Soul Aflame and it's legendary in addition to its other types." (`legendary`, worded with "in addition") |
 | `cast only unless threshold` | "Threshold — You can't cast this spell unless there are seven or more cards in your graveyard." (other conditions print without the label) |
 | `flash named as long as you control Desert` | "Colossal Rattlewurm has flash as long as you control a Desert." |
 | `non-Faerie, nonland permanent` | A negated subtype written before a negated type prints first: "non-Faerie, nonland permanent". |

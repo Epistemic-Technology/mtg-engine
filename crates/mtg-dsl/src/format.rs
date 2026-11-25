@@ -105,7 +105,12 @@ fn format_inner(card: &Card) -> String {
             };
         }
         let late = if a.cond_late { " late" } else { "" };
-        let _ = writeln!(out, "  alternative cost {text}{late}");
+        let label = a
+            .label
+            .as_ref()
+            .map(|l| format!("label {l:?} "))
+            .unwrap_or_default();
+        let _ = writeln!(out, "  {label}alternative cost {text}{late}");
     }
     if let Some(c) = &card.flash_if {
         let how = if card.flash_if_may && card.flash_if_named {
@@ -207,7 +212,9 @@ fn format_inner(card: &Card) -> String {
         } else if x.not_legendary {
             out.push_str("    not legendary\n");
         }
-        if x.legendary {
+        if x.legendary && x.legendary_in_addition {
+            out.push_str("    legendary in addition\n");
+        } else if x.legendary {
             out.push_str("    legendary\n");
         }
         if x.exactly {
@@ -668,6 +675,7 @@ impl Fmt {
             Affects::Objects(f) => filter(f),
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
             Affects::YouAndOr(f) => format!("you andor {}", filter(f)),
+            Affects::YouOr(f) => format!("you or {}", filter(f)),
             Affects::OpponentsAnd(f) => format!("opponent and {}", filter(f)),
             Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),
             Affects::ThatTarget(i) => self.recipient(Recipient::ThatTarget(*i), targets),
@@ -4985,6 +4993,7 @@ fn count_text(c: &crate::ast::Count) -> String {
         // `Half` is printed by the verb (`half`); elsewhere as `equal`.
         CountStyle::Equal | CountStyle::Half => "equal",
         CountStyle::Each => "each",
+        CountStyle::EachFirst => "eachfirst",
         CountStyle::ForEach => "foreach",
         CountStyle::ThatMany => "that many",
         // Printed by the damage clause: `deal damage equal <expr> to`.
@@ -8143,7 +8152,12 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::EachHandEmpty => "no cards in any hand".to_string(),
         StaticCond::LibraryAtMost(n) => format!("library {n} or less"),
         StaticCond::OpponentLostLifeThisTurn => "opponent lost life this turn".to_string(),
-        StaticCond::PermanentLeftThisTurn => "permanent left this turn".to_string(),
+        StaticCond::PermanentLeftThisTurn { controlled: false } => {
+            "permanent left this turn".to_string()
+        }
+        StaticCond::PermanentLeftThisTurn { controlled: true } => {
+            "permanent you controlled left this turn".to_string()
+        }
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
         StaticCond::Kicked => "kicked".to_string(),
         StaticCond::Bargained => "bargained".to_string(),

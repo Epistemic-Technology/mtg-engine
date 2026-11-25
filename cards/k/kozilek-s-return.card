@@ -1,0 +1,8 @@
+card "Kozilek's Return" {
+  oracle_id 6caafe5a-884d-49e8-a62a-7bf609f0ce53
+  cost {2}{R}
+  type Instant
+  keywords devoid
+  spell: deal 2 damage to each creature
+  triggered from graveyard whenever you cast Eldrazi creature with mana value 7 or greater spell: you may exile this; if you do, deal 5 damage to each creature
+}

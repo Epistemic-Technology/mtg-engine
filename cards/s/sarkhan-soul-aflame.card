@@ -1,0 +1,12 @@
+card "Sarkhan, Soul Aflame" {
+  oracle_id bbcae463-ba05-4cfe-9c25-13f2e64698c7
+  cost {1}{U}{R}
+  type Legendary Creature — Human Shaman
+  pt 2/4
+  spells Dragon you cast cost {1} less
+  triggered whenever Dragon you control enters: you may this becomes a copy of it with exceptions until end of turn
+  except {
+    named this
+    legendary in addition
+  }
+}

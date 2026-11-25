@@ -1,0 +1,6 @@
+card "Fae Offering" {
+  oracle_id 885d68de-db97-4c9e-bb44-8e561a482dde
+  cost {2}{G}
+  type Enchantment
+  triggered at beginning of every end step if cast both creature spell and noncreature spell this turn: create 1 "Clue", create 1 "Food", and create 1 "Treasure"
+}

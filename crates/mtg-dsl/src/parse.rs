@@ -1451,6 +1451,7 @@ impl P {
                             count,
                             others_gain,
                             cond_late: false,
+                            label: None,
                         });
                         return self.end_stmt();
                     }
@@ -1471,8 +1472,23 @@ impl P {
                     count,
                     others_gain,
                     cond_late,
+                    label: None,
                 });
                 self.end_stmt()
+            }
+            // `label "Raid" alternative cost {U}, if attacked this turn`:
+            // "Raid — If you attacked this turn, you may pay {U} ...".
+            "label"
+                if matches!(self.peek_at(1), Some(Tok::Str(_)))
+                    && matches!(self.peek_at(2), Some(Tok::Word(w)) if w == "alternative") =>
+            {
+                self.pos += 1;
+                let label = self.string()?;
+                self.card_statement(card)?;
+                if let Some(a) = &mut card.alt_cost {
+                    a.label = Some(label);
+                }
+                Ok(())
             }
             "kicker" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
                 self.pos += 1;
@@ -1672,6 +1688,9 @@ impl P {
                         Some("legendary") => {
                             self.pos += 1;
                             except.legendary = true;
+                            // "it's legendary in addition to its other
+                            // types".
+                            except.legendary_in_addition = self.eat_words(&["in", "addition"]);
                             self.end_stmt()?;
                         }
                         // "it's a 1/1 green Frog": not in addition.
@@ -6613,7 +6632,10 @@ impl P {
             return Ok(StaticCond::OpponentLostLifeThisTurn);
         }
         if self.eat_words(&["permanent", "left", "this", "turn"]) {
-            return Ok(StaticCond::PermanentLeftThisTurn);
+            return Ok(StaticCond::PermanentLeftThisTurn { controlled: false });
+        }
+        if self.eat_words(&["permanent", "you", "controlled", "left", "this", "turn"]) {
+            return Ok(StaticCond::PermanentLeftThisTurn { controlled: true });
         }
         if self.eat_words(&["land", "entered", "this", "turn"]) {
             return Ok(StaticCond::LandEnteredThisTurn);
@@ -15865,7 +15887,7 @@ impl P {
         if self.at_word("count")
             && (matches!(
                 self.word_at(1).as_deref(),
-                Some("where" | "equal" | "each" | "foreach")
+                Some("where" | "equal" | "each" | "foreach" | "eachfirst")
             ) || self.at_words(&["count", "that", "many"]))
         {
             self.pos += 1;
@@ -15873,6 +15895,7 @@ impl P {
                 "where" => crate::ast::CountStyle::Where,
                 "equal" => crate::ast::CountStyle::Equal,
                 "foreach" => crate::ast::CountStyle::ForEach,
+                "eachfirst" => crate::ast::CountStyle::EachFirst,
                 "that" => {
                     self.expect_word("many")?;
                     crate::ast::CountStyle::ThatMany
@@ -20065,6 +20088,10 @@ impl P {
             self.pos += 2;
             return Ok(Affects::YouAndOr(self.filter()?));
         }
+        if self.at_words(&["you", "or"]) {
+            self.pos += 2;
+            return Ok(Affects::YouOr(self.filter()?));
+        }
         if self.at_words(&["opponent", "and"]) {
             self.pos += 2;
             return Ok(Affects::OpponentsAnd(self.filter()?));
@@ -22848,6 +22875,7 @@ impl P {
                 | Affects::Players(_)
                 | Affects::YouAnd(_)
                 | Affects::YouAndOr(_)
+                | Affects::YouOr(_)
         ) {
             return self.fail("a damage source is an object, not a player".to_string());
         }

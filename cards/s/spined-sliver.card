@@ -1,0 +1,7 @@
+card "Spined Sliver" {
+  oracle_id eed9c168-1c78-43c6-a814-9b80054d1373
+  cost {R}{G}
+  type Creature — Sliver
+  pt 2/2
+  triggered whenever Sliver becomes blocked: that creature gets +1/+1 count each creature blocking it until end of turn
+}

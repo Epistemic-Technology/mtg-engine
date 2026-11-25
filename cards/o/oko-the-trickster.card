@@ -1,0 +1,10 @@
+card "Oko, the Trickster" {
+  oracle_id f4bf8bd1-71b0-4eb1-976c-54677238b2a6
+  cost {4}{G}{U}
+  type Legendary Planeswalker — Oko
+  loyalty 4
+  pronoun he
+  loyalty +1: put 2 +1/+1 counters on up to one target creature you control
+  loyalty 0: until end of turn, this becomes a copy of target creature you control; prevent all damage to this this turn
+  loyalty -7: until end of turn, each single creature you control has base power and toughness 10/10 and gains trample
+}

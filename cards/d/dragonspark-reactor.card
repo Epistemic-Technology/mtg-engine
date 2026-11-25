@@ -1,0 +1,7 @@
+card "Dragonspark Reactor" {
+  oracle_id a8acb0b0-7265-42f6-8143-62d0c02d5a28
+  cost {1}{R}
+  type Artifact
+  triggered whenever this or artifact you control enters: put 1 charge counter on this
+  activated {4}, sacrifice this: deal damage equal charge counters on this to target player and deal damage equal charge counters on this to up to 1 target creature
+}

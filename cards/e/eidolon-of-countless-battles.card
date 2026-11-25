@@ -1,0 +1,8 @@
+card "Eidolon of Countless Battles" {
+  oracle_id 441b51b0-ecd0-466d-9ca8-e754eb563aec
+  cost {1}{W}{W}
+  type Enchantment Creature — Spirit
+  pt 0/0
+  bestow {2}{W}{W}
+  static this and enchanted: +1/+1 count each creature you control, +1/+1 count each Aura you control
+}

@@ -1,0 +1,7 @@
+card "Old Man Willow" {
+  oracle_id 96c96842-42c2-4aa3-95e2-6186d4ab5693
+  cost {2}{B}{G}
+  type Legendary Creature — Treefolk
+  static this: cda pt count land you control
+  triggered whenever this attacks: you may sacrifice 1 another creature or a token chosen; when you do, target creature an opponent controls gets -2/-2 until end of turn
+}
