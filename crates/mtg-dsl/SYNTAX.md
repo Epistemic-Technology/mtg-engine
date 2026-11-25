@@ -590,7 +590,9 @@ A trigger's subject prints its controller before its "with" qualities
 end of turn".
 `you may deal 1 damage to any target` prints "you may have this creature
 deal ..." and `you may each Ally creature you control gets +1/+0` "you may
-have Ally creatures you control get +1/+0 ...".
+have Ally creatures you control get +1/+0 ...". `you may target creature gets
++2/+0 and gains deathtouch until end of turn` prints "you may have target
+creature get +2/+0 and gain deathtouch until end of turn" (Painsmith).
 
 Conditions (intervening "if", CR 603.4): `if its toughness was less than 1` (also `power`, `mana value`, and `was N or less` / `was N or greater`: the triggering object as it is or last existed, "Whenever a creature an opponent controls dies, if its toughness was less than 1, ..."; `is` for one still there, `if its power is 2 or less`, "Whenever enchanted creature attacks, if its power is 2 or less, ..."), `if its power or toughness greater than this` (evolve's check, printed "if its power is greater than this creature's power or its toughness is greater than this creature's toughness"), `if it wasn't blocking` and `if it was blocking` (in a dies trigger, as it last existed), `if this is untapped`, `if
 this is tapped` ("if this creature is tapped"),
@@ -1742,7 +1744,8 @@ or reach`.
 ("Look at target player's hand."). `gets +1/+1 X` is "+X/+X".
 
 Energy (CR 107.14): `you get 2 energy` ("you get {E}{E}"), `pay 2
-energy` inside `may` and as a cost ("Pay {E}{E}"). `you may pay any energy` is
+energy` inside `may` and as a cost ("Pay {E}{E}"; six or more in words: `pay 8 energy`, "Pay eight
+{E}", Aethersquall Ancient). `you may pay any energy` is
 "you may pay any amount of {E}": the amount is chosen as it resolves (0
 to all; all unscripted), and `that much` and X after it in the resolution
 are the amount paid ("Galvanic Discharge deals that much damage to that
@@ -2957,7 +2960,9 @@ counters equal <expr> on <what>` puts the amount first: "put a number of
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration [joined]]` (`joined`: "destroy
-target Knight and it can't be regenerated" in one sentence), `put 2 +1/+1 counters on <what>`,
+target Knight and it can't be regenerated" in one sentence; `this way`:
+"Destroy target creature. A creature destroyed this way can't be
+regenerated.", Damn), `put 2 +1/+1 counters on <what>`,
 `put 1 +1/+1 counter and 1 reach counter and 1 deathtouch counter on
 <what>` ("Put a +1/+1 counter, a reach counter, and a deathtouch counter
 on target creature"), `put up to x +1/+0 counters on this capped 4` ("Put
@@ -5247,6 +5252,7 @@ Forms that change only how Oracle words what an existing form does:
 | `if target 1 is face-down, ...` and other state checks on a target | Every state qualifier is judged (`face-down`, `that attacked this turn`, ...), as it last existed if the target has left the battlefield |
 | rejected | `prevent all damage ... of color of choice would deal this turn` (the prevention never saw the color); `each other creature you control` in a spell after another group (`other` excludes the spell, not the group: In Oketra's Name) |
 | `that created token gains haste indefinitely`, `this gains ability { ... } indefinitely` | "That token gains haste.", "This creature gains \"...\"" (no duration, CR 611.2a: until the object leaves; `indefinitely` after a sentence makes everything in it that would last until end of turn last for good). A legendary card granting itself a quoted ability names itself in it ("Kellan ... gains \"Whenever Kellan deals combat damage ...\""). Several quoted abilities in one list end with the list's punctuation inside the quotes, not their own period: `target 1 gains ability { static this: has attacks each combat if able } and gains ability { triggered when this deals combat damage to a player: sacrifice this } indefinitely` prints "It gains \"This creature attacks each combat if able\" and \"When this creature deals combat damage to a player, sacrifice it.\"" (Carnage, Crimson Chaos; with three, `,"` before the last). |
+| `static Island: has doesn't untap during its controller's untap step` | A group: "Islands don't untap during their controllers' untap steps." (Choke) |
 | `static plural artifact you control: add subtype Food, ...` | "Artifacts you control are Foods in addition to their other types and have ..." rather than "Each artifact you control is a Food ...". An added subtype and the card types added after it are one noun ("are Food artifacts", "is a Golem creature with base power and toughness 5/4"), and a quoted ability of a holder given a card type names "this permanent". |
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
@@ -5286,6 +5292,19 @@ Forms that change only how Oracle words what an existing form does:
 | `create 1 "0/0 green and blue Fractal creature" then put its counters on that token` | "create a 0/0 green and blue Fractal creature token, then put this creature's counters on that token" (Ambitious Augmenter: the source's counters as it last existed) |
 | `whenever one or more Merfolk you control attack a player` | "Whenever one or more Merfolk you control attack a player" (the same trigger as `whenever you attack a player with one or more Merfolk`) |
 | `you may attach any number Equipment you control to target creature you control chosen` | "you may attach any number of Equipment you control to target creature you control" (Beatrix: the target declared by the attach itself; `to target 1` names one declared before) |
+| `target opponent sacrifices 1 creature bare` | "target opponent sacrifices a creature." without "of their choice" (Bearer of Silence; the same choice, theirs) |
+| `you may search library or graveyard card named "X" reveal to hand then` | "... for a card named X, reveal it, then put it into your hand. If you search your library this way, shuffle." (Sun-Blessed Mount; without `then`, "reveal it, and put it") |
+| `put 1 +1/+1 counter on attached if attached is blue` | "put a +1/+1 counter on equipped creature if it's blue" (Ring of Evos Isle): named just before |
+| `static enchanted: set subtype Demon, add subtype Spirit` | "Enchanted creature is a Demon Spirit." (Oni Possession): its creature types become Demon and Spirit (two `set subtype` would leave only the second, CR 205.1b) |
+| `target player mills 3 cards then return 1 land card from your graveyard to hand chosen` | "Target player mills three cards, then you return a land card from your graveyard to your hand." (Witherbloom Command): after another player's clause, "you" before the return |
+| `you may each Ally you control gain lifelink, and you may put 1 +1/+1 counter on this` | "you may have Allies you control gain lifelink until end of turn, and you may put a +1/+1 counter on this creature" (Talus Paladin): two choices, each its own (`, and you may` / `and you may` after a `you may` sentence ends it) |
+| `triggered whenever this attacks if this is without first strike: ...`, `if this is with first strike` | "if it doesn't have first strike, put a first strike counter on it", "if it has first strike, it gains double strike" (Momentum Rumbler): a keyword alone; the source is "it" after it |
+| `each creature you control gets +2/+2; each Citizen you control gets +1/+1 and gains vigilance` | "Citizens you control get an additional +1/+1 and gain vigilance until end of turn." (Take to the Streets): a creature type's group after "Creatures you control get" (a grant alone after it takes no "also", The Howling Commandos) |
+| `choose any number of target creature; double the number of +1/+1 counters on those targets` | "Choose any number of target creatures. Double the number of +1/+1 counters on each of them." (Solidarity of Heroes; without the "Choose" sentence, "on each of those creatures") |
+| `piles reveal count where domain separated by opponent` | "reveal the top X cards of your library, where X is the number of basic land types among lands you control. An opponent separates those cards into two piles. ..." (Sphinx of Clear Skies): the X right after the reveal |
+| `loyalty +1: put 3 +1/+1 counters on up to 1 target noncreature land you control; untap target 1; target 1 becomes 0/0 Elemental creature with vigilance, haste indefinitely` | "... Untap it. It becomes a 0/0 Elemental creature with vigilance and haste that's still a land." (Nissa, Who Shakes the World: a planeswalker's; other cards print "It's still a land." after the pronoun) |
+| `replace damage to this: prevent and {` / `remove that much +1/+1 counters from this; create that much "1/1 colorless Spirit creature"` / `}` | "If damage would be dealt to Sekki, prevent that damage, remove that many +1/+1 counters from Sekki, and create that many 1/1 colorless Spirit creature tokens." (two sentences in the block are a list) |
+| `remove 1 ice counter from this; then if this has no ice counters, transform this` | In a triggered ability, after the source was named: "remove an ice counter from this creature. Then if it has no ice counters on it, transform it." (Thing in the Ice, Evolved Spinoderm). After a cost that names it, "If there are no depletion counters on this land" (Peat Bog). |
 | `put 1 time counters on this; then if there are 7 or more time counters on this, remove count where time counters on this time counters from this and ...` | "put a time counter on this artifact. Then if there are seven or more time counters on it, remove those counters and ..." (Cursed Recording: the source named before is "it"; removing all of the counted kind is "those counters") |
 | `each single creature target opponent controls loses all abilities and becomes Coward base 1/1 in addition indefinitely` | "each creature target opponent controls loses all abilities, becomes a Coward in addition to its other types, and has base power and toughness 1/1" (Curious Colossus) |
 | `if you sacrificed permanent this way, ...` | "If you sacrificed a permanent this way, ..." (any permanent) |

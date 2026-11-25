@@ -1,0 +1,7 @@
+card "Solidarity of Heroes" {
+  oracle_id 3319b2df-7354-44b5-afa1-b9bc4a577254
+  cost {1}{G}
+  type Instant
+  strive {1}{G}
+  spell: choose any number of target creature; double the number of +1/+1 counters on those targets
+}

@@ -1,0 +1,11 @@
+card "Witherbloom Command" {
+  oracle_id 7cc81fb3-495c-47cd-8c56-96197d87e9e0
+  cost {B}{G}
+  type Sorcery
+  spell: choose two {
+    mode: target player mills 3 cards then return 1 land card from your graveyard to hand chosen
+    mode: destroy target noncreature nonland permanent with mana value 2 or less
+    mode: target creature gets -3/-1
+    mode: target opponent loses 2 life and you gain 2 life
+  }
+}

@@ -44,6 +44,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         groups: Vec::new(),
         counts: Vec::new(),
         in_delayed: false,
+        in_you_may: false,
         delayed_that: false,
         delayed_it: false,
         delayed_player: None,
@@ -782,6 +783,9 @@ struct P {
     /// Inside a delayed trigger's effects, where "it" is the object the
     /// trigger is about.
     in_delayed: bool,
+    /// Inside the sentence after `you may`: a following `, and you may`
+    /// is a second choice, not part of the first (Talus Paladin).
+    in_you_may: bool,
     /// Inside a delayed trigger about the triggering object: "that
     /// creature" is the object it is about (`it`).
     delayed_that: bool,
@@ -7162,6 +7166,18 @@ impl P {
         let mut clauses = vec![self.unless_suffix(first)?];
         let mut joins = Vec::new();
         loop {
+            // "you may have Allies you control gain lifelink until end of
+            // turn, and you may put a +1/+1 counter on this creature": the
+            // second `you may` is the outer sentence's.
+            if self.in_you_may
+                && (self.at_words(&["and", "you", "may"])
+                    || (self.peek() == Some(&Tok::Comma)
+                        && self.word_at(1).as_deref() == Some("and")
+                        && self.word_at(2).as_deref() == Some("you")
+                        && self.word_at(3).as_deref() == Some("may")))
+            {
+                break;
+            }
             if self.at_words(&["and", "then"]) {
                 self.pos += 2;
                 joins.push(Join::ThenRepeat);
@@ -9337,7 +9353,10 @@ impl P {
                 self.effects_body()?
             } else {
                 let saved = self.subject.take();
-                let s = self.sentence()?;
+                let was = std::mem::replace(&mut self.in_you_may, true);
+                let s = self.sentence();
+                self.in_you_may = was;
+                let s = s?;
                 self.subject = saved;
                 vec![s]
             };
@@ -10313,6 +10332,7 @@ impl P {
                     filter,
                     and: None,
                     choice_first: false,
+                    bare: false,
                 })
             }
             "sacrifices" | "sacrifice" => {
@@ -10366,12 +10386,14 @@ impl P {
                 } else {
                     None
                 };
+                let bare = !of_choice && and.is_none() && self.eat_word("bare");
                 Ok(Effect::SacrificeChosen {
                     who: subject,
                     count,
                     filter,
                     and,
                     choice_first,
+                    bare,
                 })
             }
             // "That player looks at the top three cards of your library,
@@ -13171,10 +13193,12 @@ impl P {
                 }
                 let no_regen = self.eat_words(&["without", "regeneration"]);
                 let joined = no_regen && self.eat_word("joined");
+                let this_way = no_regen && !joined && self.eat_words(&["this", "way"]);
                 Ok(Effect::Destroy {
                     to,
                     no_regen,
                     joined,
+                    this_way,
                 })
             }
             // `put 2 cards from hand on top of library`.
@@ -16844,6 +16868,7 @@ impl P {
             groups: self.groups.clone(),
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
+            in_you_may: self.in_you_may,
             delayed_that: self.delayed_that,
             delayed_it: false,
             delayed_player: self.delayed_player,
@@ -18042,6 +18067,7 @@ impl P {
                         groups: Vec::new(),
                         counts: Vec::new(),
                         in_delayed: false,
+                        in_you_may: false,
                         delayed_that: false,
                         delayed_it: false,
                         delayed_player: None,

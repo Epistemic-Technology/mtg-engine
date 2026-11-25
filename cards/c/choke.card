@@ -1,0 +1,6 @@
+card "Choke" {
+  oracle_id 057fa60b-10b0-4612-be0d-157076c82241
+  cost {2}{G}
+  type Enchantment
+  static Island: has doesn't untap during its controller's untap step
+}

@@ -964,6 +964,12 @@ impl Fmt {
                             out.push_str("gain ");
                             out.push_str(rest);
                         }
+                        // `each creature target player controls gets
+                        // +2/+0 and gains haste` (Torrent of Souls).
+                        Some(rest) if subject.starts_with("each ") => {
+                            out.push_str("gains ");
+                            out.push_str(rest);
+                        }
                         _ => out.push_str(&text),
                     }
                     continue;
@@ -1057,6 +1063,7 @@ impl Fmt {
                 to,
                 no_regen,
                 joined,
+                this_way,
             } => {
                 let mut s = format!("destroy {}", self.recipients(to, t));
                 if *no_regen {
@@ -1064,6 +1071,9 @@ impl Fmt {
                 }
                 if *joined {
                     s.push_str(" joined");
+                }
+                if *this_way {
+                    s.push_str(" this way");
                 }
                 s
             }
@@ -2785,6 +2795,7 @@ impl Fmt {
                 filter: f,
                 and,
                 choice_first,
+                bare,
             } => {
                 if let Some(h) = half(*count) {
                     if *who == Recipient::You {
@@ -2813,6 +2824,9 @@ impl Fmt {
                 }
                 if let Some(b) = and {
                     let _ = write!(s, " and {} {}", num(b.0), filter(&b.1));
+                }
+                if *bare {
+                    s.push_str(" bare");
                 }
                 s
             }
@@ -4250,7 +4264,14 @@ impl Fmt {
                     ChooseAct::MilledToHand
                     | ChooseAct::MilledToBattlefield
                     | ChooseAct::MilledToTop => format!(
-                        "put {n} {f} {cs} from among {} {} chosen",
+                        // `put 1 card from among those cards into hand
+                        // chosen` (Ripples of Undeath): no filter.
+                        "put {n} {}{cs} from among {} {} chosen",
+                        if unfiltered {
+                            String::new()
+                        } else {
+                            format!("{f} ")
+                        },
                         if *among_them {
                             "them"
                         } else if *among_those {
@@ -6144,7 +6165,27 @@ fn spell_target(f: &Filter) -> String {
     let t = g.targeting.take();
     // "target instant or sorcery spell you control".
     let who = spell_controller(&mut g);
-    let base = filter(&g);
+    // `target with chosen name spell` (Declaration of Naught): alone, the
+    // quality would print as "permanent with chosen name spell".
+    let named = matches!(
+        g.chosen,
+        Some(crate::ast::OfChosen::ChosenName | crate::ast::OfChosen::ThatName)
+    ) && !g.status.not_chosen
+        && g.types.is_empty()
+        && g.subtypes.is_empty()
+        && g.any_types.is_empty();
+    let base = match g.chosen {
+        Some(chosen) if named => {
+            let mut rest = g.clone();
+            rest.chosen = None;
+            if rest == Filter::default() {
+                of_chosen(chosen).to_string()
+            } else {
+                filter(&g)
+            }
+        }
+        _ => filter(&g),
+    };
     let mut s = if base.is_empty() {
         "target spell".to_string()
     } else {

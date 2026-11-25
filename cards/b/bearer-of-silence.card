@@ -1,0 +1,10 @@
+card "Bearer of Silence" {
+  oracle_id d69c8c55-6433-4cc5-bdc7-9722f121b8e2
+  cost {1}{B}
+  type Creature — Eldrazi
+  pt 2/1
+  keywords devoid
+  triggered when you cast this: you may pay {1}{C}; if you do, target opponent sacrifices 1 creature bare
+  keywords flying
+  static this: has can't block
+}

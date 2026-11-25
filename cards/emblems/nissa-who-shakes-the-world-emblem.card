@@ -1,0 +1,3 @@
+emblem "Nissa, Who Shakes the World emblem" {
+  static land you control: has indestructible
+}

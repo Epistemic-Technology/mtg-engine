@@ -1,0 +1,6 @@
+card "Ripples of Undeath" {
+  oracle_id 2acf8e34-9215-4a72-a24f-09d3bdd0083a
+  cost {1}{B}
+  type Enchantment
+  triggered at beginning of your first main: mill 3 cards; then you may pay {1} and 3 life; if you do, put 1 card from among those cards into hand chosen
+}

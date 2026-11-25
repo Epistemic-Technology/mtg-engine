@@ -1,0 +1,130 @@
+# Wording near-misses (fifteenth wave, list e).
+
+# "you may have target creature get +2/+0 and gain deathtouch until end of
+# turn" (Painsmith).
+scenario "Painsmith: an artifact spell gives +2/+0 and deathtouch" {
+  battlefield A: "Painsmith", "Grizzly Bears", 2 "Island"
+  hand A: "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: trigger "Painsmith" targeting "Grizzly Bears"
+  turn 1 A: accept "Painsmith"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" deathtouch
+}
+
+scenario "Painsmith: a creature spell that isn't an artifact does nothing" {
+  battlefield A: "Painsmith", "Grizzly Bears", 2 "Forest"
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" deathtouch
+}
+
+# "remove an ice counter from this creature. Then if it has no ice counters
+# on it, transform it." (Thing in the Ice).
+scenario "Thing in the Ice: the last ice counter transforms it" {
+  battlefield A: "Thing in the Ice // Awoken Horror" with 1 ice, "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Opt"
+  library A: "Island", "Island"
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert power "Awoken Horror" 7
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Awoken Horror"
+}
+
+scenario "Thing in the Ice: a counter left keeps it" {
+  battlefield A: "Thing in the Ice // Awoken Horror" with 2 ice, "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Opt"
+  library A: "Island", "Island"
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert counters "Thing in the Ice" ice 1
+  assert power "Thing in the Ice" 0
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Evolved Spinoderm: the last oil counter sacrifices it" {
+  battlefield A: "Evolved Spinoderm" with 1 oil
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Evolved Spinoderm"
+}
+
+scenario "Evolved Spinoderm: two counters left, trample, not sacrificed" {
+  battlefield A: "Evolved Spinoderm" with 3 oil
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert counters "Evolved Spinoderm" oil 2
+  assert has "Evolved Spinoderm" trample
+  assert battlefield A contains "Evolved Spinoderm"
+}
+
+# "Islands don't untap during their controllers' untap steps." (Choke).
+scenario "Choke: an opponent's Island stays tapped, a Forest untaps" {
+  battlefield A: "Choke"
+  battlefield B: "Island" tapped, "Forest" tapped
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert tapped "Island"
+  assert untapped "Forest"
+}
+
+# "Destroy target creature. A creature destroyed this way can't be
+# regenerated." (Damn).
+scenario "Damn: the target is destroyed despite a regeneration shield" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Drudge Skeletons", "Swamp"
+  hand A: "Damn"
+  turn 1 A: cast "Damn" targeting "Drudge Skeletons"
+  turn 1 B: activate "Drudge Skeletons"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Drudge Skeletons"
+}
+
+scenario "Damn: overloaded, it destroys each creature" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Damn"
+  turn 1 A: cast "Damn" overloaded
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+}
+
+# "Pay eight {E}: Return all other creatures to their owners' hands.
+# Activate only as a sorcery." (Aethersquall Ancient).
+scenario "Aethersquall Ancient: eight energy bounces the others" {
+  battlefield A: "Aethersquall Ancient", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  energy A: 9
+  turn 1 A: activate "Aethersquall Ancient"
+  run_to turn 1 postcombat_main
+  # 9 - 8, plus three from the upkeep trigger.
+  assert energy A 4
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Aethersquall Ancient"
+}
+
+scenario "Aethersquall Ancient: seven energy can't pay" {
+  battlefield A: "Aethersquall Ancient"
+  energy A: 4
+  illegal turn 1 A: activate "Aethersquall Ancient"
+  run_to turn 1 postcombat_main
+  assert energy A 7
+}
+
+scenario "Aethersquall Ancient: three energy each upkeep" {
+  battlefield A: "Aethersquall Ancient"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert energy A 3
+}

@@ -1,0 +1,9 @@
+card "Evolved Spinoderm" {
+  oracle_id 482ec736-7d4a-49c6-a757-e134123329ca
+  cost {2}{G}{G}
+  type Creature — Phyrexian Beast
+  pt 5/5
+  enters with 4 oil counters
+  static this: has trample as long as this has 2 or fewer oil counters otherwise has hexproof
+  triggered at beginning of your upkeep step: remove 1 oil counter from this; then if this has no oil counters, sacrifice this
+}

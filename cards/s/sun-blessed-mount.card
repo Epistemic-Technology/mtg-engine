@@ -1,0 +1,7 @@
+card "Sun-Blessed Mount" {
+  oracle_id 139b0fd5-8aa7-4b36-ab5d-cbf398381c6d
+  cost {3}{R}{W}
+  type Creature — Dinosaur
+  pt 4/4
+  triggered when this enters: you may search library or graveyard card named "Huatli, Dinosaur Knight" reveal to hand then
+}

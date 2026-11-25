@@ -1,0 +1,8 @@
+card "Ring of Evos Isle" {
+  oracle_id 4548f379-2647-4446-9e56-e7ef0662793a
+  cost {2}
+  type Artifact — Equipment
+  activated {2}: attached gains hexproof until end of turn
+  triggered at beginning of your upkeep step: put 1 +1/+1 counter on attached if attached is blue
+  equip {1}
+}

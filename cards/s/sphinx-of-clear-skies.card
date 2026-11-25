@@ -1,0 +1,9 @@
+card "Sphinx of Clear Skies" {
+  oracle_id 7ee394a2-84de-42e8-834e-6c1030be0aef
+  cost {3}{U}{U}
+  type Creature — Sphinx
+  pt 5/5
+  keywords flying
+  ward {2}
+  label "Domain" triggered whenever this deals combat damage to a player: piles reveal count where domain separated by opponent
+}

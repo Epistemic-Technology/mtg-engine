@@ -5456,6 +5456,9 @@ pub enum Effect {
         /// `without regeneration joined`: "Destroy target Knight and it
         /// can't be regenerated." in one sentence.
         joined: bool,
+        /// `without regeneration this way`: "Destroy target creature. A
+        /// creature destroyed this way can't be regenerated." (Damn).
+        this_way: bool,
     },
     GainLife {
         amount: Num,
@@ -5936,6 +5939,10 @@ pub enum Effect {
         /// `sacrifices 1 creature of their choice with flying`: the filter's
         /// "with" qualities print after "of their choice".
         choice_first: bool,
+        /// `sacrifices 1 creature bare`: "target opponent sacrifices a
+        /// creature." without "of their choice" (Bearer of Silence; the
+        /// same choice).
+        bare: bool,
     },
     /// `return 1 land you control`: "return a land you control to its
     /// owner's hand" (the controller chooses).

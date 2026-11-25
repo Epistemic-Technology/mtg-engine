@@ -1,0 +1,9 @@
+card "Huatli, Dinosaur Knight" {
+  oracle_id 04aa210a-235f-4e07-87d1-0d28cdf6888b
+  cost {4}{R}{W}
+  type Legendary Planeswalker — Huatli
+  loyalty 4
+  loyalty +2: put 2 +1/+1 counters on up to 1 target Dinosaur you control
+  loyalty -3: target Dinosaur you control bites target creature you don't control
+  loyalty -7: each Dinosaur you control gets +4/+4
+}

@@ -1,0 +1,202 @@
+# Wording near-misses (fifteenth wave, list e), third batch.
+
+# "Target player mills three cards, then you return a land card from your
+# graveyard to your hand." (Witherbloom Command, mode 1).
+scenario "Witherbloom Command: mill three, then a land back to hand" {
+  battlefield A: "Swamp", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Witherbloom Command"
+  graveyard A: "Forest"
+  library B: "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  # Modes 1 and 3 (the second pair).
+  turn 1 A: cast "Witherbloom Command" mode 2 targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert hand A contains "Forest"
+  assert power "Grizzly Bears" -1
+  assert toughness "Grizzly Bears" 1
+}
+
+scenario "Witherbloom Command: drain two and destroy a cheap noncreature permanent" {
+  battlefield A: "Swamp", "Forest"
+  battlefield B: "Mind Stone"
+  hand A: "Witherbloom Command"
+  start turn 1 A precombat_main
+  # Modes 2 and 4 (the fifth pair).
+  turn 1 A: cast "Witherbloom Command" mode 5 targeting "Mind Stone", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mind Stone"
+  assert life B 18
+  assert life A 22
+}
+
+# "you may have Allies you control gain lifelink until end of turn, and you
+# may put a +1/+1 counter on this creature" (Talus Paladin).
+scenario "Talus Paladin: lifelink for Allies and a counter" {
+  battlefield A: 4 "Plains", "Ondu Cleric"
+  hand A: "Talus Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Talus Paladin"
+  turn 1 A: accept "Talus Paladin"
+  turn 1 A: accept "Talus Paladin"
+  run_to turn 1 postcombat_main
+  assert has "Ondu Cleric" lifelink
+  assert has "Talus Paladin" lifelink
+  assert counters "Talus Paladin" +1/+1 1
+}
+
+scenario "Talus Paladin: lifelink declined, the counter still offered" {
+  battlefield A: 4 "Plains", "Ondu Cleric"
+  hand A: "Talus Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Talus Paladin"
+  turn 1 A: decline "Talus Paladin"
+  turn 1 A: accept "Talus Paladin"
+  run_to turn 1 postcombat_main
+  assert has not "Ondu Cleric" lifelink
+  assert counters "Talus Paladin" +1/+1 1
+}
+
+scenario "Talus Paladin: lifelink taken, the counter declined" {
+  battlefield A: 4 "Plains", "Ondu Cleric"
+  hand A: "Talus Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Talus Paladin"
+  turn 1 A: accept "Talus Paladin"
+  turn 1 A: decline "Talus Paladin"
+  run_to turn 1 postcombat_main
+  assert has "Ondu Cleric" lifelink
+  assert counters "Talus Paladin" +1/+1 0
+}
+
+# "if it doesn't have first strike, put a first strike counter on it" /
+# "if it has first strike, it gains double strike" (Momentum Rumbler).
+scenario "Momentum Rumbler: first attack, a first strike counter" {
+  battlefield A: "Momentum Rumbler"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Momentum Rumbler"
+  run_to turn 1 postcombat_main
+  assert counters "Momentum Rumbler" first_strike 1
+  assert has not "Momentum Rumbler" double_strike
+  assert life B 17
+}
+
+scenario "Momentum Rumbler: with first strike, double strike" {
+  battlefield A: "Momentum Rumbler" with 1 first_strike
+  start turn 1 A precombat_main
+  turn 1 A: attack "Momentum Rumbler"
+  run_to turn 1 postcombat_main
+  assert counters "Momentum Rumbler" first_strike 1
+  assert life B 14
+}
+
+scenario "Take to the Streets: Citizens get +3/+3 and vigilance, others +2/+2" {
+  battlefield A: 5 "Forest", "Grizzly Bears", "Backup Agent"
+  hand A: "Take to the Streets"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Take to the Streets"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" vigilance
+  assert power "Backup Agent" 4
+  assert toughness "Backup Agent" 4
+  assert has "Backup Agent" vigilance
+}
+
+scenario "Solidarity of Heroes: counters doubled on each target" {
+  battlefield A: 2 "Forest", "Grizzly Bears" with 2 +1/+1, "Hill Giant" with 1 +1/+1
+  hand A: "Solidarity of Heroes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Solidarity of Heroes" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 4
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Solidarity of Heroes: two targets cost {1}{G} more" {
+  battlefield A: 4 "Forest", "Grizzly Bears" with 2 +1/+1, "Hill Giant" with 1 +1/+1
+  hand A: "Solidarity of Heroes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Solidarity of Heroes" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 4
+  assert counters "Hill Giant" +1/+1 2
+}
+
+scenario "Solidarity of Heroes: three lands can't pay for two targets" {
+  battlefield A: 3 "Forest", "Grizzly Bears" with 2 +1/+1, "Hill Giant" with 1 +1/+1
+  hand A: "Solidarity of Heroes"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Solidarity of Heroes" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+# "reveal the top X cards of your library, where X is the number of basic
+# land types among lands you control" (Sphinx of Clear Skies).
+scenario "Sphinx of Clear Skies: two basic land types, two cards revealed" {
+  battlefield A: "Sphinx of Clear Skies", "Island", "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Sphinx of Clear Skies"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert library A count 1
+  assert library A contains "Serra Angel"
+}
+
+scenario "Nissa, Who Shakes the World: +1 animates a land with three counters" {
+  battlefield A: "Nissa, Who Shakes the World", "Forest" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nissa, Who Shakes the World" ability 1 targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+  assert power "Forest" 3
+  assert has "Forest" haste
+  assert has "Forest" vigilance
+  assert is "Forest" land
+  assert is "Forest" creature
+}
+
+scenario "Nissa, Who Shakes the World: the land stays a creature next turn" {
+  battlefield A: "Nissa, Who Shakes the World", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nissa, Who Shakes the World" ability 1 targeting "Forest"
+  run_to turn 3 precombat_main
+  assert is "Forest" creature
+  assert power "Forest" 3
+}
+
+scenario "Nissa, Who Shakes the World: a Forest taps for an additional {G}" {
+  battlefield A: "Nissa, Who Shakes the World", 3 "Forest"
+  hand A: "Craw Wurm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Craw Wurm"
+}
+
+scenario "Nissa, Who Shakes the World: -8, the emblem and Forests" {
+  battlefield A: "Nissa, Who Shakes the World" with 8 loyalty
+  library A: "Forest", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nissa, Who Shakes the World" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Forest"
+  assert library A count 1
+}
+
+# "If damage would be dealt to Sekki, prevent that damage, remove that many
+# +1/+1 counters from Sekki, and create that many 1/1 colorless Spirit
+# creature tokens."
+scenario "Sekki, Seasons' Guide: three damage, three counters off, three Spirits" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Sekki, Seasons' Guide" with 8 +1/+1
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Sekki, Seasons' Guide"
+  run_to turn 1 postcombat_main
+  assert counters "Sekki, Seasons' Guide" +1/+1 5
+  assert damage "Sekki, Seasons' Guide" 0
+  assert battlefield B contains 3 "Spirit"
+}

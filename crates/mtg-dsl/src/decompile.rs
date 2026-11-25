@@ -1208,11 +1208,13 @@ impl Decompiler<'_> {
                 to: vec![r(*to)],
                 no_regen: false,
                 joined: false,
+                this_way: false,
             },
             CoreEffect::DestroyNoRegen { to } => Effect::Destroy {
                 to: vec![r(*to)],
                 no_regen: true,
                 joined: false,
+                this_way: false,
             },
             CoreEffect::GainLife { amount, who } => Effect::GainLife {
                 amount: *amount,
@@ -1541,6 +1543,7 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 and: None,
                 choice_first: false,
+                bare: false,
             },
             CoreEffect::Strip { keywords: k, to } => Effect::Strip {
                 keywords: keywords(*k),

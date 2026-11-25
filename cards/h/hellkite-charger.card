@@ -1,0 +1,8 @@
+card "Hellkite Charger" {
+  oracle_id d4f28a4b-d821-4132-bdec-4c528318f8e2
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying, haste
+  triggered whenever this attacks: you may pay {5}{R}{R}; if you do, untap all attacking creature and after this phase, additional combat phase
+}
