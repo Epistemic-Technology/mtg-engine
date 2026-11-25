@@ -1,0 +1,6 @@
+card "Take to the Streets" {
+  oracle_id b3606b80-8d1b-4417-8902-a7ccf6b97cbb
+  cost {4}{G}
+  type Sorcery
+  spell: each creature you control gets +2/+2; each Citizen you control gets +1/+1 and gains vigilance
+}

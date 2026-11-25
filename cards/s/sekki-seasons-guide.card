@@ -1,0 +1,11 @@
+card "Sekki, Seasons' Guide" {
+  oracle_id 1b92501c-80fe-4ae7-834e-72f57ba41a6a
+  cost {5}{G}{G}{G}
+  type Legendary Creature — Spirit
+  pt 0/0
+  enters with 8 +1/+1 counters
+  replace damage to this: prevent and {
+    remove that much +1/+1 counters from this; create that much "1/1 colorless Spirit creature"
+  }
+  activated sacrifice 8 Spirit, from graveyard: return this to battlefield
+}

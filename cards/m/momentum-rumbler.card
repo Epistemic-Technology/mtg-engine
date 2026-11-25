@@ -1,0 +1,8 @@
+card "Momentum Rumbler" {
+  oracle_id 502230fb-3a7a-439c-adfa-f7820deacf87
+  cost {3}{R}
+  type Creature — Dinosaur
+  pt 3/3
+  triggered whenever this attacks if this is without first strike: put 1 first strike counter on this
+  triggered whenever this attacks if this is with first strike: this gains double strike
+}

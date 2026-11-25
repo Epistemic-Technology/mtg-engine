@@ -1796,6 +1796,9 @@ struct Ctx<'a> {
     /// The trigger's condition named the enchanted creature's type: "untap
     /// that creature" (Howl of the Hunt), not "tap it" (Narcolepsy).
     attached_by_type: bool,
+    /// A "Choose ... target ..." sentence was printed: "Double the number
+    /// of +1/+1 counters on each of them." (Solidarity of Heroes).
+    chose_targets: bool,
     /// The target last named "the chosen creature": its controller is
     /// "its controller" after it (Expel the Unworthy).
     chosen_said: Option<usize>,
@@ -1914,6 +1917,7 @@ impl<'a> Ctx<'a> {
             in_delayed: false,
             it_target: None,
             attached_by_type: false,
+            chose_targets: false,
             chosen_said: None,
             delayed_that: false,
             eot_first: false,
@@ -6995,11 +6999,22 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     ","
                 };
-                let _ = write!(
-                    c.tail,
+                let where_x = format!(
                     "{comma} where X is {}",
                     count_phrase_in(&count.expr, ctx, false)
                 );
+                // "reveal the top X cards of your library, where X is the
+                // number of basic land types among lands you control. An
+                // opponent separates those cards into two piles." (Sphinx
+                // of Clear Skies): right after the reveal.
+                if matches!(e, Effect::Piles { .. })
+                    && c.tail.is_empty()
+                    && let Some(i) = c.text.find(". An opponent separates")
+                {
+                    c.text.insert_str(i, &where_x);
+                } else {
+                    c.tail.push_str(&where_x);
+                }
                 ctx.source_mentioned = mentioned;
                 ctx.x_pending.push(count.expr.clone());
             }
@@ -7544,7 +7559,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ""
                 }
             } else if ctx.pumped.contains(&Recipient::EachCreatureYouControl)
-                && narrower_creatures_you_control(*to, ctx.card)
+                && (narrower_creatures_you_control(*to, ctx.card)
+                    || subtype_creatures_you_control(*to, ctx.card))
             {
                 // "Creatures you control get +1/+1 until end of turn. If
                 // this spell was kicked, Zombie creatures you control get
@@ -10979,6 +10995,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         // "Choose target creature card in your graveyard with mana value 4
         // or less" (Too Evil to Stay Dead): the zone right after the noun.
         Effect::ChooseTarget(r) => {
+            ctx.chose_targets = true;
             let o = ctx.obj(*r);
             let text = match o
                 .strip_suffix(" from your graveyard")
@@ -13062,7 +13079,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             let o = ctx.obj(*to);
             // "on each of those creatures" (Biogenic Upgrade).
-            let o = if o.starts_with("those ") {
+            let o = if o.starts_with("those ") && ctx.chose_targets {
+                "each of them".to_string()
+            } else if o.starts_with("those ") {
                 format!("each of {o}")
             } else {
                 o
@@ -13554,7 +13573,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let pronoun = clause.subject.as_ref().is_some_and(|(_, t)| t == "it");
                 if (*indefinite || (ctx.eot_first && keywords.is_empty()))
                     && land_target
-                    && !pronoun
+                    // "Untap it. It becomes a 0/0 Elemental creature with
+                    // vigilance and haste that's still a land." (Nissa, Who
+                    // Shakes the World: a loyalty ability; Tendril of the
+                    // Mycotyrant's own sentence after "It becomes").
+                    && (!pronoun || ctx.card.types.contains(&CardType::Planeswalker))
                     && !ctx.card.types.contains(&CardType::Land)
                 {
                     // "target land you control becomes a 3/3 Elemental
@@ -16074,6 +16097,14 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 // "it can't be regenerated this turn, and if it would die
                 // this turn, exile it instead" (Carbonize).
                 Some(Join::And) if c.subject.is_none() && c.text.starts_with("if ") => ", and ",
+                // "you may have Allies you control gain lifelink until end
+                // of turn, and you may put a +1/+1 counter on this
+                // creature" (Talus Paladin).
+                Some(Join::And | Join::AndRepeat)
+                    if c.subject.is_none() && c.text.starts_with("you may ") =>
+                {
+                    ", and "
+                }
                 // "deals 5 damage to that creature, and the other can't
                 // block this turn" (Trial of Agony): a second subject.
                 Some(Join::And) if matches!(c.subject, Some((Recipient::OtherTarget(_), _))) => {
@@ -16081,6 +16112,17 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 }
                 _ => " and ",
             });
+            // "Target player mills three cards, then you return a land
+            // card from your graveyard to your hand." (Witherbloom
+            // Command): after another player's clause, "you" is said.
+            if s.joins.get(i - 1) == Some(&Join::Then)
+                && c.subject.is_none()
+                && matches!(&clauses[i - 1].subject,
+                    Some((r, _)) if *r != Recipient::You)
+                && c.text.starts_with("return ")
+            {
+                out.push_str("you ");
+            }
         }
         let repeat = i > 0 && s.joins.get(i - 1) == Some(&Join::AndRepeat);
         let mut same_subject = false;
@@ -17728,6 +17770,23 @@ fn narrower_creatures_you_control(r: Recipient, card: &Card) -> bool {
     })
 }
 
+/// "Citizens you control get an additional +1/+1" (Take to the Streets):
+/// a group of a creature type alone you control, after "Creatures you
+/// control get ..." (a grant after it takes no "also": "Soldiers you
+/// control gain vigilance", The Howling Commandos).
+fn subtype_creatures_you_control(r: Recipient, card: &Card) -> bool {
+    let Recipient::Group(i) = r else {
+        return false;
+    };
+    card.groups.get(usize::from(i)).is_some_and(|f| {
+        f.who == Some(Who::You)
+            && f.or.is_none()
+            && f.types.is_empty()
+            && !f.subtypes.is_empty()
+            && f.colors.is_none()
+    })
+}
+
 fn controller_first(f: &Filter, s: String) -> String {
     let ctl = match f.who {
         Some(Who::You) => " you control",
@@ -18462,6 +18521,23 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let cond = replacement_while(r, ctx);
             let rest = sentences(&r.then, ctx);
             let rest = lowercase_first(rest.trim_end_matches('.'));
+            // "If damage would be dealt to Sekki, prevent that damage,
+            // remove that many +1/+1 counters from Sekki, and create that
+            // many 1/1 colorless Spirit creature tokens." (Sekki, Seasons'
+            // Guide): two sentences in the block are a list, the source
+            // named in it.
+            if r.then.len() == 2
+                && let Some((a, b)) = rest.split_once(". ")
+                && !b.contains(". ")
+                && !b.starts_with("When ")
+            {
+                let a = match a.strip_suffix(" from it") {
+                    Some(h) => format!("{h} from {}", this_ref(ctx.card)),
+                    None => a.to_string(),
+                };
+                let b = lowercase_first(b);
+                return format!("{head}{cond}, prevent that damage, {a}, and {b}.");
+            }
             return format!("{head}{cond}, prevent that damage and {rest}.");
         }
         (Replaces::Damage { to, combat, .. }, Outcome::Prevent) => {
@@ -21284,6 +21360,22 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                     .collect::<Vec<_>>()
             )
         ),
+        // "if it has first strike", "if it doesn't have first strike"
+        // (Momentum Rumbler): a keyword alone.
+        StaticCond::Is(f)
+            if (f.keywords.len() == 1) != (f.not_keywords.len() == 1)
+                && (Filter {
+                    keywords: Vec::new(),
+                    not_keywords: Vec::new(),
+                    ..f.clone()
+                }) == Filter::default() =>
+        {
+            match (f.keywords.first(), f.not_keywords.first()) {
+                (Some(k), _) => format!("it has {}", keyword_name(*k)),
+                (_, Some(k)) => format!("it doesn't have {}", keyword_name(*k)),
+                _ => unreachable!("one keyword"),
+            }
+        }
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
@@ -22579,8 +22671,13 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // artifacts, this creature gets +3/+3"), and "it" after
                     // one about the source ("if there are no arrowhead
                     // counters on this artifact, sacrifice it").
+                    // "if it has first strike, it gains double strike"
+                    // (Momentum Rumbler).
+                    let has_keyword = cond.starts_with("it has ")
+                        || cond.starts_with("it doesn't have ");
                     ctx.source_mentioned = named
                         || names_source
+                        || (has_keyword && matches!(c, StaticCond::Is(_)))
                         || matches!(c, StaticCond::And(_, b)
                             if matches!(**b, StaticCond::SourceLacksCounter(_)))
                         || matches!(

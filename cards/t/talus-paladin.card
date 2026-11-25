@@ -1,0 +1,7 @@
+card "Talus Paladin" {
+  oracle_id 98914c0e-967f-4c8b-bd74-e2ce15c7fe95
+  cost {3}{W}
+  type Creature — Human Knight Ally
+  pt 2/3
+  triggered whenever this or Ally you control enters: you may each Ally you control gain lifelink, and you may put 1 +1/+1 counter on this
+}
