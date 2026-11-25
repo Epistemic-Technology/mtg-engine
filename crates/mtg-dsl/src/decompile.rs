@@ -128,6 +128,7 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
         (TurnEvent::Attacked, ..) => StaticCond::AttackedThisTurn,
         (TurnEvent::Equipped, ..) => unreachable!("only the first equip ability"),
         (TurnEvent::AssassinDamage, ..) => unreachable!("only freerunning's alternative cost"),
+        (TurnEvent::TokenEvents, ..) => unreachable!("only a token replacement's \"first time\""),
         (TurnEvent::Entered, ..) => unreachable!("only with a filter"),
         (TurnEvent::Cast, _, Cmp::Exactly, n) => StaticCond::SpellNumber(n + 1),
         (TurnEvent::Cast, ..) => StaticCond::NoSpellsCastThisTurn { from_hand: false },

@@ -3250,11 +3250,15 @@ pub enum TurnEvent {
     /// owner ("the number of cards that were put into target player's
     /// graveyard from their library this turn"; tokens are no cards).
     LibraryToGraveyard,
+    /// Events in which the player would create one or more tokens (one per
+    /// token-making instruction, CR 614.1a; "the first time you would
+    /// create one or more tokens each turn", `Replacement::CopiesOfAttached`).
+    TokenEvents,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 41;
+    pub const COUNT: usize = 42;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -3285,6 +3289,7 @@ impl TurnEvent {
             | TurnEvent::LoyaltyActivated
             | TurnEvent::LegendaryCombatDamaged
             | TurnEvent::LibraryToGraveyard => true,
+            TurnEvent::TokenEvents => false,
             TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
@@ -8203,6 +8208,14 @@ pub enum Replacement {
     /// instead" (Draconic Visitor): the tokens the event covers become as
     /// many of this token.
     TokensInstead { token: CardRef },
+    /// "The first time you would create one or more tokens each turn, you
+    /// may instead create that many tokens that are copies of enchanted
+    /// permanent." (Moonlit Meditation): only the controller's first
+    /// token-creating event of the turn (`TurnEvent::TokenEvents`), and
+    /// only if they choose; the tokens become copies of what the source is
+    /// attached to. `creature`: "As long as this Equipment is attached to
+    /// a creature, ... copies of equipped creature" (Mirrormind Crown).
+    CopiesOfAttached { creature: bool },
     /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
     /// prints "to that permanent or player" after it (rendering only).
     PlusN { n: u32, to_that: bool },
@@ -11438,6 +11451,10 @@ impl DefFlags {
     /// (`Modification::SetName`, `AddSupertype`): names and the legend
     /// rule then read characteristics (`GameState::renamed`).
     const RENAMES: u64 = 1 << 50;
+    /// A token-creation replacement that may ask its controller
+    /// (`Replacement::CopiesOfAttached`): creating tokens then may need a
+    /// mid-event decision (`GameState::token_copy_sources`).
+    const TOKEN_COPIES: u64 = 1 << 51;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11576,6 +11593,10 @@ impl DefFlags {
         self.has(DefFlags::RENAMES)
     }
 
+    pub const fn has_token_copies(self) -> bool {
+        self.has(DefFlags::TOKEN_COPIES)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -11661,6 +11682,18 @@ impl DefFlags {
                         || ks.intersects(KeywordSet::TRIGGERED),
                     _ => false,
                 }))
+            }),
+        );
+        flags.set(
+            DefFlags::TOKEN_COPIES,
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replacement: Replacement::CopiesOfAttached { .. },
+                        ..
+                    })
+                )
             }),
         );
         flags.set(

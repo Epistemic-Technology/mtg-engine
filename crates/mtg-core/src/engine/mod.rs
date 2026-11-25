@@ -295,6 +295,8 @@ impl Engine {
                 state.top_play_sources += u32::from(def.flags().has_top_play());
                 state.top_static_sources += u32::from(def.flags().has_top_static());
                 state.foreign_activated_sources += u32::from(def.flags().has_foreign_activated());
+                state.renamed |= def.flags().has_renames();
+                state.token_copy_sources += u32::from(def.flags().has_token_copies());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -638,6 +640,7 @@ impl GameState {
             control_dirty: false,
             legendary_count: 0,
             renamed: false,
+            token_copy_sources: 0,
             activated_sources: 0,
             life_cda_sources: 0,
             tap_static_sources: 0,

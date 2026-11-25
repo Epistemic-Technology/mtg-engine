@@ -326,11 +326,21 @@ impl GameState {
         n: u32,
     ) -> SmallVec<[(CardRef, u32); 2]> {
         let mut out: SmallVec<[(CardRef, u32); 2]> = smallvec![(def, n)];
-        if self.replacement_sources == 0 || n == 0 {
+        if n == 0 {
             return out;
         }
-        // (source, replacement, creature tokens only, artifact tokens only)
-        let mut found: SmallVec<[(CardRef, Replacement, bool, bool); 2]> = SmallVec::new();
+        // "The first time you would create one or more tokens each turn"
+        // (`Replacement::CopiesOfAttached`).
+        let first = self.turn_log.tally[crate::card::TurnEvent::TokenEvents as usize]
+            [p.index().min(3)]
+            == 0;
+        self.log_event(crate::card::TurnEvent::TokenEvents, p, 1);
+        if self.replacement_sources == 0 {
+            return out;
+        }
+        // (source, replacement, creature tokens only, artifact tokens only,
+        // the source object)
+        let mut found: SmallVec<[(CardRef, Replacement, bool, bool, ObjId); 2]> = SmallVec::new();
         let granted = self.grant_sources > 0;
         for id in &self.battlefield {
             let o = &self.objects[*id];
@@ -350,7 +360,7 @@ impl GameState {
                     ..
                 }) = self.pool.ability(ability)
                 {
-                    found.push((o.def, *replacement, *creature, *artifact));
+                    found.push((o.def, *replacement, *creature, *artifact, *id));
                 }
             }
         }
@@ -362,17 +372,20 @@ impl GameState {
             (!creature || types.contains(crate::card::CardType::Creature))
                 && (!artifact || types.contains(crate::card::CardType::Artifact))
         };
-        if !found.iter().any(|(_, _, c, a)| covers(self, def, *c, *a)) {
+        if !found
+            .iter()
+            .any(|(_, _, c, a, _)| covers(self, def, *c, *a))
+        {
             return out;
         }
         // Tokens instead of others first, then added tokens, then doubling
         // (the player's order, CR 616.1, is fixed here).
-        found.sort_by_key(|(_, r, _, _)| match r {
-            Replacement::TokensInstead { .. } => 0,
+        found.sort_by_key(|(_, r, _, _, _)| match r {
+            Replacement::TokensInstead { .. } | Replacement::CopiesOfAttached { .. } => 0,
             Replacement::Double | Replacement::Triple => 2,
             _ => 1,
         });
-        for (by, r, creature, artifact) in found {
+        for (by, r, creature, artifact, source) in found {
             let total: u32 = out
                 .iter()
                 .filter(|(d, _)| covers(self, *d, creature, artifact))
@@ -398,6 +411,38 @@ impl GameState {
                         if covers(self, *d, creature, artifact) {
                             *d = token;
                         }
+                    }
+                }
+                // "you may instead create that many tokens that are copies
+                // of enchanted permanent": the copies are of its copiable
+                // values' definition (CR 707.2; a copy exception it has is
+                // not carried over).
+                Replacement::CopiesOfAttached { creature: needs } => {
+                    let Some(host) = self.objects[source]
+                        .attached_to
+                        .filter(|h| {
+                            self.objects
+                                .get(*h)
+                                .is_some_and(|o| o.zone == Zone::Battlefield)
+                        })
+                        .filter(|h| {
+                            !needs || self.characteristics(*h).is_some_and(|c| c.is_creature())
+                        })
+                    else {
+                        continue;
+                    };
+                    if !first
+                        || self.choose_mid(
+                            p,
+                            DecisionKind::YouMay { def: by },
+                            vec![Choice::Accept, Choice::Decline],
+                        ) != 0
+                    {
+                        continue;
+                    }
+                    let copy = self.objects[host].def;
+                    for (d, _) in &mut out {
+                        *d = copy;
                     }
                 }
                 _ => continue,

@@ -5023,6 +5023,10 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
         Outcome::Triple => "triple".to_string(),
+        Outcome::CopiesOfAttached { creature } => format!(
+            "first each turn may copies of attached{}",
+            if *creature { " creature" } else { "" }
+        ),
         Outcome::PlusToken { .. } => "plus \"\"".to_string(),
         Outcome::TokensInstead { .. } => "that many \"\"".to_string(),
         Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),

@@ -1010,6 +1010,7 @@ impl GameState {
         if add {
             // Sticky (`GameState::renamed`).
             self.renamed |= flags.has_renames();
+            self.token_copy_sources += d(flags.has_token_copies());
             self.trigger_sources += d(flags.has_triggers());
             self.replacement_sources += d(flags.has_replacements());
             self.control_sources += d(flags.has_control_static());
@@ -1036,6 +1037,7 @@ impl GameState {
             self.top_static_sources += d(flags.has_top_static());
             self.foreign_activated_sources += d(flags.has_foreign_activated());
         } else {
+            self.token_copy_sources -= d(flags.has_token_copies());
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
             self.control_sources -= d(flags.has_control_static());

@@ -21383,6 +21383,16 @@ impl P {
             }
             "double" => Outcome::Double,
             "triple" => Outcome::Triple,
+            // `first each turn may copies of attached [creature]`: "the
+            // first time you would create one or more tokens each turn,
+            // you may instead create that many tokens that are copies of
+            // enchanted permanent" (Moonlit Meditation).
+            "first" => {
+                self.expect_words(&["each", "turn", "may", "copies", "of", "attached"])?;
+                Outcome::CopiesOfAttached {
+                    creature: self.eat_word("creature"),
+                }
+            }
             // "reveal it and shuffle it into its owner's library instead".
             "shuffle" => {
                 self.eat_words(&["into", "library"]);

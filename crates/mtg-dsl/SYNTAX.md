@@ -1437,7 +1437,16 @@ artifact tokens would be created under your control, that many 5/5 red
 Dragon creature tokens with flying are created instead." (the covered
 tokens become as many of that token); `replace artifact tokens you create:
 plus "Map"` prints "If you would create one or more artifact tokens,
-instead create those tokens plus an additional Map token." Each applies
+instead create those tokens plus an additional Map token." `replace tokens
+you create: first each turn may copies of attached` prints "The first time
+you would create one or more tokens each turn, you may instead create that
+many tokens that are copies of enchanted permanent." (Moonlit Meditation;
+`attached creature`: "As long as this Equipment is attached to a creature,
+... copies of equipped creature.", Mirrormind Crown): only the player's
+first token-making event of the turn, counted whether or not the source
+was there (`TurnEvent::TokenEvents`), and only if they accept (`accept` /
+`decline` in scenarios); the copies are of the attached permanent's
+copiable values' card (a copy exception it has is not carried over). Each applies
 once to each token-making effect's tokens for one player (`create`, token
 copies, amass, fabricate, incubate, populate, endure, ...): tokens made
 instead come first, then tokens added, then doubling, so a doubler doubles

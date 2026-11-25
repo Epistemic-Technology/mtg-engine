@@ -2396,6 +2396,10 @@ pub struct GameState {
     /// characteristics. Never cleared: such an effect can outlast its
     /// source (Origin of Spider-Man).
     pub renamed: bool,
+    /// Battlefield objects whose definition has a token-creation
+    /// replacement that may ask (`DefFlags::has_token_copies`): creating
+    /// tokens may then need a mid-event decision.
+    pub token_copy_sources: u32,
     /// Battlefield objects whose definition has an activated ability, so
     /// that listing a player's options costs nothing extra without any.
     pub activated_sources: u32,
@@ -3846,6 +3850,7 @@ impl GameState {
             // An effect can make a permanent legendary or name it at any
             // time (CR 704.5j then asks which to keep).
             || self.renamed
+            || self.token_copy_sources > 0
             || self.stack.iter().any(|id| {
                 let o = &self.objects[*id];
                 let d = self.pool.get(o.def);

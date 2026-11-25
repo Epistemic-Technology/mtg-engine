@@ -17785,6 +17785,22 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 "If one or more {c}tokens would be created under your control, those tokens plus {desc} are created instead."
             )
         }
+        // "The first time you would create one or more tokens each turn,
+        // you may instead create that many tokens that are copies of
+        // enchanted permanent." (Moonlit Meditation); "As long as this
+        // Equipment is attached to a creature, ... equipped creature"
+        // (Mirrormind Crown).
+        (Replaces::CreateTokens { .. }, Outcome::CopiesOfAttached { creature }) => {
+            let rest = "the first time you would create one or more tokens each turn, you may instead create that many tokens that are copies of";
+            if *creature {
+                format!(
+                    "As long as {} is attached to a creature, {rest} equipped creature.",
+                    this_ref(ctx.card)
+                )
+            } else {
+                format!("{} enchanted permanent.", capitalize(rest))
+            }
+        }
         // "If one or more artifact tokens would be created under your
         // control, that many 5/5 red Dragon creature tokens with flying are
         // created instead." (Draconic Visitor).

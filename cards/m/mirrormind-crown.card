@@ -1,0 +1,7 @@
+card "Mirrormind Crown" {
+  oracle_id 353db389-b829-4e66-85d5-6018bc87c3e0
+  cost {4}
+  type Artifact — Equipment
+  replace tokens you create: first each turn may copies of attached creature
+  equip {2}
+}

@@ -1,0 +1,7 @@
+card "Moonlit Meditation" {
+  oracle_id df702b0c-e011-497f-ae29-9876efac4a4c
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant artifact or creature you control
+  replace tokens you create: first each turn may copies of attached
+}
