@@ -4115,7 +4115,11 @@ every permanent you now control), `put 1 +1/+1 counters on each token
 creature you control; they gain trample`. After a variable number of
 targets (`distribute 3 +1/+1 counters among 0 to 3 target creatures; they
 gain vigilance until end of turn`), `they` is those targets, as `target
-1` is. As a count, `count each those
+1` is; so it is after `those targets` (`untap those targets; they gain
+haste until end of turn`, Molten Primordial). In a trigger on one or
+more creatures attacking (`whenever one or more creatures you control
+attack: they gain indestructible until end of turn`, Angelic Guardian),
+`they` and `those creatures` are the controller's matching attackers. As a count, `count each those
 creatures` is "for each of those creatures" (Bounding Felidar's "You gain
 1 life for each of those creatures"). Without a group before it, `those
 creatures` is an error. In a triggered ability, `+1/+1 counters on it`

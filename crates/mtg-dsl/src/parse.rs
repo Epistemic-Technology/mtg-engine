@@ -61,6 +61,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_activated: false,
         that_spell_spent: false,
         group_named: false,
+        those_targets: None,
         delayed_attackers: false,
         or_spell: false,
         subject: None,
@@ -839,6 +840,10 @@ struct P {
     /// A group (`each <filter>`, `creatures you control`) has been named
     /// in this ability, for `them` and `those creatures` after it.
     group_named: bool,
+    /// `those targets` has been read in this ability: a later `they` is
+    /// those targets ("Untap those creatures. They gain haste until end
+    /// of turn.", Molten Primordial).
+    those_targets: Option<(usize, usize)>,
     /// Inside a delayed trigger on players being attacked: `those
     /// creatures` there are the attackers, not an earlier group.
     delayed_attackers: bool,
@@ -2675,6 +2680,7 @@ impl P {
         self.in_activated = false;
         self.that_spell_spent = false;
         self.group_named = false;
+        self.those_targets = None;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
@@ -4636,7 +4642,12 @@ impl P {
                 };
                 // "Whenever one or more creatures attack you, those
                 // creatures get -1/-0": the attackers are the group.
-                self.group_named = matches!(trigger, Trigger::PlayersAttacked { .. });
+                self.group_named = matches!(
+                    trigger,
+                    Trigger::PlayersAttacked { .. }
+                        | Trigger::OneOrMoreAttack(..)
+                        | Trigger::CreaturesYouControlAttack
+                );
                 let effects = self.effects_body()?;
                 Ok(Ability::Triggered {
                     limit,
@@ -16764,6 +16775,7 @@ impl P {
             in_activated: self.in_activated,
             that_spell_spent: self.that_spell_spent,
             group_named: self.group_named,
+            those_targets: self.those_targets,
             delayed_attackers: self.delayed_attackers,
             or_spell: false,
             subject: None,
@@ -17409,6 +17421,7 @@ impl P {
             if self.targets.is_empty() {
                 return self.fail("`those targets` needs targets declared before it");
             }
+            self.those_targets = Some((0, self.targets.len()));
             return Ok(Recipient::ThoseTargets(0, self.targets.len()));
         }
         if self.eat_words(&["exiled", "card", "owner"]) {
@@ -17700,6 +17713,17 @@ impl P {
             self.pos += 1;
             return Ok(Recipient::Target(self.targets.len() - 1));
         }
+        // "Untap those creatures. They gain haste until end of turn."
+        // (Molten Primordial): the targets just named, not a triggering
+        // player.
+        if self.at_word("they")
+            && !self.at_words(&["they", "control"])
+            && !self.group_named
+            && let Some((a, n)) = self.those_targets
+        {
+            self.pos += 1;
+            return Ok(Recipient::Targets(a, n));
+        }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
                 // "each creature with flying" is a group, not "each creature";
@@ -17936,6 +17960,7 @@ impl P {
                         in_activated: false,
                         that_spell_spent: false,
                         group_named: false,
+                        those_targets: None,
                         delayed_attackers: false,
                         or_spell: false,
                         subject: None,
