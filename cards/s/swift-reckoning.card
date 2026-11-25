@@ -1,0 +1,8 @@
+
+card "Swift Reckoning" {
+  oracle_id 82b0c006-bf58-4f05-8801-e5d2857a6fd6
+  cost {1}{W}
+  type Sorcery
+  label "Spell mastery" flash first if 2 instant or sorcery cards in your graveyard
+  spell: destroy target tapped creature
+}

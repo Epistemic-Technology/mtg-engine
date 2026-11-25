@@ -1,0 +1,8 @@
+card "Nighthowler" {
+  oracle_id 57b3f7fc-1812-4134-a645-6cef48a8aa71
+  cost {1}{B}{B}
+  type Enchantment Creature — Horror
+  pt 0/0
+  bestow {2}{B}{B}
+  static this and enchanted: +1/+1 count where all graveyards creature
+}

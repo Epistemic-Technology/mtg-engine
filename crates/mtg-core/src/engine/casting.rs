@@ -4147,7 +4147,7 @@ impl GameState {
         if !self.turn_spell_changes.is_empty() {
             d -= self.turn_spell_less(p, def, id);
         }
-        if let Some((delta, cond)) = def.cond_cost {
+        for (delta, cond) in [def.cond_cost, def.cond_cost2].into_iter().flatten() {
             let cond = self.pool.condition(cond);
             // "If you've cast another instant or sorcery spell this turn":
             // the spell being cast isn't cast until its costs are paid (CR

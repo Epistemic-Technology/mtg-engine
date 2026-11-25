@@ -1,0 +1,6 @@
+card "By Invitation Only" {
+  oracle_id d64e96bf-6815-462c-93b4-c9c22dc43eda
+  cost {3}{W}{W}
+  type Sorcery
+  spell: choose number between 0 and 13; each player sacrifices count that many chosen number creature
+}

@@ -1,0 +1,6 @@
+card "Arm the Cathars" {
+  oracle_id c6a1a91f-46b9-4e41-a3d3-3423b02c42a5
+  cost {1}{W}{W}
+  type Sorcery
+  spell: until end of turn, target creature gets +3/+3, up to 1 another target creature gets +2/+2, and up to 1 another target creature gets +1/+1; those targets gain vigilance until end of turn
+}

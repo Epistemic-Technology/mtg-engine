@@ -1,0 +1,6 @@
+card "Peer into the Abyss" {
+  oracle_id 21fa2442-6eac-4dce-a9cc-76f0053fdb8f
+  cost {4}{B}{B}{B}
+  type Sorcery
+  spell: target player draws count equal half up library of target 1 cards and loses half up life
+}

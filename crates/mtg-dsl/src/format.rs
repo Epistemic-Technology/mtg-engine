@@ -117,7 +117,11 @@ fn format_inner(card: &Card) -> String {
         } else {
             "as long as"
         };
-        let _ = writeln!(out, "  flash {how} {}", static_cond(c));
+        let label = card
+            .flash_label
+            .as_ref()
+            .map_or_else(String::new, |l| format!("label {l:?} "));
+        let _ = writeln!(out, "  {label}flash {how} {}", static_cond(c));
     }
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");
@@ -2720,7 +2724,13 @@ impl Fmt {
                 dest,
             } => format!("counter that spell{}", countered_to(*dest)),
             Effect::Counter { to, dest } => {
-                format!("counter {}{}", self.recipient(*to, t), countered_to(*dest))
+                // A cast trigger's spell, as written (`that spell`, Lunar
+                // Force).
+                let what = match to {
+                    Recipient::TriggeringObject => "that spell".to_string(),
+                    r => self.recipient(*r, t),
+                };
+                format!("counter {what}{}", countered_to(*dest))
             }
             Effect::ChangeTarget { what } => {
                 format!("change target of {}", self.recipient(*what, t))
@@ -3748,6 +3758,7 @@ impl Fmt {
                     if let Some((p, q)) = pt {
                         what.push(format!("{p}/{q}"));
                     }
+                    what.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
                     what.extend(subtypes.iter().cloned());
                     what.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
                     let with = match ability {
@@ -4986,7 +4997,12 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Difference { n, inner } => {
             format!("difference {n} {}", count_expr_text(inner))
         }
-        CountExpr::Plus { n, word, inner } => {
+        CountExpr::Plus {
+            n,
+            word,
+            after,
+            inner,
+        } => {
             let n = if *word {
                 crate::render::NUMBER_WORDS
                     .get(*n as usize - 1)
@@ -4994,7 +5010,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             } else {
                 n.to_string()
             };
-            format!("plus {n} {}", count_expr_text(inner))
+            let after = if *after { " after" } else { "" };
+            format!("plus {n}{after} {}", count_expr_text(inner))
         }
         CountExpr::CardsInGraveyards { filter: f, each } => {
             let place = if *each {
@@ -5620,7 +5637,13 @@ pub fn filter(f: &Filter) -> String {
             that_are: false,
             ..f.clone()
         };
-        return format!("thatare {}", filter(&g));
+        // `each thatare Barbarian or Warrior creature` (Lovisa Coldeyes):
+        // the parser takes `each` first.
+        let inner = filter(&g);
+        return match inner.strip_prefix("each ") {
+            Some(rest) => format!("each thatare {rest}"),
+            None => format!("thatare {inner}"),
+        };
     }
     // "Aura or Equipment attached to target creature": after both sides.
     if f.attached_to.is_some() && f.or.is_some() {

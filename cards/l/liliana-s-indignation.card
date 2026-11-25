@@ -1,0 +1,6 @@
+card "Liliana's Indignation" {
+  oracle_id c724dd2e-c62d-4a20-a1b9-54264d0b811a
+  cost {X}{B}
+  type Sorcery
+  spell: mill X cards; target player loses count each 2 creature card graveyarded this way life
+}

@@ -11249,6 +11249,11 @@ pub struct CardDef {
     /// "This spell costs {3} less to cast if a creature died this turn":
     /// generic mana, and the pool's condition index.
     pub cond_cost: Option<(i32, u16)>,
+    /// A second one, applied on its own: "This spell costs {1} less to
+    /// cast if you control an artifact and {1} less to cast if you
+    /// control an enchantment." (Assassin's Ink).
+    #[serde(default)]
+    pub cond_cost2: Option<(i32, u16)>,
     /// "This spell can't be countered." (CR 101.2: a spell or ability
     /// that would counter it does nothing to it).
     #[serde(default)]
@@ -14329,6 +14334,7 @@ impl Builder {
             uncopyable: false,
             uncounterable_if: None,
             cond_cost: None,
+            cond_cost2: None,
             madness: None,
             foretell: None,
             plot: None,
@@ -14858,7 +14864,11 @@ impl Builder {
     /// A cost change by a condition (see `CardDef::cond_cost`).
     #[must_use]
     pub fn cond_cost(mut self, delta: i32, cond: u16) -> Self {
-        self.0.cond_cost = Some((delta, cond));
+        if self.0.cond_cost.is_none() {
+            self.0.cond_cost = Some((delta, cond));
+        } else {
+            self.0.cond_cost2 = Some((delta, cond));
+        }
         self
     }
 

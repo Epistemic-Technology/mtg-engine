@@ -1,0 +1,7 @@
+card "Dread Slaver" {
+  oracle_id 8110f092-41b0-4e53-a7d7-f7e3cbc4a52a
+  cost {3}{B}{B}
+  type Creature — Zombie Horror
+  pt 3/5
+  triggered whenever creature dealt damage by this this turn dies: return it to battlefield under your control; that creature is black Zombie in addition
+}

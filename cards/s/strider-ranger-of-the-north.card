@@ -1,0 +1,8 @@
+
+card "Strider, Ranger of the North" {
+  oracle_id 118f2cb6-2af9-4acc-b386-a8e8dded5793
+  cost {2}{R}{G}
+  type Legendary Creature — Human Ranger
+  pt 4/4
+  label "Landfall" triggered whenever land you control enters: target creature gets +1/+1 until end of turn; then if that target 1 is thatare with power 4 or greater, target 1 gains first strike until end of turn
+}

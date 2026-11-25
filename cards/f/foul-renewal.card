@@ -1,0 +1,6 @@
+card "Foul Renewal" {
+  oracle_id 6beaf310-c623-4ab6-a0d3-f4c8221f255b
+  cost {3}{B}
+  type Instant
+  spell: return target creature card from your graveyard to hand; target creature gets -1/-1 count equal toughness of that target 1 until end of turn
+}

@@ -1,0 +1,10 @@
+card "Choose Your Weapon" {
+  oracle_id a3acb58d-3fb1-4602-8575-d78b716b0ea5
+  cost {2}{G}
+  type Instant
+  short_name "this spell"
+  choose one {
+    mode "Two-Weapon Fighting": double target creature power and toughness until end of turn
+    mode "Archery": deal 5 damage to target creature with flying
+  }
+}

@@ -1,0 +1,7 @@
+card "Slab Hammer" {
+  oracle_id f353948c-b5f9-4840-a89a-19206dde9d47
+  cost {2}
+  type Artifact — Equipment
+  triggered whenever equipped creature attacks: you may return 1 land you control chosen; if you do, the creature gets +2/+2 until end of turn
+  equip {2}
+}

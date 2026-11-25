@@ -1,0 +1,12 @@
+card "Sea Gate Restoration // Sea Gate, Reborn" {
+  oracle_id 4a8d41fe-e04d-484b-a7d1-19be311e6ca7
+  layout modal_dfc
+  cost {4}{U}{U}{U}
+  type Sorcery
+  spell: draw count equal plus one after hand cards; you have no maximum hand size for the rest of the game
+  face "Sea Gate, Reborn" {
+    type Land
+    enters tapped unless pay 3 life
+    activated {T}: add {U}
+  }
+}
