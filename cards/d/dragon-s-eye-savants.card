@@ -1,0 +1,8 @@
+card "Dragon's Eye Savants" {
+  oracle_id ca588f4e-4d2f-4aae-84de-be9862e13f1c
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 0/6
+  morph reveal blue card in hand
+  triggered when this is turned face up: look at hand of target opponent
+}

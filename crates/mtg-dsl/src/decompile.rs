@@ -399,6 +399,7 @@ impl Decompiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             damaged_short: false,
+            entered_long: false,
             put_there_anywhere: false,
             each: false,
             status: f.status,
@@ -494,6 +495,7 @@ impl Decompiler<'_> {
                     filter: t.filter.as_ref().map(|g| self.filter(g)),
                     opponent: t.opponent,
                     single: t.single,
+                    one_or_more: false,
                 })
             }),
         }
@@ -668,6 +670,7 @@ impl Decompiler<'_> {
                     optional: false,
                     reveal: b.hand,
                     x: b.x,
+                    in_hand: false,
                 })
             }),
         }
@@ -1292,6 +1295,7 @@ impl Decompiler<'_> {
                 additional: *if_creature,
                 more: *more,
                 if_creature: *if_creature,
+                if_creature_late: false,
                 transformed: *transformed,
                 front_up: false,
                 enters_attacking: false,

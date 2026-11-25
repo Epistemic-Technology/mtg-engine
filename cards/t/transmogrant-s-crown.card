@@ -1,0 +1,8 @@
+card "Transmogrant's Crown" {
+  oracle_id 767c82a7-ed42-4ef3-9d79-dd95e48f4326
+  cost {2}
+  type Artifact — Equipment
+  static equipped creature: +2/+0
+  triggered whenever equipped creature dies: draw 1 card
+  equip {2} or {B}
+}

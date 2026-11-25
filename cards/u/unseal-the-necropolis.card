@@ -1,0 +1,6 @@
+card "Unseal the Necropolis" {
+  oracle_id b3ea71d2-6298-452a-9c54-7c880b7e9cc0
+  cost {2}{B}
+  type Instant
+  spell: each player mills 3 cards; then you return up to 2 creature card from your graveyard to hand chosen
+}

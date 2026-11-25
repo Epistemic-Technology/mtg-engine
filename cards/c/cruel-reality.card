@@ -1,0 +1,7 @@
+card "Cruel Reality" {
+  oracle_id 2e3cc9b6-7849-4385-a487-c8f5364174e7
+  cost {5}{B}{B}
+  type Enchantment — Aura Curse
+  enchant player
+  triggered at beginning of enchanted controller's upkeep: that player sacrifices 1 creature or planeswalker of their choice; if the player can't, they lose 5 life
+}

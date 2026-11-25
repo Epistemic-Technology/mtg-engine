@@ -3489,9 +3489,10 @@ impl Compiler<'_> {
             | Recipient::SameExiledCards
             | Recipient::SameCreatures
             | Recipient::SameThem => CoreRecipient::SameObject,
-            Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
-                CoreRecipient::CreatedTokens
-            }
+            Recipient::CreatedTokens
+            | Recipient::CreatedThem
+            | Recipient::CreatedThose
+            | Recipient::CreatedCreatures => CoreRecipient::CreatedTokens,
             // `ChosenOf`: chosen by the `ChooseAct` compiled before the
             // effect.
             // Chosen first (`Compiler::effect`), then "it".
@@ -4052,6 +4053,7 @@ impl Compiler<'_> {
                 additional: _,
                 more,
                 if_creature,
+                if_creature_late: _,
                 transformed,
                 front_up: _,
                 enters_attacking: _,
@@ -5241,7 +5243,7 @@ impl Compiler<'_> {
                     filter: self.filter(filter),
                 });
             }
-            Effect::ForEachCouldnt { inner, .. } | Effect::IfTheyCant(inner) => {
+            Effect::ForEachCouldnt { inner, .. } | Effect::IfTheyCant(inner, _) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::ForEachCouldnt(effects));
             }
@@ -9603,6 +9605,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         additional: false,
                         more: None,
                         if_creature: false,
+                        if_creature_late: false,
                         transformed: false,
                         front_up: false,
                         enters_attacking: false,

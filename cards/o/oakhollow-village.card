@@ -1,0 +1,7 @@
+card "Oakhollow Village" {
+  oracle_id 177b7fe4-8565-4631-b4d9-8b2b4282f3ac
+  type Land
+  mana {C}
+  mana {G} only to cast creature spell
+  activated {G}, {T}: put 1 +1/+1 counter on each Frog or Rabbit or Raccoon or Squirrel you control that entered the battlefield this turn
+}

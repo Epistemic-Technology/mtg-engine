@@ -1,0 +1,109 @@
+# More wording near-misses: "During turns other than yours, this spell
+# costs {3} more to cast." (Hurkyl's Final Meditation), "a token that's
+# red, green, and white" (Godsire), "the player or planeswalker that
+# creature is attacking" (Raid Bombardment), "target black or red creature
+# that's attacking or blocking" (Surge of Righteousness), "each other
+# creature you control that's a Wolf or a Werewolf" (Spirit of the Hunt).
+
+scenario "Hurkyl's Final Meditation: on your turn, the printed cost bounces everything" {
+  battlefield A: 7 "Island", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Forest"
+  hand A: "Hurkyl's Final Meditation"
+  turn 1 A: cast "Hurkyl's Final Meditation"
+  run_to turn 2 upkeep
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Serra Angel"
+  assert battlefield B contains "Forest"
+  assert battlefield A contains 7 "Island"
+}
+
+scenario "Hurkyl's Final Meditation: {3} more on an opponent's turn" {
+  battlefield A: 7 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Hurkyl's Final Meditation"
+  start turn 2 B
+  illegal turn 2 upkeep A: cast "Hurkyl's Final Meditation"
+  run_to turn 2 precombat_main
+  assert hand A contains "Hurkyl's Final Meditation"
+}
+
+scenario "Hurkyl's Final Meditation: with ten mana on an opponent's turn" {
+  battlefield A: 10 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Hurkyl's Final Meditation"
+  start turn 2 B
+  turn 2 upkeep A: cast "Hurkyl's Final Meditation"
+  run_to turn 3 upkeep
+  assert hand B contains "Serra Angel"
+}
+
+scenario "Godsire: an 8/8 red, green, and white Beast" {
+  battlefield A: "Godsire"
+  turn 1 A: activate "Godsire"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Beast"
+  assert power "Beast" 8
+  assert is "Beast" red
+  assert is "Beast" green
+  assert is "Beast" white
+  assert is not "Beast" blue
+}
+
+scenario "Raid Bombardment: a small attacker pings the defending player" {
+  battlefield A: "Raid Bombardment", "Black Knight", "Serra Angel"
+  turn 1 A: attack "Black Knight", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
+scenario "Raid Bombardment: the planeswalker it attacks" {
+  battlefield A: "Raid Bombardment", "Black Knight"
+  battlefield B: "Kaya, Geist Hunter"
+  turn 1 A: attack "Black Knight" at "Kaya, Geist Hunter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Kaya, Geist Hunter"
+  assert life B 20
+}
+
+scenario "Surge of Righteousness: destroys an attacking black creature" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: "Typhoid Rats"
+  hand A: "Surge of Righteousness"
+  start turn 2 B
+  turn 2 B: attack "Typhoid Rats"
+  turn 2 declare_attackers A: cast "Surge of Righteousness" targeting "Typhoid Rats"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Typhoid Rats"
+  assert life A 22
+}
+
+scenario "Surge of Righteousness: not a creature that isn't attacking or blocking" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Typhoid Rats"
+  hand A: "Surge of Righteousness"
+  illegal turn 1 A: cast "Surge of Righteousness" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Typhoid Rats"
+}
+
+scenario "Surge of Righteousness: not an attacking green creature" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Surge of Righteousness"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 declare_attackers A: cast "Surge of Righteousness" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Spirit of the Hunt: other Wolves and Werewolves get +0/+3" {
+  battlefield A: 3 "Forest", "Sporeback Wolf", "Greater Werewolf", "Grizzly Bears"
+  hand A: "Spirit of the Hunt"
+  turn 1 A: cast "Spirit of the Hunt"
+  run_to turn 1 postcombat_main
+  assert toughness "Sporeback Wolf" 7
+  assert toughness "Greater Werewolf" 7
+  assert toughness "Grizzly Bears" 2
+  assert toughness "Spirit of the Hunt" 3
+}

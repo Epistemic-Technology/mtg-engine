@@ -492,6 +492,7 @@ impl Fmt {
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
             Recipient::CreatedThose => "those copies".to_string(),
+            Recipient::CreatedCreatures => "those creatures".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
@@ -2269,6 +2270,7 @@ impl Fmt {
                 additional,
                 more,
                 if_creature,
+                if_creature_late,
                 transformed,
                 front_up,
                 enters_attacking,
@@ -2305,6 +2307,9 @@ impl Fmt {
                     }
                     if *if_creature {
                         s.push_str(" if creature");
+                    }
+                    if *if_creature_late {
+                        s.push_str(" late");
                     }
                 }
                 if let Some(a) = attached {
@@ -3932,9 +3937,11 @@ impl Fmt {
                 self.recipient(*who, t),
                 filter(f)
             ),
-            Effect::IfTheyCant(inner) => {
-                format!("if they can't, {}", self.line(inner, t))
-            }
+            Effect::IfTheyCant(inner, player) => format!(
+                "if {} can't, {}",
+                if *player { "the player" } else { "they" },
+                self.line(inner, t)
+            ),
             Effect::ForEachCouldnt { opponent, inner } => format!(
                 "for each {} who can't, {}",
                 if *opponent { "opponent" } else { "player" },
@@ -4123,7 +4130,9 @@ impl Fmt {
                 by,
             } => {
                 use mtg_core::card::ChooseAct;
-                if let Some(w) = by {
+                if let Some(w) = by
+                    && *act != ChooseAct::ReturnFromGraveyard
+                {
                     return format!(
                         "{} puts all {} card from among milled this way cards into hand chosen",
                         self.recipient(*w, t),
@@ -4220,11 +4229,14 @@ impl Fmt {
                     }
                     // "return two cards at random from your graveyard": no
                     // filter.
-                    ChooseAct::ReturnFromGraveyard if unfiltered => {
+                    ChooseAct::ReturnFromGraveyard if unfiltered && by.is_none() => {
                         format!("return {n} {cs} from your graveyard to hand chosen")
                     }
                     ChooseAct::ReturnRandomFromGraveyard if unfiltered => {
                         format!("return {n} {cs} from your graveyard to hand at random")
+                    }
+                    ChooseAct::ReturnFromGraveyard if by.is_some() => {
+                        format!("you return {n} {f} {cs} from your graveyard to hand chosen")
                     }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
@@ -5968,7 +5980,9 @@ fn filter_one(f: &Filter) -> String {
             .to_string(),
         );
     }
-    if f.status.entered_this_turn {
+    if f.status.entered_this_turn && f.entered_long {
+        words.push("that entered the battlefield this turn".to_string());
+    } else if f.status.entered_this_turn {
         words.push("that entered this turn".to_string());
     }
     if f.status.dealt_damage {
@@ -6173,6 +6187,11 @@ pub fn targeting_suffix(t: &crate::ast::Targeting, phrase: impl Fn(&Filter) -> S
     {
         return format!(" that targets only a single {}", phrase(f));
     }
+    if t.one_or_more
+        && let Some(f) = &t.filter
+    {
+        return format!(" that targets one or more {}", phrase(f));
+    }
     format!(" that targets {}", targeting(t, phrase))
 }
 
@@ -6225,6 +6244,13 @@ pub fn share_qualifiers(base: &mut Filter, alt: &mut Filter) {
     if base.relation == Relation::Other && alt.relation == Relation::Any {
         alt.relation = Relation::Other;
     }
+    // "each Frog, Rabbit, Raccoon, or Squirrel you control that entered
+    // the battlefield this turn" (Oakhollow Village): every side entered
+    // this turn, as every side is controlled by you.
+    if alt.status.entered_this_turn && !base.status.entered_this_turn {
+        base.status.entered_this_turn = true;
+        base.entered_long = alt.entered_long;
+    }
 }
 
 /// The filter without "other", on each side of an `or` ("another Wolf or
@@ -6244,6 +6270,10 @@ pub fn relation_any(f: &mut Filter) {
 pub fn factor_qualifiers(base: &Filter, alt: &Filter) -> (Filter, Filter) {
     let (mut b, mut a) = (base.clone(), alt.clone());
     b.or = None;
+    if b.status.entered_this_turn && a.status.entered_this_turn {
+        b.status.entered_this_turn = false;
+        b.entered_long = false;
+    }
     if b.who.is_some()
         && b.who == a.who
         && b.dont_control == a.dont_control
@@ -7391,6 +7421,7 @@ fn cost_text(c: &Cost) -> String {
             CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::RevealThis => parts.push("reveal this".to_string()),
+            CostItem::RevealThisCard => parts.push("reveal this card".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
                 if c.blight > 0 && c.blight_put {
@@ -7416,6 +7447,9 @@ fn cost_text(c: &Cost) -> String {
                     }
                     if b.reveal {
                         let _ = write!(s, "reveal {} card", filter(&b.filter));
+                        if b.in_hand {
+                            s.push_str(" in hand");
+                        }
                         parts.push(s);
                         continue;
                     }

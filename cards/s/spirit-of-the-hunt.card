@@ -1,0 +1,8 @@
+card "Spirit of the Hunt" {
+  oracle_id 3a81a3a6-4940-4d69-94c1-d431023b275c
+  cost {1}{G}{G}
+  type Creature — Wolf Spirit
+  pt 3/3
+  keywords flash
+  triggered whenever this enters: each single thatare other Wolf creature or Werewolf creature you control gets +0/+3
+}

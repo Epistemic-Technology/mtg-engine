@@ -1,0 +1,6 @@
+card "Raid Bombardment" {
+  oracle_id 1734e777-d34a-4526-ae24-ef034f147cc5
+  cost {2}{R}
+  type Enchantment
+  triggered whenever creature you control with power 2 or less attacks: deal 1 damage to defending player
+}
