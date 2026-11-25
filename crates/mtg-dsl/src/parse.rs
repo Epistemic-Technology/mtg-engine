@@ -21584,6 +21584,12 @@ impl P {
                 if self.eat_words(&["a", "battle"]) {
                     return Ok(Trigger::AttacksBattle(obj));
                 }
+                // CR 508.1: "attacks you [or a planeswalker you control]".
+                if matches!(obj, TriggerObj::Filter(_)) && self.eat_word("you") {
+                    let planeswalkers =
+                        self.eat_words(&["or", "a", "planeswalker", "you", "control"]);
+                    return Ok(Trigger::AttacksYou { obj, planeswalkers });
+                }
                 Ok(Trigger::Attacks(obj))
             }
             "blocks" if self.at_words(&["or", "becomes", "blocked"]) => {

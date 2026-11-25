@@ -3068,6 +3068,13 @@ impl Decompiler<'_> {
             },
             TriggerSpec::ScriesOrSurveils => Trigger::ScriesOrSurveils,
             TriggerSpec::Scries => Trigger::Scries,
+            TriggerSpec::AttacksYou {
+                what,
+                planeswalkers,
+            } => Trigger::AttacksYou {
+                obj: self.trigger_obj(what),
+                planeswalkers: *planeswalkers,
+            },
             TriggerSpec::Acts { action, whose } => Trigger::Acts {
                 action: *action,
                 whose: *whose,

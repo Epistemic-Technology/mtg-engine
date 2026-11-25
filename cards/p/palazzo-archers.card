@@ -1,0 +1,8 @@
+card "Palazzo Archers" {
+  oracle_id 4887b9e1-ea84-4543-b272-c106a13a33dc
+  cost {2}{G}
+  type Creature — Human Archer
+  pt 2/3
+  keywords reach
+  triggered whenever creature with flying attacks you or a planeswalker you control: this bites that creature
+}

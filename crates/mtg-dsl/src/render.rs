@@ -17489,6 +17489,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("when {} becomes monstrous", this_ref(ctx.card))
         }
         Trigger::Acts { action, .. } => crate::format::acts_words(*action, true),
+        Trigger::AttacksYou { obj, planeswalkers } => format!(
+            "whenever {} attacks you{}",
+            trigger_subject(obj, ctx),
+            if *planeswalkers {
+                " or a planeswalker you control"
+            } else {
+                ""
+            }
+        ),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_subject(o, ctx)),
         Trigger::CrewsOrSaddles(o) => format!(
             "whenever {} saddles a Mount or crews a Vehicle",

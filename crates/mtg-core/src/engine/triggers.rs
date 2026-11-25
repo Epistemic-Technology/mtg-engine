@@ -1231,6 +1231,29 @@ impl GameState {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
+            // CR 508.1: an attacker at the controller or (with
+            // `planeswalkers`) a planeswalker they control.
+            (
+                TriggerSpec::AttacksYou {
+                    what,
+                    planeswalkers,
+                },
+                Event::Attack { attacker, target },
+            ) => {
+                let at_you = match *target {
+                    Target::Player(p) => p == w.controller,
+                    Target::Object(o) => {
+                        *planeswalkers
+                            && self.objects.get(o).is_some_and(|o| o.controller == w.controller)
+                            && self.characteristics(o).is_some_and(|c| c.is_planeswalker())
+                    }
+                };
+                if !at_you {
+                    return None;
+                }
+                let p = on_battlefield(what, *attacker)?;
+                Some((Some(*attacker), Some(p)))
+            }
             // The attacker is recorded as it is declared, before the event.
             (TriggerSpec::AttacksFirstTime(what), Event::Attack { attacker, .. }) => {
                 let p = on_battlefield(what, *attacker)?;

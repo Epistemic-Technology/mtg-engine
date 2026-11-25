@@ -4974,6 +4974,12 @@ pub enum Trigger {
         action: mtg_core::card::KeywordAction,
         whose: Who,
     },
+    /// `whenever creature attacks you`, `whenever creature with flying
+    /// attacks you or a planeswalker you control` (`TriggerSpec::AttacksYou`).
+    AttacksYou {
+        obj: TriggerObj,
+        planeswalkers: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

@@ -7356,6 +7356,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
         Trigger::Acts { action, .. } => acts_words(*action, false),
+        Trigger::AttacksYou { obj, planeswalkers } => format!(
+            "whenever {} attacks you{}",
+            trigger_obj(obj),
+            if *planeswalkers {
+                " or a planeswalker you control"
+            } else {
+                ""
+            }
+        ),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_obj(o)),
         Trigger::CrewsOrSaddles(o) => {
             format!(

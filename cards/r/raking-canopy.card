@@ -1,0 +1,6 @@
+card "Raking Canopy" {
+  oracle_id 75f381a6-49f9-4caf-a96a-91c75640b9b0
+  cost {1}{G}{G}
+  type Enchantment
+  triggered whenever creature with flying attacks you: deal 4 damage to it
+}

@@ -9242,6 +9242,16 @@ pub enum TriggerSpec {
     /// is the triggering player, the number involved (energy gotten, the
     /// monstrosity's N) the trigger's amount.
     Acts { action: KeywordAction, whose: Who },
+    /// "Whenever a creature attacks you" (`planeswalkers` false), "... you
+    /// or a planeswalker you control" (CR 508.1): once for each matching
+    /// attacker declared attacking the controller (or one of their
+    /// planeswalkers), whoever controls it. The attacker is the triggering
+    /// object, its controller the triggering player ("that creature's
+    /// controller").
+    AttacksYou {
+        what: TriggerObj,
+        planeswalkers: bool,
+    },
 }
 
 /// What a `TriggerSpec::Acts` trigger watches.
@@ -9476,7 +9486,8 @@ impl TriggerSpec {
             | TriggerSpec::AttacksWithPower(_)
             | TriggerSpec::PlayerAttacksWith { .. }
             | TriggerSpec::AttacksWithFilter { .. }
-            | TriggerSpec::PlayersAttacked { .. } => WATCH_ATTACK,
+            | TriggerSpec::PlayersAttacked { .. }
+            | TriggerSpec::AttacksYou { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)

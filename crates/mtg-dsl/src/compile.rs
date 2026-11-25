@@ -6777,6 +6777,10 @@ impl Compiler<'_> {
             },
             Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
             Trigger::Scries => TriggerSpec::Scries,
+            Trigger::AttacksYou { obj, planeswalkers } => TriggerSpec::AttacksYou {
+                what: self.trigger_obj(obj),
+                planeswalkers: *planeswalkers,
+            },
             Trigger::Acts { action, whose } => TriggerSpec::Acts {
                 action: *action,
                 whose: *whose,
