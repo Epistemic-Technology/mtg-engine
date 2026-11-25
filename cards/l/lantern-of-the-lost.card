@@ -1,0 +1,7 @@
+card "Lantern of the Lost" {
+  oracle_id f0c4414f-f153-40f6-a3b3-94bcbf1d3e29
+  cost {1}
+  type Artifact
+  triggered when this enters: exile target card from a graveyard
+  activated {1}, {T}, exile this: exile all cards from all graveyards then draw 1 card
+}

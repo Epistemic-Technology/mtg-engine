@@ -12986,6 +12986,9 @@ impl P {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
                 }
+                if self.eat_words(&["all", "cards", "from", "all", "graveyards"]) {
+                    return Ok(Effect::ExileAllCardsFromAllGraveyards);
+                }
                 // `exile library face down`, `exile hand face down`, `exile
                 // 1 card from hand face down` (CR 406.3).
                 if self.at_word("library") && self.word_at(1).as_deref() != Some("from") {

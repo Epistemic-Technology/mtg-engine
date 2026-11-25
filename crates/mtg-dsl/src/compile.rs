@@ -3987,7 +3987,9 @@ impl Compiler<'_> {
                 what: r(*what),
                 until: true,
             }),
-            Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
+            Effect::ExileAllGraveyards | Effect::ExileAllCardsFromAllGraveyards => {
+                out.push(CoreEffect::ExileAllGraveyards);
+            }
             Effect::ExileGraveyard { who, filter } => out.push(CoreEffect::ExileGraveyard {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| Box::new(self.filter(f))),

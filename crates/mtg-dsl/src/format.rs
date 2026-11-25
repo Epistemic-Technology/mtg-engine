@@ -2237,6 +2237,9 @@ impl Fmt {
                 format!("exile {} until this leaves", self.recipient(*what, t))
             }
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
+            Effect::ExileAllCardsFromAllGraveyards => {
+                "exile all cards from all graveyards".to_string()
+            }
             Effect::ExileGraveyard {
                 who,
                 filter: Some(f),

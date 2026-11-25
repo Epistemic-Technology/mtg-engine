@@ -2834,7 +2834,9 @@ nothing), `return those cards to battlefield [under your control]` (after
 `exile up to 2 target creature you control then`: "return those cards to
 the battlefield under their owner's control", each target found as the
 card it became, CR 400.7),
-`exile all graveyards`, `exile graveyard of target player` ("Exile target
+`exile all graveyards` (`exile all cards from all graveyards` prints
+"Exile all cards from all graveyards", the same effect, Lantern of the
+Lost), `exile graveyard of target player` ("Exile target
 player's graveyard"; `of each opponent`: "Exile each opponent's
 graveyard"; `exile all creature card from graveyard of target player`:
 "Exile all creature cards from target player's graveyard"), `put <what> on top of library` / `on bottom of

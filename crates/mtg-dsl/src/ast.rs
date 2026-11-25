@@ -5317,6 +5317,9 @@ pub enum Effect {
         what: Recipient,
     },
     ExileAllGraveyards,
+    /// `exile all cards from all graveyards`: "Exile all cards from all
+    /// graveyards" (Lantern of the Lost): the same effect, worded so.
+    ExileAllCardsFromAllGraveyards,
     /// `exile graveyard of target player`: "Exile target player's
     /// graveyard."
     /// `exile all creature card from graveyard of target player`: "Exile

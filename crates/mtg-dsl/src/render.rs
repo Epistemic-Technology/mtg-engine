@@ -9832,6 +9832,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::ExileAllGraveyards => Clause::imperative("exile all graveyards".to_string()),
+        Effect::ExileAllCardsFromAllGraveyards => {
+            Clause::imperative("exile all cards from all graveyards".to_string())
+        }
         Effect::ExileGraveyard { who, filter } => {
             let o = ctx.obj(*who);
             let whose = match o.as_str() {

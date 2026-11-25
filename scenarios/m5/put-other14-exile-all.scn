@@ -1,0 +1,23 @@
+# "Exile all cards from all graveyards, then draw a card." (Lantern of the
+# Lost, put-other14).
+
+scenario "Lantern of the Lost: one card on entering, then every graveyard" {
+  battlefield A: 2 "Plains"
+  hand A: "Lantern of the Lost"
+  graveyard A: "Grizzly Bears", "Shock"
+  graveyard B: "Hill Giant", "Murder"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lantern of the Lost"
+  turn 1 A: trigger "Lantern of the Lost" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Lantern of the Lost"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert exile B contains "Murder"
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Lantern of the Lost"
+  assert graveyard A count 0
+  assert graveyard B count 0
+  assert hand A contains "Island"
+}
