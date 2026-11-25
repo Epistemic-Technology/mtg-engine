@@ -8030,7 +8030,17 @@ impl Compiler<'_> {
                 first: false,
                 from: *from,
             }),
-            Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
+            Ability::Protection(f) => {
+                let f = self.filter(f);
+                // "protection from creatures of the chosen type" (Riders of
+                // Gavony): the protection is judged without the source that
+                // chose, so it would protect from nothing.
+                if f.chosen || f.or.as_deref().is_some_and(|o| o.chosen) {
+                    return self
+                        .err("protection from a chosen type or color of a filter isn't supported");
+                }
+                AbilityDef::Protection(f)
+            }
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,

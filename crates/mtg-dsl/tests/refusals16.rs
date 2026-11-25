@@ -47,6 +47,24 @@ fn a_cost_sacrifices_permanents_of_one_filter() {
 }
 
 #[test]
+fn protection_from_a_chosen_type_is_refused() {
+    // "Human creatures you control have protection from creatures of the
+    // chosen type." (Riders of Gavony) protected from nothing.
+    let kind = "Creature — Human Knight\n  pt 3/3";
+    let e = load_card(
+        kind,
+        "as this enters choose creature type\n  static Human creature you control: has protection from creature of chosen type",
+    )
+    .unwrap_err();
+    assert!(e.contains("protection"), "{e}");
+    let r = load_card(
+        kind,
+        "static Human creature you control: has protection from creature",
+    );
+    assert!(r.is_ok(), "{r:?}");
+}
+
+#[test]
 fn do_once_each_turn_limits_a_you_may() {
     // Without a "you may" the limit limited nothing.
     let kind = "Creature — Human\n  pt 4/6";
