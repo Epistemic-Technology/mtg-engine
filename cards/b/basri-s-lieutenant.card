@@ -1,0 +1,10 @@
+card "Basri's Lieutenant" {
+  oracle_id 57d0c688-6206-4c83-9fcb-27fd29e2a9ed
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 3/4
+  keywords vigilance
+  protection from multicolored
+  triggered when this enters: put 1 +1/+1 counter on target creature you control
+  triggered whenever this or creature you control dies if it had +1/+1 counter: create 1 "2/2 white Knight creature with vigilance"
+}

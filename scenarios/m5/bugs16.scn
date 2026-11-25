@@ -336,6 +336,100 @@ scenario "Emergency Powers: cast in a main phase, the addendum puts a permanent 
   assert exile A contains "Emergency Powers"
 }
 
+scenario "Rushed Rebirth: the search finds a creature card with lesser mana value" {
+  battlefield A: "Grizzly Bears", "Swamp", "Forest", "Mountain"
+  hand A: "Rushed Rebirth", "Shock"
+  library A: "Serra Angel", "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rushed Rebirth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: choose "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+  assert tapped "Savannah Lions"
+}
+
+scenario "Rushed Rebirth: a creature card with greater mana value isn't found" {
+  battlefield A: "Grizzly Bears", "Swamp", "Forest", "Mountain"
+  hand A: "Rushed Rebirth", "Shock"
+  library A: "Serra Angel", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rushed Rebirth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Serra Angel"
+  assert library A contains "Serra Angel"
+}
+
+scenario "Sentry Oak: winning the clash, it gets +2/+0 and loses defender" {
+  battlefield A: "Sentry Oak"
+  library A: "Serra Angel"
+  library B: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Sentry Oak"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Sentry Oak: losing the clash, it keeps defender" {
+  battlefield A: "Sentry Oak"
+  library A: "Plains"
+  library B: "Serra Angel"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Sentry Oak"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert power "Sentry Oak" 3
+}
+
+scenario "Walking Bulwark: a creature with defender gains haste, attacks, and assigns damage equal to its toughness" {
+  battlefield A: 3 "Plains"
+  hand A: "Walking Bulwark"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Walking Bulwark"
+  turn 1 A: wait
+  turn 1 A: activate "Walking Bulwark" targeting "Walking Bulwark"
+  turn 1 A: attack "Walking Bulwark"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Basri's Lieutenant: another creature that dies with a +1/+1 counter makes a Knight" {
+  battlefield A: "Basri's Lieutenant", "Grizzly Bears" with 1 +1/+1, "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Knight"
+}
+
+scenario "Basri's Lieutenant: a creature without counters makes none, whatever the Lieutenant has" {
+  battlefield A: "Basri's Lieutenant" with 1 +1/+1, "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Knight"
+}
+
+scenario "Basri's Lieutenant: dying with a counter itself, it makes a Knight" {
+  battlefield A: "Basri's Lieutenant" with 1 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Basri's Lieutenant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Basri's Lieutenant"
+  assert battlefield A contains "Knight"
+}
+
 scenario "Spirit Link: its controller gains the damage the enchanted creature deals" {
   battlefield A: "Spirit Link" on "Hill Giant"
   battlefield B: "Hill Giant"

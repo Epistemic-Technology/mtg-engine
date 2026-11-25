@@ -2921,8 +2921,11 @@ impl GameState {
                 .is_some_and(|o| o.zone == Zone::Battlefield && o.tapped),
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(source),
-            Condition::HadNoCounters(k) => self.had_no_counters(source, k),
-            Condition::HadCounters(k) => self.had_counters(source, k),
+            // "Whenever this or another creature you control dies, if it
+            // had a +1/+1 counter on it" (Basri's Lieutenant): the dying
+            // creature's, as it last existed.
+            Condition::HadNoCounters(k) => self.had_no_counters(trigger_obj.unwrap_or(source), k),
+            Condition::HadCounters(k) => self.had_counters(trigger_obj.unwrap_or(source), k),
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
@@ -2999,8 +3002,8 @@ impl GameState {
             Condition::SourceTapped => w.tapped,
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(w.source),
-            Condition::HadNoCounters(k) => self.had_no_counters(w.source, k),
-            Condition::HadCounters(k) => self.had_counters(w.source, k),
+            Condition::HadNoCounters(k) => self.had_no_counters(trigger_obj.unwrap_or(w.source), k),
+            Condition::HadCounters(k) => self.had_counters(trigger_obj.unwrap_or(w.source), k),
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
