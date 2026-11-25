@@ -1,0 +1,8 @@
+card "Guardian of the Gateless" {
+  oracle_id e133605f-9227-42c4-afe9-6613ab095433
+  cost {4}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying, can block any number of creatures
+  triggered whenever this blocks: this gets +1/+1 count each creature blocked by it until end of turn
+}

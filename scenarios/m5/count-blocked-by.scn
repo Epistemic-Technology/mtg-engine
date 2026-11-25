@@ -1,0 +1,24 @@
+# "for each creature it's blocking": only the creatures it blocks.
+
+scenario "Guardian of the Gateless blocking one attacker gets +1/+1" {
+  battlefield A: "Grizzly Bears", "Wind Drake"
+  battlefield B: "Guardian of the Gateless"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears", "Wind Drake"
+  turn 2 B: block "Grizzly Bears" with "Guardian of the Gateless"
+  run_to turn 2 combat_damage
+  assert power "Guardian of the Gateless" 4
+  assert toughness "Guardian of the Gateless" 4
+}
+
+scenario "Guardian of the Gateless blocking two attackers gets +2/+2" {
+  battlefield A: "Grizzly Bears", "Wind Drake"
+  battlefield B: "Guardian of the Gateless"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears", "Wind Drake"
+  turn 2 B: block "Grizzly Bears" with "Guardian of the Gateless"
+  turn 2 B: block "Wind Drake" with "Guardian of the Gateless"
+  run_to turn 2 combat_damage
+  assert power "Guardian of the Gateless" 5
+  assert toughness "Guardian of the Gateless" 5
+}

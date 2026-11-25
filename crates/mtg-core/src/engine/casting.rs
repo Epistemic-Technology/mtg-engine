@@ -966,6 +966,9 @@ impl GameState {
                                 f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
                             })
                             && self.status_ok(f, **id)
+                            // "for each creature blocked by it" (Guardian
+                            // of the Gateless, CR 509.1g).
+                            && self.combat_with_ok(f.combat_with, Some(ctx.source), **id)
                     })
                     .count()
             }
