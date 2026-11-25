@@ -228,6 +228,26 @@ scenario "Omenpath Journey: the land enters tapped" {
   assert exile A count 0
 }
 
+# "When The Spot dies, put him on the bottom of his owner's library. If
+# you do, return the exiled cards to their owners' hands."
+
+scenario "The Spot, Living Portal: the exiled cards return to their owners' hands" {
+  battlefield A: 2 "Plains", 6 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  hand A: "The Spot, Living Portal", "Murder"
+  library A: "Forest", "Island"
+  turn 1 A: cast "The Spot, Living Portal"
+  turn 1 A: trigger "The Spot, Living Portal" targeting "Hill Giant", "Grizzly Bears"
+  turn 1 main2 A: cast "Murder" targeting "The Spot, Living Portal"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert exile B count 0
+  assert library A count 3
+  assert graveyard A lacks "The Spot, Living Portal"
+}
+
 # "When this Vehicle leaves the battlefield, the exiled card's owner
 # manifests dread." (CR 607.2a, 701.62a).
 

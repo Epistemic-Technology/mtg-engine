@@ -5117,6 +5117,9 @@ pub enum Recipient {
     ExiledCard,
     /// `exiled card owner`: "the exiled card's owner".
     ExiledCardOwner,
+    /// `exiled cards`: "the exiled cards", `ExiledCard` where the linked
+    /// ability may exile several (The Spot, Living Portal).
+    ExiledCards,
     /// `granter`: in an ability an Aura or Equipment grants the permanent
     /// it is attached to, that Aura or Equipment, printed by its name
     /// ("Return Trusty Boomerang to its owner's hand").

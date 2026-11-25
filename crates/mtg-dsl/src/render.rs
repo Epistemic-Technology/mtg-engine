@@ -2451,6 +2451,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::ExiledCard | Recipient::CreatedExiledCard => "the exiled card".to_string(),
             Recipient::ExiledCardOwner => "the exiled card's owner".to_string(),
+            Recipient::ExiledCards => "the exiled cards".to_string(),
             // The granting card is the quoted ability's holder's name
             // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
             // deals 2 damage to any target."
@@ -9535,6 +9536,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     Recipient::Targets(..)
                         | Recipient::ThoseTargets(..)
                         | Recipient::ChosenTargets(..)
+                        | Recipient::ExiledCards
                 );
             // "Return target creature card and all other cards with the
             // same name as that card from your graveyard to your hand."
@@ -10875,7 +10877,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             if *wording == W::Put {
                 let o = ctx.obj(*what);
-                let whose = graveyard_of.unwrap_or("its owner's");
+                // "put him on the bottom of his owner's library" (The
+                // Spot): the card's pronoun.
+                let whose = match (graveyard_of, o.as_str()) {
+                    (Some(w), _) => w,
+                    (None, "him") => "his owner's",
+                    (None, "her") => "her owner's",
+                    _ => "its owner's",
+                };
                 // "Put any number of target artifact cards from target
                 // player's graveyard on top of their library in any order."
                 let any_order = match *what {

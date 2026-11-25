@@ -4834,7 +4834,11 @@ exiled with this creature into its owner's graveyard", `each card exiled
 with this` "Put each card exiled with this artifact into its owner's
 graveyard") moves cards still in exile to their owners' graveyards (CR
 400.3). In scenarios a target name not on the battlefield, the stack or in
-a graveyard is found in exile.
+a graveyard is found in exile. `exiled cards` is `exiled card` printed
+plural ("return the exiled cards to their owners' hands", The Spot,
+Living Portal, whose linked ability exiles two); with `pronoun he`, `put
+this on bottom of library` prints "put him on the bottom of his owner's
+library".
 
 ### Crossover-set pieces
 

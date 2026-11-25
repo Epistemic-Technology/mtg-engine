@@ -16487,6 +16487,9 @@ impl P {
         if self.eat_words(&["exiled", "card", "owner"]) {
             return Ok(Recipient::ExiledCardOwner);
         }
+        if self.eat_words(&["exiled", "cards"]) {
+            return Ok(Recipient::ExiledCards);
+        }
         if self.eat_words(&["exiled", "card"]) {
             return Ok(Recipient::ExiledCard);
         }

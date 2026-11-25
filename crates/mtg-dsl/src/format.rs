@@ -439,6 +439,7 @@ impl Fmt {
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::ExiledCardOwner => "exiled card owner".to_string(),
+            Recipient::ExiledCards => "exiled cards".to_string(),
             Recipient::Granter => "granter".to_string(),
             Recipient::GranterIt => "granter as it".to_string(),
             Recipient::GranterController => "controller of granter".to_string(),

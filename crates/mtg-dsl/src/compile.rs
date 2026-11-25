@@ -3395,7 +3395,9 @@ impl Compiler<'_> {
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
-            Recipient::ExiledCard | Recipient::ACardExiledWith => CoreRecipient::ExiledCard,
+            Recipient::ExiledCard | Recipient::ExiledCards | Recipient::ACardExiledWith => {
+                CoreRecipient::ExiledCard
+            }
             Recipient::ExiledCardOwner => CoreRecipient::ExiledCardOwner,
             Recipient::Granter | Recipient::GranterIt => CoreRecipient::Granter,
             Recipient::GranterController => CoreRecipient::GranterController,
