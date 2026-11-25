@@ -22673,8 +22673,8 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // counters on this artifact, sacrifice it").
                     // "if it has first strike, it gains double strike"
                     // (Momentum Rumbler).
-                    let has_keyword = cond.starts_with("it has ")
-                        || cond.starts_with("it doesn't have ");
+                    let has_keyword =
+                        cond.starts_with("it has ") || cond.starts_with("it doesn't have ");
                     ctx.source_mentioned = named
                         || names_source
                         || (has_keyword && matches!(c, StaticCond::Is(_)))

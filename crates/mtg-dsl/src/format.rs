@@ -6147,11 +6147,11 @@ fn spell_target(f: &Filter) -> String {
         && g.subtypes.is_empty()
         && g.any_types.is_empty();
     let base = match g.chosen {
-        Some(c) if named => {
-            let mut h = g.clone();
-            h.chosen = None;
-            if h == Filter::default() {
-                of_chosen(c).to_string()
+        Some(chosen) if named => {
+            let mut rest = g.clone();
+            rest.chosen = None;
+            if rest == Filter::default() {
+                of_chosen(chosen).to_string()
             } else {
                 filter(&g)
             }
