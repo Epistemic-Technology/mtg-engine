@@ -1,0 +1,16 @@
+card "Toil // Trouble" {
+  oracle_id 97759579-b676-46e8-b566-fcad10751920
+  layout split
+  face "Toil" {
+    cost {2}{B}
+    type Sorcery
+    keywords fuse
+    spell: target player draws two cards and loses 2 life
+  }
+  face "Trouble" {
+    cost {2}{R}
+    type Sorcery
+    keywords fuse
+    spell: deal count equal hand of target player damage to target 1
+  }
+}

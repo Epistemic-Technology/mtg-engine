@@ -1,0 +1,7 @@
+card "Cave of the Frost Dragon" {
+  oracle_id 1e4146d2-cfa0-4f5e-9761-3c83519b90c3
+  type Land
+  enters tapped if you control 2 other land
+  mana {W}
+  activated {4}{W}: this becomes 3/4 white Dragon creature with flying
+}

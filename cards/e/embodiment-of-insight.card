@@ -1,0 +1,9 @@
+card "Embodiment of Insight" {
+  oracle_id ee1c7532-dc97-432d-964f-1c4087ab5248
+  cost {4}{G}
+  type Creature — Elemental
+  pt 4/4
+  keywords vigilance
+  static Land creature you control: has vigilance
+  label "Landfall" triggered whenever land you control enters: you may target land you control becomes 3/3 Elemental creature with haste
+}

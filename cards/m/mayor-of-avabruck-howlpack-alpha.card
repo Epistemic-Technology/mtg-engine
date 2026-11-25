@@ -1,0 +1,17 @@
+card "Mayor of Avabruck // Howlpack Alpha" {
+  oracle_id 6e638587-30b3-4c4b-b463-fb415ea048f7
+  layout transform
+  cost {1}{G}
+  type Creature — Human Advisor Werewolf
+  pt 1/1
+  static other Human creature you control: +1/+1
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Howlpack Alpha" {
+    type Creature — Werewolf
+    pt 3/3
+    color green
+    static each thatare other Werewolf or Wolf creature you control: +1/+1
+    triggered at beginning of your end step: create 1 "2/2 green Wolf creature"
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

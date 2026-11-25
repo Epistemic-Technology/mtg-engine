@@ -1,0 +1,7 @@
+card "Faerie Conclave" {
+  oracle_id 0c25f6b1-8fb3-4406-9605-0282d2dbbcec
+  type Land
+  enters tapped
+  mana {U}
+  activated {1}{U}: this becomes 2/1 blue Faerie creature with flying
+}

@@ -1,0 +1,8 @@
+card "Angelic Overseer" {
+  oracle_id ec22386d-42fd-40f9-b800-a043e80faabe
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 5/3
+  keywords flying
+  static as long as you control Human, this: has hexproof, indestructible
+}

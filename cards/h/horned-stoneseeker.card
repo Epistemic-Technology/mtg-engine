@@ -1,0 +1,9 @@
+card "Horned Stoneseeker" {
+  oracle_id 78d74d6a-e1aa-4d70-92c3-b5338959d2fb
+  cost {1}{R}
+  type Creature — Lizard
+  pt 2/2
+  keywords menace
+  triggered when this enters: create 1 tapped "Powerstone"
+  triggered whenever this leaves the battlefield: sacrifice 1 Powerstone chosen
+}

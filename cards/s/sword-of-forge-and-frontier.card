@@ -1,0 +1,8 @@
+card "Sword of Forge and Frontier" {
+  oracle_id c6331ce3-21f7-4784-80fe-df1f541a4c46
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has protection from red, protection from green
+  triggered whenever equipped creature deals combat damage to a player: impulse 2 this turn; play additional land this turn
+  equip {2}
+}

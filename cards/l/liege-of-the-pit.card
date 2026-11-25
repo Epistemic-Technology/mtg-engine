@@ -1,0 +1,9 @@
+card "Liege of the Pit" {
+  oracle_id fd775874-0182-46b1-8624-267bdc4e8075
+  cost {5}{B}{B}{B}
+  type Creature — Demon
+  pt 7/7
+  keywords flying, trample
+  triggered at beginning of your upkeep step: you sacrifices 1 creature other than this; if you cant, deal 7 damage to you
+  morph {B}{B}{B}{B}
+}

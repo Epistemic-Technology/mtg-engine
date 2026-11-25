@@ -1,0 +1,7 @@
+card "Dromoka Monument" {
+  oracle_id 1c587200-02cc-4c5f-86fe-d13cc7bdad8b
+  cost {3}
+  type Artifact
+  mana {G} or {W}
+  activated {4}{G}{W}: this becomes 4/4 green white Dragon artifact creature with flying
+}

@@ -1,0 +1,9 @@
+card "Horde Ambusher" {
+  oracle_id fb7f45eb-c134-4493-af05-e3b14d80e48c
+  cost {1}{R}
+  type Creature — Human Berserker
+  pt 2/2
+  triggered whenever this blocks: deal 1 damage to you
+  morph reveal red permanent card in hand
+  triggered when this is turned face up: target creature can't block
+}

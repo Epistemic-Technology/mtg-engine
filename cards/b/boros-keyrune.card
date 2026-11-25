@@ -1,0 +1,7 @@
+card "Boros Keyrune" {
+  oracle_id 991ae2f7-3f8e-4364-8698-5277786d7dcd
+  cost {3}
+  type Artifact
+  mana {R} or {W}
+  activated {R}{W}: this becomes 1/1 red white Soldier artifact creature with double strike
+}

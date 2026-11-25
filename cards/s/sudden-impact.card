@@ -1,0 +1,6 @@
+card "Sudden Impact" {
+  oracle_id 2bf65e7d-6d31-4ad6-93cd-623612d3175d
+  cost {3}{R}
+  type Instant
+  spell: deal count equal hand of target player damage to target 1
+}

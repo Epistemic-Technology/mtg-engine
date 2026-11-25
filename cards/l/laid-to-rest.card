@@ -1,0 +1,7 @@
+card "Laid to Rest" {
+  oracle_id ae6dc45c-b8c9-4cbf-892f-8c00f4199aaf
+  cost {3}{G}
+  type Enchantment
+  triggered whenever a Human you control dies: draw 1 cards
+  triggered whenever creature with +1/+1 counter you control dies: you gain 2 life
+}

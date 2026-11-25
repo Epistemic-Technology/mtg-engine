@@ -1,0 +1,8 @@
+card "Ajani's Comrade" {
+  oracle_id 15b86440-2040-47ae-ab4e-8445b3e24462
+  cost {1}{G}
+  type Creature — Elf Soldier
+  pt 2/2
+  keywords trample
+  triggered at beginning of your combat step if you control Ajani planeswalker: put 1 +1/+1 counter on this
+}
