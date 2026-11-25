@@ -440,7 +440,9 @@ impl Fmt {
                 "controller of that creature".to_string()
             }
             Recipient::TheTriggeringController => "controller of the creature".to_string(),
-            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
+            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) | Recipient::ThatController(_) => {
+                "that player".to_string()
+            }
             Recipient::TriggeringThey => "they".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),

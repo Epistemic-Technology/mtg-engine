@@ -5110,6 +5110,10 @@ pub enum Recipient {
     /// the owner of the `n`th target, printed "that player" (Recoil's
     /// "Then that player discards a card").
     ThatOwner(usize),
+    /// "that player" after a target permanent "an opponent controls": the
+    /// controller of the `n`th target, printed "that player" (Boseiju, Who
+    /// Endures: "That player may search their library ...").
+    ThatController(usize),
     /// `controller of the target 1`: "the creature's controller".
     TheControllerOf(usize),
     /// `the target 1`: the `n`th target, "the creature" (Dark Temper's

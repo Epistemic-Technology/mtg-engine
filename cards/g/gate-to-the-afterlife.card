@@ -1,0 +1,7 @@
+card "Gate to the Afterlife" {
+  oracle_id 5a682ec5-78e6-4238-b5c2-e94b7a8f8066
+  cost {3}
+  type Artifact
+  triggered whenever nontoken creature you control dies: you gain 1 life; then you may draw 1 card; if you do, discard 1 card
+  activated {2}, {T}, sacrifice this, if 6 creature cards in your graveyard: search graveyard, hand, or library card named "God-Pharaoh's Gift" to battlefield
+}

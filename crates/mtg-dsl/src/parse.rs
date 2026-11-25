@@ -17684,6 +17684,20 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // "Destroy target artifact ... an opponent controls. That player may
+        // search ..." (Boseiju, Who Endures): the opponent who controls the
+        // last target, outside a trigger (where "that player" is the
+        // triggering player).
+        if self.at_words(&["that", "player"])
+            && !self.in_trigger
+            && matches!(
+                self.targets.last(),
+                Some(Target::Filter(f)) if f.who == Some(Who::Opponents)
+            )
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatController(self.targets.len() - 1));
+        }
         // "An opponent gains control of this artifact."
         if self.at_words(&["an", "opponent", "gains", "control"]) {
             self.pos += 2;

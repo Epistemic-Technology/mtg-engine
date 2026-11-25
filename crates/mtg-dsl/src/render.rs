@@ -2302,7 +2302,9 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringOneOfThem => "one of them".to_string(),
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::SameTheToken => "the token".to_string(),
-            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
+            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) | Recipient::ThatController(_) => {
+                "that player".to_string()
+            }
             Recipient::TriggeringCard | Recipient::SameCard | Recipient::CreatedThatCard => {
                 "that card".to_string()
             }
@@ -3573,8 +3575,16 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             !w.contains(' ') || (i == 0 && w.split(' ').count() == 2 && w.starts_with("non-"))
         })
     };
+    // "artifact, enchantment, or nonbasic land an opponent controls"
+    // (Boseiju, Who Endures): a last side of its own with a "non"
+    // qualifier (and the controller every side shares) joins too.
+    let last_non = sides.len() - 1;
     if !plural_form
-        && sides.iter().all(|s| !s.contains(' ') || one_word_or_non(s))
+        && sides.iter().enumerate().all(|(i, s)| {
+            !s.contains(' ')
+                || one_word_or_non(s)
+                || (i == last_non && s.starts_with("non") && !s.contains(" or "))
+        })
         && sides.iter().any(|s| s.contains(" or "))
     {
         sides = sides

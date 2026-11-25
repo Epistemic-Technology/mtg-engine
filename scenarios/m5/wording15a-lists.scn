@@ -1,0 +1,74 @@
+# "target artifact, enchantment, or nonbasic land an opponent controls"
+# (Boseiju, Who Endures) and "your graveyard, hand, and/or library" (Gate
+# to the Afterlife).
+
+scenario "Boseiju: channel destroys an opponent's artifact; they may search" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Bonesplitter"
+  hand A: "Boseiju, Who Endures"
+  library B: "Forest", "Island"
+  turn 1 A: activate "Boseiju, Who Endures" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Bonesplitter"
+  assert graveyard A contains "Boseiju, Who Endures"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Boseiju: a nonbasic land an opponent controls" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Mishra's Factory"
+  hand A: "Boseiju, Who Endures"
+  turn 1 A: activate "Boseiju, Who Endures" targeting "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mishra's Factory"
+}
+
+scenario "Boseiju: not your own artifact, not a basic land, not a creature" {
+  battlefield A: 2 "Forest", "Sol Ring"
+  battlefield B: "Forest", "Grizzly Bears"
+  hand A: "Boseiju, Who Endures"
+  illegal turn 1 A: activate "Boseiju, Who Endures" targeting "Sol Ring"
+  illegal turn 1 A: activate "Boseiju, Who Endures" targeting B "Forest"
+  illegal turn 1 A: activate "Boseiju, Who Endures" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Boseiju, Who Endures"
+}
+
+scenario "Boseiju: {1} less for each legendary creature you control" {
+  battlefield A: "Forest", "Isamaru, Hound of Konda"
+  battlefield B: "Bonesplitter"
+  hand A: "Boseiju, Who Endures"
+  turn 1 A: activate "Boseiju, Who Endures" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Bonesplitter"
+}
+
+scenario "Gate to the Afterlife: a nontoken creature dying gains 1 life, loots" {
+  battlefield A: "Gate to the Afterlife", "Grizzly Bears", "Mountain"
+  hand A: "Shock", "Island"
+  library A: "Forest"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert hand A contains "Forest"
+  assert graveyard A contains "Island"
+}
+
+scenario "Gate to the Afterlife: find God-Pharaoh's Gift in the hand" {
+  battlefield A: "Gate to the Afterlife", 2 "Plains"
+  graveyard A: 6 "Grizzly Bears"
+  hand A: "God-Pharaoh's Gift"
+  turn 1 A: activate "Gate to the Afterlife"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "God-Pharaoh's Gift"
+  assert graveyard A contains "Gate to the Afterlife"
+}
+
+scenario "Gate to the Afterlife: not with five creature cards in the graveyard" {
+  battlefield A: "Gate to the Afterlife", 2 "Plains"
+  graveyard A: 5 "Grizzly Bears", "Shock"
+  hand A: "God-Pharaoh's Gift"
+  illegal turn 1 A: activate "Gate to the Afterlife"
+  run_to turn 1 postcombat_main
+  assert hand A contains "God-Pharaoh's Gift"
+}
