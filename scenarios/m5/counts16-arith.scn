@@ -1,0 +1,117 @@
+# Arithmetic on counts (sixteenth wave): "three times this creature's
+# power" read as it last existed (CR 608.2h), a count minus another, a
+# fixed number minus a count (at least 0 as an effect's amount, CR
+# 107.1b; below 0 as a characteristic-defining power and toughness), and
+# "that many ... minus one".
+
+scenario "Rootwire Amalgam: the Golem is three times its last power and has haste" {
+  battlefield A: "Rootwire Amalgam" with 1 +1/+1, 5 "Forest"
+  turn 1 A: activate "Rootwire Amalgam"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Rootwire Amalgam"
+  assert power "Golem" 18
+  assert toughness "Golem" 18
+  assert has "Golem" haste
+}
+
+scenario "Dark Deal: each player draws one fewer than they discarded" {
+  battlefield A: 3 "Swamp"
+  hand A: "Dark Deal", "Forest", "Island", "Mountain"
+  hand B: "Plains", "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Duress"
+  library B: "Lightning Bolt", "Ornithopter", "Opt"
+  turn 1 A: cast "Dark Deal"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand B count 1
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Mountain"
+  assert graveyard B contains "Plains"
+  assert hand B contains "Lightning Bolt"
+}
+
+scenario "Dark Deal: a player with one card draws none" {
+  battlefield A: 3 "Swamp"
+  hand A: "Dark Deal"
+  hand B: "Plains"
+  turn 1 A: cast "Dark Deal"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert hand B count 0
+  assert graveyard B contains "Plains"
+}
+
+scenario "Flunk: -X/-X where X is 7 minus the cards in its controller's hand" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant", "Craw Wurm"
+  hand A: "Flunk", "Forest", "Island"
+  hand B: "Plains", "Forest", "Island", "Mountain", "Swamp"
+  turn 1 A: cast "Flunk" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert power "Craw Wurm" 4
+  assert toughness "Craw Wurm" 2
+  assert power "Hill Giant" 3
+}
+
+scenario "Flunk: seven or more cards in hand give -0/-0" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Flunk"
+  hand B: "Plains", "Forest", "Island", "Mountain", "Swamp", "Plains", "Forest", "Island"
+  turn 1 A: cast "Flunk" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Scourge of the Skyclaves: 20 minus the highest life total" {
+  life A 15
+  life B 12
+  battlefield A: "Scourge of the Skyclaves"
+  run_to turn 1 precombat_main
+  assert power "Scourge of the Skyclaves" 5
+  assert toughness "Scourge of the Skyclaves" 5
+}
+
+scenario "Scourge of the Skyclaves: kicked, each player loses half their life rounded up first" {
+  life A 13
+  battlefield A: 7 "Swamp"
+  hand A: "Scourge of the Skyclaves"
+  turn 1 A: cast "Scourge of the Skyclaves" kicked
+  run_to turn 1 postcombat_main
+  assert life A 6
+  assert life B 10
+  assert battlefield A contains "Scourge of the Skyclaves"
+  assert power "Scourge of the Skyclaves" 10
+  assert toughness "Scourge of the Skyclaves" 10
+}
+
+scenario "Scourge of the Skyclaves: it grows as the highest life total falls" {
+  life A 15
+  life B 18
+  battlefield A: "Scourge of the Skyclaves", "Mountain"
+  hand A: "Lightning Bolt"
+  run_to turn 1 precombat_main
+  assert power "Scourge of the Skyclaves" 2
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert power "Scourge of the Skyclaves" 5
+  assert toughness "Scourge of the Skyclaves" 5
+}
+
+scenario "Scourge of the Skyclaves: a life total above 20 makes it negative" {
+  life B 22
+  battlefield A: "Scourge of the Skyclaves", "Hill Giant"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Scourge of the Skyclaves"
+}
+
+scenario "Scourge of the Skyclaves: unkicked, with 20 life it dies" {
+  battlefield A: 2 "Swamp"
+  hand A: "Scourge of the Skyclaves"
+  turn 1 A: cast "Scourge of the Skyclaves"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Scourge of the Skyclaves"
+  assert life A 20
+}

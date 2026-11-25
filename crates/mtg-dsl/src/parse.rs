@@ -790,7 +790,7 @@ pub(crate) const SELF_NOUNS: [&str; 10] = [
     "vehicle",
 ];
 
-const NUMBER_WORDS: [&str; 20] = [
+pub(crate) const NUMBER_WORDS: [&str; 20] = [
     "one",
     "two",
     "three",
@@ -13946,8 +13946,17 @@ impl P {
                         up_to: u8::try_from(n).unwrap_or(u8::MAX).max(1),
                     });
                 }
-                let count = self.num()?;
+                // `remove all -1/-1 counters from it`: every counter of
+                // that kind (`REMOVE_ALL`).
+                let count = if self.eat_word("all") {
+                    Num::N(mtg_core::card::REMOVE_ALL)
+                } else {
+                    self.num()?
+                };
                 let kind = self.counter_kind()?;
+                if count == Num::N(mtg_core::card::REMOVE_ALL) && kind == CounterKind::Any {
+                    return self.fail("`remove all counters from` names no kind");
+                }
                 self.expect_word("from")?;
                 let to = self.recipient()?;
                 Ok(Effect::RemoveCounters { kind, count, to })
@@ -16231,7 +16240,39 @@ impl P {
                 inner: Box::new(inner),
             });
         }
-        let first = self.count_expr_one()?;
+        // `difference <expr> minus <expr>`: "the difference" (`difference
+        // 10 hand` is the older form, ten minus the count).
+        if self.at_word("difference")
+            && !matches!(self.peek_at(1), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() != Some("of")
+        {
+            self.pos += 1;
+            let a = self.count_expr_one()?;
+            self.expect_word("minus")?;
+            let b = self.count_minus_side()?;
+            return Ok(crate::ast::CountExpr::Minus {
+                a: Box::new(a),
+                b: Box::new(b),
+                difference: true,
+            });
+        }
+        // `7 minus <expr>`: "7 minus the number of ...".
+        let first = if matches!(self.peek(), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() == Some("minus")
+        {
+            self.count_minus_side()?
+        } else {
+            self.count_expr_one()?
+        };
+        // `<expr> minus <expr>`, `<expr> minus one`.
+        if self.eat_word("minus") {
+            let second = self.count_minus_side()?;
+            return Ok(crate::ast::CountExpr::Minus {
+                a: Box::new(first),
+                b: Box::new(second),
+                difference: false,
+            });
+        }
         // `<expr> plus <expr>`; `plus 2 <expr>` is the prefix form.
         if self.at_word("plus")
             && !matches!(self.peek_at(1), Some(Tok::Num(_)))
@@ -16247,6 +16288,29 @@ impl P {
             ));
         }
         Ok(first)
+    }
+
+    /// One side of `minus`: a number (`7`, `one`) or a count.
+    fn count_minus_side(&mut self) -> R<crate::ast::CountExpr> {
+        match self.peek() {
+            Some(Tok::Num(n)) => {
+                let n = *n;
+                self.pos += 1;
+                Ok(crate::ast::CountExpr::Const { n, word: false })
+            }
+            Some(Tok::Word(w)) if NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str()) => {
+                let i = NUMBER_WORDS
+                    .iter()
+                    .position(|x| x.eq_ignore_ascii_case(w))
+                    .expect("number word");
+                self.pos += 1;
+                Ok(crate::ast::CountExpr::Const {
+                    n: u32::try_from(i + 1).expect("small"),
+                    word: true,
+                })
+            }
+            _ => self.count_expr_one(),
+        }
     }
 
     /// `power of it`, `toughness of that creature` (the triggering
@@ -16578,6 +16642,65 @@ impl P {
         }
         if self.eat_words(&["greatest", "toughness"]) {
             return Ok(CountExpr::GreatestToughness(self.filter()?));
+        }
+        if self.eat_words(&["highest", "life"]) {
+            return Ok(CountExpr::HighestLife);
+        }
+        // `+1/+1 counters removed this way`, `counters removed this way`:
+        // what the ability's "Remove X ... counters" cost removed.
+        if let Some(k) = (0..4).find(|k| {
+            matches!(self.word_at(*k).as_deref(), Some("counter" | "counters"))
+                && self.word_at(k + 1).as_deref() == Some("removed")
+                && self.word_at(k + 2).as_deref() == Some("this")
+                && self.word_at(k + 3).as_deref() == Some("way")
+        }) {
+            let kind = if k == 0 {
+                mtg_core::card::CounterKind::Any
+            } else {
+                self.counter_kind()?
+            };
+            if !self.eat_word("counters") {
+                self.eat_word("counter");
+            }
+            self.expect_words(&["removed", "this", "way"])?;
+            return Ok(CountExpr::RemovedThisWay(kind));
+        }
+        if self.eat_words(&["opponents", "hands"]) {
+            return Ok(CountExpr::CardsInOpponentsHands);
+        }
+        if self.eat_words(&["card", "types", "in", "opponents", "graveyards"]) {
+            return Ok(CountExpr::CardTypesInOpponentsGraveyards);
+        }
+        // `graveyard of target 1 [<filter>]`, `graveyard of controller of
+        // target 1 [<filter>]`, `hand of controller of target 1`.
+        let graveyard = self.at_words(&["graveyard", "of"]);
+        if (graveyard && matches!(self.word_at(2).as_deref(), Some("target" | "controller")))
+            || self.at_words(&["hand", "of", "controller", "of", "target"])
+        {
+            self.pos += 2;
+            let controller = self.eat_words(&["controller", "of"]);
+            self.expect_word("target")?;
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            let filter = if graveyard
+                && !self.at_stmt_end()
+                && self.word_at(0).is_some_and(|w| {
+                    card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                }) {
+                let f = self.filter()?;
+                self.eat_word("card");
+                Some(f)
+            } else {
+                None
+            };
+            return Ok(CountExpr::TargetPlayerCards {
+                n: n - 1,
+                graveyard,
+                controller,
+                filter,
+            });
         }
         // `hand of target opponent`: declares the target.
         if self.at_words(&["hand", "of", "target", "opponent"])
@@ -22379,7 +22502,7 @@ impl P {
                         cost.order.push(CostItem::Sacrifice);
                     }
                     "remove"
-                        if (1..6).any(|k| {
+                        if (1..8).any(|k| {
                             self.word_at(k).as_deref() == Some("from")
                                 && self.word_at(k + 1).as_deref() == Some("this")
                         }) =>
@@ -22394,6 +22517,12 @@ impl P {
                             cost.remove_x = true;
                             cost.remove_any = true;
                             0
+                        } else if self.eat_words(&["one", "or", "more"]) {
+                            // "Remove one or more +1/+1 counters": X at
+                            // least 1, so a counter is needed to activate.
+                            cost.remove_x = true;
+                            cost.remove_one_or_more = true;
+                            1
                         } else {
                             self.count()?
                         };

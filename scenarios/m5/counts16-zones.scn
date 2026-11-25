@@ -1,0 +1,93 @@
+# Counts over another player's zones (sixteenth wave): the target
+# player's graveyard, the target's controller's graveyard as it last
+# existed (CR 608.2h), cards in opponents' hands, and card types among
+# cards in opponents' graveyards (CR 205.2a).
+
+scenario "Keening Stone: the target player mills as many cards as are in their graveyard" {
+  battlefield A: "Keening Stone", 6 "Island"
+  graveyard B: "Plains", "Forest", "Grizzly Bears"
+  graveyard A: "Island"
+  library B: "Shock", "Opt", "Duress", "Ornithopter", "Hill Giant"
+  turn 1 A: activate "Keening Stone" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 6
+  assert graveyard B contains "Duress"
+  assert library B count 2
+  assert library B contains "Ornithopter"
+}
+
+scenario "Roiling Terrain: damage to the land's controller for each land card in their graveyard" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Forest"
+  graveyard B: "Plains", "Island", "Grizzly Bears"
+  graveyard A: "Swamp", "Swamp"
+  hand A: "Roiling Terrain"
+  turn 1 A: cast "Roiling Terrain" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Roiling Terrain: its own land's controller is dealt the damage" {
+  battlefield A: 4 "Mountain", "Plains"
+  graveyard A: "Swamp"
+  graveyard B: "Plains", "Island"
+  hand A: "Roiling Terrain"
+  turn 1 A: cast "Roiling Terrain" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 20
+}
+
+scenario "The Mouth of Sauron: amass for the instants and sorceries in that player's graveyard" {
+  battlefield A: 3 "Island", 2 "Swamp"
+  hand A: "The Mouth of Sauron"
+  graveyard B: "Shock"
+  graveyard A: "Opt", "Duress"
+  library B: "Lightning Bolt", "Forest", "Divination"
+  turn 1 A: cast "The Mouth of Sauron"
+  turn 1 A: trigger "The Mouth of Sauron" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 4
+  assert counters "Orc Army" +1/+1 3
+  assert power "Orc Army" 3
+}
+
+scenario "Enemy of Enlightenment: -1/-1 for each card in opponents' hands, not your own" {
+  battlefield A: "Enemy of Enlightenment"
+  hand A: "Forest", "Island", "Plains"
+  hand B: "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Enemy of Enlightenment" 3
+  assert toughness "Enemy of Enlightenment" 3
+}
+
+scenario "Enemy of Enlightenment: each player discards at your upkeep, and it grows" {
+  battlefield A: "Enemy of Enlightenment"
+  hand A: "Forest"
+  hand B: "Swamp", "Mountain", "Island"
+  start turn 3 A upkeep
+  run_to turn 3 draw
+  assert hand B count 2
+  assert graveyard A contains "Forest"
+  assert power "Enemy of Enlightenment" 3
+}
+
+scenario "Nighthawk Scavenger: 1 plus the card types in opponents' graveyards" {
+  battlefield A: "Nighthawk Scavenger"
+  graveyard A: "Ornithopter", "Shock", "Forest"
+  graveyard B: "Dryad Arbor", "Grizzly Bears", "Lightning Bolt"
+  run_to turn 1 precombat_main
+  assert power "Nighthawk Scavenger" 4
+  assert toughness "Nighthawk Scavenger" 3
+}
+
+scenario "Nighthawk Scavenger: with an empty opposing graveyard it is 1/3" {
+  battlefield A: "Nighthawk Scavenger"
+  graveyard A: "Ornithopter", "Shock", "Forest"
+  run_to turn 1 precombat_main
+  assert power "Nighthawk Scavenger" 1
+  assert toughness "Nighthawk Scavenger" 3
+}

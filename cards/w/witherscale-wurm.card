@@ -1,0 +1,8 @@
+card "Witherscale Wurm" {
+  oracle_id 37b7f044-f57b-4d13-82be-46fd01f1dba6
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 9/9
+  triggered whenever this blocks or becomes blocked by a creature: that creature gains wither until end of turn
+  triggered whenever this deals damage to an opponent: remove all -1/-1 counters from this
+}

@@ -1,0 +1,9 @@
+card "Enemy of Enlightenment" {
+  oracle_id 783f059f-90d0-4148-898b-9e694b22ac0a
+  cost {5}{B}
+  type Enchantment Creature — Demon
+  pt 5/5
+  keywords flying
+  static this: gets -1/-1 count each opponents hands
+  triggered at beginning of your upkeep step: each player discards 1 card
+}

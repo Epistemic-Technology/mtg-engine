@@ -1676,6 +1676,41 @@ fn per_count(
             return per_count(work, source, controller, a)
                 .saturating_add(per_count(work, source, controller, b));
         }
+        // Power and toughness may go below 0 (Scourge of the Skyclaves'
+        // ruling); `Modification::CdaPt` keeps the sign.
+        CountExpr::Minus(a, b) => {
+            return per_count(work, source, controller, a)
+                .saturating_sub(per_count(work, source, controller, b));
+        }
+        CountExpr::Const(n) => return i32::try_from(*n).unwrap_or(i32::MAX),
+        CountExpr::HighestLife => {
+            return state
+                .players
+                .iter()
+                .map(|p| p.life)
+                .max()
+                .unwrap_or(0)
+                .max(0);
+        }
+        CountExpr::CardsInOpponentsHands => state
+            .players
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| usize::from(you.0) != *i)
+            .map(|(_, p)| p.hand.len())
+            .sum(),
+        CountExpr::CardTypesInOpponentsGraveyards => state
+            .players
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| usize::from(you.0) != *i)
+            .flat_map(|(_, p)| p.graveyard.iter())
+            .map(|id| &state.objects[*id])
+            .filter(|o| o.kind != crate::state::ObjKind::Token)
+            .fold(crate::card::TypeSet::default(), |acc, o| {
+                acc.union(state.pool.get(o.def).types)
+            })
+            .len() as usize,
         CountExpr::Plus(k, inner) => {
             return i32::try_from(*k)
                 .unwrap_or(0)
@@ -1833,6 +1868,7 @@ fn per_count(
         | CountExpr::TriggerPtDifference
         | CountExpr::CoinsHeads
         | CountExpr::X
+        | CountExpr::TargetPlayerCards { .. }
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,

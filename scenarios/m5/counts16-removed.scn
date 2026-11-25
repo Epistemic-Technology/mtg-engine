@@ -1,0 +1,112 @@
+# Counters removed as a cost (sixteenth wave): "Remove one or more
+# +1/+1 counters" (X announced as it is activated, at least 1, CR 107.3,
+# 602.2b), "Remove any number of storage counters" on a mana ability,
+# and "the number of ... counters removed this way" (that X).
+
+scenario "Simic Manipulator: removing two counters steals a creature with power 2" {
+  battlefield A: "Simic Manipulator" with 3 +1/+1
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Simic Manipulator" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Simic Manipulator" +1/+1 1
+  assert tapped "Simic Manipulator"
+}
+
+scenario "Simic Manipulator: a creature with more power than the counters removed can't be targeted" {
+  battlefield A: "Simic Manipulator" with 3 +1/+1
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  illegal turn 1 A: activate "Simic Manipulator" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Simic Manipulator: three counters reach a power-3 creature" {
+  battlefield A: "Simic Manipulator" with 3 +1/+1
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Simic Manipulator" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Simic Manipulator" +1/+1 0
+}
+
+scenario "Simic Manipulator: X can't be 0, so no counters means no activation" {
+  battlefield A: "Simic Manipulator"
+  battlefield B: "Memnite"
+  illegal turn 1 A: activate "Simic Manipulator" targeting "Memnite"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Memnite"
+}
+
+scenario "Mage-Ring Network: {C} for each storage counter removed" {
+  battlefield A: "Mage-Ring Network" with 3 storage
+  hand A: "Bottle Gnomes"
+  turn 1 A: activate "Mage-Ring Network" ability 3 x 3
+  turn 1 A: cast "Bottle Gnomes"
+  run_to turn 1 postcombat_main
+  assert counters "Mage-Ring Network" storage 0
+  assert battlefield A contains "Bottle Gnomes"
+  assert tapped "Mage-Ring Network"
+}
+
+scenario "Mage-Ring Network: storing a counter" {
+  battlefield A: "Mage-Ring Network", "Wastes"
+  turn 1 A: activate "Mage-Ring Network" ability 2
+  run_to turn 1 postcombat_main
+  assert counters "Mage-Ring Network" storage 1
+}
+
+scenario "Mage-Ring Network: two counters removed make two mana, not enough for three" {
+  battlefield A: "Mage-Ring Network" with 3 storage
+  hand A: "Bottle Gnomes"
+  turn 1 A: activate "Mage-Ring Network" ability 3 x 2
+  illegal turn 1 A: cast "Bottle Gnomes"
+  run_to turn 1 postcombat_main
+  assert counters "Mage-Ring Network" storage 1
+  assert hand A contains "Bottle Gnomes"
+}
+
+# "Remove all -1/-1 counters from it" as an effect: every counter of
+# that kind, none of the others.
+
+scenario "Ammit Eternal: combat damage to a player removes all its -1/-1 counters" {
+  battlefield A: "Ammit Eternal" with 3 -1/-1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ammit Eternal"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Ammit Eternal" -1/-1 0
+  assert power "Ammit Eternal" 5
+}
+
+scenario "Ammit Eternal: an opponent's spell puts a -1/-1 counter on it" {
+  battlefield A: "Ammit Eternal"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert counters "Ammit Eternal" -1/-1 1
+  assert life A 18
+}
+
+scenario "Witherscale Wurm: damage to an opponent removes its -1/-1 counters, not other kinds" {
+  battlefield A: "Witherscale Wurm" with 2 -1/-1, "Witherscale Wurm" with 1 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Witherscale Wurm", "Witherscale Wurm"
+  run_to turn 1 postcombat_main
+  assert life B 3
+  assert counters oldest A "Witherscale Wurm" -1/-1 0
+  assert counters newest A "Witherscale Wurm" +1/+1 1
+}
+
+scenario "Witherscale Wurm: a creature blocking it gains wither" {
+  battlefield A: "Witherscale Wurm"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Witherscale Wurm"
+  turn 1 B: block "Witherscale Wurm" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Witherscale Wurm" -1/-1 3
+  assert graveyard B contains "Hill Giant"
+}

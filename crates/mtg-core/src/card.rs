@@ -2706,7 +2706,40 @@ pub enum CountExpr {
     /// X of the resolving spell or of the source (CR 107.3), for a count
     /// built on it ("half X, rounded up").
     X,
+    /// One count less another: "that many cards minus one", "7 minus the
+    /// number of cards in that creature's controller's hand", "20 minus
+    /// the highest life total among players". A resolving effect's amount
+    /// is at least 0 (CR 107.1b); a static's power or toughness may go
+    /// below 0 (Scourge of the Skyclaves' ruling).
+    Minus(Box<CountExpr>, Box<CountExpr>),
+    /// A fixed number, as one side of `Minus`.
+    Const(u32),
+    /// The highest life total among players ("20 minus the highest life
+    /// total among players"); 0 if it is negative.
+    HighestLife,
+    /// Cards in your opponents' hands ("for each card in your opponents'
+    /// hands").
+    CardsInOpponentsHands,
+    /// Card types among cards in your opponents' graveyards (CR 205.2a).
+    CardTypesInOpponentsGraveyards,
+    /// Cards, all or matching the filter, in the hand or (`graveyard`) the
+    /// graveyard of the `n`th target player ("the number of cards in that
+    /// player's graveyard"), or with `controller` of the `n`th target's
+    /// controller, as it last existed (CR 608.2h: "the number of land
+    /// cards in that player's graveyard" after "Destroy target land",
+    /// "the number of cards in that creature's controller's hand").
+    /// Resolving effects only.
+    TargetPlayerCards {
+        n: usize,
+        graveyard: bool,
+        controller: bool,
+        filter: Option<ObjFilter>,
+    },
 }
+
+/// `Effect::RemoveCounters::count` for "remove all -1/-1 counters from
+/// it": every counter of the kind (a kind, not `CounterKind::Any`).
+pub const REMOVE_ALL: u32 = u32::MAX;
 
 /// What `CountExpr::Their` counts of a player.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -2734,10 +2767,24 @@ impl CountExpr {
     /// static that reads it must be re-read as hands change.
     pub fn reads_hand(&self) -> bool {
         match self {
-            CountExpr::CardsInHand => true,
+            CountExpr::CardsInHand | CountExpr::CardsInOpponentsHands => true,
             CountExpr::Times(_, inner)
             | CountExpr::Plus(_, inner)
             | CountExpr::AtLeast(_, inner) => inner.reads_hand(),
+            CountExpr::Minus(a, b) => a.reads_hand() || b.reads_hand(),
+            _ => false,
+        }
+    }
+
+    /// Whether the count reads a life total, so a static ability using it
+    /// must be recomputed as life totals change (`DefFlags::LIFE_CDA`).
+    pub fn reads_life(&self) -> bool {
+        match self {
+            CountExpr::Life | CountExpr::HighestLife => true,
+            CountExpr::Times(_, inner)
+            | CountExpr::Plus(_, inner)
+            | CountExpr::AtLeast(_, inner) => inner.reads_life(),
+            CountExpr::Minus(a, b) | CountExpr::Sum(a, b) => a.reads_life() || b.reads_life(),
             _ => false,
         }
     }
@@ -2753,7 +2800,7 @@ impl CountExpr {
             | CountExpr::Less(_, c)
             | CountExpr::AtLeast(_, c) => c.reads_history(),
             CountExpr::Divided { inner, .. } => inner.reads_history(),
-            CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
+            CountExpr::Sum(a, b) | CountExpr::Minus(a, b) => a.reads_history() || b.reads_history(),
             _ => false,
         }
     }
@@ -2784,7 +2831,7 @@ impl CountExpr {
                         | (TurnEvent::LifeLost, TurnWho::Opponent)
                 ) && c.filter.is_none()
             }
-            CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
+            CountExpr::Sum(a, b) | CountExpr::Minus(a, b) => a.in_static() && b.in_static(),
             CountExpr::Plus(_, c)
             | CountExpr::Times(_, c)
             | CountExpr::Difference(_, c)
@@ -2820,6 +2867,10 @@ impl CountExpr {
             | CountExpr::CountersAmong(..)
             | CountExpr::CounterKindsAmong(_)
             | CountExpr::SharingCreatureType(_)
+            | CountExpr::Const(_)
+            | CountExpr::HighestLife
+            | CountExpr::CardsInOpponentsHands
+            | CountExpr::CardTypesInOpponentsGraveyards
             | CountExpr::Life => true,
 
             // Total power and toughness would read the characteristics
@@ -2873,6 +2924,7 @@ impl CountExpr {
             | CountExpr::TriggerPtDifference
             | CountExpr::CoinsHeads
             | CountExpr::X
+            | CountExpr::TargetPlayerCards { .. }
             | CountExpr::DamageThisWay { .. } => false,
         }
     }
@@ -12356,8 +12408,8 @@ impl DefFlags {
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|p| matches!(
                     p,
-                    Modification::CdaPt { count: CountExpr::Life, .. }
-                        | Modification::ModifyPtPer { count: CountExpr::Life, .. }
+                    Modification::CdaPt { count, .. }
+                        | Modification::ModifyPtPer { count, .. } if count.reads_life()
                 )) || s.condition.as_ref().is_some_and(StaticCondition::reads_life))
             }),
         );

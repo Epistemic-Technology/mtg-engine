@@ -2280,7 +2280,11 @@ impl Fmt {
             ),
             Effect::RemoveCounters { kind, count, to } => format!(
                 "remove {} {} from {}",
-                num(*count),
+                if *count == Num::N(mtg_core::card::REMOVE_ALL) {
+                    "all".to_string()
+                } else {
+                    num(*count)
+                },
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
@@ -5019,6 +5023,36 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Difference { n, inner } => {
             format!("difference {n} {}", count_expr_text(inner))
         }
+        CountExpr::Minus { a, b, difference } => format!(
+            "{}{} minus {}",
+            if *difference { "difference " } else { "" },
+            count_expr_text(a),
+            count_expr_text(b)
+        ),
+        CountExpr::Const { n, word: false } => n.to_string(),
+        CountExpr::Const { n, word: true } => crate::parse::NUMBER_WORDS
+            .get(*n as usize - 1)
+            .map_or_else(|| n.to_string(), |w| (*w).to_string()),
+        CountExpr::HighestLife => "highest life".to_string(),
+        CountExpr::RemovedThisWay(k) => format!("{} removed this way", counter(*k, Num::X)),
+        CountExpr::CardsInOpponentsHands => "opponents hands".to_string(),
+        CountExpr::CardTypesInOpponentsGraveyards => {
+            "card types in opponents graveyards".to_string()
+        }
+        CountExpr::TargetPlayerCards {
+            n,
+            graveyard,
+            controller,
+            filter,
+        } => format!(
+            "{} of {}target {}{}",
+            if *graveyard { "graveyard" } else { "hand" },
+            if *controller { "controller of " } else { "" },
+            n + 1,
+            filter
+                .as_ref()
+                .map_or_else(String::new, |f| format!(" {}", card_filter(f)))
+        ),
         CountExpr::Plus {
             n,
             word,
@@ -7693,6 +7727,11 @@ fn cost_text(c: &Cost) -> String {
                     if c.remove_any {
                         parts.push(format!(
                             "remove any number {} from {from}",
+                            counter(k, Num::X)
+                        ));
+                    } else if c.remove_one_or_more {
+                        parts.push(format!(
+                            "remove one or more {} from {from}",
                             counter(k, Num::X)
                         ));
                     } else if c.remove_x {

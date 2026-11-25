@@ -1664,6 +1664,60 @@ impl GameState {
             }
             CountExpr::CoinsHeads => return u32::from(self.coins_heads),
             CountExpr::X => return ctx.x,
+            // CR 107.1b: an amount below 0 is 0.
+            CountExpr::Minus(a, b) => {
+                return self
+                    .eval_count(a, ctx)
+                    .saturating_sub(self.eval_count(b, ctx));
+            }
+            CountExpr::Const(n) => return *n,
+            CountExpr::HighestLife => {
+                return self
+                    .players_in_game()
+                    .map(|p| self.player(p).life)
+                    .max()
+                    .map_or(0, |l| u32::try_from(l.max(0)).unwrap_or(0));
+            }
+            CountExpr::CardsInOpponentsHands => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .map(|p| self.player(p).hand.len())
+                .sum(),
+            CountExpr::CardTypesInOpponentsGraveyards => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .flat_map(|p| self.player(p).graveyard.iter())
+                .map(|id| &self.objects[*id])
+                .filter(|o| o.kind != crate::state::ObjKind::Token)
+                .fold(crate::card::TypeSet::default(), |acc, o| {
+                    acc.union(self.pool.get(o.def).types)
+                })
+                .len() as usize,
+            // The target player, or the target's controller as it last
+            // existed (CR 608.2h).
+            CountExpr::TargetPlayerCards {
+                n,
+                graveyard,
+                controller,
+                filter,
+            } => {
+                let p = match ctx.targets.get(*n) {
+                    Some(Target::Player(p)) if !*controller => Some(*p),
+                    Some(Target::Object(id)) if *controller => self
+                        .objects
+                        .get(*id)
+                        .map(|o| o.controller)
+                        .or_else(|| self.lki.get(id).map(|l| l.object.controller)),
+                    _ => None,
+                };
+                let Some(p) = p else { return 0 };
+                if *graveyard {
+                    let f = filter.as_ref().map(|f| self.chosen_filter(f, ctx));
+                    self.graveyard_count(std::slice::from_ref(&p), f.as_deref(), you)
+                } else {
+                    self.player(p).hand.len()
+                }
+            }
             // CR 107.1b: a negative total is 0.
             CountExpr::Total(stat, f) => {
                 let f = &*self.chosen_filter(f, ctx);

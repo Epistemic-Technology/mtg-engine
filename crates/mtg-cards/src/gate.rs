@@ -94,19 +94,20 @@ pub fn header_diff(card: &Card, s: &ScryCard) -> Option<String> {
     // A characteristic-defining power/toughness prints as `*`; the DSL
     // leaves `pt` out and the ability defines it.
     let cda = spt.as_ref().is_some_and(|(p, _)| p.contains('*')) && pt.is_none();
-    // One half defined (`pt */1`, `pt 2/*`): the `*` reads as 0.
+    // One half defined (`pt */1`, `pt 2/*`): the `*` reads as 0; "1+*"
+    // (Nighthawk Scavenger) as 1, its ability counting the 1 too.
     let star = |s: &str| {
         if s == "*" {
             "0".to_string()
         } else {
-            s.to_string()
+            s.strip_suffix("+*").unwrap_or(s).to_string()
         }
     };
     let half = pt
         .as_ref()
         .zip(spt.as_ref())
         .is_some_and(|((p, t), (sp, st))| {
-            (sp == "*") != (st == "*") && *p == star(sp) && *t == star(st)
+            sp.contains('*') != st.contains('*') && *p == star(sp) && *t == star(st)
         });
     if pt != spt && !cda && !half {
         diffs.push(format!("P/T {pt:?} vs {spt:?}"));

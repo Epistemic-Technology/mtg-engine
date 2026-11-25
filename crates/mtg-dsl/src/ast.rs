@@ -889,6 +889,42 @@ pub enum CountExpr {
     /// died", the triggering creature's as it last existed (a dies
     /// trigger).
     DiedStat(mtg_core::card::Stat),
+    /// `<expr> minus <expr>`: "that many cards minus one", "7 minus the
+    /// number of ...", "your life total minus ..."; `difference <expr>
+    /// minus <expr>` prints "the difference" (after a condition saying
+    /// which is greater).
+    Minus {
+        a: Box<CountExpr>,
+        b: Box<CountExpr>,
+        difference: bool,
+    },
+    /// `+1/+1 counters removed this way`: "the number of +1/+1 counters
+    /// removed this way", the X of the ability's `remove one or more` or
+    /// `remove any number` cost.
+    RemovedThisWay(mtg_core::card::CounterKind),
+    /// A number as one side of `minus`: `7` ("7"), `one` ("one").
+    Const {
+        n: u32,
+        word: bool,
+    },
+    /// `highest life`: "the highest life total among players".
+    HighestLife,
+    /// `opponents hands`: "cards in your opponents' hands".
+    CardsInOpponentsHands,
+    /// `card types in opponents graveyards`: "card types among cards in
+    /// your opponents' graveyards".
+    CardTypesInOpponentsGraveyards,
+    /// `graveyard of target 1 [<filter>]`: "[land] cards in that player's
+    /// graveyard"; `graveyard of controller of target 1 [<filter>]` the
+    /// target's controller's (also "that player's", after the sentence
+    /// names that player); `hand of controller of target 1`: "cards in
+    /// that creature's controller's hand".
+    TargetPlayerCards {
+        n: usize,
+        graveyard: bool,
+        controller: bool,
+        filter: Option<Filter>,
+    },
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -1153,6 +1189,10 @@ pub struct Cost {
     /// "Remove any number of +1/+1 counters from ~", the ability's X
     /// called "that many" in its effects. Wording only.
     pub remove_any: bool,
+    /// `remove one or more +1/+1 counters from this` (with `remove_x` and
+    /// `x_not_zero`): "Remove one or more +1/+1 counters from ~". Wording
+    /// only.
+    pub remove_one_or_more: bool,
     /// `{Q}`: the untap symbol.
     pub untap: bool,
 }
