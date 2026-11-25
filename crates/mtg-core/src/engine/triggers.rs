@@ -2784,8 +2784,6 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
             Condition::WasBlocking(b) => self.was_blocking(source) == b,
             Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
-            // A fact about the triggering event (judged as it triggered).
-            Condition::FirstTime { .. } => true,
             Condition::Harnessed => self
                 .objects
                 .get(source)
@@ -2811,11 +2809,14 @@ impl GameState {
                 .is_some_and(|o| self.meld_partner(source, o.controller).is_some()),
             Condition::TributeNotPaid => !self.tribute_paid(source),
             // Judged only as the ability triggered.
+            // `FirstTime`: a fact about the triggering event, judged as it
+            // triggered.
             Condition::While(_)
             | Condition::WhileSecond(_)
             | Condition::Trains
             | Condition::Dethrones
-            | Condition::AttackedOpponent => true,
+            | Condition::AttackedOpponent
+            | Condition::FirstTime { .. } => true,
             Condition::Static(i) => {
                 let you = self
                     .objects
