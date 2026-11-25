@@ -9284,6 +9284,18 @@ pub enum TriggerSpec {
     /// permanent is the triggering object ("that creature", "that
     /// permanent").
     ThisAttachment { attached: bool },
+    /// "Whenever you or a permanent you control becomes the target of a
+    /// spell or ability an opponent controls" (`and_or`, wording only: "you
+    /// and/or at least one permanent you control"): once per spell or
+    /// ability whose controller matches `whose` that targets the controller
+    /// or a permanent they control, however many of them (CR 603.2c). The
+    /// spell or ability is the triggering object, its controller the
+    /// triggering player.
+    YouOrYoursTargeted {
+        whose: Who,
+        #[serde(default)]
+        and_or: bool,
+    },
 }
 
 /// Who is dealt damage, for `TriggerSpec::SourceDealsDamage`.
@@ -9593,6 +9605,7 @@ impl TriggerSpec {
             | TriggerSpec::TargetedByYourAbility
             | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
+            | TriggerSpec::YouOrYoursTargeted { .. }
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_)
             | TriggerSpec::ThisAttachment { attached: true } => WATCH_ATTACH,
@@ -12407,7 +12420,10 @@ impl DefFlags {
         flags.set(
             DefFlags::PLAYER_TARGETED,
             abilities.iter().any(|a| {
-                matches!(a, AbilityDef::Triggered(t) if t.trigger == TriggerSpec::TargetedByYourAbility)
+                matches!(a, AbilityDef::Triggered(t) if matches!(
+                    t.trigger,
+                    TriggerSpec::TargetedByYourAbility | TriggerSpec::YouOrYoursTargeted { .. }
+                ))
             }),
         );
         flags.set(

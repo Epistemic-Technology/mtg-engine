@@ -3087,6 +3087,10 @@ impl Decompiler<'_> {
                     combat: *combat,
                 }
             }
+            TriggerSpec::YouOrYoursTargeted { whose, and_or } => Trigger::YouOrYoursTargeted {
+                whose: *whose,
+                and_or: *and_or,
+            },
             TriggerSpec::ThisAttachment { attached } => Trigger::ThisAttachment {
                 attached: *attached,
             },

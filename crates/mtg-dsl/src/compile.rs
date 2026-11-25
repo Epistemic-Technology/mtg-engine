@@ -6787,6 +6787,10 @@ impl Compiler<'_> {
                 to: *to,
                 combat: *combat,
             },
+            Trigger::YouOrYoursTargeted { whose, and_or } => TriggerSpec::YouOrYoursTargeted {
+                whose: *whose,
+                and_or: *and_or,
+            },
             Trigger::ThisAttachment { attached } => TriggerSpec::ThisAttachment {
                 attached: *attached,
             },

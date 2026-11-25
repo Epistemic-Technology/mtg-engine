@@ -1983,6 +1983,31 @@ impl GameState {
                         .is_some_and(|t| t.zone == Zone::Battlefield))
                 .then_some((Some(*target), Some(w.controller)))
             }
+            // CR 603.2c: once per spell or ability: on the controller as a
+            // target (players are emitted first), else on the first
+            // permanent they control among its targets.
+            (TriggerSpec::YouOrYoursTargeted { whose, .. }, Event::PlayerTargeted { player, by }) => {
+                let by_ctl = self.objects.get(*by)?.controller;
+                (*player == w.controller && whose_ok(*whose, by_ctl))
+                    .then_some((Some(*by), Some(by_ctl)))
+            }
+            (TriggerSpec::YouOrYoursTargeted { whose, .. }, Event::Targeted { target, by }) => {
+                let b = self.objects.get(*by)?;
+                let by_ctl = b.controller;
+                let mine = |id: ObjId| {
+                    self.objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield && o.controller == w.controller)
+                };
+                if !whose_ok(*whose, by_ctl) || !mine(*target) {
+                    return None;
+                }
+                let first = b.targets.iter().find(|t| match t {
+                    Target::Player(p) => *p == w.controller,
+                    Target::Object(id) => mine(*id),
+                })?;
+                (*first == Target::Object(*target)).then_some((Some(*by), Some(by_ctl)))
+            }
             (TriggerSpec::TargetedByYourAbility, Event::PlayerTargeted { player, by }) => {
                 let b = self.objects.get(*by)?;
                 (b.kind == crate::state::ObjKind::Ability && b.controller == w.controller)

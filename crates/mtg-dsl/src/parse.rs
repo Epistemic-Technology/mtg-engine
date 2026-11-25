@@ -20387,6 +20387,22 @@ impl P {
             let your_turn = self.eat_words(&["during", "your", "turn"]);
             return Ok(Trigger::GainsOrLosesLife { your_turn });
         }
+        // "Whenever you or a permanent you control becomes the target of a
+        // spell or ability an opponent controls".
+        for (words, and_or) in [
+            (&["you", "or", "permanent", "you", "control"][..], false),
+            (&["you", "andor", "permanent", "you", "control"][..], true),
+        ] {
+            if self.eat_words(words) {
+                self.expect_words(&["becomes", "targeted", "by"])?;
+                let whose = if self.eat_word("opponent") {
+                    Who::Opponents
+                } else {
+                    Who::Any
+                };
+                return Ok(Trigger::YouOrYoursTargeted { whose, and_or });
+            }
+        }
         if self.eat_words(&["you", "scry", "or", "surveil"]) {
             return Ok(Trigger::ScriesOrSurveils);
         }

@@ -2328,7 +2328,10 @@ impl<'a> Ctx<'a> {
             }
             // "..., counter that spell or ability" (Shimmering Glasskite).
             Recipient::TriggeringObject
-                if matches!(self.trigger, Some(Trigger::TargetedFirstTime)) =>
+                if matches!(
+                    self.trigger,
+                    Some(Trigger::TargetedFirstTime | Trigger::YouOrYoursTargeted { .. })
+                ) =>
             {
                 "that spell or ability".to_string()
             }
@@ -17517,6 +17520,19 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 crate::format::damage_victim_words(*to, &this)
             )
         }
+        Trigger::YouOrYoursTargeted { whose, and_or } => format!(
+            "whenever you {} becomes the target of a spell or ability{}",
+            if *and_or {
+                "and/or at least one permanent you control"
+            } else {
+                "or a permanent you control"
+            },
+            if *whose == Who::Opponents {
+                " an opponent controls"
+            } else {
+                ""
+            }
+        ),
         Trigger::ThisAttachment { attached } => format!(
             "whenever {} becomes {}",
             this_ref(ctx.card),

@@ -7405,6 +7405,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 damage_victim_words(*to, "this")
             )
         }
+        Trigger::YouOrYoursTargeted { whose, and_or } => format!(
+            "whenever you {} permanent you control becomes targeted by{}",
+            if *and_or { "andor" } else { "or" },
+            if *whose == Who::Opponents {
+                " opponent"
+            } else {
+                ""
+            }
+        ),
         Trigger::ThisAttachment { attached: true } => {
             "whenever this becomes attached to creature".to_string()
         }
