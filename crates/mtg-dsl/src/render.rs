@@ -3418,6 +3418,24 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         return format!("attacking or {}", filter_phrase_one(alt, card, plural_form));
     }
+    // "target artifact, enchantment, or tapped creature" (Banishing
+    // Slash): one list of the types and the qualified alternative.
+    if !plural_form
+        && alt.or.is_none()
+        && base.any_types.len() > 1
+        && (Filter {
+            any_types: Vec::new(),
+            ..base.clone()
+        }) == Filter::default()
+    {
+        let mut items: Vec<String> = base
+            .any_types
+            .iter()
+            .map(|t| type_noun(*t).to_string())
+            .collect();
+        items.push(filter_phrase_one(alt, card, false));
+        return or_list(&items);
+    }
     // "creature or planeswalker that's blue or red" (Terminal
     // Criticism): two or more colors both types share, after the types.
     if !plural_form
@@ -6086,6 +6104,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             ),
         ),
         CountExpr::ThisWay { verb, filter } => {
+            let mut return_own = false;
             // "the number of cards shuffled into your library this way".
             let verb = match verb {
                 mtg_core::card::ThisWay::Shuffled => "shuffled into your library",
@@ -6100,9 +6119,24 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 {
                     "returned to its owner's hand"
                 }
+                // "for each card returned to your hand this way" (Paradoxical
+                // Outcome): `permanent you own returned this way`, the
+                // returned permanents its controller owns.
+                mtg_core::card::ThisWay::PutInHand
+                    if filter
+                        .as_ref()
+                        .is_some_and(|f| filter_phrase(f, card, false) == "permanent you own") =>
+                {
+                    return_own = true;
+                    "returned to your hand"
+                }
                 v => crate::ast::this_way_word(*v),
             };
             match filter {
+                None | Some(_) if return_own => (
+                    format!("card {verb} this way"),
+                    format!("cards {verb} this way"),
+                ),
                 None => (
                     format!("card {verb} this way"),
                     format!("cards {verb} this way"),
@@ -8262,7 +8296,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 AmongWords::It => "it".to_string(),
                 AmongWords::ThatCard => "that card".to_string(),
                 AmongWords::ExiledCard => "the exiled card".to_string(),
-                AmongWords::Them | AmongWords::Those | AmongWords::TheExiled => {
+                AmongWords::Them
+                | AmongWords::Those
+                | AmongWords::TheExiled
+                | AmongWords::ThisWay => {
                     let many = match count {
                         Some(n) => format!("up to {}", number_word(u32::from(*n))),
                         None => "any number of".to_string(),
@@ -8279,6 +8316,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let among = match words {
                         AmongWords::Them => "them",
                         AmongWords::Those => "those cards",
+                        AmongWords::ThisWay => "cards exiled this way",
                         _ => "the exiled cards",
                     };
                     format!("{many} {kind}spells from among {among}")
@@ -10696,8 +10734,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("tap {o}"))
         }
-        Effect::Untap { to } => {
+        Effect::Untap { to, you } => {
             let o = ctx.obj_list_tap(to);
+            if *you {
+                return Clause::with_subject(Recipient::You, "you".to_string(), format!("untap {o}"));
+            }
             Clause::imperative(format!("untap {o}"))
         }
         Effect::RemoveFromCombat { what } => {
@@ -11424,16 +11465,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         {
                             Some("their")
                         }
+                        // "Put target permanent you own on the bottom of
+                        // your library." (Tel-Jilad Stylus).
+                        Some(Target::Filter(f)) if f.status.you_own => Some("your"),
                         _ => None,
                     }
                 }
                 _ => None,
             };
-            let ordinal = |n: u8| match n {
-                2 => "second".to_string(),
-                3 => "third".to_string(),
-                n => format!("{n}th"),
-            };
+            // "fourth from the top" (Lost to Legend).
+            let ordinal = |n: u8| nth_word(u32::from(n));
             // A graveyard ability's own card: "put this card from your
             // graveyard on top of your library".
             if *wording == W::Put && *what == Recipient::Source && works_from_graveyard(ctx.current)
@@ -11442,6 +11483,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     P::Top => {
                         "put this card from your graveyard on top of your library".to_string()
                     }
+                    // "Put this card from your graveyard into your library
+                    // third from the top." (Bookwurm).
+                    P::FromTop(n) => format!(
+                        "put this card from your graveyard into your library {} from the top",
+                        ordinal(*n)
+                    ),
                     P::Shuffle => {
                         "shuffle this card from your graveyard into your library".to_string()
                     }
@@ -16025,7 +16072,12 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 _ => " and ",
             });
         }
-        let repeat = i > 0 && s.joins.get(i - 1) == Some(&Join::AndRepeat);
+        // "Chromium becomes a Human ..., loses all abilities, and gains
+        // hexproof": in a list the source isn't named again.
+        let repeat = i > 0
+            && s.joins.get(i - 1) == Some(&Join::AndRepeat)
+            && !(s.joins[..i - 1].contains(&Join::Comma)
+                && matches!(c.subject, Some((Recipient::Source, _))));
         let mut same_subject = false;
         // "you draw that many cards, create that many tapped Treasure
         // tokens, then lose that much life" (Kain, Traitorous Dragoon): a
@@ -19462,7 +19514,12 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         } else {
             format!("{}'s", short_name(card))
         };
-        let n = cda_count_text(count, card);
+        let mut n = cda_count_text(count, card);
+        // "Unlicensed Hearse's power and toughness are each equal to the
+        // number of cards exiled with it": after the name, a pronoun.
+        if card.kind != Kind::Token && !*noun {
+            n = n.replace(&format!("exiled with {}", this_ref(card)), "exiled with it");
+        }
         return if *sets == mtg_core::card::CdaSets::Power {
             format!("{owner} power is equal to {n}.")
         } else if *sets == mtg_core::card::CdaSets::Toughness {
@@ -19561,6 +19618,9 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             // "Creature tokens get +1/+1." (Leyline of the Meek).
             && filter.status.token.is_none()
             && filter.status.commander.is_none()
+            // "Permanents with ice counters on them are snow." (Rimefeather
+            // Owl).
+            && filter.status.counter.is_none()
             && filter.relation == Relation::Any;
         let p = filter_phrase(filter, card, true);
         if bare || filter.all {
@@ -22655,6 +22715,19 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             }
                         }
                     }
+                    // "This creature doesn't untap during your untap step
+                    // if it has a +1/+1 counter on it." (Steel Dromedary):
+                    // the subject named again as "it".
+                    let me = this_ref(card);
+                    if filter.relation == Relation::This
+                        && body.starts_with(&capitalize(&me))
+                        && let Some(rest) = cond.strip_prefix(&format!("{me} "))
+                    {
+                        cond = match rest.strip_prefix("is ") {
+                            Some(r) => format!("it's {r}"),
+                            None => format!("it {rest}"),
+                        };
+                    }
                     // "Bombur doesn't untap during your untap step unless
                     // you have an enduring story."
                     if *c == StaticCond::NoEnduringStory {
@@ -24971,7 +25044,7 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
     } else {
         let mut all = vec![card_a(filter, name, ctx)];
         all.extend(m.slots.iter().map(|(f, n)| card_a(f, n, ctx)));
-        if name.is_some() || m.slots.iter().any(|(_, n)| n.is_some()) {
+        if name.is_some() || m.slots.iter().any(|(_, n)| n.is_some()) || m.and_or {
             all.join(" and/or ")
         } else if all.len() == 2 {
             all.join(" and ")
@@ -25150,7 +25223,7 @@ fn search_more_text(e: &Effect, ctx: &mut Ctx) -> Clause {
             SearchWording::OfThem | SearchWording::Rest => "(unsupported)".to_string(),
             // "Reveal those cards, put them into your hand, then shuffle."
             _ if m.wording == SearchWording::Sentence
-                || (!m.slots.is_empty() && name.is_none()) =>
+                || (!m.slots.is_empty() && name.is_none() && !m.and_or) =>
             {
                 if *reveal {
                     format!(

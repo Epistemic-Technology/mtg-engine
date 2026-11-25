@@ -1387,7 +1387,10 @@ impl Fmt {
                     AmongWords::It => s.push_str("it"),
                     AmongWords::ThatCard => s.push_str("that card"),
                     AmongWords::ExiledCard => s.push_str("exiled card"),
-                    AmongWords::Them | AmongWords::Those | AmongWords::TheExiled => {
+                    AmongWords::Them
+                    | AmongWords::Those
+                    | AmongWords::TheExiled
+                    | AmongWords::ThisWay => {
                         match count {
                             Some(n) => {
                                 let _ = write!(s, "up to {n} ");
@@ -1402,6 +1405,7 @@ impl Fmt {
                         s.push_str(match words {
                             AmongWords::Them => "them",
                             AmongWords::Those => "those cards",
+                            AmongWords::ThisWay => "cards exiled this way",
                             _ => "exiled cards",
                         });
                     }
@@ -2490,7 +2494,11 @@ impl Fmt {
                 if *spelled { "spelled " } else { "" },
                 self.recipient(*what, t)
             ),
-            Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
+            Effect::Untap { to, you } => format!(
+                "{}untap {}",
+                if *you { "you " } else { "" },
+                self.recipients(to, t)
+            ),
             Effect::RemoveFromCombat { what } => {
                 format!("remove {} from combat", self.recipient(*what, t))
             }
@@ -3426,10 +3434,11 @@ impl Fmt {
                         } else {
                             None
                         };
+                        let and = if m.and_or { "andor" } else { "and" };
                         if f == Filter::default() {
-                            t.push_str(" and card");
+                            let _ = write!(t, " {and} card");
                         } else {
-                            let _ = write!(t, " and {} card", filter(&f));
+                            let _ = write!(t, " {and} {} card", filter(&f));
                         }
                         if let Some((cmp, k)) = mv {
                             let _ = write!(t, " with mana value {k}{}", cmp_suffix(cmp));

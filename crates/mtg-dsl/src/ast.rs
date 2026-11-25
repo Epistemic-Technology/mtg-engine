@@ -192,12 +192,18 @@ pub enum AmongWords {
     Those,
     /// `from among exiled cards`: "from among the exiled cards".
     TheExiled,
+    /// `from among cards exiled this way`: "from among cards exiled this
+    /// way" (Hellcarver Demon).
+    ThisWay,
 }
 
 impl AmongWords {
     /// Whether these words name the cards exiled, not the one card.
     pub const fn many(self) -> bool {
-        matches!(self, Self::Them | Self::Those | Self::TheExiled)
+        matches!(
+            self,
+            Self::Them | Self::Those | Self::TheExiled | Self::ThisWay
+        )
     }
 }
 
@@ -1568,6 +1574,9 @@ pub struct SearchMore {
     /// battlefield tapped with a stun counter on it"; `with X additional
     /// +1/+1 counters` prints "additional" (the bool).
     pub counters: Option<(mtg_core::card::CounterKind, Num, bool)>,
+    /// `search Aura card andor Equipment card`: the slots joined with
+    /// "and/or" ("an Aura card and/or an Equipment card", Axgard Armory).
+    pub and_or: bool,
 }
 
 /// How a search's "different names" prints.
@@ -5708,8 +5717,11 @@ pub enum Effect {
         what: Recipient,
         spelled: bool,
     },
+    /// `you untap all lands you control`: "and you untap all lands you
+    /// control" (`you`, Sword of Feast and Famine: wording only).
     Untap {
         to: Vec<Recipient>,
+        you: bool,
     },
     /// `remove target 1 from combat`: "remove it from combat" (CR 506.4).
     RemoveFromCombat {

@@ -7275,6 +7275,8 @@ impl P {
                 AmongWords::Them
             } else if self.eat_words(&["those", "cards"]) {
                 AmongWords::Those
+            } else if self.eat_words(&["cards", "exiled", "this", "way"]) {
+                AmongWords::ThisWay
             } else {
                 self.expect_words(&["exiled", "cards"])?;
                 AmongWords::TheExiled
@@ -9904,6 +9906,12 @@ impl P {
     fn subject_verb_inner(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let w = self.word()?;
         match w.as_str() {
+            // `and you untap all lands you control` (Sword of Feast and
+            // Famine): the subject printed.
+            "untap" | "untaps" if subject == Recipient::You => {
+                let to = self.recipients()?;
+                Ok(Effect::Untap { to, you: true })
+            }
             // `this creature deals 3 damage to that player`, `it deals 2
             // damage to target creature`: the source named as written.
             "deal" | "deals"
@@ -14571,7 +14579,7 @@ impl P {
             }
             "untap" => {
                 let to = self.recipients()?;
-                Ok(Effect::Untap { to })
+                Ok(Effect::Untap { to, you: false })
             }
             "gain" => {
                 self.expect_word("control")?;
@@ -14818,8 +14826,15 @@ impl P {
                     filter.or = Some(Box::new(alt));
                 }
                 // `and green card and blue card`, `and card named "Thinking
-                // Cap"`: one card more for each.
-                while self.eat_word("and") {
+                // Cap"`: one card more for each; `andor Equipment card`
+                // prints "and/or".
+                while self.eat_word("and")
+                    || (more.slots.is_empty() && self.at_word("andor") && {
+                        more.and_or = true;
+                        self.pos += 1;
+                        true
+                    })
+                {
                     let mut f = if self.eat_word("card") {
                         Filter::default()
                     } else {

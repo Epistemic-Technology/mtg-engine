@@ -2752,6 +2752,9 @@ impl GameState {
                                 u32::from(n),
                             )
                         }))
+                    // "each card returned to your hand this way" (CR 108.3,
+                    // Paradoxical Outcome): the card's owner.
+                    && (!one.status.you_own || m.owner == ctx.controller)
                 {
                     return true;
                 }

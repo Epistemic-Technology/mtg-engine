@@ -1,0 +1,9 @@
+card "Bookwurm" {
+  oracle_id ce77fff1-32f8-4a55-9124-b1dafe95840d
+  cost {7}{G}
+  type Creature — Wurm
+  pt 7/7
+  keywords trample
+  triggered when this enters: you gain 3 life and draw 1 card
+  activated {2}{G}, from graveyard: put this into library 3 from top
+}

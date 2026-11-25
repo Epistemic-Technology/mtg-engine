@@ -1,0 +1,8 @@
+card "Immobilizer Eldrazi" {
+  oracle_id 416f9656-9247-4ef2-971b-1515fc8e031b
+  cost {1}{R}
+  type Creature — Eldrazi Drone
+  pt 2/1
+  keywords devoid
+  activated {2}{C}: each single creature with toughness greater than power gain can't block
+}

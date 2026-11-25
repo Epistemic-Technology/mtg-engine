@@ -1,0 +1,9 @@
+card "Rimefeather Owl" {
+  oracle_id 3c0f7c4d-ac93-4a58-a87f-bf694c709624
+  cost {5}{U}{U}
+  type Snow Creature — Bird
+  keywords flying
+  static this: cda pt count snow permanent on battlefield
+  activated {1}{S}: put 1 ice counter on target permanent
+  static permanent with ice counter: add supertype snow
+}

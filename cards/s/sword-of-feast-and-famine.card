@@ -1,0 +1,8 @@
+card "Sword of Feast and Famine" {
+  oracle_id d0901053-6de0-46d0-9ee3-8d40510236c1
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has protection from black, protection from green
+  triggered whenever equipped creature deals combat damage to player: that player discards 1 card and you untap all lands you control
+  equip {2}
+}

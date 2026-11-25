@@ -2797,7 +2797,9 @@ spell's mana value is less than the number of Mountains you control");
 two spells from among the exiled cards without paying their mana
 costs.", Doom Reigns Supreme), `cast free any number spell from among
 them` ("You may cast any number of spells from among them ..."; `from
-among those cards`: "from among those cards", Etali; a filter first:
+among those cards`: "from among those cards", Etali; `from among cards
+exiled this way`: "from among cards exiled this way", Hellcarver Demon; a
+filter first:
 `any number andor instant or sorcery spell`, "any number of instant
 and/or sorcery spells"): each card the resolution exiled that is still
 in exile and could be cast is offered in turn (scenarios: `decline "X"`
@@ -3008,7 +3010,12 @@ player's graveyard"; `of each opponent`: "Exile each opponent's
 graveyard"; `exile all creature card from graveyard of target player`:
 "Exile all creature cards from target player's graveyard"), `put <what> on top of library` / `on bottom of
 library` / `into library 2 from top` ("Put target creature into its
-owner's library second from the top"; fewer cards, the bottom, CR 401.7),
+owner's library second from the top"; `4 from top` "fourth from the top",
+Lost to Legend; fewer cards, the bottom, CR 401.7; a target `you own`:
+"Put target permanent you own on the bottom of your library.", Tel-Jilad
+Stylus; from a graveyard ability, `put this into library 3 from top`
+"Put this card from your graveyard into your library third from the
+top.", Bookwurm),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
 owner's library"; `you may shuffle up to 1 target card from your
 graveyard into library`: "You may shuffle up to one target card from
@@ -3104,7 +3111,9 @@ additional combat phase, CR 500.8; the turn then goes on as it would
 have; land plays don't start over), and `that player gets additional
 upkeep step after this step` ("That player gets an additional upkeep step
 after this step.").
-`sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
+`sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]` (`you
+untap <what>` after another subject: "that player discards a card and you
+untap all lands you control", Sword of Feast and Famine),
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
 `attach it to <what>` (in a trigger about another object, that object:
 "Whenever an Equipment you control enters, you may attach it to target
@@ -3427,7 +3436,11 @@ one filter only, and any may be left unfound (`choose decline` in a
 scenario skips that one); named cards join with "and/or": `search card
 named "Alpine Watchdog" and card named "Igneous Cur" reveal to hand`
 ("for a card named Alpine Watchdog and/or a card named Igneous Cur,
-reveal them, put them into your hand, then shuffle."); `with different
+reveal them, put them into your hand, then shuffle."); `andor` before the
+second card joins them so too: `search Aura card andor Equipment card
+reveal to hand` ("for an Aura card and/or an Equipment card, reveal them,
+put them into your hand, then shuffle.", Axgard Armory: one of each at
+most); `with different
 names` after the cards (`search up to 2 basic land card or Town card
 with different names to battlefield tapped`: "... and/or Town cards with
 different names, put them ..."): no two found cards share a name (CR
@@ -4281,7 +4294,9 @@ card from your graveyard` / `from an opponent's graveyard` / `from that
 player's graveyard` (the triggering player's), `opponent`,
 `artifact or creature`, `attacking or blocking creature`, `attacking or
 blocking or tapped creature` ("target attacking, blocking, or tapped
-creature": any of the three), `attacking
+creature": any of the three), `artifact, enchantment, or tapped creature`
+(two types and a qualified alternative: "target artifact, enchantment, or
+tapped creature", Banishing Slash), `attacking
 creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker creature"), and any filter
 ("target nonblack creature", "target creature an opponent controls").
 Targets relative to a player: `target creature that player controls` (the
@@ -4610,7 +4625,9 @@ discarded card wasn't land card, ...`, and as an "instead": `if the
 sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
 each 2 enchantment destroyed this way` ("2 life for each enchantment
 destroyed this way"; `count each permanent returned this way` prints
-"for each permanent returned to its owner's hand this way"), `count equal
+"for each permanent returned to its owner's hand this way"; `count each
+permanent you own returned this way` "for each card returned to your hand
+this way", only those the controller owns, Paradoxical Outcome), `count equal
 life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
 many cards"; `discard up to 2 cards chosen then draw count that many

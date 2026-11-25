@@ -1,0 +1,7 @@
+card "Axgard Armory" {
+  oracle_id bce30fd0-ed1e-495d-9149-6a4c81c45c7b
+  type Land
+  enters tapped
+  activated {T}: add {W}
+  activated {1}{R}{R}{W}, {T}, sacrifice this: search Aura card andor Equipment card reveal to hand
+}

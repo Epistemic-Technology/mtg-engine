@@ -1,0 +1,10 @@
+card "Chromium, the Mutable" {
+  oracle_id 58d8ff36-4a4d-40e0-b812-3d23b2c7606a
+  cost {4}{W}{U}{B}
+  type Legendary Creature — Elder Dragon
+  pt 7/7
+  keywords flash
+  this spell can't be countered
+  keyword flying
+  activated discard 1 card: until end of turn, this becomes Human base 1/1, loses all abilities, and gains hexproof; this gains can't be blocked
+}

@@ -4281,7 +4281,7 @@ impl Compiler<'_> {
             Effect::RemoveFromCombat { what } => {
                 out.push(CoreEffect::RemoveFromCombat { what: r(*what) });
             }
-            Effect::Untap { to } => {
+            Effect::Untap { to, .. } => {
                 for t in to {
                     out.push(CoreEffect::Untap { to: r(*t) });
                 }
@@ -9170,6 +9170,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: one(E::YouMay(vec![Sentence::new(vec![
                 E::Untap {
                     to: vec![Recipient::Target(0)],
+                    you: false,
                 },
                 E::BlocksIfAble {
                     blocker: Recipient::Target(0),

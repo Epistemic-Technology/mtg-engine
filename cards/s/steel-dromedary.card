@@ -1,0 +1,10 @@
+card "Steel Dromedary" {
+  oracle_id 40fa5656-354f-47f9-ba8d-40291ee5b40e
+  cost {3}
+  type Artifact Creature — Camel
+  pt 2/2
+  enters tapped
+  enters with 2 +1/+1 counters
+  static this: has doesn't untap if this has 1 or more +1/+1 counters
+  triggered at beginning of your combat: you may move 1 +1/+1 counter from this onto target creature
+}
