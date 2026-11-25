@@ -1948,7 +1948,6 @@ impl Compiler<'_> {
         }
     }
 
-    #[allow(clippy::too_many_lines)] // one line per filter field
     /// "with power less than or equal to the number of +1/+1 counters
     /// removed this way": the ability's X, known once announced (CR
     /// 602.2b) and so as targets are chosen, like `with power X or less`.
@@ -1965,6 +1964,7 @@ impl Compiler<'_> {
         s
     }
 
+    #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
         // "that you've put one or more +1/+1 counters on this turn": the
         // game keeps who put counters on what.
@@ -3039,7 +3039,6 @@ impl Compiler<'_> {
                 C::Minus(Box::new(self.count_expr(a)), Box::new(self.count_expr(b)))
             }
             A::Const { n, .. } => C::Const(*n),
-            A::RemovedThisWay(_) => C::X,
             A::HighestLife => C::HighestLife,
             A::CardsInOpponentsHands => C::CardsInOpponentsHands,
             A::CardTypesInOpponentsGraveyards => C::CardTypesInOpponentsGraveyards,
@@ -3216,7 +3215,7 @@ impl Compiler<'_> {
             A::SharingCreatureType(f) => C::SharingCreatureType(self.filter(f)),
             A::TriggerPtDifference => C::TriggerPtDifference,
             A::CoinsHeads => C::CoinsHeads,
-            A::X => C::X,
+            A::X | A::RemovedThisWay(_) => C::X,
         }
     }
 

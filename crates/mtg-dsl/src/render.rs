@@ -6304,7 +6304,10 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         }
         // "draw cards equal to the difference" (after "if you have fewer
         // than ten cards in hand").
-        CountExpr::Difference { .. } => return "the difference".to_string(),
+        CountExpr::Difference { .. }
+        | CountExpr::Minus {
+            difference: true, ..
+        } => return "the difference".to_string(),
         CountExpr::SourcePower => {
             return if each {
                 "for each power".to_string()
@@ -6752,12 +6755,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             format!("{} counter removed this way", counter_name(*k)),
             format!("{} counters removed this way", counter_name(*k)),
         ),
-        // "the difference" (after "If target opponent has more cards in
-        // hand than you"), "7 minus the number of ...", "the number of
-        // cards you've drawn this turn minus one".
-        CountExpr::Minus {
-            difference: true, ..
-        } => return "the difference".to_string(),
+        // "7 minus the number of ...", "the number of cards you've drawn
+        // this turn minus one".
         CountExpr::Minus { a, b, .. } => {
             return format!(
                 "{} minus {}",
