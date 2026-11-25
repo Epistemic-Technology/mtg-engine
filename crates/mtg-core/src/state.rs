@@ -4699,8 +4699,23 @@ impl GameState {
         (!q.x_in_cost || def.mana_cost.has_x())
             && (!q.adventure || def.layout == crate::card::Layout::Adventure)
             && (!q.has_warp || def.warp.is_some())
-            && (!q.has_flashback
-                || (def.flashback.is_some() && !def.retrace && def.graveyard_cast.is_none()))
+            && (!q.has_kicker
+                || def.kicker.is_some()
+                || def.kicker_cost.is_some()
+                || def.multikicker.is_some())
+            && (!q.has_modular || def.modular > 0)
+            // "with flashback or disturb": either.
+            && match (q.has_flashback, q.has_disturb) {
+                (false, false) => true,
+                (true, false) => {
+                    def.flashback.is_some() && !def.retrace && def.graveyard_cast.is_none()
+                }
+                (false, true) => def.disturb.is_some(),
+                (true, true) => {
+                    def.disturb.is_some()
+                        || (def.flashback.is_some() && !def.retrace && def.graveyard_cast.is_none())
+                }
+            }
     }
 
     /// The qualifiers of `StatusQuals` judged against a player, `you`
@@ -4728,7 +4743,13 @@ impl GameState {
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
     #[allow(clippy::too_many_lines)] // one check per qualifier
     fn status_quals_ok(&self, q: crate::card::StatusQuals, id: ObjId, o: &GameObject) -> bool {
-        if (q.x_in_cost || q.adventure || q.has_warp || q.has_flashback)
+        if (q.x_in_cost
+            || q.adventure
+            || q.has_warp
+            || q.has_flashback
+            || q.has_kicker
+            || q.has_modular
+            || q.has_disturb)
             && !Self::card_quals_ok(&q, self.pool.get(o.def))
         {
             return false;

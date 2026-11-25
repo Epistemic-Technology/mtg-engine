@@ -2011,6 +2011,24 @@ impl<'a> Ctx<'a> {
     /// +1/+1 counters on a third target creature.", Incremental Growth).
     fn target_first(&mut self, i: usize) -> String {
         let t = self.target_first_inner(i);
+        // "1 damage to any target, 2 damage to another target, and 3
+        // damage to a third target" (Cone of Flame): with two "any other
+        // target"s, the first is "another target".
+        if t == "any other target"
+            && self
+                .targets
+                .iter()
+                .filter(|t| matches!(t, Target::Spec(TargetSpec::AnyOther)))
+                .count()
+                >= 2
+        {
+            self.another_targets += 1;
+            return if self.another_targets >= 2 {
+                "a third target".to_string()
+            } else {
+                "another target".to_string()
+            };
+        }
         if let Some(rest) = t.strip_prefix("another target ") {
             self.another_targets += 1;
             if self.another_targets == 2 {
@@ -4158,6 +4176,15 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(stat) = f.status.greatest {
         let _ = write!(s, " {}", greatest_phrase(f, stat));
     }
+    if f.status.has_modular {
+        s.push_str(" with modular");
+    }
+    if f.status.has_kicker {
+        s.push_str(" with a kicker ability");
+    }
+    if f.status.has_disturb && f.status.has_flashback {
+        s.push_str(" with flashback or disturb");
+    }
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
     }
@@ -4878,6 +4905,11 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
     {
         // Grandeur: "Discard another card named Skoa, Embermage".
         with_article(&format!("{before}card named {name}"))
+    } else if f.or.is_none()
+        && let Some(quality) = p.strip_prefix("permanent with ")
+    {
+        // "a card with a kicker ability" (Coralhelm Chronicler): no type.
+        format!("a card with {quality}")
     } else if f.or.is_none()
         && let Some((kind, quality)) = p.split_once(" with ")
     {

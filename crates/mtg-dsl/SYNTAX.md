@@ -2227,6 +2227,12 @@ and `other than that creature` ("put a +1/+1 counter on target creature
 you control other than that creature", Pawpatch Recruit: neither it nor
 the card it became). Both are judged as targets are chosen and again as
 the ability resolves; elsewhere they don't restrict.
+`with modular` ("each creature you control with modular", Arcbound
+Overseer), `with kicker` ("a card with a kicker ability", multikicker
+too; `dig 5 take with kicker card ...`, Coralhelm Chronicler), and `with
+flashback or disturb` ("search your library for a card with flashback or
+disturb", `search with flashback or disturb card to graveyard`, Phantom
+Carriage): judged on the card's definition;
 `with mana value 4 or 5` (either value: "search your library for an
 artifact card with mana value 4 or 5", Transit Mage);
 `with greatest power`, `with greatest toughness`, `with greatest mana
@@ -4351,7 +4357,10 @@ announces the division as the targets are chosen, each target getting at
 least one (so no more targets than the amount, and at least one when
 there is anything to divide); a target that is illegal on resolution
 loses its share. `another target creature` excludes the source.
-`another target any` (or `any other target`) prints "any other target":
+`another target any` (or `any other target`) prints "any other target"
+(with two of them in a sentence, "another target" and then "a third
+target": `deal 1 damage to any target, deal 2 damage to another target
+any, and deal 3 damage to another target any`, Cone of Flame):
 not the source nor what the ability's other "target" words chose (CR
 115.3; `deal 2 damage to any target and deal 1 damage to another target
 any`, Boulder Dash). `any target that was dealt damage this turn` (Needle

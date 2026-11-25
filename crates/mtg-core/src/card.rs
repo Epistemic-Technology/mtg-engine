@@ -1569,6 +1569,19 @@ pub struct StatusQuals {
     /// or another graveyard cast). Judged on the card.
     #[serde(default)]
     pub has_flashback: bool,
+    /// "a card with a kicker ability" (CR 702.33; multikicker too):
+    /// judged on the card.
+    #[serde(default)]
+    pub has_kicker: bool,
+    /// "each creature you control with modular" (CR 702.43): judged on
+    /// the card.
+    #[serde(default)]
+    pub has_modular: bool,
+    /// "a card with flashback or disturb" (CR 702.146): the card has
+    /// disturb, or, with `has_flashback` also set, either. Judged on the
+    /// card.
+    #[serde(default)]
+    pub has_disturb: bool,
     /// "that's attacking alone" (CR 506.5): the only attacking creature.
     #[serde(default)]
     pub attacking_alone: bool,
@@ -1672,6 +1685,9 @@ impl StatusQuals {
             || self.has_flashback
             || self.warped
             || self.prepared_spell
+            || self.has_kicker
+            || self.has_modular
+            || self.has_disturb
             || self.attacking_alone
             || self.attacking_you
             || self.damaged_you

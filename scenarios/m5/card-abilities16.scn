@@ -1,0 +1,127 @@
+# Card filters on abilities a card has: "with modular" (CR 702.43), "a card
+# with a kicker ability" (CR 702.33), "a card with flashback or disturb"
+# (CR 702.34, 702.146); and three damage or counter targets, "another
+# target" and "a third target" (CR 115.3).
+
+scenario "Arcbound Overseer: a +1/+1 counter on each creature you control with modular" {
+  battlefield A: "Arcbound Overseer" with 6 +1/+1, "Arcbound Worker" with 1 +1/+1, "Grizzly Bears"
+  start turn 2 B
+  run_to turn 3 draw
+  assert counters "Arcbound Overseer" +1/+1 7
+  assert counters "Arcbound Worker" +1/+1 2
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Arcbound Overseer: enters with six +1/+1 counters" {
+  battlefield A: 8 "Plains"
+  hand A: "Arcbound Overseer"
+  turn 1 A: cast "Arcbound Overseer"
+  run_to turn 1 end
+  assert power "Arcbound Overseer" 6
+}
+
+scenario "Coralhelm Chronicler: reveal a card with a kicker ability, not one without" {
+  battlefield A: 3 "Island"
+  hand A: "Coralhelm Chronicler"
+  library A: "Grizzly Bears", "Goblin Bushwhacker", "Hill Giant", "Forest", "Shock", "Plains"
+  turn 1 A: cast "Coralhelm Chronicler"
+  run_to turn 1 end
+  assert hand A contains "Goblin Bushwhacker"
+  assert hand A lacks "Grizzly Bears"
+  assert hand A count 1
+  assert library A count 5
+}
+
+scenario "Coralhelm Chronicler: whenever you cast a kicked spell, draw then discard" {
+  battlefield A: "Coralhelm Chronicler", 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  library A: "Hill Giant"
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+  assert hand A count 0
+}
+
+scenario "Phantom Carriage: search for a card with flashback into your graveyard" {
+  battlefield A: 6 "Island"
+  hand A: "Phantom Carriage"
+  library A: "Grizzly Bears", "Firebolt", "Hill Giant"
+  turn 1 A: cast "Phantom Carriage"
+  turn 1 A: choose "Firebolt"
+  run_to turn 1 end
+  assert graveyard A contains "Firebolt"
+  assert library A count 2
+}
+
+scenario "Phantom Carriage: search for a card with disturb into your graveyard" {
+  battlefield A: 6 "Island"
+  hand A: "Phantom Carriage"
+  library A: "Grizzly Bears", "Baithook Angler", "Hill Giant"
+  turn 1 A: cast "Phantom Carriage"
+  turn 1 A: choose "Baithook Angler"
+  run_to turn 1 end
+  assert graveyard A contains "Baithook Angler"
+  assert library A count 2
+}
+
+scenario "Phantom Carriage: a card without flashback or disturb is not found" {
+  battlefield A: 6 "Island"
+  hand A: "Phantom Carriage"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Phantom Carriage"
+  run_to turn 1 end
+  assert graveyard A count 0
+  assert library A count 2
+}
+
+scenario "Incremental Blight: one, two, and three -1/-1 counters on three creatures" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Incremental Blight"
+  turn 1 A: cast "Incremental Blight" targeting "Serra Angel", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Serra Angel" -1/-1 1
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Incremental Blight: the same creature can't be two of the targets" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Incremental Blight"
+  illegal turn 1 A: cast "Incremental Blight" targeting "Serra Angel", "Serra Angel", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Serra Angel" -1/-1 0
+}
+
+scenario "Cone of Flame: 1, 2, and 3 damage to three different targets" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Cone of Flame"
+  turn 1 A: cast "Cone of Flame" targeting player B, "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Cone of Flame: the same target can't be chosen twice" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Cone of Flame"
+  illegal turn 1 A: cast "Cone of Flame" targeting player B, player B, "Hill Giant"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Serpentine Spike: 2, 3, and 4 damage; a creature dealt damage this way that dies is exiled" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Serpentine Spike"
+  turn 1 A: cast "Serpentine Spike" targeting "Grizzly Bears", "Hill Giant", "Serra Angel"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert exile B contains "Serra Angel"
+  assert graveyard B count 0
+}

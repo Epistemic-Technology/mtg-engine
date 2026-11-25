@@ -1,0 +1,6 @@
+card "Cone of Flame" {
+  oracle_id 62879f3d-ed6d-4004-8196-f3fd7f614695
+  cost {3}{R}{R}
+  type Sorcery
+  spell: deal 1 damage to any target, deal 2 damage to another target any, and deal 3 damage to another target any
+}

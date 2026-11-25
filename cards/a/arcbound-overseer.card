@@ -1,0 +1,8 @@
+card "Arcbound Overseer" {
+  oracle_id d57eb294-9707-4f93-82ad-b22d5f68c6c9
+  cost {8}
+  type Artifact Creature — Golem
+  pt 0/0
+  triggered at beginning of your upkeep: put 1 +1/+1 counters on each creature you control with modular
+  modular 6
+}

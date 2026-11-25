@@ -1,0 +1,7 @@
+card "Serpentine Spike" {
+  oracle_id c983644d-6741-4aa1-aa68-a6e680c26bb6
+  cost {5}{R}{R}
+  type Sorcery
+  keywords devoid
+  spell: deal 2 damage to target creature, deal 3 damage to another target creature, and deal 4 damage to another target creature; this turn, replace creature dealt damage this way dies: exile
+}

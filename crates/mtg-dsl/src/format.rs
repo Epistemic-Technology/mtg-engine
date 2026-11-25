@@ -5996,6 +5996,15 @@ fn filter_one(f: &Filter) -> String {
         }
         None => {}
     }
+    if f.status.has_modular {
+        words.push("with modular".to_string());
+    }
+    if f.status.has_kicker {
+        words.push("with kicker".to_string());
+    }
+    if f.status.has_disturb && f.status.has_flashback {
+        words.push("with flashback or disturb".to_string());
+    }
     if !f.keywords.is_empty() {
         words.push(format!("with {}", keywords(&f.keywords)));
     }

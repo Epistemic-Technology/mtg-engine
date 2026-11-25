@@ -19538,6 +19538,24 @@ impl P {
                     let g = self.filter()?;
                     f.name_unlike = Some(Box::new(g));
                 }
+                // "with modular", "with a kicker ability", "with flashback
+                // or disturb": judged on the card.
+                "with" if self.at_words(&["with", "modular"]) && !f.status.has_modular => {
+                    f.status.has_modular = true;
+                    self.pos += 2;
+                }
+                "with" if self.at_words(&["with", "kicker"]) && !f.status.has_kicker => {
+                    f.status.has_kicker = true;
+                    self.pos += 2;
+                }
+                "with"
+                    if self.at_words(&["with", "flashback", "or", "disturb"])
+                        && !f.status.has_disturb =>
+                {
+                    f.status.has_flashback = true;
+                    f.status.has_disturb = true;
+                    self.pos += 4;
+                }
                 // "with the greatest power among creatures they control".
                 "with"
                     if self.at_words(&["with", "greatest"])

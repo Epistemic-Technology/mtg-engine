@@ -1,0 +1,8 @@
+card "Phantom Carriage" {
+  oracle_id d95e7282-b298-4410-baac-01766d6852e3
+  cost {4}{U}{U}
+  type Creature — Spirit
+  pt 4/4
+  keywords flying
+  triggered when this enters: you may search with flashback or disturb card to graveyard
+}

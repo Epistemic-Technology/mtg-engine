@@ -1,0 +1,6 @@
+card "Incremental Blight" {
+  oracle_id 159cd205-6afc-4d8c-a4b9-501911a9c345
+  cost {3}{B}{B}
+  type Sorcery
+  spell: put 1 -1/-1 counter on target creature, put 2 -1/-1 counters on another target creature, and put 3 -1/-1 counters on another target creature
+}
