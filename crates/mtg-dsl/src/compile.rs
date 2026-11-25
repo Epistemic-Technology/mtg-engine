@@ -4764,6 +4764,13 @@ impl Compiler<'_> {
                 let then = self.sentences(inner)?;
                 match out.last_mut() {
                     Some(CoreEffect::Clash { won }) if won.is_empty() => *won = then,
+                    // "you may clash with an opponent. If you win, ..."
+                    // (Sentry Oak): declined, there is no clash to win.
+                    Some(CoreEffect::YouMay(may)) if matches!(may.last(), Some(CoreEffect::Clash { won }) if won.is_empty()) => {
+                        if let Some(CoreEffect::Clash { won }) = may.last_mut() {
+                            *won = then;
+                        }
+                    }
                     _ => return self.err("`if you win` needs a `clash` before it"),
                 }
             }

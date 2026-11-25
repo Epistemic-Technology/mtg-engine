@@ -1,0 +1,8 @@
+card "Sentry Oak" {
+  oracle_id 1b2e0a60-844e-4db7-91fd-323497ab3cbf
+  cost {4}{W}
+  type Creature — Treefolk Warrior
+  pt 3/5
+  keywords defender
+  triggered at beginning of your combat: you may clash; if you win, this gets +2/+0 and loses defender until end of turn
+}

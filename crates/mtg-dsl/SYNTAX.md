@@ -5020,7 +5020,9 @@ you win the flip, return Molten Birth to its owner's hand.").
 opponent each reveal the top card of their library, then each (the active
 player first) puts it on the top or bottom; the sentence after it, `if you
 win, <sentence>`, happens only if the controller's card had the greater
-mana value (or the opponent revealed nothing). "If you win, that creature
+mana value (or the opponent revealed nothing). `you may clash; if you win,
+...` ("you may clash with an opponent. If you win, ...", Sentry Oak):
+declined, nothing is won. "If you win, that creature
 gets an additional +2/+2" for a second pump of the same target. A
 second pump of the same target scaled by `count each` prints "an
 additional" too: `target creature gets +3/+3; target 1 gets +2/+2 count
