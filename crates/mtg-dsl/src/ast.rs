@@ -3404,6 +3404,15 @@ pub enum StaticCond {
     /// `there are 3 or more brick counters on this`: "there are three or
     /// more brick counters on this artifact" (the same condition, worded
     /// from the counters).
+    /// `this has fewer than 3 +1/+1 counters`: "this creature has fewer
+    /// than three +1/+1 counters on it" (Runaway Steam-Kin); `this has
+    /// exactly 4 +1/+1 counters` (`exact`): "it has exactly four +1/+1
+    /// counters on it" (Ayara's Oathsworn).
+    SourceCountersBound {
+        kind: CounterKind,
+        n: u32,
+        exact: bool,
+    },
     SourceCountersThere {
         kind: CounterKind,
         n: u32,

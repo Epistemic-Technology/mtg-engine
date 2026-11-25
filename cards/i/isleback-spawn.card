@@ -1,0 +1,8 @@
+card "Isleback Spawn" {
+  oracle_id 05ad7ec4-f48d-4cbe-be58-f871dc19702b
+  cost {5}{U}{U}
+  type Creature — Kraken
+  pt 4/8
+  keywords shroud
+  static this: +4/+8 as long as library 20 or less
+}

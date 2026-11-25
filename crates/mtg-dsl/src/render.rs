@@ -14657,7 +14657,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .replacen(&format!("on this {}", self_noun(ctx.card)), "on it", 1)
                     .replacen(&format!("on {}", this_ref(ctx.card)), "on it", 1)
             } else if (matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
-                || matches!(c, StaticCond::SourceCounterParity(_)))
+                || matches!(c, StaticCond::SourceCounterParity(_) | StaticCond::SourceCountersBound { .. }))
                 && ctx.source_mentioned
                 && !is_spell(ctx.card)
             {
@@ -21432,6 +21432,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 article(c)
             )
         }
+        StaticCond::SourceCountersBound { kind, n, exact } => format!(
+            "{} has {} {} {} counters on it",
+            this_ref(card),
+            if *exact { "exactly" } else { "fewer than" },
+            count_words(Num::N(*n), "one"),
+            kind.name()
+        ),
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on {}",
             count_words(Num::N(*n), "one"),
@@ -23490,6 +23497,12 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     if first_name {
                         cond = format!("{} is {}", this_ref(card), &cond["it's ".len()..]);
                     }
+                    // "Whenever this creature deals combat damage to a
+                    // player, if it has fewer than four +1/+1 counters on
+                    // it" (Ayara's Oathsworn): named by the trigger.
+                    if ctx.source_mentioned && matches!(c, StaticCond::SourceCountersBound { .. }) {
+                        cond = cond.replacen(&this_ref(card), "it", 1);
+                    }
                     out.push_str(&cond);
                     // "if Katara is tapped, put a +1/+1 counter on her": a
                     // condition naming the source by name.
@@ -23517,6 +23530,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                                 | StaticCond::SourceHasNoCounters(_)
                                 | StaticCond::SourceLacksCounter(_)
                                 | StaticCond::SourceCounterParity(_)
+                                | StaticCond::SourceCountersBound { .. }
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
                                 | StaticCond::SourceHistory { .. }

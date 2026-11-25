@@ -2576,6 +2576,33 @@ impl Compiler<'_> {
                     at_least: false,
                 }
             }
+            // "fewer than three": two or fewer; "exactly four": four or
+            // more and four or fewer.
+            StaticCond::SourceCountersBound {
+                kind,
+                n,
+                exact: false,
+            } => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: n.saturating_sub(1),
+                at_least: false,
+            },
+            StaticCond::SourceCountersBound {
+                kind,
+                n,
+                exact: true,
+            } => StaticCondition::And(
+                Box::new(StaticCondition::SourceCounters {
+                    kind: *kind,
+                    n: *n,
+                    at_least: true,
+                }),
+                Box::new(StaticCondition::SourceCounters {
+                    kind: *kind,
+                    n: *n,
+                    at_least: false,
+                }),
+            ),
             StaticCond::SourceCountersThere { kind, n } => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: *n,

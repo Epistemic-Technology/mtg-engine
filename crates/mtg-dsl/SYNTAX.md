@@ -840,7 +840,11 @@ in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 counters", corrupted), `this has 4 or more oil counters` ("this creature
 has four or more oil counters on it"; first, "As long as ..., it gets
 ..."; `this has 3 or more counters`: "this creature has three or more
-counters on it", every kind together; `this has even counters`: "it has
+counters on it", every kind together; `this has fewer than 3 +1/+1
+counters`: "this creature has fewer than three +1/+1 counters on it"
+(Runaway Steam-Kin), `this has exactly 4 +1/+1 counters`: "it has exactly
+four +1/+1 counters on it" (Ayara's Oathsworn; "it" once a trigger has
+named the source); `this has even counters`: "it has
 an even number of counters on it" (zero is even), `this has odd counters`
 "an odd number", every kind together (Sab-Sunen: `can't attack or block
 unless this has even counters` prints "Sab-Sunen can't attack or block

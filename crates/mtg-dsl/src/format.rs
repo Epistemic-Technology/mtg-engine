@@ -8041,6 +8041,11 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::SourceCountersThere { kind, n } => {
             format!("there are {n} or more {} counters on this", kind.name())
         }
+        StaticCond::SourceCountersBound { kind, n, exact } => format!(
+            "this has {} {n} {} counters",
+            if *exact { "exactly" } else { "fewer than" },
+            kind.name()
+        ),
         StaticCond::SourceCounters {
             kind: CounterKind::Any,
             n,

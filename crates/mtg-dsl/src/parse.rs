@@ -5698,6 +5698,20 @@ impl P {
                 at_least: false,
             });
         }
+        // `this has fewer than 3 +1/+1 counters`, `this has exactly 4
+        // +1/+1 counters`.
+        if self.at_words(&["fewer", "than"]) || self.at_word("exactly") {
+            let exact = self.eat_word("exactly");
+            if !exact {
+                self.pos += 2;
+            }
+            let n = self.number()?;
+            if !exact && n == 0 {
+                return self.fail("`fewer than 0` counters can't hold");
+            }
+            let kind = self.counter_kind()?;
+            return Ok(StaticCond::SourceCountersBound { kind, n, exact });
+        }
         let n = self.number()?;
         // "as long as it has two or fewer oil counters on it".
         let at_least = !self.eat_words(&["or", "fewer"]);

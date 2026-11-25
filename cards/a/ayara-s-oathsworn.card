@@ -1,0 +1,8 @@
+card "Ayara's Oathsworn" {
+  oracle_id ff3936bb-3281-4260-84de-1f65dbfbe993
+  cost {1}{B}
+  type Creature — Human Knight
+  pt 2/2
+  keywords menace
+  triggered whenever this deals combat damage to a player if this has fewer than 4 +1/+1 counters: put 1 +1/+1 counter on this; then if this has exactly 4 +1/+1 counters, search card to hand
+}
