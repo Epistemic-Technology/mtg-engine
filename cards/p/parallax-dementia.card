@@ -1,0 +1,9 @@
+card "Parallax Dementia" {
+  oracle_id 6ec7a7fb-0bf9-47fa-af2b-5b13b3af3947
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  fading 1
+  static enchanted: +3/+2
+  triggered when this leaves the battlefield: destroy attached without regeneration
+}

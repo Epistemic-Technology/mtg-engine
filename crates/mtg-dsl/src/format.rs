@@ -1573,6 +1573,7 @@ impl Fmt {
                 to,
                 who,
                 that_player,
+                their,
                 random,
                 rest,
                 attacking,
@@ -1602,6 +1603,7 @@ impl Fmt {
                 let d = match to {
                     CardDest::Hand => "into hand",
                     CardDest::Graveyard if *that_player => "into graveyard of that player",
+                    CardDest::Graveyard if *their => "into graveyard of their",
                     CardDest::Graveyard => "into graveyard",
                     CardDest::Battlefield { tapped: false } => "onto battlefield",
                     CardDest::Battlefield { tapped: true } => "onto battlefield tapped",
@@ -4046,6 +4048,14 @@ impl Fmt {
                     ),
                     None => (verb, f),
                 };
+                if check.it {
+                    return format!(
+                        "if it {verb} {}, {}{}",
+                        filter(f),
+                        if check.also { "also " } else { "" },
+                        self.line(inner, t)
+                    );
+                }
                 format!(
                     "if {that}target {} {verb} {}, {}{}",
                     n + 1,

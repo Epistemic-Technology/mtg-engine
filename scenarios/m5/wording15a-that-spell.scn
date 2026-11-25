@@ -1,0 +1,40 @@
+# "Whenever a player casts a spell with mana value equal to the number of
+# charge counters on this artifact, counter that spell." (Chalice of the
+# Void): "that spell" for the triggering object of a cast trigger.
+
+scenario "Chalice of the Void: X=1 enters with one charge counter" {
+  battlefield A: 2 "Plains"
+  hand A: "Chalice of the Void"
+  turn 1 A: cast "Chalice of the Void" x 1
+  run_to turn 1 postcombat_main
+  assert counters "Chalice of the Void" charge 1
+}
+
+scenario "Chalice of the Void: a spell with mana value 1 is countered" {
+  battlefield A: "Chalice of the Void" with 1 charge
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Shock"
+}
+
+scenario "Chalice of the Void: a spell with another mana value resolves" {
+  battlefield A: "Chalice of the Void" with 1 charge
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Chalice of the Void: its controller's spells are countered too" {
+  battlefield A: "Chalice of the Void" with 2 charge, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

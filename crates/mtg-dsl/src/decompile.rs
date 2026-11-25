@@ -2484,6 +2484,7 @@ impl Decompiler<'_> {
                 to: *to,
                 who: None,
                 that_player: false,
+                their: false,
             },
             CoreEffect::ExilePlayable {
                 count,

@@ -8082,11 +8082,13 @@ impl P {
             CardWords::TheRevealed
         };
         let mut that_player = false;
+        let mut their = false;
         let mut attacking = false;
         let to = if self.eat_words(&["into", "hand"]) {
             CardDest::Hand
         } else if self.eat_words(&["into", "graveyard"]) {
             that_player = self.eat_words(&["of", "that", "player"]);
+            their = !that_player && self.eat_words(&["of", "their"]);
             CardDest::Graveyard
         } else if self.eat_words(&["onto", "battlefield"]) {
             let tapped = self.eat_word("tapped");
@@ -8119,6 +8121,7 @@ impl P {
             to,
             who,
             that_player,
+            their,
             random,
             rest,
             attacking,
@@ -9201,6 +9204,7 @@ impl P {
                     to: mtg_core::card::CardDest::Hand,
                     who: None,
                     that_player: false,
+                    their: false,
                     random: false,
                     rest: None,
                     attacking: false,
@@ -9411,6 +9415,29 @@ impl P {
             || self.at_words(&["if", "the", "full", "target"])
         {
             return self.if_target();
+        }
+        // `if it was Soldier, ...` after a target: "If it was a Soldier,
+        // ..." about the last object target, as it last existed.
+        if self.at_words(&["if", "it", "was"])
+            && let Some(n) = self.last_object_target()
+        {
+            self.pos += 3;
+            let filter = self.filter()?;
+            Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                n,
+                filter,
+                vec![s],
+                crate::ast::TargetCheck {
+                    tense: crate::ast::TargetTense::Was,
+                    it: true,
+                    ..crate::ast::TargetCheck::default()
+                },
+            ));
         }
         if self.it_check_ahead().is_some() {
             let (filter, check) = self.it_check()?;

@@ -79,6 +79,10 @@ pub struct TargetCheck {
     /// `if that land is Mountain` about the triggering object
     /// (`IT_TRIGGER`): the noun printed after "that".
     pub noun: Option<&'static str>,
+    /// `if it was Soldier` after a target: "If it was a Soldier" (Zephyr
+    /// Sentinel) for `if target 1 was`'s "If that creature was". Wording
+    /// only; the check is `Was` on the last object target.
+    pub it: bool,
 }
 
 /// `Effect::IfTarget`'s index for a check of the triggering object, not a
@@ -7332,6 +7336,9 @@ pub enum Effect {
         /// `into graveyard of that player`: "into that player's
         /// graveyard" (the card's owner's, where it goes anyway).
         that_player: bool,
+        /// `into graveyard of their`: "into their graveyard" (Draugr
+        /// Thought-Thief), the same; wording only.
+        their: bool,
         /// `on bottom of library random`: "in a random order".
         random: bool,
         /// `put that card into hand and the rest on bottom of library

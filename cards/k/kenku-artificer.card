@@ -1,0 +1,7 @@
+card "Kenku Artificer" {
+  oracle_id e262b226-9463-40a9-95b2-fe2c3eafc043
+  cost {2}{U}
+  type Creature — Bird Artificer
+  pt 1/1
+  label "Homunculus Servant" triggered whenever this enters: put 3 +1/+1 counters on up to 1 target noncreature artifact; that target 1 becomes 0/0 Homunculus artifact creature with flying indefinitely
+}

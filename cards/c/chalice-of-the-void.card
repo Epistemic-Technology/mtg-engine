@@ -1,0 +1,7 @@
+card "Chalice of the Void" {
+  oracle_id 74027ba4-a6ba-4696-baf1-60ef0b27ee0a
+  cost {X}{X}
+  type Artifact
+  enters with X charge counters
+  triggered whenever a player casts with mana value equal to count equal charge counters on this spell: counter that spell
+}

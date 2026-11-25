@@ -1133,7 +1133,10 @@ created prints "Otherwise, create one of those tokens."
 nonbasic, ..." (the target as it last existed); a state alone prints "it":
 `if target 1 was attacking` ("If it was attacking"), `if target 1 was
 tapped` ("If it was tapped"), judged as it last existed on the
-battlefield, so a target returned to its owner's hand still counts. Without `instead`, `if
+battlefield, so a target returned to its owner's hand still counts.
+`if it was <filter>, <sentence>` after a target is the same check on the
+last object target, printed "If it was a Soldier, ..." (Zephyr
+Sentinel). Without `instead`, `if
 target 1 is <filter>, <sentence>` is "If it's a Vampire, ..." and `if
 that target 1 is <filter>, ...` is "If that creature is a Goat, ..." (the
 target as it resolves, or last existed); `also` after the comma prints
@@ -4780,7 +4783,8 @@ revealed (an empty library) neither holds. `otherwise, <sentence>` after
 it happens when it didn't. The card or cards move with `put it into
 hand`, `put that card into hand`, `put it into graveyard` (`put that card
 into graveyard of that player`: "into that player's graveyard", after
-looking at another player's library), `put it onto
+looking at another player's library; `into graveyard of their`: "into
+their graveyard", Draugr Thought-Thief), `put it onto
 battlefield [tapped]` (under your control, CR 110.2a), `put it on bottom of
 library`, and for every revealed card still in the library `put all
 revealed into hand` ("put all cards revealed this way into your hand"),

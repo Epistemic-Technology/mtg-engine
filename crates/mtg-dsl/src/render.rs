@@ -2292,6 +2292,20 @@ impl<'a> Ctx<'a> {
             {
                 "that spell or ability".to_string()
             }
+            // "Whenever a player casts a spell with mana value equal to
+            // ..., counter that spell." (Chalice of the Void).
+            Recipient::TriggeringObject
+                if matches!(
+                    self.trigger,
+                    Some(
+                        Trigger::CastsSpell { .. }
+                            | Trigger::CastsFiltered { .. }
+                            | Trigger::CastsNth { .. }
+                    )
+                ) =>
+            {
+                "that spell".to_string()
+            }
             Recipient::TriggeringObject if self.trigger_sacrificed_artifact() => {
                 "that artifact".to_string()
             }
@@ -3175,6 +3189,10 @@ fn target_noun(t: &Target) -> String {
                 "creature".to_string()
             } else if f.types.contains(&CardType::Land) {
                 "land".to_string()
+            } else if f.types == [CardType::Artifact] && f.or.is_none() {
+                // "target noncreature artifact. That artifact becomes ..."
+                // (Kenku Artificer).
+                "artifact".to_string()
             } else {
                 "permanent".to_string()
             }
@@ -7581,9 +7599,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let mut text = format!("destroy {objs}");
             if *no_regen {
                 let pronoun = if to.len() > 1 || to.iter().any(|r| Ctx::is_plural(*r)) {
-                    "They"
+                    "They".to_string()
+                } else if to.as_slice() == [Recipient::Attached] {
+                    // "destroy enchanted creature. That creature can't be
+                    // regenerated." (Parallax Dementia).
+                    format!("That {}", enchanted_noun(ctx.card))
                 } else {
-                    "It"
+                    "It".to_string()
                 };
                 if *joined {
                     let _ = write!(text, " and {} can't be regenerated", pronoun.to_lowercase());
@@ -8591,6 +8613,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             who,
             that_player,
+            their,
             random,
             rest,
             attacking,
@@ -8631,6 +8654,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let dest = match to {
                 CardDest::Hand => format!("into {whose} hand"),
                 CardDest::Graveyard if *that_player => "into that player's graveyard".to_string(),
+                CardDest::Graveyard if *their => "into their graveyard".to_string(),
                 CardDest::Graveyard => format!("into {whose} graveyard"),
                 CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
                 CardDest::Battlefield { tapped: true } if *attacking => {
@@ -14361,6 +14385,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     spent_at_most(ctx.card)
                 ),
                 _ if damaged_only => "it was dealt damage this turn".to_string(),
+                // "If it was a Soldier, put a +1/+1 counter on this
+                // creature." (Zephyr Sentinel).
+                (TargetTense::Was, _) if check.it => format!("it was {pred}"),
                 (TargetTense::Was, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("its mana value was {n}{}", cmp_words(cmp))
                 }
@@ -22438,6 +22465,24 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             } =>
                 {
                     let _ = write!(out, ", if it wasn't {}", with_article(&f.not_subtypes[0]));
+                }
+                // "Whenever this permanent is dealt damage, if it's a
+                // creature, ..." (Phyrexian Totem): a type the source may
+                // lack, the source named "this permanent" in the event.
+                Some(crate::ast::TrigCond::Static(c @ StaticCond::Is(f)))
+                    if !f.types.is_empty()
+                        && matches!(trigger, Trigger::DealtDamage(TriggerObj::This))
+                        && card.kind != Kind::Token
+                        && !card.supertypes.contains(&Supertype::Legendary) =>
+                {
+                    out = out.replacen(
+                        &format!("this {} is dealt", self_noun(card)),
+                        "this permanent is dealt",
+                        1,
+                    );
+                    out.push_str(", if ");
+                    out.push_str(&static_cond_text(c, card));
+                    ctx.source_mentioned = true;
                 }
                 // "When Enduring Innocence dies, if it was a creature, ...":
                 // the permanent as it last existed (CR 603.10a).
