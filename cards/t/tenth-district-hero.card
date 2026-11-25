@@ -1,0 +1,8 @@
+card "Tenth District Hero" {
+  oracle_id 0953772c-9374-4616-9c04-5838aaf626c9
+  cost {1}{W}
+  type Creature — Human
+  pt 2/3
+  activated {1}{W}, collect evidence 2: this becomes Human Detective base 4/4 and gains vigilance indefinitely
+  activated {2}{W}, collect evidence 4: if this is Detective, this becomes legendary creature named "Mileva, the Stalwart" base 5/5 with ability { static other creature you control: has indestructible } indefinitely
+}

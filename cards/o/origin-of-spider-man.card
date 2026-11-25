@@ -1,0 +1,8 @@
+card "Origin of Spider-Man" {
+  oracle_id 7fbe9056-190f-40a1-bee9-59ebd6f981f5
+  cost {1}{W}
+  type Enchantment — Saga
+  triggered chapter 1: create 1 "2/1 green Spider creature with reach"
+  triggered chapter 2: put 1 +1/+1 counter on target creature you control; it becomes legendary Spider Hero in addition indefinitely
+  triggered chapter 3: target creature you control gains double strike
+}

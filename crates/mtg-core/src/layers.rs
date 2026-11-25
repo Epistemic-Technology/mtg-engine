@@ -1837,6 +1837,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             }
         }
         Modification::AddSupertype(s) => c.supertypes = c.supertypes.with(*s),
+        Modification::SetName(n) => c.name = Some(*n),
         Modification::AddLandType(color) => {
             let s = Subtype::basic(*color);
             if !c.subtypes.contains(&s) {

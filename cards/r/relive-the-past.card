@@ -1,0 +1,6 @@
+card "Relive the Past" {
+  oracle_id dcc51bcb-a61e-471f-8a01-7fcbc069fcba
+  cost {5}{G}{W}
+  type Sorcery
+  spell: return up to 1 target artifact card from your graveyard and up to 1 target land card from your graveyard and up to 1 target non-Aura enchantment card from your graveyard to battlefield; targets 1 to 3 is 5/5 Elemental creature in addition
+}

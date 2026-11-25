@@ -9647,9 +9647,27 @@ impl P {
             }
             // `target 1 is Spirit in addition`: "It's a Spirit in addition
             // to its other types" (indefinitely).
+            // `targets 1 to 3 is 5/5 Elemental creature in addition`: "They
+            // are 5/5 Elemental creatures in addition to their other
+            // types"; `it is Treasure artifact with ability { ... } and
+            // loses other card types`: "It's a Treasure artifact with
+            // \"...,\" and it loses all other card types" (Vraska, the
+            // Silencer).
             "is" if matches!(self.peek(), Some(Tok::Word(w))
-                if w.chars().next().is_some_and(char::is_uppercase)) =>
+                if w.chars().next().is_some_and(char::is_uppercase))
+                || (matches!(self.peek(), Some(Tok::Pt { signed: false, .. }))
+                    && matches!(self.peek_at(1), Some(Tok::Word(w))
+                        if w.chars().next().is_some_and(char::is_uppercase))) =>
             {
+                let pt = match self.peek() {
+                    Some(&Tok::Pt {
+                        power, toughness, ..
+                    }) => {
+                        self.pos += 1;
+                        Some((power, toughness))
+                    }
+                    _ => None,
+                };
                 let mut subtypes = Vec::new();
                 while let Some(Tok::Word(w)) = self.peek() {
                     if !w.chars().next().is_some_and(char::is_uppercase) {
@@ -9658,9 +9676,21 @@ impl P {
                     subtypes.push(w.clone());
                     self.pos += 1;
                 }
+                let mut types = Vec::new();
+                while let Some(Tok::Word(w)) = self.peek() {
+                    let Some(t) = card_type(w) else { break };
+                    types.push(t);
+                    self.pos += 1;
+                }
                 let mut keywords = Vec::new();
+                let mut ability = None;
                 if self.eat_word("with") {
                     loop {
+                        if self.at_word("ability") && self.peek_at(1) == Some(&Tok::LBrace) {
+                            self.pos += 1;
+                            ability = Some(Box::new(self.nested_ability()?));
+                            break;
+                        }
                         let Some(k) = self.keyword() else {
                             return self.fail("expected a keyword after `with`");
                         };
@@ -9672,21 +9702,32 @@ impl P {
                         }
                     }
                 }
-                self.expect_words(&["in", "addition"])?;
+                let in_addition = if self.eat_words(&["and", "loses", "other", "card", "types"]) {
+                    if types.is_empty() {
+                        return self.fail("`and loses other card types` needs a card type");
+                    }
+                    false
+                } else {
+                    self.expect_words(&["in", "addition"])?;
+                    true
+                };
                 let loses_abilities = self.eat_words(&["and", "has", "no", "abilities"]);
                 Ok(Effect::Animate {
                     to: subject,
-                    types: Vec::new(),
+                    types,
                     subtypes,
-                    pt: None,
+                    pt,
                     base: false,
                     colors: Vec::new(),
                     keywords,
                     indefinite: true,
                     loses_abilities,
-                    in_addition: true,
+                    in_addition,
                     is_word: true,
-                    ability: None,
+                    ability,
+                    supertype: None,
+                    name: None,
+                    gains: false,
                 })
             }
             // "It's an enchantment." (indefinitely, layer 4).
@@ -10038,6 +10079,9 @@ impl P {
                         in_addition: false,
                         is_word: false,
                         ability: None,
+                        supertype: None,
+                        name: None,
+                        gains: false,
                     });
                 }
                 if !(self.at_word("becomes") || self.at_word("become")) {
@@ -10055,6 +10099,9 @@ impl P {
                         indefinite,
                         in_addition,
                         ability,
+                        supertype,
+                        name,
+                        gains,
                         ..
                     } => Ok(Effect::Animate {
                         to,
@@ -10069,6 +10116,9 @@ impl P {
                         in_addition,
                         is_word: false,
                         ability,
+                        supertype,
+                        name,
+                        gains,
                     }),
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
@@ -11000,7 +11050,21 @@ impl P {
                     let color = self.word_at(1).as_deref() == Some("color");
                     self.pos += 2;
                     self.until_end_of_turn();
-                    return Ok(Effect::BecomeChosen { to: subject, color });
+                    return Ok(Effect::BecomeChosen {
+                        to: subject,
+                        color,
+                        indefinite: false,
+                    });
+                }
+                // `becomes chosen color indefinitely`: "becomes the chosen
+                // color" (Puca's Eye).
+                if self.at_words(&["chosen", "color", "indefinitely"]) {
+                    self.pos += 3;
+                    return Ok(Effect::BecomeChosen {
+                        to: subject,
+                        color: true,
+                        indefinite: true,
+                    });
                 }
                 // "becomes the color of your choice" and kin.
                 if self.at_words(&["color", "of", "choice"])
@@ -11090,6 +11154,12 @@ impl P {
                         indefinite,
                     });
                 }
+                // "becomes a legendary Spider Hero" (CR 205.4).
+                let supertype = if self.eat_word("legendary") {
+                    Some(Supertype::Legendary)
+                } else {
+                    None
+                };
                 let mut pt = match self.peek() {
                     Some(&Tok::Pt {
                         power,
@@ -11119,6 +11189,12 @@ impl P {
                 if types.is_empty() && subtypes.is_empty() {
                     return self.fail("expected what `becomes` makes it (`4/4 artifact creature`)");
                 }
+                // "a legendary creature named Mileva, the Stalwart".
+                let name = if self.eat_word("named") {
+                    Some(self.string()?)
+                } else {
+                    None
+                };
                 // "a Shapeshifter artifact creature with base power and
                 // toughness 5/5".
                 let mut base = false;
@@ -11136,7 +11212,20 @@ impl P {
                 }
                 let mut keywords = Vec::new();
                 let mut ability = None;
-                if self.eat_word("with") {
+                // "with base power and toughness 4/4 and gains vigilance".
+                let gains = base && self.eat_words(&["and", "gains"]);
+                if gains {
+                    loop {
+                        let Some(k) = self.keyword() else {
+                            return self.fail("expected a keyword after `and gains`");
+                        };
+                        keywords.push(k);
+                        if !self.eat_word("and") {
+                            break;
+                        }
+                    }
+                }
+                if !gains && self.eat_word("with") {
                     loop {
                         // `with ability { ... }`, `with flying and ability
                         // { ... }`: a quoted ability it gains.
@@ -11186,6 +11275,9 @@ impl P {
                     in_addition,
                     is_word: false,
                     ability,
+                    supertype,
+                    name,
+                    gains,
                 })
             }
             // "and you create a 1/1 ... token", "Its controller creates a
@@ -21447,6 +21539,8 @@ impl P {
         let w = self.word()?;
         match w.as_str() {
             "gets" | "get" => self.modification(),
+            // `named "Humble Merchant"` (CR 201.1).
+            "named" => Ok(Mod::SetName(self.string()?)),
             "base" => {
                 if self.eat_word("mv") {
                     return Ok(Mod::SetPt {

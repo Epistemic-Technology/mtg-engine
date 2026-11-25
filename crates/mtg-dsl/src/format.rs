@@ -3532,18 +3532,40 @@ impl Fmt {
                 in_addition,
                 is_word,
                 ability,
+                supertype,
+                name,
+                gains,
             } => {
                 // `target 1 is Spirit in addition and has no abilities`.
                 if *is_word {
+                    let mut what: Vec<String> = Vec::new();
+                    if let Some((p, q)) = pt {
+                        what.push(format!("{p}/{q}"));
+                    }
+                    what.extend(subtypes.iter().cloned());
+                    what.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
+                    let with = match ability {
+                        Some(a) => format!(
+                            "{} ability {{ {} }}",
+                            if ks.is_empty() { " with" } else { " and" },
+                            nested(a, &self.groups)
+                        ),
+                        None => String::new(),
+                    };
                     let with = if ks.is_empty() {
-                        String::new()
+                        with
                     } else {
-                        format!(" with {}", keywords(ks))
+                        format!(" with {}{with}", keywords(ks))
                     };
                     return format!(
-                        "{} is {}{with} in addition{}",
+                        "{} is {}{with} {}{}",
                         self.recipient(*to, t),
-                        subtypes.join(" "),
+                        what.join(" "),
+                        if *in_addition {
+                            "in addition"
+                        } else {
+                            "and loses other card types"
+                        },
                         if *loses_abilities {
                             " and has no abilities"
                         } else {
@@ -3566,6 +3588,9 @@ impl Fmt {
                     );
                 }
                 let mut words: Vec<String> = Vec::new();
+                if supertype.is_some() {
+                    words.push("legendary".to_string());
+                }
                 if let (Some((p, q)), false) = (pt, base) {
                     words.push(format!("{p}/{q}"));
                 }
@@ -3580,10 +3605,16 @@ impl Fmt {
                         .cloned(),
                 );
                 words.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
+                if let Some(n) = name {
+                    words.push(format!("named \"{n}\""));
+                }
                 if let (Some((p, q)), true) = (pt, base) {
                     words.push(format!("base {p}/{q}"));
                 }
-                if !ks.is_empty() {
+                if *gains {
+                    let names: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
+                    words.push(format!("and gains {}", names.join(" and ")));
+                } else if !ks.is_empty() {
                     words.push(format!("with {}", keywords(ks)));
                 }
                 if let Some(a) = ability {
@@ -3675,7 +3706,15 @@ impl Fmt {
                 "{} gains protection from chosen color",
                 self.recipient(*to, t)
             ),
-            Effect::BecomeChosen { to, color } => format!(
+            Effect::BecomeChosen {
+                to,
+                indefinite: true,
+                ..
+            } => format!(
+                "{} becomes chosen color indefinitely",
+                self.recipient(*to, t)
+            ),
+            Effect::BecomeChosen { to, color, .. } => format!(
                 "{} becomes that {}",
                 self.recipient(*to, t),
                 if *color { "color" } else { "type" }
@@ -7089,6 +7128,7 @@ fn modification(m: &Mod) -> String {
         Mod::AddChosenType { creature: false } => "add chosen type".to_string(),
         Mod::AddChosenType { creature: true } => "add chosen creature type".to_string(),
         Mod::AddSubtype(s) => format!("add subtype {s}"),
+        Mod::SetName(n) => format!("named \"{n}\""),
         Mod::AddSupertype(s) => format!(
             "add supertype {}",
             match s {

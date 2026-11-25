@@ -637,6 +637,7 @@ impl GameState {
             control_effects: 0,
             control_dirty: false,
             legendary_count: 0,
+            renamed: false,
             activated_sources: 0,
             life_cda_sources: 0,
             tap_static_sources: 0,

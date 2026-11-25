@@ -892,6 +892,12 @@ impl fmt::Debug for KeywordSet {
     }
 }
 
+/// A name an effect gives an object ("... named Legitimate Businessperson",
+/// CR 201.1): interned in the pool (`CardPool::name_id`), since it is no
+/// card's. Kept to two bytes so `Characteristics` stays small.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct NameId(pub std::num::NonZeroU16);
+
 /// An interned subtype (creature type, land type, ...). The five basic land
 /// types are interned first, in WUBRG order, so `Subtype::basic(color)` is
 /// constant.
@@ -1954,8 +1960,9 @@ impl ObjFilter {
         if self.controlled_by.is_some_and(|p| p != obj_controller) {
             return false;
         }
+        // A name an effect gave it replaces its card's (CR 201.1).
         if let Some((def, named)) = self.named
-            && (c.def == def) != named
+            && (c.def == def && c.name.is_none()) != named
         {
             return false;
         }
@@ -2107,6 +2114,11 @@ pub enum Modification {
     /// "Enchanted land is snow." (layer 4, CR 205.4: a supertype added
     /// to its others).
     AddSupertype(Supertype),
+    /// "... named Legitimate Businessperson" (CR 201.1): the object's name
+    /// becomes this one, its others lost. Applied with the types (layer
+    /// 4); no layer is named for it, and nothing in this engine reads a
+    /// name in between.
+    SetName(NameId),
     /// "becomes an artifact creature" (layer 4): these card types replace
     /// its others (CR 205.1a), except land ("It's still a land", CR
     /// 205.1b; see `Effect::Animate`).
@@ -2230,6 +2242,7 @@ impl Modification {
             Modification::Control => Layer::L2Control,
             Modification::AddTypes(_)
             | Modification::AddSupertype(_)
+            | Modification::SetName(_)
             | Modification::BecomeTypes(_)
             | Modification::SetTypes(_)
             | Modification::AddLandType(_)
@@ -5515,6 +5528,14 @@ pub enum Effect {
         /// types": the types, subtypes, and colors are added (layers 4 and
         /// 5) instead of replacing its others.
         in_addition: bool,
+        /// "becomes a legendary Spider Hero": a supertype added to its
+        /// others (layer 4, CR 205.4).
+        #[serde(default)]
+        supertype: Option<Supertype>,
+        /// "becomes a legendary creature named Mileva, the Stalwart": the
+        /// name it has instead of its own (CR 201.1).
+        #[serde(default)]
+        name: Option<NameId>,
     },
     /// "becomes blue until end of turn", "becomes colorless" (layer 5).
     BecomeColor {
@@ -5546,6 +5567,10 @@ pub enum Effect {
         /// color until end of turn."); wording only.
         #[serde(default)]
         color: bool,
+        /// No duration: "This artifact becomes the chosen color." (Puca's
+        /// Eye).
+        #[serde(default)]
+        indefinite: bool,
     },
     /// "Creatures you control gain protection from the chosen color until
     /// end of turn": the color chosen earlier in the resolution.
@@ -11405,6 +11430,10 @@ impl DefFlags {
     /// card of a library (`StaticCondition::TopCard`, `CountExpr::LibraryTop`):
     /// the characteristics cache then keys on the top cards.
     const TOP_STATIC: u64 = 1_073_741_824;
+    /// A static ability that names a permanent or makes it legendary
+    /// (`Modification::SetName`, `AddSupertype`): names and the legend
+    /// rule then read characteristics (`GameState::renamed`).
+    const RENAMES: u64 = 1 << 50;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11539,6 +11568,10 @@ impl DefFlags {
         self.has(DefFlags::TOP_STATIC)
     }
 
+    pub const fn has_renames(self) -> bool {
+        self.has(DefFlags::RENAMES)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -11624,6 +11657,13 @@ impl DefFlags {
                         || ks.intersects(KeywordSet::TRIGGERED),
                     _ => false,
                 }))
+            }),
+        );
+        flags.set(
+            DefFlags::RENAMES,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m,
+                    Modification::SetName(_) | Modification::AddSupertype(Supertype::Legendary))))
             }),
         );
         flags.set(
@@ -12008,6 +12048,8 @@ pub struct CardPool {
     reserved: HashMap<String, CardRef>,
     subtypes: Vec<String>,
     subtype_ids: HashMap<String, Subtype>,
+    /// Names given by effects (`NameId`, from 1).
+    names: Vec<String>,
     abilities: Vec<AbilityDef>,
     /// Filters behind `TargetSpec::Filtered`.
     filters: Vec<ObjFilter>,
@@ -12147,6 +12189,7 @@ impl CardPool {
             reserved: HashMap::new(),
             subtypes: Vec::new(),
             subtype_ids: HashMap::new(),
+            names: Vec::new(),
             abilities: Vec::new(),
             filters: Vec::new(),
             up_to: Vec::new(),
@@ -13048,6 +13091,8 @@ impl CardPool {
                         indefinite: true,
                         loses_abilities: false,
                         in_addition: false,
+                        supertype: None,
+                        name: None,
                     });
                     break;
                 }
@@ -13302,6 +13347,7 @@ impl CardPool {
             toughness: crate::state::pt16(def.toughness.unwrap_or(0)),
             keywords: def.keywords,
             abilities: def.ability_ids,
+            name: None,
         });
         self.by_name.insert(def.name.clone(), r);
         if slot.is_some() {
@@ -13485,6 +13531,23 @@ impl CardPool {
                 d.flags.set(DefFlags::ROOM, true);
             }
         }
+    }
+
+    /// Intern a name an effect gives an object.
+    pub fn name_id(&mut self, name: &str) -> NameId {
+        let i = match self.names.iter().position(|n| n == name) {
+            Some(i) => i,
+            None => {
+                self.names.push(name.to_string());
+                self.names.len() - 1
+            }
+        };
+        let n = u16::try_from(i + 1).expect("too many names");
+        NameId(std::num::NonZeroU16::new(n).expect("from 1"))
+    }
+
+    pub fn name_text(&self, n: NameId) -> &str {
+        &self.names[usize::from(n.0.get()) - 1]
     }
 
     /// Intern a subtype name.

@@ -1008,6 +1008,8 @@ impl GameState {
     pub(super) fn count_sources(&mut self, flags: DefFlags, legendary: bool, add: bool) {
         let d = |on: bool| u32::from(on);
         if add {
+            // Sticky (`GameState::renamed`).
+            self.renamed |= flags.has_renames();
             self.trigger_sources += d(flags.has_triggers());
             self.replacement_sources += d(flags.has_replacements());
             self.control_sources += d(flags.has_control_static());

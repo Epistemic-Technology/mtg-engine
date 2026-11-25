@@ -852,14 +852,24 @@ Dragon ... (It loses all other creature types.)"), `this becomes
 Shapeshifter artifact creature base 5/5` ("... with base power and
 toughness 5/5"), `this becomes artifact creature` (no new P/T), `this
 becomes 2/2 Gargoyle creature with flying indefinitely` (keywords after
-`with`; `indefinitely`: no duration, Opal Caryatid), `this becomes 2/4 Wizard creature with ability { triggered whenever you cast instant or sorcery spell: this gets +1/+0 } indefinitely` ("it becomes a 2/4 Wizard creature with \"Whenever ...\" It's still a land.", Great Hall of the Biblioplex; `with flying and ability { ... }`: "with flying and \"This creature gets ...\"", Iron Man Armor: it gains the ability for as long as the rest lasts), `this becomes 3/3 creature with vigilance and all creature types indefinitely` (Soulstone Sanctuary: every creature type, CR 205.3m; `with all creature types` without keywords), `until end of turn,
+`with`; `indefinitely`: no duration, Opal Caryatid), `it becomes legendary
+Spider Hero in addition indefinitely` ("It becomes a legendary Spider Hero
+in addition to its other types.": the supertype is added, CR 205.4, and the
+legend rule then reads it, CR 704.5j), `this becomes Human Detective base
+4/4 and gains vigilance indefinitely` ("This creature becomes a Human
+Detective with base power and toughness 4/4 and gains vigilance."), `this
+becomes legendary creature named "Mileva, the Stalwart" base 5/5 with
+ability { ... } indefinitely` ("it becomes a legendary creature named
+Mileva, the Stalwart, it has base power and toughness 5/5, and it gains
+\"...\"": the name replaces its own, CR 201.1, for the legend rule, the
+log, and "named" filters, which no longer see its card's name), `this becomes 2/4 Wizard creature with ability { triggered whenever you cast instant or sorcery spell: this gets +1/+0 } indefinitely` ("it becomes a 2/4 Wizard creature with \"Whenever ...\" It's still a land.", Great Hall of the Biblioplex; `with flying and ability { ... }`: "with flying and \"This creature gets ...\"", Iron Man Armor: it gains the ability for as long as the rest lasts), `this becomes 3/3 creature with vigilance and all creature types indefinitely` (Soulstone Sanctuary: every creature type, CR 205.3m; `with all creature types` without keywords), `until end of turn,
 target creature becomes Dragon base 4/4 and target 1 gains flying`;
 `return this to battlefield; it is now enchantment` prints "return it to
 the battlefield under its owner's control. It's an enchantment." (the
 Enduring cycle: its card types become those indefinitely, and a permanent
 that stops being a creature loses its creature types, CR 205.1a; with
 `pronoun they`, "return them to the battlefield. They're an artifact.");
-in a `when this dies` trigger, `if this is creature` prints "if it was a
+in a `when this dies` trigger, `if this is non-Demon` prints "if it wasn't a Demon" (Infernal Vessel) and `if this is creature` prints "if it was a
 creature" (as it last existed); a trigger condition `if this is enchantment` prints "if this permanent is
 an enchantment" and the source is "it" after it, `target creature becomes blue`, `this becomes colorless`, `that creature becomes green indefinitely` (no duration: "That creature becomes green."),
 `target land becomes Island` (all until end of turn), `this becomes all
@@ -889,7 +899,9 @@ your choice"), `target land becomes Plains or Island` (one of those),
 `enchanted creature becomes creature type of choice` (it loses its other
 creature types, CR 205.1b) and `target creature becomes creature type of
 choice except Wall` ("Choose a creature type other than Wall. Target
-creature becomes that type until end of turn."), `target creature becomes
+creature becomes that type until end of turn."), `this artifact becomes
+chosen color indefinitely` after `choose color` ("This artifact becomes the
+chosen color.", Puca's Eye: no duration), `target creature becomes
 colors of choice` ("the color or colors of your choice": one color at a
 time, then `done`), all until end of turn. A player gains keywords too
 (CR 702.18c, 702.11c, 702.16): `you gains shroud` ("You gain shroud until
@@ -2306,7 +2318,13 @@ abilities" (Imprisoned in the Moon; `set subtype Food, set type artifact`
 in the middle, "a colorless Food artifact with \"...\"", Sugar Coat: an
 "Enchant creature or Food" Aura says "Enchanted permanent");
 colors, a creature type, and card types set together are one noun
-phrase, with the base P/T after it. `add subtype every` is "is every
+phrase, with the base P/T after it. `named "Legitimate Businessperson"`
+last prints "... with base power and toughness 1/1 named Legitimate
+Businessperson" (Witness Protection; CR 201.1: its other names go, for the
+legend rule, the log, and "named" filters); after `loses all abilities, set
+subtype Citizen, base 1/1, has ability { activated {T}: add {C} }` it
+prints "loses all abilities and is a Citizen with base power and toughness
+1/1 and \"{T}: Add {C}\" named Humble Merchant" (Honest Work). `add subtype every` is "is every
 creature type" and `add subtype all` "is all creature types" (layer 4,
 not changeling: it has no ability, and "loses all abilities" leaves it);
 `loses all creature types` removes them (a changeling's too). As effects,
@@ -4929,7 +4947,7 @@ Forms that change only how Oracle words what an existing form does:
 | `if at least one creature card was exiled this way, ...` | "If at least one creature card was exiled this way, ..." (the same check as `if creature card was exiled this way`) |
 | `if target 1 isnt creature, ...`, `if target 1 is not creature, ...` | "If it isn't a creature, ...", "If it's not a creature, ..." (the check `if target 1 is noncreature`; card types only) |
 | `at beginning of each player's end step` | "At the beginning of each player's end step" (`each end step` prints "the end step"; the same trigger) |
-| `target 1 is Spirit in addition`, `it is Angel with flying in addition`, `target 1 is Skeleton in addition and has no abilities` | "It's a Spirit in addition to its other types", "It has flying and is an Angel in addition to its other types", "It's a Skeleton in addition to its other types and has no abilities" (indefinitely, like `becomes ... in addition indefinitely`; "That creature is a Hero ..." after `that creature`) |
+| `target 1 is Spirit in addition`, `it is Angel with flying in addition`, `target 1 is Skeleton in addition and has no abilities` | "It's a Spirit in addition to its other types", "It has flying and is an Angel in addition to its other types", "It's a Skeleton in addition to its other types and has no abilities" (indefinitely, like `becomes ... in addition indefinitely`; "That creature is a Hero ..." after `that creature`). A P/T and card types may follow the subtypes: `targets 1 to 3 is 5/5 Elemental creature in addition` prints "They are 5/5 Elemental creatures in addition to their other types." (Relive the Past; base power and toughness, layer 7b). `and loses other card types` in place of `in addition` replaces its card types (a land keeps its own, as for `becomes`, and one no longer a creature loses its creature types, CR 205.1a): `it is Treasure artifact with ability { activated {T}, sacrifice this: add any } and loses other card types` prints "It's a Treasure artifact with \"{T}, Sacrifice this artifact: Add one mana of any color,\" and it loses all other card types." (Vraska, the Silencer: the returned card, indefinitely). |
 | `if you dont draw this way, ...`, `if you dont put into hand this way, ...`, `if you didnt put into hand this way, ...` | "If you don't draw a card this way, ...", "If you don't put a card into your hand this way, ...", "If you didn't put a card into your hand this way, ..." (`dont draw` is `if you dont, ...`; the two "put" forms check that no card was put into your hand by the effects before, so a search that finds nothing or a dig that takes nothing counts; the source is named again after them) |
 | `target 1 gets +1/+0 also if you control Mouse` | "It also gets +1/+0 until end of turn if you control a Mouse." (`... if <condition>` with "also" after the subject) |
 | `target player sacrifices 1 creature of their choice other than enchanted` | "target player sacrifices a creature of their choice other than enchanted creature" (never the enchanted creature) |

@@ -14983,8 +14983,19 @@ impl GameState {
                 indefinite,
                 loses_abilities,
                 in_addition,
+                supertype,
+                name,
             } => {
                 let mut parts: SmallVec<[Modification; 2]> = SmallVec::new();
+                // CR 205.4: "becomes a legendary ..." adds the supertype.
+                if let Some(st) = supertype {
+                    parts.push(Modification::AddSupertype(*st));
+                    self.renamed = true;
+                }
+                if let Some(n) = name {
+                    parts.push(Modification::SetName(*n));
+                    self.renamed = true;
+                }
                 if !types.is_empty() {
                     parts.push(if *in_addition {
                         Modification::AddTypes(*types)
@@ -15103,7 +15114,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::BecomeChosen { to, .. } => {
+            Effect::BecomeChosen { to, indefinite, .. } => {
                 let part = match self.resolution_chosen(ctx) {
                     Chosen::Color(c) => Modification::SetColors(ColorSet::of([c])),
                     // CR 305.7: a basic land type replaces the land's others.
@@ -15118,9 +15129,14 @@ impl GameState {
                     | Chosen::Parity(_)
                     | Chosen::Number(_) => return,
                 };
+                let duration = if *indefinite {
+                    Duration::Permanent
+                } else {
+                    Duration::UntilEndOfTurn
+                };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                        self.effect_on(ctx, id, smallvec::smallvec![part.clone()], duration);
                     }
                 }
             }
@@ -17879,6 +17895,8 @@ impl GameState {
                         indefinite: true,
                         loses_abilities: false,
                         in_addition: true,
+                        supertype: None,
+                        name: None,
                     },
                     Effect::AddCounters {
                         kind: CounterKind::PlusOnePlusOne,
