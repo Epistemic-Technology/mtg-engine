@@ -17836,6 +17836,9 @@ impl P {
                 self.groups.len() - 1
             };
             if exiled {
+                // "They gain decayed." after putting them onto the
+                // battlefield (Gisa, Glorious Resurrector).
+                self.group_named = true;
                 return Ok(Recipient::ExiledWith(u16::try_from(i).map_err(|_| {
                     ParseError {
                         line: self.line(),

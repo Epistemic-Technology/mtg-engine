@@ -16995,6 +16995,11 @@ impl GameState {
                 } else {
                     self.recipients(ctx, *what)
                 };
+                // "Put all creature cards exiled with Gisa onto the
+                // battlefield under your control. They gain decayed.": the
+                // permanents they became are the group (CR 400.7).
+                let group = matches!(what, crate::card::Recipient::ExiledWith(_));
+                let mut entered: Vec<ObjId> = Vec::new();
                 for t in found {
                     let Target::Object(id) = t else {
                         continue;
@@ -17077,6 +17082,12 @@ impl GameState {
                         self.cbump();
                     }
                     ctx.created = Some(new);
+                    if group {
+                        entered.push(new);
+                    }
+                }
+                if group && let Some(log) = self.this_way.as_mut() {
+                    log.group = entered;
                 }
             }
             Effect::BecomeCopy {
