@@ -1,0 +1,8 @@
+card "Eater of Days" {
+  oracle_id 205f6384-7203-42ed-bc0f-8803cf1f4514
+  cost {4}
+  type Artifact Creature — Leviathan
+  pt 9/8
+  keywords flying, trample
+  triggered when this enters: you skip next 2 turns
+}

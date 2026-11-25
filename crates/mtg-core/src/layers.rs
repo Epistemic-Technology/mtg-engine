@@ -620,6 +620,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::FirstCombatPhase => {
             state.step.phase() == crate::turn::Phase::Combat && state.combats_this_turn <= 1
         }
+        StaticCondition::FirstEndStep => {
+            state.step == crate::turn::Step::End && state.end_steps_this_turn <= 1
+        }
         StaticCondition::SourceAttacking => state
             .combat
             .as_ref()
@@ -1699,6 +1702,7 @@ fn per_count(
         | CountExpr::HappenedTo { .. }
         | CountExpr::DifferentManaValues { .. }
         | CountExpr::TriggerPtDifference
+        | CountExpr::CoinsHeads
         | CountExpr::X
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)

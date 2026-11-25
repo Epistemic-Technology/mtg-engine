@@ -1,0 +1,9 @@
+card "Glorious End" {
+  oracle_id e611a3e0-eb0e-466e-a771-51310eeb34cd
+  cost {2}{R}
+  type Instant
+  spell {
+    end the turn
+    delayed this: at beginning of your next end step, you lose game
+  }
+}

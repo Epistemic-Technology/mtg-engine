@@ -1960,6 +1960,15 @@ impl Fmt {
                     mtg_core::card::SkipWhat::CombatPhase => "combat phase",
                     mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
                     mtg_core::card::SkipWhat::CreatureUntap => "creature untap",
+                    mtg_core::card::SkipWhat::UntapStep => "untap step",
+                    mtg_core::card::SkipWhat::Turns(Num::N(1)) => "turn",
+                    mtg_core::card::SkipWhat::Turns(_) => "",
+                };
+                let w = match what {
+                    mtg_core::card::SkipWhat::Turns(n) if w.is_empty() => {
+                        format!("{} turns", num(*n))
+                    }
+                    _ => w.to_string(),
                 };
                 format!("{} {v} next {w}", self.recipient(*who, t))
             }
@@ -1984,6 +1993,33 @@ impl Fmt {
             }
             Effect::AddedCombatAttackers(f) => {
                 format!("only {} can attack during that combat phase", filter(f))
+            }
+            Effect::ExtraSteps {
+                step,
+                n,
+                after_phase,
+                who,
+            } => {
+                let noun = match step {
+                    mtg_core::turn::Step::Untap => "beginning phase",
+                    mtg_core::turn::Step::End => "end step",
+                    _ => "upkeep step",
+                };
+                let plural = if *n == Num::N(1) { "" } else { "s" };
+                let after = if *after_phase { "phase" } else { "step" };
+                let rest = format!("additional {noun}{plural} after this {after}");
+                match who {
+                    None => rest,
+                    Some(w) => {
+                        let v = if *w == Recipient::You { "get" } else { "gets" };
+                        let count = if *n == Num::N(1) {
+                            String::new()
+                        } else {
+                            format!("{} ", num(*n))
+                        };
+                        format!("{} {v} {count}{rest}", self.recipient(*w, t))
+                    }
+                }
             }
             Effect::AdditionalPhases {
                 combats,
@@ -2803,6 +2839,7 @@ impl Fmt {
             Effect::LookAtHand { who } => format!("look at hand of {}", self.recipient(*who, t)),
             Effect::RollDie { sides, .. } => format!("roll d{sides}"),
             Effect::FlipCoin => "flip coin".to_string(),
+            Effect::FlipCoins(n) => format!("flip {n} coins"),
             Effect::Clash => "clash".to_string(),
             Effect::IfWonClash(inner) => format!("if you win, {}", self.line(inner, t)),
             Effect::Vote(words) => format!("vote {}", words.join(" or ")),
@@ -5027,6 +5064,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::DifferentPowers(f) => format!("different powers among {}", filter(f)),
         CountExpr::SharingCreatureType(f) => format!("most sharing type {}", filter(f)),
         CountExpr::TriggerPtDifference => "difference of power and toughness".to_string(),
+        CountExpr::CoinsHeads => "coins heads".to_string(),
         CountExpr::X => "x".to_string(),
         CountExpr::TargetHandDeclared { opponent, .. } => format!(
             "hand of target {}",
@@ -8033,6 +8071,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YourMainPhase => "your main phase".to_string(),
         StaticCond::YourCombatPhase => "your combat phase".to_string(),
         StaticCond::FirstCombatPhase => "first combat phase".to_string(),
+        StaticCond::FirstEndStep => "first end step".to_string(),
         StaticCond::PutCounterThisTurn => "put counter this turn".to_string(),
         StaticCond::NthResolution { n, again } => {
             format!("resolution {n}{}", if *again { " again" } else { "" })
@@ -9770,6 +9809,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     during: mtg_core::card::SilenceWhen::YourTurn,
                     activate: mtg_core::card::ActivateBan::None,
                 } => "opponents can't cast spells during your turn".to_string(),
+                K::NoZeroLifeLoss => "you don't lose for zero life".to_string(),
+                K::HandSizeCount { opponents, n } => format!(
+                    "hand size{} {}",
+                    if *opponents { " opponents" } else { "" },
+                    num(*n)
+                ),
                 K::Rule(mtg_core::card::RuleKind::NoLifeGain) => {
                     "players can't gain life".to_string()
                 }

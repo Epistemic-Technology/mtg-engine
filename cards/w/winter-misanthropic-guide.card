@@ -1,0 +1,9 @@
+card "Winter, Misanthropic Guide" {
+  oracle_id 5a9baafb-bffd-4e28-bbe1-b4154cd86bf3
+  cost {1}{B}{R}{G}
+  type Legendary Creature — Human Warlock
+  pt 3/4
+  ward {2}
+  triggered at beginning of your upkeep: each player draws 2 cards
+  label "Delirium" hand size opponents count equal difference 7 card types in your graveyard as long as 4 card types in your graveyard
+}

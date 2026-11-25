@@ -1,0 +1,10 @@
+card "Pact of the Titan" {
+  oracle_id cf4959bf-92ae-4c9b-b631-724ce100cbb8
+  cost {0}
+  type Instant
+  color red
+  spell {
+    create 1 "4/4 red Giant creature"
+    delayed this: at beginning of your next upkeep, pay {4}{R}; if you dont, you lose game
+  }
+}

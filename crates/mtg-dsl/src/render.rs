@@ -2649,8 +2649,13 @@ impl<'a> Ctx<'a> {
                     self.obj_list(&rs, false)
                 }
             }
-            // "That creature becomes black": named again on purpose.
-            Recipient::ThatTarget(i) if self.target_mentioned[i] => {
+            // "That creature becomes black": named again on purpose; "Tap
+            // all permanents target opponent controls. That player skips
+            // ...": first named in a filter.
+            Recipient::ThatTarget(i)
+                if self.target_mentioned[i] || self.target_noun[i] == "player" =>
+            {
+                self.target_mentioned[i] = true;
                 format!("that {}", self.target_noun[i])
             }
             Recipient::Target(i) | Recipient::ThatTarget(i) => {
@@ -5673,7 +5678,12 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Earthbend { count, .. }
         | Effect::Search { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
-        Effect::Discover(n) => vec![*n],
+        Effect::SkipNext {
+            what: mtg_core::card::SkipWhat::Turns(n),
+            ..
+        }
+        | Effect::ExtraSteps { n, .. }
+        | Effect::Discover(n) => vec![*n],
         Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
@@ -6563,6 +6573,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         }
         CountExpr::TriggerPtDifference => {
             return "the difference between its power and toughness".to_string();
+        }
+        CountExpr::CoinsHeads => {
+            return "the number of coins that came up heads".to_string();
         }
         CountExpr::X => return "X".to_string(),
         CountExpr::TargetHandDeclared { opponent, .. } => {
@@ -9385,7 +9398,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SkipWhat::DrawStep => "draw step",
                 mtg_core::card::SkipWhat::CombatPhase => "combat phase",
                 mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
-                mtg_core::card::SkipWhat::CreatureUntap => "untap step",
+                mtg_core::card::SkipWhat::CreatureUntap
+                | mtg_core::card::SkipWhat::UntapStep => "untap step",
+                mtg_core::card::SkipWhat::Turns(Num::N(1)) => "turn",
+                mtg_core::card::SkipWhat::Turns(_) => "",
+            };
+            let w = match what {
+                mtg_core::card::SkipWhat::Turns(n) if w.is_empty() => {
+                    format!("{} turns", count_words(*n, "one"))
+                }
+                _ => w.to_string(),
             };
             let v = ctx.verb(*who, "skips", "skip");
             Clause::with_subject(*who, s, format!("{v} {whose} next {w}"))
@@ -9411,6 +9433,37 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let s = ctx.subj(*who);
                 let v = ctx.verb(*who, "takes", "take");
                 Clause::with_subject(*who, s, format!("{v} {turns} after this one"))
+            }
+        }
+        // CR 500.8, 500.10.
+        Effect::ExtraSteps {
+            step,
+            n,
+            after_phase,
+            who,
+        } => {
+            let noun = match step {
+                Step::Untap => "beginning phase",
+                Step::End => "end step",
+                _ => "upkeep step",
+            };
+            let after = if *after_phase { "phase" } else { "step" };
+            let one = *n == Num::N(1);
+            let count = if one {
+                format!("an additional {noun}")
+            } else {
+                format!("{} additional {noun}s", count_words(*n, "one"))
+            };
+            match who {
+                None => {
+                    let be = if one { "is" } else { "are" };
+                    Clause::imperative(format!("there {be} {count} after this {after}"))
+                }
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    let v = ctx.verb(*w, "gets", "get");
+                    Clause::with_subject(*w, s, format!("{v} {count} after this {after}"))
+                }
             }
         }
         // "Only land creatures can attack during that combat phase."
@@ -9717,7 +9770,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 && (*who == Some(Recipient::TriggeringPlayer)
                     // "you lose 1 life and you draw an additional card" in
                     // your own draw step (Lord Skitter's Blessing).
-                    || (*who == Some(Recipient::You)
+                    // "draw an additional card and remove two hour
+                    // counters" (Midnight Oil).
+                    || (matches!(who, Some(Recipient::You) | None)
                         && matches!(
                             ctx.trigger,
                             Some(Trigger::BeginningOfStep {
@@ -10806,6 +10861,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("choose {text}"))
         }
         Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
+        Effect::FlipCoins(n) => Clause::imperative(format!(
+            "flip {} coins",
+            count_words(Num::N(u32::from(*n)), "one")
+        )),
         Effect::Clash => Clause::imperative("clash with an opponent".to_string()),
         Effect::IfWonClash(inner) => {
             // A spell names itself again: "If you win, Lash Out deals 3
@@ -21013,6 +21072,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YourMainPhase => "it's your main phase".to_string(),
         StaticCond::YourCombatPhase => "it's your combat phase".to_string(),
         StaticCond::FirstCombatPhase => "it's the first combat phase of the turn".to_string(),
+        StaticCond::FirstEndStep => "it's the first end step of the turn".to_string(),
         StaticCond::NthResolution { n, again: false } => format!(
             "this is the {} time this ability has resolved this turn",
             ordinal_word(u32::from(*n))
@@ -22030,7 +22090,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 None => {}
             }
             out.push_str(", ");
-            let text = effects_after(effects, &mut ctx, true);
+            let mut text = effects_after(effects, &mut ctx, true);
+            // "Whenever you lose life, sacrifice a permanent for each 1
+            // life you lost." (Lich's Tomb): the amount lost.
+            if matches!(trigger, Trigger::LosesLife { whose: Who::You })
+                && text == "sacrifice that many permanents."
+            {
+                text = "sacrifice a permanent for each 1 life you lost.".to_string();
+            }
             out.push_str(&mana_trigger_body(trigger, text, card));
             match limit {
                 mtg_core::card::TurnLimit::None => {}
@@ -23571,6 +23638,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     during: mtg_core::card::SilenceWhen::YourTurn,
                     activate: mtg_core::card::ActivateBan::None,
                 } => "your opponents can't cast spells during your turn".to_string(),
+                K::NoZeroLifeLoss => {
+                    "you don't lose the game for having 0 or less life".to_string()
+                }
+                K::HandSizeCount { opponents, n } => format!(
+                    "{} maximum hand size is equal to {}",
+                    if *opponents { "each opponent's" } else { "your" },
+                    hand_size_amount(*n, card, cond.is_some())
+                ),
                 K::Rule(mtg_core::card::RuleKind::NoLifeGain) => {
                     "players can't gain life".to_string()
                 }
@@ -24190,7 +24265,51 @@ fn bracket_removed(full: &str, cut: &str) -> String {
 
 /// "This creature can't attack or block alone." for the `i`th and next
 /// abilities, after another ability line (Wojek Bodyguard's mentor).
+/// The amount a maximum hand size is equal to: "the number of hour
+/// counters on this enchantment", "seven minus the number of those card
+/// types" (after the delirium condition naming them).
+fn hand_size_amount(n: Num, card: &Card, cond: bool) -> String {
+    use crate::ast::CountExpr;
+    let Num::Count(i) = n else {
+        return count_words(n, "one");
+    };
+    let Some(c) = card.counts.get(i as usize) else {
+        return "X".to_string();
+    };
+    match &c.expr {
+        CountExpr::Difference { n, inner } => {
+            let rest = if cond && matches!(**inner, CountExpr::CardTypesInGraveyard) {
+                "the number of those card types".to_string()
+            } else {
+                count_phrase(inner, card, false)
+            };
+            format!("{} minus {rest}", number_word(*n))
+        }
+        e => count_phrase(e, card, false),
+    }
+}
+
 fn alone_abilities(card: &Card, i: usize) -> Option<String> {
+    // "You have no maximum hand size and don't lose the game for having 0
+    // or less life." (Marina Vendrell's Grimoire): two static abilities,
+    // one sentence.
+    if let (
+        Some(Ability::HandSize {
+            whose: Who::You,
+            delta: None,
+            ..
+        }),
+        Some(Ability::PlayerStatic {
+            kind: mtg_core::card::PlayerStaticKind::NoZeroLifeLoss,
+            cond: None,
+        }),
+    ) = (card.abilities.get(i), card.abilities.get(i + 1))
+    {
+        return Some(
+            "You have no maximum hand size and don't lose the game for having 0 or less life."
+                .to_string(),
+        );
+    }
     matches!(
         (card.abilities.get(i), card.abilities.get(i + 1)),
         (

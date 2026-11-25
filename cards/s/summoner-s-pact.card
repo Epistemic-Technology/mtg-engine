@@ -1,0 +1,10 @@
+card "Summoner's Pact" {
+  oracle_id 782dcbc4-5a11-42f5-b8d9-4572e36d45b3
+  cost {0}
+  type Instant
+  color green
+  spell {
+    search green creature card reveal to hand
+    delayed this: at beginning of your next upkeep, pay {2}{G}{G}; if you dont, you lose game
+  }
+}

@@ -1640,6 +1640,7 @@ impl GameState {
                         .map_or(0, |c| (c.power() - c.toughness()).unsigned_abs())
                 });
             }
+            CountExpr::CoinsHeads => return u32::from(self.coins_heads),
             CountExpr::X => return ctx.x,
             // CR 107.1b: a negative total is 0.
             CountExpr::Total(stat, f) => {
@@ -14481,6 +14482,10 @@ impl GameState {
                 }
             }
             Effect::SkipNext { who, what } => {
+                let turns = match what {
+                    crate::card::SkipWhat::Turns(n) => self.eval_num(*n, ctx),
+                    _ => 0,
+                };
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
@@ -14494,6 +14499,12 @@ impl GameState {
                         }
                         crate::card::SkipWhat::CreatureUntap => {
                             ps.skip_creature_untap = ps.skip_creature_untap.saturating_add(1);
+                        }
+                        crate::card::SkipWhat::UntapStep => {
+                            ps.skip_untap = ps.skip_untap.saturating_add(1);
+                        }
+                        crate::card::SkipWhat::Turns(_) => {
+                            ps.skip_turns = ps.skip_turns.saturating_add(turns);
                         }
                     }
                 }
@@ -14526,6 +14537,21 @@ impl GameState {
             }
             Effect::AddedCombatAttackers(f) => {
                 self.pending_combat_attackers = Some(f.clone());
+            }
+            // CR 500.8, 500.10: added directly after the current step or
+            // phase, the most recently added first.
+            Effect::ExtraSteps {
+                step,
+                n,
+                after_phase,
+            } => {
+                let n = self.eval_num(*n, ctx) as usize;
+                let added = std::iter::repeat_n(*step, n.min(64));
+                if *after_phase {
+                    self.extra_phases.splice(0..0, added);
+                } else {
+                    self.extra_steps.splice(0..0, added);
+                }
             }
             Effect::SkipNextUntap { to } => {
                 for t in self.recipients(ctx, *to) {
@@ -15053,6 +15079,17 @@ impl GameState {
                         ctx.created = Some(self.move_object(id, Zone::Hand, false));
                     }
                 }
+            }
+            // CR 705.2: a flip with no call; each coin comes up heads
+            // half the time.
+            Effect::FlipCoins(n) => {
+                let mut heads = 0u8;
+                for _ in 0..*n {
+                    if rand::Rng::random_bool(&mut self.rng, 0.5) {
+                        heads += 1;
+                    }
+                }
+                self.coins_heads = heads;
             }
             Effect::FlipCoin { won } => {
                 // CR 705.2: the flipper calls heads or tails; the call

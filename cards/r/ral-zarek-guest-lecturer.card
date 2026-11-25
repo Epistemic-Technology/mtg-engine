@@ -1,0 +1,10 @@
+card "Ral Zarek, Guest Lecturer" {
+  oracle_id 0dc76b7f-6405-44a1-8c55-31fa480ff70b
+  cost {1}{B}{B}
+  type Legendary Planeswalker — Ral
+  loyalty 3
+  loyalty +1: surveil 2
+  loyalty -1: any number of target players each discards 1 cards
+  loyalty -2: return target creature card with mana value 3 or less from your graveyard to battlefield
+  loyalty -7: flip 5 coins; target opponent skips next count where coins heads turns
+}

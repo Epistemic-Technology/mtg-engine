@@ -1,0 +1,388 @@
+# Rules about players and turn structure: skipped turns and untap steps
+# (CR 500.11), additional steps and beginning phases (CR 500.8, 500.10),
+# "You don't lose the game for having 0 or less life" (CR 704.5a), a
+# maximum hand size equal to a count (CR 402.2), and "you lose the game"
+# in the Pacts' delayed triggers.
+
+scenario "skip turns: Eater of Days skips your next two turns" {
+  battlefield A: 4 "Plains"
+  hand A: "Eater of Days", "Forest"
+  hand B: "Forest", "Swamp", "Island"
+  turn 1 A: cast "Eater of Days"
+  turn 2 B: play "Forest"
+  turn 3 B: play "Swamp"
+  turn 4 B: play "Island"
+  turn 5 A: play "Forest"
+  run_to turn 5 postcombat_main
+  assert battlefield B contains "Island"
+  assert battlefield A contains "Forest"
+}
+
+scenario "skip turns: without a skip, turn 3 is A's" {
+  battlefield A: 4 "Plains"
+  hand B: "Forest", "Swamp"
+  turn 2 B: play "Forest"
+  illegal turn 3 B: play "Swamp"
+  run_to turn 3 postcombat_main
+  assert hand B contains "Swamp"
+}
+
+scenario "skip turns: Chronosavant returns tapped and skips one turn" {
+  battlefield A: 2 "Plains"
+  graveyard A: "Chronosavant"
+  hand A: "Forest"
+  hand B: "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chronosavant"
+  turn 2 B: play "Forest"
+  turn 3 B: play "Swamp"
+  turn 4 A: play "Forest"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Chronosavant"
+  assert battlefield B contains "Swamp"
+  assert battlefield A contains "Forest"
+}
+
+scenario "skip turns: a skipped extra turn" {
+  battlefield A: 6 "Plains", 2 "Island", 3 "Mountain"
+  graveyard A: "Chronosavant"
+  hand A: "Time Warp", "Forest"
+  hand B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chronosavant"
+  turn 1 A: wait
+  turn 1 A: cast "Time Warp" targeting player A
+  turn 2 B: play "Forest"
+  turn 3 A: play "Forest"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Forest"
+  assert battlefield A contains "Forest"
+}
+
+scenario "skip untap step: B's permanents stay tapped" {
+  battlefield A: 10 "Island"
+  battlefield B: "Forest" tapped, "Grizzly Bears" tapped
+  hand A: "Brine Elemental"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brine Elemental" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Brine Elemental"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Forest"
+  run_to turn 4 precombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Forest"
+}
+
+scenario "skip untap step: the controller's own untap step still happens" {
+  battlefield A: 10 "Island"
+  hand A: "Brine Elemental"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brine Elemental" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Brine Elemental"
+  run_to turn 3 precombat_main
+  assert untapped "Brine Elemental"
+}
+
+scenario "skip untap step: B still plays a land on the turn" {
+  battlefield A: 10 "Island"
+  battlefield B: "Forest" tapped
+  hand A: "Brine Elemental"
+  hand B: "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brine Elemental" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Brine Elemental"
+  turn 2 B: play "Swamp"
+  turn 4 B: play "Mountain"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Swamp"
+  assert tapped "Forest"
+  run_to turn 4 postcombat_main
+  assert battlefield B contains "Mountain"
+}
+
+scenario "skip untap step: Shisato's combat damage" {
+  battlefield A: "Shisato, Whispering Hunter", "Plains"
+  battlefield B: "Forest" tapped
+  start turn 3 A precombat_main
+  turn 3 A: attack "Shisato, Whispering Hunter"
+  run_to turn 4 precombat_main
+  assert life B 18
+  assert tapped "Forest"
+  run_to turn 5 precombat_main
+  assert graveyard A contains "Shisato, Whispering Hunter"
+}
+
+scenario "skip untap step: Yosei taps up to five of that player's permanents" {
+  battlefield A: "Yosei, the Morning Star", 3 "Swamp"
+  battlefield B: "Forest", "Grizzly Bears"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Yosei, the Morning Star"
+  turn 1 A: trigger "Yosei, the Morning Star" targeting player B, "Forest", "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert tapped "Forest"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "skip untap step: Dovin's -9" {
+  battlefield A: "Dovin, Architect of Law" with 9 loyalty
+  battlefield B: "Forest", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dovin, Architect of Law" ability 3 targeting player B
+  run_to turn 2 precombat_main
+  assert tapped "Forest"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "additional upkeeps: Obeka's combat damage gives two upkeeps" {
+  battlefield A: "Obeka, Splitter of Seconds", "Phyrexian Arena"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Obeka, Splitter of Seconds"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert life A 18
+  assert hand A count 2
+  assert turn 3
+  assert step postcombat_main
+}
+
+scenario "additional upkeeps: no combat damage, no extra upkeep" {
+  battlefield A: "Obeka, Splitter of Seconds", "Phyrexian Arena"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Obeka, Splitter of Seconds"
+  turn 3 B: block "Obeka, Splitter of Seconds" with "Hill Giant"
+  turn 3 B: block "Obeka, Splitter of Seconds" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "additional upkeeps: the land play isn't renewed" {
+  battlefield A: "Obeka, Splitter of Seconds"
+  hand A: "Forest", "Plains"
+  start turn 3 A precombat_main
+  turn 3 A: play "Forest"
+  turn 3 A: attack "Obeka, Splitter of Seconds"
+  illegal turn 3 postcombat_main A: play "Plains"
+  run_to turn 3 end
+  assert hand A contains "Plains"
+}
+
+scenario "additional end step: Y'shtola flickers twice" {
+  battlefield A: "Y'shtola Rhul", "Shattered Seraph"
+  start turn 3 A postcombat_main
+  turn 3 end A: trigger "Y'shtola Rhul" targeting "Shattered Seraph"
+  turn 3 end A: trigger "Y'shtola Rhul" targeting "Shattered Seraph"
+  run_to turn 4 upkeep
+  assert life A 26
+  assert battlefield A contains "Shattered Seraph"
+}
+
+scenario "additional end step: only the first end step adds one" {
+  battlefield A: "Y'shtola Rhul"
+  start turn 3 A postcombat_main
+  run_to turn 4 upkeep
+  assert turn 4
+  assert battlefield A contains "Y'shtola Rhul"
+}
+
+scenario "zero life: Lich's Tomb keeps you in the game" {
+  battlefield A: "Lich's Tomb", "Plains", "Island", "Swamp", "Forest"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  life A 2
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: choose "Plains"
+  turn 2 A: choose "Island"
+  turn 2 A: choose "Swamp"
+  run_to turn 2 postcombat_main
+  assert not game_over
+  assert life A -1
+  assert graveyard A count 3
+  assert battlefield A contains "Forest"
+}
+
+scenario "zero life: without it, you lose" {
+  battlefield A: 3 "Plains"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  life A 2
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert winner B
+}
+
+scenario "zero life: Lich's Tomb leaves, you lose" {
+  battlefield A: "Lich's Tomb"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  life A 2
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert winner B
+}
+
+scenario "zero life: Marina's Grimoire, losing with an empty hand" {
+  battlefield A: "Marina Vendrell's Grimoire"
+  hand A: "Plains", "Island", "Swamp"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert winner B
+}
+
+scenario "zero life: Marina's Grimoire, cards left in hand" {
+  battlefield A: "Marina Vendrell's Grimoire"
+  hand A: "Plains", "Island", "Swamp", "Forest"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  life A 3
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert not game_over
+  assert life A 0
+  assert hand A count 1
+}
+
+scenario "hand size: Winter's delirium sets the opponent's maximum" {
+  battlefield A: "Winter, Misanthropic Guide"
+  graveyard A: "Forest", "Grizzly Bears", "Shock", "Murder", "Divination"
+  hand B: "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert hand B count 5
+}
+
+scenario "hand size: without delirium, seven" {
+  battlefield A: "Winter, Misanthropic Guide"
+  graveyard A: "Forest", "Grizzly Bears", "Shock"
+  hand B: "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert hand B count 8
+}
+
+scenario "hand size: Winter's own hand isn't limited" {
+  battlefield A: "Winter, Misanthropic Guide"
+  graveyard A: "Forest", "Grizzly Bears", "Shock", "Murder", "Divination"
+  hand A: "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert hand A count 6
+}
+
+scenario "hand size: Midnight Oil's hour counters" {
+  battlefield A: "Midnight Oil" with 3 hour
+  hand A: "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert hand A count 3
+  assert life A 17
+}
+
+scenario "hand size: Midnight Oil draws an extra card and removes two" {
+  battlefield A: "Midnight Oil" with 7 hour
+  library A: 5 "Plains"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert hand A count 2
+  assert counters "Midnight Oil" hour 5
+}
+
+scenario "pact: paid at the next upkeep" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Slaughter Pact"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Slaughter Pact" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert not game_over
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped oldest "Swamp"
+}
+
+scenario "pact: unable to pay, you lose the game" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Pact of the Titan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pact of the Titan"
+  run_to turn 3 precombat_main
+  assert winner B
+}
+
+scenario "pact: Pact of Negation counters, then is paid" {
+  battlefield A: 5 "Island"
+  battlefield B: "Mountain"
+  hand A: "Pact of Negation"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Pact of Negation" targeting "Lightning Bolt"
+  run_to turn 3 precombat_main
+  assert life A 20
+  assert not game_over
+}
+
+scenario "pact: Summoner's Pact finds a green creature" {
+  battlefield A: 4 "Forest"
+  hand A: "Summoner's Pact"
+  library A: "Island", "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Summoner's Pact"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "lose the game: Glorious End at your next end step" {
+  battlefield A: 3 "Mountain"
+  hand A: "Glorious End"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glorious End"
+  run_to turn 2 precombat_main
+  assert not game_over
+  run_to turn 3 postcombat_main
+  assert not game_over
+  run_to end
+  assert winner B
+}
+
+scenario "skip turns: Ral Zarek's coins, one heads" {
+  battlefield A: "Ral Zarek, Guest Lecturer" with 7 loyalty
+  hand A: "Forest"
+  hand B: "Mountain"
+  seed 2
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ral Zarek, Guest Lecturer" ability 4 targeting player B
+  turn 2 A: play "Forest"
+  turn 3 B: play "Mountain"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Ral Zarek, Guest Lecturer"
+  assert battlefield A contains "Forest"
+  assert battlefield B contains "Mountain"
+}
+
+scenario "skip turns: Ral Zarek's coins, two heads" {
+  battlefield A: "Ral Zarek, Guest Lecturer" with 7 loyalty
+  hand A: "Forest", "Island"
+  hand B: "Mountain"
+  seed 4
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ral Zarek, Guest Lecturer" ability 4 targeting player B
+  turn 2 A: play "Forest"
+  turn 3 A: play "Island"
+  turn 4 B: play "Mountain"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Island"
+  assert battlefield B contains "Mountain"
+}

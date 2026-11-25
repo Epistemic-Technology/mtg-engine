@@ -1,0 +1,9 @@
+card "Midnight Oil" {
+  oracle_id 26bfc19c-8122-4e95-9a62-2b5418429db2
+  cost {2}{B}{B}
+  type Enchantment
+  enters with 7 hour counters
+  triggered at beginning of your draw step: draw 1 card and remove 2 hour counters from this
+  hand size count equal hour counters on this
+  triggered whenever you discard a card: you lose 1 life
+}

@@ -1,0 +1,8 @@
+card "Yosei, the Morning Star" {
+  oracle_id 5c2d0ead-8bfc-4ca7-9b38-2fc07af1c1d5
+  cost {4}{W}{W}
+  type Legendary Creature — Dragon Spirit
+  pt 5/5
+  keywords flying
+  triggered when this dies: target player skips next untap step; tap up to 5 target permanent that player 1 controls
+}

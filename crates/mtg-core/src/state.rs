@@ -1071,6 +1071,11 @@ pub struct PlayerState {
     /// Untap steps of this player's in which no creature untaps:
     /// "Creatures don't untap during target player's next untap step."
     pub skip_creature_untap: u8,
+    /// Untap steps this player skips (CR 500.11): "Each opponent skips
+    /// their next untap step."
+    pub skip_untap: u8,
+    /// Turns this player skips (CR 500.11): "You skip your next turn."
+    pub skip_turns: u32,
     /// Combat phases this player skips this turn only ("... skips their
     /// next combat phase this turn"); cleared as the turn ends.
     pub skip_combat_this_turn: u8,
@@ -2644,6 +2649,19 @@ pub struct GameState {
     /// Combat phases begun this turn ("if it's the first combat phase of
     /// the turn").
     pub combats_this_turn: u8,
+    /// End steps begun this turn ("if it's the first end step of the
+    /// turn").
+    pub end_steps_this_turn: u8,
+    /// The coins that came up heads in the last "Flip five coins."
+    /// (`CountExpr::CoinsHeads`).
+    pub coins_heads: u8,
+    /// Additional steps added directly after the current step (CR
+    /// 500.10), in the order they come.
+    pub extra_steps: Vec<Step>,
+    /// An additional beginning phase of only an upkeep step is under way
+    /// ("additional upkeep steps after this phase"): the phase ends with
+    /// that step.
+    pub upkeep_phase: bool,
     pub result: Option<GameResult>,
     pub log: Vec<Event>,
     pub logging: bool,
@@ -3389,7 +3407,7 @@ impl GameState {
     }
 
     /// `player_statics` with each ability's source.
-    fn player_statics_of(
+    pub(crate) fn player_statics_of(
         &self,
     ) -> impl Iterator<Item = (PlayerId, crate::card::PlayerStaticKind, ObjId)> + '_ {
         self.battlefield
@@ -3599,6 +3617,15 @@ impl GameState {
                 .into_iter()
                 .any(|c| cs.contains(c) && ks.contains(Keyword::protection_from(c)))
         })
+    }
+
+    /// Whether `p` doesn't lose the game for having 0 or less life ("You
+    /// don't lose the game for having 0 or less life.", CR 704.5a).
+    pub fn no_zero_life_loss(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics().any(|(who, kind)| {
+                who == p && kind == crate::card::PlayerStaticKind::NoZeroLifeLoss
+            })
     }
 
     /// Whether `p` can't lose the game, and their opponents can't win it
@@ -5353,6 +5380,7 @@ impl GameState {
             C::FirstCombatPhase => {
                 self.step.phase() == crate::turn::Phase::Combat && self.combats_this_turn <= 1
             }
+            C::FirstEndStep => self.step == Step::End && self.end_steps_this_turn <= 1,
             C::SourceAttacking => self
                 .combat
                 .as_ref()

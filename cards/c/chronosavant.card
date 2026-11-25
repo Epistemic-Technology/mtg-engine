@@ -1,0 +1,7 @@
+card "Chronosavant" {
+  oracle_id 969c9864-f78b-46b2-b35b-c9adaf355c2d
+  cost {5}{W}
+  type Creature — Giant
+  pt 5/5
+  activated {1}{W}, from graveyard: return this to battlefield tapped; you skip next turn
+}
