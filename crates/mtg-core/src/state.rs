@@ -1686,6 +1686,9 @@ pub struct ThisWayLog {
     /// each of its players, for counts of "they"/"their"
     /// (`ThatPlayer::Acting`, `CountExpr::Their`).
     pub acting: Option<PlayerId>,
+    /// "Each player ... draws that many cards" (Incendiary Command): the
+    /// acting player's own discards are "that many" (`CountExpr::ThisWay`).
+    pub each_draws: bool,
     /// The players the most recent per-player act (a discard, a counted
     /// sacrifice, "may ... or ...") asked, for "for each opponent who
     /// didn't discard ...".

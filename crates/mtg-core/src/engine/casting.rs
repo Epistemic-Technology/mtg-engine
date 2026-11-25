@@ -1105,10 +1105,19 @@ impl GameState {
                     .count()
             }
             CountExpr::ThisWay(verb, f) => self.this_way.as_ref().map_or(0, |log| {
+                // "Each player discards all the cards in their hand, then
+                // draws that many cards" (Incendiary Command): while each
+                // player draws, the cards that player discarded.
+                let acting = match verb {
+                    crate::card::ThisWay::Discarded if log.each_draws => log.acting,
+                    _ => None,
+                };
                 log.moved
                     .iter()
                     .filter(|m| {
-                        m.is(*verb) && f.as_ref().is_none_or(|f| self.moved_matches(ctx, m, f))
+                        m.is(*verb)
+                            && acting.is_none_or(|p| m.owner == p)
+                            && f.as_ref().is_none_or(|f| self.moved_matches(ctx, m, f))
                     })
                     .count()
             }),
@@ -13369,6 +13378,10 @@ impl GameState {
                 ctx.trigger_amount = lost;
             }
             Effect::DrawCards { count, who } => {
+                let each = *who == crate::card::Recipient::EachPlayer;
+                if each && let Some(l) = &mut self.this_way {
+                    l.each_draws = true;
+                }
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         self.set_acting(Some(p));
@@ -13377,6 +13390,9 @@ impl GameState {
                     }
                 }
                 self.set_acting(None);
+                if each && let Some(l) = &mut self.this_way {
+                    l.each_draws = false;
+                }
             }
             Effect::AddCounters { kind, count, to } => {
                 // CR 608.2h: the number is determined once, before any

@@ -1,0 +1,15 @@
+# "Each player discards all the cards in their hand, then draws that many
+# cards": each player draws as many as they discarded.
+
+scenario "Incendiary Command: each player draws their own discarded count" {
+  battlefield A: 5 "Mountain"
+  hand A: "Incendiary Command", "Shock"
+  hand B: "Shock", "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Incendiary Command" mode 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A count 1
+  assert hand B count 3
+  assert graveyard B contains 2 "Shock"
+}
