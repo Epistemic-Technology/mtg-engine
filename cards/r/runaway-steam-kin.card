@@ -1,0 +1,8 @@
+card "Runaway Steam-Kin" {
+  oracle_id eb414a8f-566f-4635-80a1-77b2e18ac8dc
+  cost {1}{R}
+  type Creature — Elemental
+  pt 1/1
+  triggered whenever you cast red spell if this has fewer than 3 +1/+1 counters: put 1 +1/+1 counters on this creature
+  activated remove 3 +1/+1 counters from this: add {R}{R}{R}
+}

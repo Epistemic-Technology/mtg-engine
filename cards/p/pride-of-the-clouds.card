@@ -1,0 +1,9 @@
+card "Pride of the Clouds" {
+  oracle_id 7d595158-73a8-4ebf-aac5-0b5193cef9b7
+  cost {W}{U}
+  type Creature — Elemental Cat
+  pt 1/1
+  keywords flying
+  static this: +1/+1 count each other creature with flying
+  label "Forecast" activated {2}{W}{U}, reveal this: create 1 "1/1 white and blue Bird creature with flying"
+}

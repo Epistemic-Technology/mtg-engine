@@ -1829,6 +1829,9 @@ struct Ctx<'a> {
     /// then discard a card"): a reflexive trigger after it is "When you
     /// discard a card this way".
     discarded_one: bool,
+    /// "it" was just told to connive: a reflexive trigger after it is
+    /// "When it connives this way" (Psychic Pickpocket).
+    connived_it: bool,
     /// Counters were just removed from the source: a reflexive trigger
     /// after it is "When one or more counters are removed from this
     /// creature this way" (Magma Pummeler).
@@ -1944,6 +1947,7 @@ impl<'a> Ctx<'a> {
             those_tokens: None,
             last_token_tapped: false,
             discarded_one: false,
+            connived_it: false,
             removed_from_source: false,
             round_each: false,
             attached_mentioned: false,
@@ -3442,6 +3446,26 @@ fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
             it_obj(card)
         )
     })
+}
+
+/// The card's ability `i` is a bare `enters tapped and` with nothing to
+/// join but the card's `doesn't untap` keyword: printed on the keyword's
+/// line ("Traxos enters tapped and doesn't untap during your untap
+/// step.").
+fn tapped_and_doesnt_untap(card: &Card, i: usize) -> bool {
+    card.keywords.contains(&Keyword::DoesntUntap)
+        && matches!(
+            card.abilities.get(i),
+            Some(Ability::Replacement(Replacement {
+                event: Replaces::Enters,
+                outcome: Outcome::EnterTapped,
+                then,
+                wording: crate::ast::ThenWording::Joined,
+                cond: None,
+                ..
+            })) if then.is_empty()
+        )
+        && enters_tapped_with(card, i).is_none()
 }
 
 /// `enchanted_noun`, or the land type an Aura enchants ("enchanted
@@ -6012,7 +6036,10 @@ fn nums_of(e: &Effect) -> Vec<Num> {
             ..
         }
         | Effect::ExtraSteps { n, .. }
-        | Effect::Discover(n) => vec![*n],
+        | Effect::Discover(n)
+        // "Bolster X, where X is the number of cards in your hand."
+        // (Sunbringer's Touch).
+        | Effect::Bolster(n) => vec![*n],
         Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
@@ -6177,18 +6204,27 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             } else {
                 ""
             };
-            // "for each creature you control with defender": Oracle names
-            // the controller before the qualities.
-            (
-                format!(
-                    "{}{place}",
-                    controller_first(f, filter_phrase(f, card, false))
-                ),
-                format!(
-                    "{}{place}",
-                    controller_first(f, filter_phrase(f, card, true))
-                ),
-            )
+            // "for each other creature on the battlefield with flying"
+            // (Pride of the Clouds): the place before a keyword.
+            let one = filter_phrase(f, card, false);
+            let many = filter_phrase(f, card, true);
+            if !place.is_empty()
+                && !f.keywords.is_empty()
+                && one.contains(" with ")
+                && many.contains(" with ")
+            {
+                (
+                    one.replacen(" with ", " on the battlefield with ", 1),
+                    many.replacen(" with ", " on the battlefield with ", 1),
+                )
+            } else {
+                // "for each creature you control with defender": Oracle
+                // names the controller before the qualities.
+                (
+                    format!("{}{place}", controller_first(f, one)),
+                    format!("{}{place}", controller_first(f, many)),
+                )
+            }
         }
         CountExpr::Domain => (
             "basic land type among lands you control".to_string(),
@@ -7174,7 +7210,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     unreachable!()
                 };
                 c.text = c.text.replacen("X ", "half X ", 1);
-                let _ = write!(c.tail, ", rounded {}", if *up { "up" } else { "down" });
+                // "you gain half X life and draw half X cards. Round down
+                // each time." (Hydroid Krasis).
+                if !ctx.round_each {
+                    let _ = write!(c.tail, ", rounded {}", if *up { "up" } else { "down" });
+                }
             }
             // Printed by the verb (`half_text`).
             CountStyle::Half => {}
@@ -8246,6 +8286,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         )),
         Effect::Connive { what } => {
             let s = ctx.subj(*what);
+            ctx.connived_it = s == "it";
             Clause::with_subject(*what, s, "connives".to_string())
         }
         // "It becomes plotted.": always the card just exiled.
@@ -11302,17 +11343,41 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ""
             };
-            Clause::with_subject(
-                *to,
-                s,
-                format!(
-                    "{also}{}{} {}",
-                    if *each { "each " } else { "" },
-                    ctx.verb(*to, "gains", "gain"),
-                    keywords_list(keywords)
-                ),
-            )
-            .until_eot()
+            let gains = format!(
+                "{also}{}{} {}",
+                if *each { "each " } else { "" },
+                ctx.verb(*to, "gains", "gain"),
+                keywords_list(keywords)
+            );
+            // "gains haste, can attack as though it didn't have defender,
+            // and assigns combat damage equal to its toughness rather than
+            // its power" (Walking Bulwark): rules after the keywords, one
+            // list.
+            let rules: Vec<Keyword> = keywords
+                .iter()
+                .copied()
+                .filter(|k| matches!(k, Keyword::AttackDespiteDefender | Keyword::AssignsToughness))
+                .collect();
+            if !rules.is_empty() && keywords.iter().any(|k| !is_restriction(*k)) {
+                let mut parts = vec![gains];
+                for k in rules {
+                    parts.push(if k == Keyword::AttackDespiteDefender {
+                        format!(
+                            "can attack as though {} didn't have defender",
+                            ctx.verb(*to, "it", "they")
+                        )
+                    } else {
+                        ctx.verb(
+                            *to,
+                            "assigns combat damage equal to its toughness rather than its power",
+                            "assign combat damage equal to their toughness rather than their power",
+                        )
+                        .to_string()
+                    });
+                }
+                return Clause::with_subject(*to, s, list(&parts)).until_eot();
+            }
+            Clause::with_subject(*to, s, gains).until_eot()
         }
         Effect::GainControl { of, forever } => {
             // "Gain control of all artifacts your opponents control" (`all
@@ -13242,7 +13307,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
         }
         Effect::Transform { what } => {
-            let o = ctx.obj(*what);
+            // "Transform all Incubator tokens you control." (Glissa,
+            // Herald of Predation): a group written `all`.
+            let o = ctx.obj_flagged_all(*what);
             Clause::imperative(format!("transform {o}"))
         }
         Effect::Meld { partner, into } => Clause::imperative(format!(
@@ -14304,6 +14371,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 )
             } else if ctx.discarded_one {
                 "when you discard a card this way".to_string()
+            } else if std::mem::take(&mut ctx.connived_it) {
+                "when it connives this way".to_string()
             } else if ctx.removed_from_source {
                 format!(
                     "when one or more counters are removed from {} this way",
@@ -14965,6 +15034,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 _ if damaged_only => "it was dealt damage this turn".to_string(),
                 // "If it was a Soldier, put a +1/+1 counter on this
                 // creature." (Zephyr Sentinel).
+                // "If it was a Jace planeswalker spell, scry 2." (Jace's
+                // Defeat): a countered spell, as it last existed.
+                (TargetTense::Was, _) if check.it && noun == "spell" && !f.types.is_empty() => {
+                    format!("it was {pred} spell")
+                }
                 (TargetTense::Was, _) if check.it => format!("it was {pred}"),
                 (TargetTense::Was, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("its mana value was {n}{}", cmp_words(cmp))
@@ -16980,6 +17054,25 @@ fn sentences(ss: &[Sentence], ctx: &mut Ctx) -> String {
                 skip = true;
                 continue;
             }
+        }
+        // "Incubate 2 twice." (Glissa, Herald of Predation): the same
+        // keyword action twice in a row, one sentence each in the DSL.
+        if let [e @ Effect::Incubate { you: false, .. }] = s.effects.as_slice()
+            && let Some(n) = ss.get(i + 1)
+            && !n.para
+            && n.label.is_none()
+            && s.label.is_none()
+            && n.effects.as_slice() == [e.clone()]
+            && n.joins.is_empty()
+            && !n.then_first
+        {
+            if i > 0 {
+                out.push(if s.para { '\n' } else { ' ' });
+            }
+            let one = sentence(&sentence_text(s, ctx));
+            let _ = write!(out, "{} twice.", one.trim_end_matches('.'));
+            skip = true;
+            continue;
         }
         if i > 0 {
             out.push(if s.para { '\n' } else { ' ' });
@@ -19016,8 +19109,13 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let to_text = affects_to(to, ctx);
             // "to that permanent or player", but "to you", "to this
             // creature" (Goldnight Castigator).
+            // "to that player" after "enchanted player" (Curse of
+            // Bloodletting) or "an opponent".
             let that = match to_text.strip_prefix("a ") {
                 Some(rest) => format!(" to that {rest}"),
+                None if to_text == "enchanted player" || to_text == "an opponent" => {
+                    " to that player".to_string()
+                }
                 None => format!(" to {to_text}"),
             };
             // "it deals double that damage to that permanent or player",
@@ -19058,6 +19156,17 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     format!(
                         "If {by} would deal {kind} to {to_text}, it deals {} instead.",
                         deals(&that)
+                    )
+                }
+                // "If this creature would deal combat damage to a player, it
+                // deals double that damage to that player instead."
+                // (Charging Tuskodon).
+                Some(f @ Affects::This)
+                    if matches!(to, Affects::Players(_)) && matches!(outcome, Outcome::Double) =>
+                {
+                    let by = affects_to(f, ctx);
+                    format!(
+                        "If {by} would deal {kind} to {to_text}, it deals double that damage{that} instead."
                     )
                 }
                 Some(f) => {
@@ -21209,6 +21318,26 @@ fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
         Ability::Mechanic(
             crate::ast::Mechanic::WardCost(_) | crate::ast::Mechanic::WardAlts(_),
         ) => None,
+        // "Equipment you control have equip Knight {0}." (Syr Gwyn, Hero
+        // of Ashvale): a mana-only equip ability, unquoted.
+        Ability::Activated {
+            cost,
+            targets,
+            equip: true,
+            ..
+        } if *cost
+            == Cost {
+                mana: cost.mana.clone(),
+                sorcery: true,
+                ..Cost::default()
+            } =>
+        {
+            let sub = equip_subtype(targets)
+                .map(|s| format!("{s} "))
+                .unwrap_or_default();
+            Some(format!("equip {sub}{}", cost.mana))
+        }
+        Ability::Mechanic(crate::ast::Mechanic::Afflict(n)) => Some(format!("afflict {n}")),
         _ => crate::format::granted_mechanic(a),
     }
 }
@@ -21379,6 +21508,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             filter_a(f, card)
         ),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
+        StaticCond::SourceCountersFewerThan { kind, n } => format!(
+            "{} has fewer than {} {} counters on it",
+            this_ref(card),
+            count_words(Num::N(*n), "one"),
+            kind.name()
+        ),
         StaticCond::SourceCountersOneOrMore(kind) => format!(
             "{} has one or more {} counters on it",
             this_ref(card),
@@ -22720,6 +22855,7 @@ fn conditional_static(
             c,
             StaticCond::SourceCounters { .. }
                 | StaticCond::SourceCountersOneOrMore(_)
+                | StaticCond::SourceCountersFewerThan { .. }
                 | StaticCond::SourceHasNoCounters(_)
                 | StaticCond::SourceLacksCounter(_)
                 | StaticCond::SourceCounterParity(_)
@@ -23471,6 +23607,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             c,
                             StaticCond::SourceCounters { .. }
                                 | StaticCond::SourceCountersOneOrMore(_)
+                                | StaticCond::SourceCountersFewerThan { .. }
                                 | StaticCond::SourceHasNoCounters(_)
                                 | StaticCond::SourceLacksCounter(_)
                                 | StaticCond::SourceCounterParity(_)
@@ -25477,6 +25614,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             ));
             continue;
         }
+        // `enters tapped and` with `doesn't untap`: "Traxos enters tapped
+        // and doesn't untap during your untap step." (Traxos, Scourge of
+        // Kroog).
+        if *k == Keyword::DoesntUntap && tapped_and_doesnt_untap(card, 0) {
+            let line = keyword_line(card, *k);
+            let this = capitalize(&this_ref(card));
+            if let Some(rest) = line.strip_prefix(&format!("{this} ")) {
+                lines.push(format!("{this} enters tapped and {rest}"));
+                continue;
+            }
+        }
         lines.push(keyword_line(card, *k));
     }
     let mut i = 0;
@@ -25491,7 +25639,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             lines.push(ability_text(card, &Ability::Mana(all), lookup));
             continue;
         }
-        if cost_line(&card.abilities[i]) {
+        if cost_line(&card.abilities[i]) || (i == 0 && tapped_and_doesnt_untap(card, i)) {
             i += 1;
             continue;
         }
@@ -25579,6 +25727,18 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
                         text.clone()
                     };
                     *last = format!("{subject} and {rest}");
+                    i += 1;
+                    continue;
+                }
+                false
+            }
+            // "Soulshift 4, soulshift 4" (Forked-Branch Garami): a second
+            // instance of the same keyword ability on one line (CR 702.46b).
+            Ability::Mechanic(crate::ast::Mechanic::Soulshift(_))
+                if i > 0 && card.abilities[i - 1] == card.abilities[i] =>
+            {
+                if let Some(last) = lines.last_mut() {
+                    let _ = write!(last, ", {}", lowercase_first(&text));
                     i += 1;
                     continue;
                 }

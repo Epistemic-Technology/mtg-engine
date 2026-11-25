@@ -1,0 +1,9 @@
+card "Sorin, Vampire Lord" {
+  oracle_id 753dcc18-3697-49c5-80c6-2d8dc8ee8c9a
+  cost {4}{B}{B}
+  type Legendary Planeswalker — Sorin
+  loyalty 4
+  loyalty +1: up to 1 target creature gets +2/+0 until end of turn
+  loyalty -2: deal 4 damage to any target; you gain 4 life
+  loyalty -8: until end of turn, each single Vampire you control gains ability { activated {T}: gain control of target creature indefinitely }
+}

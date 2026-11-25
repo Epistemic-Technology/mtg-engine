@@ -1,0 +1,7 @@
+card "Fanatic of Mogis" {
+  oracle_id f19d06af-6caf-41d8-8d0a-d5d50bd67900
+  cost {3}{R}
+  type Creature — Minotaur Shaman
+  pt 4/2
+  triggered when this enters: it deals count equal devotion red damage to each opponent
+}

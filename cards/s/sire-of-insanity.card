@@ -1,0 +1,7 @@
+card "Sire of Insanity" {
+  oracle_id b55d8cd6-037d-4d7c-90ec-51249d34b02e
+  cost {4}{B}{R}
+  type Creature — Demon
+  pt 6/4
+  triggered at beginning of every end step: each player discards hand
+}

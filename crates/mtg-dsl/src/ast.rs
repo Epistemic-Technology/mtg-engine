@@ -3412,6 +3412,13 @@ pub enum StaticCond {
     /// more +1/+1 counters on it" (Ingenious Prodigy; `1 or more` prints
     /// "a +1/+1 counter").
     SourceCountersOneOrMore(CounterKind),
+    /// `this has fewer than 3 +1/+1 counters`: "this creature has fewer
+    /// than three +1/+1 counters on it" (Runaway Steam-Kin); the
+    /// `SourceCounters` condition `2 or fewer`, worded so.
+    SourceCountersFewerThan {
+        kind: CounterKind,
+        n: u32,
+    },
     /// `this has no charge counters on it`: "this enchantment has no
     /// charge counters on it" (Mana Bloom; `this has no charge counters`
     /// prints "there are no charge counters on this enchantment").

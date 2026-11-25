@@ -1,0 +1,6 @@
+card "Sunbringer's Touch" {
+  oracle_id bbfced8f-0f83-4cc9-9143-aa2473828b48
+  cost {2}{G}{G}
+  type Sorcery
+  spell: bolster count where hand; each single creature you control with +1/+1 counter gains trample until end of turn
+}

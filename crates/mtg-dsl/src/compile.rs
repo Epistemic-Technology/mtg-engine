@@ -2558,6 +2558,11 @@ impl Compiler<'_> {
                 n: *n,
                 at_least: *at_least,
             },
+            StaticCond::SourceCountersFewerThan { kind, n } => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: n - 1,
+                at_least: false,
+            },
             StaticCond::SourceCountersOneOrMore(kind) => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: 1,

@@ -5360,7 +5360,7 @@ impl P {
         // "All Sliver creatures have poisonous 1", "... have provoke",
         // "... have outlast {2}".
         if let Some(w) = self.word_at(0)
-            && matches!(w.as_str(), "poisonous" | "frenzy" | "absorb")
+            && matches!(w.as_str(), "poisonous" | "frenzy" | "absorb" | "afflict")
             && matches!(self.peek_at(1), Some(Tok::Num(_)))
         {
             self.pos += 1;
@@ -5368,6 +5368,9 @@ impl P {
             return Ok(Some(Ability::Mechanic(match w.as_str() {
                 "poisonous" => Mechanic::Poisonous(n),
                 "frenzy" => Mechanic::Frenzy(n),
+                // "Equipped creature gets +2/+0 and has afflict 1."
+                // (Dagger of the Worthy).
+                "afflict" => Mechanic::Afflict(n),
                 _ => Mechanic::Absorb(n),
             })));
         }
@@ -5465,10 +5468,9 @@ impl P {
                     .word_at(2)
                     .as_deref()
                     .is_some_and(|w| color(w).is_none()))
-            || (self
-                .word_at(0)
-                .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
-                && matches!(self.peek_at(1), Some(Tok::Num(_))))
+            || (self.word_at(0).is_some_and(|w| {
+                matches!(w.as_str(), "poisonous" | "frenzy" | "absorb" | "afflict")
+            }) && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.at_word("provoke")
             || self.at_word("mentor")
             || (self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
@@ -5686,6 +5688,15 @@ impl P {
         }
         if self.eat_words(&["one", "or", "more"]) {
             return Ok(StaticCond::SourceCountersOneOrMore(self.counter_kind()?));
+        }
+        // `this has fewer than 3 +1/+1 counters` (Runaway Steam-Kin).
+        if self.eat_words(&["fewer", "than"]) {
+            let n = self.number()?;
+            if n == 0 {
+                return self.fail("`fewer than 0` never holds");
+            }
+            let kind = self.counter_kind()?;
+            return Ok(StaticCond::SourceCountersFewerThan { kind, n });
         }
         if self.eat_word("no") {
             let kind = self.counter_kind()?;

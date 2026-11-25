@@ -1,0 +1,9 @@
+card "Syr Gwyn, Hero of Ashvale" {
+  oracle_id ca411184-3413-492c-ab87-08c9fa1d4806
+  cost {3}{R}{W}{B}
+  type Legendary Creature — Human Knight
+  pt 5/5
+  keywords vigilance, menace
+  triggered whenever creature with Equipment you control attacks: you draw 1 card, and you lose 1 life
+  static Equipment you control: has ability { equip Knight {0} }
+}

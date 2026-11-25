@@ -1,0 +1,8 @@
+card "Charging Tuskodon" {
+  oracle_id 1198d47a-4235-4678-bd2e-20f2a97b5924
+  cost {3}{R}{R}
+  type Creature — Dinosaur
+  pt 4/4
+  keywords trample
+  replace combat damage from this to a player: double
+}

@@ -8018,6 +8018,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentPoisonAtLeast(n) | StaticCond::OpponentPoison(n) => {
             format!("opponent poison {n} or more")
         }
+        StaticCond::SourceCountersFewerThan { kind, n } => {
+            format!("this has fewer than {n} {} counters", kind.name())
+        }
         StaticCond::SourceCountersOneOrMore(kind) => {
             format!("this has one or more {} counters", kind.name())
         }
@@ -10382,6 +10385,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Afflict(n)) => Some(format!("afflict {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Provoke) => Some("provoke".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Mentor) => Some("mentor".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Outlast(c)) => Some(format!("outlast {c}")),

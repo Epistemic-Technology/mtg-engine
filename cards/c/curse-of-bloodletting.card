@@ -1,0 +1,7 @@
+card "Curse of Bloodletting" {
+  oracle_id 3383a72f-fb83-4b9a-aca6-b736ed929c2e
+  cost {3}{R}{R}
+  type Enchantment — Aura Curse
+  enchant player
+  replace damage to enchanted: double
+}
