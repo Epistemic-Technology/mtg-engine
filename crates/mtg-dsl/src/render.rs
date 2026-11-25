@@ -14545,20 +14545,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             payer,
             filter,
             or_discard,
+            or_life,
             effect,
             ..
         } => {
             let mut c = clause(effect, ctx);
             let what = filter_a(filter, ctx.card);
+            let target_payer = if matches!(payer, Recipient::Target(_)) {
+                ctx.subj(*payer)
+            } else {
+                String::new()
+            };
             let (sac, disc, who) = match (payer, &c.subject) {
                 (Recipient::EachOpponent | Recipient::EachPlayer, _) => {
                     ("sacrifices", "discards", "that player")
                 }
                 (p, Some((s, _))) if p == s => ("sacrifice", "discard", "they"),
+                // "draw a card unless target opponent sacrifices ..."
+                // (Indulgent Tormentor): the target's first mention.
+                (Recipient::Target(_), _) if target_payer.starts_with("target ") => {
+                    ("sacrifices", "discards", target_payer.as_str())
+                }
                 _ => ("sacrifices", "discards", "that player"),
             };
             let or = if *or_discard {
                 format!(" or {disc} a card")
+            } else if *or_life > 0 {
+                // "or pays 3 life".
+                let pay = if who == "they" { "pay" } else { "pays" };
+                format!(" or {pay} {or_life} life")
             } else {
                 String::new()
             };
@@ -23793,7 +23808,40 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             first,
             flash,
             from,
+            floor,
+            off_turn,
         } => {
+            // "As long as this artifact is untapped, each spell that would
+            // cost less than three mana to cast costs three mana to cast."
+            if *floor > 0 {
+                let n = count_words(Num::N(u32::from(*floor)), "one");
+                // "As long as this artifact is untapped": the source named.
+                let head = cond.as_ref().map_or_else(String::new, |c| {
+                    let t = static_cond_text(c, card);
+                    let t = match t.strip_prefix("it's ") {
+                        Some(rest) => format!("{} is {rest}", this_ref(card)),
+                        None => t,
+                    };
+                    format!("As long as {t}, ")
+                });
+                let each = format!(
+                    "each spell that would cost less than {n} mana to cast costs {n} mana to cast."
+                );
+                return if head.is_empty() {
+                    capitalize(&each)
+                } else {
+                    format!("{head}{each}")
+                };
+            }
+            // "Each spell costs {3} more to cast except during its
+            // controller's turn." (Defense Grid).
+            if *off_turn {
+                return format!(
+                    "Each spell costs {{{}}} {} to cast except during its controller's turn.",
+                    generic.unsigned_abs(),
+                    if *generic > 0 { "more" } else { "less" }
+                );
+            }
             // "The first creature spell you cast each turn costs {2} less to
             // cast [and can be cast as though it had flash]"; "... you cast
             // during each of your turns ...".

@@ -5429,6 +5429,7 @@ impl Compiler<'_> {
                 payer,
                 filter,
                 or_discard,
+                or_life,
                 effect,
                 ..
             } => {
@@ -5438,6 +5439,7 @@ impl Compiler<'_> {
                     payer: r(*payer),
                     filter: self.filter(filter),
                     or_discard: *or_discard,
+                    or_life: *or_life,
                     effects,
                 });
             }
@@ -7823,6 +7825,8 @@ impl Compiler<'_> {
                 first,
                 flash,
                 from,
+                floor,
+                off_turn,
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
@@ -7852,6 +7856,8 @@ impl Compiler<'_> {
                     per: *per,
                     first: *first,
                     from: *from,
+                    floor: *floor,
+                    off_turn: *off_turn,
                 })
             }
             Ability::SpellsHave {
@@ -7887,6 +7893,8 @@ impl Compiler<'_> {
                 per: None,
                 first: false,
                 from: *from,
+                floor: 0,
+                off_turn: false,
             }),
             Ability::SpellsAlt {
                 filter,
@@ -7906,6 +7914,8 @@ impl Compiler<'_> {
                 per: None,
                 first: false,
                 from: *from,
+                floor: 0,
+                off_turn: false,
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
@@ -9557,6 +9567,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 filter: ward_sacrifice(cost).cloned().unwrap_or_default(),
                 or_discard: false,
                 discard_first: false,
+                or_life: 0,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,

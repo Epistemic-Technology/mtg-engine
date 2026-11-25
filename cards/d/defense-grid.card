@@ -1,0 +1,6 @@
+card "Defense Grid" {
+  oracle_id 22ba474e-f6e6-450d-a4cf-0739f0b51079
+  cost {2}
+  type Artifact
+  spells cost {3} more except controller turn
+}

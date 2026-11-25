@@ -5264,6 +5264,23 @@ impl P {
             return self.spells_have(filter, from, true);
         }
         self.expect_word("cost")?;
+        // `spells cost at least 3` (Trinisphere).
+        if self.eat_words(&["at", "least"]) {
+            let floor = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            self.end_stmt()?;
+            return Ok(Ability::CostChange {
+                filter,
+                whose,
+                generic: 0,
+                cond,
+                per: None,
+                first,
+                flash: false,
+                from,
+                floor,
+                off_turn: false,
+            });
+        }
         let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
         let generic = if self.eat_word("less") {
             -n
@@ -5277,6 +5294,8 @@ impl P {
             None
         };
         let flash = first && self.eat_words(&["and", "flash"]);
+        // `except controller turn` (Defense Grid).
+        let off_turn = self.eat_words(&["except", "controller", "turn"]);
         self.end_stmt()?;
         Ok(Ability::CostChange {
             filter,
@@ -5287,6 +5306,8 @@ impl P {
             first,
             flash,
             from,
+            floor: 0,
+            off_turn,
         })
     }
 
@@ -7864,6 +7885,7 @@ impl P {
                 filter,
                 or_discard: true,
                 discard_first: true,
+                or_life: 0,
                 effect: Box::new(e),
             });
         }
@@ -7897,11 +7919,25 @@ impl P {
             if or_discard {
                 self.pos += 4;
             }
+            // `else pays 3 life`: "or pays 3 life" (Indulgent Tormentor).
+            let or_life = if self.at_word("else")
+                && matches!(self.word_at(1).as_deref(), Some("pay" | "pays"))
+                && matches!(self.peek_at(2), Some(Tok::Num(_)))
+                && self.word_at(3).as_deref() == Some("life")
+            {
+                self.pos += 2;
+                let n = self.number()?;
+                self.pos += 1;
+                n
+            } else {
+                0
+            };
             return Ok(Effect::UnlessSacrifices {
                 payer,
                 filter,
                 or_discard,
                 discard_first: false,
+                or_life,
                 effect: Box::new(e),
             });
         }

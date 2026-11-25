@@ -4556,18 +4556,24 @@ impl Fmt {
                 payer,
                 filter: f,
                 or_discard,
+                or_life,
                 effect,
                 ..
             } => {
                 let inner = self.effect(effect, t);
                 format!(
-                    "{inner} unless {} sacrifices {}{}",
+                    "{inner} unless {} sacrifices {}{}{}",
                     self.recipient(*payer, t),
                     filter(f),
                     if *or_discard {
                         " else discards 1 card"
                     } else {
                         ""
+                    },
+                    if *or_life > 0 {
+                        format!(" else pays {or_life} life")
+                    } else {
+                        String::new()
                     }
                 )
             }
@@ -9337,15 +9343,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             first,
             flash,
             from,
+            floor,
+            off_turn,
         } => {
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
                 Some(StaticCond::DuringYourTurn) => "static during your turn, ",
-                Some(c @ StaticCond::SpellNumber(_)) => {
+                Some(c) if matches!(c, StaticCond::SpellNumber(_)) || *floor > 0 => {
                     &format!("static as long as {}, ", static_cond(c))
                 }
                 _ => "",
             };
+            if *floor > 0 {
+                let _ = writeln!(out, "{indent}{head}spells cost at least {floor}");
+                return;
+            }
             let subject = if *f == Filter::default() {
                 String::new()
             } else {
@@ -9363,8 +9375,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let from = spell_from(*from);
             let _ = writeln!(
                 out,
-                "{indent}{head}spells{first}{subject}{whose}{from} cost {{{}}} {more}{per}{flash}",
-                generic.unsigned_abs()
+                "{indent}{head}spells{first}{subject}{whose}{from} cost {{{}}} {more}{per}{flash}{}",
+                generic.unsigned_abs(),
+                if *off_turn {
+                    " except controller turn"
+                } else {
+                    ""
+                }
             );
         }
         Ability::SpellsHave {

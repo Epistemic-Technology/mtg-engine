@@ -284,6 +284,15 @@ impl GameState {
         if b.less > 0 {
             adjust_generic(&mut req, -i32::try_from(b.less).unwrap_or(i32::MAX));
         }
+        // CR 601.2f: "each spell that would cost less than three mana to
+        // cast costs three mana to cast", after every other change.
+        if self.pool.cost_floors && !changers.is_empty() {
+            let floor = self.cost_floor(b.p, def, b.id, changers);
+            let total = req.total();
+            if total < floor {
+                req.generic += floor - total;
+            }
+        }
         // CR 609.4b: the total cost is paid with mana spent as though it
         // were of any color or type (after the cost is determined).
         let spend = if self.pool.spend_grants && !changers.is_empty() {

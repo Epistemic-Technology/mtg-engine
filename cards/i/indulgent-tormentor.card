@@ -1,0 +1,8 @@
+card "Indulgent Tormentor" {
+  oracle_id 8b202c63-c961-4590-958f-d17e76610ab5
+  cost {3}{B}{B}
+  type Creature — Demon
+  pt 5/3
+  keywords flying
+  triggered at beginning of your upkeep: draw 1 card unless target opponent sacrifices creature else pays 3 life
+}

@@ -2044,11 +2044,13 @@ impl Decompiler<'_> {
                 payer,
                 filter,
                 or_discard,
+                or_life,
                 effects,
             } => Effect::UnlessSacrifices {
                 payer: Self::recipient(*payer),
                 filter: self.filter(filter),
                 or_discard: *or_discard,
+                or_life: *or_life,
                 discard_first: false,
                 effect: Box::new(
                     effects
@@ -3619,6 +3621,8 @@ impl Decompiler<'_> {
                     .as_ref()
                     .is_some_and(|g| g.keywords.contains(mtg_core::card::Keyword::Flash)),
                 from: c.from,
+                floor: c.floor,
+                off_turn: c.off_turn,
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {

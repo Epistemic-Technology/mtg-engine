@@ -4385,6 +4385,32 @@ impl GameState {
             && cc
                 .cond
                 .is_none_or(|i| self.condition_now(self.pool.condition(i), o.controller, src))
+            // "except during its controller's turn" (the caster's).
+            && !(cc.off_turn && self.active_player == p)
+    }
+
+    /// The least total mana cost the cost changes `changers` give `p`
+    /// casting `def` as `id` ("each spell that would cost less than three
+    /// mana to cast costs three mana to cast"); 0 for none.
+    pub(super) fn cost_floor(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        changers: &[ObjId],
+    ) -> u32 {
+        let mut floor = 0;
+        for src in changers {
+            for a in &self.pool.get(self.objects[*src].def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && cc.floor > 0
+                    && self.cost_change_applies(cc, p, def, id, *src)
+                {
+                    floor = floor.max(u32::from(cc.floor));
+                }
+            }
+        }
+        floor
     }
 
     /// The keywords `def` has as the spell (or card) `id` that `p` casts:
@@ -16886,6 +16912,7 @@ impl GameState {
                 payer,
                 filter,
                 or_discard,
+                or_life,
                 effects,
             } => {
                 let def = self
@@ -16922,6 +16949,12 @@ impl GameState {
                     if *or_discard && !self.player(p).hand.is_empty() {
                         options.push(Choice::Mode(1));
                     }
+                    // "or pays 3 life" (CR 119.4: with that much).
+                    if *or_life > 0
+                        && self.player(p).life >= i32::try_from(*or_life).unwrap_or(i32::MAX)
+                    {
+                        options.push(Choice::Mode(3));
+                    }
                     options.push(Choice::Mode(2));
                     let k = if options.len() == 1 {
                         0
@@ -16936,6 +16969,9 @@ impl GameState {
                             }
                         }
                         Choice::Mode(1) => self.discard_n(p, 1),
+                        Choice::Mode(3) => {
+                            self.change_life(p, -i32::try_from(*or_life).unwrap_or(i32::MAX));
+                        }
                         _ => {
                             for e in effects {
                                 self.apply_effect(ctx, e);

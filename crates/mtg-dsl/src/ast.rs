@@ -2184,6 +2184,12 @@ pub enum Ability {
         /// exile`, `from other than hand`: "from anywhere other than your
         /// hand").
         from: mtg_core::card::SpellFrom,
+        /// `spells cost at least 3`: "each spell that would cost less than
+        /// three mana to cast costs three mana to cast" (Trinisphere).
+        floor: u8,
+        /// `spells cost {3} more except controller turn`: "Each spell costs
+        /// {3} more to cast except during its controller's turn."
+        off_turn: bool,
     },
     /// `spells instant or sorcery you cast have storm`, `spells you cast
     /// have delve`, `spells instant or sorcery you cast from hand have
@@ -6707,6 +6713,9 @@ pub enum Effect {
         /// `unless they discard 1 card else sacrifice creature`: "unless
         /// they discard a card or sacrifice a creature" (wording only).
         discard_first: bool,
+        /// `<clause> unless target 1 sacrifices creature else pays 3 life`:
+        /// "... or pays 3 life".
+        or_life: u32,
         effect: Box<Effect>,
     },
     /// `each opponent may discard 1 card or sacrifice permanent`: "Each

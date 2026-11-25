@@ -5857,6 +5857,11 @@ pub enum Effect {
         payer: Recipient,
         filter: ObjFilter,
         or_discard: bool,
+        /// "... unless target opponent sacrifices a creature of their
+        /// choice or pays 3 life" (Indulgent Tormentor): paying this much
+        /// life stops it too (CR 119.4: with at least that much). 0: no.
+        #[serde(default)]
+        or_life: u32,
         effects: Vec<Effect>,
     },
     /// "Each opponent may discard a card or sacrifice a permanent of their
@@ -10508,6 +10513,16 @@ pub struct CostChange {
     /// from).
     #[serde(default)]
     pub from: SpellFrom,
+    /// "Each spell that would cost less than three mana to cast costs
+    /// three mana to cast." (Trinisphere): after every other change (CR
+    /// 601.2f), a matching spell's total cost below this much gets generic
+    /// mana up to it. 0: none.
+    #[serde(default)]
+    pub floor: u8,
+    /// "Each spell costs {3} more to cast except during its controller's
+    /// turn." (Defense Grid): not while its caster is the active player.
+    #[serde(default)]
+    pub off_turn: bool,
 }
 
 /// Where the spells a `CostChange` applies to are cast from.
@@ -12650,6 +12665,9 @@ pub struct CardPool {
     /// Whether some card lets mana be spent as though it were of any color
     /// for a class of spells (`SpellGrant::spend`).
     pub spend_grants: bool,
+    /// Whether some card sets a least total cost for spells
+    /// (`CostChange::floor`, Trinisphere).
+    pub cost_floors: bool,
     /// Whether some card gives spells an alternative cost
     /// (`SpellGrant::alt`): until one is added, no cast offer looks for
     /// one.
@@ -12772,6 +12790,7 @@ impl CardPool {
             equip_discounts: false,
             card_grants: false,
             spend_grants: false,
+            cost_floors: false,
             alt_grants: false,
             plot_discounts: false,
             targeted_life: false,
@@ -13582,6 +13601,10 @@ impl CardPool {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
         });
+        self.cost_floors |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::CostChange(cc) if cc.floor > 0));
         self.targeted_life |= def
             .abilities
             .iter()
