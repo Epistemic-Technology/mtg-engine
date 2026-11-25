@@ -3020,6 +3020,7 @@ impl GameState {
         let def = self.pool.get(self.objects[spell].def);
         let add = self.additional_of(spell);
         if def.mana_cost.has_x()
+            || (self.objects[spell].cast.kicked() && def.kicker.as_ref().is_some_and(|k| k.has_x()))
             || add.discard_x
             || add.life_x
             || add.sacrifice_any > 0

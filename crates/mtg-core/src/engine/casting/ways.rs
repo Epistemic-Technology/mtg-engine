@@ -346,10 +346,12 @@ impl GameState {
     /// splice costs, strive's, and replicate's (`add_splice_and_strive`).
     fn add_optional_costs(&self, b: &CostBasis, req: &mut ManaRequirement) {
         let def = b.def;
+        // "Kicker {X}" (Verdeloth the Ancient): X is the spell's (CR
+        // 107.3, 601.2b).
         if b.cast.kicked()
             && let Some(k) = &def.kicker
         {
-            req.add(&k.requirements(0));
+            req.add(&k.requirements(b.x));
         }
         // CR 702.33c: the multikicker cost, once for each time it was paid.
         if let Some(k) = &def.multikicker {
