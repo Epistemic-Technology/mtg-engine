@@ -348,8 +348,12 @@ impl GameState {
         }
         if old.zone == Zone::Battlefield && to == Zone::Graveyard && characteristics.is_creature() {
             self.log_event(TurnEvent::Died, old.controller, 1);
-            self.died_this_turn
-                .push((id, old.controller, characteristics));
+            self.died_this_turn.push((
+                id,
+                old.controller,
+                characteristics,
+                old.kind == crate::state::ObjKind::Token,
+            ));
         }
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {

@@ -2313,7 +2313,9 @@ pub struct GameState {
     /// Those creatures as they last existed (CR 700.4): the object they
     /// were, their controller, and their characteristics, for "for each
     /// Zubera that died this turn". Empty, unallocated, on most turns.
-    pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
+    /// Each creature that died this turn: its controller, its last
+    /// characteristics, and whether it was a token ("nontoken creature").
+    pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics, bool)>,
     /// The permanents sacrificed this turn as they last existed, with the
     /// player who sacrificed them, for "if you've sacrificed a Food this
     /// turn" (CR 701.21). Empty, unallocated, on most turns.
@@ -2833,8 +2835,12 @@ impl GameState {
             TurnEvent::Died => self
                 .died_this_turn
                 .iter()
-                .filter(|(id, controller, ch)| {
-                    whose(*controller) && f.matches(*id, *controller, ch, None, Some(you))
+                .filter(|(id, controller, ch, token)| {
+                    whose(*controller)
+                        && f.matches(*id, *controller, ch, None, Some(you))
+                        // "for each nontoken creature that died this turn"
+                        // (Gadrak, the Crown-Scourge).
+                        && f.status.token.is_none_or(|t| t == *token)
                 })
                 .count(),
             TurnEvent::Sacrificed => self
