@@ -10256,6 +10256,7 @@ impl P {
                     filter,
                     and: None,
                     choice_first: false,
+                    bare: false,
                 })
             }
             "sacrifices" | "sacrifice" => {
@@ -10309,12 +10310,14 @@ impl P {
                 } else {
                     None
                 };
+                let bare = !of_choice && and.is_none() && self.eat_word("bare");
                 Ok(Effect::SacrificeChosen {
                     who: subject,
                     count,
                     filter,
                     and,
                     choice_first,
+                    bare,
                 })
             }
             // "That player looks at the top three cards of your library,

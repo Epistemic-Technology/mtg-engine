@@ -1,0 +1,143 @@
+scenario "Declaration of Naught counters a spell with the chosen name" {
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand A: "Declaration of Naught"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Declaration of Naught"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: activate "Declaration of Naught" targeting "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Declaration of Naught cannot counter a spell with another name" {
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand A: "Declaration of Naught"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Declaration of Naught"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 2 B: cast "Shock" targeting player A
+  illegal turn 2 A: activate "Declaration of Naught" targeting "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+scenario "Ghostflame Sliver makes every Sliver colorless" {
+  battlefield A: "Ghostflame Sliver", "Muscle Sliver"
+  battlefield B: "Muscle Sliver", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert is not "Ghostflame Sliver" black
+  assert is not "Ghostflame Sliver" red
+  assert is not A "Muscle Sliver" green
+  assert is not B "Muscle Sliver" green
+  assert is "Grizzly Bears" green
+}
+
+scenario "Without Ghostflame Sliver a Sliver keeps its color" {
+  battlefield A: "Muscle Sliver"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert is "Muscle Sliver" green
+}
+scenario "Malakir Rebirth returns the creature tapped when it dies" {
+  battlefield A: "Grizzly Bears", "Swamp", "Mountain"
+  hand A: "Malakir Rebirth", "Lightning Bolt"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Malakir Rebirth" targeting "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life A 18
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+}
+scenario "Malakir Rebirth does nothing to a different creature" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Swamp", "Mountain"
+  hand A: "Malakir Rebirth", "Lightning Bolt"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Malakir Rebirth" targeting "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+scenario "Ripples: pay and take a card" {
+  battlefield A: "Ripples of Undeath", "Swamp"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains"
+  turn 1 A: accept "Ripples of Undeath"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert hand A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert tapped "Swamp"
+}
+
+scenario "Ripples: decline" {
+  battlefield A: "Ripples of Undeath", "Swamp"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains"
+  turn 1 A: decline "Ripples of Undeath"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert hand A count 0
+  assert graveyard A contains "Serra Angel"
+}
+scenario "Summoning Station makes a Pincher" {
+  battlefield A: "Summoning Station"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Summoning Station"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 1 "Pincher"
+  assert power "Pincher" 2
+  assert tapped "Summoning Station"
+}
+scenario "Summoning Station untaps when an artifact dies" {
+  battlefield A: "Summoning Station", 3 "Swamp"
+  battlefield B: "Phyrexian Mite"
+  hand A: "Murder"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Summoning Station"
+  turn 3 A: cast "Murder" targeting "Phyrexian Mite"
+  run_to turn 3 postcombat_main
+  assert untapped "Summoning Station"
+  assert battlefield A contains 1 "Pincher"
+}
+scenario "torrent black only returns" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Torrent of Souls"
+  turn 1 A: cast "Torrent of Souls" targeting "Hill Giant", player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" haste
+}
+scenario "torrent red only pumps" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Torrent of Souls"
+  turn 1 A: cast "Torrent of Souls" targeting "Hill Giant", player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" haste
+}
+scenario "torrent both" {
+  battlefield A: 3 "Swamp", 2 "Mountain", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Torrent of Souls"
+  turn 1 A: cast "Torrent of Souls" targeting "Hill Giant", player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+}

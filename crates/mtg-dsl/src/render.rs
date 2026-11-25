@@ -11553,6 +11553,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             and,
             choice_first,
+            bare,
         } => {
             let s = ctx.subj(*who);
             if let Some(h) = half_text(*count, ctx) {
@@ -11622,7 +11623,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "a creature with the greatest power among creatures they
             // control": no "of their choice".
-            let choice = if filter.status.greatest.is_some() {
+            let choice = if filter.status.greatest.is_some() || *bare {
                 ""
             } else {
                 " of their choice"
@@ -13569,12 +13570,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else if *to == Recipient::Source
                     && ctx.card.types == [CardType::Land]
                     && let [sub] = ctx.card.subtypes.as_slice()
-                    && !matches!(
-                        sub.as_str(),
-                        "Plains" | "Island" | "Swamp" | "Mountain" | "Forest"
-                    )
+                    && sub == "Cave"
                 {
-                    // "It's still a Cave land." (Cavernous Maw).
+                    // "It's still a Cave land." (Cavernous Maw); "It's still a
+                    // land." for a Desert (Hostile Desert).
                     let _ = write!(clause.tail, ". It's still a {sub} land");
                 } else {
                     clause.tail.push_str(". It's still a land");
@@ -13960,6 +13959,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 && !is_spell(ctx.card)
             {
                 cond = cond.replacen(&this_ref(ctx.card), "it", 1);
+            }
+            // "put a +1/+1 counter on equipped creature if it's blue"
+            // (Ring of Evos Isle): named just before.
+            if matches!(c, StaticCond::AttachedIs(_)) {
+                for noun in ["equipped creature", "enchanted creature"] {
+                    if let Some(rest) = cond.strip_prefix(&format!("{noun} is ")) {
+                        if body.contains(noun) {
+                            cond = format!("it's {rest}");
+                        }
+                        break;
+                    }
+                }
             }
             let body = body.trim_end_matches('.');
             // "copy it if you gained life this turn. You may choose new
@@ -20029,6 +20040,16 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             }
         }
     }
+    // "Enchanted creature is a Demon Spirit." (Oni Possession): one
+    // creature type set and a second added (`set subtype Demon, add subtype
+    // Spirit`: a second `set` would replace the first, CR 205.1b).
+    if !plural_form
+        && mods.len() == 2
+        && let (Mod::SetSubtype(a), Mod::AddSubtype(b)) = (&mods[0], &mods[1])
+    {
+        parts[0] = format!("is {}", with_article(&format!("{a} {b}")));
+        parts[1] = "\u{2}".to_string();
+    }
     // "is a black Zombie in addition to its other colors and types": a
     // color and a subtype added together are one phrase (the second part
     // is dropped below).
@@ -25417,6 +25438,7 @@ fn search_named_text(e: &Effect, ctx: &mut Ctx) -> Clause {
         may,
         graveyard,
         name,
+        old,
         ..
     } = e
     else {
@@ -25462,7 +25484,10 @@ fn search_named_text(e: &Effect, ctx: &mut Ctx) -> Clause {
     let text = if *graveyard {
         let zones = format!("{library} and/or graveyard");
         let body = if *reveal {
-            format!("{search} {zones} for {what}, {reveal_v} it, and {put} it {place}")
+            // `... reveal to hand then`: "reveal it, then put it into your
+            // hand" (Sun-Blessed Mount).
+            let and = if *old { "then" } else { "and" };
+            format!("{search} {zones} for {what}, {reveal_v} it, {and} {put} it {place}")
         } else {
             format!("{search} {zones} for {what} and {put} it {place}")
         };

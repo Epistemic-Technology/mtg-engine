@@ -5915,6 +5915,10 @@ pub enum Effect {
         /// `sacrifices 1 creature of their choice with flying`: the filter's
         /// "with" qualities print after "of their choice".
         choice_first: bool,
+        /// `sacrifices 1 creature bare`: "target opponent sacrifices a
+        /// creature." without "of their choice" (Bearer of Silence; the
+        /// same choice).
+        bare: bool,
     },
     /// `return 1 land you control`: "return a land you control to its
     /// owner's hand" (the controller chooses).

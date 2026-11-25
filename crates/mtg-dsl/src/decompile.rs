@@ -1543,6 +1543,7 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 and: None,
                 choice_first: false,
+                bare: false,
             },
             CoreEffect::Strip { keywords: k, to } => Effect::Strip {
                 keywords: keywords(*k),

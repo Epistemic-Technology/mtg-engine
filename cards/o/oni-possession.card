@@ -1,0 +1,9 @@
+card "Oni Possession" {
+  oracle_id df059974-2cf4-471e-a1e6-17d053113062
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of your upkeep step: you sacrifices 1 creature
+  static enchanted: +3/+3, has trample
+  static enchanted: set subtype Demon, add subtype Spirit
+}

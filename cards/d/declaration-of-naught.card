@@ -1,0 +1,7 @@
+card "Declaration of Naught" {
+  oracle_id 55c71732-6ba1-401d-8759-4d64dae22133
+  cost {U}{U}
+  type Enchantment
+  as this enters choose card name
+  activated {U}: counter target with chosen name spell
+}

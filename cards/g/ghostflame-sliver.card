@@ -1,0 +1,7 @@
+card "Ghostflame Sliver" {
+  oracle_id cb7d65f7-003f-46db-af71-7b575c713c6b
+  cost {B}{R}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver: set colorless
+}

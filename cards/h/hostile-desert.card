@@ -1,0 +1,6 @@
+card "Hostile Desert" {
+  oracle_id 41459587-7509-404e-bd7d-fb8831dee789
+  type Land — Desert
+  mana {C}
+  activated {2}, exile land card from graveyard: this becomes 3/4 Elemental creature
+}

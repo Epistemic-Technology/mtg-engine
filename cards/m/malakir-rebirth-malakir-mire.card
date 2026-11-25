@@ -1,0 +1,12 @@
+card "Malakir Rebirth // Malakir Mire" {
+  oracle_id a731e87b-8d99-4b64-8ee3-8e540d652366
+  layout modal_dfc
+  cost {B}
+  type Instant
+  spell: choose target creature; you lose 2 life; until end of turn, that target 1 gains ability { triggered when this dies: return this to battlefield tapped under its owner's control }
+  face "Malakir Mire" {
+    type Land
+    enters tapped
+    mana {B}
+  }
+}

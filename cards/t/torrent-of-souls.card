@@ -1,0 +1,6 @@
+card "Torrent of Souls" {
+  oracle_id 3ec1b309-8c26-4dc4-b4c3-f97c2c3f8a68
+  cost {4}{B/R}
+  type Sorcery
+  spell: return up to 1 target creature card from your graveyard to battlefield if spent {B}; each creature target player controls gets +2/+0 and gains haste until end of turn if spent {R}
+}

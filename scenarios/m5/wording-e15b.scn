@@ -1,0 +1,163 @@
+# Wording near-misses (fifteenth wave, list e), second batch.
+
+# "When you cast this spell, you may pay {1}{C}. If you do, target opponent
+# sacrifices a creature." (Bearer of Silence): their choice.
+scenario "Bearer of Silence: paid, the opponent sacrifices a creature" {
+  battlefield A: 2 "Swamp", 2 "Wastes"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bearer of Silence"
+  turn 1 A: cast "Bearer of Silence"
+  turn 1 A: trigger "Bearer of Silence" targeting player B
+  turn 1 A: accept "Bearer of Silence"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Bearer of Silence"
+}
+
+scenario "Bearer of Silence: declined, nothing is sacrificed" {
+  battlefield A: 2 "Swamp", 2 "Wastes"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bearer of Silence"
+  turn 1 A: cast "Bearer of Silence"
+  turn 1 A: trigger "Bearer of Silence" targeting player B
+  turn 1 A: decline "Bearer of Silence"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+# "search your library and/or graveyard for a card named Huatli, Dinosaur
+# Knight, reveal it, then put it into your hand" (Sun-Blessed Mount).
+scenario "Sun-Blessed Mount: Huatli from the library" {
+  battlefield A: 4 "Plains", "Mountain"
+  hand A: "Sun-Blessed Mount"
+  library A: "Island", "Huatli, Dinosaur Knight", "Island"
+  turn 1 A: cast "Sun-Blessed Mount"
+  turn 1 A: accept "Sun-Blessed Mount"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Huatli, Dinosaur Knight"
+  assert library A lacks "Huatli, Dinosaur Knight"
+}
+
+scenario "Sun-Blessed Mount: Huatli from the graveyard" {
+  battlefield A: 4 "Plains", "Mountain"
+  hand A: "Sun-Blessed Mount"
+  graveyard A: "Huatli, Dinosaur Knight"
+  library A: "Island", "Island"
+  turn 1 A: cast "Sun-Blessed Mount"
+  turn 1 A: accept "Sun-Blessed Mount"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Huatli, Dinosaur Knight"
+  assert graveyard A lacks "Huatli, Dinosaur Knight"
+}
+
+scenario "Huatli, Dinosaur Knight: +2 puts two counters on a Dinosaur" {
+  battlefield A: "Huatli, Dinosaur Knight", "Sun-Blessed Mount"
+  turn 1 A: activate "Huatli, Dinosaur Knight" ability 1 targeting "Sun-Blessed Mount"
+  run_to turn 1 postcombat_main
+  assert counters "Sun-Blessed Mount" +1/+1 2
+  assert counters "Huatli, Dinosaur Knight" loyalty 6
+}
+
+scenario "Huatli, Dinosaur Knight: -3, the Dinosaur deals damage equal to its power" {
+  battlefield A: "Huatli, Dinosaur Knight", "Sun-Blessed Mount"
+  battlefield B: "Serra Angel", "Hill Giant"
+  turn 1 A: activate "Huatli, Dinosaur Knight" ability 2 targeting "Sun-Blessed Mount", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Sun-Blessed Mount" 0
+  assert counters "Huatli, Dinosaur Knight" loyalty 1
+}
+
+scenario "Huatli, Dinosaur Knight: -7 pumps Dinosaurs only" {
+  battlefield A: "Huatli, Dinosaur Knight" with 7 loyalty, "Sun-Blessed Mount", "Grizzly Bears"
+  turn 1 A: activate "Huatli, Dinosaur Knight" ability 3
+  run_to turn 1 postcombat_main
+  assert power "Sun-Blessed Mount" 8
+  assert power "Grizzly Bears" 2
+}
+
+# "At the beginning of your upkeep, put a +1/+1 counter on equipped creature
+# if it's blue." (Ring of Evos Isle).
+scenario "Ring of Evos Isle: a blue creature gets a counter" {
+  battlefield A: "Merfolk of the Pearl Trident", "Ring of Evos Isle" on "Merfolk of the Pearl Trident"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert counters "Merfolk of the Pearl Trident" +1/+1 1
+}
+
+scenario "Ring of Evos Isle: a green creature gets none" {
+  battlefield A: "Grizzly Bears", "Ring of Evos Isle" on "Grizzly Bears"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Ring of Evos Isle: {2} gives hexproof" {
+  battlefield A: "Grizzly Bears", "Ring of Evos Isle" on "Grizzly Bears", 2 "Island"
+  turn 1 A: activate "Ring of Evos Isle"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" hexproof
+}
+
+# "If you do, untap all attacking creatures and after this phase, there is
+# an additional combat phase." (Hellkite Charger).
+scenario "Hellkite Charger: paid, an extra combat with the attackers untapped" {
+  battlefield A: "Hellkite Charger", "Grizzly Bears", 7 "Mountain"
+  turn 1 A: attack "Hellkite Charger", "Grizzly Bears"
+  turn 1 A: accept "Hellkite Charger"
+  turn 1 declare_attackers combat 2 A: attack "Hellkite Charger", "Grizzly Bears"
+  turn 1 declare_attackers combat 2 A: decline "Hellkite Charger"
+  run_to turn 1 end
+  # 5 + 2 in each of two combats.
+  assert life B 6
+}
+
+scenario "Hellkite Charger: unpaid, one combat" {
+  battlefield A: "Hellkite Charger", "Grizzly Bears", 7 "Mountain"
+  turn 1 A: attack "Hellkite Charger", "Grizzly Bears"
+  turn 1 A: decline "Hellkite Charger"
+  run_to turn 1 end
+  assert life B 13
+}
+
+scenario "Hostile Desert: a 3/4 that's still a land" {
+  battlefield A: "Hostile Desert", 2 "Wastes"
+  graveyard A: "Forest"
+  turn 1 A: activate "Hostile Desert"
+  run_to turn 1 postcombat_main
+  assert power "Hostile Desert" 3
+  assert toughness "Hostile Desert" 4
+  assert is "Hostile Desert" land
+  assert is "Hostile Desert" Elemental
+  assert exile A contains "Forest"
+}
+
+scenario "Hostile Desert: no land card to exile, no activation" {
+  battlefield A: "Hostile Desert", 2 "Wastes"
+  graveyard A: "Lightning Bolt"
+  illegal turn 1 A: activate "Hostile Desert"
+  run_to turn 1 postcombat_main
+}
+
+# "Enchanted creature is a Demon Spirit." (Oni Possession).
+scenario "Oni Possession: a 5/5 Demon Spirit with trample, no longer a Bear" {
+  battlefield A: "Grizzly Bears", "Oni Possession" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+  assert is "Grizzly Bears" Demon
+  assert is "Grizzly Bears" Spirit
+  assert is not "Grizzly Bears" Bear
+}
+
+scenario "Oni Possession: a creature is sacrificed each upkeep" {
+  battlefield A: "Grizzly Bears", "Llanowar Elves", "Oni Possession" on "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: choose "Llanowar Elves"
+  run_to turn 2 precombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert battlefield A contains "Grizzly Bears"
+}
