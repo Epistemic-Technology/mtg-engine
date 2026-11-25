@@ -1,0 +1,7 @@
+card "Bretagard Stronghold" {
+  oracle_id c792229b-4a0f-48d5-93e5-60bd4cae9c42
+  type Land
+  enters tapped
+  mana {G}
+  activated {G}{W}{W}, {T}, sacrifice this, sorcery: put 1 +1/+1 counter on up to 2 target creature you control; they gain vigilance, lifelink until end of turn
+}

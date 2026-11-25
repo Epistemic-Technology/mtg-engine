@@ -4214,7 +4214,11 @@ creature you control; they gain trample`. After a variable number of
 targets (`distribute 3 +1/+1 counters among 0 to 3 target creatures; they
 gain vigilance until end of turn`), `they` is those targets, as `target
 1` is; so it is after `those targets` (`untap those targets; they gain
-haste until end of turn`, Molten Primordial). In a trigger on one or
+haste until end of turn`, Molten Primordial) and after a counted target
+phrase (`put 1 +1/+1 counter on up to 2 target creature you control; they
+gain vigilance, lifelink until end of turn`: "... on each of up to two
+target creatures you control. They gain ...", Bretagard Stronghold;
+formatted `targets 1 to 2`), while those are the last targets declared. In a trigger on one or
 more creatures attacking (`whenever one or more creatures you control
 attack: they gain indestructible until end of turn`, Angelic Guardian),
 `they` and `those creatures` are the controller's matching attackers. As a count, `count each those

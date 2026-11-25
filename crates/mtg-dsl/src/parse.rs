@@ -17240,6 +17240,13 @@ impl P {
                 count
             };
             let mut out = Vec::new();
+            // "Put a +1/+1 counter on each of up to two target creatures
+            // you control. They gain vigilance and lifelink until end of
+            // turn." (Bretagard Stronghold): a later `they` is these
+            // targets, as after `those targets`.
+            if count > 1 {
+                self.those_targets = Some((self.targets.len(), count as usize));
+            }
             for _ in 0..count {
                 out.push(Recipient::Target(self.targets.len()));
                 self.targets.push(spec.clone());
@@ -18016,6 +18023,7 @@ impl P {
             && !self.at_words(&["they", "control"])
             && !self.group_named
             && let Some((a, n)) = self.those_targets
+            && a + n == self.targets.len()
         {
             self.pos += 1;
             return Ok(Recipient::Targets(a, n));
