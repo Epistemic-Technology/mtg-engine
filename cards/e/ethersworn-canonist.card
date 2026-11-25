@@ -1,0 +1,7 @@
+card "Ethersworn Canonist" {
+  oracle_id ec3471ad-b65c-4e35-a7d1-68da9555a9ec
+  cost {1}{W}
+  type Artifact Creature — Human Cleric
+  pt 2/2
+  each player who has cast nonartifact spell this turn can't cast additional
+}

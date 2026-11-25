@@ -3792,6 +3792,16 @@ impl GameState {
                     {
                         spells
                     }
+                    // A second matching spell this turn.
+                    crate::card::PlayerStaticKind::CastLimitOf { players, spells }
+                        if self.rule_players_include(players, who, src, p) =>
+                    {
+                        return self.printed_matches(spells, def, src)
+                            && self
+                                .cast_this_turn
+                                .iter()
+                                .any(|(q, d)| *q == p && self.printed_matches(spells, *d, src));
+                    }
                     _ => return false,
                 };
                 self.printed_matches(spells, def, src)

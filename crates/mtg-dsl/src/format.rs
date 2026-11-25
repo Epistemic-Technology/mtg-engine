@@ -10174,6 +10174,27 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 lock_zones_words(*zones, "or")
             );
         }
+        Ability::CastLimitOf {
+            players,
+            filter: f,
+            additional: true,
+        } if *players == mtg_core::card::RulePlayers::Each => {
+            let _ = writeln!(
+                out,
+                "{indent}each player who has cast {} spell this turn can't cast additional",
+                filter(f)
+            );
+        }
+        Ability::CastLimitOf {
+            players, filter: f, ..
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}{} can't cast more than one {} spell each turn",
+                rule_players_word(*players),
+                filter(f)
+            );
+        }
         Ability::CantCastBy { players, filter: f } => {
             let what = if *f == Filter::default() {
                 "spell".to_string()
@@ -10237,6 +10258,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                K::CastLimitOf { .. } => unreachable!("Ability::CastLimitOf"),
                 K::CantEnterFrom { .. } => unreachable!("Ability::CantEnterFrom"),
                 K::CantCastFrom { .. } => unreachable!("Ability::CantCastFrom"),
                 K::CantPlayLands(ps) => format!("{} can't play lands", cant_players_word(*ps)),

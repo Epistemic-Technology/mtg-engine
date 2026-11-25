@@ -25055,6 +25055,32 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 crate::format::lock_zones_words(*zones, "or")
             )
         }
+        // "Each player can't cast more than one noncreature spell each
+        // turn." (CR 101.2).
+        Ability::CastLimitOf {
+            players,
+            filter,
+            additional,
+        } => {
+            let s = spells_subject(filter, card);
+            let mut cs = s.chars();
+            let lower = cs.next().map_or_else(String::new, |c| {
+                c.to_lowercase().chain(cs).collect::<String>()
+            });
+            let one = lower.strip_suffix(" spells").unwrap_or(&lower);
+            if *additional {
+                format!(
+                    "{} who has cast {} spell this turn can't cast additional {lower}.",
+                    capitalize(rule_players_text(*players, false)),
+                    with_article(one)
+                )
+            } else {
+                format!(
+                    "{} can't cast more than one {one} spell each turn.",
+                    capitalize(rule_players_text(*players, false))
+                )
+            }
+        }
         // "You can't cast noncreature spells." (CR 601.2).
         Ability::CantCastBy { players, filter } => {
             let s = spells_subject(filter, card);
@@ -25137,6 +25163,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                K::CastLimitOf { .. } => unreachable!("Ability::CastLimitOf"),
                 K::CantEnterFrom { .. } => unreachable!("Ability::CantEnterFrom"),
                 K::CantCastFrom { .. } => unreachable!("Ability::CantCastFrom"),
                 // CR 305.1.

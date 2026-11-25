@@ -1,0 +1,71 @@
+# Spell limits with a spell filter (CR 101.2): "Each player can't cast
+# more than one noncreature spell each turn.", "Each player who has cast a
+# nonartifact spell this turn can't cast additional nonartifact spells."
+# Spells outside the filter don't count and aren't limited.
+
+scenario "Ethersworn Canonist: after a nonartifact spell, no second one; an artifact is fine" {
+  battlefield A: "Ethersworn Canonist", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt", "Ornithopter"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Ornithopter"
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "Ethersworn Canonist: an artifact first doesn't use the one nonartifact spell" {
+  battlefield A: "Ethersworn Canonist", 2 "Mountain"
+  hand A: "Ornithopter", "Shock"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Ethersworn Canonist: each player is counted on their own" {
+  battlefield A: "Ethersworn Canonist", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Shock"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 17
+}
+
+scenario "Deafening Silence: one noncreature spell each turn; creature spells aren't limited" {
+  battlefield A: "Deafening Silence", 4 "Mountain"
+  hand A: "Shock", "Lightning Bolt", "Goblin Piker", "Raging Goblin"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "Deafening Silence: the next turn, a noncreature spell again" {
+  battlefield A: "Deafening Silence", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Phyrexian Censor: one non-Phyrexian spell; non-Phyrexian creatures enter tapped" {
+  battlefield A: "Phyrexian Censor", 3 "Mountain"
+  hand A: "Raging Goblin", "Shock"
+  turn 1 A: cast "Raging Goblin"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert tapped "Raging Goblin"
+  assert life B 20
+}

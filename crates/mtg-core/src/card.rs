@@ -7859,6 +7859,12 @@ pub enum PlayerStaticKind {
     /// can't ...", "Enchanted player can't ..." (CR 101.2): those players
     /// may cast no spell once they have cast one this turn.
     CastLimit(RulePlayers),
+    /// "Each player can't cast more than one noncreature spell each
+    /// turn.", "Each player who has cast a nonartifact spell this turn
+    /// can't cast additional nonartifact spells." (CR 101.2): those
+    /// players may cast no spell matching the pooled filter `spells` once
+    /// they have cast one this turn (judged by printed characteristics).
+    CastLimitOf { players: RulePlayers, spells: u16 },
     /// "Each player can't draw more than one card each turn.", "Each
     /// opponent can't ..." (CR 101.2, 121.1): a draw beyond the first in a
     /// turn doesn't happen.

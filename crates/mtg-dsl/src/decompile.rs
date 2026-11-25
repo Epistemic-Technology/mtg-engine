@@ -3425,6 +3425,14 @@ impl Decompiler<'_> {
                 zones: *zones,
             },
             AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CastLimitOf { players, spells },
+                ..
+            } => Ability::CastLimitOf {
+                players: *players,
+                filter: self.filter(self.pool.filter(*spells)),
+                additional: false,
+            },
+            AbilityDef::PlayerStatic {
                 kind: mtg_core::card::PlayerStaticKind::CantCastBy { players, spells },
                 ..
             } => Ability::CantCastBy {

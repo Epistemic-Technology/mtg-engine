@@ -2329,6 +2329,17 @@ pub enum Ability {
         players: mtg_core::card::RulePlayers,
         filter: Filter,
     },
+    /// `each player can't cast more than one noncreature spell each turn`
+    /// (Deafening Silence); `each player who has cast nonartifact spell
+    /// this turn can't cast additional` ("Each player who has cast a
+    /// nonartifact spell this turn can't cast additional nonartifact
+    /// spells.", Ethersworn Canonist; `additional` is the wording)
+    /// (`PlayerStaticKind::CastLimitOf`).
+    CastLimitOf {
+        players: mtg_core::card::RulePlayers,
+        filter: Filter,
+        additional: bool,
+    },
     /// `ban entering creature from graveyards and libraries`: "Creature
     /// cards in graveyards and libraries can't enter the battlefield."
     /// (`PlayerStaticKind::CantEnterFrom`).

@@ -3078,6 +3078,21 @@ impl P {
                 use mtg_core::card::PlayerStaticKind as K;
                 let (players, n) = self.rule_players_ahead().expect("checked");
                 self.pos += n;
+                // "Each player can't cast more than one noncreature spell
+                // each turn." (Deafening Silence).
+                if self.at_words(&["cast", "more", "than", "one"])
+                    && self.word_at(4).as_deref() != Some("spell")
+                {
+                    self.pos += 4;
+                    let filter = self.filter()?;
+                    self.expect_words(&["spell", "each", "turn"])?;
+                    self.end_stmt()?;
+                    return Ok(Ability::CastLimitOf {
+                        players,
+                        filter,
+                        additional: false,
+                    });
+                }
                 let kind = if self
                     .eat_words(&["cast", "more", "than", "one", "spell", "each", "turn"])
                 {
@@ -3089,6 +3104,19 @@ impl P {
                     K::CantGainLife(players)
                 };
                 self.player_static(kind)
+            }
+            // "Each player who has cast a nonartifact spell this turn can't
+            // cast additional nonartifact spells." (Ethersworn Canonist).
+            "each" if self.at_words(&["each", "player", "who", "has", "cast"]) => {
+                self.pos += 5;
+                let filter = self.filter()?;
+                self.expect_words(&["spell", "this", "turn", "can't", "cast", "additional"])?;
+                self.end_stmt()?;
+                Ok(Ability::CastLimitOf {
+                    players: mtg_core::card::RulePlayers::Each,
+                    filter,
+                    additional: true,
+                })
             }
             // The "legend rule" (CR 704.5j).
             "legend" if self.at_words(&["legend", "rule", "doesn't", "apply"]) => {

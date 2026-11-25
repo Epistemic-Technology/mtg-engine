@@ -7935,6 +7935,18 @@ impl Compiler<'_> {
                     condition: None,
                 }
             }
+            Ability::CastLimitOf {
+                players, filter, ..
+            } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CastLimitOf {
+                        players: *players,
+                        spells: self.pool.intern_filter(f),
+                    },
+                    condition: None,
+                }
+            }
             Ability::CantCastBy { players, filter } => {
                 let f = self.filter(filter);
                 AbilityDef::PlayerStatic {
