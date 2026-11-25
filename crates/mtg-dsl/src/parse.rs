@@ -22430,6 +22430,21 @@ impl P {
             }
             break;
         }
+        // "Sacrifice a black creature, a red creature, and a green
+        // creature" (Dragon's Herald): a cost holds one permanent part
+        // (sacrifice, tap, return, or exile a permanent); a second would
+        // replace the first.
+        if cost
+            .order
+            .iter()
+            .filter(|i| matches!(i, CostItem::Sacrifice))
+            .count()
+            > 1
+        {
+            return self.fail(
+                "a cost sacrifices, taps, returns, or exiles permanents of one filter only (`sacrifice 3 Goblin`)",
+            );
+        }
         cost.mana = ManaCost::parse(&mana).map_err(|e| ParseError {
             line: self.line(),
             message: e.to_string(),

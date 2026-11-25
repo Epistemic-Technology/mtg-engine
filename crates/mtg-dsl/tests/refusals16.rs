@@ -30,6 +30,23 @@ fn a_buyback_cost_sacrifices_one_permanent() {
 }
 
 #[test]
+fn a_cost_sacrifices_permanents_of_one_filter() {
+    // "Sacrifice a black creature, a red creature, and a green creature"
+    // (Dragon's Herald) kept only the last filter.
+    let e = load_card(
+        "Creature — Goblin\n  pt 1/1",
+        "activated {T}, sacrifice black creature, sacrifice red creature: you draw 1 card",
+    )
+    .unwrap_err();
+    assert!(e.contains("one filter"), "{e}");
+    let r = load_card(
+        "Creature — Goblin\n  pt 1/1",
+        "activated {T}, sacrifice 2 red creature: you draw 1 card",
+    );
+    assert!(r.is_ok(), "{r:?}");
+}
+
+#[test]
 fn a_delayed_ability_reads_the_values_of_the_target_it_is_about() {
     // "where X is that spell's mana value" in a delayed trigger about the
     // source read the delayed ability's own (missing) target: 0.

@@ -356,7 +356,8 @@ one line per paragraph for text that spans paragraphs:
 
 Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
-a matching permanent they control), `sacrifice granter`, `tap granter`,
+a matching permanent they control; a cost has one such part, so
+`sacrifice black creature, sacrifice red creature` is an error), `sacrifice granter`, `tap granter`,
 `unattach granter` (in a quoted ability an Aura or Equipment grants:
 "Sacrifice Blazing Torch", "Tap Fishing Pole", "Unattach Leonin Bola",
 see `has ability`), `discard 1 card`, `discard 1 card
