@@ -7881,6 +7881,16 @@ pub enum PlayerStaticKind {
     /// "You can't play lands." (CR 305.1, 101.2): those players may not
     /// play lands.
     CantPlayLands(RulePlayers),
+    /// "Creature cards in graveyards and libraries can't enter the
+    /// battlefield." (Grafdigger's Cage, CR 101.2): a card matching the
+    /// pooled filter `cards` (by its printed characteristics) in one of
+    /// the `zones` stays where it is instead of entering.
+    CantEnterFrom { cards: u16, zones: LockZones },
+    /// "Players can't cast spells from graveyards or libraries.",
+    /// "Players can't cast noncreature spells from graveyards or exile."
+    /// (CR 601.2): no player may cast a spell matching the pooled filter
+    /// `spells` from one of the `zones`.
+    CantCastFrom { spells: u16, zones: LockZones },
     /// Permanents can't be turned face up (CR 702.37e, 708.7): "As long as
     /// enchanted creature is face down, it can't be turned face up.",
     /// "Permanents your opponents control can't be turned face up during
@@ -7897,6 +7907,28 @@ pub enum PlayerStaticKind {
         during: SilenceWhen,
         activate: ActivateBan,
     },
+}
+
+/// The zones a graveyard lock names (`PlayerStaticKind::CantEnterFrom`,
+/// `CantCastFrom`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct LockZones {
+    pub graveyard: bool,
+    pub library: bool,
+    pub exile: bool,
+}
+
+impl LockZones {
+    /// Whether `z` is one of these zones.
+    #[must_use]
+    pub fn has(self, z: crate::state::Zone) -> bool {
+        match z {
+            crate::state::Zone::Graveyard => self.graveyard,
+            crate::state::Zone::Library => self.library,
+            crate::state::Zone::Exile => self.exile,
+            _ => false,
+        }
+    }
 }
 
 /// When a `PlayerStaticKind::Silence` applies.
@@ -8220,6 +8252,9 @@ pub enum RuleKind {
     /// "Players can't draw cards or gain life." (Mornsong Aria): `NoDraw`
     /// and `NoLifeGain` both.
     NoDrawOrLifeGain,
+    /// "Players can't search libraries." (Mindlock Orb, CR 701.19): a
+    /// library search finds nothing; a "then shuffle" still shuffles.
+    NoSearch,
 }
 
 /// A "can't" effect on certain players until end of turn (CR 614.17):

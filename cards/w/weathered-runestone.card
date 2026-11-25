@@ -1,0 +1,7 @@
+card "Weathered Runestone" {
+  oracle_id 4386ae4e-560a-4251-942c-0f84ba7448fa
+  cost {2}
+  type Artifact
+  ban entering nonland permanent card from graveyards and libraries
+  ban casting from graveyards or libraries
+}

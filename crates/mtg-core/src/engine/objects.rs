@@ -50,6 +50,14 @@ impl GameState {
                 controller,
                 mut enter,
             } => {
+                // "Creature cards in graveyards and libraries can't enter
+                // the battlefield." (Grafdigger's Cage): it stays put.
+                if to == Zone::Battlefield
+                    && self.player_static_sources > 0
+                    && self.enter_banned(obj)
+                {
+                    return None;
+                }
                 // "Lands you control enter untapped." (Spelunking).
                 if enter.tapped
                     && to == Zone::Battlefield

@@ -7911,6 +7911,26 @@ impl Compiler<'_> {
                     condition: None,
                 }
             }
+            Ability::CantEnterFrom { filter, zones } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CantEnterFrom {
+                        cards: self.pool.intern_filter(f),
+                        zones: *zones,
+                    },
+                    condition: None,
+                }
+            }
+            Ability::CantCastFrom { filter, zones } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CantCastFrom {
+                        spells: self.pool.intern_filter(f),
+                        zones: *zones,
+                    },
+                    condition: None,
+                }
+            }
             Ability::CantCastBy { players, filter } => {
                 let f = self.filter(filter);
                 AbilityDef::PlayerStatic {

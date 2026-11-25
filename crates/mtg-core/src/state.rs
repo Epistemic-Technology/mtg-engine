@@ -3794,29 +3794,66 @@ impl GameState {
                     }
                     _ => return false,
                 };
-                let f = self.with_source_chosen_filter(self.pool.filter(spells), src);
-                let d = self.pool.get(def);
-                let c = self.printed(def);
-                // The mana value from the printed cost (X is 0 off the
-                // stack, CR 202.3e); the filter's other alternatives whole.
-                let side = |g: &crate::card::ObjFilter| {
-                    g.matches_characteristics(&c)
-                        && g.mana_value.is_none_or(|(cmp, n)| {
-                            cmp.holds(d.mana_cost.mana_value(), u32::from(n))
-                        })
-                };
-                let mut alt = Some(&*f);
-                let mut any = false;
-                while let Some(g) = alt {
-                    let mut one = g.clone();
-                    one.or = None;
-                    if side(&one) {
-                        any = true;
-                        break;
-                    }
-                    alt = g.or.as_deref();
-                }
-                any
+                self.printed_matches(spells, def, src)
+            })
+    }
+
+    /// Whether card `def`'s printed characteristics match the pooled
+    /// filter `spells`, with source `src`'s choices filled in (a ban's
+    /// filter: the mana value from the printed cost, X as 0 off the stack,
+    /// CR 202.3e; the filter's other alternatives whole).
+    fn printed_matches(&self, spells: u16, def: crate::card::CardRef, src: ObjId) -> bool {
+        let f = self.with_source_chosen_filter(self.pool.filter(spells), src);
+        let d = self.pool.get(def);
+        let c = self.printed(def);
+        let side = |g: &crate::card::ObjFilter| {
+            g.matches_characteristics(&c)
+                && g.mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(d.mana_cost.mana_value(), u32::from(n)))
+        };
+        let mut alt = Some(&*f);
+        while let Some(g) = alt {
+            let mut one = g.clone();
+            one.or = None;
+            if side(&one) {
+                return true;
+            }
+            alt = g.or.as_deref();
+        }
+        false
+    }
+
+    /// Whether card `id` can't enter the battlefield from its zone:
+    /// "Creature cards in graveyards and libraries can't enter the
+    /// battlefield." (`PlayerStaticKind::CantEnterFrom`).
+    pub fn enter_banned(&self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        let zone = o.zone;
+        let def = o.def;
+        matches!(zone, Zone::Graveyard | Zone::Library)
+            && self.player_static_sources > 0
+            && self.player_statics_of().any(|(_, kind, src)| {
+                matches!(kind, crate::card::PlayerStaticKind::CantEnterFrom { cards, zones }
+                    if zones.has(zone) && self.printed_matches(cards, def, src))
+            })
+    }
+
+    /// Whether card `id` can't be cast from the zone it's in: "Players
+    /// can't cast spells from graveyards or libraries."
+    /// (`PlayerStaticKind::CantCastFrom`).
+    pub fn cast_from_banned(&self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        let zone = o.zone;
+        let def = o.def;
+        matches!(zone, Zone::Graveyard | Zone::Library | Zone::Exile)
+            && self.player_static_sources > 0
+            && self.player_statics_of().any(|(_, kind, src)| {
+                matches!(kind, crate::card::PlayerStaticKind::CantCastFrom { spells, zones }
+                    if zones.has(zone) && self.printed_matches(spells, def, src))
             })
     }
 

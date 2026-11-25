@@ -709,6 +709,7 @@ impl GameState {
                             .is_some_and(|f| unplayable(*f))
                     })
                 }
+                Choice::CastFace { card, .. } if self.cast_from_banned(*card) => false,
                 Choice::CastFace { card, face } => !self.objects.get(*card).is_some_and(|o| {
                     self.pool
                         .get(o.def)
@@ -730,7 +731,9 @@ impl GameState {
                 | Choice::CastImpending(id)
                 | Choice::CastHarmonize { card: id, .. } => {
                     !self.objects.get(*id).is_some_and(|o| banned(o.def))
+                        && !self.cast_from_banned(*id)
                 }
+                Choice::CastDisturb(id) if self.cast_from_banned(*id) => false,
                 Choice::CastDisturb(id) => !self.objects.get(*id).is_some_and(|o| {
                     self.pool
                         .get(o.def)
@@ -13771,6 +13774,17 @@ impl GameState {
                         })
                         .collect()
                 };
+                // "Players can't search libraries." (Mindlock Orb): the
+                // library is still shuffled (its rulings).
+                if !*graveyard
+                    && (self.player_static_sources > 0 || !self.rules.is_empty())
+                    && self.rule_in_force(crate::card::RuleKind::NoSearch)
+                {
+                    for p in searchers {
+                        self.shuffle_library(p);
+                    }
+                    return;
+                }
                 for p in searchers {
                     self.search_library(
                         ctx,

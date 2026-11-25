@@ -1,0 +1,7 @@
+card "Grafdigger's Cage" {
+  oracle_id 753cb2b2-24ce-484f-a2d0-be6fd2c67ebd
+  cost {1}
+  type Artifact
+  ban entering creature from graveyards and libraries
+  ban casting from graveyards or libraries
+}

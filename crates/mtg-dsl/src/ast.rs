@@ -2329,6 +2329,21 @@ pub enum Ability {
         players: mtg_core::card::RulePlayers,
         filter: Filter,
     },
+    /// `ban entering creature from graveyards and libraries`: "Creature
+    /// cards in graveyards and libraries can't enter the battlefield."
+    /// (`PlayerStaticKind::CantEnterFrom`).
+    CantEnterFrom {
+        filter: Filter,
+        zones: mtg_core::card::LockZones,
+    },
+    /// `ban casting from graveyards or libraries`, `ban casting
+    /// noncreature from graveyards or exile`: "Players can't cast
+    /// [noncreature] spells from graveyards or libraries."
+    /// (`PlayerStaticKind::CantCastFrom`).
+    CantCastFrom {
+        filter: Filter,
+        zones: mtg_core::card::LockZones,
+    },
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,

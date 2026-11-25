@@ -15867,6 +15867,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Rule(RuleKind::NoDraw) => {
             Clause::imperative("players can't draw cards this turn".to_string())
         }
+        Effect::Rule(RuleKind::NoSearch) => {
+            Clause::imperative("players can't search libraries this turn".to_string())
+        }
         Effect::Rule(RuleKind::NoDrawOrLifeGain) => {
             Clause::imperative("players can't draw cards or gain life this turn".to_string())
         }
@@ -25021,6 +25024,25 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         ),
         // "Noncreature spells with mana value equal to the chosen number
         // can't be cast." (CR 601.2).
+        // "Creature cards in graveyards and libraries can't enter the
+        // battlefield." (Grafdigger's Cage).
+        Ability::CantEnterFrom { filter, zones } => format!(
+            "{} cards in {} can't enter the battlefield.",
+            capitalize(&card_filter_phrase(filter, card)),
+            crate::format::lock_zones_words(*zones, "and")
+        ),
+        // "Players can't cast spells from graveyards or libraries."
+        Ability::CantCastFrom { filter, zones } => {
+            let s = spells_subject(filter, card);
+            let mut cs = s.chars();
+            let lower = cs.next().map_or_else(String::new, |c| {
+                c.to_lowercase().chain(cs).collect::<String>()
+            });
+            format!(
+                "Players can't cast {lower} from {}.",
+                crate::format::lock_zones_words(*zones, "or")
+            )
+        }
         // "You can't cast noncreature spells." (CR 601.2).
         Ability::CantCastBy { players, filter } => {
             let s = spells_subject(filter, card);
@@ -25103,6 +25125,8 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                K::CantEnterFrom { .. } => unreachable!("Ability::CantEnterFrom"),
+                K::CantCastFrom { .. } => unreachable!("Ability::CantCastFrom"),
                 // CR 305.1.
                 K::CantPlayLands(ps) => format!("{} can't play lands", rule_players_subject(*ps)),
                 K::Hexproof => "you have hexproof".to_string(),
@@ -25176,6 +25200,9 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     "cards in graveyards can't be the targets of spells or abilities".to_string()
                 }
                 K::Rule(mtg_core::card::RuleKind::NoDraw) => "players can't draw cards".to_string(),
+                K::Rule(mtg_core::card::RuleKind::NoSearch) => {
+                    "players can't search libraries".to_string()
+                }
                 K::Rule(mtg_core::card::RuleKind::NoDrawOrLifeGain) => {
                     "players can't draw cards or gain life".to_string()
                 }

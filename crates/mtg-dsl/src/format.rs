@@ -4756,6 +4756,9 @@ impl Fmt {
             },
             Effect::Rule(RuleKind::NoLifeGain) => "players can't gain life this turn".to_string(),
             Effect::Rule(RuleKind::NoDraw) => "players can't draw cards this turn".to_string(),
+            Effect::Rule(RuleKind::NoSearch) => {
+                "players can't search libraries this turn".to_string()
+            }
             Effect::Rule(RuleKind::NoDrawOrLifeGain) => {
                 "players can't draw cards or gain life this turn".to_string()
             }
@@ -4899,6 +4902,21 @@ fn ward_alts(alts: &[crate::ast::WardAlt]) -> String {
 
 /// `you`, `opponents`, `players`, `enchanted player` for a player-level
 /// "can't" (`RulePlayers`).
+/// "graveyards and libraries", "graveyards or exile" (`LockZones`).
+pub(crate) fn lock_zones_words(z: mtg_core::card::LockZones, join: &str) -> String {
+    let mut v = Vec::new();
+    if z.graveyard {
+        v.push("graveyards");
+    }
+    if z.library {
+        v.push("libraries");
+    }
+    if z.exile {
+        v.push("exile");
+    }
+    v.join(&format!(" {join} "))
+}
+
 fn cant_players_word(ps: mtg_core::card::RulePlayers) -> &'static str {
     match ps {
         mtg_core::card::RulePlayers::You => "you",
@@ -10132,6 +10150,26 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::CantBeCast(f) => {
             let _ = writeln!(out, "{indent}ban casting {}", filter(f));
         }
+        Ability::CantEnterFrom { filter: f, zones } => {
+            let _ = writeln!(
+                out,
+                "{indent}ban entering {} from {}",
+                filter(f),
+                lock_zones_words(*zones, "and")
+            );
+        }
+        Ability::CantCastFrom { filter: f, zones } => {
+            let what = if *f == Filter::default() {
+                String::new()
+            } else {
+                format!("{} ", filter(f))
+            };
+            let _ = writeln!(
+                out,
+                "{indent}ban casting {what}from {}",
+                lock_zones_words(*zones, "or")
+            );
+        }
         Ability::CantCastBy { players, filter: f } => {
             let what = if *f == Filter::default() {
                 "spell".to_string()
@@ -10195,6 +10233,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
                 K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                K::CantEnterFrom { .. } => unreachable!("Ability::CantEnterFrom"),
+                K::CantCastFrom { .. } => unreachable!("Ability::CantCastFrom"),
                 K::CantPlayLands(ps) => format!("{} can't play lands", cant_players_word(*ps)),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
@@ -10248,6 +10288,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "graveyard cards can't be targeted".to_string()
                 }
                 K::Rule(mtg_core::card::RuleKind::NoDraw) => "players can't draw cards".to_string(),
+                K::Rule(mtg_core::card::RuleKind::NoSearch) => {
+                    "players can't search libraries".to_string()
+                }
                 K::Rule(mtg_core::card::RuleKind::NoDrawOrLifeGain) => {
                     "players can't draw cards or gain life".to_string()
                 }

@@ -3409,6 +3409,20 @@ impl Decompiler<'_> {
                 ..
             } => Ability::CantBeCast(self.filter(self.pool.filter(*spells))),
             AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CantEnterFrom { cards, zones },
+                ..
+            } => Ability::CantEnterFrom {
+                filter: self.filter(self.pool.filter(*cards)),
+                zones: *zones,
+            },
+            AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CantCastFrom { spells, zones },
+                ..
+            } => Ability::CantCastFrom {
+                filter: self.filter(self.pool.filter(*spells)),
+                zones: *zones,
+            },
+            AbilityDef::PlayerStatic {
                 kind: mtg_core::card::PlayerStaticKind::CantCastBy { players, spells },
                 ..
             } => Ability::CantCastBy {

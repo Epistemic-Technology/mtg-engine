@@ -2642,6 +2642,26 @@ impl P {
 
     /// The rest of a player-level static ability: an optional `as long as
     /// <condition>`.
+    /// `graveyards and libraries`, `graveyards or exile`
+    /// (`LockZones`).
+    fn lock_zones(&mut self) -> R<mtg_core::card::LockZones> {
+        let mut z = mtg_core::card::LockZones::default();
+        loop {
+            if self.eat_word("graveyards") {
+                z.graveyard = true;
+            } else if self.eat_word("libraries") {
+                z.library = true;
+            } else if self.eat_word("exile") {
+                z.exile = true;
+            } else {
+                return self.unexpected("`graveyards`, `libraries` or `exile`");
+            }
+            if !self.eat_word("and") && !self.eat_word("or") {
+                return Ok(z);
+            }
+        }
+    }
+
     fn player_static(&mut self, kind: mtg_core::card::PlayerStaticKind) -> R<Ability> {
         let cond = if self.eat_words(&["as", "long", "as"]) {
             Some(self.static_cond()?)
@@ -3110,9 +3130,34 @@ impl P {
             // number can't be cast."
             "ban" if self.at_words(&["ban", "casting"]) => {
                 self.pos += 2;
-                let filter = self.filter()?;
+                // "Players can't cast spells from graveyards or
+                // libraries." (Grafdigger's Cage).
+                let filter = if self.at_word("from") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                if self.eat_word("from") {
+                    let zones = self.lock_zones()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::CantCastFrom { filter, zones });
+                }
                 self.end_stmt()?;
                 Ok(Ability::CantBeCast(filter))
+            }
+            // "Creature cards in graveyards and libraries can't enter the
+            // battlefield."
+            "ban" if self.at_words(&["ban", "entering"]) => {
+                self.pos += 2;
+                let filter = self.filter()?;
+                // `permanent card`: the filter leaves `card`.
+                if !self.eat_word("card") {
+                    self.eat_word("cards");
+                }
+                self.expect_word("from")?;
+                let zones = self.lock_zones()?;
+                self.end_stmt()?;
+                Ok(Ability::CantEnterFrom { filter, zones })
             }
             "ban" if self.at_words(&["ban", "attacking", "you"]) => {
                 self.pos += 3;
@@ -3132,6 +3177,12 @@ impl P {
                 self.pos += 4;
                 self.player_static(mtg_core::card::PlayerStaticKind::Rule(
                     mtg_core::card::RuleKind::NoLifeGain,
+                ))
+            }
+            "players" if self.at_words(&["players", "can't", "search", "libraries"]) => {
+                self.pos += 4;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::NoSearch,
                 ))
             }
             // "Cards in graveyards can't be the targets of spells or
@@ -15798,6 +15849,8 @@ impl P {
                     } else {
                         RuleKind::NoDraw
                     }
+                } else if self.eat_words(&["search", "libraries"]) {
+                    RuleKind::NoSearch
                 } else {
                     self.expect_words(&["gain", "life"])?;
                     RuleKind::NoLifeGain

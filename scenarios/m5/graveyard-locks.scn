@@ -1,0 +1,152 @@
+# Graveyard and library locks (CR 101.2): "Creature cards in graveyards and
+# libraries can't enter the battlefield." (the card stays where it is),
+# "Players can't cast spells from graveyards or libraries.", "Players
+# can't search libraries." (the library is still shuffled).
+
+scenario "Grafdigger's Cage: Zombify returns nothing; the creature card stays in the graveyard" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grafdigger's Cage"
+  graveyard A: "Hill Giant"
+  hand A: "Zombify"
+  turn 1 A: cast "Zombify" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "Grafdigger's Cage: a creature found by Green Sun's Zenith stays in the library" {
+  battlefield A: 3 "Forest", "Grafdigger's Cage"
+  hand A: "Green Sun's Zenith"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Green Sun's Zenith" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Grafdigger's Cage: a basic land from the library still enters" {
+  battlefield A: 2 "Forest", "Grafdigger's Cage"
+  hand A: "Rampant Growth"
+  library A: "Plains", "Island"
+  turn 1 A: cast "Rampant Growth"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+}
+
+scenario "Grafdigger's Cage: no flashback from the graveyard" {
+  battlefield A: 3 "Island", "Grafdigger's Cage"
+  graveyard A: "Think Twice"
+  illegal turn 1 A: cast "Think Twice" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Think Twice"
+}
+
+scenario "Grafdigger's Cage: without it, Zombify works" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Zombify"
+  turn 1 A: cast "Zombify" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Kunoros, Hound of Athreos: Unearth returns nothing; no flashback" {
+  battlefield A: "Swamp", 3 "Island"
+  battlefield B: "Kunoros, Hound of Athreos"
+  graveyard A: "Grizzly Bears", "Think Twice"
+  hand A: "Unearth"
+  illegal turn 1 A: cast "Think Twice" from graveyard
+  turn 1 A: cast "Unearth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Think Twice"
+}
+
+scenario "Kunoros, Hound of Athreos: a creature from the library still enters" {
+  battlefield A: 3 "Forest", "Kunoros, Hound of Athreos"
+  hand A: "Green Sun's Zenith"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Green Sun's Zenith" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Soulless Jailer: a permanent card in a graveyard can't enter; noncreature spells can't be cast from it" {
+  battlefield A: "Swamp", 3 "Island"
+  battlefield B: "Soulless Jailer"
+  graveyard A: "Grizzly Bears", "Think Twice"
+  hand A: "Unearth"
+  illegal turn 1 A: cast "Think Twice" from graveyard
+  turn 1 A: cast "Unearth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Soulless Jailer: a creature card from the library still enters" {
+  battlefield A: 3 "Forest", "Soulless Jailer"
+  hand A: "Green Sun's Zenith"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Green Sun's Zenith" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Weathered Runestone: a nonland permanent card in a library can't enter; a land can" {
+  battlefield A: 5 "Forest", "Weathered Runestone"
+  hand A: "Green Sun's Zenith", "Rampant Growth"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: cast "Green Sun's Zenith" x 2
+  turn 1 A: cast "Rampant Growth"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield A contains "Plains"
+}
+
+scenario "Weathered Runestone: no flashback" {
+  battlefield A: 3 "Island", "Weathered Runestone"
+  graveyard A: "Think Twice"
+  illegal turn 1 A: cast "Think Twice" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Think Twice"
+}
+
+scenario "Mindlock Orb: Rampant Growth finds nothing" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Mindlock Orb"
+  hand A: "Rampant Growth"
+  library A: "Plains", "Island"
+  turn 1 A: cast "Rampant Growth"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 2
+  assert library A count 2
+}
+
+scenario "Shadow of Doubt: in response, the search finds nothing; draw a card" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Island", "Swamp"
+  hand A: "Rampant Growth"
+  hand B: "Shadow of Doubt"
+  library A: "Plains", "Island"
+  library B: "Mountain"
+  turn 1 A: cast "Rampant Growth"
+  turn 1 B: cast "Shadow of Doubt"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 2
+  assert hand B contains "Mountain"
+}
+
+scenario "Shadow of Doubt: only this turn" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Island", "Swamp"
+  hand A: "Rampant Growth"
+  hand B: "Shadow of Doubt"
+  library A: "Wastes", "Plains", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shadow of Doubt"
+  turn 3 A: cast "Rampant Growth"
+  turn 3 A: choose "Plains"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Plains"
+}
