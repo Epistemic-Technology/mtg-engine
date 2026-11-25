@@ -1959,7 +1959,9 @@ impl Templates {
             // "When this creature dies, destroy all permanents at the
             // beginning of the next end step." (Bearer of the Heavens).
             (
-                r(r"^[Dd]estroy all (permanents|creatures|lands|artifacts) at the beginning of the next end step$"),
+                r(
+                    r"^[Dd]estroy all (permanents|creatures|lands|artifacts) at the beginning of the next end step$",
+                ),
                 |c, _| {
                     Some(format!(
                         "delayed this: destroy every {} at beginning of the next end step",
@@ -2264,7 +2266,11 @@ impl Templates {
                             if *t < before + 2 {
                                 return None;
                             }
-                            format!("{} each", who.replacen("two ", "2 ", 1).replace("creatures", "creature"))
+                            format!(
+                                "{} each",
+                                who.replacen("two ", "2 ", 1)
+                                    .replace("creatures", "creature")
+                            )
                         }
                         _ => all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?),
                     };
@@ -10115,8 +10121,7 @@ fn corpus_recombine(corpus: &[Card], line: &str) -> Option<String> {
         let mut lines: Vec<(&String, &String)> = corpus_lines(corpus).iter().collect();
         lines.sort();
         for (l, st) in lines {
-            let (Some((trigger, oh, ob)), Some((dh, db))) = (oracle_split(l), dsl_split(st))
-            else {
+            let (Some((trigger, oh, ob)), Some((dh, db))) = (oracle_split(l), dsl_split(st)) else {
                 continue;
             };
             // The DSL's head is a trigger exactly when Oracle's is. A head
@@ -10152,13 +10157,16 @@ fn corpus_recombine(corpus: &[Card], line: &str) -> Option<String> {
         return None;
     }
     let put_in = |parts: &Parts, ours: &str| -> Option<String> {
-        parts.get(&line_shape(ours).0)?.iter().find_map(|(theirs, dsl)| {
-            if theirs == ours {
-                Some(dsl.clone())
-            } else {
-                numbers_into(theirs, dsl, ours)
-            }
-        })
+        parts
+            .get(&line_shape(ours).0)?
+            .iter()
+            .find_map(|(theirs, dsl)| {
+                if theirs == ours {
+                    Some(dsl.clone())
+                } else {
+                    numbers_into(theirs, dsl, ours)
+                }
+            })
     };
     let head = put_in(heads, oh)?;
     let body = put_in(bodies, &lowercase_first(ob))?;
