@@ -6648,6 +6648,33 @@ pub fn natural_when(t: &Trigger) -> bool {
         )
 }
 
+/// "source [you control] [other than this]", the subject of a
+/// `SourceDealsDamage` trigger written "a source"; `this` names the source.
+pub fn source_words(from: &Filter, this: &str) -> String {
+    let who = match from.who {
+        Some(Who::You) => " you control",
+        Some(Who::Opponents) => " an opponent controls",
+        _ => "",
+    };
+    let other = if from.relation == mtg_core::card::Relation::Other {
+        format!(" other than {this}")
+    } else {
+        String::new()
+    };
+    format!("a source{who}{other}")
+}
+
+/// The damaged player or permanent of a `SourceDealsDamage` trigger.
+pub fn damage_victim_words(to: mtg_core::card::DamageVictim, this: &str) -> String {
+    use mtg_core::card::DamageVictim as V;
+    match to {
+        V::You => "you".to_string(),
+        V::YouOrYours => "you or a permanent you control".to_string(),
+        V::This => this.to_string(),
+        V::Opponent => "an opponent".to_string(),
+    }
+}
+
 /// A keyword-action trigger (`Trigger::Acts`), in the DSL or (`oracle`)
 /// in Oracle text, `this` standing for the source's noun.
 pub fn acts_words(action: mtg_core::card::KeywordAction, oracle: bool) -> String {
@@ -7356,6 +7383,23 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
         Trigger::Acts { action, .. } => acts_words(*action, false),
+        Trigger::SourceDealsDamage {
+            from,
+            source,
+            to,
+            combat,
+        } => {
+            let subject = if *source {
+                source_words(from, "this")
+            } else {
+                trigger_obj(&TriggerObj::Filter(from.clone()))
+            };
+            format!(
+                "whenever {subject} deals {}damage to {}",
+                if *combat { "combat " } else { "" },
+                damage_victim_words(*to, "this")
+            )
+        }
         Trigger::AttacksYou { obj, planeswalkers } => format!(
             "whenever {} attacks you{}",
             trigger_obj(obj),

@@ -1,0 +1,6 @@
+token "2/2 black Phyrexian Zombie creature" {
+  name "Phyrexian Zombie"
+  type Creature — Phyrexian Zombie
+  pt 2/2
+  color black
+}

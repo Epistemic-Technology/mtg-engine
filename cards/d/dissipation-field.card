@@ -1,0 +1,6 @@
+card "Dissipation Field" {
+  oracle_id 35426427-4268-4c8f-9fe1-270f2ce43d97
+  cost {2}{U}{U}
+  type Enchantment
+  triggered whenever permanent deals damage to you: return it to hand
+}

@@ -3068,6 +3068,22 @@ impl Decompiler<'_> {
             },
             TriggerSpec::ScriesOrSurveils => Trigger::ScriesOrSurveils,
             TriggerSpec::Scries => Trigger::Scries,
+            TriggerSpec::SourceDealsDamage { from, to, combat } => {
+                let from = self.filter(from);
+                // "a source": no more than a controller and "other".
+                let source = from
+                    == Filter {
+                        who: from.who,
+                        relation: from.relation,
+                        ..Filter::default()
+                    };
+                Trigger::SourceDealsDamage {
+                    from,
+                    source,
+                    to: *to,
+                    combat: *combat,
+                }
+            }
             TriggerSpec::AttacksYou {
                 what,
                 planeswalkers,

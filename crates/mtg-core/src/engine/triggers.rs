@@ -1692,6 +1692,59 @@ impl GameState {
                 }
             }
             (
+                TriggerSpec::SourceDealsDamage { from, to, combat },
+                Event::Damage {
+                    source,
+                    target,
+                    combat: c,
+                    ..
+                },
+            ) => {
+                if *combat && !*c {
+                    return None;
+                }
+                let damaged = match (to, target) {
+                    (crate::card::DamageVictim::You, Target::Player(p)) => *p == w.controller,
+                    (crate::card::DamageVictim::Opponent, Target::Player(p)) => {
+                        *p != w.controller
+                    }
+                    (crate::card::DamageVictim::This, Target::Object(o)) => *o == w.source,
+                    (crate::card::DamageVictim::YouOrYours, Target::Player(p)) => {
+                        *p == w.controller
+                    }
+                    (crate::card::DamageVictim::YouOrYours, Target::Object(o)) => {
+                        self.objects.get(*o).is_some_and(|o| o.controller == w.controller)
+                    }
+                    _ => false,
+                };
+                if !damaged {
+                    return None;
+                }
+                // The source as it is (a permanent, a spell on the stack)
+                // or as it last existed.
+                let controller = if let (Some(o), Some(ch)) =
+                    (self.objects.get(*source), self.characteristics(*source))
+                {
+                    from.matches(*source, o.controller, &ch, Some(w.source), Some(w.controller))
+                        .then_some(o.controller)?
+                } else {
+                    let l = self.lki.get(source)?;
+                    from.matches(
+                        *source,
+                        l.object.controller,
+                        &l.characteristics,
+                        Some(w.source),
+                        Some(w.controller),
+                    )
+                    .then_some(l.object.controller)?
+                };
+                let player = match (to, target) {
+                    (crate::card::DamageVictim::Opponent, Target::Player(p)) => *p,
+                    _ => controller,
+                };
+                Some((Some(*source), Some(player)))
+            }
+            (
                 TriggerSpec::DealsDamage { what, to, combat },
                 Event::Damage {
                     source,

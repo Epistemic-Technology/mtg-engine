@@ -1,0 +1,7 @@
+card "Nested Ghoul" {
+  oracle_id e60b6b71-eea8-42b3-81e2-c8fb1af5e218
+  cost {3}{B}{B}
+  type Creature — Phyrexian Zombie Warrior
+  pt 4/2
+  triggered whenever source deals damage to this: create 1 "2/2 black Phyrexian Zombie creature"
+}

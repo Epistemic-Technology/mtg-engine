@@ -4980,6 +4980,18 @@ pub enum Trigger {
         obj: TriggerObj,
         planeswalkers: bool,
     },
+    /// `whenever source an opponent controls deals damage to you`,
+    /// `whenever creature deals combat damage to you`, `whenever source
+    /// deals damage to this`, `whenever source you control other than this
+    /// deals damage to an opponent` (`TriggerSpec::SourceDealsDamage`).
+    /// `source`: written "a source" (the filter holds only its controller
+    /// and `other`).
+    SourceDealsDamage {
+        from: Filter,
+        source: bool,
+        to: mtg_core::card::DamageVictim,
+        combat: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

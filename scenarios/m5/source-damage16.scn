@@ -1,0 +1,197 @@
+# Damage triggers with a filtered source (`TriggerSpec::SourceDealsDamage`):
+# "a source an opponent controls deals damage to you", "a creature deals
+# damage to you", "a source deals damage to this creature" with "that
+# source's controller", "a source you control other than this artifact
+# deals damage to an opponent". The source is "it"; its controller is
+# "that player" / "that source's controller".
+
+scenario "Michiko Konda: an opponent's Shock to you makes them sacrifice a permanent" {
+  battlefield A: "Michiko Konda, Truth Seeker"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield B lacks "Mountain"
+}
+
+scenario "Michiko Konda: damage to your creature doesn't trigger" {
+  battlefield A: "Michiko Konda, Truth Seeker", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Mountain"
+}
+
+scenario "Michiko Konda: your own source damaging you doesn't trigger" {
+  battlefield A: "Michiko Konda, Truth Seeker", "Mountain"
+  battlefield B: "Forest"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield A contains "Mountain"
+  assert battlefield A contains "Michiko Konda, Truth Seeker"
+}
+
+scenario "Farsight Mask draws while untapped" {
+  battlefield A: "Farsight Mask"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Farsight Mask doesn't draw while tapped" {
+  battlefield A: "Farsight Mask" tapped
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert life A 18
+}
+
+scenario "Retaliator Griffin gets that many counters" {
+  battlefield A: "Retaliator Griffin"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert counters "Retaliator Griffin" +1/+1 3
+}
+
+scenario "Dread destroys a creature that deals damage to you" {
+  battlefield A: "Dread"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Dread"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Dread ignores a noncreature source" {
+  battlefield A: "Dread"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield B contains "Mountain"
+}
+
+scenario "Dissipation Field returns an attacker that dealt damage to you" {
+  battlefield A: "Dissipation Field"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "Reaper of Sheoldred: the Shock's controller gets a poison counter" {
+  battlefield A: "Reaper of Sheoldred"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Reaper of Sheoldred"
+  run_to turn 2 postcombat_main
+  assert poison B 1
+  assert poison A 0
+}
+
+scenario "Reaper of Sheoldred: its own controller's source poisons them" {
+  battlefield A: "Reaper of Sheoldred", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Reaper of Sheoldred"
+  run_to turn 2 postcombat_main
+  assert poison A 1
+  assert poison B 0
+}
+
+scenario "Phyrexian Obliterator: that source's controller sacrifices that many permanents" {
+  battlefield A: "Phyrexian Obliterator"
+  battlefield B: "Mountain", "Grizzly Bears", "Forest"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Phyrexian Obliterator"
+  run_to turn 2 postcombat_main
+  assert damage "Phyrexian Obliterator" 2
+  assert battlefield B contains 0 "Mountain"
+  assert battlefield B contains 0 "Grizzly Bears"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Belltower Sphinx: the attacker's controller mills that many" {
+  battlefield A: "Belltower Sphinx"
+  battlefield B: "Hill Giant"
+  library B: "Forest", "Island", "Swamp", "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Belltower Sphinx"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Forest"
+  assert graveyard B contains "Island"
+  assert graveyard B contains "Swamp"
+  assert library B contains "Plains"
+  assert graveyard A count 0
+}
+
+scenario "Nested Ghoul makes a Phyrexian Zombie when dealt damage" {
+  battlefield A: "Nested Ghoul"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Nested Ghoul"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Nested Ghoul"
+  assert battlefield A contains "Phyrexian Zombie"
+  assert is "Phyrexian Zombie" black
+  assert power "Phyrexian Zombie" 2
+}
+
+scenario "Talon of Pain counts combat and noncombat damage to an opponent, not to a creature" {
+  battlefield A: "Talon of Pain", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Talon of Pain" charge 2
+  assert life B 16
+}
+
+scenario "Talon of Pain's own damage doesn't charge it" {
+  battlefield A: "Talon of Pain" with 2 charge, 2 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Talon of Pain" x 2 targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert counters "Talon of Pain" charge 0
+}
+
+scenario "Flameblade Angel: damage to a permanent you control, 1 to that source's controller" {
+  battlefield A: "Flameblade Angel", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Grizzly Bears"
+}

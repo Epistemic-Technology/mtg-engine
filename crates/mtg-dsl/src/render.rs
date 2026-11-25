@@ -2381,6 +2381,9 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
                     enchanted_noun(self.card)
+                } else if matches!(self.trigger, Some(Trigger::SourceDealsDamage { .. })) {
+                    // "that source's controller" (Phyrexian Obliterator).
+                    "source"
                 } else if self.trigger_artifact_dies() {
                     // "Whenever another artifact is put into a graveyard
                     // from the battlefield, this artifact deals 2 damage to
@@ -17489,6 +17492,24 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("when {} becomes monstrous", this_ref(ctx.card))
         }
         Trigger::Acts { action, .. } => crate::format::acts_words(*action, true),
+        Trigger::SourceDealsDamage {
+            from,
+            source,
+            to,
+            combat,
+        } => {
+            let this = this_ref(ctx.card);
+            let subject = if *source {
+                crate::format::source_words(from, &this)
+            } else {
+                trigger_subject(&TriggerObj::Filter(from.clone()), ctx)
+            };
+            format!(
+                "whenever {subject} deals {}damage to {}",
+                if *combat { "combat " } else { "" },
+                crate::format::damage_victim_words(*to, &this)
+            )
+        }
         Trigger::AttacksYou { obj, planeswalkers } => format!(
             "whenever {} attacks you{}",
             trigger_subject(obj, ctx),

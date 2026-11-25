@@ -9252,6 +9252,35 @@ pub enum TriggerSpec {
         what: TriggerObj,
         planeswalkers: bool,
     },
+    /// "Whenever a source an opponent controls deals damage to you",
+    /// "Whenever a creature deals damage to you", "Whenever a source deals
+    /// damage to this creature", "Whenever a source you control other than
+    /// this artifact deals damage to an opponent": once per damage event
+    /// (CR 120.3) from a source matching `from` (as it is, or as it last
+    /// existed: a spell, a sacrificed permanent) to `to`; `combat`, combat
+    /// damage only. The source is the triggering object ("it", "that
+    /// source"); the triggering player is the damaged opponent for
+    /// `DamageVictim::Opponent`, else the source's controller ("that
+    /// source's controller", "that player"). The damage is the trigger's
+    /// amount ("that many").
+    SourceDealsDamage {
+        from: ObjFilter,
+        to: DamageVictim,
+        combat: bool,
+    },
+}
+
+/// Who is dealt damage, for `TriggerSpec::SourceDealsDamage`.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum DamageVictim {
+    /// The controller ("you").
+    You,
+    /// "you or a permanent you control".
+    YouOrYours,
+    /// The source of the ability ("this creature").
+    This,
+    /// "an opponent", "another player".
+    Opponent,
 }
 
 /// What a `TriggerSpec::Acts` trigger watches.
@@ -9506,6 +9535,7 @@ impl TriggerSpec {
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. }
+            | TriggerSpec::SourceDealsDamage { .. }
             | TriggerSpec::PlayerDealtDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_)
             | TriggerSpec::TappedForTeamwork(_)

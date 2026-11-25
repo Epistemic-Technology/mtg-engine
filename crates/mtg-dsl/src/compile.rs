@@ -6777,6 +6777,13 @@ impl Compiler<'_> {
             },
             Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
             Trigger::Scries => TriggerSpec::Scries,
+            Trigger::SourceDealsDamage {
+                from, to, combat, ..
+            } => TriggerSpec::SourceDealsDamage {
+                from: self.filter(from),
+                to: *to,
+                combat: *combat,
+            },
             Trigger::AttacksYou { obj, planeswalkers } => TriggerSpec::AttacksYou {
                 what: self.trigger_obj(obj),
                 planeswalkers: *planeswalkers,

@@ -8067,6 +8067,7 @@ impl P {
             || self.at_words(&["triggering", "it"])
             || self.at_words(&["controller", "of", "that", "creature"])
             || self.at_words(&["controller", "of", "that", "artifact"])
+            || self.at_words(&["controller", "of", "that", "source"])
             || self.at_words(&["controller", "of", "enchanted"])
             || self.at_words(&["controller", "of", "granter"])
         {
@@ -17650,7 +17651,8 @@ impl P {
         }
         if self.in_trigger
             && (self.eat_words(&["controller", "of", "that", "creature"])
-                || self.eat_words(&["controller", "of", "that", "artifact"]))
+                || self.eat_words(&["controller", "of", "that", "artifact"])
+                || self.eat_words(&["controller", "of", "that", "source"]))
         {
             return Ok(Recipient::TriggeringController { that: true });
         }
@@ -20810,6 +20812,33 @@ impl P {
                 batch: false,
             });
         }
+        // "a source [you control | an opponent controls] [other than this]
+        // deals [combat] damage to ...".
+        if self.at_word("source") && !self.at_words(&["source", "would"]) {
+            let at = self.pos;
+            self.pos += 1;
+            let mut from = Filter::default();
+            if self.eat_words(&["you", "control"]) {
+                from.who = Some(Who::You);
+            } else if self.eat_words(&["an", "opponent", "controls"]) {
+                from.who = Some(Who::Opponents);
+            }
+            if self.eat_words(&["other", "than", "this"]) {
+                from.relation = Relation::Other;
+            }
+            if self.eat_word("deals") {
+                let combat = self.eat_word("combat");
+                self.expect_word("damage")?;
+                let to = self.damage_victim()?;
+                return Ok(Trigger::SourceDealsDamage {
+                    from,
+                    source: true,
+                    to,
+                    combat,
+                });
+            }
+            self.pos = at;
+        }
         if self.eat_words(&["an", "opponent", "is", "dealt", "noncombat", "damage"]) {
             return Ok(Trigger::NoncombatDamageToOpponent {
                 yours: false,
@@ -21448,6 +21477,26 @@ impl P {
         Ok(first)
     }
 
+    /// Who a `SourceDealsDamage` trigger's damage is dealt to: `to you [or a
+    /// permanent you control]`, `to this`, `to an opponent`.
+    fn damage_victim(&mut self) -> R<mtg_core::card::DamageVictim> {
+        use mtg_core::card::DamageVictim as V;
+        self.expect_word("to")?;
+        if self.eat_word("you") {
+            if self.eat_words(&["or", "a", "permanent", "you", "control"]) {
+                return Ok(V::YouOrYours);
+            }
+            return Ok(V::You);
+        }
+        if self.eat_word("this") {
+            return Ok(V::This);
+        }
+        if self.eat_words(&["an", "opponent"]) {
+            return Ok(V::Opponent);
+        }
+        self.unexpected("`you`, `this`, or `an opponent`")
+    }
+
     /// The event after a trigger's subject: `enters`, `dies`, `attacks`, ...
     #[allow(clippy::too_many_lines)] // one arm per trigger event
     fn trigger_verb(&mut self, obj: TriggerObj, whenever: bool) -> R<Trigger> {
@@ -21638,6 +21687,18 @@ impl P {
                 }
                 let combat = self.eat_word("combat");
                 self.expect_word("damage")?;
+                // "Whenever a creature deals damage to you".
+                if let TriggerObj::Filter(f) = &obj
+                    && self.at_words(&["to", "you"])
+                {
+                    let to = self.damage_victim()?;
+                    return Ok(Trigger::SourceDealsDamage {
+                        from: f.clone(),
+                        source: false,
+                        to,
+                        combat,
+                    });
+                }
                 let to = if self.at_words(&["to", "that", "player"]) {
                     // In a delayed trigger about a player: that player.
                     if self.delayed_player.is_none() {

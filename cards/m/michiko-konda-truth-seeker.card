@@ -1,0 +1,7 @@
+card "Michiko Konda, Truth Seeker" {
+  oracle_id fbe190eb-fd4b-40e7-9a17-48c96b60f653
+  cost {3}{W}
+  type Legendary Creature — Human Advisor
+  pt 2/2
+  triggered whenever source an opponent controls deals damage to you: that player sacrifices 1 permanent
+}

@@ -1,0 +1,8 @@
+card "Phyrexian Obliterator" {
+  oracle_id 41820f91-27cf-41c0-bb5e-9adf6845a6a4
+  cost {B}{B}{B}{B}
+  type Creature — Phyrexian Horror
+  pt 5/5
+  keywords trample
+  triggered whenever source deals damage to this: controller of that source sacrifices that much permanent
+}
