@@ -3510,6 +3510,15 @@ pub enum StaticCond {
     /// `there are 3 or more brick counters on this`: "there are three or
     /// more brick counters on this artifact" (the same condition, worded
     /// from the counters).
+    /// `this has fewer than 3 +1/+1 counters`: "this creature has fewer
+    /// than three +1/+1 counters on it" (Runaway Steam-Kin); `this has
+    /// exactly 4 +1/+1 counters` (`exact`): "it has exactly four +1/+1
+    /// counters on it" (Ayara's Oathsworn).
+    SourceCountersBound {
+        kind: CounterKind,
+        n: u32,
+        exact: bool,
+    },
     SourceCountersThere {
         kind: CounterKind,
         n: u32,
@@ -3585,6 +3594,15 @@ pub enum StaticCond {
         filter: Filter,
         n: u32,
     },
+    /// `you control exactly 13 permanent`: "you control exactly thirteen
+    /// permanents" (Stensia Uprising): at least and at most N.
+    YouControlExactly {
+        filter: Filter,
+        n: u32,
+    },
+    /// `player discarded this turn`: "a player discarded a card this
+    /// turn" (you or any one opponent).
+    PlayerDiscardedThisTurn,
     /// `you control at least 5 other Forest`: "you control at least five
     /// other Forests" (Roiling Canopy; the same condition as `you control
     /// 5 other Forest`).
@@ -3625,6 +3643,10 @@ pub enum StaticCond {
     /// are five colors among permanents you control", "the number of ...
     /// plus the number of ... is three or greater").
     CountAtLeast(Box<CountExpr>, u32),
+    /// `count below 5 devotion red`: the count is less than N ("your
+    /// devotion to red is less than five"; `StaticCondition::Not` of
+    /// `CountAtLeast`).
+    CountBelow(Box<CountExpr>, u32),
     /// `creature died this turn` (morbid).
     CreatureDiedThisTurn,
     /// `opponent damaged this turn`: "an opponent was dealt damage this
@@ -3803,6 +3825,19 @@ pub enum StaticCond {
     /// `opponent dealt noncombat damage last turn`: "an opponent was dealt
     /// noncombat damage last turn".
     OpponentNoncombatLastTurn,
+    /// `lost life last turn` ("you lost life last turn"), `opponent lost
+    /// life last turn` ("an opponent lost life last turn").
+    LostLifeLastTurn {
+        opponent: bool,
+    },
+    /// `lost 2 life this turn` ("you lost 2 or more life this turn"),
+    /// `opponent lost 2 life this turn` ("an opponent lost ..."), `player
+    /// lost 4 life this turn` ("a player lost ...": any one player's own
+    /// total, not their sum).
+    LifeLostAtLeast {
+        who: mtg_core::card::TurnWho,
+        n: u32,
+    },
     /// `spell number 2 this turn`: the spell being cast would be your
     /// second this turn ("The second spell you cast each turn costs {1}
     /// less to cast.").
@@ -5257,6 +5292,9 @@ pub enum Mod {
     },
     /// `loses all creature types` (layer 4).
     NoCreatureTypes,
+    /// `isnt creature`: "isn't a creature" (layer 4: the card type goes,
+    /// its others stay; the Theros Gods).
+    RemoveTypes(Vec<CardType>),
     SetPt {
         power: PtValue,
         toughness: PtValue,

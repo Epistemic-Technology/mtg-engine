@@ -1,0 +1,6 @@
+card "Stensia Uprising" {
+  oracle_id a881bf6e-6247-4adb-9f9c-e4b928692573
+  cost {2}{R}{R}
+  type Enchantment
+  triggered at beginning of your end step: create 1 "1/1 red Human creature"; then if you control exactly 13 permanent, you may sacrifice this; when you do, this deals 7 damage to any target
+}

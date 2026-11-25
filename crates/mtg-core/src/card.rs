@@ -1463,6 +1463,10 @@ pub struct StatusQuals {
     /// graveyard this turn (its timestamp is this turn's).
     #[serde(default)]
     pub put_there_this_turn: bool,
+    /// With `put_there_this_turn`: "that was put there from the
+    /// battlefield this turn" (`CastInfo::from_battlefield`).
+    #[serde(default)]
+    pub from_battlefield: bool,
     /// "a spell that's both white and black": `ObjFilter::colors` must
     /// all be the object's, not just one (CR 105.2). A characteristic, not
     /// game state: `any` leaves it out.
@@ -2278,6 +2282,10 @@ pub enum Modification {
     /// "loses all creature types" (layer 4): no creature types, a
     /// changeling's included (as for `SetCreatureType`).
     NoCreatureTypes,
+    /// "Purphoros isn't a creature" (layer 4): these card types go, its
+    /// others stay, with the subtypes that went with them (CR 205.3d: the
+    /// Theros Gods lose the creature type God).
+    RemoveTypes(TypeSet),
     /// "has base power and toughness 1/1" (layer 7b).
     SetPt { power: PtValue, toughness: PtValue },
     /// "+1/+1" (layer 7c).
@@ -2350,7 +2358,8 @@ impl Modification {
             | Modification::ChosenLandType
             | Modification::AddChosenType
             | Modification::AllCreatureTypes
-            | Modification::NoCreatureTypes => Layer::L4Type,
+            | Modification::NoCreatureTypes
+            | Modification::RemoveTypes(_) => Layer::L4Type,
             Modification::AddColors(_)
             | Modification::SetColors(_)
             | Modification::CdaColors(_)
@@ -4022,6 +4031,10 @@ pub enum StaticCondition {
     /// "an opponent was dealt noncombat damage last turn"
     /// (`GameState::noncombat_last_turn`).
     OpponentNoncombatLastTurn,
+    /// "if you lost life last turn" (`TurnWho::You`), "if an opponent lost
+    /// life last turn" (`TurnWho::Opponent`): during the previous turn
+    /// (`GameState::lost_life_last_turn`).
+    LostLifeLastTurn(TurnWho),
     /// A count is at least `n`: "there are five colors among permanents
     /// you control", "four or more permanent types among cards in your
     /// graveyard", "the number of other Caves you control plus the number

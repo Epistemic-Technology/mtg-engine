@@ -700,6 +700,10 @@ impl CastInfo {
     /// Cast from a library (the top card: "you may cast spells from the
     /// top of your library"), another unused combination.
     const CAST_LIBRARY: u32 = Self::CAST_GRAVEYARD | Self::CAST_ELSEWHERE;
+    /// A card put into a graveyard from the battlefield ("that was put
+    /// there from the battlefield this turn"), the last unused
+    /// combination: what the card in the graveyard remembers (CR 400.7).
+    const FROM_BATTLEFIELD: u32 = Self::CAST_MASK;
 
     /// The zone the spell was cast from, `None` if it wasn't cast (a copy,
     /// a permanent put onto the battlefield); zones other than the hand,
@@ -725,12 +729,19 @@ impl CastInfo {
         }
     }
 
+    /// Whether a card in a graveyard was put there from the battlefield.
+    pub const fn from_battlefield(self) -> bool {
+        self.0 & Self::CAST_MASK == Self::FROM_BATTLEFIELD
+    }
+
     /// A permanent entering from `zone` without being cast: graveyard and
-    /// exile are remembered, other zones nothing.
+    /// exile are remembered, other zones nothing; a card put into a
+    /// graveyard from the battlefield remembers that.
     pub fn set_entered_from(&mut self, zone: Zone) {
         let bits = match zone {
             Zone::Graveyard => Self::ENTERED_GRAVEYARD,
             Zone::Exile => Self::ENTERED_EXILE,
+            Zone::Battlefield => Self::FROM_BATTLEFIELD,
             _ => 0,
         };
         self.0 = (self.0 & !Self::CAST_MASK) | bits;
@@ -2210,6 +2221,9 @@ pub struct GameState {
     /// Players dealt noncombat damage during the previous turn, one bit
     /// each ("if an opponent was dealt noncombat damage last turn").
     pub noncombat_last_turn: u8,
+    /// Players who lost life during the previous turn, one bit each ("if
+    /// you lost life last turn").
+    pub lost_life_last_turn: u8,
     /// Permanents that entered the battlefield this turn, with the player
     /// they entered under the control of ("another Knight entered the
     /// battlefield under your control this turn").
@@ -4893,9 +4907,12 @@ impl GameState {
         {
             return false;
         }
-        // "card in a graveyard that was put there this turn".
+        // "card in a graveyard that was put there this turn", "... from the
+        // battlefield this turn".
         if q.put_there_this_turn
-            && (o.zone != Zone::Graveyard || o.timestamp < self.turn_started_at)
+            && (o.zone != Zone::Graveyard
+                || o.timestamp < self.turn_started_at
+                || (q.from_battlefield && !o.cast.from_battlefield()))
         {
             return false;
         }
@@ -6009,6 +6026,13 @@ impl GameState {
             C::OpponentNoncombatLastTurn => self
                 .players_in_game()
                 .any(|p| p != you && self.noncombat_last_turn & (1 << p.index().min(7)) != 0),
+            C::LostLifeLastTurn(who) => self.players_in_game().any(|p| {
+                (if *who == crate::card::TurnWho::You {
+                    p == you
+                } else {
+                    p != you
+                }) && self.lost_life_last_turn & (1 << p.index().min(7)) != 0
+            }),
             C::GraveyardCards { filter, at_least } => {
                 let n = self
                     .player(you)

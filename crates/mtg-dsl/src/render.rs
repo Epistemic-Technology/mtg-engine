@@ -164,6 +164,8 @@ fn put_there_suffix(f: &mut Filter, plural: bool) -> String {
     f.status.put_there_this_turn = false;
     let anywhere = if std::mem::take(&mut f.put_there_anywhere) {
         " from anywhere"
+    } else if std::mem::take(&mut f.status.from_battlefield) {
+        " from the battlefield"
     } else {
         ""
     };
@@ -4417,6 +4419,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.put_there_this_turn {
         let anywhere = if f.put_there_anywhere {
             " from anywhere"
+        } else if f.status.from_battlefield {
+            " from the battlefield"
         } else {
             ""
         };
@@ -8376,6 +8380,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!(
                 "return each {p} from your graveyard to the battlefield{}",
                 if *tapped { " tapped" } else { "" }
+            ))
+        }
+        // "Return to your hand all creature cards in your graveyard that
+        // were put there from the battlefield this turn." (No Rest for the
+        // Wicked), "Return to the battlefield all permanent cards ..."
+        // (Faith's Reward).
+        Effect::GraveyardToHand { filter } if filter.status.put_there_this_turn => {
+            let mut f = filter.clone();
+            let suffix = put_there_suffix(&mut f, true);
+            Clause::imperative(format!(
+                "return to your hand all {} in your graveyard{suffix}",
+                cards_phrase(&f, ctx.card, true)
+            ))
+        }
+        Effect::GraveyardToBattlefield {
+            filter,
+            tapped,
+            each: false,
+            all_graveyards: false,
+        } if filter.status.put_there_this_turn => {
+            let mut f = filter.clone();
+            let suffix = put_there_suffix(&mut f, true);
+            Clause::imperative(format!(
+                "return to the battlefield{} all {} in your graveyard{suffix}",
+                if *tapped { " tapped" } else { "" },
+                cards_phrase(&f, ctx.card, true)
             ))
         }
         Effect::GraveyardToHand { filter } => Clause::imperative(format!(
@@ -14741,6 +14771,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ("sacrifices", "discards", "that player")
                 }
                 (p, Some((s, _))) if p == s => ("sacrifice", "discard", "they"),
+                // "Mogis deals 2 damage to that player unless they
+                // sacrifice a creature of their choice."
+                (Recipient::TriggeringPlayer, _)
+                    if matches!(&**effect, Effect::DealDamage { to, .. }
+                        if to.as_slice() == [Recipient::TriggeringPlayer]) =>
+                {
+                    ("sacrifice", "discard", "they")
+                }
                 _ => ("sacrifices", "discards", "that player"),
             };
             let or = if *or_discard {
@@ -14897,7 +14935,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .replacen(&format!("on this {}", self_noun(ctx.card)), "on it", 1)
                     .replacen(&format!("on {}", this_ref(ctx.card)), "on it", 1)
             } else if (matches!(c, StaticCond::SourceCounters { at_least: true, n, .. } if *n > 1)
-                || matches!(c, StaticCond::SourceCounterParity(_)))
+                || matches!(c, StaticCond::SourceCounterParity(_) | StaticCond::SourceCountersBound { .. }))
                 && ctx.source_mentioned
                 && !is_spell(ctx.card)
             {
@@ -20344,6 +20382,17 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
                     .join(" ")
             )
         ),
+        Mod::RemoveTypes(types) => format!(
+            "{} {}",
+            v("isn't", "aren't"),
+            with_article(
+                &types
+                    .iter()
+                    .map(|t| type_noun(*t))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        ),
         Mod::SetTypes(types) => format!(
             "{} {}",
             v("is", "are"),
@@ -21668,6 +21717,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 _ => format!("{phrase} is {} or greater", number_word(*n)),
             }
         }
+        // "your devotion to red is less than five".
+        StaticCond::CountBelow(e, n) => {
+            format!(
+                "{} is less than {}",
+                count_phrase(e, card, false),
+                number_word(*n)
+            )
+        }
         // "the top card of your library is a Goblin card", "... is black".
         StaticCond::TopCard(f) => {
             let what = if f.types.is_empty()
@@ -21788,6 +21845,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 article(c)
             )
         }
+        StaticCond::SourceCountersBound { kind, n, exact } => format!(
+            "{} has {} {} {} counters on it",
+            this_ref(card),
+            if *exact { "exactly" } else { "fewer than" },
+            count_words(Num::N(*n), "one"),
+            kind.name()
+        ),
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on {}",
             count_words(Num::N(*n), "one"),
@@ -21968,6 +22032,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             f.who = None;
             format!("you control no {}", filter_phrase(&f, card, true))
         }
+        StaticCond::YouControlExactly { filter, n } => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!(
+                "you control exactly {} {}",
+                count_words(Num::N(*n), "one"),
+                filter_phrase(&f, card, *n != 1)
+            )
+        }
+        StaticCond::PlayerDiscardedThisTurn => "a player discarded a card this turn".to_string(),
         StaticCond::YouControlAtMost { filter, n } => {
             let mut f = filter.clone();
             f.who = None;
@@ -22728,6 +22802,22 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::OpponentNoncombatLastTurn => {
             "an opponent was dealt noncombat damage last turn".to_string()
         }
+        StaticCond::LostLifeLastTurn { opponent: false } => "you lost life last turn".to_string(),
+        StaticCond::LostLifeLastTurn { opponent: true } => {
+            "an opponent lost life last turn".to_string()
+        }
+        // In digits, as life is written: "a player lost 4 or more life
+        // this turn" (Knight of the Ebon Legion).
+        StaticCond::LifeLostAtLeast { who, n } => format!(
+            "{} lost {n} or more life this turn",
+            match who {
+                mtg_core::card::TurnWho::You => "you",
+                mtg_core::card::TurnWho::Opponent | mtg_core::card::TurnWho::Opponents => {
+                    "an opponent"
+                }
+                mtg_core::card::TurnWho::Anyone => "a player",
+            }
+        ),
         StaticCond::SpellNumber(n) => {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
         }
@@ -23850,6 +23940,12 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     if first_name {
                         cond = format!("{} is {}", this_ref(card), &cond["it's ".len()..]);
                     }
+                    // "Whenever this creature deals combat damage to a
+                    // player, if it has fewer than four +1/+1 counters on
+                    // it" (Ayara's Oathsworn): named by the trigger.
+                    if ctx.source_mentioned && matches!(c, StaticCond::SourceCountersBound { .. }) {
+                        cond = cond.replacen(&this_ref(card), "it", 1);
+                    }
                     out.push_str(&cond);
                     // "if Katara is tapped, put a +1/+1 counter on her": a
                     // condition naming the source by name.
@@ -23870,6 +23966,13 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         || first_name
                         || matches!(c, StaticCond::And(_, b)
                             if matches!(**b, StaticCond::SourceLacksCounter(_)))
+                        // "if it has fewer than four +1/+1 counters on it,
+                        // put a +1/+1 counter on it" (Ayara's Oathsworn),
+                        // but "if this creature has fewer than three ...,
+                        // put a +1/+1 counter on this creature" (Runaway
+                        // Steam-Kin): "it" only once the trigger named it.
+                        || (ctx.source_mentioned
+                            && matches!(c, StaticCond::SourceCountersBound { .. }))
                         || matches!(
                             c,
                             StaticCond::SourceCounters { .. }

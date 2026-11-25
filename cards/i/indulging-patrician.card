@@ -1,0 +1,8 @@
+card "Indulging Patrician" {
+  oracle_id 189131b7-ed59-4750-a4ed-453e4497a5c8
+  cost {1}{W}{B}
+  type Creature — Vampire Noble
+  pt 1/4
+  keywords flying, lifelink
+  triggered at beginning of your end step if gained 3 life this turn: each opponent loses 3 life
+}

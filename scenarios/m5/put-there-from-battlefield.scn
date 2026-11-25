@@ -1,0 +1,116 @@
+# "... in your graveyard that were put there from the battlefield this
+# turn": a card remembers that it was put into a graveyard from the
+# battlefield (CR 400.7), and its timestamp says this turn.
+
+scenario "No Rest for the Wicked: creatures that died this turn come back" {
+  battlefield A: "No Rest for the Wicked", "Grizzly Bears", "Mountain"
+  graveyard A: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "No Rest for the Wicked"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "No Rest for the Wicked"
+}
+
+scenario "No Rest for the Wicked: a creature that died last turn stays" {
+  battlefield A: "No Rest for the Wicked", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 3 A: activate "No Rest for the Wicked"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "No Rest for the Wicked"
+}
+
+scenario "Gleancrawler: end step returns this turn's dead creatures" {
+  battlefield A: "Gleancrawler", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Faith's Reward: permanents destroyed this turn return" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Plains"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  hand A: "Faith's Reward"
+  graveyard A: "Serra Angel"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 postcombat_main A: cast "Faith's Reward"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Serra Angel"
+  assert graveyard A contains "Faith's Reward"
+}
+
+scenario "Twilight Shepherd: any cards put there from the battlefield return" {
+  battlefield A: "Grizzly Bears", "Plains", 6 "Plains"
+  hand A: "Shock", "Twilight Shepherd"
+  battlefield A: "Mountain"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Twilight Shepherd"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Salvager of Ruin: returns a permanent card that died this turn" {
+  battlefield A: "Salvager of Ruin", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Salvager of Ruin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Salvager of Ruin: an older graveyard card is no target" {
+  battlefield A: "Salvager of Ruin"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Salvager of Ruin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Grim Return: an opponent's creature that died this turn is yours" {
+  battlefield A: "Mountain", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock", "Grim Return"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grim Return" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+}
+
+scenario "Grim Return: a card already in the graveyard is no target" {
+  battlefield A: 3 "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Grim Return"
+  illegal turn 1 A: cast "Grim Return" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Samwise: flash back a permanent card that died this turn" {
+  battlefield A: "Grizzly Bears", "Mountain", 2 "Plains"
+  hand A: "Shock", "Samwise the Stouthearted"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Samwise the Stouthearted"
+  turn 1 A: trigger "Samwise the Stouthearted" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert tempted A 1
+}

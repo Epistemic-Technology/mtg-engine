@@ -1,0 +1,10 @@
+card "Heliod, Sun-Crowned" {
+  oracle_id 63e596a2-9126-4af6-8782-c38687d664ad
+  cost {2}{W}
+  type Legendary Enchantment Creature — God
+  pt 5/5
+  keywords indestructible
+  static as long as count below 5 devotion white, this: isnt creature
+  triggered whenever you gain life: put 1 +1/+1 counter on target creature or enchantment you control
+  activated {1}{W}: another target creature gains lifelink
+}

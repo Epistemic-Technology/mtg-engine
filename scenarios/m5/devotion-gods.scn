@@ -1,0 +1,272 @@
+# The Theros Gods: "As long as your devotion to red is less than five,
+# Purphoros isn't a creature." (CR 700.5: the mana symbols of that color
+# among the mana costs of permanents you control; a hybrid symbol counts
+# once toward two colors. The static is a layer 4 type change: the God
+# loses the card type creature and the creature type God, and stays a
+# legendary enchantment.)
+
+scenario "Purphoros: devotion one is no creature, can't attack" {
+  battlefield A: "Purphoros, God of the Forge", "Grizzly Bears"
+  assert is not "Purphoros, God of the Forge" creature
+  assert is "Purphoros, God of the Forge" enchantment
+  assert is "Purphoros, God of the Forge" legendary
+  assert is not "Purphoros, God of the Forge" God
+  illegal turn 1 A: attack "Purphoros, God of the Forge"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Purphoros: devotion three is still no creature" {
+  battlefield A: "Purphoros, God of the Forge", "Ash Zealot"
+  assert is not "Purphoros, God of the Forge" creature
+}
+
+scenario "Purphoros: devotion five makes a 6/5 God creature that attacks" {
+  battlefield A: "Purphoros, God of the Forge", 2 "Ash Zealot"
+  assert is "Purphoros, God of the Forge" creature
+  assert is "Purphoros, God of the Forge" God
+  assert power "Purphoros, God of the Forge" 6
+  assert toughness "Purphoros, God of the Forge" 5
+  turn 1 A: attack "Purphoros, God of the Forge"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+# CR 506.4: a permanent that stops being a creature is removed from combat.
+scenario "Purphoros: an attacking God leaves combat as devotion drops" {
+  battlefield A: "Purphoros, God of the Forge", 2 "Ash Zealot"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: attack "Purphoros, God of the Forge"
+  turn 1 declare_blockers B: cast "Shock" targeting oldest "Ash Zealot"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ash Zealot"
+  assert is not "Purphoros, God of the Forge" creature
+  assert life B 20
+}
+
+scenario "Purphoros: another creature entering deals 2 to each opponent" {
+  battlefield A: "Purphoros, God of the Forge", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Purphoros: {2}{R} pumps creatures you control +1/+0" {
+  battlefield A: "Purphoros, God of the Forge", "Grizzly Bears", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Purphoros, God of the Forge"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+}
+
+# Phenax: {3}{U}{B} is two toward blue and black; Nightveil Specter's
+# three {U/B} count once each (5 with it); Gray Merchant's {B}{B} makes 7.
+scenario "Phenax: a hybrid symbol counts once toward blue and black" {
+  battlefield A: "Phenax, God of Deception", "Nightveil Specter"
+  assert is not "Phenax, God of Deception" creature
+}
+
+scenario "Phenax: devotion seven is a creature; creatures mill their toughness" {
+  battlefield A: "Phenax, God of Deception", "Nightveil Specter", "Gray Merchant of Asphodel"
+  assert is "Phenax, God of Deception" creature
+  assert power "Phenax, God of Deception" 4
+  turn 1 A: activate "Nightveil Specter" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+}
+
+scenario "Erebos, God of the Dead: {1}{B}, 2 life: draw; opponents can't gain life" {
+  battlefield A: "Erebos, God of the Dead", 2 "Swamp"
+  battlefield B: "Plains"
+  hand B: "Healing Salve"
+  start turn 1 A precombat_main
+  assert is not "Erebos, God of the Dead" creature
+  turn 1 A: activate "Erebos, God of the Dead"
+  turn 1 end B: cast "Healing Salve" mode 1 targeting player B
+  run_to turn 2 upkeep
+  assert life A 18
+  assert hand A count 1
+  assert life B 20
+}
+
+scenario "Iroas: damage to your attacking creatures is prevented" {
+  battlefield A: "Iroas, God of Victory", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert has "Grizzly Bears" menace
+}
+
+scenario "Iroas: menace stops a single blocker" {
+  battlefield A: "Iroas, God of Victory", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Nylea, God of the Hunt: others have trample; {3}{G} gives +2/+2" {
+  battlefield A: "Nylea, God of the Hunt", "Grizzly Bears", 4 "Forest"
+  turn 1 A: activate "Nylea, God of the Hunt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert is not "Nylea, God of the Hunt" creature
+}
+
+scenario "Heliod, God of the Sun: a 2/1 Cleric enchantment creature token" {
+  battlefield A: "Heliod, God of the Sun", "Grizzly Bears", 4 "Plains"
+  turn 1 A: activate "Heliod, God of the Sun"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Cleric"
+  assert is "Cleric" enchantment
+  assert power "Cleric" 2
+  assert toughness "Cleric" 1
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Heliod, Sun-Crowned: gaining life puts a counter on the target" {
+  battlefield A: "Heliod, Sun-Crowned", "Grizzly Bears", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: trigger "Heliod, Sun-Crowned" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Heliod, Sun-Crowned: {1}{W} gives another creature lifelink" {
+  battlefield A: "Heliod, Sun-Crowned", "Grizzly Bears", 2 "Plains"
+  turn 1 A: activate "Heliod, Sun-Crowned" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: trigger "Heliod, Sun-Crowned" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Nylea, Keen-Eyed: creature spells cost {1} less" {
+  battlefield A: "Nylea, Keen-Eyed", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Nylea, Keen-Eyed: a revealed creature card goes to hand" {
+  battlefield A: "Nylea, Keen-Eyed", 3 "Forest"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: activate "Nylea, Keen-Eyed"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Nylea, Keen-Eyed: a revealed land may go to the graveyard" {
+  battlefield A: "Nylea, Keen-Eyed", 3 "Forest"
+  library A: "Island", "Forest"
+  turn 1 A: activate "Nylea, Keen-Eyed"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert hand A lacks "Island"
+}
+
+scenario "Thassa, God of the Sea: the target can't be blocked" {
+  battlefield A: "Thassa, God of the Sea", "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Thassa, God of the Sea" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Karametra: a creature spell fetches a Forest tapped" {
+  battlefield A: "Karametra, God of Harvests", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: "Island", "Forest", "Island"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Forest"
+  assert tapped newest "Forest"
+}
+
+scenario "Erebos, Bleak-Hearted: pay 2 life to draw as another creature dies" {
+  battlefield A: "Erebos, Bleak-Hearted", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert hand A count 1
+}
+
+scenario "Erebos, Bleak-Hearted: sacrifice another creature for -2/-1" {
+  battlefield A: "Erebos, Bleak-Hearted", "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Erebos, Bleak-Hearted" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  turn 1 A: decline "Erebos, Bleak-Hearted"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 2
+  assert life A 20
+}
+
+scenario "Pharika: the exiled card's owner gets a deathtouch Snake" {
+  battlefield A: "Pharika, God of Affliction", "Swamp", "Forest"
+  graveyard B: "Grizzly Bears"
+  turn 1 A: activate "Pharika, God of Affliction" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B contains "Snake"
+  assert battlefield A lacks "Snake"
+  assert has "Snake" deathtouch
+  assert is "Snake" enchantment
+}
+
+scenario "Xenagos: another creature gets +X/+X, X its power, and haste" {
+  battlefield A: "Xenagos, God of Revels", "Hill Giant"
+  turn 1 begin_combat A: trigger "Xenagos, God of Revels" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Mogis: 2 damage to an opponent with no creature to sacrifice" {
+  battlefield A: "Mogis, God of Slaughter"
+  start turn 2 B
+  run_to turn 2 draw
+  assert life B 18
+  assert life A 20
+}
+
+# "they" are the player dealt damage: B sacrifices, not Mogis's controller.
+scenario "Mogis: the opponent may sacrifice a creature instead" {
+  battlefield A: "Mogis, God of Slaughter", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  run_to turn 2 draw
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Thassa, Deep-Dwelling: the end-step blink resets the creature" {
+  battlefield A: "Thassa, Deep-Dwelling", "Grizzly Bears" with 1 +1/+1
+  turn 1 end A: trigger "Thassa, Deep-Dwelling" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+  assert power "Grizzly Bears" 2
+}

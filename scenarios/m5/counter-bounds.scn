@@ -1,0 +1,112 @@
+# Upper and exact bounds: "fewer than three +1/+1 counters", "exactly four
+# +1/+1 counters", "one or fewer cards in hand", "twenty or fewer cards".
+
+# "Whenever you cast a red spell, if this creature has fewer than three
+# +1/+1 counters on it, put a +1/+1 counter on this creature." (Runaway
+# Steam-Kin)
+scenario "Runaway Steam-Kin: two counters grow to three" {
+  battlefield A: "Runaway Steam-Kin" with 2 +1/+1, "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Runaway Steam-Kin" +1/+1 3
+  assert life B 18
+}
+
+scenario "Runaway Steam-Kin: three counters stay three" {
+  battlefield A: "Runaway Steam-Kin" with 3 +1/+1, "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Runaway Steam-Kin" +1/+1 3
+}
+
+scenario "Runaway Steam-Kin: a nonred spell adds none" {
+  battlefield A: "Runaway Steam-Kin", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Runaway Steam-Kin"
+  run_to turn 1 postcombat_main
+  assert counters "Runaway Steam-Kin" +1/+1 0
+}
+
+scenario "Runaway Steam-Kin: remove three counters for {R}{R}{R}" {
+  battlefield A: "Runaway Steam-Kin" with 3 +1/+1
+  hand A: "Ash Zealot"
+  turn 1 A: activate "Runaway Steam-Kin"
+  turn 1 A: cast "Ash Zealot"
+  run_to turn 1 postcombat_main
+  assert counters "Runaway Steam-Kin" +1/+1 1
+  assert battlefield A contains "Ash Zealot"
+}
+
+# "Whenever this creature deals combat damage to a player, if it has fewer
+# than four +1/+1 counters on it, put a +1/+1 counter on it. Then if it has
+# exactly four +1/+1 counters on it, search your library for a card, put
+# it into your hand, then shuffle." (Ayara's Oathsworn)
+scenario "Ayara's Oathsworn: the fourth counter tutors" {
+  battlefield A: "Ayara's Oathsworn" with 3 +1/+1
+  library A: "Hill Giant"
+  turn 1 A: attack "Ayara's Oathsworn"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert counters "Ayara's Oathsworn" +1/+1 4
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Ayara's Oathsworn: the first counter doesn't tutor" {
+  battlefield A: "Ayara's Oathsworn"
+  library A: "Hill Giant"
+  turn 1 A: attack "Ayara's Oathsworn"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Ayara's Oathsworn" +1/+1 1
+  assert hand A count 0
+}
+
+scenario "Ayara's Oathsworn: four counters already, nothing happens" {
+  battlefield A: "Ayara's Oathsworn" with 4 +1/+1
+  library A: "Hill Giant"
+  turn 1 A: attack "Ayara's Oathsworn"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert counters "Ayara's Oathsworn" +1/+1 4
+  assert hand A count 0
+}
+
+scenario "Isleback Spawn: +4/+8 with a library of twenty or fewer" {
+  battlefield A: "Isleback Spawn"
+  library B: "Island", "Island"
+  assert power "Isleback Spawn" 8
+  assert toughness "Isleback Spawn" 16
+}
+
+scenario "Isleback Spawn: big libraries, no bonus" {
+  battlefield A: "Isleback Spawn"
+  assert power "Isleback Spawn" 4
+  assert toughness "Isleback Spawn" 8
+}
+
+scenario "Hazoret the Fervent: two cards in hand, it can't attack" {
+  battlefield A: "Hazoret the Fervent"
+  hand A: "Island", "Island"
+  illegal turn 1 A: attack "Hazoret the Fervent"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Hazoret the Fervent: one card in hand, it attacks for 5" {
+  battlefield A: "Hazoret the Fervent"
+  hand A: "Island"
+  turn 1 A: attack "Hazoret the Fervent"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Hazoret the Fervent: {2}{R}, discard: 2 to each opponent" {
+  battlefield A: "Hazoret the Fervent", 3 "Mountain"
+  hand A: "Island", "Island", "Island"
+  turn 1 A: activate "Hazoret the Fervent" discarding "Island"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}

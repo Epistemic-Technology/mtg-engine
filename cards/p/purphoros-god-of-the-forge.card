@@ -1,0 +1,10 @@
+card "Purphoros, God of the Forge" {
+  oracle_id 4fdbbec2-e921-4b63-958d-f9ba1e417197
+  cost {3}{R}
+  type Legendary Enchantment Creature — God
+  pt 6/5
+  keywords indestructible
+  static as long as count below 5 devotion red, this: isnt creature
+  triggered whenever other creature you control enters: this deals 2 damage to each opponent
+  activated {2}{R}: each creature you control gets +1/+0
+}

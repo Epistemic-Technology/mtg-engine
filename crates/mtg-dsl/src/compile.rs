@@ -2521,6 +2521,9 @@ impl Compiler<'_> {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
             StaticCond::TopCard(f) => StaticCondition::TopCard(self.filter(f)),
+            StaticCond::CountBelow(c, n) => StaticCondition::Not(Box::new(
+                StaticCondition::CountAtLeast(Box::new(self.count_expr(c)), *n),
+            )),
             StaticCond::CountAtLeast(c, n) => {
                 StaticCondition::CountAtLeast(Box::new(self.count_expr(c)), *n)
             }
@@ -2602,6 +2605,33 @@ impl Compiler<'_> {
                     at_least: false,
                 }
             }
+            // "fewer than three": two or fewer; "exactly four": four or
+            // more and four or fewer.
+            StaticCond::SourceCountersBound {
+                kind,
+                n,
+                exact: false,
+            } => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: n.saturating_sub(1),
+                at_least: false,
+            },
+            StaticCond::SourceCountersBound {
+                kind,
+                n,
+                exact: true,
+            } => StaticCondition::And(
+                Box::new(StaticCondition::SourceCounters {
+                    kind: *kind,
+                    n: *n,
+                    at_least: true,
+                }),
+                Box::new(StaticCondition::SourceCounters {
+                    kind: *kind,
+                    n: *n,
+                    at_least: false,
+                }),
+            ),
             StaticCond::SourceCountersThere { kind, n } => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: *n,
@@ -2641,6 +2671,26 @@ impl Compiler<'_> {
                 filter: self.filter(filter).who(Who::You),
                 n: *n,
             },
+            StaticCond::YouControlExactly { filter, n } => StaticCondition::And(
+                Box::new(StaticCondition::YouControl {
+                    filter: self.filter(filter).who(Who::You),
+                    at_least: *n,
+                }),
+                Box::new(StaticCondition::YouControlAtMost {
+                    filter: self.filter(filter).who(Who::You),
+                    n: *n,
+                }),
+            ),
+            StaticCond::PlayerDiscardedThisTurn => StaticCondition::Or(
+                Box::new(StaticCondition::happened(
+                    TurnEvent::Discarded,
+                    TurnWho::You,
+                )),
+                Box::new(StaticCondition::happened(
+                    TurnEvent::Discarded,
+                    TurnWho::Opponent,
+                )),
+            ),
             StaticCond::YouControlEach(filters) => StaticCondition::YouControlEach(
                 filters
                     .iter()
@@ -2871,6 +2921,23 @@ impl Compiler<'_> {
             }
             StaticCond::EarlyTurn => StaticCondition::EarlyTurn(3),
             StaticCond::OpponentNoncombatLastTurn => StaticCondition::OpponentNoncombatLastTurn,
+            StaticCond::LostLifeLastTurn { opponent } => {
+                StaticCondition::LostLifeLastTurn(if *opponent {
+                    TurnWho::Opponent
+                } else {
+                    TurnWho::You
+                })
+            }
+            // "a player lost 4 or more life": any one player's total, you
+            // or an opponent (`TurnWho::Anyone` would sum them).
+            StaticCond::LifeLostAtLeast {
+                who: TurnWho::Anyone,
+                n,
+            } => StaticCondition::Or(
+                Box::new(at_least(TurnEvent::LifeLost, TurnWho::You, *n)),
+                Box::new(at_least(TurnEvent::LifeLost, TurnWho::Opponent, *n)),
+            ),
+            StaticCond::LifeLostAtLeast { who, n } => at_least(TurnEvent::LifeLost, *who, *n),
             StaticCond::Tally { what, n } => StaticCondition::Happened {
                 count: what.count(),
                 cmp: mtg_core::card::Cmp::AtLeast,
@@ -7149,6 +7216,7 @@ impl Compiler<'_> {
             Mod::AllCreatureTypes { .. } => Modification::AllCreatureTypes,
             Mod::NoCreatureTypes => Modification::NoCreatureTypes,
             Mod::SetTypes(t) => Modification::SetTypes(TypeSet::of(t.iter().copied())),
+            Mod::RemoveTypes(t) => Modification::RemoveTypes(TypeSet::of(t.iter().copied())),
             Mod::SetPt { power, toughness } => Modification::SetPt {
                 power: *power,
                 toughness: *toughness,

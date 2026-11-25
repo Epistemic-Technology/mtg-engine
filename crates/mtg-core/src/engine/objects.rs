@@ -558,6 +558,11 @@ impl GameState {
                 let mut c = CastInfo::default();
                 c.set_entered_from(old.zone);
                 c
+            } else if to == Zone::Graveyard && old.zone == Zone::Battlefield {
+                // "that was put there from the battlefield this turn".
+                let mut c = CastInfo::default();
+                c.set_entered_from(Zone::Battlefield);
+                c
             } else {
                 CastInfo::default()
             },

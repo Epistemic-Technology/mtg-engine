@@ -82,6 +82,9 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
             StaticCond::GainedLifeThisTurn { or_lost: false }
         }
         (TurnEvent::LifeGained, _, _, n) => StaticCond::LifeGainedThisTurn(n),
+        (TurnEvent::LifeLost, who, Cmp::AtLeast, n) if n > 1 => {
+            StaticCond::LifeLostAtLeast { who, n }
+        }
         (TurnEvent::LifeLost, TurnWho::You, ..) => StaticCond::LostLifeThisTurn { gained: false },
         (TurnEvent::LifeLost, ..) => StaticCond::OpponentLostLifeThisTurn,
         (TurnEvent::Damaged, ..) => StaticCond::OpponentDamagedThisTurn,
@@ -861,6 +864,9 @@ impl Decompiler<'_> {
                 StaticCond::WasntCastFromHand
             }
             StaticCondition::Not(a) => match &**a {
+                StaticCondition::CountAtLeast(c, n) => {
+                    StaticCond::CountBelow(Box::new(self.cda_count(c)), *n)
+                }
                 StaticCondition::SourceHistory(what) => StaticCond::SourceHistory {
                     what: *what,
                     not: true,
@@ -884,6 +890,33 @@ impl Decompiler<'_> {
                     && **b == StaticCondition::happened(TurnEvent::LifeLost, TurnWho::You) =>
             {
                 StaticCond::GainedLifeThisTurn { or_lost: true }
+            }
+            StaticCondition::Or(a, b)
+                if **a == StaticCondition::happened(TurnEvent::Discarded, TurnWho::You)
+                    && **b
+                        == StaticCondition::happened(TurnEvent::Discarded, TurnWho::Opponent) =>
+            {
+                StaticCond::PlayerDiscardedThisTurn
+            }
+            // "a player lost 4 or more life this turn": you or an opponent.
+            StaticCondition::Or(a, b)
+                if matches!(
+                    (&**a, &**b),
+                    (
+                        StaticCondition::Happened { count: x, cmp: mtg_core::card::Cmp::AtLeast, n: m },
+                        StaticCondition::Happened { count: y, cmp: mtg_core::card::Cmp::AtLeast, n: k },
+                    ) if *x == TurnCount::of(TurnEvent::LifeLost, TurnWho::You)
+                        && *y == TurnCount::of(TurnEvent::LifeLost, TurnWho::Opponent)
+                        && m == k
+                ) =>
+            {
+                let StaticCondition::Happened { n, .. } = &**a else {
+                    unreachable!()
+                };
+                StaticCond::LifeLostAtLeast {
+                    who: TurnWho::Anyone,
+                    n: *n,
+                }
             }
             StaticCondition::Or(a, b) => {
                 StaticCond::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
@@ -946,6 +979,9 @@ impl Decompiler<'_> {
 
             StaticCondition::EarlyTurn(_) => StaticCond::EarlyTurn,
             StaticCondition::OpponentNoncombatLastTurn => StaticCond::OpponentNoncombatLastTurn,
+            StaticCondition::LostLifeLastTurn(who) => StaticCond::LostLifeLastTurn {
+                opponent: *who != TurnWho::You,
+            },
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
@@ -3355,6 +3391,7 @@ impl Decompiler<'_> {
             Modification::AllCreatureTypes => Mod::AllCreatureTypes { every: true },
             Modification::NoCreatureTypes => Mod::NoCreatureTypes,
             Modification::SetTypes(t) => Mod::SetTypes(types(*t)),
+            Modification::RemoveTypes(t) => Mod::RemoveTypes(types(*t)),
             Modification::SetPt { power, toughness } => Mod::SetPt {
                 power: *power,
                 toughness: *toughness,

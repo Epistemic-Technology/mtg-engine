@@ -1,0 +1,8 @@
+card "The Raven Man" {
+  oracle_id 19918740-f6e3-40cd-9848-3c7a852a6c2a
+  cost {1}{B}
+  type Legendary Creature — Human Wizard
+  pt 2/1
+  triggered at beginning of every end step if player discarded this turn: create 1 "1/1 black Bird creature with flying and can't block"
+  activated {3}{B}, {T}, sorcery: each opponent discards 1 card
+}

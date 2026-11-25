@@ -1,0 +1,6 @@
+card "Grim Return" {
+  oracle_id c1d54d0c-53fc-474c-ba89-2aa1be3bf27d
+  cost {2}{B}
+  type Instant
+  spell: choose target creature card in a graveyard put there from battlefield this turn; put that target 1 onto battlefield under your control
+}

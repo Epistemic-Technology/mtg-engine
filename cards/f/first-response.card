@@ -1,0 +1,6 @@
+card "First Response" {
+  oracle_id 0fe66bc0-8eda-4625-a068-6a5de826466f
+  cost {3}{W}
+  type Enchantment
+  triggered at beginning of every upkeep if lost life last turn: create 1 "1/1 white Soldier creature"
+}

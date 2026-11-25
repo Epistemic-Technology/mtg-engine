@@ -1,0 +1,7 @@
+card "Salvager of Ruin" {
+  oracle_id c6dc70de-4fa5-466b-af28-0ced885d4e12
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/1
+  activated sacrifice this: choose target permanent card from your graveyard put there from battlefield this turn; return target 1 to hand
+}

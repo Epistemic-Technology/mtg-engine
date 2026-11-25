@@ -5936,6 +5936,20 @@ impl P {
                 at_least: false,
             });
         }
+        // `this has fewer than 3 +1/+1 counters`, `this has exactly 4
+        // +1/+1 counters`.
+        if self.at_words(&["fewer", "than"]) || self.at_word("exactly") {
+            let exact = self.eat_word("exactly");
+            if !exact {
+                self.pos += 2;
+            }
+            let n = self.number()?;
+            if !exact && n == 0 {
+                return self.fail("`fewer than 0` counters can't hold");
+            }
+            let kind = self.counter_kind()?;
+            return Ok(StaticCond::SourceCountersBound { kind, n, exact });
+        }
         let n = self.number()?;
         // "as long as it has two or fewer oil counters on it".
         let at_least = !self.eat_words(&["or", "fewer"]);
@@ -6032,6 +6046,31 @@ impl P {
         if self.eat_words(&["opponent", "dealt", "noncombat", "damage", "last", "turn"]) {
             return Ok(StaticCond::OpponentNoncombatLastTurn);
         }
+        if self.eat_words(&["lost", "life", "last", "turn"]) {
+            return Ok(StaticCond::LostLifeLastTurn { opponent: false });
+        }
+        if self.eat_words(&["opponent", "lost", "life", "last", "turn"]) {
+            return Ok(StaticCond::LostLifeLastTurn { opponent: true });
+        }
+        // `lost 2 life this turn`, `opponent lost 2 life this turn`,
+        // `player lost 4 life this turn`.
+        {
+            use mtg_core::card::TurnWho;
+            let (who, k) = match self.word_at(0).as_deref() {
+                Some("opponent") => (TurnWho::Opponent, 1),
+                Some("player") => (TurnWho::Anyone, 1),
+                _ => (TurnWho::You, 0),
+            };
+            if self.word_at(k).as_deref() == Some("lost")
+                && matches!(self.peek_at(k + 1), Some(Tok::Num(_)))
+                && self.word_at(k + 2).as_deref() == Some("life")
+            {
+                self.pos += k + 1;
+                let n = self.number()?;
+                self.expect_words(&["life", "this", "turn"])?;
+                return Ok(StaticCond::LifeLostAtLeast { who, n });
+            }
+        }
         // `this plus counters put this turn`, `this not dealt damage`, ...
         if self.at_word("this") {
             use mtg_core::card::SourceHistory as H;
@@ -6096,6 +6135,14 @@ impl P {
         }
         // `count 5 colors among permanents`: "there are five colors among
         // permanents you control" (a count at least N).
+        // `count below 5 devotion red`: "your devotion to red is less than
+        // five".
+        if self.at_words(&["count", "below"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let n = self.number()?;
+            let c = self.count_expr()?;
+            return Ok(StaticCond::CountBelow(Box::new(c), n));
+        }
         if self.at_word("count") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             self.pos += 1;
             let n = self.number()?;
@@ -7017,6 +7064,14 @@ impl P {
             let n = self.number()?;
             let filter = self.filter()?;
             return Ok(StaticCond::YouControlAtMost { filter, n });
+        }
+        if self.eat_words(&["you", "control", "exactly"]) {
+            let n = self.number()?;
+            let filter = self.filter()?;
+            return Ok(StaticCond::YouControlExactly { filter, n });
+        }
+        if self.eat_words(&["player", "discarded", "this", "turn"]) {
+            return Ok(StaticCond::PlayerDiscardedThisTurn);
         }
         if self.eat_words(&["you", "control", "at", "least"]) {
             let n = self.number()?;
@@ -8118,9 +8173,15 @@ impl P {
         }
         if sacrifices(self) {
             let payer = if self.eat_words(&["they", "sacrifice"]) {
-                match self.subject {
-                    Some(s) => s,
-                    None => {
+                match (self.subject, &e) {
+                    // "Mogis deals 2 damage to that player unless they
+                    // sacrifice a creature": "they" are the player dealt
+                    // damage, not the source dealing it.
+                    (Some(s), Effect::DealDamage { to, by, .. }) if to.len() == 1 && *by == s => {
+                        to[0]
+                    }
+                    (Some(s), _) => s,
+                    (None, _) => {
                         return self.fail("`unless they sacrifice` needs a clause with a subject");
                     }
                 }
@@ -14180,17 +14241,34 @@ impl P {
                 // `return all card from your graveyard to hand`: "Return all
                 // cards from your graveyard to your hand." (Praetor's
                 // Counsel), any card.
-                let filter = if self.at_word("card") {
+                let mut filter = if self.at_word("card") {
                     Filter::default()
                 } else {
                     self.filter()?
                 };
-                // `... to hand`: "Return all instant and sorcery cards from
-                // your graveyard to your hand." (Wisdom of Ages).
-                if !each && self.eat_words(&["card", "from", "your", "graveyard", "to", "hand"]) {
-                    return Ok(Effect::GraveyardToHand { filter });
+                // `return all creature card from your graveyard put there
+                // from battlefield this turn to hand`: "Return to your hand
+                // all creature cards in your graveyard that were put there
+                // from the battlefield this turn."
+                if self.at_words(&["card", "from", "your", "graveyard", "put", "there"]) {
+                    self.pos += 6;
+                    filter.status.put_there_this_turn = true;
+                    filter.status.from_battlefield = self.eat_words(&["from", "battlefield"]);
+                    filter.put_there_anywhere = self.eat_words(&["from", "anywhere"]);
+                    self.expect_words(&["this", "turn", "to"])?;
+                    if !each && self.eat_word("hand") {
+                        return Ok(Effect::GraveyardToHand { filter });
+                    }
+                    self.expect_word("battlefield")?;
+                } else {
+                    // `... to hand`: "Return all instant and sorcery cards
+                    // from your graveyard to your hand." (Wisdom of Ages).
+                    if !each && self.eat_words(&["card", "from", "your", "graveyard", "to", "hand"])
+                    {
+                        return Ok(Effect::GraveyardToHand { filter });
+                    }
+                    self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 }
-                self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
                 // "Sacrifice them at the beginning of the next end step."
                 self.group_named = true;
@@ -18786,6 +18864,10 @@ impl P {
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
                         && matches!(after.as_deref(), Some("from" | "with" | "each" | "exiled")))
+                    // "target creature card in a graveyard" (Grim Return).
+                    || (matches!(next.as_deref(), Some("card"))
+                        && matches!(after.as_deref(), Some("in"))
+                        && self.word_at(ws.len() + 2).as_deref() == Some("a"))
                     // "target permanent not named ~".
                     || (matches!(next.as_deref(), Some("named" | "not"))
                         && matches!(after.as_deref(), Some("named" | "this")));
@@ -19025,6 +19107,7 @@ impl P {
             if self.eat_words(&["put", "there"]) {
                 f.status.put_there_this_turn = true;
                 f.put_there_anywhere = self.eat_words(&["from", "anywhere"]);
+                f.status.from_battlefield = self.eat_words(&["from", "battlefield"]);
                 self.expect_words(&["this", "turn"])?;
             }
             return Ok(Target::GraveyardCard {
@@ -19787,6 +19870,13 @@ impl P {
                 "put" if self.at_words(&["put", "there", "from", "anywhere", "this", "turn"]) => {
                     f.status.put_there_this_turn = true;
                     f.put_there_anywhere = true;
+                    self.pos += 6;
+                }
+                "put"
+                    if self.at_words(&["put", "there", "from", "battlefield", "this", "turn"]) =>
+                {
+                    f.status.put_there_this_turn = true;
+                    f.status.from_battlefield = true;
                     self.pos += 6;
                 }
                 "that" if self.at_words(&["that", "blocked", "this", "turn"]) => {
@@ -23958,6 +24048,18 @@ impl P {
             }
             "control" => Ok(Mod::Control),
             "goaded" => Ok(Mod::Goaded),
+            "isnt" => {
+                let mut types = Vec::new();
+                while let Some(x) = self.word_at(0) {
+                    let Some(t) = card_type(&x) else { break };
+                    types.push(t);
+                    self.pos += 1;
+                }
+                if types.is_empty() {
+                    return self.fail("expected `isnt <card types>`");
+                }
+                Ok(Mod::RemoveTypes(types))
+            }
             "switch" => {
                 self.eat_word("pt");
                 Ok(Mod::SwitchPt)

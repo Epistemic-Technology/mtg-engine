@@ -682,7 +682,9 @@ starting life total"), `life below starting` ("your life total is less
 than ..."), `player life 13 or less` ("a player has 13 or less life"), `defending
 player controls Island`, `you control no untapped land`, `you control
 at most 2 other land` ("you control two or fewer other lands": the fast
-lands), `you control Mountain or a Plains` ("you control a Mountain or a
+lands), `you control exactly 13 permanent` ("you control exactly thirteen
+permanents": at least and at most), `player discarded this turn` ("a
+player discarded a card this turn": you or any one opponent), `you control Mountain or a Plains` ("you control a Mountain or a
 Plains"), `you control 2 basic land`, `any player controls black
 permanent` ("any player controls a black permanent"), `you control
 other Goblin` ("you control another Goblin"), `team controls other
@@ -772,7 +774,13 @@ and the first that qualifies is the triggering object, `one of them`
 ("create a token that's a copy of one of them", Twilight Diviner: the
 engine picks it), `gained
 life this turn`, `gained or lost life this turn`, `lost life this turn`
-("you've lost life this turn"), `gained and lost life this turn` ("you
+("you've lost life this turn"), `lost 2 life this turn` ("you lost 2 or
+more life this turn"), `opponent lost 2 life this turn` ("an opponent lost
+2 or more life this turn": any one opponent's total), `player lost 4 life
+this turn` ("a player lost 4 or more life this turn": any one player's,
+you included, not their sum), `lost life last turn` ("you lost life last
+turn"), `opponent lost life last turn` ("an opponent lost life last
+turn"), `gained and lost life this turn` ("you
 gained and lost life this turn": both), `descended this turn`
 ("you descended this turn", CR 700.11: a permanent card was put into your
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
@@ -853,7 +861,11 @@ in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 counters", corrupted), `this has 4 or more oil counters` ("this creature
 has four or more oil counters on it"; first, "As long as ..., it gets
 ..."; `this has 3 or more counters`: "this creature has three or more
-counters on it", every kind together; `this has even counters`: "it has
+counters on it", every kind together; `this has fewer than 3 +1/+1
+counters`: "this creature has fewer than three +1/+1 counters on it"
+(Runaway Steam-Kin), `this has exactly 4 +1/+1 counters`: "it has exactly
+four +1/+1 counters on it" (Ayara's Oathsworn; "it" once a trigger has
+named the source); `this has even counters`: "it has
 an even number of counters on it" (zero is even), `this has odd counters`
 "an odd number", every kind together (Sab-Sunen: `can't attack or block
 unless this has even counters` prints "Sab-Sunen can't attack or block
@@ -1147,7 +1159,15 @@ graveyard card target's `... from a graveyard put there this turn`
 was put there this turn" (Night Nurse: "target permanent card in your
 graveyard that was put there from anywhere this turn"; `target nonland
 card in a graveyard put there from anywhere this turn` prints "card in a
-graveyard", Reenact the Crime). A
+graveyard", Reenact the Crime). `put there from battlefield this turn`
+is "that was put there from the battlefield this turn": a card remembers
+that it was put into a graveyard from the battlefield (Grim Return:
+`choose target creature card in a graveyard put there from battlefield
+this turn; put that target 1 onto battlefield under your control`); `return
+all creature card from your graveyard put there from battlefield this turn
+to hand` prints "Return to your hand all creature cards in your graveyard
+that were put there from the battlefield this turn." (`to battlefield`:
+"Return to the battlefield all ..."). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).
@@ -2596,7 +2616,13 @@ prints "loses all abilities and is a Citizen with base power and toughness
 1/1 and \"{T}: Add {C}\" named Humble Merchant" (Honest Work). `add subtype every` is "is every
 creature type" and `add subtype all` "is all creature types" (layer 4,
 not changeling: it has no ability, and "loses all abilities" leaves it);
-`loses all creature types` removes them (a changeling's too). As effects,
+`loses all creature types` removes them (a changeling's too). `isnt
+creature` is "isn't a creature" (layer 4: that card type goes and its
+others stay, with the creature types, CR 205.3d); the Theros Gods: `static
+as long as count below 5 devotion red, this: isnt creature` prints "As
+long as your devotion to red is less than five, Purphoros isn't a
+creature." (a God that stops being a creature leaves combat, CR 506.4).
+As effects,
 `target creature gains all creature types` and `target creature loses all
 creature types` (until end of turn). `this: add subtype Cleric, add
 subtype Rogue, ...` (two or more) prints "~ is also a Cleric, Rogue, ..."
@@ -2878,7 +2904,9 @@ among permanents you control" (`to solve count 5 ...`; an activation's
 are four or more permanent types among cards in your graveyard"; `if count
 3 other Cave you control plus graveyard Cave`: "if the number of other
 Caves you control plus the number of Cave cards in your graveyard is three
-or greater"), judged as a static ability's counts are. `add chosen count
+or greater"), judged as a static ability's counts are; `count below 5
+devotion red` is the count less than N: "your devotion to red is less
+than five". `add chosen count
 each <count>` is "Choose a color. Add one mana of that color for each
 ..." (one color, as `add any count ...`). After a trigger with an amount,
 `choose up to that much target creature you control; put 1 +1/+1 counter

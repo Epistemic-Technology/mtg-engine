@@ -2410,6 +2410,21 @@ impl Fmt {
             Effect::GraveyardToHand { filter: f } if *f == Filter::default() => {
                 "return all card from your graveyard to hand".to_string()
             }
+            // `return all creature card from your graveyard put there from
+            // battlefield this turn to hand` (the condition after the zone).
+            Effect::GraveyardToHand { filter: f } if f.status.put_there_this_turn => {
+                format!("return all {} to hand", put_there_group(f, filter))
+            }
+            Effect::GraveyardToBattlefield {
+                filter: f,
+                tapped,
+                each: false,
+                all_graveyards: false,
+            } if f.status.put_there_this_turn => format!(
+                "return all {} to battlefield{}",
+                put_there_group(f, filter),
+                if *tapped { " tapped" } else { "" }
+            ),
             Effect::GraveyardToHand { filter: f } => {
                 format!("return all {} card from your graveyard to hand", filter(f))
             }
@@ -5603,6 +5618,28 @@ pub fn exile_target(f: &Filter, who: Who, linked: bool) -> String {
     }
 }
 
+/// `creature card from your graveyard put there from battlefield this
+/// turn`: a returned group's cards with the condition after the zone.
+fn put_there_group(f: &Filter, filter: impl Fn(&Filter) -> String) -> String {
+    let mut g = f.clone();
+    g.status.put_there_this_turn = false;
+    g.status.from_battlefield = false;
+    g.put_there_anywhere = false;
+    let what = if g == Filter::default() {
+        "card".to_string()
+    } else {
+        format!("{} card", filter(&g))
+    };
+    let from = if f.status.from_battlefield {
+        " from battlefield"
+    } else if f.put_there_anywhere {
+        " from anywhere"
+    } else {
+        ""
+    };
+    format!("{what} from your graveyard put there{from} this turn")
+}
+
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     // `... from a graveyard put there this turn`: after the zone, as it
     // prints.
@@ -5610,8 +5647,11 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         let mut g = f.clone();
         g.status.put_there_this_turn = false;
         g.put_there_anywhere = false;
+        g.status.from_battlefield = false;
         let anywhere = if f.put_there_anywhere {
             " from anywhere"
+        } else if f.status.from_battlefield {
+            " from battlefield"
         } else {
             ""
         };
@@ -6221,6 +6261,8 @@ fn filter_one(f: &Filter) -> String {
     if f.status.put_there_this_turn {
         words.push(if f.put_there_anywhere {
             "put there from anywhere this turn".to_string()
+        } else if f.status.from_battlefield {
+            "put there from battlefield this turn".to_string()
         } else {
             "put there this turn".to_string()
         });
@@ -8048,6 +8090,13 @@ fn modification(m: &Mod) -> String {
                 .collect::<Vec<_>>()
                 .join(" ")
         ),
+        Mod::RemoveTypes(ts) => format!(
+            "isnt {}",
+            ts.iter()
+                .map(|t| format!("{t:?}").to_lowercase())
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
         Mod::SetTypes(ts) => format!(
             "set type {}",
             ts.iter()
@@ -8311,6 +8360,7 @@ fn static_cond(c: &StaticCond) -> String {
     match c {
         StaticCond::TopCard(fl) => format!("top card is {}", filter(fl)),
         StaticCond::CountAtLeast(c, n) => format!("count {n} {}", count_expr_text(c)),
+        StaticCond::CountBelow(c, n) => format!("count below {n} {}", count_expr_text(c)),
         StaticCond::CardsInGraveyard(n) => format!("{n} cards in your graveyard"),
         StaticCond::CardTypesInGraveyard(n) => format!("{n} card types in your graveyard"),
         StaticCond::YouControl {
@@ -8372,6 +8422,11 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::SourceCountersThere { kind, n } => {
             format!("there are {n} or more {} counters on this", kind.name())
         }
+        StaticCond::SourceCountersBound { kind, n, exact } => format!(
+            "this has {} {n} {} counters",
+            if *exact { "exactly" } else { "fewer than" },
+            kind.name()
+        ),
         StaticCond::SourceCounters {
             kind: CounterKind::Any,
             n,
@@ -8406,6 +8461,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YouControlAtLeast { filter: fl, n } => {
             format!("you control at least {n} {}", filter(fl))
         }
+        StaticCond::YouControlExactly { filter: fl, n } => {
+            format!("you control exactly {n} {}", filter(fl))
+        }
+        StaticCond::PlayerDiscardedThisTurn => "player discarded this turn".to_string(),
         StaticCond::YouControlEach(fs) => format!(
             "you control {}",
             fs.iter().map(filter).collect::<Vec<_>>().join(" and ")
@@ -8730,6 +8789,20 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentNoncombatLastTurn => {
             "opponent dealt noncombat damage last turn".to_string()
         }
+        StaticCond::LostLifeLastTurn { opponent: false } => "lost life last turn".to_string(),
+        StaticCond::LostLifeLastTurn { opponent: true } => {
+            "opponent lost life last turn".to_string()
+        }
+        StaticCond::LifeLostAtLeast { who, n } => format!(
+            "{}lost {n} life this turn",
+            match who {
+                mtg_core::card::TurnWho::You => "",
+                mtg_core::card::TurnWho::Opponent | mtg_core::card::TurnWho::Opponents => {
+                    "opponent "
+                }
+                mtg_core::card::TurnWho::Anyone => "player ",
+            }
+        ),
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
         StaticCond::ScriedOrSurveilledThisTurn => "scried or surveilled this turn".to_string(),

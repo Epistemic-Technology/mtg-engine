@@ -1,0 +1,6 @@
+card "Feast on the Fallen" {
+  oracle_id 8ce9afd9-0c96-42a2-a534-d92ae04f0151
+  cost {2}{B}
+  type Enchantment
+  triggered at beginning of every upkeep if opponent lost life last turn: put 1 +1/+1 counter on target creature you control
+}

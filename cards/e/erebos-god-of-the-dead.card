@@ -1,0 +1,10 @@
+card "Erebos, God of the Dead" {
+  oracle_id 1cfc7b12-a595-492d-81ee-bd100ba7de6a
+  cost {3}{B}
+  type Legendary Enchantment Creature — God
+  pt 5/7
+  keywords indestructible
+  static as long as count below 5 devotion black, this: isnt creature
+  opponents can't gain life
+  activated {1}{B}, pay 2 life: draw 1 card
+}
