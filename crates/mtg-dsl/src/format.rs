@@ -5943,6 +5943,9 @@ fn filter_one(f: &Filter) -> String {
             }
             .to_string(),
         );
+        if f.greatest_per_player {
+            words.push("per player".to_string());
+        }
     }
     if let Some(e) = f.status.enchanted {
         words.push(
@@ -5985,6 +5988,9 @@ fn filter_one(f: &Filter) -> String {
             words.push(format!("with {n} or more {} counters", k.name()));
         }
         Some(mtg_core::card::CounterQual::NoCounters) => words.push("with no counters".to_string()),
+        Some(mtg_core::card::CounterQual::Without(k)) => {
+            words.push(format!("that doesn't have {} counter", k.name()));
+        }
         None => {}
     }
     if !f.keywords.is_empty() {
@@ -6083,6 +6089,15 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.dealt_damage {
         words.push("that dealt damage this turn".to_string());
+    }
+    if f.status.damaged_you {
+        words.push("that dealt damage to you this turn".to_string());
+    }
+    if f.status.attacking_alone {
+        words.push("that's attacking alone".to_string());
+    }
+    if f.status.attacking_you {
+        words.push("that's attacking you or planeswalker you control".to_string());
     }
     if f.status.counters_put {
         words.push("with counters put this turn".to_string());
@@ -6561,6 +6576,48 @@ pub(crate) fn plays_land_words(
 
 /// `whenever enchanted player is dealt damage` and kin (the same in the
 /// DSL and Oracle).
+/// What can't target a permanent with `untargetable by ...`, as written
+/// and as printed after "can't be the target of": "blue or black spells",
+/// "nongreen spells your opponents control or abilities from nongreen
+/// sources your opponents control", "abilities your opponents control".
+pub(crate) fn untargetable_words(
+    from: &Filter,
+    spells: bool,
+    abilities: bool,
+    opponents: bool,
+) -> String {
+    let name = |c: &mtg_core::mana::Color| format!("{c:?}").to_ascii_lowercase();
+    let colors = if let Some(cs) = &from.colors {
+        cs.iter().map(name).collect::<Vec<_>>().join(" or ")
+    } else {
+        from.not_colors
+            .iter()
+            .map(|c| format!("non{}", name(c)))
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+    let opp = if opponents {
+        " your opponents control"
+    } else {
+        ""
+    };
+    let spell_part = if colors.is_empty() {
+        format!("spells{opp}")
+    } else {
+        format!("{colors} spells{opp}")
+    };
+    let ability_part = if colors.is_empty() {
+        format!("abilities{opp}")
+    } else {
+        format!("abilities from {colors} sources{opp}")
+    };
+    match (spells, abilities) {
+        (true, true) => format!("{spell_part} or {ability_part}"),
+        (false, true) => ability_part,
+        _ => spell_part,
+    }
+}
+
 pub(crate) fn player_dealt_damage_words(enchanted: bool, combat: bool) -> &'static str {
     match (enchanted, combat) {
         (true, false) => "whenever enchanted player is dealt damage",
@@ -10020,6 +10077,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::HexproofFrom(f) => {
             let _ = writeln!(out, "{indent}hexproof from {}", filter(f));
+        }
+        Ability::Untargetable {
+            from,
+            spells,
+            abilities,
+            opponents,
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}untargetable by {}",
+                untargetable_words(from, *spells, *abilities, *opponents)
+            );
         }
         Ability::OpeningHand => {
             let _ = writeln!(out, "{indent}opening hand");

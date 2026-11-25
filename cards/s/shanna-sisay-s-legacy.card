@@ -1,0 +1,8 @@
+card "Shanna, Sisay's Legacy" {
+  oracle_id 546201d0-3fa5-44e4-a526-ab0945711e49
+  cost {G}{W}
+  type Legendary Creature — Human Warrior
+  pt 0/0
+  untargetable by abilities your opponents control
+  static this: +1/+1 count each creature you control
+}

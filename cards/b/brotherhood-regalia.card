@@ -1,0 +1,8 @@
+card "Brotherhood Regalia" {
+  oracle_id d169738e-af0b-4488-a399-3aa1d1933aa1
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has ward {2}, add subtype Assassin, has can't be blocked
+  equip legendary creature {1}
+  equip {3}
+}

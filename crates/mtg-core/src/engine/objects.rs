@@ -1887,6 +1887,10 @@ impl GameState {
                 }
                 self.log_event(TurnEvent::Damaged, p, 1);
                 self.log_event(TurnEvent::DamageTaken, p, amount);
+                // "that dealt damage to you this turn".
+                if !self.damaged_players_this_turn.contains(&(source, p)) {
+                    self.damaged_players_this_turn.push((source, p));
+                }
                 if !combat {
                     self.log_event(TurnEvent::NoncombatDamaged, p, 1);
                 } else if src.as_ref().is_some_and(|c| {

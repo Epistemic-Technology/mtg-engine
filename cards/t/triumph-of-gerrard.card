@@ -1,0 +1,7 @@
+card "Triumph of Gerrard" {
+  oracle_id 426a5f3f-f161-49b3-97d0-02cda554752b
+  cost {1}{W}
+  type Enchantment — Saga
+  triggered chapter 1, 2: put 1 +1/+1 counters on target creature you control with greatest power
+  triggered chapter 3: target creature you control with greatest power gains flying, first strike, and lifelink
+}

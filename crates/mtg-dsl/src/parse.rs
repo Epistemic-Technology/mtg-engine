@@ -2742,6 +2742,13 @@ impl P {
                 ))
             }
             "spells" => self.cost_change(None),
+            // `untargetable by blue or black spells` (CR 115.4).
+            "untargetable" if self.word_at(1).as_deref() == Some("by") => {
+                self.pos += 2;
+                let ability = self.untargetable()?;
+                self.end_stmt()?;
+                Ok(ability)
+            }
             "hexproof" if self.word_at(1).as_deref() == Some("from") => {
                 self.pos += 2;
                 let filter = self.filter()?;
@@ -4492,6 +4499,13 @@ impl P {
                     Some(Tok::Word(w)) if w == "worthy" => {
                         self.pos += 1;
                         Target::Filter(Filter::worthy())
+                    }
+                    // "Equip legendary creature {3}" (Blackblade Reforged).
+                    Some(Tok::Word(w))
+                        if w == "legendary" && self.word_at(1).as_deref() == Some("creature") =>
+                    {
+                        self.pos += 2;
+                        Target::Filter(Filter::equip_legendary())
                     }
                     Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase) => {
                         let sub = w.clone();
@@ -18309,7 +18323,7 @@ impl P {
                         | (Some("with" | "without"), Some("aura"))
                         | (
                             Some("with"),
-                            Some("counter" | "toxic" | "morph" | "no" | "same" | "lesser")
+                            Some("counter" | "toxic" | "morph" | "no" | "same" | "lesser" | "greatest")
                         )
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
@@ -18335,7 +18349,7 @@ impl P {
                         && matches!(after.as_deref(), Some("power" | "toughness" | "mana" | "total")))
                     // "target creature that's one or more colors".
                     || (matches!(next.as_deref(), Some("that's"))
-                        && matches!(after.as_deref(), Some("one")))
+                        && matches!(after.as_deref(), Some("one" | "attacking")))
                     || next.as_deref().and_then(card_type).is_some()
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
@@ -18589,6 +18603,59 @@ impl P {
             });
         }
         Ok(Target::Filter(f))
+    }
+
+    /// After `untargetable by`: the colors, then `spells` and `or
+    /// abilities from <colors> sources` (or `abilities` alone), each with
+    /// `your opponents control` (`Ability::Untargetable`).
+    fn untargetable(&mut self) -> R<Ability> {
+        let mut from = Filter::default();
+        let colors = |p: &mut Self, from: &mut Filter| loop {
+            let w = p.word_at(0).unwrap_or_default();
+            if let Some(c) = color(&w) {
+                from.colors.get_or_insert_with(Vec::new).push(c);
+                p.pos += 1;
+            } else if let Some(c) = w.strip_prefix("non").and_then(color) {
+                from.not_colors.push(c);
+                p.pos += 1;
+            } else if w == "or" && p.word_at(1).as_deref().and_then(color).is_some() {
+                p.pos += 1;
+            } else {
+                break;
+            }
+        };
+        colors(self, &mut from);
+        let opponents;
+        let (mut spells, mut abilities) = (false, false);
+        if self.eat_word("spells") {
+            spells = true;
+            opponents = self.eat_words(&["your", "opponents", "control"]);
+            if self.eat_words(&["or", "abilities"]) {
+                abilities = true;
+                if self.eat_word("from") {
+                    let mut again = Filter::default();
+                    colors(self, &mut again);
+                    self.expect_word("sources")?;
+                }
+                if opponents {
+                    self.expect_words(&["your", "opponents", "control"])?;
+                }
+            }
+        } else {
+            self.expect_word("abilities")?;
+            abilities = true;
+            if self.eat_word("from") {
+                colors(self, &mut from);
+                self.expect_word("sources")?;
+            }
+            opponents = self.eat_words(&["your", "opponents", "control"]);
+        }
+        Ok(Ability::Untargetable {
+            from,
+            spells,
+            abilities,
+            opponents,
+        })
     }
 
     /// After `card` in a target card in exile: `with mana value X`, `with
@@ -19241,6 +19308,43 @@ impl P {
                     f.status.dealt_damage = true;
                     self.pos += 5;
                 }
+                // "that dealt damage to you this turn".
+                "that"
+                    if self.at_words(&["that", "dealt", "damage", "to", "you", "this", "turn"]) =>
+                {
+                    f.status.damaged_you = true;
+                    self.pos += 7;
+                }
+                // "that's attacking alone" (CR 506.5).
+                "that's" if self.at_words(&["that's", "attacking", "alone"]) => {
+                    f.status.attacking_alone = true;
+                    self.pos += 3;
+                }
+                // "that's attacking you or a planeswalker you control".
+                "that's"
+                    if self.at_words(&[
+                        "that's",
+                        "attacking",
+                        "you",
+                        "or",
+                        "planeswalker",
+                        "you",
+                        "control",
+                    ]) =>
+                {
+                    f.status.attacking_you = true;
+                    self.pos += 7;
+                }
+                // "that doesn't have a +1/+1 counter on it".
+                "that"
+                    if f.status.counter.is_none()
+                        && self.at_words(&["that", "doesn't", "have"])
+                        && self.word_at(4).as_deref() == Some("counter") =>
+                {
+                    self.pos += 3;
+                    let k = self.counter_kind()?;
+                    f.status.counter = Some(mtg_core::card::CounterQual::Without(k));
+                }
                 "with" if self.at_words(&["with", "counters", "put", "this", "turn"]) => {
                     f.status.counters_put = true;
                     self.pos += 5;
@@ -19338,6 +19442,7 @@ impl P {
                             mtg_core::card::Stat::ManaValue
                         }
                     });
+                    f.greatest_per_player = self.eat_words(&["per", "player"]);
                 }
                 // "with toughness greater than its power".
                 "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {

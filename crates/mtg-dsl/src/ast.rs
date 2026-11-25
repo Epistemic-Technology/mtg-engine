@@ -1448,6 +1448,10 @@ pub struct Filter {
     /// (Nervous Gardener): compiled as a Plains, Island, Swamp, Mountain,
     /// or Forest.
     pub basic_land_type: bool,
+    /// `with greatest power per player`: `status.greatest` printed "among
+    /// creatures that player controls" rather than "they control" (each
+    /// opponent's own, Crackling Doom). Wording only.
+    pub greatest_per_player: bool,
 
     /// `that doesn't have same name as token you control`: "that doesn't
     /// have the same name as a token you control" (`ObjFilter::name_unlike`).
@@ -1524,6 +1528,17 @@ impl Filter {
             supertypes: vec![Supertype::Legendary],
             not_subtypes: vec!["Villain".to_string()],
             colors: Some(vec![Color::Red, Color::White]),
+            ..Filter::default()
+        }
+    }
+
+    /// "Equip legendary creature {3}" (Blackblade Reforged, CR 702.6c): a
+    /// legendary creature you control.
+    pub fn equip_legendary() -> Filter {
+        Filter {
+            who: Some(Who::You),
+            types: vec![CardType::Creature],
+            supertypes: vec![Supertype::Legendary],
             ..Filter::default()
         }
     }
@@ -2283,6 +2298,18 @@ pub enum Ability {
     /// `hexproof from black`, `hexproof from multicolored`, `hexproof from
     /// instant`: "Hexproof from black" (CR 702.11d).
     HexproofFrom(Filter),
+    /// `untargetable by blue or black spells`, `untargetable by black or
+    /// red spells your opponents control`, `untargetable by nongreen
+    /// spells or abilities from nongreen sources`, `untargetable by
+    /// abilities your opponents control`: "This creature can't be the
+    /// target of ..." (CR 115.4; `AbilityDef::Untargetable`). `from` holds
+    /// only colors (`colors`, or one `not_colors`).
+    Untargetable {
+        from: Filter,
+        spells: bool,
+        abilities: bool,
+        opponents: bool,
+    },
     /// `you have hexproof`, `you have shroud`, `opponents can't cast spells
     /// during your turn`, `additional land`, `additional land 2`,
     /// `additional land each player`: a static ability of the controller

@@ -1,0 +1,58 @@
+# "Equip legendary creature {3}" (CR 702.6c): an equip ability that
+# attaches only to a legendary creature you control, beside a plain equip.
+
+scenario "Blackblade Reforged: equip legendary creature {3}, +1/+1 for each land you control" {
+  battlefield A: "Blackblade Reforged", 3 "Plains", "Isamaru, Hound of Konda"
+  turn 1 A: activate "Blackblade Reforged" ability 1 targeting "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert attached "Blackblade Reforged" to "Isamaru, Hound of Konda"
+  assert power "Isamaru, Hound of Konda" 5
+  assert toughness "Isamaru, Hound of Konda" 5
+}
+
+scenario "Blackblade Reforged: the {3} equip can't target a nonlegendary creature" {
+  battlefield A: "Blackblade Reforged", 3 "Plains", "Grizzly Bears"
+  illegal turn 1 A: activate "Blackblade Reforged" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Blackblade Reforged: equip {7} onto any creature you control" {
+  battlefield A: "Blackblade Reforged", 7 "Plains", "Grizzly Bears"
+  turn 1 A: activate "Blackblade Reforged" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Blackblade Reforged" to "Grizzly Bears"
+  assert power "Grizzly Bears" 9
+}
+
+scenario "Brotherhood Regalia: equip legendary creature {1}; ward, Assassin, can't be blocked" {
+  battlefield A: "Brotherhood Regalia", "Plains", "Isamaru, Hound of Konda"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Brotherhood Regalia" ability 1 targeting "Isamaru, Hound of Konda"
+  turn 1 A: attack "Isamaru, Hound of Konda"
+  illegal turn 1 B: block "Isamaru, Hound of Konda" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert is "Isamaru, Hound of Konda" Assassin
+  assert life B 18
+}
+
+scenario "Brotherhood Regalia: equipped creature has ward {2}" {
+  battlefield A: "Brotherhood Regalia" on "Isamaru, Hound of Konda", "Isamaru, Hound of Konda"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Isamaru, Hound of Konda"
+  run_to turn 2 end
+  assert battlefield A contains "Isamaru, Hound of Konda"
+  assert damage "Isamaru, Hound of Konda" 0
+  assert graveyard B contains "Shock"
+}
+
+scenario "Brotherhood Regalia: the {1} equip can't target a nonlegendary creature; {3} can" {
+  battlefield A: "Brotherhood Regalia", 3 "Plains", "Grizzly Bears"
+  illegal turn 1 A: activate "Brotherhood Regalia" ability 1 targeting "Grizzly Bears"
+  turn 1 A: activate "Brotherhood Regalia" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Brotherhood Regalia" to "Grizzly Bears"
+  assert is "Grizzly Bears" Assassin
+}

@@ -349,6 +349,7 @@ fn pluralize(word: &str) -> String {
 pub(crate) fn equip_subtype(targets: &[Target]) -> Option<&str> {
     match targets {
         [Target::Filter(f)] if *f == Filter::worthy() => Some("worthy"),
+        [Target::Filter(f)] if *f == Filter::equip_legendary() => Some("legendary creature"),
         [Target::Filter(f)] if f.subtypes.len() == 1 => Some(f.subtypes[0].as_str()),
         [Target::CreatureOfSubtype(s)] => Some(s.as_str()),
         _ => None,
@@ -4233,9 +4234,19 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         } else {
             " with no counters on it"
         });
+    } else if let Some(mtg_core::card::CounterQual::Without(k)) = f.status.counter {
+        let name = counter_name(k);
+        let a = if article(&name) == "an" { "an" } else { "a" };
+        if plural_form {
+            let _ = write!(s, " that don't have {a} {name} counter on them");
+        } else {
+            let _ = write!(s, " that doesn't have {a} {name} counter on it");
+        }
     } else if let Some(q) = f.status.counter {
         let kind = match q {
-            mtg_core::card::CounterQual::AtLeast(..) | mtg_core::card::CounterQual::NoCounters => {
+            mtg_core::card::CounterQual::AtLeast(..)
+            | mtg_core::card::CounterQual::NoCounters
+            | mtg_core::card::CounterQual::Without(_) => {
                 unreachable!("above")
             }
             mtg_core::card::CounterQual::Any => String::new(),
@@ -4305,6 +4316,15 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.dealt_damage {
         s.push_str(" that dealt damage this turn");
+    }
+    if f.status.damaged_you {
+        s.push_str(" that dealt damage to you this turn");
+    }
+    if f.status.attacking_alone {
+        s.push_str(" that's attacking alone");
+    }
+    if f.status.attacking_you {
+        s.push_str(" that's attacking you or a planeswalker you control");
     }
     if f.status.counters_put {
         s.push_str(" that you've put one or more +1/+1 counters on this turn");
@@ -4405,6 +4425,11 @@ fn greatest_phrase(f: &Filter, stat: mtg_core::card::Stat) -> String {
         mtg_core::card::Stat::Toughness => "toughness",
         mtg_core::card::Stat::ManaValue => "mana value",
     };
+    // "target creature you control with the greatest power" (Triumph of
+    // Gerrard): among the creatures you control, said once.
+    if f.who == Some(Who::You) {
+        return format!("with the greatest {what}");
+    }
     let types: Vec<String> = f
         .types
         .iter()
@@ -4416,7 +4441,7 @@ fn greatest_phrase(f: &Filter, stat: mtg_core::card::Stat) -> String {
     } else {
         types.join(" and ")
     };
-    let who = if f.who == Some(Who::Opponents) {
+    let who = if f.who == Some(Who::Opponents) || f.greatest_per_player {
         "that player controls"
     } else {
         "they control"
@@ -24842,6 +24867,16 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 &protection_text(f, card)["Protection".len()..]
             )
         }
+        Ability::Untargetable {
+            from,
+            spells,
+            abilities,
+            opponents,
+        } => format!(
+            "{} can't be the target of {}.",
+            capitalize(&this_ref(card)),
+            crate::format::untargetable_words(from, *spells, *abilities, *opponents)
+        ),
         // A legendary card names itself ("If Quicksilver is in your
         // opening hand, ...").
         // "You may reveal this card from your opening hand. If you do, at

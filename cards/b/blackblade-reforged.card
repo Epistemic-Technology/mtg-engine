@@ -1,0 +1,8 @@
+card "Blackblade Reforged" {
+  oracle_id dca51281-fb21-45b6-beb4-1f13397caee2
+  cost {2}
+  type Legendary Artifact — Equipment
+  static enchanted: +1/+1 count each land you control
+  equip legendary creature {3}
+  equip {7}
+}

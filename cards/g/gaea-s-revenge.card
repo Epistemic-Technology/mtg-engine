@@ -1,0 +1,9 @@
+card "Gaea's Revenge" {
+  oracle_id 26f6cc1e-d85e-45a3-a1ed-7f09d7cfc7df
+  cost {5}{G}{G}
+  type Creature — Elemental
+  pt 8/5
+  this spell can't be countered
+  keywords haste
+  untargetable by nongreen spells or abilities from nongreen sources
+}

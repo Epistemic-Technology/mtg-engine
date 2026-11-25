@@ -12096,6 +12096,8 @@ impl GameState {
                     }) && self.status_ok(filter, *id)
                         && self.combat_with_ok(filter.combat_with, source, *id)
                         && self.chosen_ok(filter, *id)
+                        && (!filter.status.player_quals()
+                            || self.player_quals_ok(&filter.status, *id, ctx.controller))
                 })
                 .map(Target::Object),
         );

@@ -1,0 +1,7 @@
+card "Crowd of True Believers" {
+  oracle_id 06296d4d-a1b3-4e9a-a2fd-a0183bb892a1
+  cost {W}
+  type Creature — Human Citizen
+  pt 1/2
+  activated {T}: target creature you control that's attacking alone gets +1/+0; you gain 1 life
+}

@@ -545,6 +545,7 @@ impl GameState {
             attacked_last_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
+            damaged_players_this_turn: Vec::new(),
             counters_put_this_turn: Vec::new(),
             dealt_damage_ever: Vec::new(),
             noncombat_last_turn: 0,
@@ -3949,6 +3950,7 @@ impl GameState {
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
+            self.damaged_players_this_turn.clear();
             self.counters_put_this_turn.clear();
             self.object_events.clear();
             self.entered_this_turn.clear();

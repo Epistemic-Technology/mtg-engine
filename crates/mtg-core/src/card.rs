@@ -1569,6 +1569,21 @@ pub struct StatusQuals {
     /// or another graveyard cast). Judged on the card.
     #[serde(default)]
     pub has_flashback: bool,
+    /// "that's attacking alone" (CR 506.5): the only attacking creature.
+    #[serde(default)]
+    pub attacking_alone: bool,
+    /// "that's attacking you or a planeswalker you control": attacking
+    /// the player judging (the caster of a spell or ability choosing
+    /// targets, an effect's controller for its groups) or a planeswalker
+    /// they control (CR 506.3). Judged for targets and effect groups
+    /// (`GameState::player_quals_ok`); elsewhere it doesn't restrict.
+    #[serde(default)]
+    pub attacking_you: bool,
+    /// "that dealt damage to you this turn" (CR 120.1): it dealt damage to
+    /// the player judging this turn (`GameState::damaged_players_this_turn`),
+    /// judged like `attacking_you`.
+    #[serde(default)]
+    pub damaged_you: bool,
 }
 
 /// What a chosen number is compared with (`StatusQuals::equal_chosen`).
@@ -1611,6 +1626,9 @@ pub enum CounterQual {
     AtLeast(CounterKind, u32),
     /// "with no counters on it": none of any kind (Heartless Act).
     NoCounters,
+    /// "that doesn't have a +1/+1 counter on it" (Coiling Stalker): none
+    /// of this kind.
+    Without(CounterKind),
 }
 
 impl StatusQuals {
@@ -1654,6 +1672,15 @@ impl StatusQuals {
             || self.has_flashback
             || self.warped
             || self.prepared_spell
+            || self.attacking_alone
+            || self.attacking_you
+            || self.damaged_you
+    }
+
+    /// Whether a qualifier judged against a player is set
+    /// (`GameState::player_quals_ok`).
+    pub const fn player_quals(&self) -> bool {
+        self.attacking_you || self.damaged_you
     }
 }
 
@@ -7954,6 +7981,18 @@ pub enum FaceUpBan {
     OpponentsYourTurn,
 }
 
+/// What can't target the permanent with `AbilityDef::Untargetable`.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct Untargetable {
+    /// The sources banned (their characteristics: "blue or black",
+    /// "nongreen"); a default filter bans every source.
+    pub from: ObjFilter,
+    pub spells: bool,
+    pub abilities: bool,
+    /// Only spells and abilities an opponent of its controller controls.
+    pub opponents: bool,
+}
+
 /// Which spells and abilities can't target a permanent
 /// (`PlayerStaticKind::EnchantedUntargetable`, `Effect::CantBeTargeted`).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -10784,6 +10823,13 @@ pub enum AbilityDef {
     /// opponent controls from such sources can't target it. The object
     /// also has `Keyword::HexproofFromFilter`.
     HexproofFrom(ObjFilter),
+    /// "This creature can't be the target of blue or black spells", "...
+    /// of nongreen spells or abilities from nongreen sources", "... of
+    /// abilities your opponents control" (CR 115.4): spells (`spells`)
+    /// and abilities (`abilities`) from sources `from` matches, with
+    /// `opponents` only those an opponent of its controller controls,
+    /// can't target it. The object also has `Keyword::HexproofFromFilter`.
+    Untargetable(Box<Untargetable>),
     /// A static ability of its controller as a player: "You have
     /// hexproof.", "You may play an additional land on each of your
     /// turns." `condition`: "As long as ..." (a pool condition, judged
@@ -10992,6 +11038,7 @@ impl AbilityDef {
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::HexproofFrom(_)
+            | AbilityDef::Untargetable(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
             | AbilityDef::PlotLess(_)
@@ -11036,6 +11083,7 @@ impl AbilityDef {
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::HexproofFrom(_)
+            | AbilityDef::Untargetable(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
             | AbilityDef::PlotLess(_)
