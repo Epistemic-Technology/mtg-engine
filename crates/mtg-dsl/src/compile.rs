@@ -3471,9 +3471,9 @@ impl Compiler<'_> {
             }
             Recipient::ControllerOf(i)
             | Recipient::ThatControllerOf(i)
-            | Recipient::TheControllerOf(i) => CoreRecipient::ControllerOf(ti(i)),
+            | Recipient::TheControllerOf(i)
+            | Recipient::ThatController(i) => CoreRecipient::ControllerOf(ti(i)),
             Recipient::OwnerOf(i) | Recipient::ThatOwner(i) => CoreRecipient::OwnerOf(ti(i)),
-            Recipient::ThatController(i) => CoreRecipient::ControllerOf(ti(i)),
             Recipient::SourceOwner => CoreRecipient::SourceOwner,
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,

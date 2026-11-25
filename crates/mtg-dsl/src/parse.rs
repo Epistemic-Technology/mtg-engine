@@ -879,6 +879,16 @@ impl P {
         self.toks.get(self.pos).map(|t| &t.tok)
     }
 
+    /// Whether a token was created earlier in this ability's effects (a
+    /// `create` since the last `:`).
+    fn created_before(&self) -> bool {
+        self.toks[..self.pos.min(self.toks.len())]
+            .iter()
+            .rev()
+            .take_while(|t| t.tok != Tok::Colon)
+            .any(|t| matches!(&t.tok, Tok::Word(w) if w == "create" || w == "creates"))
+    }
+
     fn peek_at(&self, n: usize) -> Option<&Tok> {
         self.toks.get(self.pos + n).map(|t| &t.tok)
     }
@@ -7980,7 +7990,9 @@ impl P {
         // (Salt Road Skirmish).
         if (self.at_words(&["those", "tokens"])
             || self.at_words(&["those", "copies"])
-            || (self.at_words(&["those", "creatures"]) && !self.in_delayed))
+            || (self.at_words(&["those", "creatures"])
+                && !self.in_delayed
+                && self.created_before()))
             && matches!(
                 self.word_at(2).as_deref(),
                 Some("gain" | "gains" | "get" | "gets")
@@ -9643,7 +9655,8 @@ impl P {
             return Ok(e);
         }
         // "If they can't, you draw a card." (Brain Pry).
-        if self.at_words(&["if", "they", "can't"]) || self.at_words(&["if", "the", "player", "can't"])
+        if self.at_words(&["if", "they", "can't"])
+            || self.at_words(&["if", "the", "player", "can't"])
         {
             let player = self.word_at(1).as_deref() == Some("the");
             self.pos += if player { 4 } else { 3 };
@@ -11847,7 +11860,9 @@ impl P {
                         returns,
                         by: Some(Recipient::You),
                     }),
-                    _ => self.fail("expected `return ... from your graveyard to hand chosen` after `you`"),
+                    _ => self.fail(
+                        "expected `return ... from your graveyard to hand chosen` after `you`",
+                    ),
                 }
             }
             _ => self.fail(format!("unknown verb `{w}` after a subject")),
@@ -17116,7 +17131,7 @@ impl P {
             }
             // "If you win, those creatures gain deathtouch until end of
             // turn." after creating creature tokens (Gilt-Leaf Ambush).
-            if t == crate::ast::Those::Creatures && !self.in_delayed {
+            if t == crate::ast::Those::Creatures && !self.in_delayed && self.created_before() {
                 self.pos += n;
                 return Ok(Recipient::CreatedCreatures);
             }
@@ -18982,7 +18997,14 @@ impl P {
                     self.pos += 4;
                 }
                 "that"
-                    if self.at_words(&["that", "entered", "the", "battlefield", "this", "turn"]) =>
+                    if self.at_words(&[
+                        "that",
+                        "entered",
+                        "the",
+                        "battlefield",
+                        "this",
+                        "turn",
+                    ]) =>
                 {
                     f.status.entered_this_turn = true;
                     f.entered_long = true;

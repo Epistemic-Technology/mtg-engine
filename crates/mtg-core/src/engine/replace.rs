@@ -403,10 +403,7 @@ impl GameState {
             if let Replaces::CreateTokens {
                 creature, artifact, ..
             } = e.ability.replaces
-                && !matches!(
-                    e.ability.replacement,
-                    Replacement::CopiesOfAttached { .. }
-                )
+                && !matches!(e.ability.replacement, Replacement::CopiesOfAttached { .. })
                 && let Some(source) = e.source
             {
                 found.push((e.def, e.ability.replacement, creature, artifact, source));

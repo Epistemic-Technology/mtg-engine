@@ -440,9 +440,9 @@ impl Fmt {
                 "controller of that creature".to_string()
             }
             Recipient::TheTriggeringController => "controller of the creature".to_string(),
-            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) | Recipient::ThatController(_) => {
-                "that player".to_string()
-            }
+            Recipient::TriggeringPlayer
+            | Recipient::ThatOwner(_)
+            | Recipient::ThatController(_) => "that player".to_string(),
             Recipient::TriggeringThey => "they".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),
@@ -464,7 +464,7 @@ impl Fmt {
             Recipient::GranterIt => "granter as it".to_string(),
             Recipient::GranterController => "controller of granter".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
-            Recipient::SameCreatures => "those creatures".to_string(),
+            Recipient::SameCreatures | Recipient::CreatedCreatures => "those creatures".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
                 "each creature card exiled this way".to_string()
@@ -493,7 +493,6 @@ impl Fmt {
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
             Recipient::CreatedThose => "those copies".to_string(),
-            Recipient::CreatedCreatures => "those creatures".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
@@ -2688,6 +2687,11 @@ impl Fmt {
                 s
             }
             Effect::CreateEmblem { emblem } => format!("emblem \"{emblem}\""),
+            // A cast trigger's spell, as written (`that spell`).
+            Effect::Counter {
+                to: Recipient::TriggeringObject,
+                dest,
+            } => format!("counter that spell{}", countered_to(*dest)),
             Effect::Counter { to, dest } => {
                 format!("counter {}{}", self.recipient(*to, t), countered_to(*dest))
             }
@@ -7047,6 +7051,19 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 )
             });
             let base = filter(&g);
+            // `casts with mana value equal to ... spell` (Chalice of the
+            // Void): no noun, any spell, not "permanent".
+            let base = match base.strip_prefix("permanent with ") {
+                Some(rest)
+                    if g.types.is_empty()
+                        && g.not_types.is_empty()
+                        && g.subtypes.is_empty()
+                        && g.any_types.is_empty() =>
+                {
+                    format!("with {rest}")
+                }
+                _ => base,
+            };
             let mut s = format!(
                 "whenever {} {} spell",
                 match whose {

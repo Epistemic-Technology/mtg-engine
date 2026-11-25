@@ -61,6 +61,7 @@ pub enum SpendWording {
 
 /// How `Effect::IfTarget` words its check.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed wording
 pub struct TargetCheck {
     pub tense: TargetTense,
     /// `also` after the comma: "it also gains lifelink".

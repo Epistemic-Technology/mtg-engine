@@ -2316,9 +2316,9 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringOneOfThem => "one of them".to_string(),
             Recipient::SameToken | Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::SameTheToken => "the token".to_string(),
-            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) | Recipient::ThatController(_) => {
-                "that player".to_string()
-            }
+            Recipient::TriggeringPlayer
+            | Recipient::ThatOwner(_)
+            | Recipient::ThatController(_) => "that player".to_string(),
             Recipient::TriggeringCard | Recipient::SameCard | Recipient::CreatedThatCard => {
                 "that card".to_string()
             }
@@ -2400,7 +2400,6 @@ impl<'a> Ctx<'a> {
             Recipient::CreatedTokens | Recipient::SameTokens | Recipient::CreatedThose => {
                 "those tokens".to_string()
             }
-            Recipient::CreatedCreatures => "those creatures".to_string(),
             Recipient::CreatedThem | Recipient::SameThem | Recipient::TriggeringThey => {
                 "them".to_string()
             }
@@ -2501,7 +2500,9 @@ impl<'a> Ctx<'a> {
                 let first = self.obj(Recipient::Source);
                 format!("{first} and {}", self.obj(Recipient::Target(a)))
             }
-            Recipient::ExiledCard | Recipient::CreatedExiledCard => "the exiled card".to_string(),
+            Recipient::ExiledCard | Recipient::CreatedExiledCard | Recipient::SameExiledCard => {
+                "the exiled card".to_string()
+            }
             Recipient::ExiledCardOwner => "the exiled card's owner".to_string(),
             // The granting card is the quoted ability's holder's name
             // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
@@ -2571,13 +2572,12 @@ impl<'a> Ctx<'a> {
                 )
             }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
-            Recipient::SameCreatures => "those creatures".to_string(),
+            Recipient::SameCreatures | Recipient::CreatedCreatures => "those creatures".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
                 "each creature card exiled this way".to_string()
             }
             Recipient::SameExiledCards | Recipient::ExiledCards => "the exiled cards".to_string(),
-            Recipient::SameExiledCard => "the exiled card".to_string(),
             Recipient::ThoseTargets(a, n) => format!("those {}", self.group_noun(a, n)),
         }
     }
@@ -5493,7 +5493,13 @@ fn token_description_plain(
         .color_indicator
         .as_ref()
         .filter(|c| (3..5).contains(&c.len()))
-        .map(|cs| list(&cs.iter().map(|c| color_name(*c).to_string()).collect::<Vec<_>>()));
+        .map(|cs| {
+            list(
+                &cs.iter()
+                    .map(|c| color_name(*c).to_string())
+                    .collect::<Vec<_>>(),
+            )
+        });
     if that_colors.is_some() {
     } else if let Some(colors) = &token.color_indicator
         && !all_colors
@@ -17545,7 +17551,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 if t.one_or_more
                     && let Some(g) = &t.filter
                 {
-                    return format!(" that targets one or more {}", filter_phrase(g, ctx.card, true));
+                    return format!(
+                        " that targets one or more {}",
+                        filter_phrase(g, ctx.card, true)
+                    );
                 }
                 crate::format::targeting_suffix(t, |g| {
                     if g.relation == Relation::This {
