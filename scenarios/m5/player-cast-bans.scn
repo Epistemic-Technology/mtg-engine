@@ -1,0 +1,71 @@
+# Player-level bans (CR 101.2): "You can't cast creature spells.", "You
+# can't cast noncreature spells." (CR 601.2: no such spell is offered to
+# that player; the others still may), "You can't play lands." (CR 305.1).
+
+scenario "Steel Golem: you can't cast creature spells; noncreature spells are fine" {
+  battlefield A: "Steel Golem", 2 "Forest", "Mountain"
+  hand A: "Grizzly Bears", "Shock"
+  illegal turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Steel Golem: the opponent still casts creature spells" {
+  battlefield A: "Steel Golem"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Grid Monitor: you can't cast creature spells" {
+  battlefield A: "Grid Monitor", 2 "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Nikya of the Old Ways: you can't cast noncreature spells; creatures are fine" {
+  battlefield A: "Nikya of the Old Ways", "Forest", "Mountain"
+  hand A: "Shock", "Grizzly Bears"
+  illegal turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Nikya of the Old Ways: a land tapped for mana adds one more of its type" {
+  battlefield A: "Nikya of the Old Ways", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Aggressive Mining: you can't play lands; sacrifice a land to draw two, once a turn" {
+  battlefield A: "Aggressive Mining", "Mountain", "Forest"
+  hand A: "Plains"
+  library A: "Island", "Swamp", "Wastes", "Plains"
+  illegal turn 1 A: play "Plains"
+  turn 1 A: activate "Aggressive Mining" sacrificing "Mountain"
+  illegal turn 1 A: activate "Aggressive Mining" sacrificing "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Mountain"
+  assert battlefield A contains "Forest"
+}
+
+scenario "Aggressive Mining: the opponent still plays lands" {
+  battlefield A: "Aggressive Mining"
+  hand B: "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: play "Plains"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Plains"
+}

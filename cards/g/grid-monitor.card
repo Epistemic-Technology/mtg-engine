@@ -1,0 +1,7 @@
+card "Grid Monitor" {
+  oracle_id b947b9a7-7a42-447d-b3fd-e20dba8a8f41
+  cost {4}
+  type Artifact Creature — Construct
+  pt 4/6
+  you can't cast creature spell
+}

@@ -1,0 +1,8 @@
+card "Nikya of the Old Ways" {
+  oracle_id ebf3fd80-9574-489b-9428-f4251834bdc4
+  cost {3}{R}{G}
+  type Legendary Creature — Centaur Druid
+  pt 5/5
+  you can't cast noncreature spell
+  triggered whenever land you control is tapped for mana: add produced
+}

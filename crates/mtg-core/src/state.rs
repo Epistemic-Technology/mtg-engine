@@ -3376,6 +3376,15 @@ impl GameState {
                 })
     }
 
+    /// Whether `p` can't play lands: "You can't play lands." (CR 305.1).
+    pub fn lands_banned(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics_of().any(|(who, kind, src)| {
+                matches!(kind, crate::card::PlayerStaticKind::CantPlayLands(ps)
+                    if self.rule_players_include(ps, who, src, p))
+            })
+    }
+
     /// Whether face-down permanent `id` can't be turned face up now (CR
     /// 702.37e): an Aura's "As long as enchanted creature is face down, it
     /// can't be turned face up.", or "Permanents your opponents control
@@ -3771,11 +3780,19 @@ impl GameState {
     /// "Noncreature spells with mana value equal
     /// to the chosen number can't be cast." (`PlayerStaticKind::CantCast`,
     /// CR 601.2), judged from `def`'s printed characteristics.
-    pub fn spell_cant_be_cast(&self, def: crate::card::CardRef) -> bool {
+    /// "You can't cast noncreature spells." (`CantCastBy`) for its
+    /// players: `p` is the player who would cast it.
+    pub fn spell_cant_be_cast(&self, def: crate::card::CardRef, p: PlayerId) -> bool {
         self.player_static_sources > 0
-            && self.player_statics_of().any(|(_, kind, src)| {
-                let crate::card::PlayerStaticKind::CantCast { spells } = kind else {
-                    return false;
+            && self.player_statics_of().any(|(who, kind, src)| {
+                let spells = match kind {
+                    crate::card::PlayerStaticKind::CantCast { spells } => spells,
+                    crate::card::PlayerStaticKind::CantCastBy { players, spells }
+                        if self.rule_players_include(players, who, src, p) =>
+                    {
+                        spells
+                    }
+                    _ => return false,
                 };
                 let f = self.with_source_chosen_filter(self.pool.filter(spells), src);
                 let d = self.pool.get(def);

@@ -7873,6 +7873,14 @@ pub enum PlayerStaticKind {
     /// so "the chosen number" is its choice; the card as it would be cast,
     /// X as 0).
     CantCast { spells: u16 },
+    /// "You can't cast noncreature spells.", "Your opponents can't cast
+    /// spells with mana value 3 or less." (CR 601.2, 101.2): those
+    /// `players` (relative to the source) may cast no spell matching the
+    /// pooled filter `spells`, judged as `CantCast` judges it.
+    CantCastBy { players: RulePlayers, spells: u16 },
+    /// "You can't play lands." (CR 305.1, 101.2): those players may not
+    /// play lands.
+    CantPlayLands(RulePlayers),
     /// Permanents can't be turned face up (CR 702.37e, 708.7): "As long as
     /// enchanted creature is face down, it can't be turned face up.",
     /// "Permanents your opponents control can't be turned face up during

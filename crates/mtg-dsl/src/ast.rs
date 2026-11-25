@@ -2322,6 +2322,13 @@ pub enum Ability {
     /// number`: "Noncreature spells with mana value equal to the chosen
     /// number can't be cast." (`PlayerStaticKind::CantCast`).
     CantBeCast(Filter),
+    /// `you can't cast noncreature spell`, `opponents can't cast spell
+    /// with mana value 3 or less`: "You can't cast noncreature spells."
+    /// (`PlayerStaticKind::CantCastBy`).
+    CantCastBy {
+        players: mtg_core::card::RulePlayers,
+        filter: Filter,
+    },
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,

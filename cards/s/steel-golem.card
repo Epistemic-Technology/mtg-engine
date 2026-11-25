@@ -1,0 +1,7 @@
+card "Steel Golem" {
+  oracle_id b5cd9c55-34ad-4e1f-92b2-527c9babc4d4
+  cost {3}
+  type Artifact Creature — Golem
+  pt 3/4
+  you can't cast creature spell
+}

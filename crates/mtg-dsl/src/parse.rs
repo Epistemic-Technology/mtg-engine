@@ -2916,6 +2916,40 @@ impl P {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::ProtectionFromOpponents)
             }
+            // "You can't cast noncreature spells.", "You can't play
+            // lands." (CR 601.2, 305.1).
+            "you" | "opponents" | "players"
+                if self.word_at(1).as_deref() == Some("can't")
+                    && (self.word_at(2).as_deref() == Some("cast")
+                        && self.word_at(3).as_deref() != Some("more")
+                        && !self.at_words(&["opponents", "can't", "cast", "spells", "during"])
+                        || self.word_at(2).as_deref() == Some("play")
+                            && self.word_at(3).as_deref() == Some("lands")) =>
+            {
+                use mtg_core::card::RulePlayers;
+                let players = match w.as_str() {
+                    "you" => RulePlayers::You,
+                    "opponents" => RulePlayers::Opponents,
+                    _ => RulePlayers::Each,
+                };
+                self.pos += 2;
+                if self.eat_words(&["play", "lands"]) {
+                    return self
+                        .player_static(mtg_core::card::PlayerStaticKind::CantPlayLands(players));
+                }
+                self.expect_word("cast")?;
+                // `you can't cast creature spell`; `spell` alone: any.
+                let filter = if self.at_word("spell") || self.at_word("spells") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                if !self.eat_word("spell") {
+                    self.eat_word("spells");
+                }
+                self.end_stmt()?;
+                Ok(Ability::CantCastBy { players, filter })
+            }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)

@@ -4897,6 +4897,17 @@ fn ward_alts(alts: &[crate::ast::WardAlt]) -> String {
         .join(" or ")
 }
 
+/// `you`, `opponents`, `players`, `enchanted player` for a player-level
+/// "can't" (`RulePlayers`).
+fn cant_players_word(ps: mtg_core::card::RulePlayers) -> &'static str {
+    match ps {
+        mtg_core::card::RulePlayers::You => "you",
+        mtg_core::card::RulePlayers::Opponents => "opponents",
+        mtg_core::card::RulePlayers::Each => "players",
+        mtg_core::card::RulePlayers::Enchanted => "enchanted player",
+    }
+}
+
 fn num(n: Num) -> String {
     match n {
         Num::N(n) => n.to_string(),
@@ -10121,6 +10132,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::CantBeCast(f) => {
             let _ = writeln!(out, "{indent}ban casting {}", filter(f));
         }
+        Ability::CantCastBy { players, filter: f } => {
+            let what = if *f == Filter::default() {
+                "spell".to_string()
+            } else {
+                format!("{} spell", filter(f))
+            };
+            let _ = writeln!(
+                out,
+                "{indent}{} can't cast {what}",
+                cant_players_word(*players)
+            );
+        }
         Ability::ActivationCost {
             sources,
             by,
@@ -10171,6 +10194,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let head = match kind {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
+                K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                K::CantPlayLands(ps) => format!("{} can't play lands", cant_players_word(*ps)),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::ProtectionFromOpponents => "you have protection from opponents".to_string(),

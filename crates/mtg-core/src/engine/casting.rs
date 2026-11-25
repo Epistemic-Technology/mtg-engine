@@ -692,10 +692,11 @@ impl GameState {
         // with the chosen name can't be played" (Conjurer's Ban).
         if self.player_static_sources > 0 || !self.name_rules.is_empty() {
             let banned = |def: crate::card::CardRef| {
-                self.name_cant_be_cast(def, p) || self.spell_cant_be_cast(def)
+                self.name_cant_be_cast(def, p) || self.spell_cant_be_cast(def, p)
             };
+            let lands_banned = self.lands_banned(p);
             let unplayable = |def: crate::card::CardRef| {
-                !self.name_rules.is_empty() && self.name_cant_be_played(def, p)
+                lands_banned || !self.name_rules.is_empty() && self.name_cant_be_played(def, p)
             };
             options.retain(|c| match c {
                 Choice::PlayLand(id) => !self.objects.get(*id).is_some_and(|o| unplayable(o.def)),

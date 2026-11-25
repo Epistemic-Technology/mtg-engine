@@ -1346,6 +1346,17 @@ fn top_spells(f: &Filter, card: &Card) -> String {
     one(f)
 }
 
+/// "you", "your opponents", "players", "enchanted player" for a
+/// player-level "can't" (`RulePlayers`).
+fn rule_players_subject(ps: mtg_core::card::RulePlayers) -> &'static str {
+    match ps {
+        mtg_core::card::RulePlayers::You => "you",
+        mtg_core::card::RulePlayers::Opponents => "your opponents",
+        mtg_core::card::RulePlayers::Each => "players",
+        mtg_core::card::RulePlayers::Enchanted => "enchanted player",
+    }
+}
+
 fn spells_subject(f: &Filter, card: &Card) -> String {
     if *f == Filter::default() {
         return "Spells".to_string();
@@ -25010,6 +25021,18 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         ),
         // "Noncreature spells with mana value equal to the chosen number
         // can't be cast." (CR 601.2).
+        // "You can't cast noncreature spells." (CR 601.2).
+        Ability::CantCastBy { players, filter } => {
+            let s = spells_subject(filter, card);
+            let mut cs = s.chars();
+            let lower = cs.next().map_or_else(String::new, |c| {
+                c.to_lowercase().chain(cs).collect::<String>()
+            });
+            format!(
+                "{} can't cast {lower}.",
+                capitalize(rule_players_subject(*players))
+            )
+        }
         Ability::CantBeCast(filter) => {
             let mut g = filter.clone();
             let eq = g.status.equal_chosen.take();
@@ -25079,6 +25102,9 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let s = match kind {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
+                K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                // CR 305.1.
+                K::CantPlayLands(ps) => format!("{} can't play lands", rule_players_subject(*ps)),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::ProtectionFromOpponents => {
