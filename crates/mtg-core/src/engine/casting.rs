@@ -13218,6 +13218,15 @@ impl GameState {
                 self.lasting_grants += 1;
             }
         }
+        // A gained "can't attack unless ..." (Veiled Serpent's "becomes a
+        // 4/4 Serpent creature with ...", CR 508.1c) is looked for from
+        // now on: counted for good, as the effect may outlast its source.
+        if parts.iter().any(|m| {
+            matches!(m, Modification::AddAbility(a)
+                if matches!(self.pool.ability(*a), AbilityDef::AttackUnless { .. }))
+        }) {
+            self.attack_rule_sources += 1;
+        }
         let timestamp = self.tick();
         self.effects.push(ContinuousEffect {
             source: Some(ctx.source),

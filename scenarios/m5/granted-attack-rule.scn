@@ -1,0 +1,36 @@
+# A "can't attack unless ..." gained from an effect (CR 508.1c).
+
+scenario "Veiled Serpent becomes a 4/4 when an opponent casts a spell" {
+  battlefield A: "Veiled Serpent"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert is "Veiled Serpent" creature
+  assert is not "Veiled Serpent" enchantment
+  assert power "Veiled Serpent" 4
+  assert toughness "Veiled Serpent" 4
+}
+
+scenario "Animated Veiled Serpent can't attack a player with no Island" {
+  battlefield A: "Veiled Serpent"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  illegal turn 3 A: attack "Veiled Serpent"
+  run_to turn 3 postcombat_main
+  assert life B 20
+}
+
+scenario "Animated Veiled Serpent attacks a player with an Island" {
+  battlefield A: "Veiled Serpent"
+  battlefield B: "Mountain", "Island"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 3 A: attack "Veiled Serpent"
+  run_to turn 3 postcombat_main
+  assert life B 16
+}
