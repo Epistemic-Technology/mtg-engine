@@ -12075,10 +12075,27 @@ impl GameState {
         let other_than_created = filter.relation == crate::card::Relation::Other
             && filter.status.token == Some(true)
             && !ctx.created_tokens.is_empty();
+        // "Whenever equipped creature deals damage to a blocking creature,
+        // Kusari-Gama deals that much damage to each other creature
+        // defending player controls.": a noncreature source's "other
+        // creature" is other than the triggering creature.
+        let other_than_trigger = match ctx.trigger_obj {
+            Some(t)
+                if filter.relation == crate::card::Relation::Other
+                    && filter.types.contains(crate::card::CardType::Creature)
+                    && !self
+                        .characteristics_or_lki(ctx.source)
+                        .is_some_and(|c| c.is_creature()) =>
+            {
+                Some(t)
+            }
+            _ => None,
+        };
         out.extend(
             self.battlefield
                 .iter()
                 .copied()
+                .filter(|id| other_than_trigger != Some(*id))
                 .filter(|id| {
                     !other_than_targets
                         || !(ctx.targets.contains(&Target::Object(*id))
