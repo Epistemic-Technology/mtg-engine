@@ -1,0 +1,6 @@
+card "Shadow Summoning" {
+  oracle_id b9225046-03aa-4729-89fa-32c049407229
+  cost {W}{B}
+  type Sorcery
+  spell: create 2 tapped "1/1 white Spirit creature with flying"
+}

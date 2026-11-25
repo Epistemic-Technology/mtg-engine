@@ -1,0 +1,7 @@
+card "Army of the Damned" {
+  oracle_id 75d667ec-86f4-4850-a3b6-e7a9fc7053b0
+  cost {5}{B}{B}{B}
+  type Sorcery
+  spell: create 13 tapped "2/2 black Zombie creature"
+  flashback {7}{B}{B}{B}
+}

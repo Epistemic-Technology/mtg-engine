@@ -1,0 +1,7 @@
+card "Drana's Chosen" {
+  oracle_id 185b3b9f-f798-4ca4-af99-b17a24fcc1c6
+  cost {3}{B}
+  type Creature — Vampire Shaman Ally
+  pt 2/2
+  label "Cohort" activated {T}, tap untapped Ally you control: create 1 tapped "2/2 black Zombie creature"
+}

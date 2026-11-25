@@ -1,0 +1,8 @@
+card "Diregraf Colossus" {
+  oracle_id fd62ad01-601f-4250-bc2a-8ef3982e45c4
+  cost {2}{B}
+  type Creature — Zombie Giant
+  pt 2/2
+  enters with count each graveyard Zombie +1/+1 counters
+  triggered whenever you cast Zombie spell: create 1 tapped "2/2 black Zombie creature"
+}

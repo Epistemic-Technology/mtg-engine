@@ -2443,6 +2443,13 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // "Create a tapped 2/2 black Zombie creature token" (CR
+            // 111.2: the token enters tapped).
+            (r(&TOKEN_PHRASE.replacen(r"(\S+) (", r"(\S+) tapped (", 1)), |c, _| {
+                let key = format!("{}{}", cap(c, 2), cap(c, 3));
+                token_block(&key)?;
+                Some(format!("create {} tapped \"{key}\"", number(cap(c, 1))?))
+            }),
             // "Create X 1/1 green Squirrel creature tokens, where X is the
             // number of Squirrels you control."
             (

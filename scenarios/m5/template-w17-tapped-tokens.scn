@@ -1,0 +1,126 @@
+# "Create a tapped ... token" (CR 111.2), templated in the seventeenth
+# wave.
+
+scenario "Army of the Damned: thirteen tapped Zombies" {
+  battlefield A: 8 "Swamp"
+  hand A: "Army of the Damned"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Army of the Damned"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 13 "Zombie"
+  assert tapped oldest "Zombie"
+  assert tapped newest "Zombie"
+}
+
+scenario "Empty the Pits: X tapped Zombies" {
+  battlefield A: 8 "Swamp"
+  hand A: "Empty the Pits"
+  start turn 2 B
+  turn 2 end A: cast "Empty the Pits" x 2
+  run_to turn 3 upkeep
+  assert battlefield A contains 2 "Zombie"
+}
+
+scenario "Empty the Pits: the Zombies enter tapped" {
+  battlefield A: 5 "Swamp"
+  hand A: "Empty the Pits"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Empty the Pits" x 0
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "Shadow Summoning: two tapped flying Spirits" {
+  battlefield A: "Plains", "Swamp"
+  hand A: "Shadow Summoning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shadow Summoning"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Spirit"
+  assert tapped oldest "Spirit"
+  assert tapped newest "Spirit"
+  assert has newest "Spirit" flying
+}
+
+scenario "Graveyard Marshal: exile a creature card for a tapped Zombie" {
+  battlefield A: "Graveyard Marshal", 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Graveyard Marshal"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie"
+  assert tapped "Zombie"
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Graveyard Marshal: no creature card, no activation" {
+  battlefield A: "Graveyard Marshal", 3 "Swamp"
+  graveyard A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Graveyard Marshal"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "Null Caller: {3}{B} and a creature card for a tapped Zombie" {
+  battlefield A: "Null Caller", 4 "Swamp"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Null Caller"
+  run_to turn 1 postcombat_main
+  assert tapped "Zombie"
+  assert exile A contains "Hill Giant"
+}
+
+scenario "Drana's Chosen: tap itself and an untapped Ally for a tapped Zombie" {
+  battlefield A: "Drana's Chosen", "Affa Protector"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Drana's Chosen"
+  run_to turn 1 postcombat_main
+  assert tapped "Zombie"
+  assert tapped "Drana's Chosen"
+}
+
+scenario "Diregraf Colossus: counters for Zombie cards; a Zombie spell makes a tapped Zombie" {
+  battlefield A: 7 "Swamp"
+  hand A: "Diregraf Colossus", "Gravedigger"
+  graveyard A: "Gravedigger", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diregraf Colossus"
+  turn 1 A: wait
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 postcombat_main
+  assert counters "Diregraf Colossus" +1/+1 1
+  assert battlefield A contains "Zombie"
+  assert tapped "Zombie"
+}
+
+scenario "Ashnod, Flesh Mechanist: sacrifice another creature for a tapped Powerstone" {
+  battlefield A: "Ashnod, Flesh Mechanist", "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Ashnod, Flesh Mechanist"
+  turn 1 declare_attackers A: accept "Ashnod, Flesh Mechanist"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Powerstone"
+  assert tapped "Powerstone"
+}
+
+scenario "Ashnod, Flesh Mechanist: declined, nothing" {
+  battlefield A: "Ashnod, Flesh Mechanist", "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Ashnod, Flesh Mechanist"
+  turn 1 declare_attackers A: decline "Ashnod, Flesh Mechanist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Powerstone"
+}
+
+scenario "Ashnod, Flesh Mechanist: {5} and a creature card for a tapped 3/3 Zombie artifact" {
+  battlefield A: "Ashnod, Flesh Mechanist", 5 "Swamp"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ashnod, Flesh Mechanist"
+  run_to turn 1 postcombat_main
+  assert tapped "Zombie"
+  assert is "Zombie" artifact
+  assert power "Zombie" 3
+}
