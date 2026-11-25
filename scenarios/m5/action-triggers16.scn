@@ -1,0 +1,233 @@
+# Keyword-action triggers (`TriggerSpec::Acts`): surveil, proliferate,
+# getting energy, becoming monstrous, each an event where the action
+# happens.
+
+scenario "whenever you surveil: Dimir Spybug and Thoughtbound Phantasm grow once per surveil" {
+  battlefield A: "Dimir Spybug", "Thoughtbound Phantasm", 2 "Island"
+  hand A: "Consider", "Opt"
+  library A: "Forest", "Island", "Plains", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Consider"
+  turn 2 A: surveil none
+  turn 2 A: wait
+  turn 2 A: cast "Opt"
+  run_to turn 2 postcombat_main
+  # Opt scries: no counter for it.
+  assert counters "Dimir Spybug" +1/+1 1
+  assert counters "Thoughtbound Phantasm" +1/+1 1
+  assert power "Dimir Spybug" 2
+}
+
+scenario "an opponent's surveil doesn't trigger Dimir Spybug" {
+  battlefield A: "Dimir Spybug"
+  battlefield B: "Island"
+  hand B: "Consider"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Consider"
+  run_to turn 2 postcombat_main
+  assert counters "Dimir Spybug" +1/+1 0
+}
+
+scenario "Thoughtbound Phantasm attacks with three counters despite defender" {
+  battlefield A: "Thoughtbound Phantasm" with 3 +1/+1
+  start turn 2 A precombat_main
+  turn 2 A: attack "Thoughtbound Phantasm"
+  run_to turn 2 postcombat_main
+  assert life B 15
+}
+
+scenario "Thoughtbound Phantasm can't attack with two counters" {
+  battlefield A: "Thoughtbound Phantasm" with 2 +1/+1
+  start turn 2 A precombat_main
+  illegal turn 2 A: attack "Thoughtbound Phantasm"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "whenever you proliferate: Scheming Aspirant drains each time" {
+  battlefield A: "Scheming Aspirant", 3 "Mountain"
+  hand A: "Volt Charge"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Volt Charge" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert life A 22
+}
+
+scenario "an opponent's proliferate doesn't trigger Scheming Aspirant" {
+  battlefield A: "Scheming Aspirant"
+  battlefield B: 3 "Mountain"
+  hand B: "Volt Charge"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Volt Charge" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 20
+}
+
+scenario "when you proliferate: Voidwing Hybrid returns from the graveyard" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Voidwing Hybrid"
+  hand A: "Volt Charge"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Volt Charge" targeting player B
+  run_to turn 2 postcombat_main
+  assert hand A contains "Voidwing Hybrid"
+  assert life B 17
+}
+
+scenario "Voidwing Hybrid on the battlefield doesn't return to hand" {
+  battlefield A: "Voidwing Hybrid", 3 "Mountain"
+  hand A: "Volt Charge"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Volt Charge" targeting player B
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Voidwing Hybrid"
+}
+
+scenario "whenever you get energy: Fabrication Module's own ability puts a counter on the target" {
+  battlefield A: "Fabrication Module", "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Fabrication Module"
+  turn 2 A: trigger "Fabrication Module" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert energy A 1
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Fabrication Module can't target an opponent's creature" {
+  battlefield A: "Fabrication Module", "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Fabrication Module"
+  illegal turn 2 A: trigger "Fabrication Module" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Territorial Gorger gets +2/+2 until end of turn for energy" {
+  battlefield A: "Territorial Gorger"
+  hand A: "Aether Hub"
+  start turn 2 A precombat_main
+  turn 2 A: play "Aether Hub"
+  run_to turn 2 postcombat_main
+  assert energy A 1
+  assert power "Territorial Gorger" 4
+  assert toughness "Territorial Gorger" 4
+  run_to turn 3 upkeep
+  assert power "Territorial Gorger" 2
+}
+
+scenario "an opponent's energy doesn't pump Territorial Gorger" {
+  battlefield A: "Territorial Gorger"
+  hand B: "Aether Hub"
+  start turn 2 B precombat_main
+  turn 2 B: play "Aether Hub"
+  run_to turn 2 postcombat_main
+  assert power "Territorial Gorger" 2
+}
+
+scenario "when this becomes monstrous: Ember Swallower makes each player sacrifice three lands" {
+  battlefield A: "Ember Swallower", 7 "Mountain"
+  battlefield B: 4 "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ember Swallower"
+  run_to turn 2 postcombat_main
+  assert counters "Ember Swallower" +1/+1 3
+  assert battlefield A contains 4 "Mountain"
+  assert battlefield B contains 1 "Forest"
+}
+
+scenario "a second monstrosity does nothing: Ember Swallower already monstrous" {
+  battlefield A: "Ember Swallower", 14 "Mountain"
+  battlefield B: 7 "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Ember Swallower"
+  turn 2 A: wait
+  turn 2 A: activate "Ember Swallower"
+  run_to turn 2 postcombat_main
+  assert counters "Ember Swallower" +1/+1 3
+  assert battlefield B contains 4 "Forest"
+}
+
+scenario "Wildfire Cerberus deals 2 to each opponent and their creatures only" {
+  battlefield A: "Wildfire Cerberus", "Grizzly Bears", 7 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Wildfire Cerberus"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 20
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Wildfire Cerberus" 5
+}
+
+scenario "Keepsake Gorgon destroys a non-Gorgon creature an opponent controls" {
+  battlefield A: "Keepsake Gorgon", 7 "Swamp"
+  battlefield B: "Hill Giant", "Keepsake Gorgon"
+  start turn 2 A precombat_main
+  turn 2 A: activate A "Keepsake Gorgon"
+  turn 2 A: trigger "Keepsake Gorgon" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Keepsake Gorgon can't target a Gorgon" {
+  battlefield A: "Keepsake Gorgon", 7 "Swamp"
+  battlefield B: "Hill Giant", "Keepsake Gorgon"
+  start turn 2 A precombat_main
+  turn 2 A: activate A "Keepsake Gorgon"
+  illegal turn 2 A: trigger "Keepsake Gorgon" targeting B "Keepsake Gorgon"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Keepsake Gorgon"
+}
+
+scenario "Arbor Colossus destroys an opponent's flier, not a ground creature" {
+  battlefield A: "Arbor Colossus", 6 "Forest"
+  battlefield B: "Serra Angel", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Arbor Colossus"
+  illegal turn 2 A: trigger "Arbor Colossus" targeting "Hill Giant"
+  turn 2 A: trigger "Arbor Colossus" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Hythonia destroys every non-Gorgon creature" {
+  battlefield A: "Hythonia the Cruel", "Grizzly Bears", "Keepsake Gorgon", 8 "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Hythonia the Cruel"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Keepsake Gorgon"
+  assert battlefield A contains "Hythonia the Cruel"
+}
+
+scenario "Stoneshock Giant: opponents' creatures without flying can't block" {
+  battlefield A: "Stoneshock Giant", 8 "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Stoneshock Giant"
+  turn 2 A: attack "Stoneshock Giant"
+  illegal turn 2 B: block "Stoneshock Giant" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 12
+}
+
+scenario "Stoneshock Giant: a flier still blocks" {
+  battlefield A: "Stoneshock Giant", 8 "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Stoneshock Giant"
+  turn 2 A: attack "Stoneshock Giant"
+  turn 2 B: block "Stoneshock Giant" with "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

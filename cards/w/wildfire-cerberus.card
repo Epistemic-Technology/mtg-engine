@@ -1,0 +1,8 @@
+card "Wildfire Cerberus" {
+  oracle_id 2e6be9ad-d726-4598-92a7-1ba7eda317a5
+  cost {4}{R}
+  type Creature — Dog
+  pt 4/3
+  activated {5}{R}{R}: monstrosity 1
+  triggered when this becomes monstrous: deal 2 damage to each opponent and each creature they control
+}

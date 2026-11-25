@@ -20383,6 +20383,23 @@ impl P {
         if self.eat_words(&["you", "scry"]) {
             return Ok(Trigger::Scries);
         }
+        // Keyword actions (CR 701): "Whenever you surveil", "Whenever you
+        // proliferate", "Whenever you get one or more {E}".
+        for (words, action) in [
+            (&["you", "surveil"][..], mtg_core::card::KeywordAction::Surveil),
+            (&["you", "proliferate"][..], mtg_core::card::KeywordAction::Proliferate),
+            (
+                &["you", "get", "one", "or", "more", "energy"][..],
+                mtg_core::card::KeywordAction::GetEnergy,
+            ),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Trigger::Acts {
+                    action,
+                    whose: Who::You,
+                });
+            }
+        }
         // CR 106.11a: "a player taps a land for mana", "an opponent taps
         // a Mountain for mana".
         for (words, whose) in [
@@ -21444,6 +21461,13 @@ impl P {
             "dies" => Ok(Trigger::Dies(obj)),
             // CR 701.27: "transforms into <this face>".
             "transforms" if obj == TriggerObj::This => Ok(Trigger::Transforms),
+            // CR 701.37b.
+            "becomes" if obj == TriggerObj::This && self.eat_word("monstrous") => {
+                Ok(Trigger::Acts {
+                    action: mtg_core::card::KeywordAction::Monstrous,
+                    whose: Who::You,
+                })
+            }
             "explores" => Ok(Trigger::Explores(obj)),
             "saddles" if self.at_words(&["a", "Mount", "or", "crews", "a", "Vehicle"]) => {
                 self.pos += 6;
@@ -23382,6 +23406,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::Discovers
         | Trigger::SolvesCase
         | Trigger::Forages
+        | Trigger::Acts { .. }
         | Trigger::Searches { .. }
         | Trigger::PlayerDealtDamage { .. }
         | Trigger::CreaturesDealCombatDamage(_)

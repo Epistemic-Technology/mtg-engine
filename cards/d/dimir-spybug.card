@@ -1,0 +1,8 @@
+card "Dimir Spybug" {
+  oracle_id 3bb7041c-4f3e-4123-9181-3442ea0c98e8
+  cost {U}{B}
+  type Creature — Insect
+  pt 1/1
+  keywords flying, menace
+  triggered whenever you surveil: put 1 +1/+1 counter on this
+}

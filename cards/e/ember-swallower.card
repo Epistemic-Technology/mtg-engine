@@ -1,0 +1,8 @@
+card "Ember Swallower" {
+  oracle_id 0cdc86c4-8c68-4ba6-8165-511f32156a4c
+  cost {2}{R}{R}
+  type Creature — Elemental
+  pt 4/5
+  activated {5}{R}{R}: monstrosity 3
+  triggered when this becomes monstrous: each player sacrifices 3 land
+}

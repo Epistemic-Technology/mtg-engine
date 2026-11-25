@@ -3068,6 +3068,10 @@ impl Decompiler<'_> {
             },
             TriggerSpec::ScriesOrSurveils => Trigger::ScriesOrSurveils,
             TriggerSpec::Scries => Trigger::Scries,
+            TriggerSpec::Acts { action, whose } => Trigger::Acts {
+                action: *action,
+                whose: *whose,
+            },
             TriggerSpec::Explores(o) => Trigger::Explores(self.trigger_obj(o)),
             TriggerSpec::CrewsOrSaddles(o) => Trigger::CrewsOrSaddles(self.trigger_obj(o)),
             TriggerSpec::BecomesSaddled(o) => Trigger::BecomesSaddled(self.trigger_obj(o)),

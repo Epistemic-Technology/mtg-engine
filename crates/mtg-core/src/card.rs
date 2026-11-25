@@ -9233,6 +9233,38 @@ pub enum TriggerSpec {
         #[serde(default)]
         or_spell: bool,
     },
+    /// A keyword action (CR 701) or a like event happening once where it
+    /// is performed (`Event::Acted`, surveil's `Event::Scried`): "Whenever
+    /// you surveil", "Whenever you proliferate", "Whenever you get one or
+    /// more {E}", "When this creature becomes monstrous". For an action of
+    /// an object (`KeywordAction::of_object`) only the source's counts;
+    /// otherwise the player performing it must match `whose`. That player
+    /// is the triggering player, the number involved (energy gotten, the
+    /// monstrosity's N) the trigger's amount.
+    Acts { action: KeywordAction, whose: Who },
+}
+
+/// What a `TriggerSpec::Acts` trigger watches.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum KeywordAction {
+    /// Surveil (CR 701.25): once per instruction to surveil a number above
+    /// 0 (CR 701.25c).
+    Surveil,
+    /// Proliferate (CR 701.27), once per time.
+    Proliferate,
+    /// Getting one or more {E} (CR 107.14, 122.1): once per instruction.
+    GetEnergy,
+    /// Becoming monstrous (CR 701.37b): the source's monstrosity resolves
+    /// while it isn't monstrous.
+    Monstrous,
+}
+
+impl KeywordAction {
+    /// The action is the source's own ("this creature becomes monstrous"),
+    /// not a player's.
+    pub fn of_object(self) -> bool {
+        matches!(self, KeywordAction::Monstrous)
+    }
 }
 
 /// An event about one object, counted per object each turn for
@@ -9535,6 +9567,7 @@ impl TriggerSpec {
             | TriggerSpec::Explores(_)
             | TriggerSpec::Activates { .. }
             | TriggerSpec::Transforms
+            | TriggerSpec::Acts { .. }
             | TriggerSpec::YouTap(_) => WATCH_ACT,
         }
     }

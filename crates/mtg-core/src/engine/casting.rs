@@ -17261,6 +17261,15 @@ impl GameState {
                     if let Target::Player(p) = t {
                         self.player_mut(p).energy += n;
                         self.bump();
+                        // "Whenever you get one or more {E}".
+                        if n > 0 {
+                            self.emit(Event::Acted {
+                                player: p,
+                                obj: None,
+                                action: crate::card::KeywordAction::GetEnergy,
+                                n,
+                            });
+                        }
                     }
                 }
             }
@@ -17299,6 +17308,13 @@ impl GameState {
             Effect::Proliferate { times } => {
                 for _ in 0..self.eval_num(*times, ctx) {
                     self.proliferate(ctx.controller);
+                    // "Whenever you proliferate" (CR 701.27).
+                    self.emit(Event::Acted {
+                        player: ctx.controller,
+                        obj: None,
+                        action: crate::card::KeywordAction::Proliferate,
+                        n: 1,
+                    });
                 }
             }
             Effect::BecomeStage(stage) => self.become_stage(ctx.source, *stage),
@@ -18645,6 +18661,15 @@ impl GameState {
                     self.objects[id].marks |= crate::state::OBJ_MONSTROUS;
                     // "As long as this creature is monstrous" (CR 701.37b).
                     self.cbump();
+                    // "When this creature becomes monstrous" (CR 701.37b);
+                    // its N is the trigger's amount ("X", CR 701.37c).
+                    let player = self.objects[id].controller;
+                    self.emit(Event::Acted {
+                        player,
+                        obj: Some(id),
+                        action: crate::card::KeywordAction::Monstrous,
+                        n,
+                    });
                 }
             }
             Effect::Connive { what } => {

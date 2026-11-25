@@ -50,6 +50,7 @@ impl GameState {
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
             // "discover again for the same value".
             Event::Discovered { value, .. } => *value,
+            Event::Acted { n, .. } => *n,
             // "If eight or more mana was spent to cast that spell, ... that
             // much damage": the mana spent to cast it (CR 601.2h), recorded
             // only while something watches it.
@@ -2299,6 +2300,33 @@ impl GameState {
                 && *player == w.controller
                 && (!*your_turn || self.active_player == w.controller))
                 .then_some((None, Some(*player))),
+            // CR 701.25c: surveil 0 is no surveil (and emits no event).
+            (
+                TriggerSpec::Acts {
+                    action: crate::card::KeywordAction::Surveil,
+                    whose,
+                },
+                Event::Scried {
+                    player,
+                    surveil: true,
+                    ..
+                },
+            ) => whose_ok(*whose, *player).then_some((None, Some(*player))),
+            (
+                TriggerSpec::Acts { action, whose },
+                Event::Acted {
+                    player,
+                    obj,
+                    action: a,
+                    ..
+                },
+            ) if a == action => {
+                if action.of_object() {
+                    (*obj == Some(w.source)).then_some((*obj, Some(*player)))
+                } else {
+                    whose_ok(*whose, *player).then_some((None, Some(*player)))
+                }
+            }
             (TriggerSpec::ScriesOrSurveils, Event::Scried { player, .. }) => {
                 (*player == w.controller).then_some((None, Some(*player)))
             }

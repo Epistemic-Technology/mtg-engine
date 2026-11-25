@@ -6777,6 +6777,10 @@ impl Compiler<'_> {
             },
             Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
             Trigger::Scries => TriggerSpec::Scries,
+            Trigger::Acts { action, whose } => TriggerSpec::Acts {
+                action: *action,
+                whose: *whose,
+            },
             Trigger::Explores(o) => TriggerSpec::Explores(self.trigger_obj(o)),
             Trigger::CrewsOrSaddles(o) => TriggerSpec::CrewsOrSaddles(self.trigger_obj(o)),
             Trigger::BecomesSaddled(o) => TriggerSpec::BecomesSaddled(self.trigger_obj(o)),

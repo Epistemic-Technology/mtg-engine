@@ -6619,6 +6619,10 @@ pub fn natural_when(t: &Trigger) -> bool {
             }
             | Trigger::TurnedFaceUp(TriggerObj::This)
             | Trigger::Exploits
+            | Trigger::Acts {
+                action: mtg_core::card::KeywordAction::Monstrous,
+                ..
+            }
             | Trigger::HauntedDies
             | Trigger::BecomesPlotted
             | Trigger::BecomesTarget(TriggerObj::This)
@@ -6642,6 +6646,19 @@ pub fn natural_when(t: &Trigger) -> bool {
                 ..
             }
         )
+}
+
+/// A keyword-action trigger (`Trigger::Acts`), in the DSL or (`oracle`)
+/// in Oracle text, `this` standing for the source's noun.
+pub fn acts_words(action: mtg_core::card::KeywordAction, oracle: bool) -> String {
+    use mtg_core::card::KeywordAction as A;
+    match action {
+        A::Surveil => "whenever you surveil".to_string(),
+        A::Proliferate => "whenever you proliferate".to_string(),
+        A::GetEnergy if oracle => "whenever you get one or more {E}".to_string(),
+        A::GetEnergy => "whenever you get one or more energy".to_string(),
+        A::Monstrous => "when this becomes monstrous".to_string(),
+    }
 }
 
 /// "you activate an ability of a creature", "an opponent activates a
@@ -7338,6 +7355,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         ),
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
+        Trigger::Acts { action, .. } => acts_words(*action, false),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_obj(o)),
         Trigger::CrewsOrSaddles(o) => {
             format!(

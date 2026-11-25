@@ -17481,6 +17481,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
+        Trigger::Acts {
+            action: mtg_core::card::KeywordAction::Monstrous,
+            ..
+        } => {
+            ctx.source_mentioned = true;
+            format!("when {} becomes monstrous", this_ref(ctx.card))
+        }
+        Trigger::Acts { action, .. } => crate::format::acts_words(*action, true),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_subject(o, ctx)),
         Trigger::CrewsOrSaddles(o) => format!(
             "whenever {} saddles a Mount or crews a Vehicle",

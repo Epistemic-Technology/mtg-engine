@@ -1,0 +1,8 @@
+card "Territorial Gorger" {
+  oracle_id fcf9c013-7a79-42b1-8aee-6d40ff475fbf
+  cost {3}{R}
+  type Creature — Gremlin
+  pt 2/2
+  keywords trample
+  triggered whenever you get one or more energy: this gets +2/+2
+}

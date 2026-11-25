@@ -93,6 +93,15 @@ pub enum Event {
     CollectedEvidence {
         player: PlayerId,
     },
+    /// A keyword action performed (`TriggerSpec::Acts`): by `player`, of
+    /// `obj` for an object's action, `n` the number involved (energy
+    /// gotten, a monstrosity's N).
+    Acted {
+        player: PlayerId,
+        obj: Option<ObjId>,
+        action: crate::card::KeywordAction,
+        n: u32,
+    },
     /// A player foraged (CR 701.61a).
     Foraged {
         player: PlayerId,
@@ -488,6 +497,7 @@ impl Event {
             | Event::BecameSaddled { .. }
             | Event::Activated { .. }
             | Event::Transformed { .. }
+            | Event::Acted { .. }
             | Event::TappedBy { .. } => WATCH_ACT,
             _ => 0,
         }

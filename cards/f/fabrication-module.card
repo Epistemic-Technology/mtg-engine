@@ -1,0 +1,7 @@
+card "Fabrication Module" {
+  oracle_id b057c8ff-f169-41cd-a594-026f1a6cb0f9
+  cost {3}
+  type Artifact
+  triggered whenever you get one or more energy: put 1 +1/+1 counter on target creature you control
+  activated {4}, {T}: you get 1 energy
+}

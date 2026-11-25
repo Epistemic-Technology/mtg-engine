@@ -4967,6 +4967,13 @@ pub enum Trigger {
     /// `whenever this transforms` (CR 701.27): "Whenever this creature
     /// transforms into <the name of the face this ability is on>".
     Transforms,
+    /// `whenever you surveil`, `whenever you proliferate`, `whenever you
+    /// get one or more energy`, `when this becomes monstrous`: a keyword
+    /// action (`TriggerSpec::Acts`).
+    Acts {
+        action: mtg_core::card::KeywordAction,
+        whose: Who,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
