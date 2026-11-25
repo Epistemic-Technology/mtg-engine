@@ -1,0 +1,17 @@
+scenario "anthem for wolves and token at end step" {
+  battlefield A: "Nightpack Ambusher", "Wolf", "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Nightpack Ambusher" 4
+  assert power "Grizzly Bears" 2
+  assert power "Wolf" 3
+  run_to turn 1 cleanup
+  assert battlefield A contains 2 "Wolf"
+}
+scenario "no token after casting a spell" {
+  battlefield A: "Nightpack Ambusher", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 cleanup
+  assert life B 17
+  assert battlefield A contains 0 "Wolf"
+}

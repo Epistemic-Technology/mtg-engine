@@ -1,0 +1,7 @@
+card "Dimir Cutpurse" {
+  oracle_id 56c1a548-c80c-432b-bf92-d4ef6117b298
+  cost {1}{U}{B}
+  type Creature — Spirit
+  pt 2/2
+  triggered whenever this deals combat damage to a player: that player discards 1 card and you draw 1 card
+}

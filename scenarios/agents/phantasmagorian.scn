@@ -1,0 +1,25 @@
+scenario "phantasmagorian countered when an opponent discards" {
+  hand A: "Phantasmagorian"
+  battlefield A: 7 "Swamp"
+  hand B: "Forest", "Forest", "Forest"
+  turn 1 A: cast "Phantasmagorian"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Phantasmagorian"
+  assert battlefield A lacks "Phantasmagorian"
+  assert graveyard B count 3
+}
+scenario "phantasmagorian resolves if nobody can discard" {
+  hand A: "Phantasmagorian"
+  battlefield A: 7 "Swamp"
+  turn 1 A: cast "Phantasmagorian"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Phantasmagorian"
+}
+scenario "phantasmagorian returns from graveyard" {
+  graveyard A: "Phantasmagorian"
+  hand A: "Forest", "Forest", "Forest"
+  turn 1 A: activate "Phantasmagorian" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Phantasmagorian"
+  assert graveyard A lacks "Phantasmagorian"
+}

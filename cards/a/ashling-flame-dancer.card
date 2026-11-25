@@ -1,0 +1,8 @@
+card "Ashling, Flame Dancer" {
+  oracle_id 6fe9fd59-9cac-4572-8f94-bc19bea44f94
+  cost {2}{R}{R}
+  type Legendary Creature — Elemental Shaman
+  pt 4/4
+  you don't lose unspent red mana
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: discard 1 card then draw 1 card; if resolution 2, this deals 2 damage to each opponent and each creature they control; if resolution 3 again, add {R}{R}{R}{R}
+}

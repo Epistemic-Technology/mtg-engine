@@ -1,0 +1,9 @@
+card "Everflame Eidolon" {
+  oracle_id 2c6b2f4a-4e0e-4dc1-92a8-c07e5cbba5f4
+  cost {1}{R}
+  type Enchantment Creature — Spirit
+  pt 1/1
+  bestow {2}{R}
+  activated {R}: this gets +1/+0 until end of turn; if this is Aura, enchanted creature gets +1/+0 until end of turn instead
+  static enchanted: +1/+1
+}

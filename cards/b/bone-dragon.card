@@ -1,0 +1,8 @@
+card "Bone Dragon" {
+  oracle_id 51926430-b98a-424d-9347-c36938132825
+  cost {3}{B}{B}
+  type Creature — Dragon Skeleton
+  pt 5/4
+  keywords flying
+  activated {3}{B}{B}, exile 7 other card from graveyard, from graveyard: return this to battlefield tapped
+}

@@ -1,0 +1,12 @@
+scenario "sliversmith discards to make a metallic sliver" {
+  battlefield A: "Sliversmith", "Plains"
+  hand A: "Forest"
+  turn 1 A: activate "Sliversmith" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert battlefield A contains "Metallic Sliver"
+  assert is "Metallic Sliver" artifact
+  assert is "Metallic Sliver" Sliver
+  assert power "Metallic Sliver" 1
+  assert tapped "Sliversmith"
+}

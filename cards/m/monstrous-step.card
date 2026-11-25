@@ -1,0 +1,7 @@
+card "Monstrous Step" {
+  oracle_id af045109-ed00-469f-814b-c759c0c5357c
+  cost {4}{G}
+  type Sorcery
+  spell: target creature gets +7/+7 until end of turn; up to 1 target other creature blocks target 1 this turn if able
+  cycling {2}
+}

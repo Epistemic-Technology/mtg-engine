@@ -1,0 +1,17 @@
+scenario "woodland champion counts tokens entering together" {
+  battlefield A: "Woodland Champion", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert counters "Woodland Champion" +1/+1 2
+  assert power "Woodland Champion" 4
+}
+scenario "woodland champion ignores opposing tokens" {
+  battlefield A: "Woodland Champion"
+  battlefield B: 2 "Plains"
+  hand B: "Raise the Alarm"
+  start turn 2 B
+  turn 2 B: cast "Raise the Alarm"
+  run_to turn 2 postcombat_main
+  assert counters "Woodland Champion" +1/+1 0
+}

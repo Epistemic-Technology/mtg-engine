@@ -1,0 +1,10 @@
+card "Imskir Iron-Eater" {
+  oracle_id 2494101a-2c6b-45d8-95fe-e62bf9a25130
+  cost {6}{B}{R}
+  type Legendary Creature — Demon
+  pt 5/5
+  short_name "Imskir"
+  affinity for artifact
+  triggered whenever this enters: you draw count where half down artifact you control cards, and you lose count where half down artifact you control life
+  activated {3}{R}, sacrifice artifact: this deals damage equal mana value of the sacrificed artifact to any target
+}

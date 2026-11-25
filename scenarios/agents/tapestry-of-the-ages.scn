@@ -1,0 +1,12 @@
+scenario "Tapestry of the Ages draws only after a noncreature spell" {
+  battlefield A: "Tapestry of the Ages", 3 "Mountain", "Plains"
+  hand A: "Shock"
+  library A: "Forest", "Forest"
+  illegal turn 1 precombat_main A: activate "Tapestry of the Ages"
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  turn 1 precombat_main A: wait
+  turn 1 postcombat_main A: activate "Tapestry of the Ages"
+  run_to turn 1 end
+  assert hand A count 1
+  assert life B 18
+}

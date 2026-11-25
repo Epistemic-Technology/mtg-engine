@@ -1,0 +1,24 @@
+scenario "Layla Hassan returns a historic card on entering" {
+  battlefield A: 4 "Plains"
+  hand A: "Layla Hassan"
+  graveyard A: "Sol Ring", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Layla Hassan"
+  turn 1 A: trigger "Layla Hassan" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sol Ring"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Layla Hassan returns a historic card when an Assassin connects" {
+  battlefield A: "Layla Hassan"
+  graveyard A: "Sol Ring", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Layla Hassan"
+  turn 1 first_strike_damage A: trigger "Layla Hassan" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A contains "Sol Ring"
+  assert graveyard A lacks "Sol Ring"
+  assert graveyard A contains "Grizzly Bears"
+}

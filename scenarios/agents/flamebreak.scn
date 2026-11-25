@@ -1,0 +1,16 @@
+scenario "Flamebreak hits ground creatures and players, spares fliers, no regeneration" {
+  battlefield A: "Plains", 3 "Mountain", "Grizzly Bears", "Wind Drake"
+  hand A: "Flamebreak"
+  battlefield B: "Drudge Skeletons", "Swamp", "Serra Angel", "Hill Giant"
+  turn 1 precombat_main A: cast "Flamebreak"
+  turn 1 precombat_main B: activate "Drudge Skeletons"
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 17
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Drudge Skeletons"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Wind Drake"
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 0
+}

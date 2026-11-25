@@ -1,0 +1,11 @@
+scenario "butterbur: makes a Food at end step when you control none" {
+  battlefield A: "Butterbur, Bree Innkeeper"
+  run_to turn 1 cleanup
+  assert battlefield A contains 1 "Food"
+}
+
+scenario "butterbur: no new Food when you already control one" {
+  battlefield A: "Butterbur, Bree Innkeeper", "Food"
+  run_to turn 1 cleanup
+  assert battlefield A contains 1 "Food"
+}

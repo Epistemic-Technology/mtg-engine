@@ -1,0 +1,7 @@
+card "Cloudshredder Sliver" {
+  oracle_id f943c005-9b77-411a-b522-1182e22724e1
+  cost {R}{W}
+  type Creature — Sliver
+  pt 1/1
+  static Sliver creature you control: has flying, has haste
+}

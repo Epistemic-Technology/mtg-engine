@@ -1,0 +1,7 @@
+card "Charitable Levy" {
+  oracle_id 8a628875-96c8-4a28-aaff-99fd99ae778e
+  cost {1}{W}
+  type Enchantment
+  spells noncreature cost {1} more
+  triggered whenever a player casts noncreature spell: put 1 collection counter on this; then if there are 3 or more collection counters on this, sacrifice this; if you do, draw 1 card, then you may search Plains card to battlefield tapped
+}

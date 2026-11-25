@@ -1,0 +1,7 @@
+card "Starfield of Nyx" {
+  oracle_id 922d603e-6623-4455-b91f-fad76f94045a
+  cost {4}{W}
+  type Enchantment
+  triggered at beginning of your upkeep step: you may return target enchantment card from your graveyard to battlefield
+  static as long as you control 5 enchantment, other non-Aura enchantment you control: add type creature, base mv
+}

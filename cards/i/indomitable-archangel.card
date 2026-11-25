@@ -1,0 +1,8 @@
+card "Indomitable Archangel" {
+  oracle_id 0f9269eb-6a6c-4b32-8b3d-73724c12ca6b
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  label "Metalcraft" static artifact you control: has shroud as long as you control 3 artifact
+}

@@ -1,0 +1,6 @@
+card "Hour of Promise" {
+  oracle_id 51ff3e53-90bb-41bf-80e4-bb3fd51d574a
+  cost {4}{G}
+  type Sorcery
+  spell: search up to 2 land card to battlefield tapped; then if you control 3 Desert, create 2 "2/2 black Zombie creature"
+}

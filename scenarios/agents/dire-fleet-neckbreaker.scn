@@ -1,0 +1,14 @@
+scenario "Dire Fleet Neckbreaker: attacking Pirates get +2/+0" {
+  battlefield A: "Dire Fleet Neckbreaker", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dire Fleet Neckbreaker", "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Dire Fleet Neckbreaker" 5
+  assert power "Grizzly Bears" 2
+}
+scenario "Dire Fleet Neckbreaker: not attacking, no bonus" {
+  battlefield A: "Dire Fleet Neckbreaker"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Dire Fleet Neckbreaker" 3
+}

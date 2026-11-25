@@ -1,0 +1,19 @@
+scenario "aethersphere harvester gives 2 energy, crews, and spends energy for lifelink" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Aethersphere Harvester"
+  turn 1 precombat_main A: cast "Aethersphere Harvester"
+  run_to turn 1 postcombat_main
+  assert energy A 2
+}
+scenario "harvester attacks with lifelink after crew" {
+  battlefield A: "Aethersphere Harvester", "Grizzly Bears"
+  energy A: 2
+  turn 1 precombat_main A: activate "Aethersphere Harvester" ability 2
+  turn 1 declare_attackers A: attack "Aethersphere Harvester"
+  turn 1 declare_attackers A: activate "Aethersphere Harvester" ability 1
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert energy A 1
+  assert has "Aethersphere Harvester" flying
+}

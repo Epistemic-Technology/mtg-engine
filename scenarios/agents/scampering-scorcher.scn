@@ -1,0 +1,22 @@
+scenario "Scampering Scorcher makes two hasty Elementals" {
+  battlefield A: 4 "Mountain"
+  hand A: "Scampering Scorcher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scampering Scorcher"
+  turn 1 A: attack "Scampering Scorcher", "Elemental", "Elemental"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elemental"
+  assert life B 17
+}
+
+scenario "Scampering Scorcher's haste is only for Elementals" {
+  battlefield A: 4 "Mountain", 2 "Forest"
+  hand A: "Scampering Scorcher", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Scampering Scorcher"
+  run_to turn 1 declare_attackers
+  assert has newest A "Elemental" haste
+  assert has "Scampering Scorcher" haste
+  assert has not "Grizzly Bears" haste
+}

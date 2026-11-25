@@ -1,0 +1,6 @@
+token "3/3 green Centaur enchantment creature" {
+  name "Centaur"
+  type Enchantment Creature — Centaur
+  pt 3/3
+  color green
+}

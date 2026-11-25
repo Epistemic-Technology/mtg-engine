@@ -1,0 +1,8 @@
+card "Phantasmagorian" {
+  oracle_id 248e0dfa-0bcb-402c-badf-ca59f02792f7
+  cost {5}{B}{B}
+  type Creature — Horror
+  pt 6/6
+  triggered when you cast this: any player may discard 3 cards; if a player does, counter this
+  activated from graveyard, discard 3 cards: return this to hand
+}

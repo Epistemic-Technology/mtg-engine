@@ -1,0 +1,7 @@
+card "Murder Investigation" {
+  oracle_id 42ca56c5-a9c4-4a2c-ae05-bce47aa6e16c
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when enchanted creature dies: create count where power of it "1/1 white Soldier creature"
+}

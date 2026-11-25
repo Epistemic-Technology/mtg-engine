@@ -1,0 +1,19 @@
+scenario "Nath makes opponent discard and creates an Elf" {
+  battlefield A: "Nath of the Gilt-Leaf"
+  hand B: "Forest"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert hand B count 0
+  assert graveyard B contains "Forest"
+  assert battlefield A contains "Elf Warrior"
+}
+
+scenario "Nath may decline the discard" {
+  battlefield A: "Nath of the Gilt-Leaf"
+  hand B: "Forest"
+  start turn 1 A upkeep
+  turn 1 upkeep A: decline "Nath of the Gilt-Leaf"
+  run_to turn 1 draw
+  assert hand B count 1
+  assert not game_over
+}

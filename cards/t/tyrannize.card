@@ -1,0 +1,6 @@
+card "Tyrannize" {
+  oracle_id 27da0af7-85d3-42aa-9426-b86c5e464f81
+  cost {3}{B/R}{B/R}
+  type Sorcery
+  spell: target player discards hand unless they pay 7 life
+}

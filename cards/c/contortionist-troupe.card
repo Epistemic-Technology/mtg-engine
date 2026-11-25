@@ -1,0 +1,8 @@
+card "Contortionist Troupe" {
+  oracle_id be9bee08-ac04-42bc-93be-5a77482a7690
+  cost {X}{G}
+  type Creature — Human
+  pt 0/0
+  enters with X +1/+1 counters
+  label "Coven" triggered at beginning of your end step if 3 different powers: put 1 +1/+1 counter on target creature you control
+}

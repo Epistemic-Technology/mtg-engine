@@ -1,0 +1,18 @@
+scenario "Foundry Hornet shrinks opposing creatures only with a +1/+1 counter creature" {
+  battlefield A: 4 "Swamp", "Grizzly Bears" with 1 +1/+1
+  hand A: "Foundry Hornet"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  turn 1 precombat_main A: cast "Foundry Hornet"
+  run_to turn 1 postcombat_main
+  assert power B "Hill Giant" 2
+  assert power B "Grizzly Bears" 1
+  assert power A "Grizzly Bears" 3
+}
+scenario "Foundry Hornet does nothing without a countered creature" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  hand A: "Foundry Hornet"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: cast "Foundry Hornet"
+  run_to turn 1 postcombat_main
+  assert power B "Hill Giant" 3
+}

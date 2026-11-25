@@ -1,0 +1,8 @@
+card "Waste Not" {
+  oracle_id 00fdcc19-88ed-46c3-91f0-095806228105
+  cost {1}{B}
+  type Enchantment
+  triggered whenever an opponent discards creature card: create 1 "2/2 black Zombie creature"
+  triggered whenever an opponent discards land card: add {B}{B}
+  triggered whenever an opponent discards noncreature nonland card: draw 1 card
+}

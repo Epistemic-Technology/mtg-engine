@@ -1,0 +1,8 @@
+card "Wurmcoil Engine" {
+  oracle_id d1a60f44-7696-49ee-91fb-cab5b3102962
+  cost {6}
+  type Artifact Creature — Phyrexian Wurm
+  pt 6/6
+  keywords deathtouch, lifelink
+  triggered when this dies: create 1 "3/3 colorless Phyrexian Wurm artifact creature with deathtouch" and create 1 "3/3 colorless Phyrexian Wurm artifact creature with lifelink"
+}

@@ -1,0 +1,7 @@
+card "Dire Fleet Neckbreaker" {
+  oracle_id bcf34a1c-162a-400c-b1db-9d1bb62bf7e9
+  cost {2}{B}{R}
+  type Creature — Orc Pirate
+  pt 3/2
+  static attacking Pirate you control: +2/+0
+}

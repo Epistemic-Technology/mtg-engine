@@ -1,0 +1,8 @@
+card "Skarrg Guildmage" {
+  oracle_id 7a49f3a1-abdb-4bf3-b5ed-f54349ab40fd
+  cost {R}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {R}{G}: each creature you control gains trample
+  activated {1}{R}{G}: target land you control becomes 4/4 Elemental creature
+}

@@ -1,0 +1,18 @@
+scenario "Gleam of Authority counts +1/+1 counters on other creatures" {
+  battlefield A: "Grizzly Bears", "Gleam of Authority" on "Grizzly Bears", "Hill Giant" with 2 +1/+1, "Phantom Tiger" with 1 +1/+1
+  battlefield B: "Serra Angel" with 3 +1/+1
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Gleam of Authority grants bolster" {
+  battlefield A: "Grizzly Bears", "Gleam of Authority" on "Grizzly Bears", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert tapped "Grizzly Bears"
+}

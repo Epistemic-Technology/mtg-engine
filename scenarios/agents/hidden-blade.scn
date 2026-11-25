@@ -1,0 +1,26 @@
+scenario "Hidden Blade gives an Assassin deathtouch" {
+  battlefield A: "Agate-Blade Assassin", "Grizzly Bears", 2 "Plains"
+  hand A: "Hidden Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hidden Blade"
+  turn 1 A: trigger "Hidden Blade" targeting "Agate-Blade Assassin"
+  run_to turn 1 combat_damage
+  assert attached "Hidden Blade" to "Agate-Blade Assassin"
+  assert has "Agate-Blade Assassin" deathtouch
+  assert has "Agate-Blade Assassin" first_strike
+  assert has not "Grizzly Bears" deathtouch
+}
+
+scenario "Hidden Blade gives a non-Assassin no deathtouch" {
+  battlefield A: "Agate-Blade Assassin", "Grizzly Bears", 2 "Plains"
+  hand A: "Hidden Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hidden Blade"
+  turn 1 A: trigger "Hidden Blade" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert attached "Hidden Blade" to "Grizzly Bears"
+  assert has not "Grizzly Bears" deathtouch
+  assert has not "Agate-Blade Assassin" deathtouch
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" first_strike
+}

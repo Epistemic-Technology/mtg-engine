@@ -1,0 +1,8 @@
+card "King Macar, the Gold-Cursed" {
+  oracle_id 1ebafd78-269a-4974-88d2-e75b44b744c2
+  cost {2}{B}{B}
+  type Legendary Creature — Human Noble
+  pt 2/3
+  short_name "King Macar"
+  label "Inspired" triggered whenever this becomes untapped: you may exile target creature; if you do, create 1 "Gold"
+}

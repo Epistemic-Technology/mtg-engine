@@ -1,0 +1,24 @@
+scenario "Dragon Whelp pumps and survives three activations" {
+  battlefield A: "Dragon Whelp", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Dragon Whelp"
+  turn 1 precombat_main A: activate "Dragon Whelp"
+  turn 1 precombat_main A: activate "Dragon Whelp"
+  run_to turn 1 postcombat_main
+  assert power "Dragon Whelp" 5
+  run_to turn 2 upkeep
+  assert battlefield A contains "Dragon Whelp"
+}
+
+scenario "Dragon Whelp is sacrificed after the fourth activation" {
+  battlefield A: "Dragon Whelp", 4 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Dragon Whelp"
+  turn 1 precombat_main A: activate "Dragon Whelp"
+  turn 1 precombat_main A: activate "Dragon Whelp"
+  turn 1 precombat_main A: activate "Dragon Whelp"
+  run_to turn 1 postcombat_main
+  assert power "Dragon Whelp" 6
+  run_to turn 1 cleanup
+  assert graveyard A contains "Dragon Whelp"
+}

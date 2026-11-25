@@ -1,0 +1,11 @@
+scenario "Memnarch makes a permanent an artifact then steals it" {
+  battlefield A: "Memnarch", 7 "Island"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Memnarch" ability 1 targeting "Hill Giant"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: activate "Memnarch" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert is "Hill Giant" artifact
+  assert is "Hill Giant" creature
+}

@@ -1,0 +1,6 @@
+card "Tainted Indulgence" {
+  oracle_id 6944092f-22c6-4b65-840d-8c1b70883127
+  cost {U}{B}
+  type Instant
+  spell: draw 2 cards; then discard 1 card unless 5 mana values in your graveyard
+}

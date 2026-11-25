@@ -1,0 +1,17 @@
+scenario "draws per creature and gains 4 per big creature" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Serra Angel", 5 "Forest"
+  hand A: "Shamanic Revelation"
+  library A: "Island", "Island", "Island", "Island", "Island"
+  turn 1 precombat_main A: cast "Shamanic Revelation"
+  run_to turn 1 end
+  assert hand A count 3
+  assert life A 24
+}
+scenario "ferocious life" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Phantom Tiger" with 3 +1/+1, 5 "Forest"
+  hand A: "Shamanic Revelation"
+  turn 1 precombat_main A: cast "Shamanic Revelation"
+  run_to turn 1 end
+  assert hand A count 4
+  assert life A 28
+}

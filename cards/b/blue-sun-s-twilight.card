@@ -1,0 +1,6 @@
+card "Blue Sun's Twilight" {
+  oracle_id 11e637b4-6ce0-4514-98d6-02a2d073f73b
+  cost {X}{U}{U}
+  type Sorcery
+  spell: gain control of target creature with mana value X or less indefinitely; if x 5 or more, create token copy of that target 1
+}

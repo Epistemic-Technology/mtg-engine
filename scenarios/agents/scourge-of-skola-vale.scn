@@ -1,0 +1,19 @@
+scenario "Scourge of Skola Vale enters with two counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Scourge of Skola Vale"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scourge of Skola Vale"
+  run_to turn 1 postcombat_main
+  assert counters "Scourge of Skola Vale" +1/+1 2
+  assert power "Scourge of Skola Vale" 2
+}
+
+scenario "Scourge of Skola Vale gains counters equal to toughness" {
+  battlefield A: "Scourge of Skola Vale" with 2 +1/+1, "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scourge of Skola Vale" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Scourge of Skola Vale" +1/+1 5
+  assert graveyard A contains "Hill Giant"
+  assert tapped "Scourge of Skola Vale"
+}

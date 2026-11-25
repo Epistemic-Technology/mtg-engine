@@ -1,0 +1,8 @@
+card "Pollenbright Wings" {
+  oracle_id 582c8030-1d41-4c63-8ed6-06aad398a96c
+  cost {4}{G}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  triggered whenever enchanted creature deals combat damage to a player: create that much "1/1 green Saproling creature"
+}

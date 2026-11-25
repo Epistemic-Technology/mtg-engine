@@ -1,0 +1,22 @@
+scenario "Iname as One fetches a Spirit when cast from hand" {
+  battlefield A: 6 "Swamp", 6 "Forest"
+  hand A: "Iname as One"
+  library A: "Zephyr Spirit", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Iname as One"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Iname as One"
+  assert battlefield A contains "Zephyr Spirit"
+}
+
+scenario "Iname as One returns a Spirit from the graveyard when it dies" {
+  battlefield A: "Iname as One", 3 "Swamp"
+  graveyard A: "Zephyr Spirit"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Iname as One"
+  run_to turn 1 declare_attackers
+  assert exile A contains "Iname as One"
+  assert battlefield A contains "Zephyr Spirit"
+  assert graveyard A lacks "Zephyr Spirit"
+}

@@ -1,0 +1,6 @@
+card "Join Shields" {
+  oracle_id 1102524d-7287-496f-a18a-5fdae6d4c271
+  cost {3}{G}{W}
+  type Instant
+  spell: untap all creature you control; they gain hexproof and indestructible until end of turn
+}

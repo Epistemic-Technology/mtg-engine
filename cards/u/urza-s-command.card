@@ -1,0 +1,11 @@
+card "Urza's Command" {
+  oracle_id f5c30dec-072c-4f02-b5d8-5eccfd1cffcf
+  cost {2}{U}{U}
+  type Instant
+  choose two {
+    mode: each creature you don't control gets -2/-0 until end of turn
+    mode: create 1 tapped "Powerstone"
+    mode: create 1 tapped "0/0 colorless Construct artifact creature with artifact pump"
+    mode: scry 1 then draw 1 card
+  }
+}

@@ -1,0 +1,23 @@
+scenario "browbeat: nobody takes the damage, target player draws three" {
+  battlefield A: 3 "Mountain"
+  hand A: "Browbeat"
+  turn 1 A: cast "Browbeat" targeting player A
+  turn 1 A: decline "Browbeat"
+  turn 1 B: decline "Browbeat"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert life A 20
+  assert life B 20
+}
+
+scenario "browbeat: a player takes 5 and no cards are drawn" {
+  battlefield A: 3 "Mountain"
+  hand A: "Browbeat"
+  turn 1 A: cast "Browbeat" targeting player A
+  turn 1 A: decline "Browbeat"
+  turn 1 B: accept "Browbeat"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life A 20
+  assert life B 15
+}

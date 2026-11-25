@@ -1,0 +1,8 @@
+card "Slaughter Specialist" {
+  oracle_id ab431f93-73bb-49d9-9321-a0712f096ed7
+  cost {1}{B}
+  type Creature — Vampire Warrior
+  pt 3/3
+  triggered when this enters: each opponent creates 1 "1/1 white Human creature"
+  triggered whenever creature an opponent controls dies: put 1 +1/+1 counter on this
+}

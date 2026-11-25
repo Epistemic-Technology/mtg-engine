@@ -1,0 +1,7 @@
+card "Torment of Scarabs" {
+  oracle_id 4ba5bcee-fc95-4d05-965e-b1762529ec5f
+  cost {3}{B}
+  type Enchantment — Aura Curse
+  enchant player
+  triggered at beginning of enchanted controller's upkeep: that player loses 3 life unless they sacrifice nonland permanent else discards 1 card
+}

@@ -1,0 +1,7 @@
+token "3/3 green and white Phyrexian Hydra creature with lifelink" {
+  name "Phyrexian Hydra"
+  type Creature — Phyrexian Hydra
+  pt 3/3
+  color green white
+  keywords lifelink
+}

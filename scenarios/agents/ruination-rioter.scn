@@ -1,0 +1,38 @@
+scenario "ruination rioter deals damage equal to lands in your graveyard" {
+  battlefield A: "Ruination Rioter", "Mountain"
+  graveyard A: 3 "Forest", "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Ruination Rioter"
+  turn 1 A: trigger "Ruination Rioter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Ruination Rioter"
+}
+scenario "ruination rioter may decline" {
+  battlefield A: "Ruination Rioter", "Mountain"
+  graveyard A: 2 "Forest"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Ruination Rioter"
+  turn 1 A: trigger "Ruination Rioter" targeting player B
+  turn 1 A: decline "Ruination Rioter"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+scenario "ruination rioter with no lands in graveyard does nothing" {
+  battlefield A: "Ruination Rioter", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Ruination Rioter"
+  turn 1 A: trigger "Ruination Rioter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+scenario "ruination rioter ignores the opponent's graveyard" {
+  battlefield A: "Ruination Rioter", "Mountain"
+  graveyard A: "Forest"
+  graveyard B: 3 "Forest"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Ruination Rioter"
+  turn 1 A: trigger "Ruination Rioter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

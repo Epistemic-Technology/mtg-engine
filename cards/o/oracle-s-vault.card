@@ -1,0 +1,7 @@
+card "Oracle's Vault" {
+  oracle_id 220e3298-1663-4731-b50f-247076e1328b
+  cost {4}
+  type Artifact
+  activated {2}, {T}: impulse 1 this turn first; put 1 brick counter on this
+  activated {T}, if there are 3 or more brick counters on this: exile top 1 card; may play that card this turn first free
+}

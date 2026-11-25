@@ -1,0 +1,7 @@
+card "Ichor Explosion" {
+  oracle_id d33aa11b-011b-4d12-85a9-4f956153fb1d
+  cost {5}{B}{B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: each creature gets -1/-1 count where power of the sacrificed creature
+}

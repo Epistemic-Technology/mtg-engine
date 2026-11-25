@@ -1,0 +1,20 @@
+scenario "ignite memories damage equals revealed card mana value" {
+  battlefield A: 5 "Mountain"
+  hand A: "Ignite Memories"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Ignite Memories" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand B count 1
+}
+scenario "ignite memories storm copy" {
+  battlefield A: 6 "Mountain"
+  hand A: "Ignite Memories", "Shock"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Ignite Memories" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 18
+}

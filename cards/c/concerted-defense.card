@@ -1,0 +1,6 @@
+card "Concerted Defense" {
+  oracle_id 77f02ae6-2411-4378-b5e0-cc1cf5964458
+  cost {U}
+  type Instant
+  spell: counter target noncreature spell unless its controller pays {X} count each plus 1 party
+}

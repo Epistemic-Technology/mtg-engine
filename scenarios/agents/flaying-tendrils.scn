@@ -1,0 +1,27 @@
+scenario "Flaying Tendrils shrinks everything and exiles what dies" {
+  battlefield A: 3 "Swamp", "Mountain", "Serra Angel"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Flaying Tendrils", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flaying Tendrils"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert power "Serra Angel" 2
+  assert toughness "Serra Angel" 2
+}
+
+scenario "Flaying Tendrils dying creatures go to the graveyard next turn" {
+  battlefield A: 3 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Flaying Tendrils", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flaying Tendrils"
+  run_to turn 2 precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

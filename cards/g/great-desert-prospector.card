@@ -1,0 +1,7 @@
+card "Great Desert Prospector" {
+  oracle_id 37278877-e7d8-47b6-a65f-37c7f85e3a0a
+  cost {4}{W}
+  type Creature — Human Artificer
+  pt 3/2
+  triggered whenever this enters: create count each other creature you control tapped "Powerstone"
+}

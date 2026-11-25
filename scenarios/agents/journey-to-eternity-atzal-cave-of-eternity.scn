@@ -1,0 +1,20 @@
+scenario "Journey to Eternity returns the creature and transforms into a land" {
+  battlefield A: "Grizzly Bears", "Journey to Eternity" on "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains "Atzal, Cave of Eternity"
+  assert is "Atzal, Cave of Eternity" land
+  assert graveyard A lacks "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+scenario "Atzal returns a creature card from the graveyard" {
+  battlefield A: "Grizzly Bears", "Journey to Eternity" on "Grizzly Bears", "Mountain", 2 "Swamp", 2 "Forest"
+  hand A: "Lightning Bolt"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 3 A: activate "Atzal, Cave of Eternity" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}

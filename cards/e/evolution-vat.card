@@ -1,0 +1,6 @@
+card "Evolution Vat" {
+  oracle_id 854e0e2c-06dc-4166-a48a-107e939ca91e
+  cost {3}
+  type Artifact
+  activated {3}, {T}: tap target creature and put 1 +1/+1 counter on target 1; until end of turn, that target 1 gains ability { activated {2}{G}{U}: double the number of +1/+1 counters on this }
+}

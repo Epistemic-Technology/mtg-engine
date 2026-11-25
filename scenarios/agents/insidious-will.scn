@@ -1,0 +1,35 @@
+scenario "Insidious Will counters a spell" {
+  battlefield A: "Island", "Island", "Island", "Island", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Insidious Will", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Insidious Will" mode 1 targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Insidious Will copies a spell" {
+  battlefield A: "Island", "Island", "Island", "Island", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Insidious Will", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Insidious Will" mode 3 targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Insidious Will changes a spell's target" {
+  battlefield A: "Island", "Island", "Island", "Island", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Insidious Will", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Insidious Will" mode 2 targeting "Lightning Bolt" in response to "Lightning Bolt"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}

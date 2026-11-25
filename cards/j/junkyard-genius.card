@@ -1,0 +1,8 @@
+card "Junkyard Genius" {
+  oracle_id 68d4d753-5e53-48a6-8ba2-56020893c239
+  cost {1}{B}{R}
+  type Creature — Human Artificer
+  pt 2/2
+  triggered when this enters: create 1 tapped "Powerstone"
+  activated {1}{B}{R}, sacrifice another creature or artifact: until end of turn, each other creature you control gets +1/+0 and gains menace, haste
+}

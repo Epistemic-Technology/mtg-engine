@@ -1,0 +1,9 @@
+card "Soaring Thought-Thief" {
+  oracle_id 5ed445c1-8a04-4fab-91ef-4d52db95c3b5
+  cost {U}{B}
+  type Creature — Human Rogue
+  pt 1/3
+  keywords flash, flying
+  static as long as opponent graveyard 8 or more, Rogue you control: +1/+0
+  triggered whenever one or more Rogue you control attack: each opponent mills 2 cards
+}

@@ -1,0 +1,8 @@
+card "Necrogen Communion" {
+  oracle_id ff58459a-0015-4012-86c0-580da4e02676
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature you control
+  static enchanted: has toxic 2
+  triggered when enchanted creature dies: return triggering card to battlefield under your control
+}

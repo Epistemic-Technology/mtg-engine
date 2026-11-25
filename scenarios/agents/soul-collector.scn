@@ -1,0 +1,21 @@
+scenario "Soul Collector steals a creature it damaged when it dies" {
+  battlefield A: "Soul Collector"
+  battlefield B: "Wind Drake"
+  turn 1 declare_attackers A: attack "Soul Collector"
+  turn 1 declare_blockers B: block "Soul Collector" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wind Drake"
+  assert graveyard B lacks "Wind Drake"
+  assert damage "Soul Collector" 2
+  assert power "Wind Drake" 2
+}
+
+scenario "Soul Collector does not take creatures it did not damage" {
+  battlefield A: "Soul Collector", "Mountain"
+  hand A: "Shock"
+  battlefield B: "Wind Drake"
+  turn 1 precombat_main A: cast "Shock" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A lacks "Wind Drake"
+}

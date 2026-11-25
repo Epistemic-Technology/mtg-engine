@@ -1,0 +1,6 @@
+card "Triumph of the Hordes" {
+  oracle_id 3ded0c0c-40ce-4d14-a9a6-b023bc19ee0e
+  cost {2}{G}{G}
+  type Sorcery
+  spell: until end of turn, each creature you control gets +1/+1 and gains trample, infect
+}

@@ -1,0 +1,8 @@
+card "Elder Mastery" {
+  oracle_id f99f44b4-a88f-403b-bbc8-bf1a45557124
+  cost {3}{U}{B}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3, has flying
+  triggered whenever enchanted deals damage to player: that player discards 2 cards
+}

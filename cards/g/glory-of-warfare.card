@@ -1,0 +1,7 @@
+card "Glory of Warfare" {
+  oracle_id a73757e5-3430-42ed-8d1a-922c414c7f21
+  cost {2}{R}{W}
+  type Enchantment
+  static during your turn, creature you control: +2/+0
+  static during turns other than yours, creature you control: +0/+2
+}

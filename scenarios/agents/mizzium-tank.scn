@@ -1,0 +1,26 @@
+scenario "mizzium tank animates and grows on noncreature cast" {
+  battlefield A: "Mizzium Tank", "Mountain"
+  hand A: "Shock"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert is "Mizzium Tank" creature
+  assert power "Mizzium Tank" 4
+  assert toughness "Mizzium Tank" 3
+  run_to turn 2 precombat_main
+  assert is not "Mizzium Tank" creature
+}
+scenario "mizzium tank ignores creature spells" {
+  battlefield A: "Mizzium Tank", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is not "Mizzium Tank" creature
+}
+scenario "mizzium tank crewed attack" {
+  battlefield A: "Mizzium Tank", "Grizzly Bears"
+  turn 1 A: activate "Mizzium Tank" ability 1
+  turn 1 A: attack "Mizzium Tank"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

@@ -1,0 +1,7 @@
+card "Ignite Memories" {
+  oracle_id 5f186092-0f87-4a0f-ac45-fff5359c93ae
+  cost {4}{R}
+  type Sorcery
+  spell: target player reveals 1 card at random from hand; this deals count equal mana value of that card damage to that player
+  storm
+}

@@ -1,0 +1,27 @@
+scenario "Lydia Frye surveils for each tapped Assassin" {
+  battlefield A: "Lydia Frye" tapped, "Agate-Blade Assassin" tapped, "Agate-Blade Assassin"
+  start turn 1 A precombat_main
+  library A: "Forest", "Island", "Swamp", "Mountain"
+  turn 1 end A: surveil "Forest", "Island"
+  run_to turn 1 cleanup
+  assert graveyard A count 2
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+}
+scenario "Lydia Frye with no other tapped Assassin surveils only for itself" {
+  battlefield A: "Lydia Frye" tapped, "Agate-Blade Assassin"
+  start turn 1 A precombat_main
+  library A: "Forest", "Island", "Swamp", "Mountain"
+  turn 1 end A: surveil "Forest"
+  run_to turn 1 cleanup
+  assert graveyard A count 1
+  assert graveyard A contains "Forest"
+}
+scenario "Lydia Frye can't be blocked by power 3 or more" {
+  battlefield A: "Lydia Frye"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Lydia Frye"
+  illegal turn 1 declare_blockers B: block "Lydia Frye" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

@@ -1,0 +1,8 @@
+card "Iname as One" {
+  oracle_id 865e569b-6999-4a03-ad02-4bfd595d5820
+  cost {8}{B}{B}{G}{G}
+  type Legendary Creature — Spirit
+  pt 8/8
+  triggered when this enters if cast from hand: you may search Spirit permanent card to battlefield
+  triggered when this dies: you may exile this; if you do, return target Spirit permanent card from your graveyard to battlefield
+}

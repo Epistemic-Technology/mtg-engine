@@ -1,0 +1,16 @@
+card "Ratadrabik of Urborg" {
+  oracle_id b3ab43f2-4f2b-4439-9254-0110ce443fdb
+  cost {2}{W}{B}
+  type Legendary Creature — Zombie Wizard
+  pt 3/3
+  keywords vigilance
+  ward {2}
+  static other Zombie you control: has vigilance
+  triggered whenever other legendary creature you control dies: create token copy of that creature with exceptions
+  except {
+    its not legendary
+    pt 2/2
+    colors black
+    subtypes Zombie
+  }
+}

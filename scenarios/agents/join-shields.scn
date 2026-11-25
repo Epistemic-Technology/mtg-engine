@@ -1,0 +1,21 @@
+scenario "Join Shields untaps creatures and makes them hexproof" {
+  battlefield A: "Grizzly Bears" tapped, "Hill Giant" tapped, 3 "Forest", 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Join Shields"
+  hand B: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Join Shields"
+  illegal turn 1 begin_combat B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert has "Grizzly Bears" hexproof
+  assert has "Hill Giant" indestructible
+}
+
+scenario "Join Shields effects end at end of turn" {
+  battlefield A: "Grizzly Bears" tapped, 3 "Forest", 2 "Plains"
+  hand A: "Join Shields"
+  turn 1 precombat_main A: cast "Join Shields"
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" hexproof
+}

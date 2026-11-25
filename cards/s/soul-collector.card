@@ -1,0 +1,9 @@
+card "Soul Collector" {
+  oracle_id 7b7b3a34-13ff-45d4-ad0d-ac4bad9d0581
+  cost {3}{B}{B}
+  type Creature — Vampire
+  pt 3/4
+  keywords flying
+  triggered whenever creature dealt damage by this this turn dies: return triggering card to battlefield under your control
+  morph {B}{B}{B}
+}

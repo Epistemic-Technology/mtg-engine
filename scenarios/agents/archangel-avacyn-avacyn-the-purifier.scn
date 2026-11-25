@@ -1,0 +1,27 @@
+scenario "Archangel Avacyn flashes in and protects creatures" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Shock"
+  hand A: "Archangel Avacyn"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: cast "Archangel Avacyn"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Archangel Avacyn"
+  assert damage "Grizzly Bears" 2
+}
+
+scenario "Archangel Avacyn transforms at next upkeep after a non-Angel dies" {
+  battlefield A: "Archangel Avacyn", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 3 draw
+  assert battlefield A contains "Avacyn, the Purifier"
+  assert power "Avacyn, the Purifier" 6
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+  assert damage "Avacyn, the Purifier" 0
+}

@@ -1,0 +1,19 @@
+scenario "cratermaker mode 1 deals 2" {
+  battlefield A: "Goblin Cratermaker", "Mountain", "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Cratermaker" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Goblin Cratermaker"
+  assert battlefield B contains "Hill Giant"
+}
+scenario "cratermaker mode 2 destroys colorless nonland" {
+  battlefield A: "Goblin Cratermaker", "Mountain", "Mountain"
+  battlefield B: "Sol Ring", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Cratermaker" mode 2 targeting "Sol Ring"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Sol Ring"
+  assert battlefield B contains "Grizzly Bears"
+}

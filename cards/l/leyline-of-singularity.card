@@ -1,0 +1,7 @@
+card "Leyline of Singularity" {
+  oracle_id bc9f159b-984d-4b9f-8904-b38b5cb79636
+  cost {2}{U}{U}
+  type Enchantment
+  opening hand
+  static all nonland permanent: add supertype legendary
+}

@@ -1,0 +1,17 @@
+scenario "minions murmurs: draw and lose life equal to creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Serra Angel", 4 "Swamp"
+  hand A: "Minions' Murmurs"
+  turn 1 A: cast "Minions' Murmurs"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert life A 17
+}
+
+scenario "minions murmurs: no creatures does nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Minions' Murmurs"
+  turn 1 A: cast "Minions' Murmurs"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}

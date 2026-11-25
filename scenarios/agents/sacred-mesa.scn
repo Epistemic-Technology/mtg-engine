@@ -1,0 +1,23 @@
+scenario "Sacred Mesa makes a Pegasus" {
+  battlefield A: "Sacred Mesa", "Pegasus", 2 "Plains"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Sacred Mesa"
+  run_to turn 3 begin_combat
+  assert battlefield A contains 2 "Pegasus"
+  assert has newest A "Pegasus" flying
+}
+scenario "Sacred Mesa upkeep sacrifices a Pegasus to keep itself" {
+  battlefield A: "Sacred Mesa", "Pegasus"
+  start turn 3 A upkeep
+  run_to turn 3 draw
+  assert battlefield A contains "Sacred Mesa"
+  assert battlefield A lacks "Pegasus"
+}
+scenario "Sacred Mesa upkeep without a Pegasus is sacrificed" {
+  battlefield A: "Sacred Mesa", "Grizzly Bears"
+  start turn 3 A upkeep
+  run_to turn 3 draw
+  assert battlefield A lacks "Sacred Mesa"
+  assert graveyard A contains "Sacred Mesa"
+  assert battlefield A contains "Grizzly Bears"
+}

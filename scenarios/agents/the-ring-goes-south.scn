@@ -1,0 +1,15 @@
+scenario "reveals until X lands where X is legendary creatures" {
+  battlefield A: "Kresh the Bloodbraided", "Aang, Air Nomad", 4 "Forest"
+  hand A: "The Ring Goes South"
+  library A: "Grizzly Bears", "Forest", "Hill Giant", "Island", "Plains", "Swamp"
+  turn 1 precombat_main A: cast "The Ring Goes South"
+  run_to turn 1 postcombat_main
+  assert tempted A 1
+  assert battlefield A contains 5 "Forest"
+  assert battlefield A contains "Island"
+  assert tapped newest A "Forest"
+  assert battlefield A contains 0 "Plains"
+  assert battlefield A contains 0 "Hill Giant"
+  assert graveyard A contains "The Ring Goes South"
+  assert hand A count 0
+}

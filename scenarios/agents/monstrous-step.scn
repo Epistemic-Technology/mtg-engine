@@ -1,0 +1,31 @@
+scenario "Monstrous Step pumps and forces the other creature to block" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Monstrous Step"
+  turn 1 precombat_main A: cast "Monstrous Step" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Wind Drake"
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 9
+  assert toughness "Grizzly Bears" 9
+}
+
+scenario "Monstrous Step may target nothing for the block" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Monstrous Step"
+  turn 1 precombat_main A: cast "Monstrous Step" targeting "Grizzly Bears", none
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 9
+}
+
+scenario "Monstrous Step second target must differ from the first" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  hand A: "Monstrous Step"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Monstrous Step" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

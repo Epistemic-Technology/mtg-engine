@@ -1,0 +1,7 @@
+card "Champion of Dusk" {
+  oracle_id 5f7f0a38-fb7e-4ee8-a712-9aa911f17dae
+  cost {3}{B}{B}
+  type Creature — Vampire Knight
+  pt 4/4
+  triggered when this enters: you draw count where Vampire you control cards, and you lose count where Vampire you control life
+}

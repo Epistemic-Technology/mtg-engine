@@ -1,0 +1,7 @@
+card "Spirit Mantle" {
+  oracle_id 81a51328-b995-4f3b-90bc-a20ae21dd254
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has protection from creature
+}

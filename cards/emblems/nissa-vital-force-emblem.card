@@ -1,0 +1,3 @@
+emblem "Nissa, Vital Force emblem" {
+  triggered whenever land you control enters: you may draw 1 card
+}

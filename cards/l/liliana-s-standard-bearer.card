@@ -1,0 +1,8 @@
+card "Liliana's Standard Bearer" {
+  oracle_id 7b600c0e-5ad2-48a2-a147-346ca78c8629
+  cost {2}{B}
+  type Creature — Zombie Knight
+  pt 3/1
+  keywords flash
+  triggered when this enters: draw count where creature you control died this turn cards
+}

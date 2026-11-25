@@ -1,0 +1,8 @@
+scenario "slivers have flying and haste" {
+  battlefield A: "Cloudshredder Sliver", "Metallic Sliver", "Grizzly Bears"
+  battlefield B: "Metallic Sliver"
+  assert has "Cloudshredder Sliver" flying
+  assert has A "Metallic Sliver" haste
+  assert has not B "Metallic Sliver" flying
+  assert has not "Grizzly Bears" flying
+}

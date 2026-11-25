@@ -1,0 +1,7 @@
+card "Deeproot Wayfinder" {
+  oracle_id 3ec767f2-40ba-46c9-b7cd-5821986dda0c
+  cost {1}{G}
+  type Creature — Merfolk Scout
+  pt 2/3
+  triggered whenever this deals combat damage to a player or battle: surveil 1 then you may return 1 land card from your graveyard to battlefield tapped chosen
+}

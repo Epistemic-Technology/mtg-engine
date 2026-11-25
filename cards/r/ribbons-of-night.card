@@ -1,0 +1,6 @@
+card "Ribbons of Night" {
+  oracle_id f074c0d0-8455-484d-ae75-820fdfbc4740
+  cost {4}{B}
+  type Sorcery
+  spell: deal 4 damage to target creature and you gain 4 life; if spent {U}, draw 1 card
+}

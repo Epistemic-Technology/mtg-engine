@@ -1,0 +1,18 @@
+scenario "Ballista Watcher pings by day" {
+  battlefield A: "Ballista Watcher", 3 "Mountain"
+  turn 1 precombat_main A: activate "Ballista Watcher" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert power "Ballista Watcher" 4
+}
+scenario "Ballista Wielder at night pings and stops a blocker" {
+  battlefield A: "Ballista Watcher", 3 "Mountain"
+  battlefield B: "Serra Angel"
+  run_to turn 3 precombat_main
+  turn 3 precombat_main A: activate "Ballista Wielder" targeting "Serra Angel"
+  turn 3 declare_attackers A: attack "Ballista Wielder"
+  run_to turn 3 postcombat_main
+  assert power "Ballista Wielder" 5
+  assert damage "Serra Angel" 1
+  assert life B 15
+}

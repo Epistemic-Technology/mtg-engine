@@ -1,0 +1,10 @@
+card "Shatterskull Charger" {
+  oracle_id 571f9d80-9c37-474e-9524-400e7a238e2c
+  cost {1}{R}{R}
+  type Creature — Giant Warrior
+  pt 4/3
+  kicker {2}
+  keywords trample, haste
+  kicked with 1 +1/+1 counter
+  triggered at beginning of your end step if this doesn't have +1/+1 counter: return this to hand
+}

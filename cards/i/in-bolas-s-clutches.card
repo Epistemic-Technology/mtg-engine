@@ -1,0 +1,8 @@
+card "In Bolas's Clutches" {
+  oracle_id 201a4455-1b6b-4e13-a0d5-4cf2116e1673
+  cost {4}{U}{U}
+  type Legendary Enchantment — Aura
+  enchant permanent
+  static enchanted: control
+  static enchanted: add supertype legendary
+}

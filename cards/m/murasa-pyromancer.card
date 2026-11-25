@@ -1,0 +1,7 @@
+card "Murasa Pyromancer" {
+  oracle_id 1d6925f3-d132-4fa1-bde0-82d0128c319f
+  cost {4}{R}{R}
+  type Creature — Human Shaman Ally
+  pt 3/2
+  triggered whenever this or Ally you control enters: you may this deals count equal Ally you control damage to target creature
+}

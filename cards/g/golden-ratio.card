@@ -1,0 +1,6 @@
+card "Golden Ratio" {
+  oracle_id 724700ad-1e4e-4cbc-af7f-0b3b87ed4bc8
+  cost {1}{G}{U}
+  type Sorcery
+  spell: draw count each different powers among creature you control cards
+}

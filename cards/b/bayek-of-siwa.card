@@ -1,0 +1,9 @@
+card "Bayek of Siwa" {
+  oracle_id b0322e2e-e9f9-4fe2-a7a5-3e49665ad177
+  cost {3}{R}{W}
+  type Legendary Creature — Human Assassin
+  pt 3/4
+  keywords double strike
+  static during your turn, other historic creature you control: has double strike
+  disguise {1}{R}{W}
+}

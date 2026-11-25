@@ -1,0 +1,9 @@
+card "Emergency Powers" {
+  oracle_id 9127ac59-4c7b-4652-b1e5-d82af47f2717
+  cost {5}{W}{U}
+  type Instant
+  spell {
+    each player shuffles hand and graveyard into library then draws 7 cards; exile this
+    label "Addendum" if cast during main phase, you may put permanent card with mana value 7 or less from hand onto battlefield
+  }
+}

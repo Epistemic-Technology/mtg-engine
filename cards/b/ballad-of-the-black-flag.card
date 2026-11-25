@@ -1,0 +1,7 @@
+card "Ballad of the Black Flag" {
+  oracle_id e8e15ab4-e4c7-4faf-b469-288451ddee02
+  cost {1}{U}{U}
+  type Enchantment — Saga
+  triggered chapter 1, 2, 3: mill 3 cards; you may put 1 historic card from among them into hand chosen
+  triggered chapter 4: spells historic cost {2} less this turn
+}

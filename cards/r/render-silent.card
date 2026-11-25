@@ -1,0 +1,6 @@
+card "Render Silent" {
+  oracle_id 3966bd03-a98e-43b6-a0c0-10d4d81c173c
+  cost {W}{U}{U}
+  type Instant
+  spell: counter target spell; its controller can't cast spells this turn
+}

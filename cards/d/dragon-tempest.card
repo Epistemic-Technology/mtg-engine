@@ -1,0 +1,7 @@
+card "Dragon Tempest" {
+  oracle_id b9bacb46-fd1d-459b-81c2-d7d08fe73848
+  cost {1}{R}
+  type Enchantment
+  triggered whenever creature you control with flying enters: it gains haste until end of turn
+  triggered whenever Dragon you control enters: it deals count where Dragon you control damage to any target
+}

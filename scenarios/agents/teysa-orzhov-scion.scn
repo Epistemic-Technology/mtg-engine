@@ -1,0 +1,25 @@
+scenario "Teysa exiles with three white creatures sacrificed" {
+  battlefield A: "Teysa, Orzhov Scion", 2 "Serra Angel"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Teysa, Orzhov Scion" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert graveyard A contains 2 "Serra Angel"
+  assert graveyard A contains "Teysa, Orzhov Scion"
+}
+scenario "Teysa makes a Spirit when another black creature dies" {
+  battlefield A: "Teysa, Orzhov Scion", "Typhoid Rats", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Typhoid Rats"
+  assert battlefield A contains 1 "Spirit"
+}
+scenario "Teysa makes no Spirit when a non-black creature dies" {
+  battlefield A: "Teysa, Orzhov Scion", "Serra Angel", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert battlefield A lacks "Spirit"
+}

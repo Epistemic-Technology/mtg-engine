@@ -1,0 +1,9 @@
+card "Hidden Blade" {
+  oracle_id 37ec9b95-8c9a-4dd5-9ff2-3d6527984126
+  cost {2}
+  type Artifact — Equipment
+  keywords flash
+  triggered whenever this enters: attach to target creature you control; if that target 1 is Assassin, target 1 gains deathtouch until end of turn
+  static enchanted: +1/+0, has first strike
+  equip {2}
+}

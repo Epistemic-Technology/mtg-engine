@@ -1,0 +1,24 @@
+scenario "kicked: soldier token made first, then the spell is countered when B can't pay 2" {
+  battlefield A: "Plains", "Island", "Island", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Protect the Negotiators"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 A: cast "Protect the Negotiators" kicked targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield A contains 1 "Soldier"
+  assert graveyard B contains "Shock"
+}
+
+scenario "unkicked: no token, B pays 1 for the one creature" {
+  battlefield A: "Island", "Island", "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand A: "Protect the Negotiators"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 A: cast "Protect the Negotiators" targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert battlefield A contains 0 "Soldier"
+}

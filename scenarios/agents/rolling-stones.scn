@@ -1,0 +1,18 @@
+scenario "rolling stones lets Walls attack, either player's" {
+  battlefield A: "Rolling Stones", "Wall of Air"
+  battlefield B: "Wall of Fire"
+  start turn 1 A
+  turn 1 A: attack "Wall of Air"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+scenario "rolling stones does not help other defenders" {
+  battlefield A: "Rolling Stones", "Benevolent Ancestor"
+  illegal turn 1 A: attack "Benevolent Ancestor"
+  run_to turn 1 postcombat_main
+}
+scenario "without rolling stones wall cannot attack" {
+  battlefield A: "Wall of Air"
+  illegal turn 1 A: attack "Wall of Air"
+  run_to turn 1 postcombat_main
+}

@@ -1,0 +1,8 @@
+card "Slaughter Singer" {
+  oracle_id 1c832491-6b78-49c6-baf2-63f17847f5f5
+  cost {G}{W}
+  type Creature — Phyrexian Cleric
+  pt 2/2
+  toxic 2
+  triggered whenever another creature you control with toxic attacks: it gets +1/+1 until end of turn
+}

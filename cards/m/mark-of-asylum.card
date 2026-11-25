@@ -1,0 +1,6 @@
+card "Mark of Asylum" {
+  oracle_id d4327e06-ee89-459c-a43a-dc064e198fef
+  cost {1}{W}
+  type Enchantment
+  replace noncombat damage to creature you control: prevent
+}

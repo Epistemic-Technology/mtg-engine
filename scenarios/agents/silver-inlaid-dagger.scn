@@ -1,0 +1,17 @@
+scenario "Silver-Inlaid Dagger gives +2/+0" {
+  battlefield A: "Silver-Inlaid Dagger", "Grizzly Bears", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Silver-Inlaid Dagger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Silver-Inlaid Dagger gives an extra +1/+0 to a Human" {
+  battlefield A: "Silver-Inlaid Dagger", "Elite Vanguard", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Silver-Inlaid Dagger" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 5
+  assert toughness "Elite Vanguard" 1
+}

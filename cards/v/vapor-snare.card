@@ -1,0 +1,8 @@
+card "Vapor Snare" {
+  oracle_id 29ae5540-5fdf-48be-86ba-b4db0fe19f6c
+  cost {4}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  triggered at beginning of your upkeep step: sacrifice this unless you return 1 land you control chosen
+}

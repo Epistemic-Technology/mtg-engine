@@ -1,0 +1,19 @@
+scenario "Neko-Te taps and holds the creature it damages" {
+  battlefield A: "Grizzly Bears", "Neko-Te", 2 "Forest"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Neko-Te" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert damage "Hill Giant" 0
+}
+scenario "Neko-Te drains one more from a player it damages" {
+  battlefield A: "Grizzly Bears", "Neko-Te", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Neko-Te" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

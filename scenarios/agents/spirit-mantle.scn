@@ -1,0 +1,10 @@
+scenario "mantle pumps and gives protection from creatures" {
+  battlefield A: "Grizzly Bears", "Spirit Mantle" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

@@ -1,0 +1,27 @@
+scenario "gains flying and vigilance at four counters" {
+  battlefield A: "Voice of the Blessed" with 3 +1/+1, "Plains", "Forest"
+  hand A: "Heroes' Reunion"
+  turn 1 precombat_main A: cast "Heroes' Reunion" targeting player A
+  run_to turn 1 begin_combat
+  assert counters "Voice of the Blessed" +1/+1 4
+  assert power "Voice of the Blessed" 6
+  assert has "Voice of the Blessed" flying
+  assert has "Voice of the Blessed" vigilance
+  assert has not "Voice of the Blessed" indestructible
+}
+scenario "below four counters no flying" {
+  battlefield A: "Voice of the Blessed" with 2 +1/+1, "Plains", "Forest"
+  hand A: "Heroes' Reunion"
+  turn 1 precombat_main A: cast "Heroes' Reunion" targeting player A
+  run_to turn 1 begin_combat
+  assert counters "Voice of the Blessed" +1/+1 3
+  assert has not "Voice of the Blessed" flying
+}
+scenario "ten counters is indestructible" {
+  battlefield A: "Voice of the Blessed" with 9 +1/+1, "Plains", "Forest"
+  hand A: "Heroes' Reunion"
+  turn 1 precombat_main A: cast "Heroes' Reunion" targeting player A
+  run_to turn 1 begin_combat
+  assert counters "Voice of the Blessed" +1/+1 10
+  assert has "Voice of the Blessed" indestructible
+}

@@ -1,0 +1,19 @@
+scenario "Bring to Life animates a noncreature artifact with four counters" {
+  battlefield A: "Sol Ring", 3 "Island"
+  hand A: "Animating Faerie"
+  turn 1 precombat_main A: cast "Bring to Life" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert is "Sol Ring" creature
+  assert power "Sol Ring" 4
+  assert toughness "Sol Ring" 4
+  assert counters "Sol Ring" +1/+1 4
+  assert exile A contains "Animating Faerie"
+}
+scenario "Animating Faerie is a 2/2 flier" {
+  battlefield A: 3 "Island"
+  hand A: "Animating Faerie"
+  turn 1 precombat_main A: cast "Animating Faerie"
+  run_to turn 1 postcombat_main
+  assert power "Animating Faerie" 2
+  assert has "Animating Faerie" flying
+}

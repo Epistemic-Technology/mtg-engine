@@ -1,0 +1,20 @@
+scenario "recurring insight draws equal to opponent hand" {
+  hand A: "Recurring Insight"
+  battlefield A: 6 "Island"
+  hand B: "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Recurring Insight" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert exile A contains "Recurring Insight"
+}
+scenario "recurring insight rebounds for the new hand size" {
+  hand A: "Recurring Insight"
+  battlefield A: 6 "Island"
+  hand B: "Forest", "Forest"
+  turn 1 A: cast "Recurring Insight" targeting player B
+  run_to turn 3 upkeep
+  turn 3 upkeep A: cast "Recurring Insight" targeting player B
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Recurring Insight"
+  assert hand A count 6
+}

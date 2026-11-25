@@ -1,0 +1,24 @@
+scenario "Ritual of Hope without coven" {
+  battlefield A: "Grizzly Bears", "Grizzly Bears", "Hill Giant", "Plains", "Plains"
+  hand A: "Ritual of Hope"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ritual of Hope"
+  run_to turn 1 combat_damage
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert power newest A "Grizzly Bears" 3
+}
+
+scenario "Ritual of Hope with coven gives +2/+1 only" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains", "Plains"
+  hand A: "Ritual of Hope"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ritual of Hope"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 4
+  assert power "Serra Angel" 6
+  assert toughness "Serra Angel" 5
+}

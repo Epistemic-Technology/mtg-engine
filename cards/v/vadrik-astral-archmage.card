@@ -1,0 +1,9 @@
+card "Vadrik, Astral Archmage" {
+  oracle_id a9ab17ce-ba07-4ce8-99f9-9c4c633957f7
+  cost {1}{U}{R}
+  type Legendary Creature — Human Wizard
+  pt 1/2
+  becomes day as this enters
+  spells instant or sorcery you cast cost {1} less count where power
+  triggered whenever day becomes night or night becomes day: put 1 +1/+1 counter on this
+}

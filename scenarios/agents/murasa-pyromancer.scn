@@ -1,0 +1,27 @@
+scenario "deals damage equal to Allies you control" {
+  battlefield A: "Ondu Cleric", 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Murasa Pyromancer"
+  turn 1 precombat_main A: cast "Murasa Pyromancer"
+  turn 1 precombat_main A: trigger "Murasa Pyromancer" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert damage "Hill Giant" 2
+}
+scenario "another Ally entering triggers it, with three Allies for 3" {
+  battlefield A: "Murasa Pyromancer", "Ondu Cleric", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Ondu Cleric"
+  turn 1 precombat_main A: cast "Ondu Cleric"
+  turn 1 precombat_main A: trigger "Murasa Pyromancer" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+}
+scenario "declined" {
+  battlefield A: "Ondu Cleric", 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Murasa Pyromancer"
+  turn 1 precombat_main A: cast "Murasa Pyromancer"
+  turn 1 precombat_main A: decline "Murasa Pyromancer"
+  run_to turn 1 begin_combat
+  assert damage "Hill Giant" 0
+}

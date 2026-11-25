@@ -1,0 +1,6 @@
+card "Browbeat" {
+  oracle_id 11cd0c42-4148-4d82-9172-b1a1967fe319
+  cost {2}{R}
+  type Sorcery
+  spell: any player may this deals 5 damage to you; if no one does, target player draws 3 cards
+}

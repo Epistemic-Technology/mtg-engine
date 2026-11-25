@@ -1,0 +1,24 @@
+scenario "strix serenade counters creature, controller gets bird" {
+  hand A: "Grizzly Bears"
+  battlefield A: 2 "Forest"
+  hand B: "Strix Serenade"
+  battlefield B: "Island"
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  turn 1 precombat_main B: cast "Strix Serenade" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Bird"
+  assert power "Bird" 2
+  assert has "Bird" flying
+  assert graveyard B contains "Strix Serenade"
+}
+scenario "strix serenade cannot target land or instant" {
+  hand A: "Shock"
+  battlefield A: "Mountain"
+  hand B: "Strix Serenade"
+  battlefield B: "Island"
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  illegal turn 1 precombat_main B: cast "Strix Serenade" targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

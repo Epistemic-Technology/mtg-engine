@@ -1,0 +1,12 @@
+scenario "opponents' flyers get -1/-1, nothing else" {
+  battlefield A: "Smog Elemental", "Wind Drake", "Grizzly Bears"
+  battlefield B: "Wind Drake", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power B "Wind Drake" 1
+  assert toughness B "Wind Drake" 1
+  assert power A "Wind Drake" 2
+  assert power B "Hill Giant" 3
+  assert power A "Smog Elemental" 3
+  assert power A "Grizzly Bears" 2
+}

@@ -1,0 +1,22 @@
+scenario "render silent counters and locks out the spell's controller" {
+  battlefield A: "Plains", "Island", "Island"
+  battlefield B: "Mountain", "Mountain"
+  hand A: "Render Silent"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 precombat_main B: cast "Lightning Bolt" targeting player A
+  turn 1 precombat_main A: cast "Render Silent" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  illegal turn 1 end B: cast "Shock" targeting player A
+  run_to turn 2 upkeep
+  assert life A 20
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard A contains "Render Silent"
+  assert hand B count 1
+}
+scenario "without render silent B can cast a second spell" {
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 precombat_main B: cast "Lightning Bolt" targeting player A
+  turn 1 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 1 end
+  assert life A 15
+}

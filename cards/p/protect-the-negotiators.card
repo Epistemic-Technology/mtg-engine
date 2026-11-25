@@ -1,0 +1,10 @@
+card "Protect the Negotiators" {
+  oracle_id 7ccd666a-0d56-4fe3-b16b-d035bf2ad420
+  cost {1}{U}
+  type Instant
+  kicker {W}
+  spell {
+    if kicked, create 1 "1/1 white Soldier creature"
+    counter target spell unless its controller pays {X} count each creature you control
+  }
+}

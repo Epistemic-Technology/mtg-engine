@@ -1,0 +1,34 @@
+scenario "sheoldred etb edict hits a nontoken creature or planeswalker" {
+  battlefield A: 3 "Swamp", 2 "Island"
+  hand A: "Sheoldred"
+  battlefield B: "Hill Giant", "Mountain"
+  turn 1 precombat_main A: cast "Sheoldred"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sheoldred"
+  assert has "Sheoldred" menace
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Mountain"
+}
+scenario "sheoldred transform needs eight cards in opponent graveyard" {
+  battlefield A: "Sheoldred", 5 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard B: 7 "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Sheoldred"
+  run_to turn 1 postcombat_main
+}
+scenario "sheoldred transforms and the saga chapters run" {
+  battlefield A: "Sheoldred", 5 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  graveyard B: 8 "Forest"
+  graveyard A: "Llanowar Elves"
+  hand B: "Island", "Island", "Island", "Island"
+  library B: "Mountain", "Mountain", "Mountain", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sheoldred"
+  run_to turn 1 end
+  assert battlefield A contains "The True Scriptures"
+  assert graveyard B contains "Hill Giant"
+  run_to turn 3 begin_combat
+  assert hand B count 2
+}

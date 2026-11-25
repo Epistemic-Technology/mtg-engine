@@ -1,0 +1,19 @@
+scenario "Glory of Warfare pumps by whose turn" {
+  battlefield A: "Glory of Warfare", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert power B "Hill Giant" 3
+  assert toughness B "Hill Giant" 3
+}
+scenario "Glory of Warfare on opponent's turn" {
+  battlefield A: "Glory of Warfare", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 4
+  assert power B "Hill Giant" 3
+  assert toughness B "Hill Giant" 3
+}

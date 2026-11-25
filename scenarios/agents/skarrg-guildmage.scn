@@ -1,0 +1,13 @@
+scenario "skarrg guildmage trample and land" {
+  battlefield A: "Skarrg Guildmage", "Grizzly Bears", 3 "Mountain", 3 "Forest", "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Skarrg Guildmage"
+  turn 1 precombat_main A: activate "Skarrg Guildmage" ability 2 targeting "Plains"
+  run_to turn 1 begin_combat
+  assert has "Grizzly Bears" trample
+  assert has not "Hill Giant" trample
+  assert power "Plains" 4
+  assert toughness "Plains" 4
+  assert is "Plains" creature
+  assert is "Plains" plains
+}

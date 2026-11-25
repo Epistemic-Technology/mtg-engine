@@ -1,0 +1,17 @@
+scenario "Fatal Frenzy doubles power, gives trample, and sacrifices at end step" {
+  battlefield A: "Hill Giant", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Fatal Frenzy"
+  turn 1 precombat_main A: cast "Fatal Frenzy" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 combat_damage A: assign "Hill Giant" to "Grizzly Bears" 2, player B 4
+  run_to turn 1 combat_damage
+  assert power "Hill Giant" 6
+  assert has "Hill Giant" trample
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Hill Giant"
+}

@@ -1,0 +1,25 @@
+scenario "Sudden Spoiling shrinks and strips the target player's creatures" {
+  battlefield A: "Swamp", "Swamp", "Swamp", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Sudden Spoiling"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sudden Spoiling" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Serra Angel" 0
+  assert toughness "Serra Angel" 2
+  assert has not "Serra Angel" flying
+  assert power "Hill Giant" 0
+  assert toughness "Hill Giant" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Sudden Spoiling wears off at end of turn" {
+  battlefield A: "Swamp", "Swamp", "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Sudden Spoiling"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sudden Spoiling" targeting player B
+  run_to turn 2 precombat_main
+  assert power "Serra Angel" 4
+  assert has "Serra Angel" flying
+}

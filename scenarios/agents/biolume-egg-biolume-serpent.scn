@@ -1,0 +1,31 @@
+scenario "sacrificed egg returns as serpent at end step" {
+  battlefield A: "Biolume Egg", "Swamp", "Swamp"
+  hand A: "Diabolic Edict"
+  turn 1 precombat_main A: cast "Diabolic Edict" targeting player A
+  run_to turn 1 end
+  assert graveyard A contains "Biolume Egg"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Biolume Serpent"
+  assert power "Biolume Serpent" 4
+  assert toughness "Biolume Serpent" 4
+}
+scenario "egg enters with scry and defender" {
+  battlefield A: "Island", "Island", "Island"
+  hand A: "Biolume Egg"
+  library A: "Forest", "Island"
+  turn 1 precombat_main A: cast "Biolume Egg"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Biolume Egg"
+  assert has "Biolume Egg" defender
+  assert toughness "Biolume Egg" 4
+}
+scenario "serpent sacrifices two islands to become unblockable" {
+  battlefield A: "Biolume Serpent", 3 "Island"
+  battlefield B: "Grizzly Bears"
+  turn 1 precombat_main A: activate "Biolume Serpent"
+  turn 1 declare_attackers A: attack "Biolume Serpent"
+  illegal turn 1 declare_blockers B: block "Biolume Serpent" with "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert life B 16
+  assert battlefield A contains 1 "Island"
+}

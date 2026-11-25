@@ -1,0 +1,20 @@
+scenario "uncle istvan prevents creature damage" {
+  battlefield A: "Uncle Istvan"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Uncle Istvan"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Uncle Istvan"
+  assert damage "Uncle Istvan" 0
+  assert damage "Hill Giant" 1
+}
+scenario "uncle istvan still dies to bolt" {
+  battlefield A: "Uncle Istvan"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Uncle Istvan"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Uncle Istvan"
+}

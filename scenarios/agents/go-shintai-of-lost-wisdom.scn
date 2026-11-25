@@ -1,0 +1,15 @@
+scenario "go-shintai mills per shrine" {
+  battlefield A: "Go-Shintai of Lost Wisdom", "Sanctum of Stone Fangs", "Island"
+  start turn 1 A precombat_main
+  turn 1 end A: accept "Go-Shintai of Lost Wisdom"
+  turn 1 end A: trigger "Go-Shintai of Lost Wisdom" targeting player B
+  run_to turn 2 upkeep
+  assert library B count 38
+}
+scenario "go-shintai declined" {
+  battlefield A: "Go-Shintai of Lost Wisdom", "Island"
+  start turn 1 A precombat_main
+  turn 1 end A: decline "Go-Shintai of Lost Wisdom"
+  run_to turn 2 upkeep
+  assert library B count 40
+}

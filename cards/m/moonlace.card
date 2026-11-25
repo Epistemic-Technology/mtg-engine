@@ -1,0 +1,6 @@
+card "Moonlace" {
+  oracle_id 52d4dc8a-2799-4b4e-9c20-f14bb75c2279
+  cost {U}
+  type Instant
+  spell: target spell or permanent becomes colorless indefinitely
+}

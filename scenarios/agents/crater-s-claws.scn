@@ -1,0 +1,24 @@
+scenario "no big creature: X damage" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Crater's Claws"
+  turn 1 A: cast "Crater's Claws" x 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "ferocious: X plus 2 damage with a power-4 creature" {
+  battlefield A: 3 "Mountain", "Serra Angel"
+  hand A: "Crater's Claws"
+  turn 1 A: cast "Crater's Claws" x 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "ferocious applies to creature targets too" {
+  battlefield A: 4 "Mountain", "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Crater's Claws"
+  turn 1 A: cast "Crater's Claws" x 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

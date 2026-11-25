@@ -1,0 +1,6 @@
+card "Fatal Frenzy" {
+  oracle_id 332ccaac-e3f2-4c49-824b-ebbef8a81447
+  cost {2}{R}
+  type Instant
+  spell: until end of turn, target creature you control gains trample and gets +1/+0 count where power of target 1; delayed target 1: sacrifice it at beginning of the next end step
+}

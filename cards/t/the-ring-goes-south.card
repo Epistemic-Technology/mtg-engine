@@ -1,0 +1,6 @@
+card "The Ring Goes South" {
+  oracle_id 3d36f0ab-d333-4a08-ad1b-5b7e1ddb647c
+  cost {3}{G}
+  type Sorcery
+  spell: the ring tempts you; then dig count where legendary creature you control until take all land card onto battlefield tapped rest bottom random
+}

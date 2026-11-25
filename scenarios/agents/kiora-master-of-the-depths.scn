@@ -1,0 +1,28 @@
+scenario "plus one untaps a creature and a land" {
+  battlefield A: "Kiora, Master of the Depths", "Grizzly Bears" tapped, "Forest" tapped
+  turn 1 precombat_main A: activate "Kiora, Master of the Depths" ability 1 targeting "Grizzly Bears", "Forest"
+  run_to turn 1 combat_damage
+  assert untapped "Grizzly Bears"
+  assert untapped "Forest"
+  assert counters "Kiora, Master of the Depths" loyalty 5
+}
+scenario "minus two digs for a creature and a land" {
+  battlefield A: "Kiora, Master of the Depths"
+  library A: "Grizzly Bears", "Hill Giant", "Forest", "Island", "Plains"
+  turn 1 precombat_main A: activate "Kiora, Master of the Depths" ability 2
+  run_to turn 1 combat_damage
+  assert counters "Kiora, Master of the Depths" loyalty 2
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Island"
+}
+scenario "minus eight emblem and octopi" {
+  battlefield A: "Kiora, Master of the Depths" with 8 loyalty, "Mountain"
+  battlefield B: "Memnite"
+  turn 1 precombat_main A: activate "Kiora, Master of the Depths" ability 3
+  run_to turn 1 combat_damage
+  assert battlefield A contains 3 "Octopus"
+  assert power newest A "Octopus" 8
+  assert graveyard B contains "Memnite"
+}

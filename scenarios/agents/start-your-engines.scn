@@ -1,0 +1,16 @@
+scenario "vehicles become creatures and get +2/+0 with the rest" {
+  battlefield A: "Smuggler's Copter", "Grizzly Bears", 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Start Your Engines"
+  turn 1 precombat_main A: cast "Start Your Engines"
+  run_to turn 1 begin_combat
+  assert is "Smuggler's Copter" creature
+  assert is "Smuggler's Copter" artifact
+  assert power "Smuggler's Copter" 5
+  assert toughness "Smuggler's Copter" 3
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+  run_to turn 2 upkeep
+  assert is not "Smuggler's Copter" creature
+  assert power "Grizzly Bears" 2
+}

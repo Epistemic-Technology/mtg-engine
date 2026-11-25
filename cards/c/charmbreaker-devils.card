@@ -1,0 +1,8 @@
+card "Charmbreaker Devils" {
+  oracle_id 1b9df437-6988-4ddc-80c4-893e11076067
+  cost {5}{R}
+  type Creature — Devil
+  pt 4/4
+  triggered at beginning of your upkeep step: return 1 instant or sorcery card from your graveyard to hand at random
+  triggered whenever you cast an instant or sorcery spell: this gets +4/+0
+}

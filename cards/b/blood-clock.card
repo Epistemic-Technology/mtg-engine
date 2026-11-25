@@ -1,0 +1,6 @@
+card "Blood Clock" {
+  oracle_id ef987ddb-25f6-4895-8f83-045254745ea4
+  cost {4}
+  type Artifact
+  triggered at beginning of each upkeep step: that player returns 1 permanent they control unless that player pays 2 life
+}

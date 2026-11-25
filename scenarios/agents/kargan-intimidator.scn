@@ -1,0 +1,31 @@
+scenario "Kargan Intimidator pump mode" {
+  battlefield A: "Kargan Intimidator", 3 "Mountain"
+  turn 1 A: activate "Kargan Intimidator" mode 1
+  run_to turn 1 begin_combat
+  assert power "Kargan Intimidator" 4
+  assert toughness "Kargan Intimidator" 2
+}
+scenario "Kargan Intimidator mode 2 makes Coward that can't block Warriors" {
+  battlefield A: "Kargan Intimidator", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Kargan Intimidator" mode 2 targeting "Grizzly Bears"
+  turn 1 A: attack "Kargan Intimidator"
+  illegal turn 1 declare_blockers B: block "Kargan Intimidator" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+scenario "Kargan Intimidator control: bears can block without Coward" {
+  battlefield A: "Kargan Intimidator", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Kargan Intimidator"
+  turn 1 B: block "Kargan Intimidator" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+scenario "Kargan Intimidator mode 3 gives a Warrior trample" {
+  battlefield A: "Kargan Intimidator", 3 "Mountain"
+  turn 1 A: activate "Kargan Intimidator" mode 3 targeting "Kargan Intimidator"
+  run_to turn 1 begin_combat
+  assert has "Kargan Intimidator" trample
+  assert power "Kargan Intimidator" 3
+}

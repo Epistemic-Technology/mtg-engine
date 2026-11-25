@@ -1,0 +1,10 @@
+scenario "adventure creature spell adds counter, plain does not" {
+  battlefield A: "Wandermare", 3 "Island", 2 "Forest"
+  hand A: "Brazen Borrower // Petty Theft", "Grizzly Bears"
+  turn 1 precombat_main A: cast "Brazen Borrower"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Wandermare" +1/+1 1
+  assert power "Wandermare" 4
+}

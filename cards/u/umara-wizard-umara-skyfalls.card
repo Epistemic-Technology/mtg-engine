@@ -1,0 +1,13 @@
+card "Umara Wizard // Umara Skyfalls" {
+  oracle_id 6bc668f4-8fc7-4aaf-891b-277d8328b376
+  layout modal_dfc
+  cost {4}{U}
+  type Creature — Merfolk Wizard
+  pt 4/3
+  triggered whenever you cast instant or sorcery or Wizard spell: this gains flying until end of turn
+  face "Umara Skyfalls" {
+    type Land
+    enters tapped
+    activated {T}: add {U}
+  }
+}

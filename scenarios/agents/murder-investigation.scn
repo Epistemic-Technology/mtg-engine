@@ -1,0 +1,8 @@
+scenario "Murder Investigation makes Soldiers equal to the creature's last power" {
+  battlefield A: "Hill Giant" with 2 +1/+1, "Murder Investigation" on "Hill Giant", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains 5 "Soldier"
+}

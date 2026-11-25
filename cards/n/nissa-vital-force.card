@@ -1,0 +1,9 @@
+card "Nissa, Vital Force" {
+  oracle_id 31d4d8ce-36ba-4297-8c7a-34a83ba25255
+  cost {3}{G}{G}
+  type Legendary Planeswalker — Nissa
+  loyalty 5
+  loyalty +1: untap target land you control; until your next turn, target 1 becomes 5/5 Elemental creature with haste
+  loyalty -3: return target permanent card from your graveyard to hand
+  loyalty -6: emblem "Nissa, Vital Force emblem"
+}

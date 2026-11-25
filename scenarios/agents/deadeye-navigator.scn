@@ -1,0 +1,20 @@
+scenario "deadeye navigator: the paired creature can blink itself" {
+  battlefield A: 8 "Island", "Grizzly Bears" tapped with 2 +1/+1
+  hand A: "Deadeye Navigator"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deadeye Navigator"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert battlefield A contains "Deadeye Navigator"
+}
+
+scenario "deadeye navigator: unpaired, no ability" {
+  battlefield A: 8 "Island", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

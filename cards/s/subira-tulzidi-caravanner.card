@@ -1,0 +1,9 @@
+card "Subira, Tulzidi Caravanner" {
+  oracle_id 9e2e3272-d4e1-4329-b1d2-f393b3511b82
+  cost {2}{R}
+  type Legendary Creature — Human Shaman
+  pt 2/3
+  keywords haste
+  activated {1}: another target creature with power 2 or less can't be blocked this turn
+  activated {1}{R}, {T}, discard hand: until end of turn, delayed this: whenever creature you control with power 2 or less deals combat damage to a player, draw 1 card
+}

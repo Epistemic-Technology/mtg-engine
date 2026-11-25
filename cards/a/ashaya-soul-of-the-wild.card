@@ -1,0 +1,7 @@
+card "Ashaya, Soul of the Wild" {
+  oracle_id 162572f2-1757-42e9-bd97-e6bd9a762c0e
+  cost {3}{G}{G}
+  type Legendary Creature — Elemental
+  static this: cda pt count land you control
+  static plural nontoken creature you control: add subtype Forest, add type land
+}

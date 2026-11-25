@@ -1,0 +1,9 @@
+scenario "toxic attacker gets pumped, others and the singer do not" {
+  battlefield A: "Slaughter Singer", "Blightbelly Rat", "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Slaughter Singer", "Blightbelly Rat", "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Blightbelly Rat" 3
+  assert power "Grizzly Bears" 2
+  assert power "Slaughter Singer" 2
+  assert toughness "Blightbelly Rat" 3
+}

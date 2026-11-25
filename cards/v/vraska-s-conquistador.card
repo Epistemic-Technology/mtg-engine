@@ -1,0 +1,7 @@
+card "Vraska's Conquistador" {
+  oracle_id d3839a3f-3018-4a8d-b298-3f5b5fc70cd1
+  cost {1}{B}
+  type Creature — Vampire Soldier
+  pt 2/1
+  triggered whenever this attacks or blocks if you control Vraska planeswalker: target opponent loses 2 life and you gain 2 life
+}

@@ -1,0 +1,7 @@
+card "Armament Master" {
+  oracle_id f1dca9ac-8886-4688-9245-763ef486701c
+  cost {W}{W}
+  type Creature — Kor Soldier
+  pt 2/2
+  static other Kor creature you control: +2/+2 count each Equipment attached to this
+}

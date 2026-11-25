@@ -1,0 +1,15 @@
+scenario "Seizan drains and draws for each player at their upkeep" {
+  battlefield A: "Seizan, Perverter of Truth"
+  start turn 2 B upkeep
+  run_to turn 2 precombat_main
+  assert life B 18
+  assert hand B count 3
+}
+
+scenario "Seizan hits its controller on their own upkeep too" {
+  battlefield A: "Seizan, Perverter of Truth"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert life A 18
+  assert hand A count 3
+}

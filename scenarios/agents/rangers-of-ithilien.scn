@@ -1,0 +1,20 @@
+scenario "Rangers of Ithilien steals a creature of lesser power and tempts" {
+  battlefield A: 4 "Island"
+  hand A: "Rangers of Ithilien"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rangers of Ithilien"
+  turn 1 A: trigger "Rangers of Ithilien" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tempted A 1
+}
+scenario "Rangers of Ithilien cannot take a creature of equal power" {
+  battlefield A: 4 "Island"
+  hand A: "Rangers of Ithilien"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rangers of Ithilien"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}

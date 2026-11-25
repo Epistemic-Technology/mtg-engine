@@ -1,0 +1,17 @@
+scenario "Bayek gives other historic creatures double strike on your turn" {
+  battlefield A: "Bayek of Siwa", "Isamaru, Hound of Konda", "Ornithopter", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has "Bayek of Siwa" double_strike
+  assert has "Isamaru, Hound of Konda" double_strike
+  assert has "Ornithopter" double_strike
+  assert has not "Grizzly Bears" double_strike
+}
+
+scenario "Bayek's grant ends on the opponent's turn" {
+  battlefield A: "Bayek of Siwa", "Isamaru, Hound of Konda"
+  start turn 2 B precombat_main
+  run_to turn 2 begin_combat
+  assert has not "Isamaru, Hound of Konda" double_strike
+  assert has "Bayek of Siwa" double_strike
+}

@@ -1,0 +1,7 @@
+card "Hewed Stone Retainers" {
+  oracle_id a27938d2-9a15-4a87-9e77-dea37347cf62
+  cost {3}
+  type Artifact Creature — Golem
+  pt 4/4
+  cast only if cast another spell this turn
+}

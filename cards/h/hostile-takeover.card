@@ -1,0 +1,6 @@
+card "Hostile Takeover" {
+  oracle_id 5c7f91af-8bac-4da1-b9e5-f15989c9d53c
+  cost {2}{U}{B}{R}
+  type Sorcery
+  spell: up to 1 target creature has base power and toughness 1/1 until end of turn; up to 1 another target creature has base power and toughness 4/4 until end of turn; then deal 3 damage to each creature
+}

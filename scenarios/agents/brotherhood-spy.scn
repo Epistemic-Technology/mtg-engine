@@ -1,0 +1,17 @@
+scenario "Brotherhood Spy with legendary Assassin" {
+  battlefield A: "Brotherhood Spy", "Layla Hassan"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Brotherhood Spy"
+  illegal turn 1 B: block "Brotherhood Spy" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+scenario "Brotherhood Spy without legendary Assassin" {
+  battlefield A: "Brotherhood Spy"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Brotherhood Spy"
+  run_to turn 1 declare_blockers
+  assert power "Brotherhood Spy" 1
+}

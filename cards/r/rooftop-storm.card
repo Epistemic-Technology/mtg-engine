@@ -1,0 +1,6 @@
+card "Rooftop Storm" {
+  oracle_id 6835bf6d-7197-481b-ac26-276ce363b4ad
+  cost {5}{U}
+  type Enchantment
+  spells Zombie creature you cast have alternative cost {0}
+}

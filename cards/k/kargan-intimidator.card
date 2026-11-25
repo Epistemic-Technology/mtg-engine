@@ -1,0 +1,12 @@
+card "Kargan Intimidator" {
+  oracle_id 045bf1fd-f375-47a0-9983-7e2ebfed7854
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 3/1
+  static Coward: has ability { can't block Warrior }
+  activated {1}: choose one unchosen this turn {
+    mode: this gets +1/+1 until end of turn
+    mode: target creature becomes Coward until end of turn
+    mode: target Warrior gains trample until end of turn
+  }
+}

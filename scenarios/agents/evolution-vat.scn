@@ -1,0 +1,18 @@
+scenario "vat taps the target, adds a counter, and grants a doubling ability" {
+  battlefield A: "Evolution Vat", "Grizzly Bears", 3 "Mountain", "Forest", "Island", "Swamp", "Swamp"
+  turn 1 A: activate "Evolution Vat" targeting "Grizzly Bears"
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+}
+
+scenario "the doubling ability lasts only until end of turn" {
+  battlefield A: "Evolution Vat", "Grizzly Bears", 3 "Mountain", "Forest", "Island", "Swamp", "Swamp"
+  turn 1 A: activate "Evolution Vat" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  illegal turn 3 precombat_main A: activate "Grizzly Bears"
+  run_to turn 3 postcombat_main
+}

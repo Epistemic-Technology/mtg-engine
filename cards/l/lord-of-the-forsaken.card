@@ -1,0 +1,9 @@
+card "Lord of the Forsaken" {
+  oracle_id 3a25d1e2-63d8-4a93-b0ce-f9307736b3f9
+  cost {4}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying, trample
+  activated {B}, sacrifice other creature: target player mills 3 cards
+  activated pay 1 life: add {C} only to cast spell from graveyard
+}

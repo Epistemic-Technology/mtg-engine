@@ -1,0 +1,10 @@
+card "Hooded Hydra" {
+  oracle_id 637ddd65-112d-40f7-9bab-a61724d9165c
+  cost {X}{G}{G}
+  type Creature — Snake Hydra
+  pt 0/0
+  enters with X +1/+1 counters
+  triggered whenever this dies: create count each +1/+1 counters on it "1/1 green Snake creature"
+  morph {3}{G}{G}
+  as turned face up put 5 +1/+1 counters
+}

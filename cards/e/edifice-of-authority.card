@@ -1,0 +1,7 @@
+card "Edifice of Authority" {
+  oracle_id 7c16707e-24da-4a7e-9d24-d3731987f675
+  cost {3}
+  type Artifact
+  activated {1}, {T}: target creature gains can't attack until end of turn; put 1 brick counter on this
+  activated {1}, {T}, if there are 3 or more brick counters on this: until your next turn, target creature can't attack or block and target 1 gains can't activate
+}

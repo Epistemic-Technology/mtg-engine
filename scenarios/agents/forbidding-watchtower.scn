@@ -1,0 +1,30 @@
+scenario "Forbidding Watchtower animates into a 1/5 white Soldier" {
+  battlefield A: "Forbidding Watchtower", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Forbidding Watchtower" ability 2
+  turn 1 A: attack "Forbidding Watchtower"
+  run_to turn 1 postcombat_main
+  assert is "Forbidding Watchtower" creature
+  assert is "Forbidding Watchtower" land
+  assert is "Forbidding Watchtower" white
+  assert is "Forbidding Watchtower" Soldier
+  assert power "Forbidding Watchtower" 1
+  assert toughness "Forbidding Watchtower" 5
+  assert life B 19
+}
+
+scenario "Forbidding Watchtower stops being a creature next turn" {
+  battlefield A: "Forbidding Watchtower", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Forbidding Watchtower" ability 2
+  run_to turn 2 upkeep
+  assert is not "Forbidding Watchtower" creature
+}
+
+scenario "Forbidding Watchtower enters tapped" {
+  hand A: "Forbidding Watchtower"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forbidding Watchtower"
+  run_to turn 1 postcombat_main
+  assert tapped "Forbidding Watchtower"
+}

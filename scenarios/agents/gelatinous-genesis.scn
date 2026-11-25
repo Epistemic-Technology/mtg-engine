@@ -1,0 +1,16 @@
+scenario "X=2 makes two 2/2 Oozes" {
+  battlefield A: 5 "Forest"
+  hand A: "Gelatinous Genesis"
+  turn 1 precombat_main A: cast "Gelatinous Genesis" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Ooze"
+  assert power oldest A "Ooze" 2
+  assert toughness newest A "Ooze" 2
+}
+scenario "X=0 makes nothing" {
+  battlefield A: "Forest"
+  hand A: "Gelatinous Genesis"
+  turn 1 precombat_main A: cast "Gelatinous Genesis"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Ooze"
+}

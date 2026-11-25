@@ -1,0 +1,25 @@
+scenario "Consuming Blob counts card types in your graveyard" {
+  battlefield A: "Consuming Blob"
+  graveyard A: "Hill Giant", "Grizzly Bears", "Lightning Bolt"
+  graveyard B: "Forest"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert power "Consuming Blob" 2
+  assert toughness "Consuming Blob" 3
+}
+scenario "Consuming Blob with an empty graveyard" {
+  battlefield A: "Consuming Blob"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert power "Consuming Blob" 0
+  assert toughness "Consuming Blob" 1
+}
+scenario "Consuming Blob makes an Ooze at end step" {
+  battlefield A: "Consuming Blob"
+  graveyard A: "Hill Giant", "Lightning Bolt", "Forest"
+  start turn 1 A
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Ooze"
+  assert power "Ooze" 3
+  assert toughness "Ooze" 4
+}

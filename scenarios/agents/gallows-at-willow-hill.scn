@@ -1,0 +1,18 @@
+scenario "tap three humans destroy creature, controller gets spirit" {
+  battlefield A: "Gallows at Willow Hill", 3 "Human", 3 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Gallows at Willow Hill" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains 1 "Spirit"
+  assert has "Spirit" flying
+  assert tapped "Gallows at Willow Hill"
+  assert power "Spirit" 1
+}
+scenario "two humans not enough" {
+  battlefield A: "Gallows at Willow Hill", 2 "Human", "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant"
+  illegal turn 1 precombat_main A: activate "Gallows at Willow Hill" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}

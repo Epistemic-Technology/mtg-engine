@@ -1,0 +1,9 @@
+card "Titania, Gaea Incarnate" {
+  oracle_id 43230d70-4d60-4ceb-bb45-fbc043280652
+  type Legendary Creature — Elemental Avatar
+  color green
+  keywords reach, vigilance, trample, haste
+  static this: cda pt count land you control
+  triggered when this enters: return all land card from your graveyard to battlefield tapped
+  activated {3}{G}: put 4 +1/+1 counters on target land you control; target 1 becomes 0/0 Elemental creature with haste indefinitely
+}

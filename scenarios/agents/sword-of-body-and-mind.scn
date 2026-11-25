@@ -1,0 +1,10 @@
+scenario "Sword of Body and Mind makes a Wolf and mills ten" {
+  battlefield A: "Grizzly Bears", "Sword of Body and Mind", 2 "Plains"
+  turn 1 A: activate "Sword of Body and Mind" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains 1 "Wolf"
+  assert graveyard B count 10
+  assert power "Grizzly Bears" 4
+}

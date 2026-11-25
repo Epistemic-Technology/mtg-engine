@@ -1,0 +1,8 @@
+card "Blink Dog" {
+  oracle_id 02a7d95a-0a45-4aa3-b5b8-01c0b36462d8
+  cost {2}{W}
+  type Creature — Dog
+  pt 1/1
+  keywords double strike
+  label "Teleport" activated {3}{W}: this phases out
+}

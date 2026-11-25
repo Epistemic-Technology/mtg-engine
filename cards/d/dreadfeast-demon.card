@@ -1,0 +1,8 @@
+card "Dreadfeast Demon" {
+  oracle_id aa364a33-7c72-4096-b8ed-ca9d5515c3fe
+  cost {5}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying
+  triggered at beginning of your end step: you sacrifice 1 non-Demon creature; if you do, create token copy of this
+}

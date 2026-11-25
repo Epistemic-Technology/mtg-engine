@@ -1,0 +1,25 @@
+scenario "Windreader Sphinx draws when a flier attacks" {
+  battlefield A: "Windreader Sphinx"
+  battlefield B: "Wind Drake"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Windreader Sphinx ignores ground attackers" {
+  battlefield A: "Windreader Sphinx"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Windreader Sphinx draws for its own attack" {
+  battlefield A: "Windreader Sphinx", "Wind Drake"
+  start turn 1 A
+  turn 1 A: attack "Windreader Sphinx", "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}

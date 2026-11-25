@@ -1,0 +1,22 @@
+scenario "Tide Shaper kicked turns a land into an Island and grows" {
+  battlefield A: 2 "Island"
+  hand A: "Tide Shaper"
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tide Shaper" kicked
+  turn 1 A: trigger "Tide Shaper" targeting B "Forest"
+  run_to turn 1 postcombat_main
+  assert is B "Forest" island
+  assert power "Tide Shaper" 2
+  assert toughness "Tide Shaper" 2
+}
+scenario "Tide Shaper unkicked stays 1/1 without an opposing Island" {
+  battlefield A: "Island"
+  hand A: "Tide Shaper"
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tide Shaper"
+  run_to turn 1 postcombat_main
+  assert is not B "Forest" island
+  assert power "Tide Shaper" 1
+}

@@ -1,0 +1,7 @@
+card "Nomad Mythmaker" {
+  oracle_id 591ce7dc-8407-43ed-acfc-e3d8fd547125
+  cost {2}{W}
+  type Creature — Human Nomad Cleric
+  pt 2/2
+  activated {W}, {T}: return target Aura card from a graveyard to battlefield under your control attached to chosen creature you control
+}

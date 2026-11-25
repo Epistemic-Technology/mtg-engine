@@ -1,0 +1,7 @@
+card "Sliversmith" {
+  oracle_id 244443f0-c92b-4640-88b6-308b0312c8be
+  cost {2}
+  type Artifact Creature — Spellshaper
+  pt 1/1
+  activated {1}, {T}, discard 1 card: create 1 "1/1 colorless Sliver artifact creature named Metallic Sliver"
+}

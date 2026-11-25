@@ -1,0 +1,9 @@
+card "Rally for the Throne" {
+  oracle_id 0a557383-596b-4b8f-b81f-21706fef7b63
+  cost {2}{W}
+  type Instant
+  spell {
+    create 2 "1/1 white Human creature"
+    label "Adamant" if spent 3 white, you gain count each creature you control life
+  }
+}

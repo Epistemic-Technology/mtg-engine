@@ -1,0 +1,8 @@
+card "Pashalik Mons" {
+  oracle_id bdb94ccd-1bb5-4bb7-9539-e1b1c97c19c5
+  cost {2}{R}
+  type Legendary Creature — Goblin Warrior
+  pt 2/2
+  triggered whenever this or Goblin you control dies: deal 1 damage to any target
+  activated {3}{R}, sacrifice Goblin: create 2 "Goblin"
+}

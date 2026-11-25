@@ -1,0 +1,7 @@
+card "Swirling Spriggan" {
+  oracle_id 3b0cea17-9baf-43c7-9f01-44f255e9d687
+  cost {2}{G}{G}
+  type Creature — Goblin Shaman
+  pt 3/3
+  activated {G/U}{G/U}: target creature you control becomes colors of choice
+}

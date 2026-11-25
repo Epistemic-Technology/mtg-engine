@@ -1,0 +1,37 @@
+scenario "charitable levy taxes noncreature spells" {
+  battlefield A: "Charitable Levy", "Mountain"
+  hand A: "Shock"
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+scenario "charitable levy is sacrificed at three counters" {
+  battlefield A: "Charitable Levy", 6 "Mountain"
+  hand A: "Shock", "Shock", "Shock"
+  library A: "Island", "Plains", "Forest"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert graveyard A contains "Charitable Levy"
+  assert battlefield A contains "Plains"
+  assert hand A contains "Island"
+  assert counters "Charitable Levy" collection 0
+}
+scenario "charitable levy ignores creature spells and counts two" {
+  battlefield A: "Charitable Levy", 4 "Mountain", 2 "Forest"
+  hand A: "Shock", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert counters "Charitable Levy" collection 2
+  assert battlefield A contains "Charitable Levy"
+}

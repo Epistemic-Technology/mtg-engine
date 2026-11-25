@@ -1,0 +1,9 @@
+card "Ritual of Hope" {
+  oracle_id 8afe3d28-be3e-416c-9457-8a2af85b2eec
+  cost {1}{W}
+  type Instant
+  spell {
+    each creature you control gets +1/+1
+    label "Coven" if 3 different powers, all creature you control gets +2/+1 instead
+  }
+}

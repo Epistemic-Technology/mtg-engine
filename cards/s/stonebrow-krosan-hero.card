@@ -1,0 +1,8 @@
+card "Stonebrow, Krosan Hero" {
+  oracle_id 5f7f553d-ec94-49e5-ba17-68126a94cdbd
+  cost {3}{R}{G}
+  type Legendary Creature — Centaur Warrior
+  pt 4/4
+  keywords trample
+  triggered whenever creature with trample you control attacks: triggering it gets +2/+2
+}

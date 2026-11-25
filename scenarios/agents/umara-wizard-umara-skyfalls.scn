@@ -1,0 +1,25 @@
+scenario "Umara Wizard gains flying when an instant is cast" {
+  battlefield A: "Umara Wizard", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert has "Umara Wizard" flying
+  assert life B 17
+}
+scenario "Umara Wizard has no flying without a cast" {
+  battlefield A: "Umara Wizard"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has not "Umara Wizard" flying
+  assert power "Umara Wizard" 4
+  assert toughness "Umara Wizard" 3
+}
+scenario "Umara Skyfalls enters tapped as a land" {
+  hand A: "Umara Wizard"
+  start turn 1 A precombat_main
+  turn 1 A: play "Umara Skyfalls"
+  run_to turn 1 postcombat_main
+  assert tapped "Umara Skyfalls"
+  assert is "Umara Skyfalls" land
+}

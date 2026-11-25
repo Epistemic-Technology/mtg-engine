@@ -1,0 +1,6 @@
+card "Mindcrank" {
+  oracle_id c73c1d91-0163-49c6-832a-b9327e7a2c9b
+  cost {2}
+  type Artifact
+  triggered whenever an opponent loses life: that player mills that much cards
+}

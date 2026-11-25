@@ -1,0 +1,20 @@
+scenario "chapter one mills three and takes a historic card" {
+  battlefield A: "Ballad of the Black Flag" with 0 lore
+  library A: "Plains", "Wurmcoil Engine", "Plains", "Forest"
+  start turn 3 A precombat_main
+  run_to turn 3 postcombat_main
+  assert hand A contains "Wurmcoil Engine"
+  assert graveyard A contains 2 "Plains"
+  assert counters "Ballad of the Black Flag" lore 1
+}
+scenario "chapter four makes historic spells cost two less" {
+  battlefield A: "Ballad of the Black Flag" with 3 lore, 6 "Plains"
+  hand A: "Wurmcoil Engine", "Serra Angel"
+  start turn 3 A
+  turn 3 precombat_main A: cast "Wurmcoil Engine"
+  turn 3 precombat_main A: wait
+  illegal turn 3 precombat_main A: cast "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Wurmcoil Engine"
+  assert graveyard A contains "Ballad of the Black Flag"
+}

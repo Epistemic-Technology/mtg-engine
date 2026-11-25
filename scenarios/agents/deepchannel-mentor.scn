@@ -1,0 +1,18 @@
+scenario "Deepchannel Mentor makes blue creatures unblockable" {
+  battlefield A: "Deepchannel Mentor"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Deepchannel Mentor"
+  illegal turn 1 B: block "Deepchannel Mentor" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Deepchannel Mentor does not help nonblue creatures" {
+  battlefield A: "Deepchannel Mentor", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+}

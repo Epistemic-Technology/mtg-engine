@@ -1,0 +1,7 @@
+card "Prosthetic Injector" {
+  oracle_id 8026533d-c0e7-48b7-9e1a-9a370899aa57
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +0/+2, has toxic 1
+  equip {1}
+}

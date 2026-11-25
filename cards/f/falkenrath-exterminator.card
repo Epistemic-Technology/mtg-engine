@@ -1,0 +1,8 @@
+card "Falkenrath Exterminator" {
+  oracle_id fd5fc69e-1bba-4f39-88c1-5966fa941f32
+  cost {1}{R}
+  type Creature — Vampire Archer
+  pt 1/1
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+  activated {2}{R}: deal count equal +1/+1 counters on this damage to target creature
+}

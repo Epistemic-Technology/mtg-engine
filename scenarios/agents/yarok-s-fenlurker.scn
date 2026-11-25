@@ -1,0 +1,17 @@
+scenario "fenlurker makes the opponent exile a card and pumps" {
+  battlefield A: 2 "Swamp", "Swamp"
+  hand A: "Yarok's Fenlurker"
+  hand B: "Shock", "Giant Growth"
+  turn 1 precombat_main A: cast "Yarok's Fenlurker"
+  turn 1 precombat_main A: wait
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert power "Yarok's Fenlurker" 1
+}
+scenario "fenlurker pump" {
+  battlefield A: "Yarok's Fenlurker", 3 "Swamp"
+  turn 1 precombat_main A: activate "Yarok's Fenlurker"
+  run_to turn 1 postcombat_main
+  assert power "Yarok's Fenlurker" 2
+  assert toughness "Yarok's Fenlurker" 2
+}

@@ -1,0 +1,23 @@
+scenario "tyrannize target pays 7 life and keeps hand" {
+  hand A: "Tyrannize", "Forest"
+  battlefield A: 5 "Swamp"
+  hand B: "Island", "Island", "Island"
+  turn 1 A: cast "Tyrannize" targeting player B
+  turn 1 B: accept "Tyrannize"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert life A 20
+  assert hand B count 3
+}
+scenario "tyrannize target declines and discards hand" {
+  hand A: "Tyrannize", "Forest"
+  battlefield A: 5 "Swamp"
+  hand B: "Island", "Island", "Island"
+  turn 1 A: cast "Tyrannize" targeting player B
+  turn 1 B: decline "Tyrannize"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert hand B count 0
+  assert graveyard B count 3
+  assert hand A count 1
+}

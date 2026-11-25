@@ -1,0 +1,7 @@
+token "0/2 blue Illusion creature that freezes what it blocks" {
+  name "Illusion"
+  type Creature — Illusion
+  pt 0/2
+  color blue
+  triggered whenever this blocks a creature: that creature doesn't untap next untap step
+}

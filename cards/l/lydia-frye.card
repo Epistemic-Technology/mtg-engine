@@ -1,0 +1,8 @@
+card "Lydia Frye" {
+  oracle_id 0315f5e7-2867-428e-8e43-66dda0db57a0
+  cost {2}{U/B}
+  type Legendary Creature — Human Assassin
+  pt 3/2
+  can't be blocked by creature with power 3 or greater
+  triggered at beginning of your end step: surveil count where tapped Assassin you control
+}

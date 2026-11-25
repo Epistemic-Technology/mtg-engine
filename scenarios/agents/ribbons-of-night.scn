@@ -1,0 +1,22 @@
+scenario "ribbons of night with blue spent draws" {
+  battlefield A: 4 "Swamp", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Ribbons of Night"
+  life A 10
+  turn 1 precombat_main A: cast "Ribbons of Night" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 14
+  assert hand A count 1
+}
+scenario "ribbons of night without blue" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Ribbons of Night"
+  life A 10
+  turn 1 precombat_main A: cast "Ribbons of Night" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 14
+  assert hand A count 0
+}

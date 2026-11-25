@@ -1,0 +1,9 @@
+card "Kiora, Master of the Depths" {
+  oracle_id 0b829189-ff9d-4f6c-9a2a-fdb4a9bfeeb6
+  cost {2}{G}{U}
+  type Legendary Planeswalker — Kiora
+  loyalty 4
+  loyalty +1: untap up to 1 target creature and up to 1 target land
+  loyalty -2: dig 4 reveal take creature card and land card may rest graveyard
+  loyalty -8: emblem "Kiora, Master of the Depths emblem"; then create 3 "8/8 blue Octopus creature"
+}

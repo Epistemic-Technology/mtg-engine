@@ -1,0 +1,8 @@
+card "Witchstalker" {
+  oracle_id a5d3af88-2ca6-4e3d-8b6e-67482136a5c9
+  cost {1}{G}{G}
+  type Creature — Wolf
+  pt 3/3
+  keywords hexproof
+  triggered whenever an opponent casts blue or black spell during your turn: put 1 +1/+1 counter on this
+}

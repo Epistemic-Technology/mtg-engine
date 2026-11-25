@@ -1,0 +1,9 @@
+card "Rowan, Fearless Sparkmage" {
+  oracle_id cd83f886-c651-4ad7-82ca-2446c60c8f94
+  cost {3}{R}{R}
+  type Legendary Planeswalker — Rowan
+  loyalty 5
+  loyalty +1: up to 1 target creature gets +3/+0 and gains first strike until end of turn
+  loyalty -2: deal 1 damage to up to 2 target creature; those targets can't block this turn
+  loyalty -9: gain control of all creature until end of turn; untap them; they gain haste
+}

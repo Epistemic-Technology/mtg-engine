@@ -1,0 +1,8 @@
+card "Faerie Impostor" {
+  oracle_id 0d78ba2c-4de0-47d9-b1b9-13dc9de8844b
+  cost {U}
+  type Creature — Faerie Rogue
+  pt 2/1
+  keywords flying
+  triggered whenever this enters: sacrifice this unless you return 1 other creature you control to hand chosen
+}

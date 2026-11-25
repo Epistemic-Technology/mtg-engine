@@ -1,0 +1,33 @@
+scenario "Battle of Frost and Fire chapter I spares Giants" {
+  battlefield A: 4 "Island", "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Battle of Frost and Fire"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battle of Frost and Fire"
+  run_to turn 1 declare_attackers
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B lacks "Serra Angel"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Battle of Frost and Fire chapter III draws and discards on a big spell" {
+  battlefield A: "Battle of Frost and Fire" with 2 lore, 5 "Plains"
+  hand A: "Serra Angel", "Giant Growth"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  start turn 5 A upkeep
+  turn 5 A: cast "Serra Angel"
+  run_to turn 5 declare_attackers
+  assert battlefield A contains "Serra Angel"
+  assert hand A count 3
+}
+
+scenario "Battle of Frost and Fire chapter III ignores a small spell" {
+  battlefield A: "Battle of Frost and Fire" with 2 lore, 4 "Plains", "Mountain"
+  hand A: "Giant Growth", "Shock"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  start turn 5 A upkeep
+  turn 5 A: cast "Shock" targeting player B
+  run_to turn 5 declare_attackers
+  assert hand A count 2
+}

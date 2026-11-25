@@ -1,0 +1,17 @@
+scenario "illusory demon is sacrificed when you cast a spell" {
+  battlefield A: "Illusory Demon", 2 "Mountain"
+  hand A: "Shock"
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Illusory Demon"
+  assert life B 18
+}
+scenario "illusory demon stays when opponent casts" {
+  battlefield A: "Illusory Demon"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Illusory Demon"
+}

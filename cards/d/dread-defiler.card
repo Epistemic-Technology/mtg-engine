@@ -1,0 +1,8 @@
+card "Dread Defiler" {
+  oracle_id ebdd0027-3340-459e-a598-dd416e76744f
+  cost {6}{B}
+  type Creature — Eldrazi
+  pt 6/8
+  keywords devoid
+  activated {3}{C}, exile creature card from graveyard: target opponent loses count equal power of the exiled card life
+}

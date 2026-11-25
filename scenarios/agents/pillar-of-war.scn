@@ -1,0 +1,12 @@
+scenario "enchanted pillar can attack" {
+  battlefield A: "Pillar of War", "Flight" on "Pillar of War"
+  turn 1 declare_attackers A: attack "Pillar of War"
+  run_to turn 1 end_combat
+  assert life B 17
+}
+scenario "unenchanted pillar cannot attack" {
+  battlefield A: "Pillar of War"
+  run_to turn 1 end_combat
+  assert untapped "Pillar of War"
+  assert life B 20
+}

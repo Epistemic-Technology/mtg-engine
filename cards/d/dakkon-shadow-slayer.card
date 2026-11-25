@@ -1,0 +1,11 @@
+card "Dakkon, Shadow Slayer" {
+  oracle_id 335b5302-2272-405a-b2b8-3943b3df335f
+  cost {W}{U}{B}
+  type Legendary Planeswalker — Dakkon
+  loyalty 0
+  pronoun he
+  enters with count equal land you control loyalty counters
+  loyalty +1: surveil 2
+  loyalty -3: exile target creature
+  loyalty -6: you may put 1 artifact card from hand or graveyard onto battlefield chosen
+}

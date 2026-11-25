@@ -1,0 +1,16 @@
+scenario "sentinel taps opponent creature at their combat" {
+  battlefield A: "Sentinel of the Eternal Watch", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 begin_combat A: trigger "Sentinel of the Eternal Watch" targeting "Hill Giant"
+  run_to turn 2 declare_attackers
+  assert tapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+scenario "sentinel does nothing on its controller's turn" {
+  battlefield A: "Sentinel of the Eternal Watch"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}

@@ -1,0 +1,6 @@
+card "Flamebreak" {
+  oracle_id 9e608ace-2844-419b-9204-9054127557b2
+  cost {R}{R}{R}
+  type Sorcery
+  spell: deal 3 damage to each creature without flying and each player; creatures dealt damage this way can't be regenerated
+}

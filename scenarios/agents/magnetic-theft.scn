@@ -1,0 +1,22 @@
+scenario "Magnetic Theft moves an Equipment to another creature" {
+  battlefield A: "Bonesplitter" , "Grizzly Bears", "Hill Giant", "Mountain"
+  hand A: "Magnetic Theft"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magnetic Theft" targeting "Bonesplitter", "Hill Giant"
+  run_to turn 1 combat_damage
+  assert attached "Bonesplitter" to "Hill Giant"
+  assert power "Hill Giant" 5
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Magnetic Theft can attach an opponent's Equipment to your creature" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Bonesplitter"
+  hand A: "Magnetic Theft"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magnetic Theft" targeting "Bonesplitter", "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert battlefield B contains "Bonesplitter"
+}

@@ -1,0 +1,12 @@
+card "Koma, Cosmos Serpent" {
+  oracle_id 6ba0656f-e0d2-4735-9c66-3a00afa9fc23
+  cost {3}{G}{G}{U}{U}
+  type Legendary Creature — Serpent
+  pt 6/6
+  this spell can't be countered
+  triggered at beginning of every upkeep: create 1 "3/3 blue Serpent creature named Koma's Coil"
+  activated sacrifice other Serpent: choose one {
+    mode: tap target permanent; it gains can't activate until end of turn
+    mode: this gains indestructible
+  }
+}

@@ -1,0 +1,21 @@
+scenario "crime reanimates an opponent's creature" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard B: "Hill Giant", "Shock"
+  hand A: "Crime // Punishment"
+  turn 1 precombat_main A: cast "Crime" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert graveyard B lacks "Hill Giant"
+}
+scenario "punishment destroys only mana value X" {
+  battlefield A: "Grizzly Bears", 2 "Swamp", 2 "Forest"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Crime // Punishment"
+  turn 1 precombat_main A: cast "Punishment" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Swamp"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}

@@ -1,0 +1,20 @@
+scenario "It That Heralds the End discounts big colorless spells and pumps colorless creatures" {
+  battlefield A: "It That Heralds the End", "Grizzly Bears", 6 "Plains"
+  hand A: "Accomplished Automaton"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Accomplished Automaton"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Accomplished Automaton"
+  assert power "Accomplished Automaton" 7
+  assert power "It That Heralds the End" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "It That Heralds the End does not discount below mana value 7" {
+  battlefield A: "It That Heralds the End", 5 "Plains"
+  hand A: "Accomplished Automaton"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Accomplished Automaton"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Accomplished Automaton"
+}

@@ -1,0 +1,8 @@
+card "Red Dragon" {
+  oracle_id ff6e4346-463c-445d-8f72-11cb35dd99ee
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  label "Fire Breath" triggered when this enters: deal 4 damage to each opponent
+}

@@ -1,0 +1,19 @@
+scenario "Yasova steals a weaker creature, untaps it, it attacks" {
+  battlefield A: "Yasova Dragonclaw", 3 "Mountain"
+  battlefield B: "Hill Giant" tapped, "Serra Angel"
+  turn 1 begin_combat A: trigger "Yasova Dragonclaw" targeting "Hill Giant"
+  turn 1 declare_attackers A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  run_to turn 1 cleanup
+  assert battlefield B contains "Hill Giant"
+}
+scenario "Yasova cannot target a creature with power not less" {
+  battlefield A: "Yasova Dragonclaw", 3 "Mountain"
+  battlefield B: "Serra Angel"
+  illegal turn 1 begin_combat A: trigger "Yasova Dragonclaw" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+}

@@ -1,0 +1,25 @@
+scenario "Blue Dragon applies -3, -2 and -1 power until your next turn" {
+  battlefield A: 7 "Island"
+  hand A: "Blue Dragon"
+  battlefield B: "Serra Angel", "Hill Giant", "Grizzly Bears"
+  turn 1 precombat_main A: cast "Blue Dragon"
+  turn 1 precombat_main A: trigger "Blue Dragon" targeting "Serra Angel", "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 1
+  assert power "Hill Giant" 1
+  assert power "Grizzly Bears" 1
+  run_to turn 2 postcombat_main
+  assert power "Serra Angel" 1
+  run_to turn 3 upkeep
+  assert power "Serra Angel" 4
+}
+scenario "Blue Dragon with only the required target" {
+  battlefield A: 7 "Island"
+  hand A: "Blue Dragon"
+  battlefield B: "Serra Angel", "Hill Giant"
+  turn 1 precombat_main A: trigger "Blue Dragon" targeting "Hill Giant", none, none
+  turn 1 precombat_main A: cast "Blue Dragon"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 0
+  assert power "Serra Angel" 4
+}

@@ -1,0 +1,22 @@
+scenario "Winterthorn Blessing counters one creature and freezes another" {
+  battlefield A: "Grizzly Bears", "Forest", "Forest", "Island", "Island"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Winterthorn Blessing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winterthorn Blessing" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 precombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert tapped "Hill Giant"
+  assert untapped "Wind Drake"
+}
+
+scenario "Winterthorn Blessing with no targets and flashback" {
+  battlefield A: "Forest", "Forest", "Island", "Island", "Island"
+  graveyard A: "Winterthorn Blessing"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winterthorn Blessing" from graveyard targeting none, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert exile A contains "Winterthorn Blessing"
+}

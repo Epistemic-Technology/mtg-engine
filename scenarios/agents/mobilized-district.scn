@@ -1,0 +1,22 @@
+scenario "mobilized district costs 1 less per legendary creature and planeswalker" {
+  battlefield A: "Mobilized District", "Kaervek the Merciless", "Jace Beleren", 2 "Plains"
+  turn 1 A: activate "Mobilized District"
+  run_to turn 1 combat_damage
+  assert power "Mobilized District" 3
+  assert toughness "Mobilized District" 3
+  assert is "Mobilized District" creature
+  assert is "Mobilized District" land
+  assert has "Mobilized District" vigilance
+}
+scenario "mobilized district at full cost is not affordable with three mana" {
+  battlefield A: "Mobilized District", "Grizzly Bears", 2 "Plains"
+  illegal turn 1 A: activate "Mobilized District"
+  run_to turn 1 postcombat_main
+  assert is not "Mobilized District" creature
+}
+scenario "mobilized district reverts at end of turn" {
+  battlefield A: "Mobilized District", 4 "Plains"
+  turn 1 A: activate "Mobilized District"
+  run_to turn 2 upkeep
+  assert is not "Mobilized District" creature
+}

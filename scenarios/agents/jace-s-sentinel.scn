@@ -1,0 +1,18 @@
+scenario "Jace's Sentinel gets bonus with a Jace planeswalker" {
+  battlefield A: "Jace's Sentinel", "Jace Beleren"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Jace's Sentinel"
+  illegal turn 1 declare_blockers B: block "Jace's Sentinel" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Jace's Sentinel" 2
+  assert life B 18
+}
+scenario "Jace's Sentinel plain without a Jace" {
+  battlefield A: "Jace's Sentinel"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Jace's Sentinel"
+  turn 1 B: block "Jace's Sentinel" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Jace's Sentinel" 1
+  assert life B 20
+}

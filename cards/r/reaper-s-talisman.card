@@ -1,0 +1,8 @@
+card "Reaper's Talisman" {
+  oracle_id bc2ea8c8-5360-4256-91c5-d821b5e59c0f
+  cost {B}
+  type Artifact — Equipment
+  triggered whenever equipped attacks: it gains deathtouch until end of turn
+  triggered whenever equipped attacks alone: defending player loses 2 life and you gain 2 life
+  equip {2}
+}

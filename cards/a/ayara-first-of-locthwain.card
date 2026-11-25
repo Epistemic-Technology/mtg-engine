@@ -1,0 +1,8 @@
+card "Ayara, First of Locthwain" {
+  oracle_id 388168b3-ec68-4af2-b88c-6a5ec88c15f6
+  cost {B}{B}{B}
+  type Legendary Creature — Elf Noble
+  pt 2/3
+  triggered whenever this or black creature you control enters: each opponent loses 1 life and you gain 1 life
+  activated {T}, sacrifice other black creature: draw 1 card
+}

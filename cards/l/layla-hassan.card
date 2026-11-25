@@ -1,0 +1,8 @@
+card "Layla Hassan" {
+  oracle_id e27feb69-3120-4e8d-8ee6-0f87b58e2ae3
+  cost {3}{W}
+  type Legendary Creature — Human Assassin
+  pt 3/4
+  keywords first strike
+  triggered when this enters and whenever one or more Assassin you control deal combat damage to a player: return target historic card from your graveyard to hand
+}

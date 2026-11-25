@@ -1,0 +1,6 @@
+card "Sins of the Past" {
+  oracle_id 9059a940-ac28-4322-a11b-af1d107b2edd
+  cost {4}{B}{B}
+  type Sorcery
+  spell: until end of turn, cast free target instant or sorcery card from your graveyard exile instead; exile this
+}

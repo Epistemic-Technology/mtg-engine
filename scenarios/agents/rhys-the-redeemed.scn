@@ -1,0 +1,18 @@
+scenario "Rhys the Redeemed makes an Elf Warrior" {
+  battlefield A: "Rhys the Redeemed", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Rhys the Redeemed" ability 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Elf Warrior"
+  assert power "Elf Warrior" 1
+}
+
+scenario "Rhys the Redeemed copies each creature token" {
+  battlefield A: "Rhys the Redeemed", 2 "Elf Warrior", "Grizzly Bears", 6 "Plains"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Rhys the Redeemed" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Elf Warrior"
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains 1 "Rhys the Redeemed"
+}

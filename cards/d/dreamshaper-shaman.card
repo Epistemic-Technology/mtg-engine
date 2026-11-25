@@ -1,0 +1,7 @@
+card "Dreamshaper Shaman" {
+  oracle_id d06ef178-f02a-45a4-8193-140dee52c99d
+  cost {5}{R}
+  type Enchantment Creature — Minotaur Shaman
+  pt 5/4
+  triggered at beginning of your end step: you may pay {2}{R} and sacrifice 1 nonland permanent chosen; if you do, reveal until nonland permanent card; put that card onto battlefield and the rest on bottom of library random
+}

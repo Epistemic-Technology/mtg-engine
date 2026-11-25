@@ -1,0 +1,25 @@
+scenario "Rotwidow Pack makes a Spider and drains per Spider" {
+  battlefield A: "Rotwidow Pack", 3 "Swamp", 2 "Forest"
+  graveyard A: "Hill Giant"
+  start turn 1 A
+  turn 1 A: activate "Rotwidow Pack"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Spider"
+  assert life B 18
+  assert graveyard A lacks "Hill Giant"
+}
+scenario "Rotwidow Pack counts existing Spiders" {
+  battlefield A: "Rotwidow Pack", 3 "Swamp", 2 "Forest", "Spider"
+  graveyard A: "Hill Giant"
+  start turn 1 A
+  turn 1 A: activate "Rotwidow Pack"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+scenario "Rotwidow Pack needs a creature card in the graveyard" {
+  battlefield A: "Rotwidow Pack", 3 "Swamp", 2 "Forest"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A
+  illegal turn 1 A: activate "Rotwidow Pack"
+  run_to turn 1 postcombat_main
+}

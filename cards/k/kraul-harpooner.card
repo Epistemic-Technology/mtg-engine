@@ -1,0 +1,8 @@
+card "Kraul Harpooner" {
+  oracle_id 332b6ed7-90de-46c0-85ad-1ad708b2c1e1
+  cost {1}{G}
+  type Creature — Insect Warrior
+  pt 3/2
+  keywords reach
+  label "Undergrowth" triggered when this enters: choose up to 1 target creature you don't control with flying; this creature gets +1/+0 count where graveyard creature then you may this creature fights that target 1
+}

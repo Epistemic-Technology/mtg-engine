@@ -1,0 +1,8 @@
+card "Cerulean Sphinx" {
+  oracle_id 296de325-cc1a-4cfa-a72d-80a2a5e18d10
+  cost {4}{U}{U}
+  type Creature — Sphinx
+  pt 5/5
+  keywords flying
+  activated {U}: owner shuffles this into library
+}

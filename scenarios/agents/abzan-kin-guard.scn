@@ -1,0 +1,26 @@
+scenario "Abzan Kin-Guard has lifelink with a white permanent" {
+  battlefield A: "Abzan Kin-Guard", "Serra Angel"
+  start turn 1 A
+  turn 1 A: attack "Abzan Kin-Guard"
+  run_to turn 1 postcombat_main
+  assert has "Abzan Kin-Guard" lifelink
+  assert life A 23
+  assert life B 17
+}
+
+scenario "Abzan Kin-Guard has no lifelink without white or black" {
+  battlefield A: "Abzan Kin-Guard", "Forest", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Abzan Kin-Guard"
+  run_to turn 1 postcombat_main
+  assert has not "Abzan Kin-Guard" lifelink
+  assert life A 20
+  assert life B 17
+}
+
+scenario "Abzan Kin-Guard has lifelink with a black permanent" {
+  battlefield A: "Abzan Kin-Guard", "Typhoid Rats"
+  start turn 1 A
+  run_to turn 1 postcombat_main
+  assert has "Abzan Kin-Guard" lifelink
+}

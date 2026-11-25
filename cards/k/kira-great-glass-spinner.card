@@ -1,0 +1,8 @@
+card "Kira, Great Glass-Spinner" {
+  oracle_id 60808c8f-5257-451b-a9b6-389ba51598d5
+  cost {1}{U}{U}
+  type Legendary Creature — Spirit
+  pt 2/2
+  keywords flying
+  static creature you control: has ability { triggered whenever this becomes targeted first time each turn: counter that spell }
+}

@@ -1,0 +1,22 @@
+scenario "troupe enters with X counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Contortionist Troupe"
+  turn 1 precombat_main A: cast "Contortionist Troupe" x 2
+  run_to turn 1 postcombat_main
+  assert power "Contortionist Troupe" 2
+  assert toughness "Contortionist Troupe" 2
+  assert counters "Contortionist Troupe" +1/+1 2
+}
+scenario "coven grows a creature at end step with three different powers" {
+  battlefield A: "Contortionist Troupe" with 1 +1/+1, "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 end A: trigger "Contortionist Troupe" targeting "Serra Angel"
+  run_to turn 2 upkeep
+  assert power "Serra Angel" 5
+}
+scenario "no coven with two powers" {
+  battlefield A: "Contortionist Troupe" with 2 +1/+1, "Grizzly Bears", "Hill Giant"
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+  assert power "Grizzly Bears" 2
+  assert counters "Contortionist Troupe" +1/+1 2
+}

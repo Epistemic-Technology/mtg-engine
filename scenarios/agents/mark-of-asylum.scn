@@ -1,0 +1,30 @@
+scenario "Mark of Asylum prevents noncombat damage to your creatures" {
+  battlefield A: "Mark of Asylum", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Mark of Asylum does not protect the opponent's creatures" {
+  battlefield A: "Mark of Asylum", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+}
+
+scenario "Mark of Asylum does not prevent combat damage" {
+  battlefield A: "Mark of Asylum", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

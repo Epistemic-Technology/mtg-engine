@@ -1,0 +1,14 @@
+scenario "hermit counts devotion to black including itself" {
+  hand A: "Underworld Hermit"
+  battlefield A: 6 "Swamp"
+  turn 1 precombat_main A: cast "Underworld Hermit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Squirrel"
+}
+scenario "second hermit sees devotion 4" {
+  hand A: "Underworld Hermit"
+  battlefield A: 6 "Swamp", "Underworld Hermit"
+  turn 1 precombat_main A: cast "Underworld Hermit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Squirrel"
+}

@@ -1,0 +1,24 @@
+scenario "kira counters the first spell targeting each creature each turn" {
+  battlefield A: "Kira, Great Glass-Spinner", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 precombat_main B: wait
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains 1 "Lightning Bolt"
+  assert damage "Grizzly Bears" 0
+}
+scenario "second spell the same turn is not countered" {
+  battlefield A: "Kira, Great Glass-Spinner", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 precombat_main B: wait
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains 2 "Lightning Bolt"
+}

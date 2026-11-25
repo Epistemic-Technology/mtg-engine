@@ -1,0 +1,7 @@
+token "3/3 colorless Phyrexian Wurm artifact creature with lifelink" {
+  name "Phyrexian Wurm"
+  type Artifact Creature — Phyrexian Wurm
+  pt 3/3
+  color
+  keywords lifelink
+}

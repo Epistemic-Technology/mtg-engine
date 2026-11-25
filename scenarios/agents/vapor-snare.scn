@@ -1,0 +1,19 @@
+scenario "vapor snare controls, upkeep return land keeps it" {
+  battlefield B: "Hill Giant"
+  battlefield A: "Vapor Snare" on "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  assert battlefield A contains "Hill Giant"
+  turn 3 upkeep A: accept "Vapor Snare"
+  run_to turn 3 draw
+  assert hand A contains "Forest"
+  assert battlefield A contains "Vapor Snare"
+  assert battlefield A contains "Hill Giant"
+}
+scenario "vapor snare sacrificed with no land" {
+  battlefield B: "Hill Giant"
+  battlefield A: "Vapor Snare" on "Hill Giant"
+  start turn 3 A upkeep
+  run_to turn 3 draw
+  assert graveyard A contains "Vapor Snare"
+  assert battlefield B contains "Hill Giant"
+}

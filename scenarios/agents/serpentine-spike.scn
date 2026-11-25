@@ -1,0 +1,23 @@
+scenario "serpentine spike deals 2 3 4 and exiles the dead" {
+  hand A: "Serpentine Spike"
+  battlefield A: 7 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Serpentine Spike" targeting "Hill Giant", "Grizzly Bears", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Serra Angel"
+  assert graveyard B lacks "Serra Angel"
+  assert graveyard B lacks "Grizzly Bears"
+}
+scenario "serpentine spike amount order" {
+  hand A: "Serpentine Spike"
+  battlefield A: 7 "Mountain"
+  battlefield B: "Serra Angel", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Serpentine Spike" targeting "Serra Angel", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 2
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+}

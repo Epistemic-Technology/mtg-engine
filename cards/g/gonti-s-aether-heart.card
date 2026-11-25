@@ -1,0 +1,7 @@
+card "Gonti's Aether Heart" {
+  oracle_id 69428825-3c40-486d-b051-14e97a598ce6
+  cost {6}
+  type Legendary Artifact
+  triggered whenever this or artifact you control enters: you get 2 energy
+  activated pay 8 energy, exile this: you take extra turn
+}

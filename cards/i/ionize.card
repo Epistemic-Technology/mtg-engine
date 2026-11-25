@@ -1,0 +1,6 @@
+card "Ionize" {
+  oracle_id 01da67a5-e3dc-44f4-8a93-513bfa4d8fbc
+  cost {1}{U}{R}
+  type Instant
+  spell: counter target spell; deal 2 damage to controller of that target 1
+}

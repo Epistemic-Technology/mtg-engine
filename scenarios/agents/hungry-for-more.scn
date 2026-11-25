@@ -1,0 +1,23 @@
+scenario "Hungry for More makes a hasty Vampire that is sacrificed at end" {
+  battlefield A: "Swamp", "Mountain"
+  hand A: "Hungry for More"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hungry for More"
+  turn 1 A: attack "Vampire"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert battlefield A contains "Vampire"
+  run_to turn 1 cleanup
+  assert battlefield A contains 0 "Vampire"
+}
+
+scenario "Hungry for More has flashback" {
+  battlefield A: 3 "Swamp", 3 "Mountain"
+  graveyard A: "Hungry for More"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hungry for More" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vampire"
+  assert exile A contains "Hungry for More"
+}

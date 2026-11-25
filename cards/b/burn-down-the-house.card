@@ -1,0 +1,9 @@
+card "Burn Down the House" {
+  oracle_id 0ec54683-a65c-461d-862e-585b6499d6a5
+  cost {3}{R}{R}
+  type Sorcery
+  choose one {
+    mode: deal 5 damage to each creature and each planeswalker
+    mode: create 3 "1/1 red Devil creature that pings"; those tokens gains haste until end of turn
+  }
+}

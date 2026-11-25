@@ -1,0 +1,7 @@
+card "Winterthorn Blessing" {
+  oracle_id 4b4bdbdc-3934-471b-9027-31277e7765ab
+  cost {G}{U}
+  type Sorcery
+  spell: put 1 +1/+1 counter on up to 1 target creature you control; tap up to 1 target creature you don't control, and that creature doesn't untap next untap step
+  flashback {1}{G}{U}
+}

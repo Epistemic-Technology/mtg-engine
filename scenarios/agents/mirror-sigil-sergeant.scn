@@ -1,0 +1,21 @@
+scenario "Mirror-Sigil Sergeant copies itself with a blue permanent" {
+  battlefield A: "Mirror-Sigil Sergeant", "Wind Drake"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert battlefield A contains 2 "Mirror-Sigil Sergeant"
+}
+
+scenario "Mirror-Sigil Sergeant needs a blue permanent" {
+  battlefield A: "Mirror-Sigil Sergeant", "Grizzly Bears"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert battlefield A contains 1 "Mirror-Sigil Sergeant"
+}
+
+scenario "Mirror-Sigil Sergeant may decline" {
+  battlefield A: "Mirror-Sigil Sergeant", "Wind Drake"
+  start turn 1 A
+  turn 1 upkeep A: decline "Mirror-Sigil Sergeant"
+  run_to turn 1 precombat_main
+  assert battlefield A contains 1 "Mirror-Sigil Sergeant"
+}

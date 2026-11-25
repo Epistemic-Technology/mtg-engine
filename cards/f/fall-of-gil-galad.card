@@ -1,0 +1,8 @@
+card "Fall of Gil-galad" {
+  oracle_id c248537f-e28f-47cb-9e47-a6eb05e1af63
+  cost {1}{G}
+  type Enchantment — Saga
+  triggered chapter 1: scry 2
+  triggered chapter 2: put 2 +1/+1 counter on target creature you control
+  triggered chapter 3: until end of turn, target creature you control gains ability { triggered when this dies: draw 2 cards }; then that target 1 fights up to 1 another target creature
+}

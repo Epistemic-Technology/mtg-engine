@@ -1,0 +1,6 @@
+card "Rolling Stones" {
+  oracle_id 7ce533d0-8b6e-46d8-b21e-a2932bdffb67
+  cost {1}{W}
+  type Enchantment
+  static creature Wall: has can attack as though it didn't have defender
+}

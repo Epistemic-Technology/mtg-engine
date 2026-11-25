@@ -1,0 +1,9 @@
+card "Nightpack Ambusher" {
+  oracle_id 4d67357c-5939-45c8-a656-aaf76728a5a6
+  cost {2}{G}{G}
+  type Creature — Wolf
+  pt 4/4
+  keywords flash
+  static other Wolf or Werewolf you control: +1/+1
+  triggered at beginning of your end step if didn't cast this turn: create 1 "2/2 green Wolf creature"
+}

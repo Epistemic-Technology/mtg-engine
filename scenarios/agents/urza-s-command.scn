@@ -1,0 +1,22 @@
+scenario "urza's command: -2/-0 to opposing creatures and a tapped Powerstone" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Urza's Command"
+  turn 1 A: cast "Urza's Command" mode 1
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert power "Grizzly Bears" 2
+  assert tapped "Powerstone"
+}
+
+scenario "urza's command: Construct token and scry then draw" {
+  battlefield A: "Island", "Island", "Island", "Island"
+  hand A: "Urza's Command"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Urza's Command" mode 6
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Construct"
+  assert tapped "Construct"
+  assert power "Construct" 1
+  assert hand A count 1
+}

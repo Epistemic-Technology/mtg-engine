@@ -1,0 +1,8 @@
+card "Daemogoth Woe-Eater" {
+  oracle_id 290323d7-d8cb-4706-87d9-b920a4e2f680
+  cost {1}{B}{B/G}{G}
+  type Creature — Demon
+  pt 7/6
+  triggered at beginning of your upkeep: you sacrifice 1 creature
+  triggered when you sacrifice this: each opponent discards 1 card, you draw 1 card, and you gain 2 life
+}

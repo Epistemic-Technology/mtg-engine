@@ -1,0 +1,10 @@
+card "Nahiri, Heir of the Ancients" {
+  oracle_id 39bbc4cf-53fe-47dd-8ba3-1a59b1fa7dd1
+  cost {2}{R}{W}
+  type Legendary Planeswalker — Nahiri
+  loyalty 4
+  short_name "Nahiri"
+  loyalty +1: create 1 "1/1 white Kor Warrior creature"; you may attach 1 Equipment you control to it chosen
+  loyalty -2: dig 6 take Warrior or Equipment card may revealing rest bottom random
+  loyalty -3: deal count equal 2 Equipment you control damage to target creature or planeswalker
+}

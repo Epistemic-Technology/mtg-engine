@@ -1,0 +1,9 @@
+card "Necrogoyf" {
+  oracle_id e034a02d-3482-44eb-90dc-c38be104197f
+  cost {3}{B}{B}
+  type Creature — Lhurgoyf
+  pt */4
+  static this: cda power all graveyards creature
+  triggered at beginning of each player's upkeep step: that player discards 1 card
+  madness {1}{B}{B}
+}

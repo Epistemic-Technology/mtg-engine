@@ -1,0 +1,23 @@
+scenario "curse of wizardry: casting a spell of the chosen color costs 1 life" {
+  battlefield A: 4 "Swamp", "Mountain"
+  hand A: "Curse of Wizardry", "Lightning Bolt"
+  turn 1 A: cast "Curse of Wizardry"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 19
+}
+
+scenario "curse of wizardry: a spell of another color costs nothing" {
+  battlefield A: 4 "Swamp", 2 "Forest"
+  hand A: "Curse of Wizardry", "Grizzly Bears"
+  turn 1 A: cast "Curse of Wizardry"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 20
+}

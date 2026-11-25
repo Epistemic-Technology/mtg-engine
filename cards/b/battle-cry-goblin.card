@@ -1,0 +1,8 @@
+card "Battle Cry Goblin" {
+  oracle_id e74c4001-d958-4d2b-b57d-c3601f01580c
+  cost {1}{R}
+  type Creature — Goblin
+  pt 2/2
+  activated {1}{R}: each Goblin you control gets +1/+0 and gain haste until end of turn
+  label "Pack tactics" triggered whenever this attacks if attacked total power 6: create 1 tapped and attacking "1/1 red Goblin creature"
+}

@@ -1,0 +1,35 @@
+scenario "nissa plus animates an untapped land until next turn" {
+  battlefield A: "Nissa, Vital Force", "Forest" tapped
+  turn 1 precombat_main A: activate "Nissa, Vital Force" ability 1 targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+  assert is "Forest" creature
+  assert is "Forest" land
+  assert power "Forest" 5
+  assert toughness "Forest" 5
+  assert has "Forest" haste
+  assert counters "Nissa, Vital Force" loyalty 6
+  run_to turn 3 upkeep
+  assert is not "Forest" creature
+}
+scenario "nissa minus three returns a permanent card" {
+  battlefield A: "Nissa, Vital Force"
+  graveyard A: "Grizzly Bears", "Shock"
+  illegal turn 1 precombat_main A: activate "Nissa, Vital Force" ability 2 targeting "Shock"
+  turn 1 precombat_main A: activate "Nissa, Vital Force" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert counters "Nissa, Vital Force" loyalty 2
+}
+scenario "nissa emblem draws on land" {
+  battlefield A: "Nissa, Vital Force" with 6 loyalty
+  hand A: "Forest"
+  library A: "Island", "Plains"
+  turn 1 precombat_main A: activate "Nissa, Vital Force" ability 3
+  turn 1 precombat_main A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert hand A count 1
+}

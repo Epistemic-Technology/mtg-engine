@@ -1,0 +1,7 @@
+card "Recurring Insight" {
+  oracle_id c6815bbb-24a5-4c9f-bf30-6190bc766d05
+  cost {4}{U}{U}
+  type Sorcery
+  spell: draw count equal hand of target opponent cards
+  keywords rebound
+}

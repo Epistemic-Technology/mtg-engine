@@ -1,0 +1,7 @@
+card "Renegade Firebrand" {
+  oracle_id d4b0a6e6-937d-428a-a469-bc09c30ac276
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 3/2
+  static as long as you control Chandra planeswalker, this: +1/+0, has first strike
+}

@@ -1,0 +1,6 @@
+card "Skyreaping" {
+  oracle_id dcdc60ae-1858-4b51-8b64-58a4942bc3d7
+  cost {1}{G}
+  type Sorcery
+  spell: deal count equal devotion green damage to each creature with flying
+}

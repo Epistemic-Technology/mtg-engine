@@ -1,0 +1,20 @@
+scenario "surveil then return land tapped" {
+  battlefield A: "Deeproot Wayfinder"
+  graveyard A: "Forest", "Grizzly Bears"
+  library A: "Island", "Plains", "Plains"
+  turn 1 A: attack "Deeproot Wayfinder"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert graveyard A contains "Grizzly Bears"
+}
+scenario "surveil puts card in graveyard" {
+  battlefield A: "Deeproot Wayfinder"
+  library A: "Hill Giant", "Plains", "Plains"
+  turn 1 A: attack "Deeproot Wayfinder"
+  turn 1 combat_damage A: surveil "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}

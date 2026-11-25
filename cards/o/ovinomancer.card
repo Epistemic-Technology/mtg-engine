@@ -1,0 +1,8 @@
+card "Ovinomancer" {
+  oracle_id 98026d30-a29f-4590-968f-b1b36926a275
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 0/1
+  triggered when this enters: sacrifice this unless you return 3 basic land you control to hand chosen
+  activated {T}, return this: destroy target creature without regeneration; controller of that target 1 creates 1 "0/1 green Sheep creature"
+}

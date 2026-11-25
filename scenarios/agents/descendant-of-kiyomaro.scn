@@ -1,0 +1,22 @@
+scenario "more cards in hand: bigger and lifegain on damage" {
+  battlefield A: "Descendant of Kiyomaro"
+  hand A: "Forest", "Island"
+  hand B: "Swamp"
+  turn 1 declare_attackers A: attack "Descendant of Kiyomaro"
+  run_to turn 1 postcombat_main
+  assert power "Descendant of Kiyomaro" 3
+  assert toughness "Descendant of Kiyomaro" 5
+  assert life B 17
+  assert life A 23
+}
+scenario "not more cards: plain 2/3 and no lifegain" {
+  battlefield A: "Descendant of Kiyomaro"
+  hand A: "Forest"
+  hand B: "Swamp"
+  turn 1 declare_attackers A: attack "Descendant of Kiyomaro"
+  run_to turn 1 postcombat_main
+  assert power "Descendant of Kiyomaro" 2
+  assert toughness "Descendant of Kiyomaro" 3
+  assert life B 18
+  assert life A 20
+}

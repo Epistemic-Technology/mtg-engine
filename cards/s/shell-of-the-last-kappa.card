@@ -1,0 +1,7 @@
+card "Shell of the Last Kappa" {
+  oracle_id a8b24b38-019c-45e7-a5f4-a1bc3014f7a2
+  cost {3}
+  type Legendary Artifact
+  activated {3}, {T}: exile target instant or sorcery spell that targets you
+  activated {3}, {T}, sacrifice this: cast free spell from among cards exiled with this
+}

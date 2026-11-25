@@ -1,0 +1,8 @@
+card "Teysa, Orzhov Scion" {
+  oracle_id 8191342b-b25e-4c4d-8f69-aee662148ff4
+  cost {1}{W}{B}
+  type Legendary Creature — Human Advisor
+  pt 2/3
+  activated sacrifice 3 white creature: exile target creature
+  triggered whenever other black creature you control dies: create 1 "1/1 white Spirit creature with flying"
+}

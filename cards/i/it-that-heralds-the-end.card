@@ -1,0 +1,8 @@
+card "It That Heralds the End" {
+  oracle_id c14ac951-329d-452b-be75-5c72166cd9c7
+  cost {1}{C}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  spells colorless with mana value 7 or greater you cast cost {1} less
+  static other colorless creature you control: +1/+1
+}

@@ -1,0 +1,16 @@
+scenario "damaged creature that survives gets a counter" {
+  battlefield A: "Rite of Passage", "Hill Giant", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 precombat_main A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+scenario "opponent creature gets none" {
+  battlefield A: "Rite of Passage", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 precombat_main A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+}

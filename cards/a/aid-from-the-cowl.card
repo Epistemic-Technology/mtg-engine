@@ -1,0 +1,6 @@
+card "Aid from the Cowl" {
+  oracle_id 9597c974-6120-43a7-9ad3-7e4fddc8c9f5
+  cost {3}{G}{G}
+  type Enchantment
+  label "Revolt" triggered at beginning of your end step if permanent left this turn: reveal top card; if it is permanent card, you may put it onto battlefield; otherwise, you may put it on bottom of library
+}

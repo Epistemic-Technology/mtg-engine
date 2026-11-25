@@ -1,0 +1,25 @@
+scenario "Concerted Defense with a party member needs 2" {
+  battlefield A: "Island", "Fearless Halberdier"
+  hand A: "Concerted Defense"
+  battlefield B: 4 "Island"
+  hand B: "Divination"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Divination"
+  turn 2 A: cast "Concerted Defense" targeting "Divination" in response to "Divination"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Divination"
+  assert hand B count 0
+}
+
+scenario "Concerted Defense with no party needs only 1" {
+  battlefield A: "Island"
+  hand A: "Concerted Defense"
+  battlefield B: 4 "Island"
+  hand B: "Divination"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Divination"
+  turn 2 A: cast "Concerted Defense" targeting "Divination" in response to "Divination"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Divination"
+  assert hand B count 2
+}

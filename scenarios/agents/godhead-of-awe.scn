@@ -1,0 +1,18 @@
+scenario "godhead of awe sets other creatures to 1/1 but not itself" {
+  battlefield A: "Godhead of Awe"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Godhead of Awe" 4
+  assert toughness "Godhead of Awe" 4
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert has "Godhead of Awe" flying
+}
+scenario "godhead of awe sets base only, counters still apply" {
+  battlefield A: "Godhead of Awe", "Grizzly Bears" with 1 +1/+1
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

@@ -1,0 +1,13 @@
+scenario "open into wonder makes X creatures unblockable and draws" {
+  battlefield A: 4 "Island", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  battlefield B: "Wind Drake", "Hill Giant"
+  hand A: "Open into Wonder"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 precombat_main A: cast "Open into Wonder" x 2 targeting "Grizzly Bears", "Serra Angel"
+  turn 1 declare_attackers A: attack "Grizzly Bears", "Serra Angel", "Hill Giant"
+  turn 1 declare_blockers B: block "Hill Giant" with "Hill Giant"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert hand A count 2
+}

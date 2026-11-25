@@ -1,0 +1,9 @@
+card "Twilight Prophet" {
+  oracle_id a3afd8b9-d499-40f7-be41-f8fee6636a1d
+  cost {2}{B}{B}
+  type Creature — Vampire Cleric
+  pt 2/4
+  keywords flying
+  ascend
+  triggered at beginning of your upkeep if city's blessing: reveal top card and put it into hand; each opponent loses count where mana value of that card life and you gain count where mana value of that card life
+}

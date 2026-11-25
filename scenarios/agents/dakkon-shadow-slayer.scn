@@ -1,0 +1,28 @@
+scenario "dakkon enters with loyalty equal to lands, exiles with minus three" {
+  battlefield A: "Plains", "Island", "Swamp", "Forest", "Mountain"
+  hand A: "Dakkon, Shadow Slayer"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: cast "Dakkon, Shadow Slayer"
+  turn 1 precombat_main A: activate "Dakkon, Shadow Slayer" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Dakkon, Shadow Slayer" loyalty 2
+  assert exile B contains "Hill Giant"
+}
+scenario "dakkon plus one surveils" {
+  battlefield A: "Dakkon, Shadow Slayer" with 3 loyalty
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dakkon, Shadow Slayer" ability 1
+  turn 1 A: surveil "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "Dakkon, Shadow Slayer" loyalty 4
+  assert graveyard A contains "Forest"
+}
+scenario "dakkon minus six drops an artifact from hand" {
+  battlefield A: "Dakkon, Shadow Slayer" with 6 loyalty
+  hand A: "Sol Ring"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dakkon, Shadow Slayer" ability 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sol Ring"
+}

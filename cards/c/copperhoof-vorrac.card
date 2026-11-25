@@ -1,0 +1,7 @@
+card "Copperhoof Vorrac" {
+  oracle_id a5fed574-6ac3-4318-b0a6-27082e07f3bd
+  cost {3}{G}{G}
+  type Creature — Boar Beast
+  pt 2/2
+  static this: +1/+1 count each untapped permanent your opponents control
+}

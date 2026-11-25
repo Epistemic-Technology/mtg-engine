@@ -1,0 +1,6 @@
+card "Day's Undoing" {
+  oracle_id 810a6cf5-e9f4-48e1-8e06-3e0af85633ce
+  cost {2}{U}
+  type Sorcery
+  spell: each player shuffles hand and graveyard into library then each player draws 7 cards; if your turn, end the turn
+}

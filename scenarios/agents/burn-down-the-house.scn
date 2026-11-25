@@ -1,0 +1,23 @@
+scenario "Burn Down the House mode 1 deals 5 to creatures and planeswalkers" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Burn Down the House"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burn Down the House" mode 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert life B 20
+}
+
+scenario "Burn Down the House mode 2 makes three hasty Devils" {
+  battlefield A: 5 "Mountain"
+  hand A: "Burn Down the House"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burn Down the House" mode 2
+  turn 1 A: attack "Devil", "Devil", "Devil"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Devil"
+  assert life B 17
+}

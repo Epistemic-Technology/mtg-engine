@@ -1,0 +1,19 @@
+scenario "Rathi Dragon stays when you sacrifice two Mountains" {
+  battlefield A: 4 "Mountain", "Plains"
+  hand A: "Rathi Dragon"
+  turn 1 A: cast "Rathi Dragon"
+  turn 1 A: accept "Rathi Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rathi Dragon"
+  assert battlefield A contains 2 "Mountain"
+  assert has "Rathi Dragon" flying
+}
+scenario "Rathi Dragon is sacrificed when you don't" {
+  battlefield A: 4 "Mountain", "Plains"
+  hand A: "Rathi Dragon"
+  turn 1 A: cast "Rathi Dragon"
+  turn 1 A: decline "Rathi Dragon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Rathi Dragon"
+  assert battlefield A contains 4 "Mountain"
+}

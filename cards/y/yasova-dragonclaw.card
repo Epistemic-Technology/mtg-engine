@@ -1,0 +1,8 @@
+card "Yasova Dragonclaw" {
+  oracle_id 75dc0995-f89e-4a2c-b30b-9b5a07c21183
+  cost {2}{G}
+  type Legendary Creature — Human Warrior
+  pt 4/2
+  keywords trample
+  triggered at beginning of your combat step: you may pay {1}{U/R}{U/R}; if you do, gain control of target creature with power less than count equal power an opponent controls until end of turn, untap that target 1, and target 1 gains haste until end of turn
+}

@@ -1,0 +1,30 @@
+scenario "gorbag: sacrifice the Orc that connected, draw a card" {
+  battlefield A: "Gorbag of Minas Morgul"
+  turn 1 declare_attackers A: attack "Gorbag of Minas Morgul"
+  turn 1 combat_damage A: accept "Gorbag of Minas Morgul"
+  turn 1 combat_damage A: trigger "Gorbag of Minas Morgul" mode 1
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Gorbag of Minas Morgul"
+  assert hand A count 1
+  assert battlefield A lacks "Treasure"
+}
+scenario "gorbag: sacrifice the Orc that connected, create a Treasure" {
+  battlefield A: "Gorbag of Minas Morgul"
+  turn 1 declare_attackers A: attack "Gorbag of Minas Morgul"
+  turn 1 combat_damage A: accept "Gorbag of Minas Morgul"
+  turn 1 combat_damage A: trigger "Gorbag of Minas Morgul" mode 2
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Gorbag of Minas Morgul"
+  assert battlefield A contains "Treasure"
+  assert hand A count 0
+}
+scenario "gorbag: declining the sacrifice does nothing" {
+  battlefield A: "Gorbag of Minas Morgul"
+  turn 1 declare_attackers A: attack "Gorbag of Minas Morgul"
+  turn 1 combat_damage A: decline "Gorbag of Minas Morgul"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gorbag of Minas Morgul"
+  assert hand A count 0
+  assert battlefield A lacks "Treasure"
+}

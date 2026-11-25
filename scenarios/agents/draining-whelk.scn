@@ -1,0 +1,14 @@
+scenario "draining whelk counters a spell and grows by its mana value" {
+  battlefield A: 6 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Draining Whelk"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Hill Giant"
+  turn 2 precombat_main A: cast "Draining Whelk" in response to "Hill Giant"
+  turn 2 precombat_main A: trigger "Draining Whelk" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Draining Whelk" +1/+1 4
+  assert power "Draining Whelk" 5
+}

@@ -1,0 +1,8 @@
+card "Windreader Sphinx" {
+  oracle_id 5e038a3a-fbab-46c2-8773-1327d953da16
+  cost {5}{U}{U}
+  type Creature — Sphinx
+  pt 3/7
+  keywords flying
+  triggered whenever creature with flying attacks: you may draw 1 card
+}

@@ -1,0 +1,8 @@
+card "Auriok Windwalker" {
+  oracle_id f8a06210-de30-4e87-835e-80a6df5716ca
+  cost {3}{W}
+  type Creature — Human Wizard
+  pt 2/3
+  keywords flying
+  activated {T}: attach target Equipment you control to target creature you control
+}

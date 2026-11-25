@@ -1,0 +1,22 @@
+scenario "Thieves' Guild Enforcer mills on entering and grows at eight cards" {
+  battlefield A: 1 "Swamp"
+  hand A: "Thieves' Guild Enforcer"
+  graveyard B: 7 "Forest"
+  turn 1 precombat_main A: cast "Thieves' Guild Enforcer"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 9
+  assert power "Thieves' Guild Enforcer" 3
+  assert toughness "Thieves' Guild Enforcer" 2
+  assert has "Thieves' Guild Enforcer" deathtouch
+}
+scenario "Thieves' Guild Enforcer small with few cards in graveyard" {
+  battlefield A: 1 "Swamp"
+  hand A: "Thieves' Guild Enforcer"
+  graveyard B: 2 "Forest"
+  library B: "Island", "Island", "Island"
+  turn 1 precombat_main A: cast "Thieves' Guild Enforcer"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 4
+  assert power "Thieves' Guild Enforcer" 1
+  assert has not "Thieves' Guild Enforcer" deathtouch
+}

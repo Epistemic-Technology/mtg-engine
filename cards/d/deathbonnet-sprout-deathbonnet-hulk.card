@@ -1,0 +1,14 @@
+card "Deathbonnet Sprout // Deathbonnet Hulk" {
+  oracle_id c92d6f26-5856-42dc-9ee5-21292d78a1fb
+  layout transform
+  cost {G}
+  type Creature — Fungus
+  pt 1/1
+  triggered at beginning of your upkeep step: mill 1 card; then if 3 creature card in your graveyard, transform this
+  face "Deathbonnet Hulk" {
+    type Creature — Fungus Horror
+    pt 3/3
+    color green
+    triggered at beginning of your upkeep step: you may exile 1 card from a graveyard chosen; if creature card was exiled this way, put 1 +1/+1 counter on this
+  }
+}

@@ -1,0 +1,20 @@
+scenario "Atraxa's Skitterfang enters with three oil counters" {
+  battlefield A: 3 "Plains"
+  hand A: "Atraxa's Skitterfang"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atraxa's Skitterfang"
+  turn 1 A: decline "Atraxa's Skitterfang"
+  run_to turn 1 postcombat_main
+  assert counters "Atraxa's Skitterfang" oil 3
+}
+
+scenario "Skitterfang removes an oil counter at combat to grant a keyword" {
+  battlefield A: "Atraxa's Skitterfang" with 3 oil, "Grizzly Bears"
+  start turn 1 A begin_combat
+  turn 1 begin_combat A: trigger "Atraxa's Skitterfang" targeting "Grizzly Bears"
+  turn 1 A: choose "4"
+  run_to turn 1 declare_attackers
+  assert has "Grizzly Bears" lifelink
+  assert has not "Grizzly Bears" flying
+  assert counters "Atraxa's Skitterfang" oil 2
+}

@@ -1,0 +1,24 @@
+scenario "Krydle drains, mills and scries on combat damage" {
+  battlefield A: "Krydle of Baldur's Gate"
+  library B: "Forest", "Island", "Mountain"
+  start turn 1 A
+  turn 1 A: attack "Krydle of Baldur's Gate"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 21
+  assert graveyard B contains "Forest"
+  assert graveyard B lacks "Island"
+}
+
+scenario "Krydle's attack trigger makes a creature unblockable for {2}" {
+  battlefield A: "Krydle of Baldur's Gate", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "Krydle of Baldur's Gate" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped oldest "Plains"
+  assert tapped newest "Plains"
+}

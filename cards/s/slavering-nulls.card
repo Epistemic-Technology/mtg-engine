@@ -1,0 +1,7 @@
+card "Slavering Nulls" {
+  oracle_id c6d39445-dfc2-42c3-afd2-016fdf008f0e
+  cost {1}{R}
+  type Creature — Goblin Zombie
+  pt 2/1
+  triggered whenever this deals combat damage to a player if you control Swamp: you may that player discards 1 card
+}

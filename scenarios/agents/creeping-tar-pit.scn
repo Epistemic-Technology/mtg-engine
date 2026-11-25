@@ -1,0 +1,18 @@
+scenario "creeping tar pit becomes unblockable 3/2" {
+  battlefield A: "Creeping Tar Pit", 2 "Island", "Swamp"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Creeping Tar Pit" ability 2
+  turn 1 declare_attackers A: attack "Creeping Tar Pit"
+  illegal turn 1 declare_blockers B: block "Creeping Tar Pit" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Creeping Tar Pit" 3
+  assert toughness "Creeping Tar Pit" 2
+  assert is "Creeping Tar Pit" creature
+}
+scenario "creeping tar pit enters tapped" {
+  hand A: "Creeping Tar Pit"
+  turn 1 precombat_main A: play "Creeping Tar Pit"
+  run_to turn 1 postcombat_main
+  assert tapped "Creeping Tar Pit"
+}

@@ -1,0 +1,12 @@
+scenario "Elder Mastery grants flying and makes the player discard two" {
+  battlefield A: "Grizzly Bears", "Elder Mastery" on "Grizzly Bears"
+  hand B: "Shock", "Island", "Plains"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" flying
+  assert life B 15
+  assert hand B count 1
+}

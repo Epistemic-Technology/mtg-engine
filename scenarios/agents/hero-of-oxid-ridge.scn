@@ -1,0 +1,17 @@
+scenario "hero of oxid ridge battle cry and small creatures cannot block" {
+  battlefield A: "Hero of Oxid Ridge", "Grizzly Bears"
+  battlefield B: "Goblin", "Hill Giant"
+  turn 1 A: attack "Hero of Oxid Ridge", "Grizzly Bears"
+  illegal turn 1 B: block "Hero of Oxid Ridge" with "Goblin"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+scenario "hero of oxid ridge larger creatures can still block" {
+  battlefield A: "Hero of Oxid Ridge"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Hero of Oxid Ridge"
+  turn 1 B: block "Hero of Oxid Ridge" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Hero of Oxid Ridge"
+}

@@ -1,0 +1,10 @@
+card "Aethersphere Harvester" {
+  oracle_id 7b3e74ad-0179-480b-871c-9e3bc30a43ff
+  cost {3}
+  type Artifact — Vehicle
+  pt 3/5
+  keywords flying
+  triggered whenever this enters: you get 2 energy
+  activated pay 1 energy: this gains lifelink
+  crew 1
+}

@@ -1,0 +1,7 @@
+card "Sudden Spoiling" {
+  oracle_id dce202c7-fe8e-462a-858e-7a5a69bd5b6b
+  cost {1}{B}{B}
+  type Instant
+  keywords split second
+  spell: until end of turn, each creature target player controls loses all abilities and has base power and toughness 0/2
+}

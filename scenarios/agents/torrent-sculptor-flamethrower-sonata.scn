@@ -1,0 +1,50 @@
+scenario "Torrent Sculptor exiles an instant or sorcery and gets half its mana value in counters" {
+  battlefield A: 4 "Island"
+  graveyard A: "Divination", "Grizzly Bears"
+  hand A: "Torrent Sculptor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Torrent Sculptor"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Divination"
+  assert counters "Torrent Sculptor" +1/+1 2
+  assert power "Torrent Sculptor" 4
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Torrent Sculptor rounds half up" {
+  battlefield A: 4 "Island"
+  graveyard A: "Lightning Bolt"
+  hand A: "Torrent Sculptor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Torrent Sculptor"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Lightning Bolt"
+  assert counters "Torrent Sculptor" +1/+1 1
+}
+
+scenario "Flamethrower Sonata discards a spell and deals its mana value" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Flamethrower Sonata", "Divination"
+  library A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flamethrower Sonata"
+  turn 1 A: trigger "Flamethrower Sonata" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Forest"
+}
+
+scenario "Flamethrower Sonata deals no damage when a land is discarded" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Flamethrower Sonata", "Forest"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flamethrower Sonata"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 0
+}

@@ -1,0 +1,8 @@
+card "Gleam of Authority" {
+  oracle_id 68a91b87-1845-419b-aae7-ee1237554946
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each +1/+1 counters on other creature you control
+  static enchanted: has vigilance, has ability { activated {W}, {T}: bolster 1 }
+}

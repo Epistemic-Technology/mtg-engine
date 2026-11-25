@@ -1,0 +1,25 @@
+scenario "discard hand then power 2 or less draws" {
+  battlefield A: "Subira, Tulzidi Caravanner", "Grizzly Bears", "Hill Giant", 2 "Mountain"
+  hand A: "Forest", "Island"
+  turn 1 precombat_main A: activate "Subira, Tulzidi Caravanner" ability 2
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert hand A count 1
+}
+scenario "unblockable for power 2 or less" {
+  battlefield A: "Subira, Tulzidi Caravanner", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Subira, Tulzidi Caravanner" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+scenario "power 3 not a legal target" {
+  battlefield A: "Subira, Tulzidi Caravanner", "Hill Giant", "Mountain"
+  illegal turn 1 precombat_main A: activate "Subira, Tulzidi Caravanner" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

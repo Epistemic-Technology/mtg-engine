@@ -1,0 +1,7 @@
+card "Lorthos, the Tidemaker" {
+  oracle_id d9fd4ff3-5ada-40f4-b949-6fe65624a0c4
+  cost {5}{U}{U}{U}
+  type Legendary Creature — Octopus
+  pt 8/8
+  triggered whenever this attacks: you may pay {8}; if you do, tap up to 8 target permanent; targets 1 to 8 doesn't untap next untap steps
+}

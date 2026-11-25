@@ -1,0 +1,7 @@
+card "Leyline Immersion" {
+  oracle_id aa6c4079-72e1-4b2e-bd26-9399298c6105
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant legendary creature
+  static enchanted: has ward {2}, has ability { activated {T}: add 5 mana any combination only to cast spells }
+}

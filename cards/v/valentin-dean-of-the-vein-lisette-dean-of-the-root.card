@@ -1,0 +1,17 @@
+card "Valentin, Dean of the Vein // Lisette, Dean of the Root" {
+  oracle_id 6e1aa07a-5d9b-4daf-8dc4-c1717360855f
+  layout modal_dfc
+  cost {B}
+  type Legendary Creature — Vampire Warlock
+  pt 1/1
+  keywords menace, lifelink
+  replace nontoken creature an opponent controls dies: exile {
+    when you do, you may pay {2}; if you do, create 1 "1/1 black and green Pest creature that gains life"
+  }
+  face "Lisette, Dean of the Root" {
+    cost {2}{G}{G}
+    type Legendary Creature — Human Druid
+    pt 4/4
+    triggered whenever you gain life: you may pay {1}; if you do, put 1 +1/+1 counter on each creature you control and each creature you control gains trample until end of turn
+  }
+}

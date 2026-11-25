@@ -1,0 +1,21 @@
+scenario "shatterskull charger unkicked returns to hand at end step" {
+  battlefield A: 3 "Mountain"
+  hand A: "Shatterskull Charger"
+  turn 1 A: cast "Shatterskull Charger"
+  turn 1 A: attack "Shatterskull Charger"
+  run_to turn 1 cleanup
+  assert life B 16
+  assert hand A contains "Shatterskull Charger"
+  assert battlefield A lacks "Shatterskull Charger"
+}
+scenario "shatterskull charger kicked stays with a counter" {
+  battlefield A: 5 "Mountain"
+  hand A: "Shatterskull Charger"
+  turn 1 A: cast "Shatterskull Charger" kicked
+  turn 1 A: attack "Shatterskull Charger"
+  run_to turn 1 cleanup
+  assert life B 15
+  assert counters "Shatterskull Charger" +1/+1 1
+  assert power "Shatterskull Charger" 5
+  assert battlefield A contains "Shatterskull Charger"
+}

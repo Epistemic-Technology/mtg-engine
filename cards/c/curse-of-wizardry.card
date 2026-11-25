@@ -1,0 +1,7 @@
+card "Curse of Wizardry" {
+  oracle_id e0d78210-ba85-439f-bf1f-92ef80b6030d
+  cost {2}{B}{B}
+  type Enchantment
+  as this enters choose color
+  triggered whenever a player casts of chosen color spell: that player loses 1 life
+}

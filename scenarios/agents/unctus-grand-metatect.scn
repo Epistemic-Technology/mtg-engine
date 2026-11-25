@@ -1,0 +1,29 @@
+scenario "Unctus gives other blue creatures a loot on tapping" {
+  battlefield A: "Unctus, Grand Metatect", "Wind Drake"
+  hand A: "Giant Growth"
+  start turn 1 A
+  turn 1 A: attack "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A contains "Giant Growth"
+}
+
+scenario "Unctus pumps other artifact creatures" {
+  battlefield A: "Unctus, Grand Metatect", "Ornithopter", "Hill Giant"
+  start turn 1 A precombat_main
+  assert power "Ornithopter" 1
+  assert power "Unctus, Grand Metatect" 2
+  assert power "Hill Giant" 3
+}
+
+scenario "Unctus makes a creature a blue artifact" {
+  battlefield A: "Unctus, Grand Metatect", "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Unctus, Grand Metatect" targeting "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert is "Hill Giant" artifact
+  assert is "Hill Giant" blue
+  assert is "Hill Giant" red
+  assert is "Hill Giant" creature
+  assert power "Hill Giant" 4
+}

@@ -1,0 +1,12 @@
+scenario "Part the Veil returns only your creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Island", "Island", "Island", "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Part the Veil"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Part the Veil"
+  run_to turn 1 begin_combat
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert battlefield A lacks "Grizzly Bears"
+}

@@ -1,0 +1,6 @@
+card "Gelatinous Genesis" {
+  oracle_id 291e4b91-17c7-4b7b-8057-f0d361424016
+  cost {X}{X}{G}
+  type Sorcery
+  spell: create X "0/0 green Ooze creature" sized x
+}

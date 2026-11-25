@@ -1,0 +1,8 @@
+card "Voracious Fell Beast" {
+  oracle_id 2e037c5e-3e07-4ffc-a388-7976459f6ff7
+  cost {4}{B}{B}
+  type Creature — Drake Beast
+  pt 4/4
+  keywords flying
+  triggered when this enters: each opponent sacrifices 1 creature; create count each creature sacrificed this way "Food"
+}

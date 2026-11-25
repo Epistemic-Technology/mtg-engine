@@ -1,0 +1,6 @@
+card "Part the Veil" {
+  oracle_id c8ca2523-0511-4415-b85e-7834d3cb1d0c
+  cost {3}{U}
+  type Instant — Arcane
+  spell: return all creature you control to owner's hand
+}

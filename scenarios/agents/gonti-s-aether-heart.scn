@@ -1,0 +1,31 @@
+scenario "gonti's aether heart: another artifact entering gives two energy" {
+  battlefield A: "Gonti's Aether Heart"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert energy A 2
+}
+
+scenario "gonti's aether heart: eight energy and exile for an extra turn" {
+  battlefield A: "Gonti's Aether Heart"
+  hand A: "Forest"
+  energy A: 8
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gonti's Aether Heart"
+  turn 1 A: wait
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert energy A 0
+  assert exile A contains "Gonti's Aether Heart"
+  assert battlefield A contains "Forest"
+}
+
+scenario "gonti's aether heart: seven energy isn't enough" {
+  battlefield A: "Gonti's Aether Heart"
+  energy A: 7
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Gonti's Aether Heart"
+  run_to turn 1 postcombat_main
+  assert energy A 7
+}

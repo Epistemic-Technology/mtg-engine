@@ -1,0 +1,12 @@
+scenario "quickbeam enters pumps two targets" {
+  battlefield A: 6 "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Quickbeam, Upstart Ent"
+  turn 1 precombat_main A: cast "Quickbeam, Upstart Ent"
+  turn 1 precombat_main A: trigger "Quickbeam, Upstart Ent" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Hill Giant" 5
+  assert has "Hill Giant" trample
+  assert has "Grizzly Bears" trample
+  assert power "Quickbeam, Upstart Ent" 5
+}

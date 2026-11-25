@@ -1,0 +1,15 @@
+scenario "Bearer of the Heavens destroys all permanents at the next end step" {
+  battlefield A: "Bearer of the Heavens", 2 "Swamp", "Swamp"
+  battlefield B: "Hill Giant", "Forest"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Bearer of the Heavens"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bearer of the Heavens"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains 3 "Swamp"
+  run_to turn 1 cleanup
+  assert battlefield B contains 0 "Hill Giant"
+  assert battlefield A contains 0 "Swamp"
+  assert battlefield B contains 0 "Forest"
+}

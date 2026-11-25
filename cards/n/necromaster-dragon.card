@@ -1,0 +1,8 @@
+card "Necromaster Dragon" {
+  oracle_id b03fc155-2a70-4106-853c-33bdc88d548c
+  cost {3}{U}{B}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may pay {2}; if you do, create 1 "2/2 black Zombie creature" and each opponent mills 2 cards
+}

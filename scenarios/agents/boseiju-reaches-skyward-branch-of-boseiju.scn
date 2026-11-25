@@ -1,0 +1,25 @@
+scenario "boseiju: chapter 1 fetches two Forests" {
+  battlefield A: "Boseiju Reaches Skyward"
+  library A: "Forest", "Plains", "Forest", "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains 2 "Forest"
+}
+
+scenario "boseiju: chapter 2 puts a land from the graveyard on top" {
+  battlefield A: "Boseiju Reaches Skyward" with 1 lore
+  graveyard A: "Island"
+  turn 1 A: trigger "Boseiju Reaches Skyward" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Island"
+  assert library A contains "Island"
+}
+
+scenario "boseiju: chapter 3 becomes Branch with reach and lands count" {
+  battlefield A: "Boseiju Reaches Skyward" with 2 lore, 3 "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Branch of Boseiju"
+  assert has "Branch of Boseiju" reach
+  assert power "Branch of Boseiju" 3
+  assert toughness "Branch of Boseiju" 3
+}

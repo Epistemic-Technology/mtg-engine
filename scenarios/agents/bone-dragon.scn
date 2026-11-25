@@ -1,0 +1,16 @@
+scenario "bone dragon returns from graveyard for seven other cards" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Bone Dragon", 7 "Grizzly Bears", "Hill Giant"
+  turn 1 precombat_main A: activate "Bone Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bone Dragon"
+  assert tapped "Bone Dragon"
+  assert graveyard A count 1
+}
+scenario "bone dragon cannot return with six other cards" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Bone Dragon", 6 "Grizzly Bears"
+  illegal turn 1 precombat_main A: activate "Bone Dragon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bone Dragon"
+}

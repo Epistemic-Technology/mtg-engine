@@ -1,0 +1,9 @@
+card "Krydle of Baldur's Gate" {
+  oracle_id 77212081-0b49-4d92-9c5a-1f21e6907fce
+  cost {U}{B}
+  type Legendary Creature — Human Elf Rogue
+  pt 1/3
+  short_name "Krydle"
+  triggered whenever this deals combat damage to a player: that player loses 1 life and mills 1 cards then you gain 1 life and scry 1
+  triggered whenever you attack: you may pay {2}; if you do, target creature can't be blocked this turn
+}

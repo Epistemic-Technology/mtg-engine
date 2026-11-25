@@ -1,0 +1,8 @@
+card "Avarice Amulet" {
+  oracle_id 4c71074b-b8bf-47f4-87e4-67c275abdbc5
+  cost {4}
+  type Artifact — Equipment
+  static enchanted: +2/+0, has vigilance, has ability { triggered at beginning of your upkeep step: draw 1 card }
+  triggered whenever enchanted creature dies: target opponent gains control of this
+  equip {2}
+}

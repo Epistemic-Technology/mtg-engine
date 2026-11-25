@@ -1,0 +1,16 @@
+scenario "mistveil plains with two white permanents" {
+  battlefield A: "Mistveil Plains", "Plains", 2 "Serra Angel"
+  graveyard A: "Grizzly Bears"
+  library A: "Hill Giant"
+  turn 1 precombat_main A: activate "Mistveil Plains" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Grizzly Bears"
+  assert tapped "Mistveil Plains"
+}
+scenario "mistveil plains needs two white permanents" {
+  battlefield A: "Mistveil Plains", "Plains", "Serra Angel"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 precombat_main A: activate "Mistveil Plains" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

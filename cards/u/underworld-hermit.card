@@ -1,0 +1,7 @@
+card "Underworld Hermit" {
+  oracle_id f7f4ddc9-cea0-42f9-bbca-2ad87a24bfc8
+  cost {4}{B}{B}
+  type Creature — Human Peasant
+  pt 3/3
+  triggered when this enters: create count equal devotion black "1/1 green Squirrel creature"
+}

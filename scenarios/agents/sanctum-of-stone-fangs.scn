@@ -1,0 +1,14 @@
+scenario "sanctum drains by number of shrines" {
+  battlefield A: "Sanctum of Stone Fangs", "Go-Shintai of Lost Wisdom"
+  start turn 1 A upkeep
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+scenario "sanctum alone drains one" {
+  battlefield A: "Sanctum of Stone Fangs"
+  start turn 1 A upkeep
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}

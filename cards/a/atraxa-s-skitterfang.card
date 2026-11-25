@@ -1,0 +1,8 @@
+card "Atraxa's Skitterfang" {
+  oracle_id 8255b408-cc8c-453f-982c-f361b5559cec
+  cost {3}
+  type Artifact Creature — Phyrexian Insect
+  pt 2/2
+  enters with 3 oil counters
+  triggered at beginning of your combat step: you may remove 1 oil counter from this; when you do, target creature you control gains choice of flying or vigilance or deathtouch or lifelink until end of turn
+}

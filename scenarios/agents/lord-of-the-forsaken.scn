@@ -1,0 +1,22 @@
+scenario "Lord of the Forsaken: sacrifice another creature to mill three" {
+  battlefield A: "Lord of the Forsaken", "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Lord of the Forsaken" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert graveyard A count 1
+}
+
+scenario "Lord of the Forsaken: life for colorless mana to cast from graveyard" {
+  battlefield A: "Lord of the Forsaken", "Mountain"
+  graveyard A: "Firebolt"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Lord of the Forsaken" ability 2
+  turn 1 precombat_main A: activate "Lord of the Forsaken" ability 2
+  turn 1 precombat_main A: activate "Lord of the Forsaken" ability 2
+  turn 1 precombat_main A: activate "Lord of the Forsaken" ability 2
+  turn 1 precombat_main A: cast "Firebolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 16
+  assert life B 18
+}

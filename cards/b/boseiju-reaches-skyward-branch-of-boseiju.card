@@ -1,0 +1,16 @@
+card "Boseiju Reaches Skyward // Branch of Boseiju" {
+  oracle_id ec08aeb3-bba7-4982-9160-68d25bd411d6
+  layout transform
+  cost {3}{G}
+  type Enchantment — Saga
+  triggered chapter 1: search up to 2 basic Forest card reveal to hand
+  triggered chapter 2: put up to 1 target land card from your graveyard on top of library
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Branch of Boseiju" {
+    type Enchantment Creature — Plant
+    pt 0/0
+    color green
+    keywords reach
+    static this: +1/+1 count each land you control
+  }
+}

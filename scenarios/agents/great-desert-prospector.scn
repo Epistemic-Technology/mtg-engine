@@ -1,0 +1,16 @@
+scenario "Great Desert Prospector makes a tapped Powerstone per other creature" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 5 "Plains"
+  hand A: "Great Desert Prospector"
+  turn 1 A: cast "Great Desert Prospector"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Powerstone"
+  assert tapped oldest A "Powerstone"
+  assert tapped newest A "Powerstone"
+}
+scenario "Great Desert Prospector alone makes none" {
+  battlefield A: 5 "Plains"
+  hand A: "Great Desert Prospector"
+  turn 1 A: cast "Great Desert Prospector"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Powerstone"
+}

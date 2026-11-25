@@ -1,0 +1,20 @@
+scenario "selkie draws that many on combat damage" {
+  battlefield A: "Cold-Eyed Selkie" with 2 +1/+1
+  battlefield B: "Plains"
+  library A: "Forest", "Island", "Swamp", "Mountain", "Plains", "Forest", "Island", "Swamp"
+  start turn 1 A
+  turn 1 declare_attackers A: attack "Cold-Eyed Selkie"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 3
+}
+scenario "selkie unblockable against island" {
+  battlefield A: "Cold-Eyed Selkie"
+  battlefield B: "Island", "Grizzly Bears"
+  start turn 1 A
+  turn 1 declare_attackers A: attack "Cold-Eyed Selkie"
+  illegal turn 1 declare_blockers B: block "Cold-Eyed Selkie" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert hand A count 1
+}

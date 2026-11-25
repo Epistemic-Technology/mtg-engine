@@ -1,0 +1,22 @@
+scenario "exterminator grows on combat damage" {
+  battlefield A: "Falkenrath Exterminator"
+  turn 1 declare_attackers A: attack "Falkenrath Exterminator"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert counters "Falkenrath Exterminator" +1/+1 1
+  assert power "Falkenrath Exterminator" 2
+}
+scenario "exterminator deals damage equal to its counters" {
+  battlefield A: "Falkenrath Exterminator" with 2 +1/+1, 3 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Falkenrath Exterminator" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+scenario "no counters no damage" {
+  battlefield A: "Falkenrath Exterminator", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Falkenrath Exterminator" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+}

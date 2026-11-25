@@ -1,0 +1,18 @@
+scenario "alirios stays tapped while its reflection lives" {
+  battlefield A: "Island", "Island", "Island"
+  hand A: "Alirios, Enraptured"
+  turn 1 A: cast "Alirios, Enraptured"
+  run_to turn 1 postcombat_main
+  assert tapped "Alirios, Enraptured"
+  assert battlefield A contains "Reflection"
+  assert power "Reflection" 3
+  assert toughness "Reflection" 2
+  run_to turn 3 precombat_main
+  assert tapped "Alirios, Enraptured"
+}
+scenario "alirios untaps once no reflection" {
+  battlefield A: "Alirios, Enraptured" tapped
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert untapped "Alirios, Enraptured"
+}

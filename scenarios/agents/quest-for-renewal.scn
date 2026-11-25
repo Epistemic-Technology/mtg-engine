@@ -1,0 +1,17 @@
+scenario "Quest for Renewal counts up to four and then untaps creatures on the opponent's untap step" {
+  battlefield A: "Quest for Renewal" with 3 quest, "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Quest for Renewal" quest 4
+  assert tapped "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert untapped "Grizzly Bears"
+}
+scenario "Quest for Renewal with fewer than four counters does not untap" {
+  battlefield A: "Quest for Renewal" with 2 quest, "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Quest for Renewal" quest 3
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+}

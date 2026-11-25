@@ -1,0 +1,9 @@
+card "Bloodline Pretender" {
+  oracle_id 51d6d164-6e5f-4be3-8f09-433e0b8d4c6b
+  cost {3}
+  type Artifact Creature — Shapeshifter
+  pt 2/2
+  keywords changeling
+  as this enters choose creature type
+  triggered whenever other creature you control of chosen type enters: put 1 +1/+1 counter on this
+}

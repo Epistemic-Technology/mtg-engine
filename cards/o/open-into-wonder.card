@@ -1,0 +1,6 @@
+card "Open into Wonder" {
+  oracle_id d9688f6e-7163-408b-b32b-b9645aed1f8c
+  cost {X}{U}{U}
+  type Sorcery
+  spell: X target creature can't be blocked this turn; until end of turn, those targets gains ability { triggered whenever this deals combat damage to a player: draw 1 card }
+}

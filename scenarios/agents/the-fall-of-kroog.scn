@@ -1,0 +1,15 @@
+scenario "The Fall of Kroog destroys a land, burns the player, pings their creatures" {
+  battlefield A: 6 "Mountain", "Grizzly Bears"
+  battlefield B: "Forest", "Island", "Hill Giant", "Wind Drake"
+  hand A: "The Fall of Kroog"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Fall of Kroog" targeting player B, "Forest"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B lacks "Forest"
+  assert battlefield B contains "Island"
+  assert damage "Hill Giant" 1
+  assert damage "Wind Drake" 1
+  assert damage "Grizzly Bears" 0
+  assert life A 20
+}

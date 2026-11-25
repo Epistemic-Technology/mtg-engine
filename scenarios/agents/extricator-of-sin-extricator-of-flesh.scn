@@ -1,0 +1,36 @@
+scenario "Extricator of Sin: sacrifice another permanent for an Eldrazi Horror" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Extricator of Sin // Extricator of Flesh"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Extricator of Sin"
+  turn 1 precombat_main A: accept "Extricator of Sin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eldrazi Horror"
+  assert power "Eldrazi Horror" 3
+  assert toughness "Eldrazi Horror" 2
+  assert battlefield A contains "Extricator of Sin"
+}
+
+scenario "Extricator of Sin: decline leaves no token" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Extricator of Sin // Extricator of Flesh"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Extricator of Sin"
+  turn 1 precombat_main A: decline "Extricator of Sin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Extricator of Flesh: delirium transforms, vigilance, sacrifice for token" {
+  battlefield A: "Extricator of Sin // Extricator of Flesh", "Grizzly Bears", 2 "Plains"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Plains", "Divination"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert power "Extricator of Flesh" 3
+  assert toughness "Extricator of Flesh" 5
+  turn 1 precombat_main A: activate "Extricator of Flesh" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eldrazi Horror"
+  assert has "Eldrazi Horror" vigilance
+  assert graveyard A count 5
+}

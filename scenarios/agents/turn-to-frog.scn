@@ -1,0 +1,15 @@
+scenario "turn to frog shrinks and strips" {
+  battlefield A: "Island", "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Turn to Frog"
+  turn 1 precombat_main A: cast "Turn to Frog" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" "Frog"
+  assert is "Serra Angel" blue
+  run_to turn 2 untap
+  assert power "Serra Angel" 4
+  assert has "Serra Angel" flying
+}

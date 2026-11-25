@@ -1,0 +1,9 @@
+card "Thieves' Guild Enforcer" {
+  oracle_id 84c0db59-255d-41af-a3d4-3f3548f1195f
+  cost {B}
+  type Creature — Human Rogue
+  pt 1/1
+  keywords flash
+  triggered whenever this or Rogue you control enters: each opponent mills 2 cards
+  static as long as opponent graveyard 8 or more, this: +2/+1, has deathtouch
+}

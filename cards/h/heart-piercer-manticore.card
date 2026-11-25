@@ -1,0 +1,8 @@
+card "Heart-Piercer Manticore" {
+  oracle_id 253bec96-108c-4880-9c04-8bc99ceafa64
+  cost {2}{R}{R}
+  type Creature — Manticore
+  pt 4/3
+  triggered when this enters: you may sacrifice 1 another creature chosen; when you do, this deals damage equal power of that sacrificed creature to any target
+  embalm {5}{R}
+}

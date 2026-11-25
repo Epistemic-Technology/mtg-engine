@@ -1,0 +1,24 @@
+scenario "Koma makes a Coil each upkeep" {
+  battlefield A: "Koma, Cosmos Serpent"
+  start turn 1 A upkeep
+  run_to turn 2 draw
+  assert battlefield A contains 2 "Koma's Coil"
+}
+
+scenario "Koma sacrifice taps a permanent" {
+  battlefield A: "Koma, Cosmos Serpent", "Koma's Coil"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Koma, Cosmos Serpent" mode 1 sacrificing "Koma's Coil" targeting "Hill Giant"
+  run_to turn 1 combat_damage
+  assert tapped "Hill Giant"
+  assert battlefield A lacks "Koma's Coil"
+}
+
+scenario "Koma sacrifice grants indestructible" {
+  battlefield A: "Koma, Cosmos Serpent", "Koma's Coil"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Koma, Cosmos Serpent" mode 2 sacrificing "Koma's Coil"
+  run_to turn 1 combat_damage
+  assert has "Koma, Cosmos Serpent" indestructible
+}

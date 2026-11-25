@@ -1,0 +1,9 @@
+card "Tide Shaper" {
+  oracle_id cf4be71e-0a9a-47a3-b0ec-43e04c3c07a0
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  kicker {1}
+  triggered whenever this enters if kicked: target land becomes Island for as long as this remains
+  static this: +1/+1 as long as opponent controls Island
+}

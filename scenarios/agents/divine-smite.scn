@@ -1,0 +1,24 @@
+scenario "divine smite phases out nonblack" {
+  hand A: "Divine Smite"
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Divine Smite" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert exile B lacks "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+}
+scenario "divine smite exiles black" {
+  hand A: "Divine Smite"
+  battlefield A: 2 "Plains"
+  battlefield B: "Typhoid Rats"
+  turn 1 A: cast "Divine Smite" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Typhoid Rats"
+}
+scenario "divine smite cannot target own creature" {
+  hand A: "Divine Smite"
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  illegal turn 1 A: cast "Divine Smite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

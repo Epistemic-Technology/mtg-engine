@@ -1,0 +1,9 @@
+card "Verdant Rebirth" {
+  oracle_id c35540ad-9ab1-4be9-b97d-603813394a26
+  cost {1}{G}
+  type Instant
+  spell {
+    until end of turn, target creature gains ability { triggered when this dies: return this to hand }
+    draw 1 card
+  }
+}

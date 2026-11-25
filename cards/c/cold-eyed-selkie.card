@@ -1,0 +1,8 @@
+card "Cold-Eyed Selkie" {
+  oracle_id f33cd975-ab70-4209-a6d8-e0d727772bf2
+  cost {1}{G/U}{G/U}
+  type Creature — Merfolk Rogue
+  pt 1/1
+  keywords islandwalk
+  triggered whenever this deals combat damage to a player: you may draw that much cards
+}

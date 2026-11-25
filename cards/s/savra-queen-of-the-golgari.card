@@ -1,0 +1,8 @@
+card "Savra, Queen of the Golgari" {
+  oracle_id 641db975-cf94-44c6-a391-f540a952e0d8
+  cost {2}{B}{G}
+  type Legendary Creature — Elf Shaman
+  pt 2/2
+  triggered whenever you sacrifice black creature: you may pay 2 life; if you do, each other player sacrifices 1 creature
+  triggered whenever you sacrifice green creature: you may you gain 2 life
+}

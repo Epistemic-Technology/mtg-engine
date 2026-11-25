@@ -1,0 +1,10 @@
+card "Copycrook" {
+  oracle_id ce184565-71fb-4e23-b45b-8786727d21f7
+  cost {2}{U}{U}
+  type Creature — Shapeshifter Rogue
+  pt 0/0
+  enters as copy of creature
+  except {
+    triggered whenever this attacks: this connives
+  }
+}

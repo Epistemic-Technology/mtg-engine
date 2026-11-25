@@ -1,0 +1,6 @@
+card "Dark Salvation" {
+  oracle_id f5c2b700-da52-4436-b234-e32ba7759e17
+  cost {X}{X}{B}
+  type Sorcery
+  spell: target player creates X "2/2 black Zombie creature" then up to 1 target creature gets -1/-1 count each Zombie that player 1 controls until end of turn
+}

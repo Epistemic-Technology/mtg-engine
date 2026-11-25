@@ -1,0 +1,8 @@
+card "Wilderness Elemental" {
+  oracle_id 478d1acf-93fa-4695-83be-693b839ebf80
+  cost {1}{R}{G}
+  type Creature — Elemental
+  pt 0/3
+  keywords trample
+  static this: cda power count nonbasic land your opponents control
+}

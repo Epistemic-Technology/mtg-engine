@@ -1,0 +1,27 @@
+scenario "Cavalier of Dawn destroys a permanent and its controller gets a Golem" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Cavalier of Dawn"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cavalier of Dawn"
+  turn 1 A: trigger "Cavalier of Dawn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Golem"
+  assert power "Golem" 3
+  assert battlefield A lacks "Golem"
+}
+
+scenario "Cavalier of Dawn returns an artifact when it dies" {
+  battlefield A: "Cavalier of Dawn", 2 "Swamp"
+  battlefield B: 3 "Swamp"
+  graveyard A: "Sol Ring", "Grizzly Bears"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 postcombat_main B: cast "Murder" targeting "Cavalier of Dawn"
+  turn 1 postcombat_main A: trigger "Cavalier of Dawn" targeting "Sol Ring"
+  run_to turn 2 upkeep
+  assert hand A contains "Sol Ring"
+  assert graveyard A contains "Cavalier of Dawn"
+  assert graveyard A lacks "Sol Ring"
+}

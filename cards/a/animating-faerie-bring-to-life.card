@@ -1,0 +1,13 @@
+card "Animating Faerie // Bring to Life" {
+  oracle_id db6fbdc9-1c45-416f-a08e-2082f65adb65
+  layout adventure
+  cost {2}{U}
+  type Creature — Faerie
+  pt 2/2
+  keywords flying
+  face "Bring to Life" {
+    cost {2}{U}
+    type Sorcery — Adventure
+    spell: target noncreature artifact you control becomes 0/0 artifact creature indefinitely; put 4 +1/+1 counters on target 1
+  }
+}

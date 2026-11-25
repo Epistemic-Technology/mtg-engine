@@ -1,0 +1,7 @@
+card "Arrow Volley Trap" {
+  oracle_id 131dc114-cd48-43d9-93b3-88df85640e09
+  cost {3}{W}{W}
+  type Instant — Trap
+  alternative cost {1}{W}, if on battlefield 4 attacking creature
+  spell: deal 5 damage divided among any number of target attacking creature
+}

@@ -1,0 +1,17 @@
+scenario "loner redirects damage dealt to it" {
+  battlefield A: "Ill-Tempered Loner"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Ill-Tempered Loner"
+  turn 2 precombat_main A: trigger "Ill-Tempered Loner" targeting player B
+  run_to turn 2 postcombat_main
+  assert damage "Ill-Tempered Loner" 2
+  assert life B 18
+}
+scenario "loner pump" {
+  battlefield A: "Ill-Tempered Loner", "Mountain", "Mountain"
+  turn 1 precombat_main A: activate "Ill-Tempered Loner"
+  run_to turn 1 declare_attackers
+  assert power "Ill-Tempered Loner" 5
+}

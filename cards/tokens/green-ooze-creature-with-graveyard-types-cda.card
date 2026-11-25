@@ -1,0 +1,6 @@
+token "green Ooze creature with graveyard types cda" {
+  name "Ooze"
+  type Creature — Ooze
+  color green
+  static this: cda pt card types in your graveyard +1
+}

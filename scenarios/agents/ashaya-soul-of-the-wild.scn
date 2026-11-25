@@ -1,0 +1,18 @@
+scenario "Ashaya counts lands including nontoken creatures" {
+  battlefield A: "Ashaya, Soul of the Wild", 2 "Forest", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert is "Grizzly Bears" land
+  assert is "Grizzly Bears" forest
+  assert is "Ashaya, Soul of the Wild" land
+  assert power "Ashaya, Soul of the Wild" 4
+  assert toughness "Ashaya, Soul of the Wild" 4
+}
+
+scenario "Ashaya: tokens are not lands" {
+  battlefield A: "Ashaya, Soul of the Wild", "Forest", "Soldier"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert is not "Soldier" land
+  assert power "Ashaya, Soul of the Wild" 2
+}

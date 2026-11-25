@@ -1,0 +1,24 @@
+scenario "Dragonrage adds mana per attacker and grants firebreathing" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  hand A: "Dragonrage"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 declare_attackers A: cast "Dragonrage"
+  turn 1 declare_attackers A: wait
+  turn 1 declare_attackers A: activate "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
+scenario "Dragonrage does not grant the ability to non-attackers" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  hand A: "Dragonrage"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Dragonrage"
+  turn 1 declare_attackers A: wait
+  illegal turn 1 declare_attackers A: activate "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

@@ -1,0 +1,7 @@
+card "Hellraiser Goblin" {
+  oracle_id c30e89fa-8993-468d-b2ee-093c3950f520
+  cost {2}{R}
+  type Creature — Goblin Berserker
+  pt 2/2
+  static creature you control: has haste, attacks each combat if able
+}

@@ -1,0 +1,6 @@
+token "Phobos, a legendary 3/2 red Horse creature" {
+  name "Phobos"
+  type Legendary Creature — Horse
+  pt 3/2
+  color red
+}

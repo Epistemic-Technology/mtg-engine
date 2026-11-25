@@ -1,0 +1,29 @@
+scenario "Flayed Nim drains the blocker's controller by the damage dealt" {
+  battlefield A: "Flayed Nim"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Flayed Nim"
+  turn 1 B: block "Flayed Nim" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+  assert graveyard A contains "Flayed Nim"
+}
+scenario "Flayed Nim does nothing to a player it hits" {
+  battlefield A: "Flayed Nim"
+  start turn 1 A
+  turn 1 A: attack "Flayed Nim"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+scenario "Flayed Nim regenerates" {
+  battlefield A: "Flayed Nim", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Flayed Nim"
+  turn 1 B: block "Flayed Nim" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Flayed Nim"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Flayed Nim"
+  assert life B 18
+}

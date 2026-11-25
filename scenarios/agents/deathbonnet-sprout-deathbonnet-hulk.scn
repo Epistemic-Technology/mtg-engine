@@ -1,0 +1,38 @@
+scenario "Deathbonnet Sprout transforms with three creature cards in the graveyard" {
+  battlefield A: "Deathbonnet Sprout"
+  graveyard A: 2 "Grizzly Bears"
+  library A: "Hill Giant", "Forest"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Hill Giant"
+  assert power "Deathbonnet Hulk" 3
+}
+
+scenario "Deathbonnet Sprout stays a Sprout with fewer than three creature cards" {
+  battlefield A: "Deathbonnet Sprout"
+  graveyard A: 1 "Grizzly Bears"
+  library A: "Hill Giant", "Forest"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Hill Giant"
+  assert power "Deathbonnet Sprout" 1
+}
+
+scenario "Deathbonnet Sprout does not count a milled land" {
+  battlefield A: "Deathbonnet Sprout"
+  graveyard A: 2 "Grizzly Bears"
+  library A: "Forest", "Hill Giant"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert power "Deathbonnet Sprout" 1
+}
+
+scenario "Deathbonnet Hulk grows when it exiles a creature card" {
+  battlefield A: "Deathbonnet Sprout"
+  graveyard A: 2 "Grizzly Bears"
+  library A: "Hill Giant", "Forest", "Forest"
+  start turn 3 A upkeep
+  run_to turn 5 precombat_main
+  assert counters "Deathbonnet Hulk" +1/+1 1
+  assert power "Deathbonnet Hulk" 4
+}

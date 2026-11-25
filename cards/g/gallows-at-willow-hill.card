@@ -1,0 +1,6 @@
+card "Gallows at Willow Hill" {
+  oracle_id 0d80841e-7a33-4b7f-b061-fa2f87f596de
+  cost {3}
+  type Artifact
+  activated {3}, {T}, tap 3 untapped Human you control: destroy target creature; its controller creates 1 "1/1 white Spirit creature with flying"
+}

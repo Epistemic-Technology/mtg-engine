@@ -1,0 +1,17 @@
+card "Archangel Avacyn // Avacyn, the Purifier" {
+  oracle_id 432b37a5-d32a-4b78-91ab-860aa026b7cc
+  layout transform
+  cost {3}{W}{W}
+  type Legendary Creature — Angel
+  pt 4/4
+  keywords flash, flying, vigilance
+  triggered when this enters: each creature you control gains indestructible until end of turn
+  triggered when a non-Angel creature you control dies: delayed this: transform this at beginning of next upkeep
+  face "Avacyn, the Purifier" {
+    type Legendary Creature — Angel
+    pt 6/5
+    color red
+    keywords flying
+    triggered when this transforms: deal 3 damage to each other creature and each opponent
+  }
+}

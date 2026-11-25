@@ -1,0 +1,20 @@
+scenario "Groundling Pouncer needs an opposing flyer and works once a turn" {
+  battlefield A: "Groundling Pouncer", "Forest", "Forest"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Groundling Pouncer"
+  illegal turn 1 A: activate "Groundling Pouncer"
+  run_to turn 1 begin_combat
+  assert power "Groundling Pouncer" 3
+  assert toughness "Groundling Pouncer" 4
+  assert has "Groundling Pouncer" flying
+}
+
+scenario "Groundling Pouncer cannot activate without an opposing flyer" {
+  battlefield A: "Groundling Pouncer", "Forest"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Groundling Pouncer"
+  run_to turn 1 begin_combat
+  assert power "Groundling Pouncer" 2
+}

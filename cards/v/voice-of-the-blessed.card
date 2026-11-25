@@ -1,0 +1,9 @@
+card "Voice of the Blessed" {
+  oracle_id 01e742ed-660c-43c6-b393-e589a54cbe1b
+  cost {W}{W}
+  type Creature — Spirit Cleric
+  pt 2/2
+  triggered whenever you gain life: put 1 +1/+1 counter on this
+  static as long as this has 4 or more +1/+1 counters, this: has flying, vigilance
+  static as long as this has 10 or more +1/+1 counters, this: has indestructible
+}

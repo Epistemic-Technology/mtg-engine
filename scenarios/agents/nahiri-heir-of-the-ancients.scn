@@ -1,0 +1,26 @@
+scenario "nahiri plus makes a Kor Warrior and attaches an Equipment" {
+  battlefield A: "Nahiri, Heir of the Ancients", "Accorder's Shield"
+  turn 1 A: activate "Nahiri, Heir of the Ancients" ability 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kor Warrior"
+  assert attached "Accorder's Shield" to "Kor Warrior"
+  assert counters "Nahiri, Heir of the Ancients" loyalty 5
+}
+scenario "nahiri minus two finds a Warrior or Equipment" {
+  battlefield A: "Nahiri, Heir of the Ancients"
+  library A: "Forest", "Hill Giant", "Accorder's Shield", "Forest", "Island", "Grizzly Bears", "Plains"
+  turn 1 A: activate "Nahiri, Heir of the Ancients" ability 2
+  turn 1 A: choose "Accorder's Shield"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Accorder's Shield"
+  assert hand A count 1
+  assert counters "Nahiri, Heir of the Ancients" loyalty 2
+}
+scenario "nahiri minus three deals twice the Equipment count" {
+  battlefield A: "Nahiri, Heir of the Ancients", "Accorder's Shield", "Aeronaut's Wings"
+  battlefield B: "Serra Angel", "Hill Giant"
+  turn 1 A: activate "Nahiri, Heir of the Ancients" ability 3 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+}

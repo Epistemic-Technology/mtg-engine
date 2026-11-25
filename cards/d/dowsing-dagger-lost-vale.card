@@ -1,0 +1,14 @@
+card "Dowsing Dagger // Lost Vale" {
+  oracle_id df34a6ad-ae1c-4470-8c9e-49815bba1973
+  layout transform
+  cost {2}
+  type Artifact — Equipment
+  triggered whenever this enters: target opponent creates 2 "0/2 green Plant creature with defender"
+  static enchanted: +2/+1
+  triggered whenever equipped creature deals combat damage to a player: you may transform this
+  equip {2}
+  face "Lost Vale" {
+    type Land
+    activated {T}: add any 3
+  }
+}

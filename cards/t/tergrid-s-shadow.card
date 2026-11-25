@@ -1,0 +1,7 @@
+card "Tergrid's Shadow" {
+  oracle_id 692260bb-e01c-4550-832a-9611856a6ff0
+  cost {3}{B}{B}
+  type Instant
+  spell: each player sacrifices 2 creature bare
+  foretell {2}{B}{B}
+}

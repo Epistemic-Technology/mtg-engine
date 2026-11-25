@@ -1,0 +1,9 @@
+card "Alirios, Enraptured" {
+  oracle_id 7dbf9e96-e61f-43db-8767-63a351cf4ef8
+  cost {2}{U}
+  type Legendary Creature — Human
+  pt 2/3
+  enters tapped
+  static this: has doesn't untap if you control Reflection
+  triggered when this enters: create 1 "3/2 blue Reflection creature"
+}

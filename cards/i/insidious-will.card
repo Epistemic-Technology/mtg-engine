@@ -1,0 +1,10 @@
+card "Insidious Will" {
+  oracle_id 8088d110-2314-45c3-b6ee-3f55d1f388e4
+  cost {2}{U}{U}
+  type Instant
+  choose one {
+    mode: counter target spell
+    mode: choose new targets for target spell
+    mode: copy target instant or sorcery spell new targets
+  }
+}

@@ -1,0 +1,22 @@
+scenario "Vicious Shadows damage equals cards in target player's hand" {
+  battlefield A: "Vicious Shadows", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Divination"
+  hand B: "Forest", "Forest", "Island"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Vicious Shadows" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+  assert life A 20
+}
+scenario "Vicious Shadows can decline" {
+  battlefield A: "Vicious Shadows", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  hand B: "Forest", "Forest", "Island"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: decline "Vicious Shadows"
+  run_to turn 1 begin_combat
+  assert life B 20
+}

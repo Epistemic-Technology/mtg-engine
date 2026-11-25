@@ -1,0 +1,7 @@
+card "Take Flight" {
+  oracle_id b4cf61e5-b2b7-4fb9-addf-db84dec49681
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0, has flying, has ability { triggered whenever this attacks: draw 1 card }
+}

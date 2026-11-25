@@ -1,0 +1,16 @@
+card "Ballista Watcher // Ballista Wielder" {
+  oracle_id b6811c31-fcd3-4d00-89d5-cf974575a87c
+  layout transform
+  cost {2}{R}{R}
+  type Creature — Human Soldier Werewolf
+  pt 4/3
+  activated {2}{R}, {T}: deal 1 damage to any target
+  daybound
+  face "Ballista Wielder" {
+    type Creature — Werewolf
+    pt 5/5
+    color red
+    activated {2}{R}: deal 1 damage to any target; creature dealt damage this way can't block this turn
+    nightbound
+  }
+}

@@ -1,0 +1,7 @@
+card "Monk of the Open Hand" {
+  oracle_id 2d3998fc-a68a-4923-a456-b3e43ab6decb
+  cost {W}
+  type Creature — Elf Monk
+  pt 1/1
+  label "Flurry of Blows" triggered whenever you cast your second spell each turn: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,32 @@
+scenario "marionette apprentice drains when another creature dies" {
+  battlefield A: "Marionette Apprentice", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 19
+}
+scenario "marionette apprentice does not trigger on itself" {
+  battlefield A: "Marionette Apprentice", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Marionette Apprentice"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Marionette Apprentice"
+  assert life B 20
+}
+scenario "marionette apprentice does not trigger for an opponent's creature" {
+  battlefield A: "Marionette Apprentice", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+scenario "marionette apprentice fabricate counter" {
+  battlefield A: 2 "Swamp"
+  hand A: "Marionette Apprentice"
+  turn 1 A: cast "Marionette Apprentice"
+  run_to turn 1 postcombat_main
+  assert power "Marionette Apprentice" 2
+}

@@ -1,0 +1,8 @@
+card "Architect of the Untamed" {
+  oracle_id be6cab52-b3ae-46a2-a581-2468a49bff25
+  cost {2}{G}
+  type Creature — Elf Artificer Druid
+  pt 2/3
+  label "Landfall" triggered whenever land you control enters: you get 1 energy
+  activated pay 8 energy: create 1 "6/6 colorless Beast artifact creature"
+}

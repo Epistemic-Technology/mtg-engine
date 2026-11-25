@@ -1,0 +1,6 @@
+card "Minions' Murmurs" {
+  oracle_id fd755ec1-6727-4165-a7fd-5d9b59754ada
+  cost {2}{B}{B}
+  type Sorcery
+  spell: you draw count where creature you control cards, and you lose count where creature you control life
+}

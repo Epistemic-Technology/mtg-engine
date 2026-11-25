@@ -1,0 +1,7 @@
+card "Psionic Sliver" {
+  oracle_id ea79d4ee-c7b5-4687-9e33-22f98e46e8ec
+  cost {4}{U}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: has ability { activated {T}: deal 2 damage to any target and deal 3 damage to this }
+}

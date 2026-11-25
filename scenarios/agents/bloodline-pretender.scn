@@ -1,0 +1,11 @@
+scenario "counter for chosen type only" {
+  battlefield A: 6 "Forest"
+  hand A: "Bloodline Pretender", "Grizzly Bears", "Elvish Mystic"
+  turn 1 precombat_main A: cast "Bloodline Pretender"
+  turn 1 precombat_main A: choose Elf
+  turn 1 precombat_main A: cast "Elvish Mystic"
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert counters "Bloodline Pretender" +1/+1 1
+  assert power "Bloodline Pretender" 3
+}

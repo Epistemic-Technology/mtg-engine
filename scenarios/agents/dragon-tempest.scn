@@ -1,0 +1,28 @@
+scenario "Dragon Tempest gives a flyer haste" {
+  battlefield A: "Dragon Tempest", 3 "Island"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Wind Drake"
+  turn 1 declare_attackers A: attack "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Dragon Tempest does not give a ground creature haste" {
+  battlefield A: "Dragon Tempest", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "Dragon Tempest: Dragon entering deals damage equal to Dragons" {
+  battlefield A: "Dragon Tempest", 6 "Mountain", "Shivan Dragon"
+  hand A: "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Shivan Dragon"
+  turn 1 precombat_main A: trigger "Dragon Tempest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

@@ -1,0 +1,6 @@
+card "One with the Machine" {
+  oracle_id 757eadac-dd29-4a7f-8683-5bc823168326
+  cost {3}{U}
+  type Sorcery
+  spell: draw count equal greatest mana value among artifact you control cards
+}

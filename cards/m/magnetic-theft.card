@@ -1,0 +1,6 @@
+card "Magnetic Theft" {
+  oracle_id 9b22cc97-003f-4227-acdc-7a0857674b67
+  cost {R}
+  type Instant
+  spell: attach target Equipment to target creature
+}

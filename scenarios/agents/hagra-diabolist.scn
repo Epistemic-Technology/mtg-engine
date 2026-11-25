@@ -1,0 +1,25 @@
+scenario "hagra drains life equal to allies" {
+  hand A: "Hagra Diabolist"
+  battlefield A: 5 "Swamp"
+  turn 1 precombat_main A: cast "Hagra Diabolist"
+  turn 1 precombat_main A: trigger "Hagra Diabolist" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+scenario "two hagras each trigger" {
+  hand A: "Hagra Diabolist"
+  battlefield A: 5 "Swamp", "Hagra Diabolist"
+  turn 1 precombat_main A: cast "Hagra Diabolist"
+  turn 1 precombat_main A: trigger "Hagra Diabolist" targeting player B
+  turn 1 precombat_main A: trigger "Hagra Diabolist" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+scenario "hagra may decline" {
+  hand A: "Hagra Diabolist"
+  battlefield A: 5 "Swamp"
+  turn 1 precombat_main A: cast "Hagra Diabolist"
+  turn 1 precombat_main A: decline "Hagra Diabolist"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

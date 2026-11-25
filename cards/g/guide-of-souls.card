@@ -1,0 +1,8 @@
+card "Guide of Souls" {
+  oracle_id b304ac72-7f40-40de-b8d6-6392909b6029
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/2
+  triggered whenever other creature you control enters: you gain 1 life and you get 1 energy
+  triggered whenever you attack: you may pay 3 energy; when you do, put 2 +1/+1 counters and 1 flying counter on target attacking creature; target 1 becomes Angel in addition indefinitely
+}

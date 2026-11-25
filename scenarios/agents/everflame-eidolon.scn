@@ -1,0 +1,18 @@
+scenario "everflame eidolon bestowed pumps the enchanted creature" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Everflame Eidolon"
+  turn 1 A: cast "Everflame Eidolon" bestowed targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Everflame Eidolon"
+  run_to turn 1 begin_combat
+  assert attached "Everflame Eidolon" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+}
+scenario "everflame eidolon as a creature pumps itself" {
+  battlefield A: 3 "Mountain", "Everflame Eidolon"
+  turn 1 A: activate "Everflame Eidolon"
+  run_to turn 1 begin_combat
+  assert power "Everflame Eidolon" 2
+  assert toughness "Everflame Eidolon" 1
+}

@@ -1,0 +1,12 @@
+scenario "polukranos transforms and leaves two hydras" {
+  battlefield A: "Polukranos Reborn // Polukranos, Engine of Ruin", 6 "Forest", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 precombat_main A: activate "Polukranos Reborn" paying_life 1
+  run_to turn 1 begin_combat
+  assert life A 18
+  assert power "Polukranos, Engine of Ruin" 6
+  assert has "Polukranos, Engine of Ruin" lifelink
+  turn 1 postcombat_main A: cast "Murder" targeting "Polukranos, Engine of Ruin"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Phyrexian Hydra"
+}

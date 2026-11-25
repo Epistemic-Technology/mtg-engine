@@ -1,0 +1,6 @@
+card "Yawgmoth's Vile Offering" {
+  oracle_id 740f9ab2-fc94-4abc-82b4-6b53116bf1a4
+  cost {4}{B}
+  type Legendary Sorcery
+  spell: return up to 1 target creature or planeswalker card from a graveyard to battlefield under your control; destroy up to 1 target creature or planeswalker; exile this
+}

@@ -1,0 +1,28 @@
+scenario "rowan plus one pumps" {
+  battlefield A: "Rowan, Fearless Sparkmage", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rowan, Fearless Sparkmage" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" first_strike
+}
+scenario "rowan minus two damages and stops blocks" {
+  battlefield A: "Rowan, Fearless Sparkmage", "Llanowar Elves"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rowan, Fearless Sparkmage" ability 2 targeting B "Hill Giant", B "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Llanowar Elves"
+  run_to turn 1 combat_damage
+  assert damage "Hill Giant" 1
+  assert damage "Grizzly Bears" 1
+}
+scenario "rowan ultimate steals everything" {
+  battlefield A: "Rowan, Fearless Sparkmage" with 9 loyalty
+  battlefield B: "Hill Giant" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rowan, Fearless Sparkmage" ability 3
+  run_to turn 1 begin_combat
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+}

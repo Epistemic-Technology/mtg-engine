@@ -1,0 +1,9 @@
+card "Colossus of Akros" {
+  oracle_id 96d508a6-ecd2-4a97-8802-df099a372084
+  cost {8}
+  type Artifact Creature — Golem
+  pt 10/10
+  keywords defender, indestructible
+  activated {10}: monstrosity 10
+  static as long as monstrous, this: has trample, has can attack as though it didn't have defender
+}

@@ -1,0 +1,7 @@
+card "Wanted Scoundrels" {
+  oracle_id 1c63c4ca-5d5a-4ab9-af0d-ed1254b581cc
+  cost {1}{B}
+  type Creature — Human Pirate
+  pt 4/3
+  triggered when this dies: target opponent creates 2 "Treasure"
+}

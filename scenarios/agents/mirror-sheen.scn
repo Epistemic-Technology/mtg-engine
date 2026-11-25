@@ -1,0 +1,22 @@
+scenario "mirror sheen copies a bolt aimed at you and redirects it" {
+  battlefield A: "Mirror Sheen", 3 "Mountain"
+  battlefield B: "Mountain", "Hill Giant"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting player A
+  turn 2 precombat_main A: activate "Mirror Sheen" targeting "Lightning Bolt"
+  turn 2 precombat_main A: choose "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert graveyard B contains "Hill Giant"
+}
+scenario "mirror sheen cannot copy a spell not targeting you" {
+  battlefield A: "Mirror Sheen", 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  illegal turn 2 precombat_main A: activate "Mirror Sheen" targeting "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

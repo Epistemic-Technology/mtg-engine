@@ -1,0 +1,10 @@
+card "Sorin, Solemn Visitor" {
+  oracle_id 1f1f1ae7-dd00-4825-832e-3a049cf8ce73
+  cost {2}{W}{B}
+  type Legendary Planeswalker — Sorin
+  loyalty 4
+  short_name "Sorin"
+  loyalty +1: until your next turn, each creature you control gets +1/+0 and gains lifelink
+  loyalty -2: create 1 "2/2 black Vampire creature with flying"
+  loyalty -6: emblem "Sorin, Solemn Visitor emblem"
+}

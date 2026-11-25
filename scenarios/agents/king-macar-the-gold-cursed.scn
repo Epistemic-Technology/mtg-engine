@@ -1,0 +1,18 @@
+scenario "King Macar exiles a creature and makes a Gold when it untaps" {
+  battlefield A: "King Macar, the Gold-Cursed" tapped
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  turn 1 upkeep A: trigger "King Macar, the Gold-Cursed" targeting "Hill Giant"
+  run_to turn 1 precombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains 1 "Gold"
+}
+scenario "King Macar makes no Gold if the optional exile is declined" {
+  battlefield A: "King Macar, the Gold-Cursed" tapped
+  battlefield B: "Hill Giant"
+  turn 1 upkeep A: trigger "King Macar, the Gold-Cursed" targeting "Hill Giant"
+  turn 1 upkeep A: decline "King Macar, the Gold-Cursed"
+  run_to turn 1 precombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Gold"
+}

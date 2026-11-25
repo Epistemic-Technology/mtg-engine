@@ -1,0 +1,3 @@
+emblem "Kiora, Master of the Depths emblem" {
+  triggered whenever creature you control enters: you may triggering it fights target creature
+}

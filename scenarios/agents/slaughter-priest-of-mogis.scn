@@ -1,0 +1,14 @@
+scenario "Slaughter-Priest sacrifices to gain first strike and +2/+0" {
+  battlefield A: "Slaughter-Priest of Mogis", "Grizzly Bears", 2 "Mountain"
+  turn 1 precombat_main A: activate "Slaughter-Priest of Mogis" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Slaughter-Priest of Mogis" 4
+  assert has "Slaughter-Priest of Mogis" first_strike
+  assert graveyard A contains "Grizzly Bears"
+}
+scenario "Slaughter-Priest cannot sacrifice itself for the cost" {
+  battlefield A: "Slaughter-Priest of Mogis", 2 "Mountain"
+  illegal turn 1 precombat_main A: activate "Slaughter-Priest of Mogis" sacrificing "Slaughter-Priest of Mogis"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Slaughter-Priest of Mogis"
+}

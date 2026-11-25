@@ -1,0 +1,10 @@
+card "Protean Thaumaturge" {
+  oracle_id 148331cc-24de-481f-9131-c3089d1ff7ce
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  label "Constellation" triggered whenever enchantment you control enters: you may this becomes a copy of another target creature with exceptions
+  except {
+    triggered whenever enchantment you control enters: you may this becomes a copy of another target creature with exceptions
+  }
+}

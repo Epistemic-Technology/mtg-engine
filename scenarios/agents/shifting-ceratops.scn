@@ -1,0 +1,36 @@
+scenario "Shifting Ceratops gains chosen ability" {
+  battlefield A: "Shifting Ceratops", "Forest"
+  turn 1 A: activate "Shifting Ceratops"
+  turn 1 A: choose "3"
+  run_to turn 1 begin_combat
+  assert has "Shifting Ceratops" haste
+  assert has not "Shifting Ceratops" reach
+  assert has not "Shifting Ceratops" trample
+}
+scenario "Shifting Ceratops chooses reach" {
+  battlefield A: "Shifting Ceratops", "Forest"
+  turn 1 A: activate "Shifting Ceratops"
+  turn 1 A: choose "1"
+  run_to turn 1 begin_combat
+  assert has "Shifting Ceratops" reach
+  assert has not "Shifting Ceratops" haste
+}
+scenario "Shifting Ceratops can't be blocked by blue creatures" {
+  battlefield A: "Shifting Ceratops"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  turn 1 A: attack "Shifting Ceratops"
+  illegal turn 1 declare_blockers B: block "Shifting Ceratops" with "Wind Drake"
+  turn 1 B: block "Shifting Ceratops" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+scenario "Shifting Ceratops can't be countered" {
+  hand A: "Shifting Ceratops"
+  battlefield A: 2 "Forest", 2 "Forest"
+  hand B: "Counterspell"
+  battlefield B: 2 "Island"
+  turn 1 A: cast "Shifting Ceratops"
+  turn 1 B: cast "Counterspell" targeting "Shifting Ceratops"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Shifting Ceratops"
+}

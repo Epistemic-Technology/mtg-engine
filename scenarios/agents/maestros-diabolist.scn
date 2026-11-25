@@ -1,0 +1,28 @@
+scenario "Maestros Diabolist makes an attacking Devil when you control none" {
+  battlefield A: "Maestros Diabolist"
+  start turn 1 A
+  turn 1 A: attack "Maestros Diabolist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Devil"
+  assert life B 18
+  assert tapped "Devil"
+}
+scenario "Maestros Diabolist makes no Devil when you control one" {
+  battlefield A: "Maestros Diabolist", "Devil"
+  start turn 1 A
+  turn 1 A: attack "Maestros Diabolist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Devil"
+  assert life B 19
+}
+scenario "Maestros Diabolist's Devil pings when it dies" {
+  battlefield A: "Maestros Diabolist"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Maestros Diabolist"
+  turn 1 B: block "Devil" with "Hill Giant"
+  turn 1 combat_damage A: trigger "Devil" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Devil"
+  assert life B 18
+}

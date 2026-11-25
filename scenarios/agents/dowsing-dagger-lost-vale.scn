@@ -1,0 +1,17 @@
+scenario "Dowsing Dagger gives the opponent two Plants" {
+  battlefield A: 2 "Plains"
+  hand A: "Dowsing Dagger"
+  turn 1 precombat_main A: cast "Dowsing Dagger"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 2 "Plant"
+}
+
+scenario "Dowsing Dagger pumps and transforms after combat damage" {
+  battlefield A: "Grizzly Bears", "Dowsing Dagger" on "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: accept "Dowsing Dagger"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert is "Lost Vale" land
+}

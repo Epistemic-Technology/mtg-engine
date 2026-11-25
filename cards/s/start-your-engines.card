@@ -1,0 +1,6 @@
+card "Start Your Engines" {
+  oracle_id bbe3726b-e14d-48d1-8bbf-40d48f1ef8c7
+  cost {3}{R}
+  type Sorcery
+  spell: each Vehicle you control becomes artifact creature until end of turn; each creature you control gets +2/+0 until end of turn
+}

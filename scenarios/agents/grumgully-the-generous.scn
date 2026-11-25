@@ -1,0 +1,12 @@
+scenario "grumgully: a non-Human enters with a counter, a Human does not" {
+  battlefield A: "Grumgully, the Generous", 4 "Plains", 4 "Mountain"
+  hand A: "Hill Giant", "Elite Vanguard"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: cast "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert power "Elite Vanguard" 2
+  assert counters "Grumgully, the Generous" +1/+1 0
+}

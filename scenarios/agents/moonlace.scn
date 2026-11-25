@@ -1,0 +1,20 @@
+scenario "moonlace makes a permanent colorless" {
+  battlefield A: "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Moonlace"
+  turn 1 A: cast "Moonlace" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert is not "Serra Angel" white
+  assert is "Serra Angel" creature
+  assert has "Serra Angel" flying
+  assert graveyard A contains "Moonlace"
+}
+scenario "moonlace makes a spell colorless" {
+  battlefield A: "Mountain", "Island"
+  hand A: "Lightning Bolt", "Moonlace"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Moonlace" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Moonlace"
+}

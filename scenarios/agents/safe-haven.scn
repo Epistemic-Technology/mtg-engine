@@ -1,0 +1,21 @@
+scenario "safe haven exiles then returns on upkeep sacrifice" {
+  battlefield A: "Safe Haven", 2 "Plains", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Safe Haven" targeting "Grizzly Bears"
+  run_to turn 2 draw
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+  run_to turn 3 draw
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Safe Haven"
+  assert battlefield A contains "Hill Giant"
+}
+scenario "safe haven can decline the sacrifice" {
+  battlefield A: "Safe Haven", 2 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Safe Haven" targeting "Grizzly Bears"
+  turn 3 upkeep A: decline "Safe Haven"
+  run_to turn 3 draw
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A contains "Safe Haven"
+}

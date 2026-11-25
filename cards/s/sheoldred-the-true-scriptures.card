@@ -1,0 +1,17 @@
+card "Sheoldred // The True Scriptures" {
+  oracle_id 97652492-7906-4d79-983c-fa1dc1239eba
+  layout transform
+  cost {3}{B}{B}
+  type Legendary Creature — Phyrexian Praetor
+  pt 4/5
+  keywords menace
+  triggered when this enters: each opponent sacrifices 1 nontoken creature or planeswalker
+  activated {4}{B}, sorcery, if opponent graveyard 8 or more: exile this then return this to battlefield transformed under its owner's control
+  face "The True Scriptures" {
+    type Enchantment — Saga
+    color black
+    triggered chapter 1: for each opponent, destroy up to 1 target creature or planeswalker that opponent controls
+    triggered chapter 2: each opponent discards 3 cards then mills 3 cards
+    triggered chapter 3: put all creature card from all graveyards onto battlefield under your control; exile this then return this to battlefield front face up
+  }
+}

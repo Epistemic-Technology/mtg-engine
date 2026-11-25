@@ -1,0 +1,8 @@
+card "Nath of the Gilt-Leaf" {
+  oracle_id 87a44a87-a2a5-4193-a163-e4846e5b8387
+  cost {3}{B}{G}
+  type Legendary Creature — Elf Warrior
+  pt 4/4
+  triggered at beginning of your upkeep step: you may target opponent discards 1 cards at random
+  triggered whenever an opponent discards a card: you may create 1 "1/1 green Elf Warrior creature"
+}

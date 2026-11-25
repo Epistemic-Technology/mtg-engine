@@ -1,0 +1,6 @@
+card "Dinosaur Stampede" {
+  oracle_id 3d6af1ee-16d2-4b82-8d9f-6d956603a746
+  cost {2}{R}
+  type Instant
+  spell: each attacking creature gets +2/+0 until end of turn; each Dinosaur you control gains trample until end of turn
+}

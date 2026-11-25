@@ -1,0 +1,14 @@
+scenario "Monk of the Open Hand grows on the second spell only" {
+  battlefield A: "Monk of the Open Hand", 3 "Mountain"
+  hand A: "Shock", "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert counters "Monk of the Open Hand" +1/+1 1
+  assert power "Monk of the Open Hand" 2
+}

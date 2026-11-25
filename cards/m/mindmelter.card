@@ -1,0 +1,8 @@
+card "Mindmelter" {
+  oracle_id dbcceed6-51a9-4ab4-b9a8-d65140661195
+  cost {1}{U}{B}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  keywords devoid, can't be blocked
+  activated {3}{C}, sorcery: target opponent exiles 1 card from hand
+}

@@ -1,0 +1,11 @@
+card "Blizzard Specter" {
+  oracle_id b6f4148d-8511-46b3-93ec-2f5eb1e4ffad
+  cost {2}{U}{B}
+  type Snow Creature — Specter
+  pt 2/3
+  keywords flying
+  triggered whenever this deals combat damage to a player: choose one {
+    mode: that player returns 1 permanent they control
+    mode: that player discards 1 cards
+  }
+}

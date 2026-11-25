@@ -1,0 +1,14 @@
+scenario "zombie is copied" {
+  battlefield A: "Necroduality", 2 "Swamp"
+  hand A: "Walking Corpse"
+  turn 1 precombat_main A: cast "Walking Corpse"
+  run_to turn 1 combat_damage
+  assert battlefield A contains 2 "Walking Corpse"
+}
+scenario "non-zombie is not copied, token zombie neither" {
+  battlefield A: "Necroduality", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert battlefield A contains 1 "Grizzly Bears"
+}

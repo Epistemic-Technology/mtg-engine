@@ -1,0 +1,8 @@
+card "Slaughter-Priest of Mogis" {
+  oracle_id 0a8c1002-e237-42d8-b152-aefecab283d0
+  cost {B}{R}
+  type Creature — Minotaur Shaman
+  pt 2/2
+  triggered whenever you sacrifice permanent: this gets +2/+0
+  activated {2}, sacrifice another creature or an enchantment: this gains first strike
+}

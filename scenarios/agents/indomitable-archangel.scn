@@ -1,0 +1,12 @@
+scenario "metalcraft gives artifacts shroud" {
+  battlefield A: "Indomitable Archangel", "Sol Ring", "Mind Stone", "Millstone"
+  run_to turn 1 precombat_main
+  assert has "Sol Ring" shroud
+  assert has "Millstone" shroud
+  assert has not "Indomitable Archangel" shroud
+}
+scenario "two artifacts is not metalcraft" {
+  battlefield A: "Indomitable Archangel", "Sol Ring", "Mind Stone"
+  run_to turn 1 precombat_main
+  assert has not "Sol Ring" shroud
+}

@@ -1,0 +1,7 @@
+card "Will of the All-Hunter" {
+  oracle_id dec281b4-e6d6-4b78-b755-358e07eb7c06
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is blocking, instead put 2 +1/+1 counters on target 1
+  cycling {2}
+}

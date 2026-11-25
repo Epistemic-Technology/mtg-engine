@@ -1,0 +1,9 @@
+card "Cavalier of Dawn" {
+  oracle_id 7c520355-1ab8-4d6d-9a29-0f63d6b60024
+  cost {2}{W}{W}{W}
+  type Creature — Elemental Knight
+  pt 4/6
+  keywords vigilance
+  triggered when this enters: destroy up to 1 target nonland permanent; its controller creates 1 "3/3 colorless Golem artifact creature"
+  triggered when this dies: return target artifact or enchantment card from your graveyard to hand
+}

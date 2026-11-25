@@ -1,0 +1,8 @@
+card "Smog Elemental" {
+  oracle_id 8e51a07d-8618-4908-8798-bd28bc9b5bbb
+  cost {4}{B}{B}
+  type Creature — Elemental
+  pt 3/3
+  keywords flying
+  static creature with flying your opponents control: -1/-1
+}

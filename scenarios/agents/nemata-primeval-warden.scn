@@ -1,0 +1,33 @@
+scenario "opponent creature exiled and saproling made" {
+  battlefield A: "Nemata, Primeval Warden", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  turn 1 precombat_main A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B lacks "Grizzly Bears"
+  assert exile B contains "Grizzly Bears"
+  assert battlefield A contains 1 "Saproling"
+}
+scenario "own creature dies normally" {
+  battlefield A: "Nemata, Primeval Warden", "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 precombat_main A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Saproling"
+}
+scenario "sacrifice abilities" {
+  battlefield A: "Nemata, Primeval Warden", 3 "Saproling", "Forest", "Swamp", "Swamp"
+  turn 1 precombat_main A: activate "Nemata, Primeval Warden" ability 1
+  run_to turn 1 begin_combat
+  assert power "Nemata, Primeval Warden" 5
+  assert toughness "Nemata, Primeval Warden" 6
+  assert battlefield A contains 2 "Saproling"
+}
+scenario "sacrifice two draws" {
+  battlefield A: "Nemata, Primeval Warden", 3 "Saproling", "Swamp", "Swamp"
+  turn 1 precombat_main A: activate "Nemata, Primeval Warden" ability 2
+  run_to turn 1 begin_combat
+  assert hand A count 1
+  assert battlefield A contains 1 "Saproling"
+}

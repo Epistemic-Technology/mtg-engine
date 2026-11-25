@@ -1,0 +1,15 @@
+scenario "Blink Dog phases out for its Teleport cost and phases back in on its controller's turn" {
+  battlefield A: "Blink Dog", 4 "Plains"
+  turn 1 A: activate "Blink Dog"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Blink Dog"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Blink Dog"
+}
+scenario "Blink Dog has double strike" {
+  battlefield A: "Blink Dog"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Blink Dog"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

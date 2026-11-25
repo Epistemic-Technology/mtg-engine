@@ -1,0 +1,12 @@
+scenario "hazardous conditions hits only creatures without counters" {
+  battlefield A: "Grizzly Bears", "Hill Giant" with 1 +1/+1, 2 "Swamp", 2 "Forest"
+  battlefield B: "Grizzly Bears", "Savannah Lions"
+  hand A: "Hazardous Conditions"
+  turn 1 precombat_main A: cast "Hazardous Conditions"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Savannah Lions"
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+}

@@ -1,0 +1,6 @@
+card "Idle Thoughts" {
+  oracle_id a2a40a19-8704-42fe-b9a6-5ae37c110303
+  cost {3}{U}
+  type Enchantment
+  activated {2}: draw 1 card if hand 0 or less
+}

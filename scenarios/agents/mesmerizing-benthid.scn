@@ -1,0 +1,29 @@
+scenario "benthid makes two Illusions and has hexproof while it controls one" {
+  battlefield A: 5 "Island"
+  battlefield B: 1 "Mountain"
+  hand A: "Mesmerizing Benthid"
+  hand B: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Mesmerizing Benthid"
+  illegal turn 1 end B: cast "Lightning Bolt" targeting "Mesmerizing Benthid"
+  run_to turn 2 upkeep
+  assert battlefield A contains 2 "Illusion"
+  assert has "Mesmerizing Benthid" hexproof
+  assert power oldest A "Illusion" 0
+  assert toughness oldest A "Illusion" 2
+}
+scenario "benthid has no hexproof without an Illusion" {
+  battlefield A: "Mesmerizing Benthid"
+  assert has not "Mesmerizing Benthid" hexproof
+}
+scenario "an Illusion token freezes the creature it blocks" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Mesmerizing Benthid"
+  turn 1 precombat_main A: cast "Mesmerizing Benthid"
+  turn 2 declare_attackers B: attack "Grizzly Bears"
+  turn 2 declare_blockers A: block "Grizzly Bears" with "Illusion"
+  run_to turn 2 postcombat_main
+  assert tapped "Grizzly Bears"
+  run_to turn 4 precombat_main
+  assert tapped "Grizzly Bears"
+}

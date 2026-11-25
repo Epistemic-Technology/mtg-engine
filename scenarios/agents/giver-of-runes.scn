@@ -1,0 +1,17 @@
+scenario "giver of runes grants protection from the chosen color" {
+  battlefield A: "Giver of Runes", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Giver of Runes" targeting "Grizzly Bears"
+  turn 1 A: choose "2"
+  turn 1 A: choose red
+  turn 1 A: wait
+  illegal turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Giver of Runes"
+}
+scenario "giver of runes cannot target itself" {
+  battlefield A: "Giver of Runes"
+  illegal turn 1 A: activate "Giver of Runes" targeting "Giver of Runes"
+  run_to turn 1 postcombat_main
+  assert untapped "Giver of Runes"
+}

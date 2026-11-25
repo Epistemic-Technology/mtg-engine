@@ -1,0 +1,8 @@
+card "Godhead of Awe" {
+  oracle_id 1ed5751a-4b45-4cd2-b19c-ac84508de4f8
+  cost {W/U}{W/U}{W/U}{W/U}{W/U}
+  type Creature — Spirit Avatar
+  pt 4/4
+  keywords flying
+  static other creature: base 1/1
+}

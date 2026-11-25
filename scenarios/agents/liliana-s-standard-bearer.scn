@@ -1,0 +1,19 @@
+scenario "draws for creatures that died under your control only" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Swamp", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Shock", "Murder", "Liliana's Standard Bearer"
+  library A: "Forest", "Island", "Plains", "Swamp"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting A "Grizzly Bears"
+  turn 1 precombat_main A: cast "Shock" targeting B "Grizzly Bears"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Liliana's Standard Bearer"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+scenario "draws nothing with none dead" {
+  battlefield A: 3 "Swamp"
+  hand A: "Liliana's Standard Bearer"
+  turn 1 precombat_main A: cast "Liliana's Standard Bearer"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

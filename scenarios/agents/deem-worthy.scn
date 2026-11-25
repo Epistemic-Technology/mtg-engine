@@ -1,0 +1,20 @@
+scenario "deem worthy deals 7" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Deem Worthy"
+  turn 1 precombat_main A: cast "Deem Worthy" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+scenario "deem worthy cycled deals 2" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Deem Worthy"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Deem Worthy"
+  turn 1 A: trigger "Deem Worthy" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Deem Worthy"
+}

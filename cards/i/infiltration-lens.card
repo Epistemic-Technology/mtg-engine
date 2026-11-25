@@ -1,0 +1,7 @@
+card "Infiltration Lens" {
+  oracle_id 72dfd729-ebba-4bb1-83eb-54c2051fea3b
+  cost {1}
+  type Artifact — Equipment
+  triggered whenever equipped creature becomes blocked by a creature: you may draw 2 cards
+  equip {1}
+}

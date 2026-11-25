@@ -1,0 +1,29 @@
+scenario "imskir: affinity and half the artifacts drawn and lost" {
+  battlefield A: 4 "Ornithopter", "Swamp", "Mountain", "Swamp", "Mountain"
+  hand A: "Imskir Iron-Eater"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Imskir Iron-Eater"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Imskir Iron-Eater"
+  assert hand A count 2
+  assert life A 18
+}
+
+scenario "imskir: sacrificing an artifact deals damage equal to its mana value" {
+  battlefield A: "Imskir Iron-Eater", "Gonti's Aether Heart", 4 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Imskir Iron-Eater" sacrificing "Gonti's Aether Heart" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert graveyard A contains "Gonti's Aether Heart"
+}
+
+scenario "imskir: three artifacts draws one" {
+  battlefield A: 3 "Ornithopter", "Swamp", "Mountain", "Swamp", "Mountain", "Swamp"
+  hand A: "Imskir Iron-Eater"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Imskir Iron-Eater"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 19
+}

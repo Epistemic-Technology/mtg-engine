@@ -1,0 +1,7 @@
+card "Mardu Woe-Reaper" {
+  oracle_id 636ed3e3-c31d-403a-a3e7-03e01350ce4f
+  cost {W}
+  type Creature — Human Warrior
+  pt 2/1
+  triggered whenever this or Warrior you control enters: you may exile target creature card from a graveyard; if you do, you gain 1 life
+}

@@ -1,0 +1,6 @@
+card "The Fall of Kroog" {
+  oracle_id bfd8d447-7253-40d0-a153-78e9700045d7
+  cost {4}{R}{R}
+  type Sorcery
+  spell: choose target opponent; destroy target land that player 1 controls; deal 3 damage to that target 1 and deal 1 damage to each creature they control
+}

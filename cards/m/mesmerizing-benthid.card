@@ -1,0 +1,8 @@
+card "Mesmerizing Benthid" {
+  oracle_id f36d3d87-5596-4c26-b8d0-f2979a166b57
+  cost {3}{U}{U}
+  type Creature — Octopus
+  pt 4/5
+  triggered whenever this enters: create 2 "0/2 blue Illusion creature that freezes what it blocks"
+  static this: has hexproof as long as you control Illusion
+}

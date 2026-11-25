@@ -1,0 +1,8 @@
+card "Rangers of Ithilien" {
+  oracle_id 4d5fd9f0-ecb3-4b91-ae55-f02336d7cf37
+  cost {2}{U}{U}
+  type Creature — Human Ranger
+  pt 3/3
+  keywords vigilance
+  triggered whenever this enters: gain control of up to 1 target creature with lesser power for as long as you control this; then the ring tempts you
+}

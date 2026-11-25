@@ -1,0 +1,6 @@
+card "Mistveil Plains" {
+  oracle_id bb5c1817-ac22-4779-9005-251bc354f181
+  type Land — Plains
+  enters tapped
+  activated {W}, {T}, if you control 2 white permanent: put target card from your graveyard on bottom of library
+}

@@ -1,0 +1,9 @@
+card "Angel of Condemnation" {
+  oracle_id 2317a33f-665e-4cbc-bb5c-16b912ac2eef
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying, vigilance
+  activated {2}{W}, {T}: exile another target creature; delayed target 1: return that card to battlefield at beginning of the next end step
+  activated {2}{W}, {T}, exert this: exile another target creature until this leaves
+}

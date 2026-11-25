@@ -1,0 +1,15 @@
+scenario "golden ratio draws per distinct power" {
+  hand A: "Golden Ratio"
+  battlefield A: 3 "Forest", "Island", "Island", 2 "Grizzly Bears", "Hill Giant", "Serra Angel"
+  battlefield B: "Wind Drake", "Wind Drake"
+  turn 1 A: cast "Golden Ratio"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+scenario "golden ratio with one creature draws one" {
+  hand A: "Golden Ratio"
+  battlefield A: 3 "Forest", "Island", "Island", "Grizzly Bears", "Grizzly Bears"
+  turn 1 A: cast "Golden Ratio"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}

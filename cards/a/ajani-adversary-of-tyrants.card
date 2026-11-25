@@ -1,0 +1,9 @@
+card "Ajani, Adversary of Tyrants" {
+  oracle_id b25bea73-7444-4ee2-8022-611461506117
+  cost {2}{W}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 4
+  loyalty +1: put 1 +1/+1 counter on up to 2 target creature
+  loyalty -2: return target creature card with mana value 2 or less from your graveyard to battlefield
+  loyalty -7: emblem "Ajani, Adversary of Tyrants emblem"
+}

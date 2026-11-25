@@ -1,0 +1,11 @@
+scenario "strength from the fallen counts your graveyard creatures" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Strength from the Fallen"
+  graveyard A: "Hill Giant", "Serra Angel", "Shock"
+  graveyard B: "Hill Giant"
+  turn 1 precombat_main A: cast "Strength from the Fallen"
+  turn 1 precombat_main A: trigger "Strength from the Fallen" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}

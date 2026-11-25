@@ -1,0 +1,19 @@
+scenario "expel from orazca bounces without the blessing" {
+  battlefield A: 2 "Island", 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Expel from Orazca"
+  turn 1 A: cast "Expel from Orazca" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+}
+scenario "expel from orazca tucks with the blessing" {
+  battlefield A: 2 "Island", 8 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Expel from Orazca"
+  turn 1 A: cast "Expel from Orazca" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B lacks "Grizzly Bears"
+  assert library B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+}

@@ -1,0 +1,6 @@
+card "Nissa's Defeat" {
+  oracle_id 5f808e3b-6b69-4b46-8a92-36d960527acc
+  cost {2}{G}
+  type Sorcery
+  spell: destroy target Forest or green enchantment or green planeswalker; if target 1 was Nissa planeswalker, draw 1 card
+}

@@ -1,0 +1,9 @@
+card "Phyrexian Dragon Engine" {
+  oracle_id 022b42a6-ee0f-4080-b973-c1b68938c3be
+  cost {3}
+  type Artifact Creature — Phyrexian Dragon
+  pt 2/2
+  keywords double strike
+  triggered when this enters from your graveyard: you may discard hand; if you do, draw 3 cards
+  unearth {3}{R}{R}
+}

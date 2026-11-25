@@ -1,0 +1,23 @@
+scenario "Iname puts every Spirit card from the library into the graveyard" {
+  battlefield A: 6 "Swamp"
+  hand A: "Iname, Death Aspect"
+  library A: "Accursed Spirit", "Grizzly Bears", "Apothecary Geist"
+  turn 1 precombat_main A: cast "Iname, Death Aspect"
+  turn 1 A: accept "Iname, Death Aspect"
+  turn 1 A: choose "Accursed Spirit"
+  turn 1 A: choose "Apothecary Geist"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Accursed Spirit"
+  assert graveyard A contains "Apothecary Geist"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "Iname's search may be declined" {
+  battlefield A: 6 "Swamp"
+  hand A: "Iname, Death Aspect"
+  library A: "Accursed Spirit", "Grizzly Bears"
+  turn 1 precombat_main A: cast "Iname, Death Aspect"
+  turn 1 A: decline "Iname, Death Aspect"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Accursed Spirit"
+}

@@ -1,0 +1,7 @@
+card "Forbidding Watchtower" {
+  oracle_id cabf7953-0fac-4dbb-b3ae-05e85e02b3fc
+  type Land
+  enters tapped
+  activated {T}: add {W}
+  activated {1}{W}: this becomes 1/5 white Soldier creature until end of turn
+}

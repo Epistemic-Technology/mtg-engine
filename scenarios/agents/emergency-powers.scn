@@ -1,0 +1,12 @@
+scenario "no addendum outside a main phase" {
+  battlefield A: "Plains", "Island", 5 "Forest"
+  hand A: "Emergency Powers"
+  graveyard A: "Lightning Bolt"
+  library A: 10 "Grizzly Bears"
+  turn 1 end A: cast "Emergency Powers"
+  run_to turn 2 upkeep
+  assert hand A count 7
+  assert hand B count 7
+  assert graveyard A lacks "Lightning Bolt"
+  assert exile A contains "Emergency Powers"
+}

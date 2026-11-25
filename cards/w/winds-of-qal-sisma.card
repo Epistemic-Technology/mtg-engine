@@ -1,0 +1,9 @@
+card "Winds of Qal Sisma" {
+  oracle_id e7871b4d-a408-4377-beee-6b1d3c7dd57d
+  cost {1}{G}
+  type Instant
+  spell {
+    prevent all combat damage this turn
+    label "Ferocious" if you control creature with power 4 or greater, instead prevent all combat damage this turn from creature your opponents control
+  }
+}

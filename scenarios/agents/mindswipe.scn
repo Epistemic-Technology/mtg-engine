@@ -1,0 +1,25 @@
+scenario "mindswipe counters when unable to pay and deals X damage" {
+  hand A: "Mindswipe"
+  battlefield A: "Island", "Mountain", 2 "Island"
+  hand B: "Grizzly Bears"
+  battlefield B: 2 "Forest"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Mindswipe" x 2 targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+  assert life A 20
+}
+scenario "mindswipe still deals damage when the controller pays" {
+  hand A: "Mindswipe"
+  battlefield A: "Island", "Mountain", 2 "Island"
+  hand B: "Grizzly Bears"
+  battlefield B: 4 "Forest"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Mindswipe" x 2 targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 18
+}

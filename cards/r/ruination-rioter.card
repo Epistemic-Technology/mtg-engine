@@ -1,0 +1,7 @@
+card "Ruination Rioter" {
+  oracle_id 8b3cec74-0d32-4762-b3e0-3f4e5eb6f179
+  cost {R}{G}
+  type Creature — Human Berserker
+  pt 2/2
+  triggered when this dies: you may deal count equal graveyard land damage to any target
+}

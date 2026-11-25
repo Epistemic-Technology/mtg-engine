@@ -1,0 +1,15 @@
+card "Driven // Despair" {
+  oracle_id 87fca901-678d-4c9a-be4a-9dce2a53074b
+  layout split
+  face "Driven" {
+    cost {1}{G}
+    type Sorcery
+    spell: until end of turn, each creature you control gains trample and gains ability { triggered whenever this deals combat damage to a player: draw 1 card }
+  }
+  face "Despair" {
+    cost {1}{B}
+    type Sorcery
+    keywords aftermath
+    spell: until end of turn, each creature you control gains menace and gains ability { triggered whenever this deals combat damage to a player: that player discards 1 card }
+  }
+}

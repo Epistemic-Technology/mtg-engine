@@ -1,0 +1,8 @@
+card "Foundry Hornet" {
+  oracle_id e5342529-dc1a-4ebb-a0fd-843e01147402
+  cost {3}{B}
+  type Creature — Insect
+  pt 2/3
+  keywords flying
+  triggered whenever this enters if you control creature with +1/+1 counter: each creature your opponents control gets -1/-1
+}

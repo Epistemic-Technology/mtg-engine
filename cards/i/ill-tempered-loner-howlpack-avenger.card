@@ -1,0 +1,18 @@
+card "Ill-Tempered Loner // Howlpack Avenger" {
+  oracle_id 6e0b3317-394d-42cc-a350-cb5ce051787a
+  layout transform
+  cost {2}{R}{R}
+  type Creature — Human Werewolf
+  pt 3/3
+  triggered whenever this is dealt damage: it deals that much damage to any target
+  activated {1}{R}: this gets +2/+0 until end of turn
+  daybound
+  face "Howlpack Avenger" {
+    type Creature — Werewolf
+    pt 4/4
+    color red
+    triggered whenever permanent you control is dealt damage: this deals that much damage to any target
+    activated {1}{R}: this gets +2/+0 until end of turn
+    nightbound
+  }
+}

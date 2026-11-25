@@ -1,0 +1,11 @@
+scenario "witchstalker grows on opponent black spell on my turn, not red; hexproof" {
+  battlefield A: "Witchstalker", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Swamp", "Swamp", "Swamp", "Mountain"
+  hand B: "Murder", "Lightning Bolt"
+  illegal turn 1 precombat_main B: cast "Murder" targeting "Witchstalker"
+  turn 1 precombat_main B: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 precombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Witchstalker" +1/+1 1
+  assert power "Witchstalker" 4
+}

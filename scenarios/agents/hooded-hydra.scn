@@ -1,0 +1,25 @@
+scenario "hooded hydra: dies into a Snake per counter" {
+  battlefield A: 5 "Forest"
+  battlefield B: 3 "Swamp"
+  hand A: "Hooded Hydra"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hooded Hydra" x 3
+  turn 1 A: wait
+  turn 1 end B: cast "Murder" targeting "Hooded Hydra"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Hooded Hydra"
+  assert battlefield A contains 3 "Snake"
+}
+
+scenario "hooded hydra: turned face up gets five counters" {
+  battlefield A: 8 "Forest"
+  hand A: "Hooded Hydra"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hooded Hydra" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Hooded Hydra"
+  run_to turn 1 postcombat_main
+  assert power "Hooded Hydra" 5
+  assert counters "Hooded Hydra" +1/+1 5
+}

@@ -1,0 +1,17 @@
+scenario "Idle Thoughts draws with an empty hand" {
+  battlefield A: "Idle Thoughts", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Idle Thoughts"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Idle Thoughts does not draw with cards in hand" {
+  battlefield A: "Idle Thoughts", 2 "Island"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Idle Thoughts"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Forest"
+}

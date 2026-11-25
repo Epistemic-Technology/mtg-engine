@@ -1,0 +1,7 @@
+card "Hagra Diabolist" {
+  oracle_id 5e2c1e0e-0a10-416a-9b50-96ee0cbbc24e
+  cost {4}{B}
+  type Creature — Ogre Shaman Ally
+  pt 3/2
+  triggered whenever this or Ally you control enters: you may target player loses count equal Ally you control life
+}

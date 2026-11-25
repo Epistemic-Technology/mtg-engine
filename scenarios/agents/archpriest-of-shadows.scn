@@ -1,0 +1,20 @@
+scenario "Archpriest of Shadows reanimates on combat damage to a player" {
+  battlefield A: "Archpriest of Shadows"
+  graveyard A: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Archpriest of Shadows"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Hill Giant"
+  assert has "Archpriest of Shadows" deathtouch
+}
+
+scenario "Archpriest of Shadows backup counter on another creature grants deathtouch this turn" {
+  battlefield A: "Grizzly Bears", 3 "Swamp", 2 "Swamp"
+  hand A: "Archpriest of Shadows"
+  turn 1 precombat_main A: cast "Archpriest of Shadows"
+  turn 1 A: trigger "Archpriest of Shadows" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" deathtouch
+}

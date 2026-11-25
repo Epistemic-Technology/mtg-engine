@@ -1,0 +1,8 @@
+card "Serra Avatar" {
+  oracle_id c363725f-15cf-4955-aaf1-536b1f8daaed
+  cost {4}{W}{W}{W}
+  type Creature — Avatar
+  short_name "Serra Avatar"
+  static this: cda noun pt your life
+  triggered whenever this is put into a graveyard from anywhere: shuffle this into library
+}

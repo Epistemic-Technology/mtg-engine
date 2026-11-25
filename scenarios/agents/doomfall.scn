@@ -1,0 +1,25 @@
+scenario "Doomfall mode 1 makes the opponent exile a creature" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Doomfall"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doomfall" mode 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard A contains "Doomfall"
+}
+
+scenario "Doomfall mode 2 exiles a nonland card from their hand" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Doomfall"
+  hand B: "Forest", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doomfall" mode 2 targeting player B
+  turn 1 precombat_main A: discard "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert hand B contains "Serra Angel"
+  assert hand B contains "Forest"
+  assert battlefield B contains "Grizzly Bears"
+}

@@ -1,0 +1,33 @@
+scenario "Kraul Harpooner's pump from the graveyard lets it kill a flier" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Serra Angel"
+  graveyard A: "Grizzly Bears"
+  hand A: "Kraul Harpooner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kraul Harpooner"
+  run_to turn 1 declare_attackers
+  assert battlefield B lacks "Serra Angel"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Kraul Harpooner without graveyard creatures cannot kill a Serra Angel" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Kraul Harpooner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kraul Harpooner"
+  run_to turn 1 declare_attackers
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+}
+
+scenario "Kraul Harpooner needs a flier to fight" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Kraul Harpooner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kraul Harpooner"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Kraul Harpooner"
+  assert damage "Hill Giant" 0
+}

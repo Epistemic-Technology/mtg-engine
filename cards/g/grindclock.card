@@ -1,0 +1,7 @@
+card "Grindclock" {
+  oracle_id 6b7de1c0-4b97-47e1-8ea7-ba55a8d16a9b
+  cost {2}
+  type Artifact
+  activated {T}: put 1 charge counter on this
+  activated {T}: target player mills count where charge counters on this cards
+}

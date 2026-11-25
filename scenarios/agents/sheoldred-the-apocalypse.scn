@@ -1,0 +1,18 @@
+scenario "Sheoldred drain on opponent draw, gain on own draw" {
+  battlefield A: "Sheoldred, the Apocalypse"
+  battlefield B: 3 "Island"
+  hand B: "Divination"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Divination"
+  run_to turn 1 end
+  assert life B 16
+  assert life A 20
+}
+scenario "Sheoldred gains 2 per own draw" {
+  battlefield A: "Sheoldred, the Apocalypse", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert life A 24
+}

@@ -1,0 +1,8 @@
+scenario "hellraiser goblin gives haste and forces attacks" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Hellraiser Goblin"
+  turn 1 A: cast "Hellraiser Goblin"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert tapped "Grizzly Bears"
+}

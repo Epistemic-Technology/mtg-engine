@@ -1,0 +1,8 @@
+card "Rotwidow Pack" {
+  oracle_id 27b5d9d8-cc19-46be-9862-405cf7ef5408
+  cost {2}{B}{G}
+  type Creature — Spider
+  pt 2/4
+  keywords reach
+  activated {3}{B}{G}, exile creature card from graveyard: create 1 "1/2 green Spider creature with reach" then each opponent loses count each Spider you control life
+}

@@ -1,0 +1,25 @@
+scenario "Bill Ferny: blocked, make a Treasure" {
+  battlefield A: "Bill Ferny, Bree Swindler"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Bill Ferny, Bree Swindler"
+  turn 1 B: block "Bill Ferny, Bree Swindler" with "Hill Giant"
+  turn 1 declare_blockers A: trigger "Bill Ferny, Bree Swindler" mode 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Treasure"
+  assert graveyard A contains "Bill Ferny, Bree Swindler"
+}
+
+scenario "Bill Ferny: give away a Horse, leave combat, three Treasures" {
+  battlefield A: "Bill Ferny, Bree Swindler", "Zodiac Horse"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Bill Ferny, Bree Swindler"
+  turn 1 B: block "Bill Ferny, Bree Swindler" with "Hill Giant"
+  turn 1 declare_blockers A: trigger "Bill Ferny, Bree Swindler" mode 2 targeting player B, "Zodiac Horse"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Zodiac Horse"
+  assert battlefield A contains 3 "Treasure"
+  assert battlefield A contains "Bill Ferny, Bree Swindler"
+  assert damage "Bill Ferny, Bree Swindler" 0
+}

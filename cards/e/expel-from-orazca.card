@@ -1,0 +1,7 @@
+card "Expel from Orazca" {
+  oracle_id a6e12be3-4166-4bd7-8254-e28b7c8588c7
+  cost {1}{U}
+  type Instant
+  ascend
+  spell: return target nonland permanent to hand; if city's blessing, you may put that target 1 on top of library instead
+}

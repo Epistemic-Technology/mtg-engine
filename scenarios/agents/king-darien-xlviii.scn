@@ -1,0 +1,23 @@
+scenario "anthem, pump and token" {
+  battlefield A: "King Darien XLVIII", "Grizzly Bears", "Forest", "Plains", 3 "Mountain"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "King Darien XLVIII" 2
+  turn 1 precombat_main A: activate "King Darien XLVIII"
+  run_to turn 1 combat_damage
+  assert counters "King Darien XLVIII" +1/+1 1
+  assert power "King Darien XLVIII" 3
+  assert battlefield A contains "Soldier"
+  assert power "Soldier" 2
+  assert power "Grizzly Bears" 3
+}
+scenario "sacrifice gives tokens hexproof and indestructible" {
+  battlefield A: "King Darien XLVIII", "Grizzly Bears", "Soldier"
+  turn 1 precombat_main A: activate "King Darien XLVIII"
+  run_to turn 1 combat_damage
+  assert graveyard A contains "King Darien XLVIII"
+  assert has "Soldier" hexproof
+  assert has "Soldier" indestructible
+  assert has not "Grizzly Bears" hexproof
+}

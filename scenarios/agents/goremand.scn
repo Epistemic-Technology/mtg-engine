@@ -1,0 +1,22 @@
+scenario "Goremand sacrifices a creature to cast and makes the opponent sacrifice" {
+  battlefield A: "Grizzly Bears", "Swamp", "Swamp", "Swamp", "Swamp", "Swamp", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Goremand"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goremand" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Goremand"
+  assert graveyard B contains "Hill Giant"
+  assert has "Goremand" flying
+  assert has "Goremand" trample
+}
+
+scenario "Goremand cannot be cast with nothing to sacrifice" {
+  battlefield A: "Swamp", "Swamp", "Swamp", "Swamp", "Swamp", "Swamp"
+  hand A: "Goremand"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Goremand"
+  run_to turn 1 begin_combat
+  assert hand A contains "Goremand"
+}

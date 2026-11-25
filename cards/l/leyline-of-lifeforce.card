@@ -1,0 +1,7 @@
+card "Leyline of Lifeforce" {
+  oracle_id 997478aa-b790-4269-a626-abf0cb30fea0
+  cost {2}{G}{G}
+  type Enchantment
+  opening hand
+  spells creature can't be countered
+}

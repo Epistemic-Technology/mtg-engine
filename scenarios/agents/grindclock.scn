@@ -1,0 +1,16 @@
+scenario "grindclock: counters accumulate, then mill that many" {
+  battlefield A: "Grindclock" with 3 charge
+  library B: "Forest", "Forest", "Forest", "Island", "Island"
+  turn 1 A: activate "Grindclock" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert library B count 2
+  assert counters "Grindclock" charge 3
+}
+
+scenario "grindclock: first ability adds a charge counter" {
+  battlefield A: "Grindclock" with 1 charge
+  turn 1 A: activate "Grindclock" ability 1
+  run_to turn 1 postcombat_main
+  assert counters "Grindclock" charge 2
+}

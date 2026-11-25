@@ -1,0 +1,15 @@
+card "Daring Sleuth // Bearer of Overwhelming Truths" {
+  oracle_id 69ca69c7-403b-4b5d-be08-d9dce8ce410e
+  layout transform
+  cost {1}{U}
+  type Creature — Human Rogue
+  pt 2/1
+  triggered when you sacrifice Clue: transform this
+  face "Bearer of Overwhelming Truths" {
+    type Creature — Human Wizard
+    pt 3/2
+    color blue
+    keywords prowess
+    triggered whenever this deals combat damage to a player: investigate
+  }
+}

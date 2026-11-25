@@ -1,0 +1,18 @@
+scenario "Bontu can't attack until a creature died under your control" {
+  battlefield A: "Bontu the Glorified"
+  start turn 1 A declare_attackers
+  illegal turn 1 A: attack "Bontu the Glorified"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Bontu drains for a sacrificed creature and then may attack" {
+  battlefield A: "Bontu the Glorified", "Grizzly Bears", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bontu the Glorified" sacrificing "Grizzly Bears"
+  turn 1 A: attack "Bontu the Glorified"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 21
+  assert life B 15
+}

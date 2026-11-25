@@ -1,0 +1,14 @@
+card "Crime // Punishment" {
+  oracle_id c3df3574-c4da-415f-a56b-807ed8e41d73
+  layout split
+  face "Crime" {
+    cost {3}{W}{B}
+    type Sorcery
+    spell: put target creature or enchantment card from an opponent's graveyard onto battlefield under your control
+  }
+  face "Punishment" {
+    cost {X}{B}{G}
+    type Sorcery
+    spell: destroy each single andlist artifact or creature or enchantment with mana value X
+  }
+}

@@ -1,0 +1,12 @@
+scenario "demigod returns all copies from graveyard when cast" {
+  battlefield A: 5 "Swamp"
+  hand A: "Demigod of Revenge"
+  graveyard A: 2 "Demigod of Revenge", "Grizzly Bears"
+  turn 1 A: cast "Demigod of Revenge"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Demigod of Revenge"
+  assert graveyard A lacks "Demigod of Revenge"
+  assert graveyard A contains "Grizzly Bears"
+  assert has newest A "Demigod of Revenge" flying
+  assert has newest A "Demigod of Revenge" haste
+}

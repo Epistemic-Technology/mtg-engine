@@ -1,0 +1,6 @@
+card "Turn to Frog" {
+  oracle_id 74c4c1e2-c50d-4c8f-889a-0d5674dc6d67
+  cost {1}{U}
+  type Instant
+  spell: until end of turn, target creature loses all abilities and becomes blue Frog base 1/1
+}

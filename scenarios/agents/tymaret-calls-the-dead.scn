@@ -1,0 +1,30 @@
+scenario "chapter I mills three and exiles a creature card for a Zombie" {
+  battlefield A: 3 "Swamp"
+  hand A: "Tymaret Calls the Dead"
+  library A: "Grizzly Bears", "Island", "Island", "Island", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Tymaret Calls the Dead"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 2
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A contains 1 "Zombie"
+}
+
+scenario "no creature or enchantment in the milled cards: no Zombie" {
+  battlefield A: 3 "Swamp"
+  hand A: "Tymaret Calls the Dead"
+  library A: "Island", "Island", "Island", "Island", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Tymaret Calls the Dead"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+  assert battlefield A contains 0 "Zombie"
+}
+
+scenario "chapter III: gain X life where X is the number of Zombies" {
+  battlefield A: 3 "Swamp"
+  hand A: "Tymaret Calls the Dead"
+  library A: "Grizzly Bears", "Island", "Island", "Island", "Hill Giant", "Island", "Island", "Island", "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Tymaret Calls the Dead"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains 2 "Zombie"
+  assert life A 22
+}

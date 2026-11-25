@@ -1,0 +1,8 @@
+card "Draining Whelk" {
+  oracle_id 8ce7f05c-6352-49e8-95b3-8ab87106b75e
+  cost {4}{U}{U}
+  type Creature — Illusion
+  pt 1/1
+  keywords flash, flying
+  triggered whenever this enters: counter target spell; put count where mana value of that target 1 +1/+1 counters on this creature
+}

@@ -1,0 +1,8 @@
+card "Ravenous Squirrel" {
+  oracle_id 8fb48d65-406b-4231-83ea-9cf3bb8dff76
+  cost {B/G}
+  type Creature — Squirrel
+  pt 1/1
+  triggered whenever you sacrifice artifact or creature: put 1 +1/+1 counter on this
+  activated {1}{B}{G}, sacrifice artifact or creature: you gain 1 life and draw 1 card
+}

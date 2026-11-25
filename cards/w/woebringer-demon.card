@@ -1,0 +1,8 @@
+card "Woebringer Demon" {
+  oracle_id 21ea9501-9a0f-43a3-a2cc-e9648325c45e
+  cost {3}{B}{B}
+  type Creature — Demon
+  pt 4/4
+  keywords flying
+  triggered at beginning of each upkeep step: that player sacrifices 1 creature of their choice; if the player can't, sacrifice this
+}

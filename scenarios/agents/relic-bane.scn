@@ -1,0 +1,21 @@
+scenario "Relic Bane drains the artifact's controller each upkeep" {
+  battlefield A: "Sol Ring"
+  battlefield B: "Sol Ring"
+  hand A: "Relic Bane", "Swamp"
+  battlefield A: 3 "Swamp"
+  start turn 1 A
+  turn 1 A: cast "Relic Bane" targeting B "Sol Ring"
+  run_to turn 2 draw
+  assert life B 18
+  assert life A 20
+  run_to turn 3 draw
+  assert life A 20
+  assert life B 18
+}
+scenario "Relic Bane on your own artifact" {
+  battlefield A: "Sol Ring", "Relic Bane" on "Sol Ring"
+  start turn 2 B
+  run_to turn 3 draw
+  assert life A 18
+  assert life B 20
+}

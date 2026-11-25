@@ -1,0 +1,8 @@
+card "Blue Dragon" {
+  oracle_id 1d00e54a-5897-43dc-9c38-a0e2ce6a7433
+  cost {5}{U}{U}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  label "Lightning Breath" triggered whenever this enters: until your next turn, target creature an opponent controls gets -3/-0, up to 1 another target creature gets -2/-0, and up to 1 another target creature gets -1/-0
+}

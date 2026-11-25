@@ -1,0 +1,9 @@
+scenario "time of heroes pumps leveled creatures" {
+  battlefield A: "Time of Heroes", "Grizzly Bears" with 1 level, "Hill Giant"
+  battlefield B: "Serra Angel" with 2 level
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+  assert power "Serra Angel" 4
+}

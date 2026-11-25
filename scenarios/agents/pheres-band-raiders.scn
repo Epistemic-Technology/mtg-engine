@@ -1,0 +1,16 @@
+scenario "raiders untap trigger pay for centaur" {
+  battlefield A: "Pheres-Band Raiders" tapped, 3 "Forest"
+  start turn 1 A untap
+  turn 1 upkeep A: accept "Pheres-Band Raiders"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Centaur"
+  assert power "Centaur" 3
+  assert is "Centaur" enchantment
+}
+scenario "raiders untap decline" {
+  battlefield A: "Pheres-Band Raiders" tapped, 3 "Forest"
+  start turn 1 A untap
+  turn 1 upkeep A: decline "Pheres-Band Raiders"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Centaur"
+}

@@ -1,0 +1,8 @@
+card "Emeria Captain" {
+  oracle_id 151cafcb-a589-4681-a914-7313246a7626
+  cost {3}{W}
+  type Creature — Angel Warrior
+  pt 1/1
+  keywords flying, vigilance
+  triggered when this enters: put count each party +1/+1 counters on this
+}

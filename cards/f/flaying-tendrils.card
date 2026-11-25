@@ -1,0 +1,7 @@
+card "Flaying Tendrils" {
+  oracle_id cc2d016a-af44-427b-a25a-593274369449
+  cost {1}{B}{B}
+  type Sorcery
+  keywords devoid
+  spell: each creature gets -2/-2 until end of turn; this turn, replace creature dies: exile
+}

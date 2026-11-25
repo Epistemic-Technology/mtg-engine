@@ -1,0 +1,7 @@
+card "Tymaret Calls the Dead" {
+  oracle_id 1d09ebb7-c4c9-4bb7-b6bf-3c8330b954e8
+  cost {2}{B}
+  type Enchantment — Saga
+  triggered chapter 1, 2: mill 3 cards; then you may exile 1 creature or enchantment card from your graveyard chosen; if you do, create 1 "2/2 black Zombie creature"
+  triggered chapter 3: you gain count where Zombie you control life and you scry count where Zombie you control
+}

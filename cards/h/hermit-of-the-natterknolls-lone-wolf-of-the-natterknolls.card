@@ -1,0 +1,16 @@
+card "Hermit of the Natterknolls // Lone Wolf of the Natterknolls" {
+  oracle_id 6d32f688-a854-4d82-b654-d720b93fb766
+  layout transform
+  cost {2}{G}
+  type Creature — Human Werewolf
+  pt 2/3
+  triggered whenever an opponent casts spell during your turn: draw 1 card
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Lone Wolf of the Natterknolls" {
+    type Creature — Werewolf
+    pt 3/5
+    color green
+    triggered whenever an opponent casts spell during your turn: draw 2 cards
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

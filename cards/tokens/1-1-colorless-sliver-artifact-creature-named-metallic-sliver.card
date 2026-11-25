@@ -1,0 +1,5 @@
+token "1/1 colorless Sliver artifact creature named Metallic Sliver" {
+  name "Metallic Sliver"
+  type Artifact Creature — Sliver
+  pt 1/1
+}

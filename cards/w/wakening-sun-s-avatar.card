@@ -1,0 +1,7 @@
+card "Wakening Sun's Avatar" {
+  oracle_id 3c2aec69-ffd9-4a34-888c-58adbbb99bb5
+  cost {5}{W}{W}{W}
+  type Creature — Dinosaur Avatar
+  pt 7/7
+  triggered when this enters if cast from hand: destroy all non-Dinosaur creature
+}

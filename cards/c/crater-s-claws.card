@@ -1,0 +1,9 @@
+card "Crater's Claws" {
+  oracle_id b8cf8614-14f4-4c20-9697-2e5ea34e0039
+  cost {X}{R}
+  type Sorcery
+  spell {
+    deal X damage to any target
+    label "Ferocious" deal X plus 2 damage instead if you control creature with power 4 or greater
+  }
+}

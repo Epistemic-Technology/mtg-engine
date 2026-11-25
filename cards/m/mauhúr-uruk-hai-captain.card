@@ -1,0 +1,8 @@
+card "Mauhúr, Uruk-hai Captain" {
+  oracle_id 9966cac0-331f-4627-be5a-5060a6ac5a32
+  cost {B}{R}
+  type Legendary Creature — Orc Soldier
+  pt 2/2
+  keywords menace
+  replace +1/+1 counters put on Army or Goblin or Orc you control: plus one
+}

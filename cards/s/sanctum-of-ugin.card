@@ -1,0 +1,6 @@
+card "Sanctum of Ugin" {
+  oracle_id 72cb5dcd-9b24-435c-921a-3766108374c4
+  type Land
+  mana {C}
+  triggered whenever you cast colorless with mana value 7 or greater spell: you may sacrifice this; if you do, search creature colorless card reveal to hand
+}

@@ -1,0 +1,32 @@
+scenario "Winds of Qal Sisma without ferocious prevents all combat damage" {
+  battlefield A: "Grizzly Bears", "Plains", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Winds of Qal Sisma"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winds of Qal Sisma"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Winds of Qal Sisma with ferocious only stops the opponents' creatures" {
+  battlefield A: "Serra Angel", "Plains", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Winds of Qal Sisma"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Winds of Qal Sisma"
+  turn 1 A: attack "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Winds of Qal Sisma with ferocious stops an opposing attacker" {
+  battlefield A: "Serra Angel", "Plains", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Winds of Qal Sisma"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Winds of Qal Sisma"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}

@@ -1,0 +1,9 @@
+card "Sheoldred, the Apocalypse" {
+  oracle_id 34f34409-326d-4994-a0ea-1a69aa278f03
+  cost {2}{B}{B}
+  type Legendary Creature — Phyrexian Praetor
+  pt 4/5
+  keywords deathtouch
+  triggered whenever you draw a card: you gain 2 life
+  triggered whenever an opponent draws a card: they lose 2 life
+}

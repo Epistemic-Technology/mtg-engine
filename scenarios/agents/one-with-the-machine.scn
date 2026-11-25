@@ -1,0 +1,17 @@
+scenario "One with the Machine draws the greatest artifact mana value" {
+  battlefield A: 4 "Island", "Juggernaut", "Sol Ring"
+  hand A: "One with the Machine"
+  start turn 1 A precombat_main
+  turn 1 A: cast "One with the Machine"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+}
+
+scenario "One with the Machine draws nothing without artifacts" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  hand A: "One with the Machine"
+  start turn 1 A precombat_main
+  turn 1 A: cast "One with the Machine"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

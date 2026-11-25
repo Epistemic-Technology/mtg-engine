@@ -1,0 +1,7 @@
+card "Astral Cornucopia" {
+  oracle_id 1bc42024-52da-4d93-8b47-544f0a4a72a1
+  cost {X}{X}{X}
+  type Artifact
+  enters with X charge counters
+  activated {T}: add chosen count each charge counters on this
+}

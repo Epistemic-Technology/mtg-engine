@@ -1,0 +1,8 @@
+card "Neko-Te" {
+  oracle_id a1d2944e-6668-4157-aac5-54572759c05c
+  cost {3}
+  type Artifact — Equipment
+  triggered whenever equipped deals damage to creature: tap that creature; that creature gains doesn't untap for as long as this remains
+  triggered whenever equipped deals damage to player: that player loses 1 life
+  equip {2}
+}

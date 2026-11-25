@@ -1,0 +1,7 @@
+card "Creeping Tar Pit" {
+  oracle_id 250cb58b-2924-4dff-92fe-ac0ebbbeb218
+  type Land
+  enters tapped
+  activated {T}: add {U} or {B}
+  activated {1}{U}{B}: until end of turn, this becomes 3/2 blue black Elemental creature; this gains can't be blocked
+}

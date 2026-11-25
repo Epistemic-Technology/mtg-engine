@@ -1,0 +1,10 @@
+scenario "Kresh gets counters equal to the dead creature's power" {
+  battlefield A: "Kresh the Bloodbraided", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Kresh the Bloodbraided" +1/+1 3
+  assert power "Kresh the Bloodbraided" 6
+}

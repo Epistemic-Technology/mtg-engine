@@ -1,0 +1,12 @@
+scenario "avatar cast from hand destroys non-Dinosaurs including your own" {
+  battlefield A: 8 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions", "Alpha Tyrranax"
+  hand A: "Wakening Sun's Avatar"
+  turn 1 precombat_main A: cast "Wakening Sun's Avatar"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wakening Sun's Avatar"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Savannah Lions"
+  assert battlefield B contains "Alpha Tyrranax"
+}

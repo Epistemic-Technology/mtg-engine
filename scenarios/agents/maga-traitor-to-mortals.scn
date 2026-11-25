@@ -1,0 +1,21 @@
+scenario "Maga enters with X counters and drains X" {
+  battlefield A: 6 "Swamp"
+  hand A: "Maga, Traitor to Mortals"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Maga, Traitor to Mortals" x 3
+  turn 1 precombat_main A: trigger "Maga, Traitor to Mortals" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Maga, Traitor to Mortals" +1/+1 3
+  assert power "Maga, Traitor to Mortals" 3
+  assert life B 17
+}
+
+scenario "Maga with X 1 drains 1" {
+  battlefield A: 4 "Swamp"
+  hand A: "Maga, Traitor to Mortals"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Maga, Traitor to Mortals" x 1
+  turn 1 precombat_main A: trigger "Maga, Traitor to Mortals" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

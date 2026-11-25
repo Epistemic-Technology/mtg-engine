@@ -1,0 +1,16 @@
+scenario "enchanted creature returns when it dies and toxic" {
+  battlefield A: "Grizzly Bears", "Necrogen Communion" on "Grizzly Bears", 3 "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert graveyard A contains "Necrogen Communion"
+  assert graveyard A lacks "Grizzly Bears"
+}
+scenario "toxic from aura" {
+  battlefield A: "Grizzly Bears", "Necrogen Communion" on "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert poison B 2
+  assert life B 18
+}

@@ -1,0 +1,7 @@
+card "Font of Progress" {
+  oracle_id ec1fcec2-ba7a-44d7-b251-22a7cd417493
+  cost {U}
+  type Artifact
+  enters with 2 oil counters
+  activated {3}, {T}: target player mills count where oil counters on this cards
+}

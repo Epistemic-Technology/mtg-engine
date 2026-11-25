@@ -1,0 +1,26 @@
+scenario "pashalik mons sacrifice a goblin for two tokens and a ping" {
+  battlefield A: "Pashalik Mons", "Hellraiser Goblin", 4 "Mountain"
+  turn 1 A: activate "Pashalik Mons" sacrificing "Hellraiser Goblin"
+  turn 1 A: trigger "Pashalik Mons" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Goblin"
+  assert graveyard A contains "Hellraiser Goblin"
+  assert life B 19
+}
+scenario "pashalik mons pings when it dies itself" {
+  battlefield A: "Pashalik Mons", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Pashalik Mons"
+  turn 1 A: trigger "Pashalik Mons" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Pashalik Mons"
+  assert life B 19
+}
+scenario "pashalik mons does not trigger for a non-goblin" {
+  battlefield A: "Pashalik Mons", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert stack count 0
+}

@@ -1,0 +1,11 @@
+card "Titania's Command" {
+  oracle_id 7aae0a3d-8882-4485-a126-f06ea6593dcb
+  cost {4}{G}{G}
+  type Sorcery
+  choose two {
+    mode: exile graveyard of target player; you gain count each 1 exiled this way life
+    mode: search up to 2 land card to battlefield tapped
+    mode: create 2 "2/2 green Bear creature"
+    mode: put 2 +1/+1 counters on each creature you control
+  }
+}

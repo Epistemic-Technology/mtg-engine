@@ -1,0 +1,22 @@
+scenario "tangled skyline gains 5 life, incubates 5, and Phyrexians get reach" {
+  battlefield A: 10 "Forest"
+  hand A: "Tangled Skyline"
+  turn 1 precombat_main A: cast "Tangled Skyline"
+  turn 1 precombat_main A: activate "Incubator"
+  run_to turn 1 postcombat_main
+  assert life A 25
+  assert battlefield A contains "Tangled Skyline"
+  assert counters "Phyrexian Token" +1/+1 5
+  assert is "Phyrexian Token" "Phyrexian"
+  assert has "Phyrexian Token" reach
+  assert power "Phyrexian Token" 5
+}
+scenario "an untransformed Incubator is not a Phyrexian and has no reach" {
+  battlefield A: 5 "Forest"
+  hand A: "Tangled Skyline"
+  turn 1 precombat_main A: cast "Tangled Skyline"
+  run_to turn 1 postcombat_main
+  assert counters "Incubator" +1/+1 5
+  assert has not "Incubator" reach
+  assert life A 25
+}

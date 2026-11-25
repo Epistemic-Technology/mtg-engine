@@ -1,0 +1,28 @@
+scenario "Orthion copies a creature with haste and sacrifices it at end step" {
+  battlefield A: "Orthion, Hero of Lavabrink", "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Orthion, Hero of Lavabrink" ability 1 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert life B 18
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Orthion's big ability makes five hasty copies" {
+  battlefield A: "Orthion, Hero of Lavabrink", "Grizzly Bears", 9 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Orthion, Hero of Lavabrink" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Orthion cannot copy itself" {
+  battlefield A: "Orthion, Hero of Lavabrink", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Orthion, Hero of Lavabrink" ability 1 targeting "Orthion, Hero of Lavabrink"
+  run_to turn 1 postcombat_main
+}

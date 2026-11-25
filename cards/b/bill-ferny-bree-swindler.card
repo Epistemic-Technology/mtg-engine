@@ -1,0 +1,10 @@
+card "Bill Ferny, Bree Swindler" {
+  oracle_id ebbe5d82-a7a4-4f4b-b038-095021d9a6a8
+  cost {1}{U}
+  type Legendary Creature — Human Rogue
+  pt 2/1
+  triggered whenever this becomes blocked: choose one {
+    mode: create 1 "Treasure"
+    mode: target opponent gains control of target Horse you control; if you do, remove this from combat and create 3 "Treasure"
+  }
+}

@@ -1,0 +1,8 @@
+card "Rhys the Redeemed" {
+  oracle_id f7252190-ad24-4ba3-a644-2790dd1d680d
+  cost {G/W}
+  type Legendary Creature — Elf Warrior
+  pt 1/1
+  activated {2}{G/W}, {T}: create 1 "1/1 green and white Elf Warrior creature"
+  activated {4}{G/W}{G/W}, {T}: create token copy of each creature token you control
+}

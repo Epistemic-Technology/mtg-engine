@@ -1,0 +1,36 @@
+scenario "black creatures entering drain, others do not" {
+  battlefield A: "Ayara, First of Locthwain", 6 "Swamp"
+  hand A: "Typhoid Rats", "Grizzly Bears"
+  battlefield A: "Forest"
+  turn 1 precombat_main A: cast "Typhoid Rats"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert life B 19
+  assert life A 21
+}
+scenario "ayara entering drains too" {
+  hand A: "Ayara, First of Locthwain"
+  battlefield A: 3 "Swamp"
+  turn 1 precombat_main A: cast "Ayara, First of Locthwain"
+  run_to turn 1 begin_combat
+  assert life B 19
+  assert life A 21
+}
+scenario "sacrifice another black creature to draw" {
+  battlefield A: "Ayara, First of Locthwain", "Typhoid Rats"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Ayara, First of Locthwain" sacrificing "Typhoid Rats"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Typhoid Rats"
+  assert hand A count 1
+  assert tapped "Ayara, First of Locthwain"
+}
+scenario "cannot sacrifice itself or nonblack" {
+  battlefield A: "Ayara, First of Locthwain", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 precombat_main A: activate "Ayara, First of Locthwain" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}

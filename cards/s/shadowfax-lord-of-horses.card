@@ -1,0 +1,8 @@
+card "Shadowfax, Lord of Horses" {
+  oracle_id aa630f3d-9443-46fe-a54f-8b3c9fcb872e
+  cost {3}{R}{W}
+  type Legendary Creature — Horse
+  pt 4/4
+  static Horse you control: has haste
+  triggered whenever this attacks: you may put creature with lesser power card from hand onto battlefield tapped and attacking
+}

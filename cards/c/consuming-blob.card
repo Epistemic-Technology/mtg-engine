@@ -1,0 +1,7 @@
+card "Consuming Blob" {
+  oracle_id 818292cc-6261-47e4-b573-d92f03da6ded
+  cost {3}{G}{G}
+  type Creature — Ooze
+  static this: cda pt card types in your graveyard +1
+  triggered at beginning of your end step: create 1 "green Ooze creature with graveyard types cda"
+}

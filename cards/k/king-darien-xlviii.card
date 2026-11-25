@@ -1,0 +1,10 @@
+card "King Darien XLVIII" {
+  oracle_id e923d956-b036-4789-9311-4763a71fcbf8
+  cost {1}{G}{W}
+  type Legendary Creature — Human Soldier
+  pt 2/3
+  short_name "King Darien"
+  static other creature you control: +1/+1
+  activated {3}{G}{W}: put 1 +1/+1 counter on this and create 1 "1/1 white Soldier creature"
+  activated sacrifice this: each creature token you control gain hexproof and indestructible until end of turn
+}

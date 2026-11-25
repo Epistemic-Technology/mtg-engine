@@ -1,0 +1,25 @@
+scenario "Necromaster Dragon pays 2 for a Zombie and mills" {
+  battlefield A: "Necromaster Dragon", 2 "Swamp"
+  library B: "Forest", "Island", "Mountain", "Plains"
+  start turn 1 A
+  turn 1 A: attack "Necromaster Dragon"
+  turn 1 A: accept "Necromaster Dragon"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Zombie"
+  assert graveyard B contains "Forest"
+  assert graveyard B contains "Island"
+  assert graveyard B lacks "Mountain"
+}
+
+scenario "Necromaster Dragon declining the payment does nothing" {
+  battlefield A: "Necromaster Dragon", 2 "Swamp"
+  library B: "Forest", "Island", "Mountain", "Plains"
+  start turn 1 A
+  turn 1 A: attack "Necromaster Dragon"
+  turn 1 A: decline "Necromaster Dragon"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A lacks "Zombie"
+  assert graveyard B lacks "Forest"
+}

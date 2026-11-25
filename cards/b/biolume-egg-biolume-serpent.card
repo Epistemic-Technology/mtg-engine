@@ -1,0 +1,16 @@
+card "Biolume Egg // Biolume Serpent" {
+  oracle_id 7af3876e-5297-46e6-936e-6c8344f4b6ac
+  layout transform
+  cost {2}{U}
+  type Creature — Serpent Egg
+  pt 0/4
+  keywords defender
+  triggered when this enters: scry 2
+  triggered when you sacrifice this: delayed this: return this to battlefield transformed under its owner's control at beginning of the next end step
+  face "Biolume Serpent" {
+    type Creature — Serpent
+    pt 4/4
+    color blue
+    activated sacrifice 2 Island: this gains can't be blocked
+  }
+}

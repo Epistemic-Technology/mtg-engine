@@ -1,0 +1,13 @@
+scenario "vorrac counts untapped opposing permanents" {
+  battlefield A: "Copperhoof Vorrac", "Forest"
+  battlefield B: "Mountain", "Mountain" tapped, "Hill Giant"
+  start turn 1 A precombat_main
+  assert power "Copperhoof Vorrac" 4
+  assert toughness "Copperhoof Vorrac" 4
+}
+scenario "vorrac ignores own permanents" {
+  battlefield A: "Copperhoof Vorrac", "Forest", "Forest"
+  battlefield B: "Mountain" tapped
+  start turn 1 A precombat_main
+  assert power "Copperhoof Vorrac" 2
+}

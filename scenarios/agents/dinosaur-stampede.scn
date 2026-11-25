@@ -1,0 +1,25 @@
+scenario "dinosaur stampede: attackers get +2/+0, Dinosaurs gain trample" {
+  battlefield A: "Ancient Brontodon", "Grizzly Bears", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Dinosaur Stampede"
+  turn 1 A: attack "Ancient Brontodon", "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Dinosaur Stampede"
+  turn 1 B: block "Ancient Brontodon" with "Hill Giant"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 4
+  assert power "Ancient Brontodon" 11
+  assert has "Ancient Brontodon" trample
+  assert has not "Grizzly Bears" trample
+  assert power "Hill Giant" 3
+}
+
+scenario "dinosaur stampede: non-attackers are unaffected" {
+  battlefield A: "Ancient Brontodon", "Grizzly Bears", 3 "Mountain"
+  hand A: "Dinosaur Stampede"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Dinosaur Stampede"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 4
+  assert power "Ancient Brontodon" 9
+  assert has "Ancient Brontodon" trample
+}

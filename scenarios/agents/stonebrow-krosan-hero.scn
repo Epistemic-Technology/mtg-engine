@@ -1,0 +1,22 @@
+scenario "Stonebrow pumps only attacking creatures with trample" {
+  battlefield A: "Stonebrow, Krosan Hero", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Stonebrow, Krosan Hero", "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Stonebrow, Krosan Hero" 6
+  assert toughness "Stonebrow, Krosan Hero" 6
+  assert power "Grizzly Bears" 2
+  run_to turn 1 postcombat_main
+  assert life B 12
+  run_to turn 2 precombat_main
+  assert power "Stonebrow, Krosan Hero" 4
+}
+
+scenario "Stonebrow does not pump a creature that is not attacking" {
+  battlefield A: "Stonebrow, Krosan Hero", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Stonebrow, Krosan Hero" 4
+  assert power "Grizzly Bears" 2
+}

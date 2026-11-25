@@ -1,0 +1,8 @@
+card "Dragon Grip" {
+  oracle_id 1e83a750-bf86-468e-8342-2c4eb7700dfd
+  cost {2}{R}
+  type Enchantment — Aura
+  label "Ferocious" flash first if you control creature with power 4 or greater
+  enchant creature
+  static enchanted: +2/+0, has first strike
+}

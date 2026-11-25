@@ -1,0 +1,14 @@
+scenario "Copycrook copies a creature and connives when it attacks" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Copycrook"
+  library A: "Giant Growth", "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Copycrook"
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 declare_blockers
+  assert is A "Hill Giant" creature
+  assert power A "Hill Giant" 4
+  assert counters A "Hill Giant" +1/+1 1
+  assert graveyard A contains "Giant Growth"
+}

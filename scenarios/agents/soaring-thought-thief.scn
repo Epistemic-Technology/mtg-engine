@@ -1,0 +1,25 @@
+scenario "soaring thought-thief: attacking mills two" {
+  battlefield A: "Soaring Thought-Thief"
+  start turn 1 A begin_combat
+  turn 1 A: attack "Soaring Thought-Thief"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 2
+  assert life B 19
+}
+
+scenario "soaring thought-thief: eight cards in an opponent's graveyard pumps Rogues" {
+  battlefield A: "Soaring Thought-Thief", "Grizzly Bears"
+  graveyard B: 8 "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Soaring Thought-Thief" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "soaring thought-thief: seven cards isn't enough" {
+  battlefield A: "Soaring Thought-Thief"
+  graveyard B: 7 "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Soaring Thought-Thief" 1
+}

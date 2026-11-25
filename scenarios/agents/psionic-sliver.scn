@@ -1,0 +1,10 @@
+scenario "Psionic Sliver gives every Sliver a pinging ability" {
+  battlefield A: "Psionic Sliver"
+  battlefield B: "Psionic Sliver"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Psionic Sliver" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Psionic Sliver"
+  assert battlefield B contains "Psionic Sliver"
+}

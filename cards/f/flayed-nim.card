@@ -1,0 +1,8 @@
+card "Flayed Nim" {
+  oracle_id 857818d4-6cf0-4234-b9e0-d7181ba6b54f
+  cost {3}{B}
+  type Creature — Skeleton
+  pt 2/2
+  triggered whenever this deals combat damage to creature: controller of that creature loses that much life
+  activated {2}{B}: regenerate this
+}

@@ -1,0 +1,16 @@
+scenario "honden of night's reach discards one per shrine" {
+  battlefield A: "Honden of Night's Reach"
+  hand B: "Forest", "Forest", "Forest"
+  start turn 1 A upkeep
+  turn 1 upkeep A: trigger "Honden of Night's Reach" targeting player B
+  run_to turn 1 draw
+  assert hand B count 2
+}
+scenario "honden of night's reach counts every shrine" {
+  battlefield A: "Honden of Night's Reach", "Honden of Seeing Winds"
+  hand B: "Forest", "Forest", "Forest"
+  start turn 1 A upkeep
+  turn 1 upkeep A: trigger "Honden of Night's Reach" targeting player B
+  run_to turn 1 draw
+  assert hand B count 1
+}

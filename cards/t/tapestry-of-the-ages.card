@@ -1,0 +1,6 @@
+card "Tapestry of the Ages" {
+  oracle_id 9248f9b9-ddaa-459c-91e6-9045a65b0f07
+  cost {4}
+  type Artifact
+  activated {2}, {T}, if cast noncreature spell this turn: draw 1 card
+}

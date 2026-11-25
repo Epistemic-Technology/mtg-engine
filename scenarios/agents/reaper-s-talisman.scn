@@ -1,0 +1,21 @@
+scenario "Reaper's Talisman attacking alone drains 2 and grants deathtouch" {
+  battlefield A: "Reaper's Talisman", "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Reaper's Talisman" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert graveyard B contains "Serra Angel"
+}
+scenario "Reaper's Talisman attacking with another creature does not drain" {
+  battlefield A: "Reaper's Talisman", "Grizzly Bears", "Hill Giant", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Reaper's Talisman" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 20
+}

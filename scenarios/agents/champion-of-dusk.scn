@@ -1,0 +1,8 @@
+scenario "Champion of Dusk draws and loses life per Vampire" {
+  battlefield A: "Barony Vampire", "Arrogant Vampire", 5 "Swamp"
+  hand A: "Champion of Dusk"
+  turn 1 precombat_main A: cast "Champion of Dusk"
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert hand A count 3
+}

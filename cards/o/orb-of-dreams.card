@@ -1,0 +1,6 @@
+card "Orb of Dreams" {
+  oracle_id 2c24b7c3-7c90-4109-a4aa-d9cae6febf34
+  cost {3}
+  type Artifact
+  replace permanent enter: tapped
+}

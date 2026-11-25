@@ -1,0 +1,24 @@
+scenario "soul sear kills an indestructible creature" {
+  battlefield A: "Mountain", "Mountain", "Mountain"
+  battlefield B: "Creepy Doll"
+  hand A: "Soul Sear"
+  turn 1 precombat_main A: cast "Soul Sear" targeting "Creepy Doll"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Creepy Doll"
+}
+scenario "soul sear kills a plain creature" {
+  battlefield A: "Mountain", "Mountain", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Soul Sear"
+  turn 1 precombat_main A: cast "Soul Sear" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+scenario "soul sear does not kill past toughness 6" {
+  battlefield A: "Mountain", "Mountain", "Mountain"
+  battlefield B: "Wall of Granite"
+  hand A: "Soul Sear"
+  turn 1 precombat_main A: cast "Soul Sear" targeting "Wall of Granite"
+  run_to turn 1 postcombat_main
+  assert damage "Wall of Granite" 5
+}

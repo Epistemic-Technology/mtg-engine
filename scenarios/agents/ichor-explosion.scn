@@ -1,0 +1,12 @@
+scenario "ichor explosion shrinks all by sacrificed power" {
+  battlefield A: "Hill Giant", 7 "Swamp", "Serra Angel"
+  hand A: "Ichor Explosion"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  turn 1 precombat_main A: cast "Ichor Explosion" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+  assert toughness "Serra Angel" 1
+  assert power "Serra Angel" 1
+}

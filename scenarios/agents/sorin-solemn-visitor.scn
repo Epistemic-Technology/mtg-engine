@@ -1,0 +1,34 @@
+scenario "sorin plus one pumps and gives lifelink until next turn" {
+  battlefield A: "Sorin, Solemn Visitor", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Wind Drake"
+  turn 1 A: activate "Sorin, Solemn Visitor" ability 1
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Hill Giant" 4
+  assert has "Grizzly Bears" lifelink
+  assert power "Wind Drake" 2
+  assert counters "Sorin, Solemn Visitor" loyalty 5
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 3
+  run_to turn 3 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" lifelink
+}
+scenario "sorin minus two makes a flying vampire" {
+  battlefield A: "Sorin, Solemn Visitor"
+  turn 1 A: activate "Sorin, Solemn Visitor" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vampire"
+  assert has "Vampire" flying
+  assert power "Vampire" 2
+  assert counters "Sorin, Solemn Visitor" loyalty 2
+}
+scenario "sorin ultimate makes opponent sacrifice each upkeep" {
+  battlefield A: "Sorin, Solemn Visitor" with 6 loyalty
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Sorin, Solemn Visitor" ability 3
+  run_to turn 2 draw
+  assert battlefield B count 1
+  run_to turn 4 draw
+  assert battlefield B count 0
+}

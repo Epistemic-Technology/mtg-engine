@@ -1,0 +1,9 @@
+card "Legolas, Counter of Kills" {
+  oracle_id ddc12487-f577-4def-acdb-491f7ba6dc51
+  cost {2}{G}{U}
+  type Legendary Creature — Elf Archer
+  pt 2/3
+  keywords reach
+  triggered do once each turn whenever you scry if this is tapped: you may untap this
+  triggered whenever creature an opponent controls dies: put 1 +1/+1 counter on this
+}

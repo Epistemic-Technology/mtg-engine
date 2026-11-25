@@ -1,0 +1,18 @@
+scenario "dreamshaper shaman pays, sacrifices, and puts the first nonland permanent onto the battlefield" {
+  battlefield A: "Dreamshaper Shaman", "Grizzly Bears", 3 "Mountain"
+  library A: "Plains", "Forest", "Hill Giant", "Island"
+  turn 1 end A: choose "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+  assert library A count 3
+}
+scenario "dreamshaper shaman declined does nothing" {
+  battlefield A: "Dreamshaper Shaman", "Grizzly Bears", 3 "Mountain"
+  library A: "Plains", "Forest", "Hill Giant", "Island"
+  turn 1 end A: decline "Dreamshaper Shaman"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Hill Giant"
+}

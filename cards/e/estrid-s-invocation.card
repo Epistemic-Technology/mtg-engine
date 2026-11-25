@@ -1,0 +1,9 @@
+card "Estrid's Invocation" {
+  oracle_id 7f5f10ee-6428-4053-8824-3bc70420ec2c
+  cost {2}{U}
+  type Enchantment
+  enters as copy of enchantment you control
+  except {
+    triggered at beginning of your upkeep step: you may exile this; if you do, return this to battlefield under its owner's control
+  }
+}

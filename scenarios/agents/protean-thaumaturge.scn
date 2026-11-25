@@ -1,0 +1,13 @@
+scenario "an enchantment entering lets it copy another creature; the copy keeps the ability" {
+  battlefield A: "Protean Thaumaturge", "Serra Angel", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: 2 "Sigarda's Aid"
+  turn 1 A: cast "Sigarda's Aid"
+  turn 1 A: trigger "Protean Thaumaturge" targeting "Serra Angel"
+  turn 1 A: cast "Sigarda's Aid"
+  turn 1 A: trigger "Serra Angel" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Serra Angel"
+  assert battlefield A contains 1 "Hill Giant"
+  assert power A "Hill Giant" 3
+}

@@ -1,0 +1,14 @@
+scenario "wurmcoil leaves a deathtouch wurm and a lifelink wurm" {
+  battlefield A: "Swamp", "Swamp", "Swamp"
+  battlefield B: "Wurmcoil Engine"
+  hand A: "Murder"
+  turn 1 precombat_main A: cast "Murder" targeting "Wurmcoil Engine"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wurmcoil Engine"
+  assert battlefield B contains 2 "Phyrexian Wurm"
+  assert has oldest B "Phyrexian Wurm" deathtouch
+  assert has newest B "Phyrexian Wurm" lifelink
+  assert has not oldest B "Phyrexian Wurm" lifelink
+  assert has not newest B "Phyrexian Wurm" deathtouch
+  assert power B "Phyrexian Wurm" 3
+}

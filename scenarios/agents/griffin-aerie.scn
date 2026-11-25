@@ -1,0 +1,18 @@
+scenario "griffin aerie with exactly three life gained" {
+  battlefield A: "Griffin Aerie", 3 "Braidwood Cup"
+  turn 1 precombat_main A: activate "Braidwood Cup"
+  turn 1 precombat_main A: activate "Braidwood Cup"
+  turn 1 precombat_main A: activate "Braidwood Cup"
+  run_to turn 1 postcombat_main
+  run_to turn 1 cleanup
+  assert battlefield A contains "Griffin"
+  assert life A 23
+}
+scenario "griffin aerie with only two life gained" {
+  battlefield A: "Griffin Aerie", 3 "Braidwood Cup"
+  turn 1 precombat_main A: activate "Braidwood Cup"
+  turn 1 precombat_main A: activate "Braidwood Cup"
+  run_to turn 1 cleanup
+  assert life A 22
+  assert battlefield A lacks "Griffin"
+}

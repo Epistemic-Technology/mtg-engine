@@ -1,0 +1,8 @@
+card "Auriok Siege Sled" {
+  oracle_id 6a1a9e8a-a323-489a-b4db-b04da76662f4
+  cost {6}
+  type Artifact Creature — Juggernaut
+  pt 3/5
+  activated {1}: target artifact creature blocks this if able
+  activated {1}: target artifact creature can't block this
+}

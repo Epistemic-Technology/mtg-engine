@@ -1,0 +1,8 @@
+card "Grumgully, the Generous" {
+  oracle_id fa4afcf7-9cf7-4f67-95b9-1f7fe66bf332
+  cost {1}{R}{G}
+  type Legendary Creature — Goblin Shaman
+  pt 3/3
+  short_name "Grumgully"
+  replace each other non-Human creature you control enters: with 1 +1/+1 counter
+}

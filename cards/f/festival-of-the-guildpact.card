@@ -1,0 +1,9 @@
+card "Festival of the Guildpact" {
+  oracle_id f8d1fbec-6ec1-47fa-ba02-fcee906db0d7
+  cost {X}{W}
+  type Instant
+  spell {
+    prevent next X damage to you this turn
+    draw 1 card
+  }
+}

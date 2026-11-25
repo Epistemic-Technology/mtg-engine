@@ -1,0 +1,8 @@
+card "Rathi Dragon" {
+  oracle_id 6a180f07-7afa-4605-9c58-4521a5f3fcc1
+  cost {2}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  triggered when this enters: sacrifice this unless you sacrifice 2 Mountain chosen
+}

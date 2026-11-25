@@ -1,0 +1,11 @@
+scenario "swirling spriggan recolors" {
+  battlefield A: "Swirling Spriggan", 2 "Forest", "Grizzly Bears"
+  turn 1 precombat_main A: activate "Swirling Spriggan" targeting "Grizzly Bears"
+  turn 1 precombat_main A: choose red
+  turn 1 precombat_main A: choose blue
+  turn 1 precombat_main A: choose done
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" red
+  assert is "Grizzly Bears" blue
+  assert is not "Grizzly Bears" green
+}

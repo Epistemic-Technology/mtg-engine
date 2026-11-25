@@ -1,0 +1,8 @@
+card "Combat Research" {
+  oracle_id fbfd7f38-be9a-49bf-8769-79e1e7e8dfdc
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered whenever this deals combat damage to a player: draw 1 card }
+  static as long as attached is legendary, enchanted: +1/+1, has ward {1}
+}

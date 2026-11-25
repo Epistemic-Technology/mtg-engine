@@ -1,0 +1,34 @@
+scenario "destroy opponent's creature gives them a sheep" {
+  battlefield A: "Ovinomancer"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Ovinomancer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains 1 "Sheep"
+  assert battlefield A lacks "Sheep"
+  assert hand A contains "Ovinomancer"
+  assert power B "Sheep" 0
+  assert toughness B "Sheep" 1
+}
+scenario "destroying own creature gives me the sheep" {
+  battlefield A: "Ovinomancer", "Grizzly Bears"
+  turn 1 precombat_main A: activate "Ovinomancer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Sheep"
+  assert battlefield B lacks "Sheep"
+}
+scenario "enters returning three basic lands" {
+  battlefield A: "Island", "Island", "Island", "Forest", "Forest", "Forest"
+  hand A: "Ovinomancer"
+  turn 1 precombat_main A: cast "Ovinomancer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ovinomancer"
+  assert hand A count 3
+}
+scenario "enters without lands is sacrificed" {
+  battlefield A: "Island", "Island", "Mishra's Factory"
+  hand A: "Ovinomancer"
+  turn 1 precombat_main A: cast "Ovinomancer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ovinomancer"
+}

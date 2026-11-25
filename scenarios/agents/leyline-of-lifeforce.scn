@@ -1,0 +1,12 @@
+scenario "Leyline: creature spell not countered" {
+  battlefield A: "Leyline of Lifeforce", 2 "Forest"
+  hand A: "Grizzly Bears"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Counterspell"
+}

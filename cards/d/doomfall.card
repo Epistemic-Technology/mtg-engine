@@ -1,0 +1,9 @@
+card "Doomfall" {
+  oracle_id ba2c2a65-256a-46db-bf2b-b02b7d114a42
+  cost {2}{B}
+  type Sorcery
+  choose one {
+    mode: target opponent exiles 1 creature they control
+    mode: target opponent reveals hand exiling nonland card split
+  }
+}

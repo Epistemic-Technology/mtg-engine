@@ -1,0 +1,8 @@
+card "Sword of Body and Mind" {
+  oracle_id fac42229-4f5f-4d04-85dd-5031d4e435aa
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has protection from green, protection from blue
+  triggered whenever enchanted creature deals combat damage to player: you create 1 "2/2 green Wolf creature" and that player mills 10 cards
+  equip {2}
+}

@@ -1,0 +1,13 @@
+scenario "Undercity Plague costs life, a card, and a permanent" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Undercity Plague"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Undercity Plague" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Shock"
+  assert graveyard B contains "Hill Giant"
+  assert hand B count 0
+}

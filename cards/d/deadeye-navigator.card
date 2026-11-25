@@ -1,0 +1,8 @@
+card "Deadeye Navigator" {
+  oracle_id ebef6d84-b724-4a84-bcde-8eb6dc06717d
+  cost {4}{U}{U}
+  type Creature — Spirit
+  pt 5/5
+  soulbond
+  static paired named: has ability { activated {1}{U}: exile this then return this to battlefield under your control }
+}

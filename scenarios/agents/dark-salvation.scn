@@ -1,0 +1,31 @@
+scenario "Dark Salvation: tokens for me, -X/-X from my Zombies" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dark Salvation"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Dark Salvation" x 2 targeting player A, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Zombie"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Dark Salvation: tokens for the opponent count for the shrink" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Dark Salvation"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Dark Salvation" x 2 targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 2 "Zombie"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Dark Salvation: X 0 makes no Zombies, no shrink" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Dark Salvation"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Dark Salvation" x 0 targeting player A, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+}

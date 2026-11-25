@@ -1,0 +1,24 @@
+scenario "woebringer demon makes the upkeep player sacrifice a creature" {
+  battlefield A: "Woebringer Demon"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B upkeep
+  turn 2 B: choose "Grizzly Bears"
+  run_to turn 2 draw
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Woebringer Demon"
+}
+scenario "woebringer demon is sacrificed if the upkeep player has no creature" {
+  battlefield A: "Woebringer Demon"
+  start turn 2 B upkeep
+  run_to turn 2 draw
+  assert graveyard A contains "Woebringer Demon"
+}
+scenario "woebringer demon on controller's own upkeep" {
+  battlefield A: "Woebringer Demon", "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 A: choose "Grizzly Bears"
+  run_to turn 3 draw
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Woebringer Demon"
+}

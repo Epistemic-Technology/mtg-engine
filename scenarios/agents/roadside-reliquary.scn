@@ -1,0 +1,23 @@
+scenario "Roadside Reliquary draws for artifact and enchantment" {
+  battlefield A: "Roadside Reliquary", 2 "Plains", "Ornithopter", "Pacifism" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Roadside Reliquary"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Roadside Reliquary"
+}
+scenario "Roadside Reliquary with only an artifact" {
+  battlefield A: "Roadside Reliquary", 2 "Plains", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Roadside Reliquary"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+scenario "Roadside Reliquary with neither" {
+  battlefield A: "Roadside Reliquary", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Roadside Reliquary"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

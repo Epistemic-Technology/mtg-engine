@@ -1,0 +1,9 @@
+card "Nissa's Judgment" {
+  oracle_id 14247820-5ecb-40bd-8dee-0625cc745ec2
+  cost {4}{G}
+  type Sorcery
+  spell {
+    support 2
+    choose up to 1 target creature an opponent controls; each single creature you control with +1/+1 counter bites that target 3
+  }
+}

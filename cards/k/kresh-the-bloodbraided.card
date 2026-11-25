@@ -1,0 +1,8 @@
+card "Kresh the Bloodbraided" {
+  oracle_id 6343cf6f-b1e3-49ce-8933-8fe6c9dc83f3
+  cost {2}{B}{R}{G}
+  type Legendary Creature — Human Warrior
+  short_name "Kresh"
+  pt 3/3
+  triggered whenever other creature dies: you may put count where power of that creature +1/+1 counters on this
+}

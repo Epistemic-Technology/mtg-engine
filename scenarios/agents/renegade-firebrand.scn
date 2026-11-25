@@ -1,0 +1,12 @@
+scenario "renegade firebrand bonus with Chandra" {
+  battlefield A: "Renegade Firebrand", "Chandra, Torch of Defiance"
+  run_to turn 1 precombat_main
+  assert power "Renegade Firebrand" 4
+  assert has "Renegade Firebrand" first_strike
+}
+scenario "renegade firebrand plain without Chandra" {
+  battlefield A: "Renegade Firebrand"
+  run_to turn 1 precombat_main
+  assert power "Renegade Firebrand" 3
+  assert has not "Renegade Firebrand" first_strike
+}

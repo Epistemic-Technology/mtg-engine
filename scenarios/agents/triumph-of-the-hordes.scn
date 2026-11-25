@@ -1,0 +1,14 @@
+scenario "triumph of the hordes pumps and infects" {
+  battlefield A: 4 "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Wind Drake"
+  hand A: "Triumph of the Hordes"
+  turn 1 precombat_main A: cast "Triumph of the Hordes"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Hill Giant" 4
+  assert has "Hill Giant" trample
+  assert has "Hill Giant" infect
+  assert life B 20
+  assert poison B 3
+}

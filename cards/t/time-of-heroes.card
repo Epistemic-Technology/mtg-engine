@@ -1,0 +1,6 @@
+card "Time of Heroes" {
+  oracle_id fcfb96d7-9b3b-4f60-8714-eebe4d9c002b
+  cost {1}{W}
+  type Enchantment
+  static each creature with level counter you control: +2/+2
+}

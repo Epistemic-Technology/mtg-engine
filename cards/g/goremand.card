@@ -1,0 +1,9 @@
+card "Goremand" {
+  oracle_id 0f80f061-6304-4c7b-ab53-f406385e39df
+  cost {4}{B}{B}
+  type Creature — Demon
+  pt 5/5
+  additional cost sacrifice creature
+  keywords flying, trample
+  triggered when this enters: each opponent sacrifices 1 creature bare
+}

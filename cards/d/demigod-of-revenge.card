@@ -1,0 +1,8 @@
+card "Demigod of Revenge" {
+  oracle_id 602ce676-380d-4c3c-b97a-9234ccdc2904
+  cost {B/R}{B/R}{B/R}{B/R}{B/R}
+  type Creature — Spirit Avatar
+  pt 5/4
+  triggered when you cast this: return all named this card from your graveyard to battlefield
+  keywords flying, haste
+}

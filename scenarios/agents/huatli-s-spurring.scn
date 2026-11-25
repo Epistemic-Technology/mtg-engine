@@ -1,0 +1,16 @@
+scenario "plain +2" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Huatli's Spurring"
+  turn 1 precombat_main A: cast "Huatli's Spurring" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+scenario "with Huatli +4" {
+  battlefield A: "Mountain", "Huatli, Radiant Champion"
+  battlefield B: "Grizzly Bears"
+  hand A: "Huatli's Spurring"
+  turn 1 precombat_main A: cast "Huatli's Spurring" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+}

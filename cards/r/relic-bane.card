@@ -1,0 +1,7 @@
+card "Relic Bane" {
+  oracle_id 3609d300-af9f-4ddf-ad0e-8bebeca15a04
+  cost {1}{B}{B}
+  type Enchantment — Aura
+  enchant artifact
+  static enchanted: has ability { triggered at beginning of your upkeep: you lose 2 life }
+}

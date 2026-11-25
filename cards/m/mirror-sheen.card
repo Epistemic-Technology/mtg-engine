@@ -1,0 +1,6 @@
+card "Mirror Sheen" {
+  oracle_id d6494704-54b2-4c80-acb4-184c9815c5f3
+  cost {1}{U/R}{U/R}
+  type Enchantment
+  activated {1}{U/R}{U/R}: copy target instant or sorcery spell that targets you new targets
+}

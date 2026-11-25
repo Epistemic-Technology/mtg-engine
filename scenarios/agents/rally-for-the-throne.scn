@@ -1,0 +1,17 @@
+scenario "adamant gains life per creature" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Rally for the Throne"
+  turn 1 precombat_main A: cast "Rally for the Throne"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Human"
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 23
+}
+scenario "without adamant no life" {
+  battlefield A: "Grizzly Bears", 1 "Plains", 2 "Forest"
+  hand A: "Rally for the Throne"
+  turn 1 precombat_main A: cast "Rally for the Throne"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Human"
+  assert life A 20
+}

@@ -1,0 +1,26 @@
+scenario "Slithering Shade pumps" {
+  battlefield A: "Slithering Shade", 2 "Swamp"
+  hand A: "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Slithering Shade"
+  run_to turn 1 combat_damage
+  assert power "Slithering Shade" 1
+  assert toughness "Slithering Shade" 2
+}
+
+scenario "Slithering Shade attacks with empty hand" {
+  battlefield A: "Slithering Shade"
+  start turn 1 A
+  turn 1 A: attack "Slithering Shade"
+  run_to turn 1 postcombat_main
+  assert tapped "Slithering Shade"
+}
+
+scenario "Slithering Shade cannot attack with cards in hand" {
+  battlefield A: "Slithering Shade"
+  hand A: "Forest"
+  start turn 1 A
+  illegal turn 1 A: attack "Slithering Shade"
+  run_to turn 1 postcombat_main
+  assert untapped "Slithering Shade"
+}

@@ -1,0 +1,32 @@
+scenario "extractor demon mills on another creature leaving" {
+  battlefield A: "Extractor Demon", "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Hill Giant"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 A: trigger "Extractor Demon" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert library B count 3
+}
+scenario "extractor demon ignores itself leaving" {
+  battlefield A: "Extractor Demon"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  library A: "Forest", "Forest", "Forest"
+  library B: "Forest", "Forest", "Forest"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Extractor Demon"
+  run_to turn 2 postcombat_main
+  assert graveyard A count 1
+  assert library A count 3
+  assert library B count 2
+}
+scenario "extractor demon unearth" {
+  graveyard A: "Extractor Demon"
+  battlefield A: 3 "Swamp"
+  turn 1 A: activate "Extractor Demon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Extractor Demon"
+  assert has "Extractor Demon" haste
+}

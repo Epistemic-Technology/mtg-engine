@@ -1,0 +1,22 @@
+scenario "starfield animates with five enchantments" {
+  battlefield A: "Starfield of Nyx", "Absolute Law", "Absolute Grace", "Angelic Renewal", "Assemble the Players"
+  start turn 1 A precombat_main
+  assert is "Absolute Law" creature
+  assert power "Absolute Law" 2
+  assert toughness "Absolute Law" 2
+  assert is "Starfield of Nyx" enchantment
+  assert is not "Starfield of Nyx" creature
+}
+scenario "starfield does nothing with four" {
+  battlefield A: "Starfield of Nyx", "Absolute Law", "Absolute Grace", "Angelic Renewal"
+  start turn 1 A precombat_main
+  assert is not "Absolute Law" creature
+}
+scenario "starfield upkeep return" {
+  battlefield A: "Starfield of Nyx"
+  graveyard A: "Absolute Law"
+  start turn 1 A upkeep
+  turn 1 upkeep A: trigger "Starfield of Nyx" targeting "Absolute Law"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Absolute Law"
+}

@@ -1,0 +1,21 @@
+scenario "Estrid's Invocation copy blinks each upkeep" {
+  battlefield A: "Bastion of Remembrance", 3 "Island"
+  hand A: "Estrid's Invocation"
+  turn 1 A: cast "Estrid's Invocation"
+  turn 1 A: copy "Bastion of Remembrance"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Bastion of Remembrance"
+  assert battlefield A contains 1 "Human Soldier"
+  run_to turn 3 precombat_main
+  assert battlefield A contains 2 "Bastion of Remembrance"
+  assert battlefield A contains 2 "Human Soldier"
+}
+scenario "Estrid's Invocation may copy nothing" {
+  battlefield A: "Bastion of Remembrance", 3 "Island"
+  hand A: "Estrid's Invocation"
+  turn 1 A: cast "Estrid's Invocation"
+  turn 1 A: copy nothing
+  run_to turn 1 end
+  assert battlefield A contains 1 "Bastion of Remembrance"
+  assert battlefield A contains 1 "Estrid's Invocation"
+}

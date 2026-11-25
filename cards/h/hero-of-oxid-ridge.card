@@ -1,0 +1,9 @@
+card "Hero of Oxid Ridge" {
+  oracle_id f18799c4-ec54-4435-be51-03ea25809289
+  cost {2}{R}{R}
+  type Creature — Human Knight
+  pt 4/2
+  keywords haste
+  battle cry
+  triggered whenever this attacks: each creature with power 1 or less can't block this turn
+}

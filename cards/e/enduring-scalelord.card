@@ -1,0 +1,8 @@
+card "Enduring Scalelord" {
+  oracle_id 270a21c1-4c44-46ef-8c4f-e08484f360e1
+  cost {4}{G}{W}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever one or more +1/+1 counters put on other creature you control: you may put 1 +1/+1 counter on this
+}

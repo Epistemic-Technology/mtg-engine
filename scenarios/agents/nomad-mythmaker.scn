@@ -1,0 +1,11 @@
+scenario "nomad mythmaker reanimates an opponent's aura onto my creature" {
+  battlefield A: "Nomad Mythmaker", "Plains", "Plains", "Grizzly Bears"
+  graveyard B: "Flight"
+  turn 1 precombat_main A: activate "Nomad Mythmaker" targeting "Flight"
+  turn 1 precombat_main A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Flight" to "Grizzly Bears"
+  assert battlefield A contains "Flight"
+  assert has "Grizzly Bears" flying
+  assert tapped "Nomad Mythmaker"
+}

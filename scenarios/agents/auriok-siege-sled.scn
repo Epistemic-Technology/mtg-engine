@@ -1,0 +1,26 @@
+scenario "siege sled: forces an artifact creature to block" {
+  battlefield A: "Auriok Siege Sled", "Plains"
+  battlefield B: "Ornithopter", "Grizzly Bears"
+  turn 1 A: activate "Auriok Siege Sled" ability 1 targeting "Ornithopter"
+  turn 1 A: attack "Auriok Siege Sled"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life B 20
+}
+
+scenario "siege sled: the second ability stops an artifact creature blocking" {
+  battlefield A: "Auriok Siege Sled", "Plains"
+  battlefield B: "Steel Wall"
+  turn 1 A: activate "Auriok Siege Sled" ability 2 targeting "Steel Wall"
+  turn 1 A: attack "Auriok Siege Sled"
+  illegal turn 1 B: block "Auriok Siege Sled" with "Steel Wall"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "siege sled: only artifact creatures are legal targets" {
+  battlefield A: "Auriok Siege Sled", "Plains"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Auriok Siege Sled" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

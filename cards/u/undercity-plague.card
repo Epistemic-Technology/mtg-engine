@@ -1,0 +1,7 @@
+card "Undercity Plague" {
+  oracle_id aa997e63-be19-4b1a-8972-eebc8a720ded
+  cost {4}{B}{B}
+  type Sorcery
+  spell: target player loses 1 life, discards 1 card then sacrifices 1 permanent
+  keywords cipher
+}

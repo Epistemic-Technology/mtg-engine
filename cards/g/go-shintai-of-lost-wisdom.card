@@ -1,0 +1,8 @@
+card "Go-Shintai of Lost Wisdom" {
+  oracle_id f6a2092a-093e-4cd6-9eb0-d8ed32da896c
+  cost {1}{U}
+  type Legendary Enchantment Creature — Shrine
+  pt 0/4
+  keywords flying
+  triggered at beginning of your end step: you may pay {1}; when you do, target player mills count where Shrine you control cards
+}

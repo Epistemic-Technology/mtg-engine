@@ -1,0 +1,8 @@
+card "Harbin, Vanguard Aviator" {
+  oracle_id d827575f-e364-4a20-887e-3091e5501a4f
+  cost {W}{U}
+  type Legendary Creature — Human Soldier
+  pt 3/2
+  keywords flying
+  triggered whenever you attack with 5 or more Soldier: each creature you control gets +1/+1 and gains flying until end of turn
+}

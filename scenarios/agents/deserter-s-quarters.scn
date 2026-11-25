@@ -1,0 +1,14 @@
+scenario "Deserter's Quarters keeps a creature tapped while it stays tapped" {
+  battlefield A: "Deserter's Quarters", 6 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Deserter's Quarters" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Deserter's Quarters"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  run_to turn 3 precombat_main
+  assert untapped "Deserter's Quarters"
+  run_to turn 4 precombat_main
+  assert untapped "Hill Giant"
+}

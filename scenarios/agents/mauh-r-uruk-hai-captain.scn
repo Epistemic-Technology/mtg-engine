@@ -1,0 +1,15 @@
+scenario "orc gets an extra counter" {
+  battlefield A: "Mauhúr, Uruk-hai Captain", "Grizzly Bears", "Forest"
+  hand A: "Battlegrowth", "Battlegrowth"
+  turn 1 precombat_main A: cast "Battlegrowth" targeting "Mauhúr, Uruk-hai Captain"
+  run_to turn 1 combat_damage
+  assert counters "Mauhúr, Uruk-hai Captain" +1/+1 2
+  assert power "Mauhúr, Uruk-hai Captain" 4
+}
+scenario "non-orc gets one counter" {
+  battlefield A: "Mauhúr, Uruk-hai Captain", "Grizzly Bears", "Forest"
+  hand A: "Battlegrowth"
+  turn 1 precombat_main A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert counters "Grizzly Bears" +1/+1 1
+}

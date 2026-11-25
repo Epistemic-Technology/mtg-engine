@@ -1,0 +1,9 @@
+card "Argent Mutation" {
+  oracle_id 652ef093-06e9-4bf1-b9cf-950fe043b319
+  cost {2}{U}
+  type Instant
+  spell {
+    target permanent becomes artifact in addition until end of turn
+    draw 1 card
+  }
+}

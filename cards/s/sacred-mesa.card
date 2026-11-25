@@ -1,0 +1,7 @@
+card "Sacred Mesa" {
+  oracle_id 8776d14f-a5a2-4ef3-98d0-e1148e579e4d
+  cost {2}{W}
+  type Enchantment
+  triggered at beginning of your upkeep step: sacrifice this unless you sacrifice 1 Pegasus chosen
+  activated {1}{W}: create 1 "1/1 white Pegasus creature with flying"
+}

@@ -1,0 +1,10 @@
+scenario "Charmbreaker Devils returns a spell and grows on casts" {
+  battlefield A: "Charmbreaker Devils", "Mountain"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A upkeep
+  turn 1 A: wait
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 combat_damage
+  assert power "Charmbreaker Devils" 8
+  assert life B 17
+}

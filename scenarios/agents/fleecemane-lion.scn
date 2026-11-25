@@ -1,0 +1,17 @@
+scenario "fleecemane lion monstrosity" {
+  battlefield A: "Fleecemane Lion", 3 "Forest", 2 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Fleecemane Lion"
+  run_to turn 1 postcombat_main
+  assert counters "Fleecemane Lion" +1/+1 1
+  assert power "Fleecemane Lion" 4
+  assert has "Fleecemane Lion" hexproof
+  assert has "Fleecemane Lion" indestructible
+}
+scenario "fleecemane lion not monstrous" {
+  battlefield A: "Fleecemane Lion"
+  run_to turn 1 postcombat_main
+  assert has not "Fleecemane Lion" hexproof
+  assert has not "Fleecemane Lion" indestructible
+  assert power "Fleecemane Lion" 3
+}

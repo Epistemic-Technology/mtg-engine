@@ -1,0 +1,29 @@
+scenario "Savra: sacrificing a black creature costs 2 life and makes the opponent sacrifice" {
+  battlefield A: "Savra, Queen of the Golgari", "Ashnod's Altar", "Typhoid Rats"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Ashnod's Altar" sacrificing "Typhoid Rats"
+  turn 1 A: accept "Savra, Queen of the Golgari"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert graveyard A contains "Typhoid Rats"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Savra: declining the payment leaves the opponent's creature" {
+  battlefield A: "Savra, Queen of the Golgari", "Ashnod's Altar", "Typhoid Rats"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Ashnod's Altar" sacrificing "Typhoid Rats"
+  turn 1 A: decline "Savra, Queen of the Golgari"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Savra: sacrificing a green creature gains 2 life" {
+  battlefield A: "Savra, Queen of the Golgari", "Ashnod's Altar", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Ashnod's Altar" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert battlefield B contains "Hill Giant"
+}

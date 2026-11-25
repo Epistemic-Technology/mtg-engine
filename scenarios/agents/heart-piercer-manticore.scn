@@ -1,0 +1,19 @@
+scenario "sacrifice a creature, damage equal to its power" {
+  battlefield A: "Hill Giant", 4 "Mountain"
+  hand A: "Heart-Piercer Manticore"
+  turn 1 precombat_main A: cast "Heart-Piercer Manticore"
+  turn 1 precombat_main A: accept "Heart-Piercer Manticore"
+  turn 1 precombat_main A: trigger "Heart-Piercer Manticore" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert life B 17
+}
+scenario "decline the sacrifice" {
+  battlefield A: "Hill Giant", 4 "Mountain"
+  hand A: "Heart-Piercer Manticore"
+  turn 1 precombat_main A: cast "Heart-Piercer Manticore"
+  turn 1 precombat_main A: decline "Heart-Piercer Manticore"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert life B 20
+}

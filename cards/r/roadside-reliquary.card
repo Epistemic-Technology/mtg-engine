@@ -1,0 +1,6 @@
+card "Roadside Reliquary" {
+  oracle_id 2fb13687-0518-4ba0-a5ae-dd609464b026
+  type Land
+  mana {C}
+  activated {2}, {T}, sacrifice this: draw 1 card if you control artifact; draw 1 card if you control enchantment
+}

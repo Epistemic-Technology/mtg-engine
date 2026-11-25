@@ -1,0 +1,8 @@
+card "Maga, Traitor to Mortals" {
+  oracle_id 1fb1afc0-a3bf-4368-9ca0-47dd8c4c3c60
+  cost {X}{B}{B}{B}
+  type Legendary Creature — Human Wizard
+  pt 0/0
+  enters with X +1/+1 counters
+  triggered when this enters: target player loses count equal +1/+1 counters on it life
+}

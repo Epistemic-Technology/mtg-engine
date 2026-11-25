@@ -1,0 +1,12 @@
+scenario "black market tycoon damages per treasure" {
+  battlefield A: "Black Market Tycoon", 3 "Treasure"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert life A 14
+}
+scenario "black market tycoon makes a treasure" {
+  battlefield A: "Black Market Tycoon"
+  turn 1 precombat_main A: activate "Black Market Tycoon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Treasure"
+}

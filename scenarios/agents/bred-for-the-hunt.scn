@@ -1,0 +1,17 @@
+scenario "bred for the hunt: only a creature with a +1/+1 counter draws" {
+  battlefield A: "Bred for the Hunt", "Grizzly Bears" with 1 +1/+1, "Hill Giant"
+  start turn 1 A begin_combat
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert hand A count 1
+}
+
+scenario "bred for the hunt: a creature without a counter draws nothing" {
+  battlefield A: "Bred for the Hunt", "Hill Giant"
+  start turn 1 A begin_combat
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 0
+}

@@ -1,0 +1,7 @@
+card "Commandeer" {
+  oracle_id ad7d854b-d303-40eb-acd6-03a8023e05e7
+  cost {5}{U}{U}
+  type Instant
+  alternative cost exile 2 blue cards from hand
+  spell: gain control of target noncreature spell indefinitely; choose new targets for target 1
+}

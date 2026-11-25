@@ -1,0 +1,7 @@
+card "Iname, Death Aspect" {
+  oracle_id 46c7f465-304c-4c4b-a1f6-9707706dbf94
+  cost {4}{B}{B}
+  type Legendary Creature — Spirit
+  pt 4/4
+  triggered when this enters: you may search any number Spirit card to graveyard
+}

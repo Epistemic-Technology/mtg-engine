@@ -1,0 +1,6 @@
+card "Bred for the Hunt" {
+  oracle_id fc7cda6f-7e5e-4a56-8d67-ffdea7edf269
+  cost {1}{G}{U}
+  type Enchantment
+  triggered whenever creature with +1/+1 counter you control deals combat damage to a player: you may draw 1 card
+}

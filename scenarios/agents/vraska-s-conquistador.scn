@@ -1,0 +1,8 @@
+scenario "no Vraska planeswalker: no drain" {
+  battlefield A: "Vraska's Conquistador"
+  start turn 1 A
+  turn 1 A: attack "Vraska's Conquistador"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}

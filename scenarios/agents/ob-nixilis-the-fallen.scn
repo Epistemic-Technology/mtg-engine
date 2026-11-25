@@ -1,0 +1,23 @@
+scenario "ob nixilis: landfall, may lose 3 life then three counters" {
+  battlefield A: "Ob Nixilis, the Fallen"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: trigger "Ob Nixilis, the Fallen" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert counters "Ob Nixilis, the Fallen" +1/+1 3
+  assert power "Ob Nixilis, the Fallen" 6
+}
+
+scenario "ob nixilis: declining does nothing" {
+  battlefield A: "Ob Nixilis, the Fallen"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: trigger "Ob Nixilis, the Fallen" targeting player B
+  turn 1 A: decline "Ob Nixilis, the Fallen"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert power "Ob Nixilis, the Fallen" 3
+}

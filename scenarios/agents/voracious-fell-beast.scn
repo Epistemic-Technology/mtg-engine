@@ -1,0 +1,18 @@
+scenario "voracious fell beast makes a food for the sacrificed creature" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Voracious Fell Beast"
+  turn 1 A: cast "Voracious Fell Beast"
+  turn 1 B: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains 1 "Food"
+}
+scenario "voracious fell beast makes no food when nothing is sacrificed" {
+  battlefield A: 6 "Swamp"
+  hand A: "Voracious Fell Beast"
+  turn 1 A: cast "Voracious Fell Beast"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Food"
+}

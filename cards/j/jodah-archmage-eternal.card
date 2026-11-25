@@ -1,0 +1,9 @@
+card "Jodah, Archmage Eternal" {
+  oracle_id 8be4745e-36d8-430f-945e-c8a7fde9b4f6
+  cost {1}{U}{R}{W}
+  type Legendary Creature — Human Wizard
+  pt 4/3
+  short_name "Jodah"
+  keywords flying
+  spells you cast have alternative cost {W}{U}{B}{R}{G}
+}

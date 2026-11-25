@@ -1,0 +1,7 @@
+card "Shrine of Limitless Power" {
+  oracle_id 587461ee-d104-4eef-a4d8-49b1abd56393
+  cost {3}
+  type Artifact
+  triggered at beginning of your upkeep step and whenever you cast black spell: put 1 charge counter on this
+  activated {4}, {T}, sacrifice this: target player discards count each charge counters on this cards
+}

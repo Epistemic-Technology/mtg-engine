@@ -1,0 +1,8 @@
+card "Reiver Demon" {
+  oracle_id 7dcb95a9-c114-4333-8b45-4380f92d9695
+  cost {4}{B}{B}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying
+  triggered whenever this enters if cast from hand: destroy all nonartifact nonblack creature without regeneration
+}

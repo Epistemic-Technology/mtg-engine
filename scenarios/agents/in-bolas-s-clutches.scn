@@ -1,0 +1,11 @@
+scenario "in bolas's clutches steals and makes legendary" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "In Bolas's Clutches"
+  turn 1 precombat_main A: cast "In Bolas's Clutches" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert is "Grizzly Bears" legendary
+  assert attached "In Bolas's Clutches" to "Grizzly Bears"
+}

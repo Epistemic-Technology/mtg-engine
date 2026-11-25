@@ -1,0 +1,21 @@
+scenario "infiltration lens draws two when the equipped creature is blocked" {
+  battlefield A: "Grizzly Bears", "Infiltration Lens" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+scenario "infiltration lens does nothing when unblocked" {
+  battlefield A: "Grizzly Bears", "Infiltration Lens" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life B 18
+}
+scenario "infiltration lens equip for 1" {
+  battlefield A: "Grizzly Bears", "Infiltration Lens", "Plains"
+  turn 1 A: activate "Infiltration Lens" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Infiltration Lens" to "Grizzly Bears"
+}

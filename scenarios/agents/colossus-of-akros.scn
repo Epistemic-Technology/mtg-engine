@@ -1,0 +1,17 @@
+scenario "colossus of akros monstrosity gives trample and attack" {
+  battlefield A: "Colossus of Akros", 10 "Plains"
+  turn 1 A: attack "Colossus of Akros"
+  turn 1 A: activate "Colossus of Akros"
+  run_to turn 1 postcombat_main
+  assert counters "Colossus of Akros" +1/+1 10
+  assert power "Colossus of Akros" 20
+  assert has "Colossus of Akros" trample
+  assert life B 0
+}
+scenario "colossus of akros defender until monstrous" {
+  battlefield A: "Colossus of Akros"
+  illegal turn 1 A: attack "Colossus of Akros"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert has "Colossus of Akros" indestructible
+}

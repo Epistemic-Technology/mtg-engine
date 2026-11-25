@@ -1,0 +1,23 @@
+scenario "activation discards per charge counter" {
+  battlefield A: "Shrine of Limitless Power" with 1 charge, 4 "Mountain"
+  hand B: "Forest", "Island", "Swamp"
+  turn 1 precombat_main A: activate "Shrine of Limitless Power" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B count 2
+  assert battlefield A lacks "Shrine of Limitless Power"
+}
+scenario "black spell adds counter" {
+  battlefield A: "Shrine of Limitless Power", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  turn 1 precombat_main A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Shrine of Limitless Power" charge 2
+}
+scenario "upkeep adds counter" {
+  battlefield A: "Shrine of Limitless Power"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert counters "Shrine of Limitless Power" charge 1
+}

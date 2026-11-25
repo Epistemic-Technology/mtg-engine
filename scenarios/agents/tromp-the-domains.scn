@@ -1,0 +1,24 @@
+scenario "Tromp the Domains pumps my creatures by basic land types" {
+  battlefield A: 3 "Forest", 1 "Mountain", "Island", "Swamp", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Wind Drake"
+  hand A: "Tromp the Domains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tromp the Domains"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+  assert power "Hill Giant" 7
+  assert has "Grizzly Bears" trample
+  assert power "Wind Drake" 2
+  assert has not "Wind Drake" trample
+}
+
+scenario "Tromp the Domains wears off at end of turn" {
+  battlefield A: 3 "Forest", 1 "Mountain", "Island", "Swamp", "Grizzly Bears"
+  hand A: "Tromp the Domains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tromp the Domains"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}

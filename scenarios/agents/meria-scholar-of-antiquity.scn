@@ -1,0 +1,21 @@
+scenario "Meria taps an artifact for green mana" {
+  battlefield A: "Meria, Scholar of Antiquity", "Sol Ring", "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Meria, Scholar of Antiquity" ability 1 sacrificing "Sol Ring"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert tapped "Sol Ring"
+}
+
+scenario "Meria taps two artifacts to exile the top card and play it" {
+  battlefield A: "Meria, Scholar of Antiquity", 2 "Sol Ring"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Meria, Scholar of Antiquity" ability 2
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert hand A count 0
+}

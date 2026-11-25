@@ -1,0 +1,6 @@
+card "Thran Vigil" {
+  oracle_id 01c179aa-533e-47e1-b6e5-c35587a39680
+  cost {1}{B}
+  type Enchantment
+  triggered whenever one or more andor artifact or creature cards leave your graveyard during your turn: put 1 +1/+1 counter on target creature you control
+}

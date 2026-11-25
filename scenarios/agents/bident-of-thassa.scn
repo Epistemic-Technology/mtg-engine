@@ -1,0 +1,23 @@
+scenario "bident draws on combat damage to a player" {
+  battlefield A: "Bident of Thassa", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 1
+}
+scenario "bident forces opposing creatures to attack" {
+  battlefield A: "Bident of Thassa", 2 "Island"
+  battlefield B: "Hill Giant"
+  start turn 2 B upkeep
+  turn 2 upkeep A: activate "Bident of Thassa"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert tapped "Hill Giant"
+}
+scenario "bident without activation lets them stay home" {
+  battlefield A: "Bident of Thassa", 2 "Island"
+  battlefield B: "Hill Giant"
+  start turn 2 B upkeep
+  run_to turn 2 postcombat_main
+  assert life A 20
+}

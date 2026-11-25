@@ -1,0 +1,6 @@
+card "See the Truth" {
+  oracle_id b23c1f40-291d-43b3-971d-97ded8b367cb
+  cost {1}{U}
+  type Sorcery
+  spell: dig 3 take card rest bottom reword instead end take all if cast from anywhere other than hand
+}

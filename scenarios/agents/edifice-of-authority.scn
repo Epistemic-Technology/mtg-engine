@@ -1,0 +1,27 @@
+scenario "Edifice first ability: can't attack, adds brick counter" {
+  battlefield A: "Edifice of Authority", "Plains"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B upkeep
+  turn 2 upkeep A: activate "Edifice of Authority" targeting "Grizzly Bears"
+  illegal turn 2 declare_attackers B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Edifice of Authority" brick 1
+}
+scenario "Edifice second ability: can't attack, block or activate" {
+  battlefield A: "Edifice of Authority" with 3 brick, 2 "Plains"
+  battlefield B: "Prodigal Sorcerer", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Edifice of Authority" ability 2 targeting "Prodigal Sorcerer"
+  illegal turn 1 postcombat_main B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 1 end
+  assert counters "Edifice of Authority" brick 3
+}
+scenario "Edifice second ability needs three brick counters" {
+  battlefield A: "Edifice of Authority" with 2 brick, 2 "Plains"
+  battlefield B: "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Edifice of Authority" ability 2 targeting "Prodigal Sorcerer"
+  run_to turn 1 end
+  assert counters "Edifice of Authority" brick 2
+  assert untapped "Prodigal Sorcerer"
+}

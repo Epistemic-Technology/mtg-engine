@@ -1,0 +1,14 @@
+scenario "prevents X of a bolt and draws a card" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Festival of the Guildpact"
+  hand B: "Lightning Bolt"
+  library A: "Island", "Island"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting player A
+  turn 2 precombat_main A: cast "Festival of the Guildpact" x 2 in response to "Lightning Bolt"
+  run_to turn 2 begin_combat
+  assert life A 19
+  assert hand A count 1
+  assert graveyard A contains "Festival of the Guildpact"
+}

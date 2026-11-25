@@ -1,0 +1,14 @@
+card "Torrent Sculptor // Flamethrower Sonata" {
+  oracle_id 8a9fe2dd-50a7-4010-96ba-df4dec265e16
+  layout modal_dfc
+  cost {2}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  ward {2}
+  triggered when this enters: exile 1 instant or sorcery card from your graveyard chosen; put count equal half up mana value of that card +1/+1 counters on this creature
+  face "Flamethrower Sonata" {
+    cost {1}{R}
+    type Sorcery
+    spell: discard 1 card then draw 1 card; when you discard instant or sorcery card this way, deal damage equal mana value of that discarded card to target creature or planeswalker you don't control
+  }
+}

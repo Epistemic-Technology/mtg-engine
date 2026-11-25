@@ -1,0 +1,20 @@
+scenario "Architect of the Untamed gets energy on landfall and pays eight for a Beast" {
+  battlefield A: "Architect of the Untamed"
+  hand A: "Forest"
+  energy A: 7
+  turn 1 precombat_main A: play "Forest"
+  turn 1 precombat_main A: activate "Architect of the Untamed"
+  run_to turn 1 postcombat_main
+  assert energy A 0
+  assert battlefield A contains "Beast"
+  assert power "Beast" 6
+}
+
+scenario "Architect of the Untamed can't pay without eight energy" {
+  battlefield A: "Architect of the Untamed"
+  energy A: 7
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Architect of the Untamed"
+  run_to turn 1 postcombat_main
+  assert energy A 7
+}

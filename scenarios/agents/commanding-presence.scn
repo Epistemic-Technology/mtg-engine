@@ -1,0 +1,19 @@
+scenario "commanding presence pumps, gives first strike, and makes a Human Soldier on combat damage to a player" {
+  battlefield A: "Grizzly Bears", "Commanding Presence" on "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" first_strike
+  assert life B 16
+  assert battlefield A contains 1 "Human Soldier"
+}
+scenario "no token when blocked" {
+  battlefield A: "Grizzly Bears", "Commanding Presence" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A lacks "Human Soldier"
+}

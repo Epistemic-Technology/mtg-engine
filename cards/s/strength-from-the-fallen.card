@@ -1,0 +1,6 @@
+card "Strength from the Fallen" {
+  oracle_id 23643af9-00b7-45e1-8471-7031d08bbe30
+  cost {1}{G}
+  type Enchantment
+  label "Constellation" triggered whenever this or enchantment you control enters: target creature gets +1/+1 count where graveyard creature until end of turn
+}

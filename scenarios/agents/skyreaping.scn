@@ -1,0 +1,23 @@
+scenario "Skyreaping deals damage equal to devotion to each flier" {
+  battlefield A: 2 "Grizzly Bears", 2 "Forest"
+  battlefield B: "Wind Drake", "Serra Angel", "Hill Giant"
+  hand A: "Skyreaping"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skyreaping"
+  run_to turn 1 declare_attackers
+  assert battlefield B lacks "Wind Drake"
+  assert damage "Serra Angel" 2
+  assert damage "Hill Giant" 0
+  assert damage B "Hill Giant" 0
+}
+
+scenario "Skyreaping with no devotion does nothing" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Skyreaping"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skyreaping"
+  run_to turn 1 declare_attackers
+  assert battlefield B contains "Wind Drake"
+  assert damage "Wind Drake" 0
+}

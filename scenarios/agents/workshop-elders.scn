@@ -1,0 +1,30 @@
+scenario "noncreature artifact becomes 4/4 flyer" {
+  battlefield A: "Workshop Elders", "Sol Ring"
+  start turn 1 A begin_combat
+  turn 1 begin_combat A: accept "Workshop Elders"
+  run_to turn 1 declare_attackers
+  assert is "Sol Ring" creature
+  assert is "Sol Ring" artifact
+  assert power "Sol Ring" 4
+  assert toughness "Sol Ring" 4
+  assert counters "Sol Ring" +1/+1 4
+  assert has "Sol Ring" flying
+  assert has not "Workshop Elders" haste
+}
+scenario "declined leaves the artifact alone" {
+  battlefield A: "Workshop Elders", "Sol Ring"
+  start turn 1 A begin_combat
+  turn 1 begin_combat A: decline "Workshop Elders"
+  run_to turn 1 declare_attackers
+  assert is not "Sol Ring" creature
+  assert counters "Sol Ring" +1/+1 0
+}
+scenario "grants flying to artifact creatures you control only" {
+  battlefield A: "Workshop Elders", "Memnite", "Grizzly Bears"
+  battlefield B: "Memnite"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has A "Memnite" flying
+  assert has not B "Memnite" flying
+  assert has not "Grizzly Bears" flying
+}

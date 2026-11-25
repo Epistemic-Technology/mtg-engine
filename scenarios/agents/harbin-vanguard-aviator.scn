@@ -1,0 +1,17 @@
+scenario "harbin five soldiers attack" {
+  battlefield A: "Harbin, Vanguard Aviator", 4 "Soldier", "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Harbin, Vanguard Aviator", "Soldier", "Soldier", "Soldier", "Soldier"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" flying
+  assert power "Harbin, Vanguard Aviator" 4
+  run_to turn 1 postcombat_main
+  assert life B 8
+}
+scenario "harbin four soldiers no trigger" {
+  battlefield A: "Harbin, Vanguard Aviator", 3 "Soldier", "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Harbin, Vanguard Aviator", "Soldier", "Soldier", "Soldier"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" flying
+}

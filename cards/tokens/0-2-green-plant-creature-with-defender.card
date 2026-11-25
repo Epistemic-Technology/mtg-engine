@@ -1,0 +1,7 @@
+token "0/2 green Plant creature with defender" {
+  name "Plant"
+  type Creature — Plant
+  pt 0/2
+  color green
+  keywords defender
+}

@@ -1,0 +1,7 @@
+card "Quest for Renewal" {
+  oracle_id cba4ab80-09e8-4868-a082-a9a3bade9571
+  cost {1}{G}
+  type Enchantment
+  triggered whenever creature you control becomes tapped: you may put 1 quest counter on this
+  static as long as there are 4 or more quest counters on this, creature you control: has untaps during each other player's untap step
+}

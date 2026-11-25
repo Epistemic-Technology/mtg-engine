@@ -1,0 +1,10 @@
+scenario "enters and hits each opponent for 4" {
+  battlefield A: 6 "Mountain"
+  hand A: "Red Dragon"
+  turn 1 precombat_main A: cast "Red Dragon"
+  run_to turn 1 begin_combat
+  assert life B 16
+  assert life A 20
+  assert has "Red Dragon" flying
+  assert power "Red Dragon" 4
+}

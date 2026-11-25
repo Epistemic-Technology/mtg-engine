@@ -1,0 +1,9 @@
+card "Slithering Shade" {
+  oracle_id bd50ba7a-e360-4074-99dc-e3d4c6824d77
+  cost {B}
+  type Creature — Shade
+  pt 0/1
+  keywords defender
+  activated {B}: this gets +1/+1
+  label "Hellbent" static this: has can attack as though it didn't have defender as long as hand 0 or less
+}

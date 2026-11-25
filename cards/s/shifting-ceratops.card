@@ -1,0 +1,9 @@
+card "Shifting Ceratops" {
+  oracle_id 6cac6f76-f3c6-4b00-a468-166b07853401
+  cost {2}{G}{G}
+  type Creature — Dinosaur
+  pt 5/4
+  this spell can't be countered
+  keywords protection from blue
+  activated {G}: this gains choice of reach or trample or haste until end of turn
+}

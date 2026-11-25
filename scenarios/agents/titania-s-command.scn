@@ -1,0 +1,25 @@
+scenario "Titania's Command exile graveyard and gain life, plus bears" {
+  battlefield A: 6 "Forest"
+  graveyard B: "Hill Giant", "Shock", "Grizzly Bears"
+  graveyard A: "Giant Growth"
+  hand A: "Titania's Command"
+  turn 1 A: cast "Titania's Command" mode 2 targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard B lacks "Hill Giant"
+  assert graveyard B lacks "Shock"
+  assert graveyard A contains "Giant Growth"
+  assert life A 23
+  assert battlefield A contains 2 "Bear"
+}
+scenario "Titania's Command lands and counters" {
+  battlefield A: 6 "Forest", "Grizzly Bears"
+  library A: "Island", "Mountain", "Swamp"
+  hand A: "Titania's Command"
+  turn 1 A: cast "Titania's Command" mode 5
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Island"
+  assert battlefield A contains 1 "Mountain"
+  assert tapped "Island"
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+}

@@ -1,0 +1,22 @@
+scenario "accepted: pump, haste, sacrifice at end" {
+  battlefield A: "Hazoret's Favor", "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Hazoret's Favor" targeting "Grizzly Bears"
+  turn 1 begin_combat A: accept "Hazoret's Favor"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" haste
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+}
+scenario "declined: nothing happens" {
+  battlefield A: "Hazoret's Favor", "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Hazoret's Favor" targeting "Grizzly Bears"
+  turn 1 begin_combat A: decline "Hazoret's Favor"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert battlefield A contains "Grizzly Bears"
+}

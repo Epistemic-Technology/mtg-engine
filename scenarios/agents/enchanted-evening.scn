@@ -1,0 +1,12 @@
+scenario "all permanents are also enchantments" {
+  battlefield A: "Enchanted Evening", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant", "Mountain"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert is "Grizzly Bears" enchantment
+  assert is "Grizzly Bears" creature
+  assert is "Forest" enchantment
+  assert is "Forest" land
+  assert is "Hill Giant" enchantment
+  assert is "Mountain" enchantment
+}

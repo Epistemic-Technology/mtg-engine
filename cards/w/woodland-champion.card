@@ -1,0 +1,7 @@
+card "Woodland Champion" {
+  oracle_id 675321d7-2cf0-4e0b-9517-d711b22865ab
+  cost {1}{G}
+  type Creature — Elf Scout
+  pt 2/2
+  triggered whenever one or more token you control enter: put that much +1/+1 counters on this
+}

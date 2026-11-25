@@ -1,0 +1,20 @@
+scenario "Hewed Stone Retainers needs another spell first" {
+  battlefield A: 3 "Mountain"
+  hand A: "Hewed Stone Retainers"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hewed Stone Retainers"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hewed Stone Retainers"
+}
+
+scenario "Hewed Stone Retainers can be cast after another spell" {
+  battlefield A: 4 "Mountain"
+  hand A: "Hewed Stone Retainers", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hewed Stone Retainers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hewed Stone Retainers"
+  assert life B 18
+}

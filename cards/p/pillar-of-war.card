@@ -1,0 +1,8 @@
+card "Pillar of War" {
+  oracle_id 50b931f9-f843-4129-a4c8-2bb7a051c063
+  cost {3}
+  type Artifact Creature — Golem
+  pt 3/3
+  keywords defender
+  static as long as enchanted, this: has can attack as though it didn't have defender
+}

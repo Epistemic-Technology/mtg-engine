@@ -1,0 +1,10 @@
+scenario "Ravenous Squirrel grows and drains on sacrifice" {
+  battlefield A: "Ravenous Squirrel", "Grizzly Bears", "Swamp", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ravenous Squirrel" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert hand A count 1
+  assert counters "Ravenous Squirrel" +1/+1 1
+  assert graveyard A contains "Grizzly Bears"
+}

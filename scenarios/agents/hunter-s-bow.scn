@@ -1,0 +1,25 @@
+scenario "Hunter's Bow attaches and the creature bites" {
+  battlefield A: "Grizzly Bears", "Forest", "Forest"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Hunter's Bow"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hunter's Bow"
+  turn 1 A: trigger "Hunter's Bow" targeting "Grizzly Bears", "Serra Angel"
+  run_to turn 1 begin_combat
+  assert attached "Hunter's Bow" to "Grizzly Bears"
+  assert has "Grizzly Bears" reach
+  assert damage "Serra Angel" 2
+  assert damage "Hill Giant" 0
+}
+
+scenario "Hunter's Bow may decline the bite" {
+  battlefield A: "Hill Giant", "Forest", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Hunter's Bow"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hunter's Bow"
+  turn 1 A: trigger "Hunter's Bow" targeting "Hill Giant", none
+  run_to turn 1 begin_combat
+  assert attached "Hunter's Bow" to "Hill Giant"
+  assert damage "Grizzly Bears" 0
+}

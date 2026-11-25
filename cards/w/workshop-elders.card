@@ -1,0 +1,8 @@
+card "Workshop Elders" {
+  oracle_id 9e9164be-3534-4445-bfad-00d16a50575c
+  cost {6}{U}
+  type Creature — Human Artificer
+  pt 4/4
+  static artifact creature you control: has flying
+  triggered at beginning of your combat step: you may target noncreature artifact you control becomes 0/0 artifact creature indefinitely; if you do, put 4 +1/+1 counters on target 1
+}

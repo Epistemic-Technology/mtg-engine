@@ -1,0 +1,7 @@
+card "Descendant of Kiyomaro" {
+  oracle_id bbf07bec-9c02-455b-885d-7cb5fc77b5de
+  cost {1}{W}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  static as long as more cards in hand than each opponent, this: +1/+2, has ability { triggered whenever this deals combat damage: you gain 3 life }
+}

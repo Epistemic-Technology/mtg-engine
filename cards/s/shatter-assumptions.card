@@ -1,0 +1,9 @@
+card "Shatter Assumptions" {
+  oracle_id c1372f18-9b33-40e8-bfe2-dc4ca3b3ef55
+  cost {1}{B}{B}
+  type Sorcery
+  spell: choose one {
+    mode: target opponent reveals hand and discards all colorless nonland card
+    mode: target opponent reveals hand and discards all multicolored card
+  }
+}

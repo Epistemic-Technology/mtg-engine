@@ -1,0 +1,6 @@
+card "Honden of Night's Reach" {
+  oracle_id 3776d11b-18fb-4451-a8f8-bda4c7c23776
+  cost {3}{B}
+  type Legendary Enchantment — Shrine
+  triggered at beginning of your upkeep step: target opponent discards count each Shrine you control cards
+}

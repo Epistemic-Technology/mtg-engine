@@ -1,0 +1,13 @@
+scenario "astral cornucopia enters with X counters and taps for X mana" {
+  battlefield A: 6 "Plains"
+  hand A: "Astral Cornucopia", "Lightning Bolt", "Lightning Bolt"
+  turn 1 precombat_main A: cast "Astral Cornucopia" x 2
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: activate "Astral Cornucopia"
+  turn 1 precombat_main A: choose red
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Astral Cornucopia" charge 2
+  assert life B 14
+}

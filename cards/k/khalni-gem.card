@@ -1,0 +1,7 @@
+card "Khalni Gem" {
+  oracle_id b0a96e47-91da-43ee-93dd-f866721029c6
+  cost {4}
+  type Artifact
+  triggered when this enters: return 2 land you control to hand chosen
+  activated {T}: add any 2
+}

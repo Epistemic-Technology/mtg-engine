@@ -1,0 +1,17 @@
+scenario "Conqueror's Pledge makes six Kor Soldiers" {
+  battlefield A: 5 "Plains"
+  hand A: "Conqueror's Pledge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Conqueror's Pledge"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Kor Soldier"
+}
+
+scenario "Conqueror's Pledge kicked makes twelve Kor Soldiers" {
+  battlefield A: 11 "Plains"
+  hand A: "Conqueror's Pledge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Conqueror's Pledge" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 12 "Kor Soldier"
+}

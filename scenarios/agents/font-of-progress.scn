@@ -1,0 +1,16 @@
+scenario "font of progress mills equal to oil counters" {
+  battlefield A: "Font of Progress" with 3 oil, 3 "Island"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: activate "Font of Progress" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 3 "Forest"
+  assert library B count 2
+}
+scenario "font of progress enters with two oil counters" {
+  battlefield A: 4 "Island"
+  hand A: "Font of Progress"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Font of Progress"
+  run_to turn 1 postcombat_main
+  assert counters "Font of Progress" oil 2
+}

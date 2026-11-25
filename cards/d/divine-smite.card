@@ -1,0 +1,6 @@
+card "Divine Smite" {
+  oracle_id 3b06b242-caed-4c8f-b5ab-30e86061286e
+  cost {1}{W}
+  type Instant
+  spell: target creature or planeswalker an opponent controls phases out; if that target 1 is black, exile target 1 instead
+}

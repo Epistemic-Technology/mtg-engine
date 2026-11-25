@@ -1,0 +1,8 @@
+card "Maestros Diabolist" {
+  oracle_id 68d61090-a97f-47e9-bc64-7e5c7f8acbf7
+  cost {U}{B}{R}
+  type Creature — Vampire Warrior
+  pt 1/4
+  keywords deathtouch, haste
+  triggered whenever this attacks if you don't control Devil token: create 1 tapped and attacking "1/1 red Devil creature that pings"
+}

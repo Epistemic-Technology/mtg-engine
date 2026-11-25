@@ -1,0 +1,7 @@
+card "Deserter's Quarters" {
+  oracle_id aa8e0e77-4bbe-42d3-a3db-034fd114f9d7
+  cost {2}
+  type Artifact
+  keywords may choose not to untap
+  activated {6}, {T}: tap target creature; target 1 gains doesn't untap during its controller's untap step for as long as this remains tapped
+}

@@ -1,0 +1,16 @@
+scenario "moriok rigger counters on artifact dying" {
+  battlefield A: "Moriok Rigger", "Swamp", "Swamp"
+  battlefield B: "Wanderer's Twig", "Plains"
+  battlefield A: "Wanderer's Twig"
+  turn 1 precombat_main A: activate "Wanderer's Twig"
+  run_to turn 1 postcombat_main
+  assert counters "Moriok Rigger" +1/+1 1
+  assert power "Moriok Rigger" 3
+}
+scenario "moriok rigger ignores non-artifact" {
+  battlefield A: "Moriok Rigger", "Grizzly Bears", "Swamp", "Swamp", "Swamp"
+  hand A: "Murder"
+  turn 1 precombat_main A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Moriok Rigger" +1/+1 0
+}

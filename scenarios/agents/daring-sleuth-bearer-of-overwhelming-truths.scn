@@ -1,0 +1,17 @@
+scenario "sacrificing a Clue transforms Daring Sleuth, which then investigates on combat damage" {
+  battlefield A: "Daring Sleuth // Bearer of Overwhelming Truths", "Clue", 2 "Island"
+  turn 1 A: activate "Clue"
+  turn 1 A: attack "Bearer of Overwhelming Truths"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 17
+  assert battlefield A contains 1 "Clue"
+}
+
+scenario "without sacrificing a Clue it stays a 2/1 and investigates nothing" {
+  battlefield A: "Daring Sleuth // Bearer of Overwhelming Truths", "Clue", 2 "Island"
+  turn 1 A: attack "Daring Sleuth"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains 1 "Clue"
+}

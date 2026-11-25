@@ -1,0 +1,8 @@
+card "Neheb, Dreadhorde Champion" {
+  oracle_id ed8e9a2e-5fb8-4f39-b954-dbcbc96d909f
+  cost {2}{R}{R}
+  type Legendary Creature — Zombie Minotaur Warrior
+  pt 5/4
+  keywords trample
+  triggered whenever this deals combat damage to a player or planeswalker: you may discard any number cards chosen; if you do, draw count that many discarded this way cards and keep mana add {R} that much
+}

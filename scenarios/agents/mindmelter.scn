@@ -1,0 +1,8 @@
+scenario "Mindmelter exiles a card, sorcery speed only" {
+  battlefield A: "Mindmelter", 3 "Plains", "Wastes"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 precombat_main A: activate "Mindmelter" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert exile B count 1
+}

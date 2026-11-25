@@ -1,0 +1,7 @@
+card "Abzan Kin-Guard" {
+  oracle_id b292d183-1ba9-40b4-9cba-bd70bf1380ef
+  cost {3}{G}
+  type Creature — Human Warrior
+  pt 3/3
+  static this: has lifelink as long as you control white or black permanent
+}

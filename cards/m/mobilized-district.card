@@ -1,0 +1,6 @@
+card "Mobilized District" {
+  oracle_id eb2094cf-b4be-4f52-8615-e179ef7c741d
+  type Land
+  mana {C}
+  activated {4}, reduced {1} each andlist legendary creature or planeswalker you control: this becomes 3/3 Citizen creature with vigilance until end of turn
+}

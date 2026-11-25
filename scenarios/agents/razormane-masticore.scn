@@ -1,0 +1,19 @@
+scenario "razormane masticore shoots in draw step" {
+  battlefield A: "Razormane Masticore"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Forest"
+  start turn 3 A
+  turn 3 upkeep A: discard "Forest"
+  turn 3 draw A: trigger "Razormane Masticore" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Razormane Masticore"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+}
+scenario "razormane masticore sacrificed without discard" {
+  battlefield A: "Razormane Masticore"
+  start turn 3 A
+  run_to turn 3 draw
+  assert graveyard A contains "Razormane Masticore"
+}

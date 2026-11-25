@@ -1,0 +1,10 @@
+scenario "Take Flight gives +1/+0, flying, and a draw on attack" {
+  battlefield A: "Grizzly Bears", "Take Flight" on "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" flying
+  assert life B 17
+  assert hand A count 1
+}

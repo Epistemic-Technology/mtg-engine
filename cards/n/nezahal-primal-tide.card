@@ -1,0 +1,10 @@
+card "Nezahal, Primal Tide" {
+  oracle_id c45e96cb-2539-4e00-9fff-782a182c2f4b
+  cost {5}{U}{U}
+  type Legendary Creature — Elder Dinosaur
+  pt 7/7
+  this spell can't be countered
+  hand size none
+  triggered whenever an opponent casts noncreature spell: draw 1 card
+  activated discard 3 cards: exile this; delayed this: return it to battlefield tapped at beginning of the next end step
+}

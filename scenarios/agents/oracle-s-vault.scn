@@ -1,0 +1,25 @@
+scenario "oracle's vault first ability exiles, lets me play it, and adds a brick counter" {
+  battlefield A: "Oracle's Vault", 3 "Forest"
+  library A: "Forest", "Hill Giant"
+  turn 1 precombat_main A: activate "Oracle's Vault" ability 1
+  turn 1 precombat_main A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "Oracle's Vault" brick 1
+  assert battlefield A contains 4 "Forest"
+}
+scenario "oracle's vault second ability needs three brick counters and plays free" {
+  battlefield A: "Oracle's Vault" with 3 brick
+  library A: "Hill Giant", "Forest"
+  turn 1 precombat_main A: activate "Oracle's Vault" ability 2
+  turn 1 precombat_main A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Oracle's Vault" brick 3
+}
+scenario "oracle's vault second ability is illegal with two counters" {
+  battlefield A: "Oracle's Vault" with 2 brick
+  library A: "Hill Giant", "Forest"
+  illegal turn 1 precombat_main A: activate "Oracle's Vault" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Hill Giant"
+}

@@ -1,0 +1,25 @@
+scenario "Slaughter Specialist gives each opponent a Human and grows when it dies" {
+  battlefield A: 2 "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Slaughter Specialist", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Slaughter Specialist"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Human"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B lacks "Human"
+  assert counters "Slaughter Specialist" +1/+1 1
+  assert power "Slaughter Specialist" 4
+}
+
+scenario "Slaughter Specialist does not grow when its own creature dies" {
+  battlefield A: 2 "Swamp", "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Slaughter Specialist", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Slaughter Specialist"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Slaughter Specialist" +1/+1 0
+  assert battlefield B contains "Human"
+}

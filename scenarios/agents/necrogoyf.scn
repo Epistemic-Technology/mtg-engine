@@ -1,0 +1,23 @@
+scenario "necrogoyf power counts both graveyards" {
+  battlefield A: "Necrogoyf"
+  graveyard A: "Grizzly Bears", "Shock"
+  graveyard B: "Hill Giant", "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Necrogoyf" 3
+  assert toughness "Necrogoyf" 4
+}
+scenario "necrogoyf makes each player discard in their upkeep" {
+  battlefield A: "Necrogoyf"
+  hand A: "Forest"
+  hand B: "Island"
+  start turn 2 B upkeep
+  run_to turn 2 draw
+  assert graveyard B contains "Island"
+  assert graveyard A lacks "Forest"
+}
+scenario "necrogoyf discards controller too" {
+  battlefield A: "Necrogoyf"
+  hand A: "Forest"
+  run_to turn 1 draw
+  assert graveyard A contains "Forest"
+}

@@ -1,0 +1,6 @@
+card "All Is Dust" {
+  oracle_id 14693689-d087-43b6-9c3f-63ab0648fc20
+  cost {7}
+  type Kindred Sorcery — Eldrazi
+  spell: each player sacrifices all colored permanent they control
+}

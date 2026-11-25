@@ -1,0 +1,6 @@
+card "Mindswipe" {
+  oracle_id 4682c39e-c21a-4c8b-bc63-9cbac59dc563
+  cost {X}{U}{R}
+  type Instant
+  spell: counter target spell unless its controller pays {X}; deal X damage to controller of that target 1
+}

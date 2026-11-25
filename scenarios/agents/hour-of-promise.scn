@@ -1,0 +1,19 @@
+scenario "hour of promise with three deserts makes zombies" {
+  battlefield A: 5 "Forest", 3 "Sunscorched Desert"
+  hand A: "Hour of Promise"
+  library A: "Forest", "Forest", "Island"
+  turn 1 precombat_main A: cast "Hour of Promise"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Zombie"
+  assert is oldest A "Zombie" black
+  assert power oldest A "Zombie" 2
+  assert battlefield A contains 7 "Forest"
+}
+scenario "hour of promise without deserts makes no zombies" {
+  battlefield A: 5 "Forest"
+  hand A: "Hour of Promise"
+  library A: "Forest", "Forest", "Island"
+  turn 1 precombat_main A: cast "Hour of Promise"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Zombie"
+}

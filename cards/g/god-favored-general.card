@@ -1,0 +1,7 @@
+card "God-Favored General" {
+  oracle_id e861ddd5-64f7-4c59-ab96-0c69ef74febe
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  label "Inspired" triggered whenever this becomes untapped: you may pay {2}{W}; if you do, create 2 "1/1 white Soldier enchantment creature"
+}

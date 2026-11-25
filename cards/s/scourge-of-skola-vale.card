@@ -1,0 +1,9 @@
+card "Scourge of Skola Vale" {
+  oracle_id 725d7374-4ea8-4aef-ac09-8dcb5d8dcad1
+  cost {2}{G}
+  type Creature — Hydra
+  pt 0/0
+  keywords trample
+  enters with 2 +1/+1 counters
+  activated {T}, sacrifice other creature: put count equal toughness of the sacrificed creature +1/+1 counters on this
+}

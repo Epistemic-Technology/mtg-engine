@@ -1,0 +1,23 @@
+scenario "lorthos taps and freezes up to eight permanents when its controller pays 8" {
+  battlefield A: "Lorthos, the Tidemaker", 8 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 declare_attackers A: attack "Lorthos, the Tidemaker"
+  turn 1 declare_attackers A: trigger "Lorthos, the Tidemaker" targeting "Grizzly Bears", "Hill Giant", "Forest"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert tapped "Forest"
+  run_to turn 3 end
+  assert tapped "Grizzly Bears"
+  run_to turn 4 precombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+scenario "lorthos does nothing when the payment is declined" {
+  battlefield A: "Lorthos, the Tidemaker", 8 "Island"
+  battlefield B: "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Lorthos, the Tidemaker"
+  turn 1 declare_attackers A: decline "Lorthos, the Tidemaker"
+  run_to turn 2 precombat_main
+  assert untapped "Grizzly Bears"
+}

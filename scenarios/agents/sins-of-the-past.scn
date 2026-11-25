@@ -1,0 +1,12 @@
+scenario "sins of the past casts a graveyard spell free and exiles it" {
+  battlefield A: 4 "Swamp", 2 "Mountain"
+  hand A: "Sins of the Past"
+  graveyard A: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Sins of the Past" targeting "Lightning Bolt"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+  assert exile A contains "Sins of the Past"
+  assert graveyard A lacks "Lightning Bolt"
+}

@@ -1,0 +1,23 @@
+scenario "Vadrik makes it day and discounts by its power" {
+  battlefield A: 3 "Island", 2 "Mountain"
+  hand A: "Vadrik, Astral Archmage", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vadrik, Astral Archmage"
+  turn 1 A: wait
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert daynight day
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "Vadrik grows when day becomes night" {
+  battlefield A: 3 "Island", "Mountain"
+  hand A: "Vadrik, Astral Archmage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vadrik, Astral Archmage"
+  run_to turn 3 draw
+  assert daynight night
+  assert counters "Vadrik, Astral Archmage" +1/+1 1
+  assert power "Vadrik, Astral Archmage" 2
+}

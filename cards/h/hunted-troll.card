@@ -1,0 +1,8 @@
+card "Hunted Troll" {
+  oracle_id 1f789fcf-3df6-45a6-a732-9f43e33718d6
+  cost {2}{G}{G}
+  type Creature — Troll Warrior
+  pt 8/4
+  triggered when this enters: target opponent creates 4 "1/1 blue Faerie creature with flying"
+  activated {G}: regenerate this
+}

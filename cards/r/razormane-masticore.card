@@ -1,0 +1,9 @@
+card "Razormane Masticore" {
+  oracle_id ee45b588-b424-49d3-9e37-270f2ae9490d
+  cost {5}
+  type Artifact Creature — Masticore
+  pt 5/5
+  keywords first strike
+  triggered at beginning of your upkeep step: sacrifice this unless you discard 1 card
+  triggered at beginning of your draw step: you may deal 3 damage to target creature
+}

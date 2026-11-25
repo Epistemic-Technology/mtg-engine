@@ -1,0 +1,8 @@
+card "Mirror-Sigil Sergeant" {
+  oracle_id c021c808-dc58-4386-8758-68b858badbd5
+  cost {5}{W}
+  type Creature — Rhino Soldier
+  pt 4/4
+  keywords trample
+  triggered at beginning of your upkeep step if you control blue permanent: you may create token copy of this creature
+}

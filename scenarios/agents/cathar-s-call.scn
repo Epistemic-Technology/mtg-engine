@@ -1,0 +1,16 @@
+scenario "Cathar's Call gives vigilance and makes a Human each end step" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Cathar's Call"
+  turn 1 precombat_main A: cast "Cathar's Call" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert has "Grizzly Bears" vigilance
+  assert battlefield A contains "Human"
+}
+
+scenario "Cathar's Call makes a Human only at its controller's end step" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Cathar's Call"
+  turn 1 precombat_main A: cast "Cathar's Call" targeting "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert battlefield A contains 1 "Human"
+}

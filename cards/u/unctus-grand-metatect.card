@@ -1,0 +1,9 @@
+card "Unctus, Grand Metatect" {
+  oracle_id 54c18f09-5c5a-46e7-9f66-ff91bc12537c
+  cost {1}{U}{U}
+  type Legendary Artifact Creature — Phyrexian Vedalken
+  pt 2/4
+  static other blue creature you control: has ability { triggered whenever this becomes tapped: draw 1 card then discard 1 card }
+  static other artifact creature you control: +1/+1
+  activated {U/P}, sorcery: until end of turn, target creature you control becomes blue artifact in addition
+}

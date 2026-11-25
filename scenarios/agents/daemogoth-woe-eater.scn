@@ -1,0 +1,22 @@
+scenario "Daemogoth Woe-Eater sacrificed itself pays off" {
+  battlefield A: "Daemogoth Woe-Eater"
+  hand B: "Forest", "Island"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert graveyard A contains "Daemogoth Woe-Eater"
+  assert hand B count 1
+  assert hand A count 1
+  assert life A 22
+}
+
+scenario "Daemogoth Woe-Eater sacrificing another creature has no payoff" {
+  battlefield A: "Daemogoth Woe-Eater", "Grizzly Bears"
+  hand B: "Forest", "Island"
+  start turn 1 A upkeep
+  turn 1 upkeep A: choose "Grizzly Bears"
+  run_to turn 1 draw
+  assert battlefield A contains "Daemogoth Woe-Eater"
+  assert graveyard A contains "Grizzly Bears"
+  assert hand B count 2
+  assert life A 20
+}

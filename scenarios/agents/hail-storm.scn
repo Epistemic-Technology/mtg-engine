@@ -1,0 +1,16 @@
+scenario "Hail Storm hits attackers for 2 and you and your creatures for 1" {
+  battlefield A: 3 "Forest", "Serra Angel", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  hand A: "Hail Storm"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Hail Storm"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Wind Drake"
+  assert damage "Wind Drake" 0
+  assert life A 19
+  assert damage "Serra Angel" 1
+  assert damage "Hill Giant" 1
+  assert life B 20
+}

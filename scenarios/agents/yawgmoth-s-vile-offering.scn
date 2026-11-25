@@ -1,0 +1,18 @@
+scenario "reanimate and destroy with a legendary creature" {
+  battlefield A: "Isamaru, Hound of Konda", 5 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  hand A: "Yawgmoth's Vile Offering"
+  turn 1 precombat_main A: cast "Yawgmoth's Vile Offering" targeting "Grizzly Bears", B "Hill Giant"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert exile A contains "Yawgmoth's Vile Offering"
+}
+scenario "needs a legendary creature or planeswalker" {
+  battlefield A: "Grizzly Bears", 5 "Swamp"
+  hand A: "Yawgmoth's Vile Offering"
+  illegal turn 1 precombat_main A: cast "Yawgmoth's Vile Offering"
+  run_to turn 1 combat_damage
+  assert hand A contains "Yawgmoth's Vile Offering"
+}

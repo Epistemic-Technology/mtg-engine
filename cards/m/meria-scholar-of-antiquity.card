@@ -1,0 +1,8 @@
+card "Meria, Scholar of Antiquity" {
+  oracle_id 24aaadda-ef1c-44eb-9b01-4847bf454cd5
+  cost {1}{R}{G}
+  type Legendary Creature — Elf Artificer
+  pt 3/3
+  activated tap untapped nontoken artifact you control: add {G}
+  activated tap 2 untapped nontoken artifact you control: impulse 1 this turn it
+}

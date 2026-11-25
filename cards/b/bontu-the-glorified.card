@@ -1,0 +1,11 @@
+card "Bontu the Glorified" {
+  oracle_id c2679c32-a23d-4953-bb48-b46580439ce2
+  cost {2}{B}
+  type Legendary Creature — God
+  pt 4/6
+  short_name "Bontu"
+  keywords menace
+  keywords indestructible
+  can't attack or block unless creature died under your control this turn
+  activated {1}{B}, sacrifice other creature: scry 1; each opponent loses 1 life and you gain 1 life
+}

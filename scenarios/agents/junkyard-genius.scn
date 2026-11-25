@@ -1,0 +1,21 @@
+scenario "Junkyard Genius makes a tapped Powerstone" {
+  battlefield A: "Swamp", "Mountain", "Plains"
+  hand A: "Junkyard Genius"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Junkyard Genius"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Powerstone"
+  assert tapped "Powerstone"
+}
+
+scenario "Junkyard Genius sacrifice pumps the others" {
+  battlefield A: "Junkyard Genius", "Grizzly Bears", "Hill Giant", "Swamp", "Mountain", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Junkyard Genius" sacrificing "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" menace
+  assert has "Grizzly Bears" haste
+  assert power "Junkyard Genius" 2
+}

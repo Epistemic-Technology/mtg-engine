@@ -1,0 +1,7 @@
+card "Last March of the Ents" {
+  oracle_id 3999cd64-ff5c-4e2c-8aa6-d14f9f8a2b4c
+  cost {6}{G}{G}
+  type Sorcery
+  this spell can't be countered
+  spell: draw count equal greatest toughness creature you control cards then put any number creature card from hand onto battlefield chosen
+}

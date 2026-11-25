@@ -1,0 +1,6 @@
+card "Safe Haven" {
+  oracle_id 8f7f4061-8998-40e9-b980-c63f27e7a5cd
+  type Land
+  activated {2}, {T}: exile target creature you control
+  triggered at beginning of your upkeep step: you may sacrifice this; if you do, return each card exiled with this to battlefield
+}

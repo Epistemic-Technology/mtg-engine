@@ -1,0 +1,11 @@
+card "The Spear of Leonidas" {
+  oracle_id dac3a263-cc02-446a-88ec-882a21096b6c
+  cost {2}{R}
+  type Legendary Artifact — Equipment
+  triggered whenever equipped creature attacks: choose one {
+    mode "Bull Rush": it gains double strike until end of turn
+    mode "Summon": create 1 "Phobos, a legendary 3/2 red Horse creature"
+    mode "Revelation": discard 2 cards then draw 2 cards
+  }
+  equip {2}
+}

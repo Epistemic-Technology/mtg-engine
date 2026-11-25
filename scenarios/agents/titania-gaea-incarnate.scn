@@ -1,0 +1,26 @@
+scenario "titania size follows lands and her enters trigger returns lands tapped" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Titania, Gaea Incarnate", "Forest", "Forest"
+  hand A: "Zombify"
+  turn 1 precombat_main A: cast "Zombify" targeting "Titania, Gaea Incarnate"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Forest"
+  assert power "Titania, Gaea Incarnate" 6
+  assert toughness "Titania, Gaea Incarnate" 6
+  assert has "Titania, Gaea Incarnate" haste
+  assert has "Titania, Gaea Incarnate" reach
+  assert tapped newest A "Forest"
+  assert tapped oldest A "Forest"
+}
+scenario "titania animates a land with four counters" {
+  battlefield A: "Titania, Gaea Incarnate", 3 "Forest", 1 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Titania, Gaea Incarnate" targeting "Swamp"
+  run_to turn 1 begin_combat
+  assert counters "Swamp" +1/+1 4
+  assert power "Swamp" 4
+  assert is "Swamp" creature
+  assert is "Swamp" land
+  assert has "Swamp" haste
+  assert power "Titania, Gaea Incarnate" 4
+}

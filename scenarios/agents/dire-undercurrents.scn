@@ -1,0 +1,27 @@
+scenario "blue creature: target player draws" {
+  battlefield A: "Dire Undercurrents", 3 "Island"
+  hand A: "Wind Drake"
+  turn 1 precombat_main A: cast "Wind Drake"
+  turn 1 precombat_main A: trigger "Dire Undercurrents" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert hand A count 0
+}
+scenario "black creature: target player discards" {
+  battlefield A: "Dire Undercurrents", "Swamp"
+  hand A: "Typhoid Rats"
+  hand B: "Forest", "Island"
+  turn 1 precombat_main A: cast "Typhoid Rats"
+  turn 1 precombat_main A: trigger "Dire Undercurrents" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+}
+scenario "decline leaves hand" {
+  battlefield A: "Dire Undercurrents", 3 "Island"
+  hand A: "Wind Drake"
+  turn 1 precombat_main A: cast "Wind Drake"
+  turn 1 precombat_main A: trigger "Dire Undercurrents" targeting player B
+  turn 1 precombat_main A: decline "Dire Undercurrents"
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+}

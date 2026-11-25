@@ -1,0 +1,7 @@
+card "Deepchannel Mentor" {
+  oracle_id 53b121df-3040-4ad0-a25d-587a299b4f8b
+  cost {5}{U}
+  type Creature — Merfolk Rogue
+  pt 2/2
+  static blue creature you control: has can't be blocked
+}

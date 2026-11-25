@@ -1,0 +1,20 @@
+scenario "Hunted Troll gives the opponent four faeries and regenerates" {
+  battlefield A: "Forest", "Forest", "Forest", "Forest", "Forest"
+  hand A: "Hunted Troll"
+  turn 1 A: cast "Hunted Troll"
+  run_to turn 1 begin_combat
+  assert battlefield B contains 4 "Faerie"
+  assert battlefield A contains "Hunted Troll"
+  assert has newest B "Faerie" flying
+}
+scenario "Hunted Troll regenerates" {
+  battlefield A: "Hunted Troll", "Forest"
+  battlefield B: "Hill Giant" with 1 +1/+1
+  start turn 2 B
+  turn 2 declare_blockers A: activate "Hunted Troll"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Hunted Troll"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hunted Troll"
+  assert graveyard B contains "Hill Giant"
+}

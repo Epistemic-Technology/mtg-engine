@@ -1,0 +1,7 @@
+card "Commanding Presence" {
+  oracle_id 03160a74-8b83-4e07-b702-977a91a6311f
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has first strike, has ability { triggered whenever this deals combat damage to a player: create 1 "1/1 white Human Soldier creature" }
+}

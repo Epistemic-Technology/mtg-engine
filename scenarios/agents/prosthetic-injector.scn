@@ -1,0 +1,21 @@
+scenario "Prosthetic Injector gives +0/+2 and toxic 1 once equipped" {
+  battlefield A: "Prosthetic Injector", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Prosthetic Injector" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Prosthetic Injector" to "Grizzly Bears"
+  assert toughness "Grizzly Bears" 4
+  assert power "Grizzly Bears" 2
+  assert life B 18
+  assert poison B 1
+}
+
+scenario "Prosthetic Injector does nothing unequipped" {
+  battlefield A: "Prosthetic Injector", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 2
+  assert poison B 0
+}

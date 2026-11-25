@@ -1,0 +1,16 @@
+scenario "party of one: itself a Warrior" {
+  battlefield A: 4 "Plains"
+  hand A: "Emeria Captain"
+  turn 1 precombat_main A: cast "Emeria Captain"
+  run_to turn 1 postcombat_main
+  assert counters "Emeria Captain" +1/+1 1
+  assert power "Emeria Captain" 2
+}
+scenario "party of three with a Cleric and a Wizard" {
+  battlefield A: 4 "Plains", "Abbey Matron", "Aether Adept"
+  hand A: "Emeria Captain"
+  turn 1 precombat_main A: cast "Emeria Captain"
+  run_to turn 1 postcombat_main
+  assert counters "Emeria Captain" +1/+1 3
+  assert power "Emeria Captain" 4
+}

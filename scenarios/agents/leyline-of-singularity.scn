@@ -1,0 +1,16 @@
+scenario "Leyline of Singularity makes duplicates fall to the legend rule" {
+  battlefield A: "Leyline of Singularity", 2 "Grizzly Bears", 2 "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains 2 "Forest"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Leyline of Singularity affects the opponent too" {
+  battlefield A: "Leyline of Singularity"
+  battlefield B: 2 "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 1 "Hill Giant"
+}

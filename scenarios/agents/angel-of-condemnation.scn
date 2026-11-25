@@ -1,0 +1,32 @@
+scenario "angel of condemnation: first ability exiles then returns at end step" {
+  battlefield A: "Angel of Condemnation", 3 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Angel of Condemnation" ability 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  run_to turn 1 cleanup
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "angel of condemnation: exerted ability exiles until the Angel leaves" {
+  battlefield A: "Angel of Condemnation", 3 "Plains"
+  battlefield B: "Hill Giant", 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Angel of Condemnation" ability 2 targeting "Hill Giant"
+  turn 1 end B: cast "Murder" targeting "Angel of Condemnation"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Angel of Condemnation"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "angel of condemnation: Angel stays exerted, no untap, creature stays exiled" {
+  battlefield A: "Angel of Condemnation", 3 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Angel of Condemnation" ability 2 targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert exile B contains "Hill Giant"
+  assert tapped "Angel of Condemnation"
+}

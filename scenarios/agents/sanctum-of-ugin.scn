@@ -1,0 +1,19 @@
+scenario "sanctum of ugin tutors a colorless creature" {
+  battlefield A: "Sanctum of Ugin", 6 "Plains"
+  hand A: "Accomplished Automaton"
+  library A: "Forest", "Adaptive Automaton", "Grizzly Bears"
+  turn 1 A: cast "Accomplished Automaton"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Adaptive Automaton"
+  assert hand A lacks "Grizzly Bears"
+  assert graveyard A contains "Sanctum of Ugin"
+}
+scenario "sanctum of ugin ignores a small colorless spell" {
+  battlefield A: "Sanctum of Ugin", 6 "Plains"
+  hand A: "Adaptive Automaton"
+  library A: "Forest", "Accomplished Automaton"
+  turn 1 A: cast "Adaptive Automaton"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sanctum of Ugin"
+  assert hand A lacks "Accomplished Automaton"
+}

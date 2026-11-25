@@ -1,0 +1,7 @@
+card "Hungry for More" {
+  oracle_id 3eaf1e6b-bf4c-4ea8-83ea-6827470fd802
+  cost {B}{R}
+  type Sorcery
+  spell: create 1 "3/1 black and red Vampire creature with trample, lifelink, and haste"; delayed that token: sacrifice it at beginning of the next end
+  flashback {1}{B}{R}
+}

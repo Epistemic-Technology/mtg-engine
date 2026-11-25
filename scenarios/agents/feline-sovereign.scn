@@ -1,0 +1,11 @@
+scenario "Feline Sovereign pumps other Cats and destroys an artifact on damage" {
+  battlefield A: "Feline Sovereign", "Cave Tiger"
+  battlefield B: "Sol Ring", "Hill Giant"
+  turn 1 declare_attackers A: attack "Cave Tiger"
+  turn 1 combat_damage A: trigger "Feline Sovereign" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert power "Feline Sovereign" 2
+  assert power "Cave Tiger" 3
+  assert life B 17
+  assert graveyard B contains "Sol Ring"
+}

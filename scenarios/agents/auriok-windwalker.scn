@@ -1,0 +1,10 @@
+scenario "Auriok Windwalker moves an Equipment" {
+  battlefield A: "Auriok Windwalker", "Grizzly Bears", "Hill Giant", "Short Sword" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Auriok Windwalker" targeting "Short Sword", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Short Sword" to "Hill Giant"
+  assert power "Hill Giant" 4
+  assert power "Grizzly Bears" 2
+  assert tapped "Auriok Windwalker"
+}

@@ -1,0 +1,20 @@
+scenario "blue sun's twilight small x steals only" {
+  hand A: "Blue Sun's Twilight"
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  illegal turn 1 A: cast "Blue Sun's Twilight" x 2 targeting "Hill Giant"
+  turn 1 A: cast "Blue Sun's Twilight" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+scenario "blue sun's twilight x5 also copies" {
+  hand A: "Blue Sun's Twilight"
+  battlefield A: 7 "Island"
+  battlefield B: "Serra Angel"
+  turn 1 A: cast "Blue Sun's Twilight" x 5 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Serra Angel"
+  assert battlefield B lacks "Serra Angel"
+}

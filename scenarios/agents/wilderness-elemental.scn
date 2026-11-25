@@ -1,0 +1,14 @@
+scenario "wilderness elemental counts opposing nonbasic lands" {
+  battlefield A: "Wilderness Elemental", "Mishra's Factory", "Blood Crypt"
+  battlefield B: "Mishra's Factory", "Blood Crypt", "Plains", "Forest"
+  run_to turn 1 begin_combat
+  assert power "Wilderness Elemental" 2
+  assert toughness "Wilderness Elemental" 3
+  assert has "Wilderness Elemental" trample
+}
+scenario "wilderness elemental with no opposing nonbasic lands" {
+  battlefield A: "Wilderness Elemental", "Mishra's Factory"
+  battlefield B: "Plains"
+  run_to turn 1 begin_combat
+  assert power "Wilderness Elemental" 0
+}

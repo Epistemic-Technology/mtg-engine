@@ -1,0 +1,7 @@
+card "Nissa, Resurgent Animist" {
+  oracle_id c1fc5923-c3cd-448a-98d1-c154661c2812
+  cost {2}{G}
+  type Legendary Creature — Elf Scout
+  pt 3/3
+  label "Landfall" triggered whenever land you control enters: add any; then if resolution 2, reveal until Elf or Elemental card; put that card into hand and the rest on bottom of library random
+}

@@ -1,0 +1,6 @@
+card "Tromp the Domains" {
+  oracle_id 5b5dece6-b1e0-4844-bbf9-3b44008ffa70
+  cost {5}{G}
+  type Sorcery
+  label "Domain" spell: until end of turn, each creature you control gains trample and gets +1/+1 count each domain
+}

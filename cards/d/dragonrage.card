@@ -1,0 +1,6 @@
+card "Dragonrage" {
+  oracle_id fb16c4b0-9ac4-4664-9b57-97bfc22e5de9
+  cost {2}{R}
+  type Instant
+  spell: add {R} count each attacking creature you control; until end of turn, each attacking creature you control gains ability { activated {R}: this gets +1/+0 }
+}

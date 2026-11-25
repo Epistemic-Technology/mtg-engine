@@ -1,0 +1,31 @@
+scenario "spear: mode 1 gives the equipped creature double strike" {
+  battlefield A: "Grizzly Bears", "The Spear of Leonidas" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "The Spear of Leonidas" mode 1
+  run_to turn 1 combat_damage
+  assert has "Grizzly Bears" double_strike
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "spear: mode 2 creates Phobos" {
+  battlefield A: "Grizzly Bears", "The Spear of Leonidas" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "The Spear of Leonidas" mode 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Phobos"
+  assert power "Phobos" 3
+  assert toughness "Phobos" 2
+  assert is "Phobos" red
+  assert is "Phobos" "Horse"
+}
+
+scenario "spear: mode 3 discards two then draws two" {
+  battlefield A: "Grizzly Bears", "The Spear of Leonidas" on "Grizzly Bears"
+  hand A: "Forest", "Island", "Swamp"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "The Spear of Leonidas" mode 3
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A count 2
+}

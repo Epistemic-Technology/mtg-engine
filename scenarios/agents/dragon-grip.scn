@@ -1,0 +1,19 @@
+scenario "Dragon Grip has flash with a power 4 creature and pumps" {
+  battlefield A: "Serra Angel", "Grizzly Bears", 3 "Mountain"
+  hand A: "Dragon Grip"
+  start turn 2 B precombat_main
+  turn 2 precombat_main A: cast "Dragon Grip" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Dragon Grip" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" first_strike
+}
+
+scenario "Dragon Grip has no flash without a power 4 creature" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Dragon Grip"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: cast "Dragon Grip" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Dragon Grip"
+}

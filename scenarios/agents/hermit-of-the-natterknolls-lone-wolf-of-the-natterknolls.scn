@@ -1,0 +1,28 @@
+scenario "Hermit of the Natterknolls draws when an opponent casts a spell on your turn" {
+  battlefield A: "Hermit of the Natterknolls // Lone Wolf of the Natterknolls"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 end_combat
+  assert hand A count 1
+  assert life A 17
+}
+
+scenario "Hermit of the Natterknolls transforms when no spells were cast last turn" {
+  battlefield A: "Hermit of the Natterknolls // Lone Wolf of the Natterknolls"
+  run_to turn 2 draw
+  assert power "Lone Wolf of the Natterknolls" 3
+  assert toughness "Lone Wolf of the Natterknolls" 5
+}
+
+scenario "Lone Wolf (transformed at the first upkeep) draws two on an opponent's spell" {
+  battlefield A: "Hermit of the Natterknolls // Lone Wolf of the Natterknolls"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 end_combat
+  assert power "Lone Wolf of the Natterknolls" 3
+  assert hand A count 2
+}

@@ -1,0 +1,8 @@
+card "Orthion, Hero of Lavabrink" {
+  oracle_id 31895957-5fa8-46dc-a76e-37bbdc6072ad
+  cost {3}{R}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  activated {1}{R}, {T}, sorcery: create token copy of another target creature you control; that token gains haste indefinitely; delayed that token: sacrifice it at beginning of the next end step
+  activated {6}{R}{R}{R}, {T}, sorcery: create 5 token copies of another target creature you control; those tokens gains haste indefinitely; delayed those tokens: sacrifice them at beginning of the next end step
+}

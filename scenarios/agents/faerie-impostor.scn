@@ -1,0 +1,17 @@
+scenario "Faerie Impostor returns another creature" {
+  battlefield A: "Grizzly Bears", "Island"
+  hand A: "Faerie Impostor"
+  turn 1 A: cast "Faerie Impostor"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Faerie Impostor"
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+scenario "Faerie Impostor alone is sacrificed" {
+  battlefield A: "Island"
+  hand A: "Faerie Impostor"
+  turn 1 A: cast "Faerie Impostor"
+  run_to turn 1 begin_combat
+  assert battlefield A lacks "Faerie Impostor"
+  assert graveyard A contains "Faerie Impostor"
+}

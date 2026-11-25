@@ -1,0 +1,15 @@
+scenario "Isleback Spawn is big while any library has twenty or fewer cards" {
+  battlefield A: "Isleback Spawn"
+  library B: "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  assert power "Isleback Spawn" 8
+  assert toughness "Isleback Spawn" 16
+  assert has "Isleback Spawn" shroud
+}
+
+scenario "Isleback Spawn is 4/8 with big libraries" {
+  battlefield A: "Isleback Spawn"
+  start turn 1 A precombat_main
+  assert power "Isleback Spawn" 4
+  assert toughness "Isleback Spawn" 8
+}

@@ -1,0 +1,8 @@
+card "Seizan, Perverter of Truth" {
+  oracle_id 04d0d20f-720e-4cb6-a3ad-ea2b57bb7efa
+  cost {3}{B}{B}
+  type Legendary Creature — Demon Spirit
+  pt 6/5
+  short_name "Seizan"
+  triggered at beginning of each upkeep step: that player loses 2 life and draws 2 cards
+}

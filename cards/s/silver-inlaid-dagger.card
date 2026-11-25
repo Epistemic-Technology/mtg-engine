@@ -1,0 +1,8 @@
+card "Silver-Inlaid Dagger" {
+  oracle_id 93e9b0d6-97a8-4357-bcd4-f82d81bad232
+  cost {1}
+  type Artifact — Equipment
+  static enchanted creature: +2/+0
+  static as long as attached is Human, enchanted creature: +1/+0
+  equip {2}
+}

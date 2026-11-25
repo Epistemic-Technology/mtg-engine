@@ -1,0 +1,8 @@
+card "Black Market Tycoon" {
+  oracle_id 464968a8-865e-4ac8-927e-7c931e3dabb3
+  cost {R}{G}
+  type Creature — Cat Rogue
+  pt 2/2
+  triggered at beginning of your upkeep step: deal count each 2 Treasure you control damage to you
+  activated {T}: create 1 "Treasure"
+}

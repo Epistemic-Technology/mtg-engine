@@ -1,0 +1,26 @@
+scenario "discard two draw two add RR kept" {
+  battlefield A: "Neheb, Dreadhorde Champion"
+  hand A: "Forest", "Plains", "Hill Giant"
+  library A: "Lightning Bolt", "Shock", "Island"
+  turn 1 A: attack "Neheb, Dreadhorde Champion"
+  turn 1 combat_damage A: choose "Forest"
+  turn 1 combat_damage A: choose "Plains"
+  turn 1 combat_damage A: choose done
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting player B
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 10
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Plains"
+}
+scenario "discard none draws nothing" {
+  battlefield A: "Neheb, Dreadhorde Champion"
+  hand A: "Forest"
+  library A: "Lightning Bolt", "Island"
+  turn 1 A: attack "Neheb, Dreadhorde Champion"
+  turn 1 combat_damage A: choose done
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 15
+}

@@ -1,0 +1,6 @@
+token "1/1 white Soldier enchantment creature" {
+  name "Soldier"
+  type Enchantment Creature — Soldier
+  pt 1/1
+  color white
+}
