@@ -1542,7 +1542,9 @@ impl GameState {
                     let cost_checked = !is_ability
                         && (self.pool.get(def).target_cost.is_some() || self.pool.targeted_life);
                     let later = &specs[(next_target + 1).min(specs.len())..];
-                    if cost_checked {
+                    // (`target_payable` holds for every target of a spell
+                    // without a target cost.)
+                    if cost_checked && self.pool.get(def).target_cost.is_some() {
                         options.retain(|c| {
                             let Choice::Target(t) = c else { return true };
                             self.target_payable(spell, *t, later)
