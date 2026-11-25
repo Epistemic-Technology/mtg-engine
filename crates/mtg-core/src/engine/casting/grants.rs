@@ -359,6 +359,13 @@ impl GameState {
         changers: &[ObjId],
         options: &mut Vec<Choice>,
     ) {
+        // A permanent with some other player static (most of them, in a
+        // random game) makes grants live: with no grant in force and no
+        // until-end-of-turn permission, every query below finds nothing,
+        // and each would scan the battlefield again for each card.
+        if self.grave_turn_grants.is_empty() && self.card_grants_in_force().next().is_none() {
+            return;
+        }
         let ps = self.player(p);
         for id in &ps.graveyard {
             let id = *id;
