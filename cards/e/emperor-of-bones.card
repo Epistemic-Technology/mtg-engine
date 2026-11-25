@@ -1,0 +1,9 @@
+card "Emperor of Bones" {
+  oracle_id cb70a360-898e-443a-b053-38e35ea2baa2
+  cost {1}{B}
+  type Creature — Skeleton Noble
+  pt 2/2
+  triggered at beginning of your combat: exile up to 1 target card from a graveyard
+  activated {1}{B}: adapt 2
+  triggered whenever one or more +1/+1 counters put on this: put 1 creature card exiled with this onto battlefield under your control with 1 finality counter; it gains haste indefinitely; delayed it: sacrifice it at beginning of the next end step
+}

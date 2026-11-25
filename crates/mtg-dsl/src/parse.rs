@@ -12603,6 +12603,15 @@ impl P {
         } else {
             None
         };
+        // "Put a creature card exiled with this creature onto the
+        // battlefield ... It gains haste." (Emperor of Bones): `it` is the
+        // permanent it became, as after "create a token".
+        if matches!(
+            what,
+            Recipient::OneExiledWith(..) | Recipient::RandomExiledWith(_)
+        ) {
+            self.created_at = Some(self.targets.len());
+        }
         Ok(Effect::ReturnToBattlefield {
             what,
             counters,
