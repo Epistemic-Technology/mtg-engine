@@ -1798,6 +1798,20 @@ impl GameState {
                 if !ok {
                     return None;
                 }
+                // "Whenever enchanted creature deals damage, its controller
+                // loses that much life." (Visions of Brutality), "...
+                // deals that much damage to that creature" (Guilty
+                // Conscience): with no recipient named, the triggering
+                // object is the creature that dealt the damage, as it last
+                // existed (CR 603.10a), not what it was dealt to.
+                if *to == crate::card::DamageTo::Any {
+                    let controller = self
+                        .objects
+                        .get(*source)
+                        .map(|o| o.controller)
+                        .or_else(|| self.lki.get(source).map(|l| l.object.controller));
+                    return Some((Some(*source), controller));
+                }
                 match (to, target) {
                     // "to that player": the delayed trigger's player,
                     // checked by `delayed_turn_triggers`.
@@ -3137,8 +3151,11 @@ impl GameState {
                 .is_some_and(|o| o.zone == Zone::Battlefield && o.tapped),
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(source),
-            Condition::HadNoCounters(k) => self.had_no_counters(source, k),
-            Condition::HadCounters(k) => self.had_counters(source, k),
+            // "Whenever this or another creature you control dies, if it
+            // had a +1/+1 counter on it" (Basri's Lieutenant): the dying
+            // creature's, as it last existed.
+            Condition::HadNoCounters(k) => self.had_no_counters(trigger_obj.unwrap_or(source), k),
+            Condition::HadCounters(k) => self.had_counters(trigger_obj.unwrap_or(source), k),
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
@@ -3215,8 +3232,8 @@ impl GameState {
             Condition::SourceTapped => w.tapped,
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(w.source),
-            Condition::HadNoCounters(k) => self.had_no_counters(w.source, k),
-            Condition::HadCounters(k) => self.had_counters(w.source, k),
+            Condition::HadNoCounters(k) => self.had_no_counters(trigger_obj.unwrap_or(w.source), k),
+            Condition::HadCounters(k) => self.had_counters(trigger_obj.unwrap_or(w.source), k),
             Condition::TriggerHadCounters => trigger_obj.is_some_and(|o| self.had_any_counters(o)),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),

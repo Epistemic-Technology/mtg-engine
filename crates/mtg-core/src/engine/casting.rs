@@ -12377,10 +12377,27 @@ impl GameState {
         let other_than_created = filter.relation == crate::card::Relation::Other
             && filter.status.token == Some(true)
             && !ctx.created_tokens.is_empty();
+        // "Whenever equipped creature deals damage to a blocking creature,
+        // Kusari-Gama deals that much damage to each other creature
+        // defending player controls.": a noncreature source's "other
+        // creature" is other than the triggering creature.
+        let other_than_trigger = match ctx.trigger_obj {
+            Some(t)
+                if filter.relation == crate::card::Relation::Other
+                    && filter.types.contains(crate::card::CardType::Creature)
+                    && !self
+                        .characteristics_or_lki(ctx.source)
+                        .is_some_and(|c| c.is_creature()) =>
+            {
+                Some(t)
+            }
+            _ => None,
+        };
         out.extend(
             self.battlefield
                 .iter()
                 .copied()
+                .filter(|id| other_than_trigger != Some(*id))
                 .filter(|id| {
                     !other_than_targets
                         || !(ctx.targets.contains(&Target::Object(*id))
@@ -13066,6 +13083,33 @@ impl GameState {
         }
     }
 
+    /// A searched card's relation to the triggering object (`ObjFilter::same`
+    /// of `SameOf::Triggering`): "with lesser mana value". With no
+    /// triggering object, nothing is lesser.
+    fn search_rel_ok(
+        &self,
+        rel: Option<crate::card::Same>,
+        id: ObjId,
+        trigger_obj: Option<ObjId>,
+    ) -> bool {
+        match rel {
+            Some(crate::card::Same {
+                of: crate::card::SameOf::Triggering,
+                what: crate::card::SameWhat::LesserManaValue,
+            }) => {
+                let mv = |x: ObjId| {
+                    self.objects
+                        .get(x)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&x).map(|l| l.object.def))
+                        .map(|d| self.pool.get(d).mana_cost.mana_value())
+                };
+                matches!((mv(id), trigger_obj.and_then(mv)), (Some(a), Some(b)) if a < b)
+            }
+            _ => true,
+        }
+    }
+
     /// Search `p`'s library (CR 701.19) for `count` cards matching
     /// `filter` and put them where `to` says, then shuffle. With `may`,
     /// declining before anything is found is not searching at all, and
@@ -13084,6 +13128,9 @@ impl GameState {
         (graveyard, name, more): (bool, Option<&str>, Option<&crate::card::SearchMore>),
     ) {
         let to = &to;
+        // Judged per card against the triggering object (`search_rel_ok`);
+        // `chosen_filter` drops it.
+        let rel = filter.same;
         let filter = self.chosen_filter(filter, ctx).into_owned();
         let empty = crate::card::SearchMore::default();
         let more = more.unwrap_or(&empty);
@@ -13125,6 +13172,11 @@ impl GameState {
                     let card_name = &self.pool.get(o.def).name;
                     if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
                         && self.status_ok(filter, *id)
+                        // "When that creature dies this turn, search your
+                        // library for a creature card with lesser mana
+                        // value" (Rushed Rebirth): than the triggering
+                        // object as it last existed.
+                        && (rel.is_none() || self.search_rel_ok(rel, *id, ctx.trigger_obj))
                         // "a card named Heart-Piercer Bow or Vial of
                         // Dragonfire": the names joined by `|`.
                         && name.is_none_or(|n| n.split('|').any(|n| card_name == n))

@@ -1,0 +1,8 @@
+card "Kusari-Gama" {
+  oracle_id b5585eb5-4df3-4ae2-8c39-a8e7a9706dc2
+  cost {3}
+  type Artifact — Equipment
+  static equipped creature: has ability { activated {2}: this creature gets +1/+0 until end of turn }
+  triggered whenever equipped creature deals damage to blocking creature: deal that much damage to each other creature defending player controls
+  equip {3}
+}

@@ -1,0 +1,7 @@
+card "Nykthos Paragon" {
+  oracle_id 367ac7e2-5056-48f3-a296-87d6cb1f7b54
+  cost {4}{W}{W}
+  type Enchantment Creature — Human Soldier
+  pt 4/6
+  triggered do once each turn whenever you gain life: you may put that much +1/+1 counters on each creature you control
+}

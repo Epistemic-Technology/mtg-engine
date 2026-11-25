@@ -209,7 +209,7 @@ like the card; either half may still be cast alone.
 | `spells your opponents cast that target this cost 3 life more` | "Spells your opponents cast that target this creature cost an additional 3 life to cast." (Terror of the Peaks; CR 601.2f, 119.4): a spell an opponent of the permanent's controller casts pays that much life for having it among its targets (once however many times it targets it), and may choose it as a target only with that much life to pay along with its other such targets. Abilities and copies pay none. |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
-| `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
+| `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". A quality `of chosen type` is an error (the protection would be judged without the permanent that chose). |
 | `landwalk snow Forest`, `landwalk snow land`, `landwalk legendary land`, `landwalk nonbasic land` | "Snow forestwalk", "Snow landwalk", "Legendary landwalk", "Nonbasic landwalk" (CR 702.14a): can't be blocked as long as the defending player controls a land the filter matches; "can block creatures with landwalk abilities as though they didn't have those abilities" stops it too. |
 | `fabricate 1`, `renown 1`, `evolve`, `unleash` | Fabricate (CR 702.123): when it enters, you may put N +1/+1 counters on it; if you don't (or it has left the battlefield), you create N "1/1 colorless Servo artifact creature" tokens. Renown (CR 702.112): when it deals combat damage to a player, if it isn't renowned, N +1/+1 counters and it becomes renowned (a designation that lasts until it leaves the battlefield). Evolve (CR 702.100): whenever a creature you control enters, if that creature has greater power or greater toughness (judged as it triggers and as it resolves, the entering creature by last known information if it has left), a +1/+1 counter on this. Unleash (CR 702.98): you may have it enter with a +1/+1 counter; it can't block as long as it has a +1/+1 counter. |
 | `hideaway 4`, `play free exiled card`, `cast free exiled card`, `put exiled card into hand` | Hideaway N (CR 702.75): "When this permanent enters, look at the top N cards of your library, exile one face down, then put the rest on the bottom in a random order." (the controller chooses, scenarios `choose "Hill Giant"`; the exiled card is linked to the permanent, CR 607.2a, and only its controller sees it: other players' views show a face-down card). Prints `Hideaway 4`. `play free exiled card` is "you may play the exiled card without paying its mana cost": a spell is cast as the ability resolves (timing ignored, CR 608.2g); a land is played, counting as the land play, only on the controller's own turn with a land play left (CR 305.1); `cast free exiled card` casts only. A trailing `if <condition>` prints "... if you control four or more legendary creatures" and is judged as the ability resolves. `put exiled card into hand` is "put the exiled card into its owner's hand" (Watcher for Tomorrow's leaves trigger). |
@@ -258,7 +258,7 @@ like the card; either half may still be cast alone.
 | `evoke {1}{U}{U}`, `bloodthirst 2` | Evoke (CR 702.74): cast for this cost instead, and the permanent is sacrificed as it enters (`if evoked` is the trigger condition). Bloodthirst (CR 702.54): enters with N +1/+1 counters if an opponent was dealt damage this turn (`opponent damaged this turn` is also a static condition). |
 | `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. `crew 1, once` prints "Crew 1. Activate only once each turn." The filter words `crewed it` ("creature that crewed it this turn") and `saddled it` ("creatures that saddled it this turn") hold the creatures tapped to pay the source's crew or saddle cost this turn, even once the source has left the battlefield; as a count (`count each creature crewed it`, "for each creature that crewed it this turn") those that have left the battlefield since count too. |
 | `morph {2}{U}`, `megamorph {G}`, `disguise {1}{W}` | Cast face down as a nameless colorless 2/2 creature for {3}, turned face up any time its controller has priority for the cost (a special action; CR 702.37, 708); megamorph adds a +1/+1 counter as it turns up, and a disguised permanent has ward {2} while face down (CR 702.168). A land card with disguise (Branch of Vitu-Ghazi) may be cast face down too. `triggered when this is turned face up: ...`. `morph pay 5 life`, `morph discard 1 card`, `morph return Bird you control` print "Morph—Pay 5 life." and kin (CR 702.37a: any cost): turning it face up pays the life, or asks the player which card to discard or which permanent to return. `manifest` is an effect: the top card of your library onto the battlefield face down (CR 701.34); a manifested creature card turns face up for its mana cost. `manifest dread` (CR 701.62): look at the top two cards of your library, manifest the one you choose, and put the other into your graveyard. `manifest dread x times` ("Manifest dread X times", Valgavoth's Onslaught) is that many separate manifest dreads, one after another; `those creatures` after it are the manifested permanents (`manifest dread x times, then put x +1/+1 counters on those creatures`: "..., then put X +1/+1 counters on each of those creatures."). |
-| `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step, and exiles it instead if it would leave the battlefield any other way (CR 702.84a: it doesn't die; `leaving exiles it` alone prints "If it would leave the battlefield, exile it instead of putting it anywhere else."); an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. `ward pay 3 life` prints "Ward—Pay 3 life." (CR 702.21a: counter it unless that player pays 3 life); `ward {2}, pay 2 life` prints "Ward—{2}, Pay 2 life.": the player pays both, the mana and the life, or it is countered; `buyback sacrifice land` prints "Buyback—Sacrifice a land." (CR 702.27a: the land is chosen as buyback is decided and sacrificed as the costs are paid). `ward discard 1 card` and `echo discard 1 card` print "Ward—Discard a card." and "Echo—Discard a card.": the payer discards a card of their choice to pay (none in hand, it can't be paid); `ward discard 1 card at random` ("Ward—Discard a card at random.") discards one at random (CR 701.9b). `ward waterbend {4}` prints "Ward—Waterbend {4}.": the payer may tap their untapped artifacts and creatures for the generic mana (CR 701.67a). `ward sacrifice creature` prints "Ward—Sacrifice a creature." (any filter: `ward sacrifice Food`, "Ward—Sacrifice a Food."): the player who controls the spell or ability may sacrifice one matching permanent of their choice as the ward trigger resolves; with none, or if they don't, it is countered. Any other ward cost is paid in full or not at all by that player as the trigger resolves (CR 702.21a, 118.3): `ward sacrifice 3 permanent` ("Ward—Sacrifice three permanents."; `ward sacrifice 3 nonland permanent`: each permanent chosen by the payer), `ward collect evidence 4` ("Ward—Collect evidence 4."; the engine picks the cards, as for the cost elsewhere), `ward blight 2`, `ward discard enchantment or instant or sorcery card` ("Ward—Discard an enchantment, instant, or sorcery card."), `ward pay count equal power life` ("Ward—Pay life equal to this creature's power.", "... to Raubahn's power." on a legend: its power as the trigger resolves, or as it last existed), `ward get 5 poison counters` ("Ward—Get five poison counters."; `ward you get 2 poison counters`: "Ward—You get two poison counters."), and alternatives joined with `or`: `ward discard 1 card or {2}` ("Ward—Discard a card or pay {2}."): the player is asked whether to pay, then (with several they can pay) which. A ward cost with another part (tapping or exiling a permanent, behold, ...) is an error, as is an echo cost other than mana, life, and discarded cards. |
+| `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step, and exiles it instead if it would leave the battlefield any other way (CR 702.84a: it doesn't die; `leaving exiles it` alone prints "If it would leave the battlefield, exile it instead of putting it anywhere else."); an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. `ward pay 3 life` prints "Ward—Pay 3 life." (CR 702.21a: counter it unless that player pays 3 life); `ward {2}, pay 2 life` prints "Ward—{2}, Pay 2 life.": the player pays both, the mana and the life, or it is countered; `buyback sacrifice land` prints "Buyback—Sacrifice a land." (CR 702.27a: the land is chosen as buyback is decided and sacrificed as the costs are paid); one permanent only: `buyback sacrifice 3 Island` is an error. `ward discard 1 card` and `echo discard 1 card` print "Ward—Discard a card." and "Echo—Discard a card.": the payer discards a card of their choice to pay (none in hand, it can't be paid); `ward discard 1 card at random` ("Ward—Discard a card at random.") discards one at random (CR 701.9b). `ward waterbend {4}` prints "Ward—Waterbend {4}.": the payer may tap their untapped artifacts and creatures for the generic mana (CR 701.67a). `ward sacrifice creature` prints "Ward—Sacrifice a creature." (any filter: `ward sacrifice Food`, "Ward—Sacrifice a Food."): the player who controls the spell or ability may sacrifice one matching permanent of their choice as the ward trigger resolves; with none, or if they don't, it is countered. Any other ward cost is paid in full or not at all by that player as the trigger resolves (CR 702.21a, 118.3): `ward sacrifice 3 permanent` ("Ward—Sacrifice three permanents."; `ward sacrifice 3 nonland permanent`: each permanent chosen by the payer), `ward collect evidence 4` ("Ward—Collect evidence 4."; the engine picks the cards, as for the cost elsewhere), `ward blight 2`, `ward discard enchantment or instant or sorcery card` ("Ward—Discard an enchantment, instant, or sorcery card."), `ward pay count equal power life` ("Ward—Pay life equal to this creature's power.", "... to Raubahn's power." on a legend: its power as the trigger resolves, or as it last existed), `ward get 5 poison counters` ("Ward—Get five poison counters."; `ward you get 2 poison counters`: "Ward—You get two poison counters."), and alternatives joined with `or`: `ward discard 1 card or {2}` ("Ward—Discard a card or pay {2}."): the player is asked whether to pay, then (with several they can pay) which. A ward cost with another part (tapping or exiling a permanent, behold, ...) is an error, as is an echo cost other than mana, life, and discarded cards. |
 | `firebending 2`, `firebending count where power`, `firebending count where creature you control` | Firebending (CR 702.189): "Whenever this creature attacks, add N {R}. Until end of combat, you don't lose this mana as steps and phases end." The red mana stays in the pool as each combat step ends, through the end of combat step (the player's other mana is taken to be spent first); X is counted as the trigger resolves. Prints "Firebending 2" (in a keyword line with others: "Trample, firebending 4, haste") or "Firebending X, where X is this creature's power." |
 | `strive {2}{W}` | "Strive — This spell costs {2}{W} more to cast for each target beyond the first." (CR 207.2c): the cost is added once per target beyond the first as the total cost is determined (CR 601.2f); a variable target group stops offering targets once another could not be paid for. Printed first. |
 | `protection doesn't remove this` | "This effect doesn't remove this Aura.", printed after the static ability before it (`static enchanted: has protection from chosen color`): the Aura's state-based check (CR 704.5m) ignores protection. |
@@ -361,7 +361,8 @@ one line per paragraph for text that spans paragraphs:
 
 Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
-a matching permanent they control), `sacrifice granter`, `tap granter`,
+a matching permanent they control; a cost has one such part, so
+`sacrifice black creature, sacrifice red creature` is an error), `sacrifice granter`, `tap granter`,
 `unattach granter` (in a quoted ability an Aura or Equipment grants:
 "Sacrifice Blazing Torch", "Tap Fishing Pole", "Unattach Leonin Bola",
 see `has ability`), `discard 1 card`, `discard 1 card
@@ -1506,6 +1507,9 @@ keywords for as long as it is on the stack (lifelink, deathtouch, wither
 and split second act there, CR 702.15, 702.2, 702.80, 702.61).
 `learn` (CR 701.48) prints "Learn."; there are no Lesson cards outside the
 game here, so it is "you may discard a card; if you do, draw a card".
+After `you may draw count equal power cards`, `if you do, discard that much
+cards` discards the number drawn ("If you do, discard that many cards.",
+Horrid Shadowspinner), not the triggering event's amount.
 `goad target creature` (CR 701.15; `goad target 1` prints "Goad it.",
 `goad targets 1 to 3` "Goad them."): until the controller's next turn the
 creature attacks each combat if able, and attacks a player other than the
@@ -1893,7 +1897,8 @@ triggers only once.": once for the object, ever (an intervening "if"
 that fails doesn't use it up). `triggered do once each turn <trigger>: you may ...` prints "Do
 this only once each turn.": the ability triggers every time, but its
 first `you may` is offered only until its controller has done it this
-turn (declining doesn't count). Both count per object and ability and
+turn (declining doesn't count); with no `you may` (or cast) in its effects
+it is an error. Both count per object and ability and
 reset each turn; a permanent that changes zones is a new object and
 starts fresh (CR 400.7). Each goes after `from graveyard`, before the
 trigger, and works in a granted ability (`has ability { triggered once
@@ -2335,7 +2340,10 @@ control enters, return up to 1 target creature with lesser mana value you
 control to hand": "... target creature you control with lesser mana
 value ...", Clement; on a card, `return another target creature card with
 lesser mana value from your graveyard to battlefield`, Jackdaw Savior: its
-mana value less than the triggering object's, as it is or last existed)
+mana value less than the triggering object's, as it is or last existed;
+so is a searched card, `delayed target 1: when that creature dies this
+turn, search creature card with lesser mana value to battlefield tapped`,
+Rushed Rebirth)
 and `other than that creature` ("put a +1/+1 counter on target creature
 you control other than that creature", Pawpatch Recruit: neither it nor
 the card it became). Both are judged as targets are chosen and again as
@@ -2889,7 +2897,11 @@ gained this turn` prints "you've gained"), `card types in your graveyard`
 ("the number of card types among cards in your graveyard"), `counters on
 this` ("the number of counters on Savanti Romero": every kind, as for
 `+1/+1 counters on this`; in a triggered ability `counters on it` is the
-triggering creature's, "the number of counters on it", Spider-Man Noir), `permanents sacrificed this turn` ("the number of
+triggering creature's, "the number of counters on it", Spider-Man Noir;
+in a cast trigger, whose triggering object is a spell, `counters on it`
+and `+1/+1 counters on it` are the source's: `put 1 +1/+1 counter on this
+then this creature deals damage equal +1/+1 counters on it to each
+opponent`, Hallar, the Firefletcher), `permanents sacrificed this turn` ("the number of
 permanents you've sacrificed this turn"), `two to x` (`count where two to x`
 prints "2ˣ": "Target player draws 2ˣ cards."), `creature attacked this
 turn` ("for each creature that attacked this turn": any player's
@@ -3108,7 +3120,10 @@ combat" in place of "this turn": `this gets +2/+0 until end of combat`
 ("it gets +2/+0 until end of combat"), `that creature can't block until
 end of combat` ("That creature can't block this combat."), `target
 creature defending player controls blocks this if able until end of
-combat` ("... blocks it this combat if able").
+combat` ("... blocks it this combat if able"). In a triggered ability
+`blocks it` after a target names the triggering object (`whenever
+creature you control attacks: up to 1 target creature blocks it if able
+until end of combat`: the attacker, Fighter Class).
 
 `indefinitely` after a sentence whose clauses would last until end of
 turn makes them last for good, printing no duration (CR 611.2a): `target
@@ -4275,7 +4290,12 @@ random` ("At the beginning of your next upkeep, ..."), `delayed that
 token: at beginning of the end step on your next turn, sacrifice that
 token` ("At the beginning of the end step on your next turn, ...": the
 controller's end step, but not in the turn it was created), and
-`at end of combat` ("destroy it at end of combat"). A delayed trigger
+`at end of combat` ("destroy it at end of combat"). Clauses joined by
+`then` after a delayed trigger written effects first are the delayed
+trigger's too (`delayed this: exile this at end of combat then return this
+to battlefield transformed under your control`: "exile it at end of combat,
+then return it to the battlefield transformed under your control.",
+Conqueror's Galleon). A delayed trigger
 about a triggering object that has left the battlefield whose effects make
 a token copy of it is about that permanent as it last existed (`whenever
 you sacrifice this or artifact: you may pay {2}; if you do, delayed that
@@ -4296,7 +4316,15 @@ tapped` covers them all, "... under their owners' control", Morningtide's
 Light); in one about `that creature` (the triggering object),
 `that creature` is that object too, only while it is the same object
 (CR 603.7c), and prints "that creature"; in one about a target, `that
-creature` is the object too. `delayed target 1: when that creature dies
+creature` is the object too. In a delayed ability about a target with no
+targets of its own, `mana value of that target 1`, `power of that target
+1`, and `toughness of that target 1` read the object it is about, as it
+last existed (`counter target spell; delayed target 1: at beginning of your
+next first main, add X mana any combination count where mana value of that
+target 1`: "... where X is that spell's mana value.", Plasm Capture; Vanish
+into Memory's "discard cards equal to that creature's toughness"); about
+another object (`delayed this:`), or read outside the delayed ability as
+well, they are an error. `delayed target 1: when that creature dies
 this turn, <effects>` (and `when that creature leaves the battlefield this
 turn`) triggers once if that object dies (leaves) and ends unfired at the
 cleanup step (CR 603.7c); `when it dies under your control this turn`
@@ -4393,7 +4421,11 @@ creature you control; they gain trample`. After a variable number of
 targets (`distribute 3 +1/+1 counters among 0 to 3 target creatures; they
 gain vigilance until end of turn`), `they` is those targets, as `target
 1` is; so it is after `those targets` (`untap those targets; they gain
-haste until end of turn`, Molten Primordial). In a trigger on one or
+haste until end of turn`, Molten Primordial) and after a counted target
+phrase (`put 1 +1/+1 counter on up to 2 target creature you control; they
+gain vigilance, lifelink until end of turn`: "... on each of up to two
+target creatures you control. They gain ...", Bretagard Stronghold;
+formatted `targets 1 to 2`), while those are the last targets declared. In a trigger on one or
 more creatures attacking (`whenever one or more creatures you control
 attack: they gain indestructible until end of turn`, Angelic Guardian),
 `they` and `those creatures` are the controller's matching attackers. As a count, `count each those
@@ -5201,7 +5233,9 @@ you win the flip, return Molten Birth to its owner's hand.").
 opponent each reveal the top card of their library, then each (the active
 player first) puts it on the top or bottom; the sentence after it, `if you
 win, <sentence>`, happens only if the controller's card had the greater
-mana value (or the opponent revealed nothing). "If you win, that creature
+mana value (or the opponent revealed nothing). `you may clash; if you win,
+...` ("you may clash with an opponent. If you win, ...", Sentry Oak):
+declined, nothing is won. "If you win, that creature
 gets an additional +2/+2" for a second pump of the same target. A
 second pump of the same target scaled by `count each` prints "an
 additional" too: `target creature gets +3/+3; target 1 gets +2/+2 count
@@ -5556,6 +5590,7 @@ Forms that change only how Oracle words what an existing form does:
 | `if you control at least 5 other Forest` | "if you control at least five other Forests" (the condition `you control 5 other Forest`; in a trigger about another Forest, when the source couldn't be one of them, as Roiling Canopy, a land that isn't a Forest, "other" excludes the triggering Forest instead) |
 | `triggered whenever you cast Lesson or Saga or Shrine spell` | "Whenever you cast a Lesson, Saga, or Shrine spell" (three or more bare subtypes; two print "a Lesson or Shrine spell") |
 | `that player gains control of this` | on a legendary card, "that player gains control of Kain" (the name again) |
+| `triggered whenever equipped creature deals damage to blocking creature: deal that much damage to each other creature defending player controls` | "... Kusari-Gama deals that much damage to each other creature defending player controls.": in a noncreature source's triggered ability, `other` in a group of creatures excludes the triggering object too |
 | `you draw that much cards, create that much tapped "Treasure", then lose that much life` | "you draw that many cards, create that many tapped Treasure tokens, then lose that much life" (a list's subject isn't repeated after subjectless clauses; `then you lose` prints the same) |
 | `you may target 1 no longer suspected` | "You may have it become no longer suspected." |
 | `label "Descend 8" static as long as 8 permanent cards in your graveyard, this: +2/+2, ...` after a pump of the same subject | "... gets an additional +2/+2 ..." after any earlier pump static of the same subject, conditional or not (Akawalli) |

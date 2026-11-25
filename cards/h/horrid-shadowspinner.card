@@ -1,0 +1,8 @@
+card "Horrid Shadowspinner" {
+  oracle_id 5fcbb5d3-71d1-4946-b806-ba6376338eba
+  cost {1}{U}{B}
+  type Creature — Horror
+  pt 2/3
+  keywords lifelink
+  triggered whenever this attacks: you may draw count equal power cards; if you do, discard that much cards
+}

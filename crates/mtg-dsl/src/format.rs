@@ -673,6 +673,30 @@ impl Fmt {
             })
             .map(|k| rs[k])
             .collect();
+        // "deals 6 damage to each of up to six targets" (`up to 6 target
+        // any`, Chandra, the Firebrand): the targets the count declared,
+        // written once as they were.
+        if let [Recipient::Target(first), ..] = keep.as_slice()
+            && keep.len() > 1
+            && keep
+                .iter()
+                .enumerate()
+                .all(|(k, r)| *r == Recipient::Target(first + k))
+            && !self.mentioned[*first..*first + keep.len()]
+                .iter()
+                .any(|m| *m)
+            && targets.get(*first..*first + keep.len()).is_some_and(|ts| {
+                matches!(ts[0], Target::UpTo(_)) && ts.iter().all(|t| *t == ts[0])
+            })
+        {
+            let n = keep.len();
+            let s = self.recipient(Recipient::Targets(*first, n), targets);
+            // "any target" is written `target any` after a count.
+            return s.replace(
+                &format!("up to {n} any target"),
+                &format!("up to {n} target any"),
+            );
+        }
         keep.iter()
             .map(|r| self.recipient(*r, targets))
             .collect::<Vec<_>>()

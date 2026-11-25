@@ -1,0 +1,9 @@
+card "Chandra, the Firebrand" {
+  oracle_id 536c1112-694f-42f8-a7b1-604389e54a95
+  cost {3}{R}
+  type Legendary Planeswalker — Chandra
+  loyalty 3
+  loyalty +1: deal 1 damage to any target
+  loyalty -2: delayed this: when next you cast an instant or sorcery spell this turn, copy that spell new targets
+  loyalty -6: deal 6 damage to up to 6 target any
+}

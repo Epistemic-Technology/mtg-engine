@@ -5647,7 +5647,14 @@ impl GameState {
                     && self.step.is_main()
                     && self.stack.iter().all(|s| *s == source)
             }
-            C::AsCast(_) => self.objects.get(source).is_some_and(|o| o.cast.as_cast()),
+            // "Exile Emergency Powers. Addendum — If you cast this spell
+            // during your main phase, ...": the spell as it last existed,
+            // once the resolution has moved it.
+            C::AsCast(_) => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| o.cast.as_cast()),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)
@@ -5879,10 +5886,21 @@ impl GameState {
                     h >= *n as usize
                 }
             }
-            C::OpponentControls { filter, at_least } => self
-                .players_in_game()
-                .filter(|p| *p != you)
-                .any(|p| count(filter, p) >= *at_least as usize),
+            // "If an opponent controls an Island" (Mogg Salvage): that
+            // opponent's own permanents, whatever the filter names.
+            C::OpponentControls { filter, at_least } => {
+                self.players_in_game().filter(|p| *p != you).any(|p| {
+                    let filter = &*self.source_filter(filter, Some(source), None);
+                    self.permanents_of(p)
+                        .filter(|id| {
+                            self.characteristics(*id)
+                                .is_some_and(|c| filter.matches(*id, p, &c, Some(source), Some(p)))
+                                && self.status_ok(filter, *id)
+                        })
+                        .count()
+                        >= *at_least as usize
+                })
+            }
             C::SourceIs(filter) => match self.objects.get(source) {
                 Some(o) => {
                     self.characteristics_or_lki(source).is_some_and(|c| {

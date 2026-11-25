@@ -1,0 +1,16 @@
+card "Conqueror's Galleon // Conqueror's Foothold" {
+  oracle_id 88b18901-50cd-461c-b1bc-be900210be8e
+  layout transform
+  cost {4}
+  type Artifact — Vehicle
+  pt 2/10
+  triggered when this attacks: delayed this: exile this at end of combat then return this to battlefield transformed under your control
+  crew 4
+  face "Conqueror's Foothold" {
+    type Land
+    mana {C}
+    activated {2}, {T}: draw 1 card then discard 1 card
+    activated {4}, {T}: draw 1 card
+    activated {6}, {T}: return target card from your graveyard to hand
+  }
+}
