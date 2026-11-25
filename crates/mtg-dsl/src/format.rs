@@ -2683,7 +2683,13 @@ impl Fmt {
             }
             Effect::CreateEmblem { emblem } => format!("emblem \"{emblem}\""),
             Effect::Counter { to, dest } => {
-                format!("counter {}{}", self.recipient(*to, t), countered_to(*dest))
+                // A cast trigger's spell, as written (`that spell`, Lunar
+                // Force).
+                let what = match to {
+                    Recipient::TriggeringObject => "that spell".to_string(),
+                    r => self.recipient(*r, t),
+                };
+                format!("counter {what}{}", countered_to(*dest))
             }
             Effect::ChangeTarget { what } => {
                 format!("change target of {}", self.recipient(*what, t))
@@ -5553,7 +5559,13 @@ pub fn filter(f: &Filter) -> String {
             that_are: false,
             ..f.clone()
         };
-        return format!("thatare {}", filter(&g));
+        // `each thatare Barbarian or Warrior creature` (Lovisa Coldeyes):
+        // the parser takes `each` first.
+        let inner = filter(&g);
+        return match inner.strip_prefix("each ") {
+            Some(rest) => format!("each thatare {rest}"),
+            None => format!("thatare {inner}"),
+        };
     }
     // "Aura or Equipment attached to target creature": after both sides.
     if f.attached_to.is_some() && f.or.is_some() {

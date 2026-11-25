@@ -1493,7 +1493,7 @@ impl P {
                 if !self.at_word("flash") {
                     return self.fail("expected `flash` after its label");
                 }
-                return self.card_statement(card);
+                self.card_statement(card)
             }
             "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {
                 self.pos += 4;

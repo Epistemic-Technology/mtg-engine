@@ -2339,7 +2339,10 @@ impl<'a> Ctx<'a> {
                         Trigger::When(inner) => inner,
                         t => t,
                     };
-                    matches!(t, Trigger::CastsSpell { .. } | Trigger::CastsFiltered { .. })
+                    matches!(
+                        t,
+                        Trigger::CastsSpell { .. } | Trigger::CastsFiltered { .. }
+                    )
                 }) =>
             {
                 "that spell".to_string()
@@ -24621,26 +24624,29 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             .flash_label
             .as_ref()
             .map_or_else(String::new, |l| format!("{l} \u{2014} "));
-        lines.push(label + &if card.flash_if_may && card.flash_if_named {
-            format!(
-                "If {}, you may cast this spell as though it had flash.",
-                static_cond_text(c, card)
-            )
-        } else if card.flash_if_may {
-            format!(
-                "You may cast this spell as though it had flash if {}.",
-                static_cond_text(c, card)
-            )
-        } else {
-            // "Colossal Rattlewurm has flash as long as you control a
-            // Desert."
-            let who = if card.flash_if_named {
-                card.name.as_str()
-            } else {
-                "This spell"
-            };
-            format!("{who} has flash as long as {}.", static_cond_text(c, card))
-        });
+        lines.push(
+            label
+                + &if card.flash_if_may && card.flash_if_named {
+                    format!(
+                        "If {}, you may cast this spell as though it had flash.",
+                        static_cond_text(c, card)
+                    )
+                } else if card.flash_if_may {
+                    format!(
+                        "You may cast this spell as though it had flash if {}.",
+                        static_cond_text(c, card)
+                    )
+                } else {
+                    // "Colossal Rattlewurm has flash as long as you control a
+                    // Desert."
+                    let who = if card.flash_if_named {
+                        card.name.as_str()
+                    } else {
+                        "This spell"
+                    };
+                    format!("{who} has flash as long as {}.", static_cond_text(c, card))
+                },
+        );
     }
     if card.flash_cleanup {
         lines.push(FLASH_CLEANUP.to_string());
