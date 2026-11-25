@@ -1,0 +1,7 @@
+card "Council's Deliberation" {
+  oracle_id 3280488d-e94b-4d53-b279-c32ed711d4bc
+  cost {1}{U}
+  type Instant
+  spell: draw 1 card
+  triggered from graveyard whenever you scry if you control Island: you may exile this; if you do, draw 1 card
+}

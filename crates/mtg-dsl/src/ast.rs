@@ -510,10 +510,13 @@ pub enum CountExpr {
         each: bool,
     },
     /// `plus 2 <expr>`: "2 plus the number of ..."; `plus one <expr>`
-    /// spells the number ("one plus ...").
+    /// spells the number ("one plus ..."); `plus one after <expr>` prints
+    /// it last ("the number of cards in your hand plus one", Sea Gate
+    /// Restoration).
     Plus {
         n: u32,
         word: bool,
+        after: bool,
         inner: Box<CountExpr>,
     },
     /// `difference 10 hand`: `n` minus the count, at least 0, printed

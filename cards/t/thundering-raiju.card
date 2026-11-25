@@ -1,0 +1,8 @@
+card "Thundering Raiju" {
+  oracle_id 3d713c11-36a7-4b19-8c42-a9b61ef5902c
+  cost {2}{R}{R}
+  type Creature — Spirit
+  pt 3/3
+  keyword haste
+  triggered whenever this attacks: put 1 +1/+1 counter on target creature you control; then this creature deals count where modified creature you control other than this damage to each opponent
+}

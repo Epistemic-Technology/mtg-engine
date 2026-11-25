@@ -1,0 +1,8 @@
+card "Wakestone Gargoyle" {
+  oracle_id 11284767-7095-4e0e-bc60-c69d58098348
+  cost {3}{W}
+  type Creature — Gargoyle
+  pt 3/4
+  keywords defender, flying
+  activated {1}{W}: each creature with defender you control can attack this turn as though it didn't have defender
+}

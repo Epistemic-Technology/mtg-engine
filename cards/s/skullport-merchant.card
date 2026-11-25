@@ -1,0 +1,8 @@
+card "Skullport Merchant" {
+  oracle_id 64ed5c35-8185-4e68-8028-b7b632ef5828
+  cost {2}{B}
+  type Creature — Dwarf Citizen
+  pt 1/4
+  triggered when this enters: create 1 "Treasure"
+  activated {1}{B}, sacrifice another creature or a Treasure: draw 1 card
+}

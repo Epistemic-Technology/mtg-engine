@@ -1,0 +1,7 @@
+card "Wrath of Marit Lage" {
+  oracle_id 740cafc6-9521-403a-ab5f-11582bf55af0
+  cost {3}{U}{U}
+  type Enchantment
+  triggered when this enters: tap all red creature
+  static plural red creature: has doesn't untap during its controller's untap step
+}

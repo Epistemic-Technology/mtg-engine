@@ -3703,6 +3703,7 @@ impl Fmt {
                     if let Some((p, q)) = pt {
                         what.push(format!("{p}/{q}"));
                     }
+                    what.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
                     what.extend(subtypes.iter().cloned());
                     what.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
                     let with = match ability {
@@ -4908,7 +4909,12 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Difference { n, inner } => {
             format!("difference {n} {}", count_expr_text(inner))
         }
-        CountExpr::Plus { n, word, inner } => {
+        CountExpr::Plus {
+            n,
+            word,
+            after,
+            inner,
+        } => {
             let n = if *word {
                 crate::render::NUMBER_WORDS
                     .get(*n as usize - 1)
@@ -4916,7 +4922,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             } else {
                 n.to_string()
             };
-            format!("plus {n} {}", count_expr_text(inner))
+            let after = if *after { " after" } else { "" };
+            format!("plus {n}{after} {}", count_expr_text(inner))
         }
         CountExpr::CardsInGraveyards { filter: f, each } => {
             let place = if *each {

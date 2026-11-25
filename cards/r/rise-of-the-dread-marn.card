@@ -1,0 +1,7 @@
+card "Rise of the Dread Marn" {
+  oracle_id 0998768a-1632-4da1-8310-352582501c4b
+  cost {2}{B}
+  type Instant
+  spell: create count where nontoken creature died this turn "2/2 black Zombie Berserker creature"
+  foretell {B}
+}

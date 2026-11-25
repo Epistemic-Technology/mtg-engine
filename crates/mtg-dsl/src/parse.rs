@@ -10070,12 +10070,24 @@ impl P {
             // loses other card types`: "It's a Treasure artifact with
             // \"...,\" and it loses all other card types" (Vraska, the
             // Silencer).
+            // `that creature is black Zombie in addition`: "That creature
+            // is a black Zombie in addition to its other colors and types"
+            // (Dread Slaver).
             "is" if matches!(self.peek(), Some(Tok::Word(w))
                 if w.chars().next().is_some_and(char::is_uppercase))
+                || (matches!(self.peek(), Some(Tok::Word(w)) if color(w).is_some())
+                    && matches!(self.peek_at(1), Some(Tok::Word(w))
+                        if w.chars().next().is_some_and(char::is_uppercase)))
                 || (matches!(self.peek(), Some(Tok::Pt { signed: false, .. }))
                     && matches!(self.peek_at(1), Some(Tok::Word(w))
                         if w.chars().next().is_some_and(char::is_uppercase))) =>
             {
+                let mut colors = Vec::new();
+                while let Some(Tok::Word(w)) = self.peek() {
+                    let Some(c) = color(w) else { break };
+                    colors.push(c);
+                    self.pos += 1;
+                }
                 let pt = match self.peek() {
                     Some(&Tok::Pt {
                         power, toughness, ..
@@ -10129,13 +10141,16 @@ impl P {
                     true
                 };
                 let loses_abilities = self.eat_words(&["and", "has", "no", "abilities"]);
+                if !colors.is_empty() && (!in_addition || pt.is_some() || !types.is_empty()) {
+                    return self.fail("`is <color> <type> in addition` takes creature types only");
+                }
                 Ok(Effect::Animate {
                     to: subject,
                     types,
                     subtypes,
                     pt,
                     base: false,
-                    colors: Vec::new(),
+                    colors,
                     keywords,
                     indefinite: true,
                     loses_abilities,
@@ -16578,10 +16593,12 @@ impl P {
                 }
                 _ => return self.fail("expected a number after `plus`"),
             };
+            let after = self.eat_word("after");
             let inner = self.count_expr()?;
             return Ok(CountExpr::Plus {
                 n,
                 word,
+                after,
                 inner: Box::new(inner),
             });
         }

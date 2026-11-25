@@ -1,0 +1,6 @@
+card "Coerced Confession" {
+  oracle_id 49b84c50-ca0a-4947-8225-ae41aa08e1f1
+  cost {4}{U/B}
+  type Sorcery
+  spell: target player mills 4 cards; you draw count each creature card graveyarded this way cards
+}

@@ -70,3 +70,196 @@ scenario "Lunar Force: its controller's own spell is not countered" {
   assert life B 18
   assert battlefield A contains "Lunar Force"
 }
+
+# "{1}{W}: Creatures you control with defender can attack this turn as
+# though they didn't have defender." (Wakestone Gargoyle).
+scenario "Wakestone Gargoyle: defenders attack after the activation" {
+  battlefield A: "Wakestone Gargoyle", "Wall of Limbs", 2 "Plains"
+  turn 1 A: activate "Wakestone Gargoyle"
+  turn 1 A: attack "Wakestone Gargoyle", "Wall of Limbs"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Wakestone Gargoyle: without the activation it can't attack" {
+  battlefield A: "Wakestone Gargoyle", 2 "Plains"
+  illegal turn 1 A: attack "Wakestone Gargoyle"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+# "Choose a number between 0 and 13. Each player sacrifices that many
+# creatures of their choice." (By Invitation Only).
+scenario "By Invitation Only: each player sacrifices the chosen number" {
+  battlefield A: 5 "Plains", 3 "Grizzly Bears"
+  battlefield B: 3 "Hill Giant"
+  hand A: "By Invitation Only"
+  turn 1 A: cast "By Invitation Only"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield B contains 1 "Hill Giant"
+  assert graveyard B contains 2 "Hill Giant"
+}
+
+# "Create X 2/2 black Zombie Berserker creature tokens, where X is the
+# number of nontoken creatures that died this turn." (Rise of the Dread
+# Marn).
+scenario "Rise of the Dread Marn: a token for each nontoken death" {
+  battlefield A: "Mountain", 3 "Swamp", "Soldier"
+  battlefield B: "Grizzly Bears", "Raging Goblin"
+  hand A: "Shock", "Lightning Bolt", "Rise of the Dread Marn"
+  battlefield A: "Mountain"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Raging Goblin"
+  turn 1 A: wait
+  turn 1 A: cast "Rise of the Dread Marn"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Zombie Berserker"
+}
+
+# "When this enchantment enters, tap all red creatures. Red creatures
+# don't untap during their controllers' untap steps." (Wrath of Marit
+# Lage).
+scenario "Wrath of Marit Lage: red creatures are tapped and stay tapped" {
+  battlefield A: 5 "Island"
+  battlefield B: "Raging Goblin", "Grizzly Bears" tapped
+  hand A: "Wrath of Marit Lage"
+  turn 1 A: cast "Wrath of Marit Lage"
+  run_to turn 2 precombat_main
+  assert tapped "Raging Goblin"
+  assert untapped "Grizzly Bears"
+}
+
+# "Whenever a creature dealt damage by this creature this turn dies,
+# return it to the battlefield under your control. That creature is a
+# black Zombie in addition to its other colors and types." (Dread
+# Slaver).
+scenario "Dread Slaver: the blocked creature returns as a black Zombie" {
+  battlefield A: "Dread Slaver"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Dread Slaver"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert is "Grizzly Bears" Zombie
+  assert is "Grizzly Bears" Bear
+  assert is "Grizzly Bears" black
+  assert is "Grizzly Bears" green
+}
+
+# "Target player mills four cards. You draw a card for each creature card
+# put into their graveyard this way." (Coerced Confession).
+scenario "Coerced Confession: a card for each creature milled" {
+  battlefield A: 5 "Swamp"
+  hand A: "Coerced Confession"
+  library B: "Grizzly Bears", "Forest", "Hill Giant", "Island", "Forest"
+  turn 1 A: cast "Coerced Confession" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert library B count 1
+  assert hand A count 2
+}
+
+# "When this creature enters, create a Treasure token. {1}{B}, Sacrifice
+# another creature or a Treasure: Draw a card." (Skullport Merchant).
+scenario "Skullport Merchant: a Treasure, sacrificed for a card" {
+  battlefield A: 5 "Swamp"
+  hand A: "Skullport Merchant"
+  turn 1 A: cast "Skullport Merchant"
+  turn 1 A: wait
+  turn 1 A: activate "Skullport Merchant" sacrificing "Treasure"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+  assert hand A count 1
+}
+
+scenario "Skullport Merchant: another creature pays too" {
+  battlefield A: "Skullport Merchant", "Grizzly Bears", 2 "Swamp"
+  turn 1 A: activate "Skullport Merchant" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+# "Mill X cards. Target player loses 2 life for each creature card put
+# into your graveyard this way." (Liliana's Indignation).
+scenario "Liliana's Indignation: 2 life for each creature milled" {
+  battlefield A: 4 "Swamp"
+  hand A: "Liliana's Indignation"
+  library A: "Grizzly Bears", "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Liliana's Indignation" x 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert library A count 1
+  assert life B 16
+}
+
+# "This creature and enchanted creature each get +X/+X, where X is the
+# number of creature cards in all graveyards." (Nighthowler).
+scenario "Nighthowler: bestowed, both get +X/+X" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  graveyard B: "Raging Goblin"
+  hand A: "Nighthowler"
+  turn 1 A: cast "Nighthowler" bestowed targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Nighthowler: as a creature it counts the graveyards" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  hand A: "Nighthowler"
+  turn 1 A: cast "Nighthowler"
+  run_to turn 1 postcombat_main
+  assert power "Nighthowler" 2
+  assert toughness "Nighthowler" 2
+}
+
+# "Whenever you scry, if you control an Island, you may exile this card
+# from your graveyard. If you do, draw a card." (Council's Deliberation).
+scenario "Council's Deliberation: a scry draws from the graveyard" {
+  battlefield A: "Island", "Mountain"
+  graveyard A: "Council's Deliberation"
+  hand A: "Magma Jet"
+  turn 1 A: cast "Magma Jet" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Council's Deliberation"
+  assert hand A count 1
+}
+
+scenario "Council's Deliberation: no Island, nothing happens" {
+  battlefield A: 2 "Mountain"
+  graveyard A: "Council's Deliberation"
+  hand A: "Magma Jet"
+  turn 1 A: cast "Magma Jet" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Council's Deliberation"
+  assert hand A count 0
+}
+
+# "Draw cards equal to the number of cards in your hand plus one."
+# (Sea Gate Restoration).
+scenario "Sea Gate Restoration: hand plus one" {
+  battlefield A: 7 "Island"
+  hand A: "Sea Gate Restoration", "Forest", "Forest"
+  turn 1 A: cast "Sea Gate Restoration"
+  run_to turn 1 postcombat_main
+  assert hand A count 5
+}
+
+# "Then this creature deals X damage to each opponent, where X is the
+# number of modified creatures you control other than this creature."
+# (Thundering Raiju).
+scenario "Thundering Raiju: counts the other modified creatures" {
+  battlefield A: "Thundering Raiju" with 1 +1/+1, "Grizzly Bears", "Hill Giant" with 1 +1/+1
+  turn 1 A: attack "Thundering Raiju"
+  turn 1 A: trigger "Thundering Raiju" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 14
+}

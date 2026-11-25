@@ -315,6 +315,7 @@ impl Decompiler<'_> {
             C::Plus(n, inner) => A::Plus {
                 n: *n,
                 word: false,
+                after: false,
                 inner: Box::new(self.cda_count(inner)),
             },
             C::Times(n, inner) => A::Times(*n, Box::new(self.cda_count(inner))),
