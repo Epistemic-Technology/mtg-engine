@@ -1,0 +1,27 @@
+# Renderer near-misses (wording-c, fifteenth wave): each card's amounts
+# and targets.
+
+# "Sacrifice this creature: You gain life equal to this creature's power."
+# (Gristleback): the power as it last existed.
+scenario "Gristleback: life equal to its power with a counter" {
+  battlefield A: "Gristleback" with 1 +1/+1
+  turn 1 A: activate "Gristleback"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert graveyard A contains "Gristleback"
+}
+
+# "{5}{B}{B}, Sacrifice this creature: Target player loses X life, where X
+# is this creature's power." (Wall of Limbs).
+scenario "Wall of Limbs: grows on life gain, then drains its power" {
+  battlefield A: "Wall of Limbs" with 2 +1/+1, 7 "Swamp"
+  hand A: "Healing Salve"
+  battlefield A: "Plains"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: activate "Wall of Limbs" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert life B 17
+  assert graveyard A contains "Wall of Limbs"
+}

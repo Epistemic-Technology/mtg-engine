@@ -6758,9 +6758,15 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
         }
         // "its power" only once the source is named in the sentence;
         // otherwise "where X is this creature's power", "... Captain
-        // America's toughness".
+        // America's toughness". A cost naming "this creature" doesn't
+        // count ("Sacrifice this creature: You gain life equal to this
+        // creature's power", Gristleback); a name in the cost does
+        // ("Sacrifice Syr Ginger: You gain life equal to its power").
         CountExpr::SourcePower | CountExpr::SourceToughness
-            if !each && !ctx.source_mentioned && !ctx.in_delayed =>
+            if !each
+                && (!ctx.source_mentioned
+                    || ctx.cost_named && ctx.source_name().starts_with("this "))
+                && !ctx.in_delayed =>
         {
             phrase.replacen("its", &format!("{}'s", ctx.source_name()), 1)
         }

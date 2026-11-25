@@ -1,0 +1,8 @@
+card "Gristleback" {
+  oracle_id 36f4d359-f46c-4da4-a8c2-1fe1799ac3f7
+  cost {2}{G}
+  type Creature — Boar Beast
+  pt 2/2
+  bloodthirst 1
+  activated sacrifice this: you gain count equal power life
+}

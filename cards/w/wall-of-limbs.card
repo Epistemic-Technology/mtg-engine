@@ -1,0 +1,9 @@
+card "Wall of Limbs" {
+  oracle_id 1aabb6bd-8061-42a5-9a71-f9eac718bd22
+  cost {2}{B}
+  type Creature — Zombie Wall
+  pt 0/3
+  keyword defender
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+  activated {5}{B}{B}, sacrifice this: target player loses count where power life
+}
