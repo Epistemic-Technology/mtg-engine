@@ -1880,6 +1880,23 @@ impl Templates {
     fn new() -> Self {
         let r = |s: &str| cached_regex(s).unwrap();
         let rules: Vec<Rule> = vec![
+            // "Creatures you control get +1/+1 until end of turn. Untap
+            // them." (Rallying Roar), "Gain control of all creatures ...
+            // Untap those creatures. They gain haste until end of turn."
+            // (Mob Rule): the group the sentence before named; the parser
+            // refuses either without one.
+            (r(r"^Untap (them|those creatures)$"), |c, _| {
+                Some(format!("untap {}", cap(c, 1)))
+            }),
+            (r(r"^They gain haste until end of turn$"), |_, _| {
+                Some("they gain haste".to_string())
+            }),
+            // "At the beginning of your upkeep, sacrifice a creature other
+            // than this creature." (Demonic Taskmaster).
+            (
+                r(r"^[Ss]acrifice an? (creature|artifact|land|permanent) other than this (?:creature|artifact|enchantment)$"),
+                |c, _| Some(format!("you sacrifice 1 {} other than this", cap(c, 1))),
+            ),
             // "put a loyalty counter on Ral" (CR 306.5).
             (r(r"^[Pp]ut an? loyalty counter on (.+)$"), |c, t| {
                 Some(format!(
@@ -10507,6 +10524,12 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n");
+    // "Create two 1/1 colorless Spirit creature tokens. They gain haste
+    // until end of turn." (Sokenzan): `they` names a group or a
+    // triggering spell, not created tokens; `those tokens` does.
+    s = re(r#"(\bcreate [^;]+"[^;]*); they gain haste\b"#)
+        .replace_all(&s, "$1; those tokens gains haste")
+        .into_owned();
     s = re(r"with an? ([+-]\d+/[+-]\d+|[a-z]+) counter on (?:it|them)")
         .replace_all(&s, "with $1 counter")
         .into_owned();

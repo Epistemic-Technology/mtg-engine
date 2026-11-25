@@ -1,0 +1,6 @@
+card "Rally to Battle" {
+  oracle_id 9d8d88dd-c266-4b7d-a756-ac2d8976ca89
+  cost {3}{W}
+  type Instant
+  spell: each creature you control gets +1/+3; untap them
+}
