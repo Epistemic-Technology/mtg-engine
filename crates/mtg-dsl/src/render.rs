@@ -2451,7 +2451,6 @@ impl<'a> Ctx<'a> {
             }
             Recipient::ExiledCard | Recipient::CreatedExiledCard => "the exiled card".to_string(),
             Recipient::ExiledCardOwner => "the exiled card's owner".to_string(),
-            Recipient::ExiledCards => "the exiled cards".to_string(),
             // The granting card is the quoted ability's holder's name
             // (`quoted_as`): "Sacrifice Blazing Torch: Blazing Torch
             // deals 2 damage to any target."
@@ -2524,7 +2523,7 @@ impl<'a> Ctx<'a> {
             Recipient::EachExiledThisWay(_, _, true) => {
                 "each creature card exiled this way".to_string()
             }
-            Recipient::SameExiledCards => "the exiled cards".to_string(),
+            Recipient::SameExiledCards | Recipient::ExiledCards => "the exiled cards".to_string(),
             Recipient::ThoseTargets(a, n) => format!("those {}", self.group_noun(a, n)),
         }
     }
