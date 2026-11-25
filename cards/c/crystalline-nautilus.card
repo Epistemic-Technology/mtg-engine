@@ -1,0 +1,10 @@
+card "Crystalline Nautilus" {
+  oracle_id 77661282-1c98-4f70-b617-c75633ab04c8
+  cost {2}{U}
+  type Enchantment Creature — Nautilus
+  pt 4/4
+  noun permanent
+  bestow {3}{U}{U}
+  triggered when this becomes targeted: sacrifice this
+  static enchanted: +4/+4, has ability { triggered when this becomes targeted: sacrifice this }
+}

@@ -9965,8 +9965,13 @@ impl GameState {
                     // mana cost": nothing chosen.
                     s.pay_other_costs(caster, &one, spell, None, alt_discard);
                 }
+                // "pay 6 life and sacrifice three black creatures" (Demon
+                // of Death's Gate): the life once, a permanent each time.
+                let mut more = one.clone();
+                more.life = 0;
                 for (i, c) in chosen.into_iter().enumerate() {
-                    s.pay_other_costs(caster, &one, spell, Some(c), alt_discard.filter(|_| i == 0));
+                    let part = if i == 0 { &one } else { &more };
+                    s.pay_other_costs(caster, part, spell, Some(c), alt_discard.filter(|_| i == 0));
                 }
                 // "have each other player gain 6 life".
                 if alt.others_gain > 0 {
@@ -12374,9 +12379,15 @@ impl GameState {
             if let Some(f) = filter {
                 let chars = st.card_characteristics(o);
                 // The mana value isn't a characteristic `matches` sees.
+                // "with mana value 1 or 2" (Founding the Third Path).
+                let in_range = f
+                    .status
+                    .mana_value_range
+                    .is_none_or(|(lo, hi)| mv == u32::from(lo) || mv == u32::from(hi));
                 if !(f
                     .mana_value
                     .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    && in_range
                     && f.matches(id, p, &chars, Some(source), Some(p)))
                 {
                     return false;
@@ -12545,9 +12556,15 @@ impl GameState {
             }
             if let Some(f) = filter {
                 let chars = st.card_characteristics(o);
+                // "with mana value 1 or 2" (Founding the Third Path).
+                let in_range = f
+                    .status
+                    .mana_value_range
+                    .is_none_or(|(lo, hi)| mv == u32::from(lo) || mv == u32::from(hi));
                 if !(f
                     .mana_value
                     .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    && in_range
                     && f.matches(id, p, &chars, Some(source), Some(p)))
                 {
                     return false;
@@ -17782,7 +17799,11 @@ impl GameState {
                                 &c,
                                 Some(ctx.source),
                                 Some(ctx.controller),
-                            ))
+                            )
+                            // "If it's a permanent card with mana value 3 or
+                            // less" (Matter Reshaper): the mana value is a
+                            // state part of the filter.
+                            && self.status_ok(filter, id))
                             != *negated
                     });
                 // For an "Otherwise" after it; optional actions inside set

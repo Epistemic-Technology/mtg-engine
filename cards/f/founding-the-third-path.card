@@ -1,0 +1,9 @@
+card "Founding the Third Path" {
+  oracle_id 0eff910a-712d-4652-8b3b-9eddf63eb891
+  cost {1}{U}
+  type Enchantment — Saga
+  read ahead
+  triggered chapter 1: cast free instant or sorcery with mana value 1 or 2 spell from hand
+  triggered chapter 2: target player mills 4 cards
+  triggered chapter 3: exile target instant or sorcery card from your graveyard; copy target 1 may cast
+}

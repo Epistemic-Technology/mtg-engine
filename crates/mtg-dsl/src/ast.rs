@@ -341,6 +341,10 @@ pub struct Card {
     pub flash_cleanup: bool,
     /// `pronoun he`: how the text refers to the card after naming it.
     pub pronoun: Option<Pronoun>,
+    /// `noun permanent`: the noun the card's text calls itself by ("When
+    /// this permanent becomes the target ...", a bestow creature, Crystalline
+    /// Nautilus; `render::self_noun`). Wording only.
+    pub self_noun: Option<String>,
     /// `short_name "Ajani"`: the name a legendary card's text uses for
     /// itself when it isn't the part before a comma ("put a loyalty
     /// counter on Ajani" on Ajani Resolute; CR 201.5).
@@ -427,6 +431,7 @@ impl Card {
             flash_label: None,
             flash_cleanup: false,
             pronoun: None,
+            self_noun: None,
             short_name: None,
             unkicked_targets: None,
             kicked_drops: None,
@@ -7378,6 +7383,11 @@ pub enum Effect {
         /// `if revealed creature card, ...`: "If a creature card is
         /// revealed this way, ..." (the card must have been revealed).
         revealed: bool,
+        /// `<sentence> if it is <filter>`: the condition printed after
+        /// ("You may put that card onto the battlefield if it's a
+        /// permanent card with mana value 3 or less.", Matter Reshaper;
+        /// wording only).
+        after: bool,
         then: Vec<Sentence>,
     },
     /// `if you dont, <sentence>` / `if you cant, <sentence>`: "If you

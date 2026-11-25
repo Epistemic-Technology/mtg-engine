@@ -1235,6 +1235,7 @@ impl P {
             flash_label: None,
             flash_cleanup: false,
             pronoun: None,
+            self_noun: None,
             short_name: None,
             unkicked_targets: None,
             kicked_drops: None,
@@ -1460,6 +1461,18 @@ impl P {
                 {
                     count = *n;
                     self.toks.remove(self.pos + 1);
+                } else if self.at_word("pay")
+                    && matches!(self.peek_at(1), Some(Tok::Num(_)))
+                    && self.word_at(2).as_deref() == Some("life")
+                    && self.peek_at(3) == Some(&Tok::Comma)
+                    && self.word_at(4).as_deref() == Some("sacrifice")
+                    && let Some(Tok::Num(n)) = self.peek_at(5)
+                {
+                    // `pay 6 life, sacrifice 3 black creature`: "pay 6 life
+                    // and sacrifice three black creatures" (Demon of Death's
+                    // Gate), printed in that order.
+                    count = *n;
+                    self.toks.remove(self.pos + 5);
                 }
                 let cost = self.cost()?;
                 if cost.sacrifice.is_none() && count > 1 {
@@ -1495,6 +1508,16 @@ impl P {
             "short_name" => {
                 self.pos += 1;
                 card.short_name = Some(self.string()?);
+                self.end_stmt()
+            }
+            // `noun permanent`: "this permanent" (wording only).
+            "noun" if self.peek_at(1).is_some() => {
+                self.pos += 1;
+                let w = self.word()?;
+                if !SELF_NOUNS.contains(&w.as_str()) {
+                    return self.fail(format!("unknown noun `{w}`"));
+                }
+                card.self_noun = Some(w);
                 self.end_stmt()
             }
             "pronoun" => {
@@ -7741,6 +7764,31 @@ impl P {
                 check,
             )]));
         }
+        // `<sentence> if it is <filter>` after a card is revealed: "You may
+        // put that card onto the battlefield if it's a permanent card with
+        // mana value 3 or less." (Matter Reshaper).
+        if self.revealed
+            && self.at_words(&["if", "it"])
+            && matches!(self.word_at(2).as_deref(), Some("is" | "isnt"))
+        {
+            self.pos += 2;
+            let negated = self.eat_word("isnt");
+            if !negated {
+                self.expect_word("is")?;
+            }
+            let filter = self.filter()?;
+            let card = self.eat_word("card");
+            return Ok(Sentence::new(vec![Effect::IfCard {
+                filter,
+                negated,
+                card,
+                that: false,
+                shares_type: false,
+                revealed: false,
+                after: true,
+                then: vec![s],
+            }]));
+        }
         // `<sentence> if it was attacking`: "draw a card if it was
         // attacking" about the triggering object.
         if self.it_check_ahead().is_some() {
@@ -8251,6 +8299,7 @@ impl P {
                 that: false,
                 shares_type: true,
                 revealed: false,
+                after: false,
                 then: vec![s],
             });
         }
@@ -8273,6 +8322,7 @@ impl P {
             that,
             shares_type: false,
             revealed: false,
+            after: false,
             then: vec![s],
         })
     }
@@ -8464,6 +8514,7 @@ impl P {
             that: false,
             shares_type: false,
             revealed: true,
+            after: false,
             then: vec![s],
         })
     }

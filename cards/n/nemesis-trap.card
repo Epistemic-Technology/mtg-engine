@@ -1,0 +1,7 @@
+card "Nemesis Trap" {
+  oracle_id 1c6f95fd-f8d0-4d22-aa21-29e5c70b2f85
+  cost {4}{B}{B}
+  type Instant — Trap
+  alternative cost {B}{B}, if on battlefield 1 attacking white creature
+  spell: exile target attacking creature; create token copy of that target 1; delayed that token: exile it at beginning of the next end step
+}

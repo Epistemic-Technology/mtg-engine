@@ -129,6 +129,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(n) = &card.short_name {
         let _ = writeln!(out, "  short_name {n:?}");
     }
+    if let Some(n) = &card.self_noun {
+        let _ = writeln!(out, "  noun {n}");
+    }
     match card.pronoun {
         Some(crate::ast::Pronoun::He) => {
             let _ = writeln!(out, "  pronoun he");
@@ -1592,6 +1595,20 @@ impl Fmt {
                 then,
                 ..
             } => format!("if revealed {} card, {}", filter(f), self.line(then, t)),
+            Effect::IfCard {
+                filter: f,
+                negated,
+                card,
+                after: true,
+                then,
+                ..
+            } => format!(
+                "{} if it {} {}{}",
+                self.line(then, t),
+                if *negated { "isnt" } else { "is" },
+                filter(f),
+                if *card { " card" } else { "" },
+            ),
             Effect::IfCard {
                 filter: f,
                 negated,

@@ -1,0 +1,9 @@
+card "Midnight Clock" {
+  oracle_id c68faebc-b2cd-461b-b93e-e1fcd4816810
+  cost {2}{U}
+  type Artifact
+  activated {T}: add {U}
+  activated {2}{U}: put 1 hour counters on this
+  triggered at beginning of every upkeep: put 1 hour counters on this
+  triggered when nth 12 hour counter put on this: shuffle hand and graveyard into library then draw 7 cards; exile this artifact
+}

@@ -1,0 +1,7 @@
+card "Matter Reshaper" {
+  oracle_id 38538aff-b6f9-4c30-992e-7fd78da3c44a
+  cost {2}{C}
+  type Creature — Eldrazi
+  pt 3/2
+  triggered when this dies: reveal top card; you may put that card onto battlefield if it is permanent with mana value 3 or less card; otherwise, put that card into hand
+}

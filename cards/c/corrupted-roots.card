@@ -1,0 +1,7 @@
+card "Corrupted Roots" {
+  oracle_id 0c6f343a-0088-477a-a6b5-256783ad0c27
+  cost {B}
+  type Enchantment — Aura
+  enchant Forest or Plains
+  triggered whenever enchanted land becomes tapped: its controller loses 2 life
+}

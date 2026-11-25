@@ -1,0 +1,8 @@
+card "Bloated Processor" {
+  oracle_id d1a26310-8c14-424b-8a7f-36793769c2a7
+  cost {2}{B}
+  type Creature — Phyrexian
+  pt 3/2
+  activated sacrifice another Phyrexian: put 1 +1/+1 counter on this
+  triggered when this dies: incubate count where power
+}

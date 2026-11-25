@@ -1,0 +1,7 @@
+card "Den of the Bugbear" {
+  oracle_id f451b8f0-1ff5-4e8d-9f30-9352d83ed687
+  type Land
+  enters tapped if you control 2 other land
+  activated {T}: add {R}
+  activated {3}{R}: until end of turn, this becomes 3/2 red Goblin creature with ability { triggered whenever this attacks: create 1 tapped and attacking "1/1 red Goblin creature" }
+}
