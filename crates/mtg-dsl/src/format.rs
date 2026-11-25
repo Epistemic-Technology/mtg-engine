@@ -145,6 +145,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(n) = &card.short_name {
         let _ = writeln!(out, "  short_name {n:?}");
     }
+    if let Some(n) = &card.self_noun {
+        let _ = writeln!(out, "  noun {n}");
+    }
     match card.pronoun {
         Some(crate::ast::Pronoun::He) => {
             let _ = writeln!(out, "  pronoun he");
@@ -1615,6 +1618,20 @@ impl Fmt {
                 then,
                 ..
             } => format!("if revealed {} card, {}", filter(f), self.line(then, t)),
+            Effect::IfCard {
+                filter: f,
+                negated,
+                card,
+                after: true,
+                then,
+                ..
+            } => format!(
+                "{} if it {} {}{}",
+                self.line(then, t),
+                if *negated { "isnt" } else { "is" },
+                filter(f),
+                if *card { " card" } else { "" },
+            ),
             Effect::IfCard {
                 filter: f,
                 negated,
@@ -10968,6 +10985,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Afflict(n)) => Some(format!("afflict {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Annihilator(n)) => Some(format!("annihilator {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Provoke) => Some("provoke".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Mentor) => Some("mentor".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Outlast(c)) => Some(format!("outlast {c}")),

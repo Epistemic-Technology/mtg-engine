@@ -10256,8 +10256,13 @@ impl GameState {
                     // mana cost": nothing chosen.
                     s.pay_other_costs(caster, &one, spell, None, alt_discard);
                 }
+                // "pay 6 life and sacrifice three black creatures" (Demon
+                // of Death's Gate): the life once, a permanent each time.
+                let mut more = one.clone();
+                more.life = 0;
                 for (i, c) in chosen.into_iter().enumerate() {
-                    s.pay_other_costs(caster, &one, spell, Some(c), alt_discard.filter(|_| i == 0));
+                    let part = if i == 0 { &one } else { &more };
+                    s.pay_other_costs(caster, part, spell, Some(c), alt_discard.filter(|_| i == 0));
                 }
                 // "have each other player gain 6 life".
                 if alt.others_gain > 0 {
@@ -12673,11 +12678,7 @@ impl GameState {
             if let Some(f) = filter {
                 let chars = st.card_characteristics(o);
                 // The mana value isn't a characteristic `matches` sees.
-                if !(f
-                    .mana_value
-                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
-                    && f.matches(id, p, &chars, Some(source), Some(p)))
-                {
+                if !(mv_fits(f, mv) && f.matches(id, p, &chars, Some(source), Some(p))) {
                     return false;
                 }
             }
@@ -12844,11 +12845,7 @@ impl GameState {
             }
             if let Some(f) = filter {
                 let chars = st.card_characteristics(o);
-                if !(f
-                    .mana_value
-                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
-                    && f.matches(id, p, &chars, Some(source), Some(p)))
-                {
+                if !(mv_fits(f, mv) && f.matches(id, p, &chars, Some(source), Some(p))) {
                     return false;
                 }
             }
@@ -18211,7 +18208,11 @@ impl GameState {
                                 &c,
                                 Some(ctx.source),
                                 Some(ctx.controller),
-                            ))
+                            )
+                            // "If it's a permanent card with mana value 3 or
+                            // less" (Matter Reshaper): the mana value is a
+                            // state part of the filter.
+                            && self.status_ok(filter, id))
                             != *negated
                     });
                 // For an "Otherwise" after it; optional actions inside set
@@ -21557,4 +21558,15 @@ pub(super) fn mode_target_starts(m: &crate::card::Mode) -> SmallVec<[usize; 4]> 
         .chain(m.more.iter().copied())
         .map(|(_, t)| usize::from(t))
         .collect()
+}
+
+/// Whether a card's mana value `mv` fits a free cast's filter: "with mana
+/// value 3 or less", "with mana value 1 or 2" (Founding the Third Path).
+/// The mana value isn't a characteristic `ObjFilter::matches` sees.
+fn mv_fits(f: &crate::card::ObjFilter, mv: u32) -> bool {
+    f.mana_value
+        .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+        && f.status
+            .mana_value_range
+            .is_none_or(|(lo, hi)| mv == u32::from(lo) || mv == u32::from(hi))
 }

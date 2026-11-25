@@ -5278,6 +5278,33 @@ impl Compiler<'_> {
                     in_addition: *in_addition,
                 });
             }
+            // "You may put that card onto the battlefield if it's a
+            // permanent card ..." (Matter Reshaper): the condition holds
+            // the choice, so an `otherwise` after it follows the condition.
+            Effect::YouMay(inner)
+                if matches!(inner.as_slice(), [s] if matches!(
+                    s.effects.as_slice(),
+                    [Effect::IfCard { after: true, .. }]
+                )) =>
+            {
+                let Effect::IfCard {
+                    filter,
+                    negated,
+                    then,
+                    ..
+                } = &inner[0].effects[0]
+                else {
+                    unreachable!("matched above")
+                };
+                let then = self.sentences(&[Sentence::new(vec![Effect::YouMay(then.clone())])])?;
+                out.push(CoreEffect::IfCard {
+                    filter: self.filter(filter),
+                    negated: *negated,
+                    shares_type: false,
+                    revealed: false,
+                    then,
+                });
+            }
             Effect::YouMay(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));

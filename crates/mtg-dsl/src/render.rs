@@ -1066,6 +1066,10 @@ fn article(word: &str) -> &'static str {
     if word.starts_with("11/") || word.starts_with("18/") {
         return "an";
     }
+    // "an hour counter" (Midnight Clock): a silent h.
+    if word.starts_with("hour") {
+        return "an";
+    }
     match word.chars().next() {
         Some('a' | 'e' | 'i' | 'o' | 'u' | 'A' | 'E' | 'I' | 'O' | 'U' | '8') => "an",
         _ => "a",
@@ -1189,6 +1193,10 @@ fn nth_word(n: u32) -> String {
         8 => "eighth".to_string(),
         9 => "ninth".to_string(),
         10 => "tenth".to_string(),
+        // "When the twelfth hour counter is put on this artifact" (Midnight
+        // Clock).
+        11 => "eleventh".to_string(),
+        12 => "twelfth".to_string(),
         n => ordinal_word(n),
     }
 }
@@ -1697,6 +1705,9 @@ fn its_poss(card: &Card) -> &'static str {
 
 /// The noun a permanent uses for itself: "this creature", "this Aura".
 pub fn self_noun(card: &Card) -> String {
+    if let Some(n) = &card.self_noun {
+        return n.clone();
+    }
     if card.kind == Kind::Token {
         return "token".to_string();
     }
@@ -3369,7 +3380,11 @@ fn target_noun(t: &Target) -> String {
                     .is_none_or(|a| a.types.is_empty() || a.types.contains(&CardType::Creature))
             {
                 "creature".to_string()
-            } else if f.types.contains(&CardType::Land) {
+            } else if f.types.contains(&CardType::Land)
+                // "Destroy target Mountain. Peak Eruption deals 3 damage to
+                // that land's controller.": a basic land type alone.
+                || (f.or.is_none() && basic_types_only(f))
+            {
                 "land".to_string()
             } else if f.types == [CardType::Artifact] && f.or.is_none() && f.subtypes.is_empty() {
                 // "Choose target artifact you control. Each other artifact
@@ -3498,6 +3513,8 @@ fn enchanted_noun(card: &Card) -> &'static str {
             | TargetSpec::CreatureOrPlaneswalker,
         )) => "permanent",
         Some(Target::Filter(f)) if f.types == [CardType::Land] => "land",
+        // "Enchant Forest or Plains" (Corrupted Roots): "enchanted land".
+        Some(Target::Filter(f)) if basic_types_only(f) => "land",
         // "Enchant nonland permanent".
         Some(Target::Filter(f)) if f.types.is_empty() && f.subtypes.is_empty() => "permanent",
         Some(Target::Filter(f)) if f.types.len() + f.any_types.len() > 1 => "permanent",
@@ -3513,6 +3530,19 @@ fn enchanted_noun(card: &Card) -> &'static str {
         }
         _ => "creature",
     }
+}
+
+/// A filter of basic land types alone ("Forest or Plains", "Mountain"):
+/// lands.
+fn basic_types_only(f: &Filter) -> bool {
+    let basic = |g: &Filter| {
+        g.types.is_empty()
+            && !g.subtypes.is_empty()
+            && g.subtypes
+                .iter()
+                .all(|s| ["Plains", "Island", "Swamp", "Mountain", "Forest"].contains(&s.as_str()))
+    };
+    basic(f) && f.or.as_ref().is_none_or(|a| basic(a) && a.or.is_none())
 }
 
 /// "This land enters tapped with two depletion counters on it.": one
@@ -3575,10 +3605,12 @@ fn tapped_and_doesnt_untap(card: &Card, i: usize) -> bool {
 /// Forest" for "Enchant Forest").
 fn enchanted_subtype_noun(card: &Card) -> String {
     let sub = card.abilities.iter().find_map(|a| match a {
-        Ability::Enchant(Target::Filter(f)) if f.types.is_empty() => match f.subtypes.as_slice() {
-            [s] => Some(s.clone()),
-            _ => None,
-        },
+        Ability::Enchant(Target::Filter(f)) if f.types.is_empty() && f.or.is_none() => {
+            match f.subtypes.as_slice() {
+                [s] => Some(s.clone()),
+                _ => None,
+            }
+        }
         _ => None,
     });
     sub.unwrap_or_else(|| enchanted_noun(card).to_string())
@@ -4999,6 +5031,7 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
         // Grandeur: "Discard another card named Skoa, Embermage".
         with_article(&format!("{before}card named {name}"))
     } else if f.or.is_none()
+        && (f.status.has_kicker || f.status.has_modular || f.status.has_disturb)
         && let Some(quality) = p.strip_prefix("permanent with ")
     {
         // "a card with a kicker ability" (Coralhelm Chronicler): no type.
@@ -5011,6 +5044,17 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
     } else {
         with_article(&format!("{p} card"))
     }
+}
+
+/// "pay 6 life and sacrifice three black creatures" (Demon of Death's
+/// Gate): life written before the sacrifice is printed first.
+fn life_before_sacrifice(c: &Cost) -> bool {
+    let at = |item: crate::ast::CostItem| c.order.iter().position(|i| *i == item);
+    c.life > 0
+        && matches!(
+            (at(crate::ast::CostItem::Life), at(crate::ast::CostItem::Sacrifice)),
+            (Some(l), Some(s)) if l < s
+        )
 }
 
 /// A filter with an article: "a creature you control", "another creature".
@@ -5028,6 +5072,10 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
     let mana = a.cost.mana.to_string();
     if !mana.is_empty() {
         parts.push(format!("pay {mana}"));
+    }
+    let life_first = life_before_sacrifice(&a.cost);
+    if life_first {
+        parts.push(format!("pay {} life", a.cost.life));
     }
     if let Some(SacCost::Filter(f)) = &a.cost.sacrifice {
         let what = if a.count > 1 {
@@ -5073,7 +5121,7 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
             )
         });
     }
-    if a.cost.life > 0 {
+    if a.cost.life > 0 && !life_first {
         parts.push(format!("pay {} life", a.cost.life));
     }
     // "exile a blue card from your hand" (a pitch spell).
@@ -5190,7 +5238,32 @@ fn additional_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if !mana.is_empty() && c.starts_with(&mana) {
         return format!("pay {c}");
     }
+    // "discard a card and sacrifice a creature" (Ruthless Disposal): an
+    // additional cost of several parts is a sentence, not a cost line.
+    let parts: Vec<String> = split_cost_parts(&c)
+        .iter()
+        .map(|p| lowercase_first(p))
+        .collect();
+    if parts.len() > 1 {
+        return list(&parts);
+    }
     lowercase_first(&c)
+}
+
+/// A cost line's parts: "Discard a card, Sacrifice a creature" splits at
+/// the comma before each capital (a part's own list, "an artifact,
+/// creature, or land", doesn't).
+fn split_cost_parts(c: &str) -> Vec<&str> {
+    let mut parts = Vec::new();
+    let mut start = 0;
+    for (i, _) in c.match_indices(", ") {
+        if c[i + 2..].starts_with(|ch: char| ch.is_ascii_uppercase()) {
+            parts.push(&c[start..i]);
+            start = i + 2;
+        }
+    }
+    parts.push(&c[start..]);
+    parts
 }
 
 /// A ward cost's alternatives (CR 702.21a), the first capitalized:
@@ -6206,6 +6279,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaOneOfTimes { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Amass { count, .. }
+        | Effect::Incubate { count, .. }
         | Effect::Endure { count, .. }
         | Effect::Dig { count, .. }
         | Effect::ExilePlayable { count, .. }
@@ -9399,6 +9473,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             that,
             shares_type,
             revealed,
+            after,
             then,
         } => {
             let body = sentences(then, ctx);
@@ -9422,6 +9497,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (true, false) => format!("that card is {pred}"),
                 (true, true) => format!("that card isn't {pred}"),
             };
+            if *after {
+                return Clause::imperative(format!("{} if {cond}", body.trim_end_matches('.')));
+            }
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
         Effect::PutCard {
@@ -10581,7 +10659,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         )),
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
-            Clause::imperative(format!("switch {o}'s power and toughness")).until_eot()
+            Clause::imperative(format!("switch {} power and toughness", possessive(&o))).until_eot()
         }
         Effect::PutFromHand {
             filter,
@@ -12135,6 +12213,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.last_token = Some(key);
             ctx.last_token_tapped = false;
             let mut o = ctx.obj(*of);
+            // "Exile target attacking creature. Create a token that's a copy
+            // of that creature." (Nemesis Trap): the exiled creature as it
+            // last existed.
+            if let Recipient::ThatTarget(i) = of
+                && o == "that card"
+                && ctx.targets.get(*i).is_some_and(|t| target_noun(t) == "creature")
+            {
+                o = "that creature".to_string();
+            }
             // "create two tokens that are copies of them" (The Notary
             // Hobbits): a character's pronoun.
             if matches!(of, Recipient::SourceIt | Recipient::TriggeringIt)
@@ -12776,7 +12863,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Some(r) => ctx.obj(*r),
                 None => {
                     let noun = match filter {
-                        Some(f) => format!("{} spell", card_filter_phrase(f, ctx.card).trim()),
+                        Some(f) => {
+                            let p = card_filter_phrase(f, ctx.card);
+                            // "an instant or sorcery spell with mana value 1
+                            // or 2 from your hand" (Founding the Third Path).
+                            match p.trim().split_once(" with mana value ") {
+                                Some((kind, mv)) => format!("{kind} spell with mana value {mv}"),
+                                None => format!("{} spell", p.trim()),
+                            }
+                        }
                         None => "spell".to_string(),
                     };
                     // "a spell with mana value 4 or less from your hand",
@@ -14770,7 +14865,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     enchanted_subtype_noun(ctx.card).as_str(),
                     "land" | "Plains" | "Island" | "Swamp" | "Mountain" | "Forest"
                 );
-            if (ctx.card.types.contains(&CardType::Land) || land_target || attached_land)
+            // A land that animates another target ("Target Vehicle becomes
+            // an artifact creature until end of turn", Mech Hangar) adds no
+            // "still a land" sentence.
+            let land_source = ctx.card.types.contains(&CardType::Land)
+                && !matches!(*to, Recipient::Target(_));
+            if (land_source || land_target || attached_land)
                 && !types.contains(&CardType::Land)
                 && !creature_target
             {
@@ -14782,7 +14882,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "... and \"This creature's power and toughness are each
                 // equal to the number of lands you control.\" It's still a
                 // land." (Druid Class): after a quoted ability, a sentence.
-                if (*indefinite || (ctx.eot_first && keywords.is_empty()))
+                // "Target snow land becomes a 2/2 blue Elemental creature
+                // with flying. It's still a land." (Balduvian Frostwaker): a
+                // creature's ability keeps its own sentence.
+                // "that land becomes ... that's still a land" (Wall of
+                // Resurgence) and several lands (Primal Adversary) stay one
+                // sentence.
+                let own_sentence = ctx.card.types.contains(&CardType::Creature)
+                    && matches!(*to, Recipient::Target(_))
+                    && !many_lands;
+                if ((*indefinite && !own_sentence) || (ctx.eot_first && keywords.is_empty()))
                     && land_target
                     && !clause.text.ends_with(".\"")
                     // "Untap it. It becomes a 0/0 Elemental creature with
@@ -15885,7 +15994,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "It deals 5 damage instead if that target is white and/or
             // blue." (Lithomantic Barrage): a creature-or-planeswalker
             // target is "that target", and the spell isn't named again.
-            let that_target = matches!(cond, InsteadCond::Target { n, that: true, .. }
+            // "If that permanent is green, Burning Hands deals 6 damage
+            // instead.": the condition first is the usual wording.
+            let that_target = *wording == InsteadWording::After
+                && matches!(cond, InsteadCond::Target { n, that: true, .. }
                 if matches!(
                     ctx.targets.get(*n).map(Target::base),
                     Some(Target::Spec(TargetSpec::CreatureOrPlaneswalker))
@@ -21364,6 +21476,11 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         if card.kind != Kind::Token && !*noun {
             n = n.replace(&format!("exiled with {}", this_ref(card)), "exiled with it");
         }
+        // "This creature's power and toughness are each equal to the number
+        // of lore counters on it." (Myth Realized): named once already.
+        if *noun {
+            n = n.replace(&format!("counters on {}", this_ref(card)), "counters on it");
+        }
         return if *sets == mtg_core::card::CdaSets::Power {
             format!("{owner} power is equal to {n}.")
         } else if *sets == mtg_core::card::CdaSets::Toughness {
@@ -22270,7 +22387,7 @@ fn protection_text(f: &Filter, card: &Card) -> String {
                 mtg_core::card::ColorCount::Multicolored => "multicolored",
                 mtg_core::card::ColorCount::Monocolored => "monocolored",
                 mtg_core::card::ColorCount::Colorless => "colorless",
-                mtg_core::card::ColorCount::Colored => "one or more colors",
+                mtg_core::card::ColorCount::Colored => "each color",
                 mtg_core::card::ColorCount::TwoColors => "exactly two colors",
             }
         )
@@ -22708,6 +22825,21 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 format!("blocking {}", it_obj(card))
             };
             format!("{} creatures are {verb}", or_more(*at_least))
+        }
+        // "If a white creature is attacking" (Nemesis Trap), "If a black
+        // creature with flying is attacking" (Slingbow Trap).
+        StaticCond::OnBattlefield {
+            filter,
+            at_least: 1,
+        } if filter.attacking && filter.types == [CardType::Creature] && filter.who.is_none() => {
+            let f = Filter {
+                attacking: false,
+                ..filter.clone()
+            };
+            format!(
+                "{} is attacking",
+                with_article(&filter_phrase(&f, card, false))
+            )
         }
         StaticCond::OnBattlefield { filter, at_least } => {
             if *at_least == 1 {
@@ -24684,8 +24816,11 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // "At the beginning of your end step, if this creature
                     // is equipped, transform it." (Avacynian Missionaries):
                     // a trigger that hasn't named the source names it here.
-                    let first_name = !ctx.source_mentioned
-                        && *c == StaticCond::Equipped
+                    // "Whenever this creature deals combat damage to a
+                    // player, if this creature is monstrous, ..." (Polis
+                    // Crusher): Oracle never says "if it's monstrous".
+                    let first_name = (!ctx.source_mentioned && *c == StaticCond::Equipped
+                        || *c == StaticCond::Monstrous)
                         && cond.starts_with("it's ");
                     if first_name {
                         cond = format!("{} is {}", this_ref(card), &cond["it's ".len()..]);

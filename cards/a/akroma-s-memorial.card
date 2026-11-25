@@ -1,0 +1,6 @@
+card "Akroma's Memorial" {
+  oracle_id 967e8b3f-8266-4d9a-a38b-d0e10184e1e4
+  cost {7}
+  type Legendary Artifact
+  static creature you control: has flying, first strike, vigilance, trample, haste, protection from black, protection from red
+}

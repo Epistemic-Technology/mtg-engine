@@ -1,0 +1,8 @@
+card "Dust Stalker" {
+  oracle_id 69cd25d2-206c-4572-95e7-d66973c94358
+  cost {2}{B}{R}
+  type Creature — Eldrazi
+  pt 5/3
+  keywords devoid, haste
+  triggered at beginning of every end step if you control no other colorless creature: return this to hand
+}

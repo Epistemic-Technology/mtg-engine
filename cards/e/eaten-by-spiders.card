@@ -1,0 +1,6 @@
+card "Eaten by Spiders" {
+  oracle_id d4c04cec-3a0d-4e86-95ed-8d367fe7220d
+  cost {2}{G}
+  type Instant
+  spell: destroy target creature with flying and all Equipment attached to that target 1
+}

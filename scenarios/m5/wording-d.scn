@@ -1,0 +1,545 @@
+# Renderer near-misses (wording-d): cards whose meaning the language had
+# and whose printed words it now matches.
+
+scenario "Valakut Fireboar: attacking switches its power and toughness until end of turn" {
+  battlefield A: "Valakut Fireboar"
+  start turn 2 A
+  turn 2 A: attack "Valakut Fireboar"
+  run_to turn 2 postcombat_main
+  assert life B 13
+  assert power "Valakut Fireboar" 7
+  assert toughness "Valakut Fireboar" 1
+  run_to turn 3 upkeep
+  assert power "Valakut Fireboar" 1
+  assert toughness "Valakut Fireboar" 7
+}
+
+scenario "Mech Hangar: a target Vehicle becomes an artifact creature until end of turn" {
+  battlefield A: "Mech Hangar", 3 "Plains", "Smuggler's Copter"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Mech Hangar" ability 3 targeting "Smuggler's Copter"
+  run_to turn 2 begin_combat
+  assert is "Smuggler's Copter" creature
+  assert is not "Mech Hangar" creature
+  run_to turn 3 upkeep
+  assert is not "Smuggler's Copter" creature
+}
+
+scenario "Mech Hangar: only a Vehicle may be targeted" {
+  battlefield A: "Mech Hangar", 3 "Plains", "Darksteel Relic"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Mech Hangar" ability 3 targeting "Darksteel Relic"
+  run_to turn 2 postcombat_main
+  assert is not "Darksteel Relic" creature
+}
+
+scenario "Balduvian Frostwaker: a snow land becomes a 2/2 blue flying Elemental for good" {
+  battlefield A: "Balduvian Frostwaker", "Snow-Covered Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Balduvian Frostwaker" targeting "Snow-Covered Island"
+  run_to turn 4 upkeep
+  assert is "Snow-Covered Island" creature
+  assert is "Snow-Covered Island" land
+  assert is "Snow-Covered Island" blue
+  assert is "Snow-Covered Island" elemental
+  assert has "Snow-Covered Island" flying
+  assert power "Snow-Covered Island" 2
+  assert toughness "Snow-Covered Island" 2
+}
+
+scenario "Balduvian Frostwaker: a land that isn't snow can't be targeted" {
+  battlefield A: "Balduvian Frostwaker", "Island", "Snow-Covered Island"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Balduvian Frostwaker" targeting "Island"
+  run_to turn 2 postcombat_main
+  assert is not "Island" creature
+}
+
+scenario "Polis Crusher: once monstrous, combat damage destroys an enchantment that player controls" {
+  battlefield A: "Polis Crusher", 4 "Mountain", 2 "Forest"
+  battlefield B: "Myth Realized"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Polis Crusher"
+  turn 2 A: attack "Polis Crusher"
+  turn 2 A: trigger "Polis Crusher" targeting "Myth Realized"
+  run_to turn 2 postcombat_main
+  assert counters "Polis Crusher" +1/+1 3
+  assert life B 13
+  assert graveyard B contains "Myth Realized"
+}
+
+scenario "Polis Crusher: not monstrous, the enchantment stays" {
+  battlefield A: "Polis Crusher"
+  battlefield B: "Myth Realized"
+  start turn 2 A
+  turn 2 A: attack "Polis Crusher"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert battlefield B contains "Myth Realized"
+}
+
+scenario "Svogthos, the Restless Tomb: a Plant Zombie as big as your graveyard's creature cards" {
+  battlefield A: "Svogthos, the Restless Tomb", 3 "Swamp", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Svogthos, the Restless Tomb" ability 2
+  run_to turn 2 begin_combat
+  assert is "Svogthos, the Restless Tomb" creature
+  assert is "Svogthos, the Restless Tomb" land
+  assert is "Svogthos, the Restless Tomb" zombie
+  assert is "Svogthos, the Restless Tomb" black
+  assert power "Svogthos, the Restless Tomb" 2
+  assert toughness "Svogthos, the Restless Tomb" 2
+  run_to turn 3 upkeep
+  assert is not "Svogthos, the Restless Tomb" creature
+}
+
+scenario "Myth Realized: lore counters from noncreature spells set the Monk Avatar's size" {
+  battlefield A: "Myth Realized" with 2 lore, 2 "Plains", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: activate "Myth Realized" ability 2
+  run_to turn 2 begin_combat
+  assert counters "Myth Realized" lore 3
+  assert is "Myth Realized" creature
+  assert is "Myth Realized" monk
+  assert power "Myth Realized" 3
+  assert toughness "Myth Realized" 3
+  run_to turn 3 upkeep
+  assert is not "Myth Realized" creature
+}
+
+scenario "Burning Hands: 6 damage to a green creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Craw Wurm"
+  hand A: "Burning Hands"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Burning Hands" targeting "Craw Wurm"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "Burning Hands: 2 damage to a creature that isn't green" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Burning Hands"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Burning Hands" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Peak Eruption: destroys a Mountain and deals 3 damage to its controller" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Mountain", "Forest"
+  hand A: "Peak Eruption"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Peak Eruption" targeting B "Mountain"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Mountain"
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Peak Eruption: a land that isn't a Mountain can't be targeted" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Peak Eruption"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Peak Eruption" targeting "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Forest"
+}
+
+scenario "Eaten by Spiders: the flier and its Equipment are destroyed" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Wind Drake", "Bonesplitter" on "Wind Drake", "Grizzly Bears"
+  hand A: "Eaten by Spiders"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Eaten by Spiders" targeting "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert graveyard B contains "Bonesplitter"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Eaten by Spiders: a creature without flying can't be targeted" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Eaten by Spiders"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Eaten by Spiders" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Inkfathom Witch: each unblocked creature is a 4/1, a blocked one isn't" {
+  battlefield A: "Inkfathom Witch", "Grizzly Bears", "Hill Giant", 2 "Island", 2 "Swamp"
+  battlefield B: "Craw Wurm"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  turn 2 B: block "Hill Giant" with "Craw Wurm"
+  turn 2 declare_blockers A: activate "Inkfathom Witch"
+  run_to turn 2 combat_damage
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 1
+  assert power "Hill Giant" 3
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Dust Stalker: alone among colorless creatures, it returns at the end step" {
+  battlefield A: "Dust Stalker"
+  start turn 2 A precombat_main
+  run_to turn 3 upkeep
+  assert hand A contains "Dust Stalker"
+}
+
+scenario "Dust Stalker: another colorless creature keeps it" {
+  battlefield A: "Dust Stalker", "Memnite"
+  start turn 2 A precombat_main
+  run_to turn 3 upkeep
+  assert battlefield A contains "Dust Stalker"
+}
+
+scenario "Ruthless Disposal: discard and sacrifice, two creatures get -13/-13" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Craw Wurm", "Hill Giant"
+  hand A: "Ruthless Disposal", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ruthless Disposal" sacrificing "Grizzly Bears" discarding "Forest" targeting "Craw Wurm", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert graveyard B contains "Craw Wurm"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Sanguimancy: draw and lose life equal to devotion to black" {
+  battlefield A: 5 "Swamp", 2 "Typhoid Rats"
+  hand A: "Sanguimancy"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sanguimancy"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+  assert life A 18
+}
+
+scenario "Akroma's Memorial: your creatures gain its keywords and protection from black" {
+  battlefield A: "Akroma's Memorial", "Grizzly Bears"
+  battlefield B: "Swamp"
+  hand B: "Disfigure"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Disfigure" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" first_strike
+  assert has "Grizzly Bears" vigilance
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" haste
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Breaker of Creation: gain 1 life for each colorless permanent as you cast it" {
+  battlefield A: 8 "Wastes", "Memnite"
+  hand A: "Breaker of Creation"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Breaker of Creation"
+  run_to turn 2 postcombat_main
+  assert life A 29
+  assert battlefield A contains "Breaker of Creation"
+}
+
+scenario "Breaker of Creation: hexproof from each color" {
+  battlefield A: "Breaker of Creation"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting "Breaker of Creation"
+  run_to turn 2 postcombat_main
+  assert damage "Breaker of Creation" 0
+}
+
+scenario "Arclight Phoenix: three instants and sorceries this turn bring it back at combat" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Arclight Phoenix"
+  hand A: "Shock", "Shock", "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 declare_attackers
+  assert battlefield A contains "Arclight Phoenix"
+  assert life B 14
+}
+
+scenario "Arclight Phoenix: two spells aren't enough" {
+  battlefield A: 2 "Mountain"
+  graveyard A: "Arclight Phoenix"
+  hand A: "Shock", "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Arclight Phoenix"
+}
+
+scenario "Midnight Clock: a counter each upkeep, and the twelfth resets hand and graveyard" {
+  battlefield A: "Midnight Clock" with 10 hour, 3 "Island"
+  hand A: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  library A: "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Midnight Clock" ability 2
+  run_to turn 2 postcombat_main
+  assert counters "Midnight Clock" hour 11
+  run_to turn 3 draw
+  assert exile A contains "Midnight Clock"
+  assert hand A count 7
+  assert graveyard A count 0
+}
+
+scenario "Midnight Clock: before the twelfth counter, nothing happens" {
+  battlefield A: "Midnight Clock" with 2 hour
+  hand A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 3 draw
+  assert counters "Midnight Clock" hour 3
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Corrupted Roots: the enchanted Plains' controller loses 2 life as it becomes tapped" {
+  battlefield A: "Swamp"
+  battlefield B: "Plains", "Forest"
+  hand A: "Corrupted Roots"
+  hand B: "Savannah Lions"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Corrupted Roots" targeting "Plains"
+  turn 3 B: cast "Savannah Lions"
+  run_to turn 3 postcombat_main
+  assert attached "Corrupted Roots" to "Plains"
+  assert life B 18
+}
+
+scenario "Corrupted Roots: only a Forest or a Plains may be enchanted" {
+  battlefield A: "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Corrupted Roots"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Corrupted Roots" targeting "Mountain"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Corrupted Roots"
+}
+
+scenario "Matter Reshaper: a permanent card with mana value 3 or less may go onto the battlefield" {
+  battlefield A: "Matter Reshaper"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Grizzly Bears", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Matter Reshaper"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Matter Reshaper: declined, the card goes to hand" {
+  battlefield A: "Matter Reshaper"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Grizzly Bears", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Matter Reshaper"
+  turn 2 A: decline "Matter Reshaper"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Matter Reshaper: a card with greater mana value goes to hand" {
+  battlefield A: "Matter Reshaper"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Craw Wurm", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Matter Reshaper"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Craw Wurm"
+  assert library A count 1
+}
+
+scenario "Demon of Death's Gate: pay 6 life and sacrifice three black creatures instead of its mana cost" {
+  battlefield A: 3 "Typhoid Rats"
+  hand A: "Demon of Death's Gate"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Demon of Death's Gate" alternative
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Demon of Death's Gate"
+  assert graveyard A contains 3 "Typhoid Rats"
+  assert life A 14
+}
+
+scenario "Demon of Death's Gate: two black creatures aren't enough" {
+  battlefield A: 2 "Typhoid Rats"
+  hand A: "Demon of Death's Gate"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Demon of Death's Gate" alternative
+  run_to turn 2 postcombat_main
+  assert hand A contains "Demon of Death's Gate"
+}
+
+scenario "Founding the Third Path: chapter I casts a cheap instant free, II mills four" {
+  battlefield A: 2 "Island"
+  hand A: "Founding the Third Path", "Opt"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Founding the Third Path"
+  turn 2 A: choose "mode 1"
+  turn 2 A: choose "Opt"
+  turn 4 A: trigger "Founding the Third Path" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Opt"
+  assert hand A count 1
+  run_to turn 4 postcombat_main
+  assert graveyard B count 4
+}
+
+scenario "Founding the Third Path: a spell with mana value 3 isn't offered" {
+  battlefield A: 2 "Island"
+  hand A: "Founding the Third Path", "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Founding the Third Path"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Divination"
+}
+
+scenario "Crystalline Nautilus: targeted, it is sacrificed" {
+  battlefield A: "Crystalline Nautilus"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Crystalline Nautilus"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Crystalline Nautilus"
+}
+
+scenario "Crystalline Nautilus: bestowed, the creature gets +4/+4 and is sacrificed when targeted" {
+  battlefield A: "Grizzly Bears", 3 "Island", 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Crystalline Nautilus"
+  hand B: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Crystalline Nautilus" bestowed targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+  turn 3 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Crystalline Nautilus"
+  assert is "Crystalline Nautilus" creature
+}
+
+scenario "Bloated Processor: dies and incubates with counters equal to its power" {
+  battlefield A: "Bloated Processor", "Phyrexian Rager"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Bloated Processor" sacrificing "Phyrexian Rager"
+  turn 3 B: cast "Lightning Bolt" targeting "Bloated Processor"
+  run_to turn 2 postcombat_main
+  assert power "Bloated Processor" 4
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Bloated Processor"
+  assert counters "Incubator" +1/+1 4
+}
+
+scenario "Nemesis Trap: for {B}{B} while a white creature attacks, the attacker is exiled and a copy made until end of turn" {
+  battlefield A: "Savannah Lions"
+  battlefield B: 2 "Swamp"
+  hand B: "Nemesis Trap"
+  start turn 2 A
+  turn 2 A: attack "Savannah Lions"
+  turn 2 declare_attackers B: cast "Nemesis Trap" alternative targeting "Savannah Lions"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Savannah Lions"
+  assert battlefield B contains "Savannah Lions"
+  assert life B 20
+  run_to turn 3 upkeep
+  assert battlefield B lacks "Savannah Lions"
+}
+
+scenario "Nemesis Trap: no white creature attacking, no alternative cost" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 2 "Swamp"
+  hand B: "Nemesis Trap"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  illegal turn 2 declare_attackers B: cast "Nemesis Trap" alternative targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "Cave of the Frost Dragon: enters tapped with two other lands, becomes a 3/4 flying Dragon" {
+  battlefield A: 2 "Plains", 3 "Island"
+  hand A: "Cave of the Frost Dragon"
+  start turn 2 A precombat_main
+  turn 2 A: play "Cave of the Frost Dragon"
+  run_to turn 2 begin_combat
+  assert tapped "Cave of the Frost Dragon"
+  turn 4 A: activate "Cave of the Frost Dragon"
+  run_to turn 4 begin_combat
+  assert is "Cave of the Frost Dragon" creature
+  assert is "Cave of the Frost Dragon" dragon
+  assert has "Cave of the Frost Dragon" flying
+  assert power "Cave of the Frost Dragon" 3
+  assert toughness "Cave of the Frost Dragon" 4
+  run_to turn 5 upkeep
+  assert is not "Cave of the Frost Dragon" creature
+}
+
+scenario "Cave of the Frost Dragon: with one other land, it enters untapped" {
+  battlefield A: "Plains"
+  hand A: "Cave of the Frost Dragon"
+  start turn 2 A precombat_main
+  turn 2 A: play "Cave of the Frost Dragon"
+  run_to turn 2 begin_combat
+  assert untapped "Cave of the Frost Dragon"
+}
+
+scenario "Den of the Bugbear: the Goblin attacks with a tapped and attacking token" {
+  battlefield A: "Den of the Bugbear", 4 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Den of the Bugbear" ability 2
+  turn 2 A: attack "Den of the Bugbear"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Goblin"
+  assert tapped "Goblin"
+}
+
+scenario "Eldrazi Conscription: +10/+10, trample, and annihilator 2" {
+  battlefield A: "Grizzly Bears", "Eldrazi Conscription" on "Grizzly Bears"
+  battlefield B: "Forest", "Island", "Swamp", "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 12
+  assert has "Grizzly Bears" trample
+  assert battlefield B count 1
+}
+
+scenario "Eldrazi Conscription: unblocked, annihilator then 12 damage" {
+  battlefield A: "Grizzly Bears", "Eldrazi Conscription" on "Grizzly Bears"
+  battlefield B: "Forest", "Island"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 8
+  assert battlefield B count 0
+}

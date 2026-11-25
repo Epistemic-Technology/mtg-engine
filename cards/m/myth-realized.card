@@ -1,0 +1,8 @@
+card "Myth Realized" {
+  oracle_id 3a726e40-829c-47ec-81a7-58a04164fc3f
+  cost {W}
+  type Enchantment
+  triggered whenever you cast noncreature spell: put 1 lore counters on this
+  activated {2}{W}: put 1 lore counters on this
+  activated {W}: until end of turn, this becomes Monk Avatar creature in addition and gains ability { static this: cda noun pt lore counters on this }
+}

@@ -1,0 +1,7 @@
+card "Ruthless Disposal" {
+  oracle_id dcd12cb6-6920-4bff-af73-104ad32f7d59
+  cost {4}{B}
+  type Sorcery
+  additional cost discard 1 card, sacrifice creature
+  spell: 2 target creature gets -13/-13 until end of turn
+}
