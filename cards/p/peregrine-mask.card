@@ -1,0 +1,7 @@
+card "Peregrine Mask" {
+  oracle_id a742308c-4047-487f-b95b-0fa5bec2f09a
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has defender, flying, first strike
+  equip {2}
+}

@@ -1,0 +1,7 @@
+card "Stirring Wildwood" {
+  oracle_id e900f211-dc8b-40f7-a217-1b1462b15c26
+  type Land
+  enters tapped
+  mana {G} or {W}
+  activated {1}{G}{W}: until end of turn, this becomes 3/4 green white Elemental creature with reach
+}

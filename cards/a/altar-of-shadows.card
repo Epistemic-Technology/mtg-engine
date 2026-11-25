@@ -1,0 +1,7 @@
+card "Altar of Shadows" {
+  oracle_id 4b34a324-d939-453a-97e3-a21c584a0c74
+  cost {7}
+  type Artifact
+  triggered at beginning of your first main: add {B} count each charge counters on this
+  activated {7}, {T}: destroy target creature; then put 1 charge counters on this
+}

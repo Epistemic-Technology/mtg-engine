@@ -1,0 +1,8 @@
+card "Glacial Plating" {
+  oracle_id e9ee4257-5df8-4f4e-b821-b6313ded1802
+  cost {2}{W}{W}
+  type Snow Enchantment — Aura
+  enchant creature
+  cumulative upkeep {S}
+  static enchanted: +3/+3 count each age counters on this
+}

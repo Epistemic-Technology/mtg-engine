@@ -1,0 +1,9 @@
+card "Faerie Mastermind" {
+  oracle_id a984db23-40ea-428d-829f-e944267280f8
+  cost {1}{U}
+  type Creature — Faerie Rogue
+  pt 2/1
+  keywords flash, flying
+  triggered whenever an opponent draws their second card each turn: you draw 1 card
+  activated {3}{U}: each player draws 1 cards
+}

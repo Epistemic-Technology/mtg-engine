@@ -1,0 +1,7 @@
+card "Lumbering Falls" {
+  oracle_id c2878f4e-3044-4d60-8ec1-b325edfca397
+  type Land
+  enters tapped
+  mana {G} or {U}
+  activated {2}{G}{U}: until end of turn, this becomes 3/3 green blue Elemental creature with hexproof
+}

@@ -1,0 +1,8 @@
+card "Needle Specter" {
+  oracle_id ea8acbd4-1ace-4634-9e88-7f91401d2b30
+  cost {1}{B}{B}
+  type Creature — Specter
+  pt 1/1
+  keywords flying, wither
+  triggered whenever this deals combat damage to a player: that player discards that much cards
+}

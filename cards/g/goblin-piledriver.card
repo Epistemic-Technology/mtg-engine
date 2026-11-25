@@ -1,0 +1,8 @@
+card "Goblin Piledriver" {
+  oracle_id 4d74d12b-1ffb-482f-8bac-635a8d4d32e9
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/2
+  keywords protection from blue
+  triggered whenever this attacks: this gets +2/+0 count each other attacking Goblin on battlefield
+}

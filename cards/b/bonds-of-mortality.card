@@ -1,0 +1,7 @@
+card "Bonds of Mortality" {
+  oracle_id d93ba2f2-bf9b-444b-adbb-3835662734e7
+  cost {1}{G}
+  type Enchantment
+  triggered when this enters: draw 1 cards
+  activated {G}: each creature your opponents control loses hexproof, indestructible
+}

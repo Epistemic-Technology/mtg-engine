@@ -1,0 +1,9 @@
+card "Aven Heartstabber" {
+  oracle_id fee73267-b0ef-4f43-a0bd-7728691d6f17
+  cost {U}{B}
+  type Creature — Bird Assassin
+  pt 1/1
+  keywords flying
+  static as long as 5 mana values in your graveyard, this: +2/+2, has deathtouch
+  triggered when this dies: mill 2 cards then draw 1 cards
+}

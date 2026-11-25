@@ -1,0 +1,8 @@
+card "Dusk Urchins" {
+  oracle_id 1c2cc166-dc59-44ce-86d5-ed6013b0bf67
+  cost {2}{B}
+  type Creature — Ouphe
+  pt 4/3
+  triggered whenever this attacks or blocks: put 1 -1/-1 counters on this
+  triggered whenever this dies: draw count each -1/-1 counters on it cards
+}

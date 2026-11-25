@@ -1,0 +1,8 @@
+card "Novijen Sages" {
+  oracle_id 6d7f3139-9776-43bb-ae12-12ed4f5c3a51
+  cost {4}{U}{U}
+  type Creature — Human Advisor Mutant
+  pt 0/0
+  graft 4
+  activated {1}, remove 2 +1/+1 counters from among creature you control: draw 1 card
+}

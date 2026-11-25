@@ -1,0 +1,7 @@
+card "Gruul War Plow" {
+  oracle_id 6dba119e-1b08-42e0-8d0a-b606bd90af02
+  cost {4}
+  type Artifact
+  static creature you control: has trample
+  activated {1}{R}{G}: this becomes 4/4 Juggernaut artifact creature
+}

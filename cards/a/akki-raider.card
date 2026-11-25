@@ -1,0 +1,7 @@
+card "Akki Raider" {
+  oracle_id bf9c5c0d-86a5-467a-863c-653279f2e6e7
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/1
+  triggered whenever land dies: this gets +1/+0
+}

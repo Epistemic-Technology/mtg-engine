@@ -1,0 +1,8 @@
+card "Evangel of Synthesis" {
+  oracle_id dc0bc051-2d5c-4b7f-9902-4f9d5ef8f19d
+  cost {U}{B}
+  type Creature — Phyrexian Human Cleric
+  pt 2/3
+  triggered when this enters: draw 1 cards then discard 1 cards
+  static as long as drew 2 this turn, this: +1/+0, has menace
+}

@@ -1,0 +1,8 @@
+card "Levitating Statue" {
+  oracle_id 259ca16d-7753-402b-bcd0-2425500dee99
+  cost {2}
+  type Artifact
+  keywords flying
+  triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on this
+  activated {2}: this becomes 1/1 Construct artifact creature
+}

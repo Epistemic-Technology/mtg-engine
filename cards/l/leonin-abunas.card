@@ -1,0 +1,7 @@
+card "Leonin Abunas" {
+  oracle_id 10064324-34a0-47eb-a58e-01db10234ed9
+  cost {3}{W}
+  type Creature — Cat Cleric
+  pt 2/5
+  static artifact you control: has hexproof
+}

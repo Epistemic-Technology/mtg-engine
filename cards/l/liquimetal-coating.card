@@ -1,0 +1,6 @@
+card "Liquimetal Coating" {
+  oracle_id f4bdc551-c2eb-4a34-a3e3-b4a017c925af
+  cost {2}
+  type Artifact
+  activated {T}: target permanent becomes artifact in addition
+}

@@ -1,0 +1,7 @@
+card "Alpha Authority" {
+  oracle_id 538fa2e0-d225-4232-b243-38868b695e26
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has hexproof, has ability { can't be blocked by more than one creature }
+}

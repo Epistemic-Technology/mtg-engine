@@ -1,0 +1,7 @@
+card "Shambling Vent" {
+  oracle_id 4725abd4-06bc-464a-bc5b-c9e0f71ec079
+  type Land
+  enters tapped
+  mana {W} or {B}
+  activated {1}{W}{B}: until end of turn, this becomes 2/3 white black Elemental creature with lifelink
+}

@@ -1,0 +1,7 @@
+card "Angrath's Ambusher" {
+  oracle_id 85791f11-44ab-4405-b284-1d91c7e0afbb
+  cost {2}{B}
+  type Creature — Orc Pirate
+  pt 2/3
+  static this: +2/+0 as long as you control Angrath planeswalker
+}

@@ -1,0 +1,6 @@
+card "Illness in the Ranks" {
+  oracle_id 51abc95c-bd92-46f7-a0a1-6e9f8e0dda87
+  cost {B}
+  type Enchantment
+  static creature token: -1/-1
+}
