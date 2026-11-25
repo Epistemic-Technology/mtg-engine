@@ -1707,6 +1707,13 @@ gains or loses the life needed to reach the other's former total; a
 following `if you do,` prints "If you lost life this way, ..." and holds
 only if the controller lost life, and `count that many life lost this way`
 is that loss ("draw that many cards", Mister Negative).
+`for each creature exiled this way its controller: create 1 "2/2 green
+Boar creature"` ("For each creature exiled this way, its controller
+creates a 2/2 green Boar creature token.", Curse of the Swine; any `this
+way` verb, `destroyed`, `graveyarded` printed "put into a graveyard"):
+after the sentences before it, the sentence, written for "you", is done
+once for each object the resolution moved that way and that matched the
+filter as it last existed, by that object's controller then (CR 608.2h).
 `2 target player exchange life totals` ("Two target players exchange life
 totals.", Soul Conduit; `you may 2 target player exchange life totals`:
 "you may have two target players exchange life totals", Axis of

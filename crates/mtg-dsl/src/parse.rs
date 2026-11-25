@@ -9914,6 +9914,24 @@ impl P {
             let inner = vec![self.sentence()?];
             return Ok(Effect::IfTheyCant(inner, player));
         }
+        // "For each creature exiled this way, its controller creates a
+        // 2/2 green Boar creature token."
+        if self.at_words(&["for", "each"]) && self.ahead_this_way_its_controller() {
+            self.pos += 2;
+            let filter = self.filter()?;
+            let w = self.word()?;
+            let Some(verb) = crate::ast::this_way_verb(&w) else {
+                return self.fail(format!("`{w}` is no `this way` verb"));
+            };
+            self.expect_words(&["this", "way", "its", "controller"])?;
+            self.expect(&Tok::Colon)?;
+            let inner = vec![self.sentence()?];
+            return Ok(Effect::ForEachMovedController {
+                verb,
+                filter,
+                inner,
+            });
+        }
         // "For each opponent who can't, you draw a card."
         if self.at_words(&["for", "each"])
             && matches!(self.word_at(2).as_deref(), Some("opponent" | "player"))
@@ -10114,6 +10132,17 @@ impl P {
     }
 
     /// A clause whose subject is known: "<subject> gains 3 life".
+    /// Whether `for each <filter> <verb> this way its controller:` is
+    /// ahead (`Effect::ForEachMovedController`).
+    fn ahead_this_way_its_controller(&self) -> bool {
+        (3..12).any(|i| {
+            self.word_at(i).as_deref() == Some("this")
+                && self.word_at(i + 1).as_deref() == Some("way")
+                && self.word_at(i + 2).as_deref() == Some("its")
+                && self.word_at(i + 3).as_deref() == Some("controller")
+        })
+    }
+
     /// What a life total becomes (CR 119.5): `starting`, `highest`,
     /// `lowest`, or an amount.
     fn life_to(&mut self) -> R<mtg_core::card::LifeTo> {

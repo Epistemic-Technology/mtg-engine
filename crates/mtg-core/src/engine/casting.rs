@@ -14311,6 +14311,31 @@ impl GameState {
                     }
                 }
             }
+            Effect::ForEachMovedController {
+                verb,
+                filter,
+                effects,
+            } => {
+                let players: SmallVec<[PlayerId; 4]> = self
+                    .this_way
+                    .as_ref()
+                    .map(|log| {
+                        log.moved
+                            .iter()
+                            .filter(|m| m.is(*verb) && self.moved_matches(ctx, m, filter))
+                            .filter_map(|m| self.lki.get(&m.old).map(|l| l.object.controller))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                let me = ctx.controller;
+                for p in players {
+                    ctx.controller = p;
+                    for e in effects {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+                ctx.controller = me;
+            }
             Effect::ForEachCouldnt(effects) => {
                 for _ in 0..ctx.couldnt {
                     for e in effects {

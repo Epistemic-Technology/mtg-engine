@@ -5496,6 +5496,15 @@ pub enum Effect {
     /// for each player who couldn't do what the effect before asked
     /// (`Effect::Discard`: had too few cards to discard).
     ForEachCouldnt(Vec<Effect>),
+    /// "For each creature exiled this way, its controller creates a 2/2
+    /// green Boar creature token." (CR 608.2c): for each object the
+    /// resolution moved `verb` this way that matched `filter` as it last
+    /// existed, its controller then (CR 608.2h) does these as their own.
+    ForEachMovedController {
+        verb: ThisWay,
+        filter: ObjFilter,
+        effects: Vec<Effect>,
+    },
     /// A "can't" effect on each player `who` names, until end of turn:
     /// "Target player can't play lands this turn."
     PlayerRule {

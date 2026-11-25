@@ -1,0 +1,6 @@
+card "Descent of the Dragons" {
+  oracle_id d32c6f64-c4b0-4451-8986-a0abc1fc2bb3
+  cost {4}{R}{R}
+  type Sorcery
+  spell: destroy any number of target creatures; for each creature destroyed this way its controller: create 1 "4/4 red Dragon creature with flying"
+}

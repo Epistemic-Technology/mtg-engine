@@ -5260,6 +5260,18 @@ impl Compiler<'_> {
                     filter: self.filter(filter),
                 });
             }
+            Effect::ForEachMovedController {
+                verb,
+                filter,
+                inner,
+            } => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::ForEachMovedController {
+                    verb: *verb,
+                    filter: self.filter(filter),
+                    effects,
+                });
+            }
             Effect::ForEachCouldnt { inner, .. } | Effect::IfTheyCant(inner, _) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::ForEachCouldnt(effects));

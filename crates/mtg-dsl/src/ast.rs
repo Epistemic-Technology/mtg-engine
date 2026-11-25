@@ -6661,6 +6661,15 @@ pub enum Effect {
         opponent: bool,
         inner: Vec<Sentence>,
     },
+    /// `for each creature exiled this way its controller: create 1 "2/2
+    /// green Boar creature"`: "For each creature exiled this way, its
+    /// controller creates a 2/2 green Boar creature token." The sentence
+    /// is written for "you" and done by each object's controller.
+    ForEachMovedController {
+        verb: mtg_core::card::ThisWay,
+        filter: Filter,
+        inner: Vec<Sentence>,
+    },
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...";
     /// `if target 1 is Vampire, also ...`: "If it's a Vampire, it also
     /// ..." (the target as it resolves).

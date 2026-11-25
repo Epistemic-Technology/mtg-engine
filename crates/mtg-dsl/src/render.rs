@@ -15346,6 +15346,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(body.trim_end_matches('.'))
             ))
         }
+        // "For each creature exiled this way, its controller creates a
+        // 2/2 green Boar creature token."
+        Effect::ForEachMovedController {
+            verb,
+            filter,
+            inner,
+        } => {
+            let body = lowercase_first(sentences(inner, ctx).trim_end_matches('.'));
+            let (first, rest) = body.split_once(' ').unwrap_or((&body, ""));
+            let third = match first {
+                "search" => "searches".to_string(),
+                w => format!("{w}s"),
+            };
+            let rest = rest.replace("your ", "their ");
+            let v = match verb {
+                mtg_core::card::ThisWay::PutInGraveyard => "put into a graveyard",
+                v => crate::ast::this_way_word(*v),
+            };
+            Clause::imperative(format!(
+                "for each {} {v} this way, its controller {third} {rest}",
+                filter_phrase(filter, ctx.card, false)
+            ))
+        }
         Effect::ForEachCouldnt { opponent, inner } => {
             let body = sentences(inner, ctx);
             Clause::imperative(format!(

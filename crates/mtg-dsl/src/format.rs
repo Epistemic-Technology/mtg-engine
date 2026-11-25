@@ -4026,6 +4026,16 @@ impl Fmt {
                 if *player { "the player" } else { "they" },
                 self.line(inner, t)
             ),
+            Effect::ForEachMovedController {
+                verb,
+                filter: f,
+                inner,
+            } => format!(
+                "for each {} {} this way its controller: {}",
+                filter(f),
+                crate::ast::this_way_word(*verb),
+                self.line(inner, t)
+            ),
             Effect::ForEachCouldnt { opponent, inner } => format!(
                 "for each {} who can't, {}",
                 if *opponent { "opponent" } else { "player" },

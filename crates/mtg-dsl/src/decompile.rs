@@ -1945,6 +1945,15 @@ impl Decompiler<'_> {
                 who: Self::recipient(*who),
                 filter: self.filter(filter),
             },
+            CoreEffect::ForEachMovedController {
+                verb,
+                filter,
+                effects,
+            } => Effect::ForEachMovedController {
+                verb: *verb,
+                filter: self.filter(filter),
+                inner: self.sentences(effects),
+            },
             CoreEffect::ForEachCouldnt(inner) => Effect::ForEachCouldnt {
                 opponent: true,
                 inner: self.sentences(inner),

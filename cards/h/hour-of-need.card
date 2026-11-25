@@ -1,0 +1,7 @@
+card "Hour of Need" {
+  oracle_id 2002dd67-2347-4869-98de-299074206684
+  cost {2}{U}
+  type Instant
+  strive {1}{U}
+  spell: exile any number of target creatures; for each creature exiled this way its controller: create 1 "4/4 blue Sphinx creature with flying"
+}
