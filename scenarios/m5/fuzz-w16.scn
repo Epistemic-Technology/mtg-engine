@@ -1,0 +1,62 @@
+# Faults the sixteenth wave's sweep found.
+
+scenario "a spell that makes every permanent legendary meets the legend rule as it resolves" {
+  # Leyline of Singularity: "All nonland permanents are legendary." The
+  # two Bears share a name as soon as it is on the battlefield (CR 704.5j).
+  battlefield A: 2 "Grizzly Bears", 4 "Island"
+  hand A: "Leyline of Singularity"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leyline of Singularity"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert graveyard A contains 1 "Grizzly Bears"
+}
+
+scenario "a count of untapped permanents follows tapping" {
+  # Copperhoof Vorrac gets +1/+1 for each untapped permanent your
+  # opponents control.
+  battlefield A: "Copperhoof Vorrac"
+  battlefield B: "Grizzly Bears", "Forest"
+  start turn 2 B precombat_main
+  assert power "Copperhoof Vorrac" 4
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Copperhoof Vorrac" 3
+}
+
+scenario "a this-turn replacement meets a static one as its creature dies" {
+  # Obliterating Bolt's "exile it instead" and Rest in Peace both apply
+  # to the creature dying (CR 616.1): its controller is asked.
+  battlefield A: 2 "Mountain"
+  battlefield B: "Rest in Peace", "Hill Giant"
+  hand A: "Obliterating Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Obliterating Bolt" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert exile B contains "Hill Giant"
+}
+
+scenario "a dredge card discarded by the effect that then draws" {
+  # Dangerous Wager: "Discard your hand, then draw two cards." Shenanigans
+  # (dredge 1) is in the graveyard for the draws.
+  battlefield A: 2 "Mountain"
+  hand A: "Dangerous Wager", "Shenanigans"
+  library A: "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dangerous Wager"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Dangerous Wager"
+}
+
+scenario "a card cast as an ability resolves cannot count that ability as its target" {
+  # Bilbo, Thief in the Night with Defabricate ("counter target activated
+  # or triggered ability") in the graveyard: nothing else is on the stack
+  # once Bilbo's trigger has resolved, so the card is not offered.
+  battlefield A: "Bilbo, Thief in the Night", 3 "Island"
+  graveyard A: "Defabricate"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Bilbo, Thief in the Night"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Defabricate"
+  assert life B 18
+}

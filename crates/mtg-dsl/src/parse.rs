@@ -8107,6 +8107,7 @@ impl P {
 
     /// A condition after a whole sentence: `<sentence> instead if <cond>`
     /// (CR 608.2c), or `<sentence> if <cond>` ("Draw a card if ...").
+    #[allow(clippy::too_many_lines)] // one arm per trailing condition
     fn condition_suffix(&mut self, s: Sentence) -> R<Sentence> {
         // `<sentence> instead if <cond>` (CR 608.2c).
         if self.at_words(&["instead", "if"]) || self.at_words(&["instead", "bare", "if"]) {

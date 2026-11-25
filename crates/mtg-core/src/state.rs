@@ -2395,8 +2395,8 @@ pub struct GameState {
     /// Cards in graveyards with a triggered ability that works there
     /// (CR 113.6k), so trigger detection skips the graveyards without any.
     pub graveyard_trigger_cards: u32,
-    /// Cards with dredge in graveyards (CR 702.52): with any, a draw may
-    /// ask whether to dredge instead.
+    /// Cards with dredge in the game, in any zone (CR 702.52): with any,
+    /// a draw may ask whether to dredge instead.
     pub dredge_cards: u32,
     /// Cards in the game with an "As this enters, choose ..." ability:
     /// with any, every way onto the battlefield may ask a question.
@@ -4128,6 +4128,7 @@ impl GameState {
                 (self.legendary_count >= 1 && d.is_legendary())
                     || (replacers >= 1 && d.modifies_entering())
                     || d.flags().has_enters_choice()
+                    || d.flags().has_renames()
             }),
             // A modal double-faced card's land face (CR 712.12).
             Some(crate::decision::Choice::CastFace { card, face }) => self
@@ -4200,6 +4201,10 @@ impl GameState {
                     }
                     None => {
                         d.has_mid_choice()
+                            // "All nonland permanents are legendary."
+                            // (Leyline of Singularity): the legend rule
+                            // asks as it enters, before `renamed` is set.
+                            || d.flags().has_renames()
                             || (self.legendary_count >= 1 && d.is_legendary())
                             || (replacers >= 1 && d.modifies_entering())
                             // A spell that makes a token copy or returns

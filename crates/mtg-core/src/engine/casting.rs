@@ -12741,7 +12741,20 @@ impl GameState {
         }
         let mut chosen: Vec<ObjId> = Vec::new();
         for group in groups {
+            // The cast begins once this resolution is over, when the
+            // resolving spell or ability has left the stack: it is no
+            // target for the card ("counter target activated or triggered
+            // ability", Defabricate off Bilbo, Thief in the Night).
+            let resolving = self.stack.last().copied().filter(|t| {
+                *t == source || self.objects[*t].ability.is_some_and(|a| a.source == source)
+            });
+            if resolving.is_some() {
+                self.stack.pop();
+            }
             let castable: Vec<ObjId> = group.into_iter().filter(|id| fits(self, *id)).collect();
+            if let Some(t) = resolving {
+                self.stack.push(t);
+            }
             if castable.is_empty() {
                 continue;
             }

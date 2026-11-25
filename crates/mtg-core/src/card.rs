@@ -2798,6 +2798,24 @@ impl CountExpr {
         }
     }
 
+    /// Whether the count reads tapped state ("for each untapped permanent
+    /// your opponents control", Copperhoof Vorrac), so a static ability
+    /// using it must be recomputed as permanents tap
+    /// (`DefFlags::TAP_STATIC`).
+    pub fn reads_tapped(&self) -> bool {
+        match self {
+            CountExpr::Permanents(f) => f.tapped.is_some(),
+            CountExpr::Times(_, c)
+            | CountExpr::Plus(_, c)
+            | CountExpr::Difference(_, c)
+            | CountExpr::Less(_, c)
+            | CountExpr::AtLeast(_, c) => c.reads_tapped(),
+            CountExpr::Divided { inner, .. } => inner.reads_tapped(),
+            CountExpr::Sum(a, b) | CountExpr::Minus(a, b) => a.reads_tapped() || b.reads_tapped(),
+            _ => false,
+        }
+    }
+
     /// Whether the count reads the turn's history, so a static ability
     /// using it must be recomputed as that changes (`history_static`).
     pub fn reads_history(&self) -> bool {
@@ -7395,6 +7413,12 @@ impl Effect {
         matches!(
             self,
             Effect::YouMay(_)
+                // "If that creature would die this turn, exile it instead"
+                // (Obliterating Bolt) may meet another replacement effect
+                // as soon as it exists (CR 616.1; Rest in Peace).
+                // Some also ask for a source or a permanent of the
+                // controller's choice (CR 609.7a).
+                | Effect::CreateReplacement(_)
                 | Effect::PlayerMay { .. }
                 | Effect::AnyPlayerMay { .. }
                 | Effect::ForEachCouldnt(_)
@@ -7504,24 +7528,6 @@ impl Effect {
                 | Effect::Forage
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
-                // A source of the controller's choice (CR 609.7a), or
-                // "Choose a creature or planeswalker you control."
-                | Effect::CreateReplacement(
-                    ReplacementAbility {
-                        replaces: Replaces::Damage {
-                            from: Some(Affects::Chosen(_)),
-                            ..
-                        },
-                        ..
-                    }
-                    | ReplacementAbility {
-                        replacement: Replacement::Redirect {
-                            to: RedirectTo::ChosenCreatureOrPlaneswalker,
-                            ..
-                        },
-                        ..
-                    },
-                )
                 | Effect::Vote { .. }
                 | Effect::VoteReturn { .. }
                 // Each clashing player puts their card on the top or
@@ -12633,14 +12639,21 @@ impl DefFlags {
             DefFlags::TAP_STATIC,
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::Static(s) if matches!(&s.condition,
-                    Some(StaticCondition::YouControlNone(f)
-                        | StaticCondition::SourceIs(f)
-                        | StaticCondition::AttachedIs(f)
-                        | StaticCondition::DefenderControls { filter: f, .. }) if f.tapped.is_some())
-                    // "Other tapped creatures you control have
-                    // deathtouch" (Saryth, the Viper's Fang): whom the
-                    // static affects changes as permanents tap.
-                    || s.affected.tapped.is_some())
+                Some(StaticCondition::YouControlNone(f)
+                    | StaticCondition::SourceIs(f)
+                    | StaticCondition::AttachedIs(f)
+                    | StaticCondition::DefenderControls { filter: f, .. }) if f.tapped.is_some())
+                // "Other tapped creatures you control have
+                // deathtouch" (Saryth, the Viper's Fang): whom the
+                // static affects changes as permanents tap.
+                || s.affected.tapped.is_some()
+                // "+1/+1 for each untapped permanent your opponents
+                // control" (Copperhoof Vorrac).
+                || s.parts.iter().any(|p| matches!(
+                    p,
+                    Modification::CdaPt { count, .. }
+                        | Modification::ModifyPtPer { count, .. } if count.reads_tapped()
+                )))
             }),
         );
         flags.set(

@@ -89,7 +89,11 @@ impl GameState {
         if zone == Zone::Graveyard && self.pool.get(def).flags().has_graveyard_trigger() {
             self.graveyard_trigger_cards += 1;
         }
-        if zone == Zone::Graveyard && self.pool.get(def).dredge > 0 {
+        // A card with dredge anywhere in the game: one effect can put it
+        // into a graveyard and then draw ("Discard your hand, then draw
+        // two cards", Dangerous Wager with Shenanigans in hand), and the
+        // draw then asks (CR 702.52a) with no action in between.
+        if self.pool.get(def).dredge > 0 {
             self.dredge_cards += 1;
         }
         // A Saga with read ahead chooses its chapter as it enters (CR
@@ -744,14 +748,6 @@ impl GameState {
             }
             if to == Zone::Graveyard {
                 self.player_mut(old.owner).flashback_in_graveyard += 1;
-            }
-        }
-        if old.kind == ObjKind::Card && self.pool.get(old.card).dredge > 0 {
-            if old.zone == Zone::Graveyard {
-                self.dredge_cards = self.dredge_cards.saturating_sub(1);
-            }
-            if to == Zone::Graveyard {
-                self.dredge_cards += 1;
             }
         }
         if old.kind == ObjKind::Card && self.pool.get(old.card).flags().has_graveyard_trigger() {
