@@ -2295,6 +2295,19 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringObject if self.trigger_sacrificed_artifact() => {
                 "that artifact".to_string()
             }
+            // "When an opponent casts a spell, sacrifice this enchantment
+            // and counter that spell." (Lunar Force).
+            Recipient::TriggeringObject
+                if self.trigger.is_some_and(|t| {
+                    let t = match t {
+                        Trigger::When(inner) => inner,
+                        t => t,
+                    };
+                    matches!(t, Trigger::CastsSpell { .. } | Trigger::CastsFiltered { .. })
+                }) =>
+            {
+                "that spell".to_string()
+            }
             Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
                 "that creature".to_string()
             }
