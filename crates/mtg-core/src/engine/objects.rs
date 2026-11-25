@@ -2427,6 +2427,17 @@ impl GameState {
     }
 
     pub(super) fn destroy_with(&mut self, id: ObjId, regenerate: bool) {
+        self.destroy_inner(id, regenerate, false);
+    }
+
+    /// Destroy a permanent by a state-based action (CR 704.5g, 704.5h):
+    /// not "as the result of an effect", so shield counters don't apply
+    /// (CR 122.1c).
+    pub(super) fn destroy_by_rule(&mut self, id: ObjId) {
+        self.destroy_inner(id, true, true);
+    }
+
+    fn destroy_inner(&mut self, id: ObjId, regenerate: bool, by_rule: bool) {
         // CR 702.12b: an indestructible permanent can't be destroyed, so
         // there is no destruction for a regeneration shield or another
         // replacement to replace (the shield stays unused).
@@ -2441,6 +2452,7 @@ impl GameState {
         self.propose(Proposed::Destroy {
             obj: id,
             regenerate,
+            by_rule,
         });
     }
 

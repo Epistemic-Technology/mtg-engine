@@ -121,6 +121,10 @@ pub(crate) enum Proposed {
     Destroy {
         obj: ObjId,
         regenerate: bool,
+        /// Destroyed by a state-based action (lethal damage, deathtouch),
+        /// not as the result of an effect: shield counters don't apply
+        /// (CR 122.1c).
+        by_rule: bool,
     },
 }
 
@@ -180,8 +184,14 @@ impl Proposed {
 /// (CR 614.5).
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 enum Key {
-    Ability { source: ObjId, ability: AbilityId },
+    Ability {
+        source: ObjId,
+        ability: AbilityId,
+    },
     Stored(usize),
+    /// The shield counters on a permanent (CR 122.1c): one replacement of
+    /// its destruction and one prevention of damage dealt to it.
+    Shield(ObjId),
 }
 
 /// What a stored effect was locked to as it was created: the spell's
@@ -263,6 +273,11 @@ impl GameState {
                 .objects
                 .get(*obj)
                 .is_some_and(|o| self.flags_of(o).has_replacements()),
+            // CR 122.1c: a shield counter on the damaged or destroyed
+            // permanent.
+            Proposed::Damage { .. } | Proposed::Destroy { .. } => Self::shield_object(ev)
+                .and_then(|id| self.objects.get(id))
+                .is_some_and(|o| o.counters(CounterKind::Shield) > 0),
             _ => false,
         }
     }
@@ -623,7 +638,45 @@ impl GameState {
                 });
             }
         }
+        // CR 122.1c: shield counters protect the permanent they're on.
+        if let Some(obj) = Self::shield_object(ev)
+            && !applied.contains(&Key::Shield(obj))
+            && let Some(o) = self.objects.get(obj)
+            && o.zone == Zone::Battlefield
+            && o.counters(CounterKind::Shield) > 0
+        {
+            out.push(Candidate {
+                key: Key::Shield(obj),
+                def: o.def,
+                source: obj,
+                controller: o.controller,
+                ability: ReplacementAbility {
+                    replaces: Replaces::Destroy { to: Affects::This },
+                    replacement: Replacement::Prevent,
+                    then: Vec::new(),
+                    condition: None,
+                    joined: false,
+                },
+            });
+        }
         out
+    }
+
+    /// The permanent a shield counter would protect from `ev`: one dealt
+    /// damage, or destroyed as the result of an effect (CR 122.1c).
+    fn shield_object(ev: &Proposed) -> Option<ObjId> {
+        match ev {
+            Proposed::Damage {
+                target: Target::Object(id),
+                ..
+            }
+            | Proposed::Destroy {
+                obj: id,
+                by_rule: false,
+                ..
+            } => Some(*id),
+            _ => None,
+        }
     }
 
     /// Whether effect `r` of `source` (controlled by `controller`, locked to
@@ -878,6 +931,7 @@ impl GameState {
                 Proposed::Destroy {
                     obj,
                     regenerate: true,
+                    ..
                 },
             ) => {
                 self.characteristics(*obj)
@@ -1107,6 +1161,35 @@ impl GameState {
             } => Some(*id),
             _ => None,
         };
+        // CR 122.1c: "If this permanent would be destroyed as the result
+        // of an effect, instead remove a shield counter from it" and "If
+        // damage would be dealt to this permanent, prevent that damage and
+        // remove a shield counter from it" (the counter is removed even
+        // where the damage can't be prevented, CR 615.12).
+        if let Key::Shield(obj) = c.key {
+            self.remove_counters(obj, CounterKind::Shield, 1);
+            return match ev {
+                Proposed::Damage {
+                    source,
+                    target,
+                    amount,
+                    ..
+                } if !unpreventable => {
+                    self.emit(Event::Prevented {
+                        source,
+                        target,
+                        amount,
+                        by: c.def,
+                    });
+                    Outcome::Nothing
+                }
+                Proposed::Damage { .. } => Outcome::Event(ev),
+                _ => {
+                    self.emit(Event::Replaced { by: c.def });
+                    Outcome::Nothing
+                }
+            };
+        }
         let outcome = match (c.ability.replacement, ev) {
             (
                 Replacement::Prevent,
@@ -1236,7 +1319,7 @@ impl GameState {
                     ) => self.replacements[i].redirect,
                     (
                         RedirectTo::Target(_) | RedirectTo::ChosenCreatureOrPlaneswalker,
-                        Key::Ability { .. },
+                        Key::Ability { .. } | Key::Shield(_),
                     ) => None,
                 };
                 // CR 614.9: the effect does nothing if the new recipient has
@@ -1300,6 +1383,7 @@ impl GameState {
                 Outcome::Event(Proposed::Destroy {
                     obj: c.source,
                     regenerate: true,
+                    by_rule: false,
                 })
             }
             (Replacement::Regenerate, Proposed::Destroy { obj, .. }) => {
