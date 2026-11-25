@@ -893,6 +893,10 @@ impl GameState {
                     ..
                 },
             ) => {
+                // "Each other creature you control of the chosen type
+                // enters with an additional +1/+1 counter on it" (Metallic
+                // Mimic): the type the source chose as it entered.
+                let what = &*self.with_source_chosen(what, source);
                 *obj != source
                     && self.objects.get(*obj).is_some_and(|o| {
                         o.zone != Zone::Battlefield
@@ -2499,7 +2503,8 @@ impl GameState {
             .event_replacements(|_, r, src, ctl| {
                 r.replacement == Replacement::EnterUntapped
                     && matches!(&r.replaces, Replaces::OthersEnter { what }
-                        if what.matches(obj, controller, &printed, Some(src), Some(ctl)))
+                        if self.with_source_chosen(what, src)
+                            .matches(obj, controller, &printed, Some(src), Some(ctl)))
             })
             .is_empty()
     }
