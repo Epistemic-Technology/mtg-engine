@@ -1969,7 +1969,23 @@ impl ObjFilter {
             || self
                 .or
                 .as_ref()
-                .is_some_and(|a| a.matches(obj, obj_controller, c, source, controller))
+                .is_some_and(|a| a.matches_alt(obj, obj_controller, c, source, controller))
+    }
+
+    /// `matches` for an "or" side, out of line: inlined, the chain became
+    /// a loop whose invariant loads of `c` were hoisted ahead of the first
+    /// check, about seventy instructions a call even for a filter that
+    /// fails on its controller.
+    #[inline(never)]
+    fn matches_alt(
+        &self,
+        obj: crate::ids::ObjId,
+        obj_controller: crate::ids::PlayerId,
+        c: &crate::state::Characteristics,
+        source: Option<crate::ids::ObjId>,
+        controller: Option<crate::ids::PlayerId>,
+    ) -> bool {
+        self.matches(obj, obj_controller, c, source, controller)
     }
 
     #[allow(clippy::too_many_lines)] // one check per qualifier
