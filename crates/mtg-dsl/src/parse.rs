@@ -13085,10 +13085,12 @@ impl P {
                 let to = self.recipients()?;
                 let no_regen = self.eat_words(&["without", "regeneration"]);
                 let joined = no_regen && self.eat_word("joined");
+                let this_way = no_regen && !joined && self.eat_words(&["this", "way"]);
                 Ok(Effect::Destroy {
                     to,
                     no_regen,
                     joined,
+                    this_way,
                 })
             }
             // `put 2 cards from hand on top of library`.

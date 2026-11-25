@@ -1040,6 +1040,7 @@ impl Fmt {
                 to,
                 no_regen,
                 joined,
+                this_way,
             } => {
                 let mut s = format!("destroy {}", self.recipients(to, t));
                 if *no_regen {
@@ -1047,6 +1048,9 @@ impl Fmt {
                 }
                 if *joined {
                     s.push_str(" joined");
+                }
+                if *this_way {
+                    s.push_str(" this way");
                 }
                 s
             }

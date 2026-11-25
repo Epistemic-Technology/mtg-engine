@@ -1,0 +1,7 @@
+card "Painsmith" {
+  oracle_id fbdbea75-7f80-4704-b2cf-920d00dc1273
+  cost {1}{B}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered whenever you cast artifact spell: you may target creature gets +2/+0 and gains deathtouch until end of turn
+}

@@ -5432,6 +5432,9 @@ pub enum Effect {
         /// `without regeneration joined`: "Destroy target Knight and it
         /// can't be regenerated." in one sentence.
         joined: bool,
+        /// `without regeneration this way`: "Destroy target creature. A
+        /// creature destroyed this way can't be regenerated." (Damn).
+        this_way: bool,
     },
     GainLife {
         amount: Num,

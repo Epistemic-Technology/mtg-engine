@@ -5189,6 +5189,11 @@ const EOT: &str = "until end of turn";
 
 /// "{E}{E}{E}".
 fn energy(n: u32) -> String {
+    // "Pay eight {E}" (Aethersquall Ancient), "you get six {E}": six or
+    // more is counted in words.
+    if n >= 6 {
+        return format!("{} {{E}}", number_word(n));
+    }
     "{E}".repeat(n as usize)
 }
 
@@ -7566,10 +7571,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             no_regen,
             joined,
+            this_way,
         } => {
             let objs = ctx.obj_list(to, true);
             let mut text = format!("destroy {objs}");
-            if *no_regen {
+            if let ([Recipient::Target(i)], true) = (to.as_slice(), *this_way) {
+                // "Destroy target creature. A creature destroyed this way
+                // can't be regenerated." (Damn).
+                let noun = ctx.target_noun[*i].clone();
+                let _ = write!(
+                    text,
+                    ". {} destroyed this way can't be regenerated",
+                    capitalize(&with_article(&noun))
+                );
+            } else if *no_regen {
                 let pronoun = if to.len() > 1 || to.iter().any(|r| Ctx::is_plural(*r)) {
                     "They"
                 } else {
@@ -14060,6 +14075,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // four or more quest counters on it" (Waterbender
                 // Ascension).
                 static_cond_text(c, ctx.card).replacen(&this_ref(ctx.card), "it", 1)
+            } else if let StaticCond::SourceCounters {
+                kind,
+                n: 0,
+                at_least: false,
+            } = c
+                && ctx.source_mentioned
+                && ctx.trigger.is_some()
+                && !is_spell(ctx.card)
+            {
+                // (Not after a cost naming the source: "{T}, Remove a
+                // depletion counter from this land: Add {B}{B}. If there
+                // are no depletion counters on this land, sacrifice it.")
+                // "remove an ice counter from this creature. Then if it has
+                // no ice counters on it, transform it." (Thing in the Ice,
+                // Evolved Spinoderm): the source named before.
+                format!("it has no {} counters on it", kind.name())
             } else if matches!(c, StaticCond::AttachedIs(_))
                 && (matches!(
                     ctx.trigger,
@@ -14997,6 +15028,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .min_by_key(|(i, _)| *i)
                 {
                     text.replace_range(at + 1..at + 1 + from.len(), to);
+                    // "you may have target creature get +2/+0 and gain
+                    // deathtouch until end of turn" (Painsmith): the same
+                    // subject's second verb.
+                    let tail = at + 1 + to.len();
+                    if let Some((i, (from2, to2))) = verbs
+                        .iter()
+                        .filter_map(|v| {
+                            text[tail..]
+                                .find(&format!(" and {} ", v.0))
+                                .map(|i| (tail + i, *v))
+                        })
+                        .min_by_key(|(i, _)| *i)
+                    {
+                        text.replace_range(i + 5..i + 5 + from2.len(), to2);
+                    }
                 }
                 return Clause::imperative(format!("you may have {text}"));
             }
@@ -19259,6 +19305,12 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
                     // combat if able".
                     r.replace("though it didn't", "though they didn't")
                         .replace("attacks each combat", "attack each combat")
+                        // "Islands don't untap during their controllers'
+                        // untap steps." (Choke).
+                        .replace(
+                            "doesn't untap during its controller's untap step",
+                            "don't untap during their controllers' untap steps",
+                        )
                 } else {
                     r
                 });
