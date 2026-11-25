@@ -1546,6 +1546,7 @@ pub enum OrCard {
 
 /// The rarer parts of a search (`Effect::Search::more`).
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // independent wording flags
 pub struct SearchMore {
     /// `search black card and green card and blue card ...`, `card named
     /// "X" and card named "Y"`: one card more for each, by its own filter

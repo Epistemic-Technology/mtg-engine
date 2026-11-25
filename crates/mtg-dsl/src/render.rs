@@ -20357,7 +20357,9 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
             "can't be blocked by {}{turn}",
             filter_phrase(f, card, true).replacen(" and ", " or ", 1)
         ),
-        BlockRule::NotBy(f) => format!("can't be blocked by {}{turn}", pl(f)),
+        BlockRule::NotBy(f) | BlockRule::NotByWorded(f) => {
+            format!("can't be blocked by {}{turn}", pl(f))
+        }
         BlockRule::OnlyBy(f) => format!("can't be blocked{turn} except by {}", pl(f)),
         BlockRule::AtMostOne => format!("can't be blocked by more than one creature{turn}"),
         // Printed as a whole sentence by `ability_text`; granted, the
@@ -20371,7 +20373,6 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
         }
         BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
         BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
-        BlockRule::NotByWorded(f) => format!("can't be blocked by {}{turn}", pl(f)),
         BlockRule::MinBlockers(n) => format!(
             "can't be blocked{turn} except by {} or more creatures",
             count_words(Num::N(u32::from(*n)), "one")

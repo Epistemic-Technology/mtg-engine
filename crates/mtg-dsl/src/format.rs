@@ -5551,11 +5551,15 @@ pub fn filter(f: &Filter) -> String {
         return format!("andor {}", filter(&g));
     }
     if f.that_are {
+        // `each other thatare Wolf creature or ...` (Immerwolf): `each`
+        // stays first.
         let g = Filter {
             that_are: false,
+            each: false,
             ..f.clone()
         };
-        return format!("thatare {}", filter(&g));
+        let each = if f.each { "each " } else { "" };
+        return format!("{each}thatare {}", filter(&g));
     }
     // "Aura or Equipment attached to target creature": after both sides.
     if f.attached_to.is_some() && f.or.is_some() {
