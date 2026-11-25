@@ -1064,8 +1064,17 @@ mana value 3 or less` "a creature card with mana value 3 or less", and
 creature". `this spell costs {1}{U} less if it targets spell instant or
 sorcery` ("This spell costs {1}{U} less to cast if it targets an instant
 or sorcery spell.") also takes one mana of each colored symbol off (CR
-118.7b: generic mana where the cost has none of that color); only a
-reduction by a target may have colored symbols. More conditions: `night` ("it's night", CR 731), `gained 3
+118.7b: generic mana where the cost has none of that color). Any
+reduction may have colored symbols (an increase may not), taking that
+much of each color off, generic mana where the cost has less of it (CR
+601.2f): `this spell costs {2}{U} less if cast instant or sorcery spell
+this turn` ("This spell costs {2}{U} less to cast if you've cast an
+instant or sorcery spell this turn."), `this spell costs {2}{U}{U} less
+first if your turn` ("During your turn, this spell costs {2}{U}{U} less
+to cast."), `this spell costs {G} less count each green creature you
+control` ("This spell costs {G} less to cast for each green creature you
+control.", that many times); one colored reduction a card, and of two
+conditional ones the first. More conditions: `night` ("it's night", CR 731), `gained 3
 life this turn` ("you've gained 3 or more life this turn", in all),
 `committed crime this turn` ("you've committed a crime this turn", CR
 700.13: a spell or ability you control targeted an opponent, a permanent

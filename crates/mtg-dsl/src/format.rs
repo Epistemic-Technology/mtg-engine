@@ -9440,14 +9440,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::CondCost {
             delta,
+            colors,
             cond,
             as_long_as,
             first,
         } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{}}} {} {} {}",
-                delta.unsigned_abs(),
+                "{indent}this spell costs {} {} {} {}",
+                less_mana(delta.unsigned_abs(), colors),
                 if *delta < 0 { "less" } else { "more" },
                 if *as_long_as {
                     "as long as"
@@ -9478,10 +9479,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 filter(f)
             );
         }
-        Ability::SelfCost { per, times } => {
+        Ability::SelfCost { per, times, colors } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{per}}} less {}",
+                "{indent}this spell costs {} less {}",
+                less_mana(*per, colors),
                 num(*times)
             );
         }
@@ -10575,4 +10577,20 @@ pub fn target_cost_mana(delta: i32, colors: &[mtg_core::mana::Color]) -> String 
         let _ = write!(s, "{{{}}}", c.letter());
     }
     s
+}
+
+/// A cost reduction's mana: `{2}{U}`, `{G}` (no `{0}` before colored
+/// symbols), `{3}`.
+pub(crate) fn less_mana(generic: u32, colors: &[mtg_core::mana::Color]) -> String {
+    let mut out = if generic > 0 || colors.is_empty() {
+        format!("{{{generic}}}")
+    } else {
+        String::new()
+    };
+    for c in colors {
+        out.push('{');
+        out.push(c.letter());
+        out.push('}');
+    }
+    out
 }

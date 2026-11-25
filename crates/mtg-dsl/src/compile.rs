@@ -603,13 +603,30 @@ impl Compiler<'_> {
                 }
             }
         }
+        // Colored mana a reduction takes off (`CardDef::less_colors`).
+        let mut cond_costs = 0;
+        let mut less_colors = false;
+        let tally = |colors: &[mtg_core::mana::Color]| {
+            let mut n = [0u8; 5];
+            for c in colors {
+                n[*c as usize] = n[*c as usize].saturating_add(1);
+            }
+            n
+        };
         for a in &card.abilities {
             match unlabeled(a) {
-                Ability::SelfCost { per, times } => {
+                Ability::SelfCost { per, times, colors } => {
                     b = b.self_cost(mtg_core::card::SelfCost {
                         per: *per,
                         times: *times,
                     });
+                    if !colors.is_empty() {
+                        if less_colors {
+                            return self.err("one cost reduction with colored mana");
+                        }
+                        less_colors = true;
+                        b = b.less_colors(tally(colors));
+                    }
                 }
                 Ability::TargetCost {
                     delta,
@@ -648,10 +665,25 @@ impl Compiler<'_> {
                         b.equip_discount(*n)
                     };
                 }
-                Ability::CondCost { delta, cond, .. } => {
+                Ability::CondCost {
+                    delta,
+                    cond,
+                    colors,
+                    ..
+                } => {
                     let c = self.static_cond(cond);
                     let i = self.pool.intern_condition(c);
                     b = b.cond_cost(*delta, i);
+                    cond_costs += 1;
+                    // "This spell costs {2}{U} less to cast if ...": the
+                    // first conditional reduction's colors.
+                    if !colors.is_empty() {
+                        if less_colors || cond_costs > 1 {
+                            return self.err("one cost reduction with colored mana, the first");
+                        }
+                        less_colors = true;
+                        b = b.less_colors(tally(colors));
+                    }
                 }
                 Ability::Mechanic(Mechanic::Buyback(cost)) => {
                     b = b.buyback(cost.clone());

@@ -253,6 +253,17 @@ impl GameState {
                 _ => b.x,
             };
             adjust_generic(&mut req, self.cost_delta(b.p, def, b.id, changers, x));
+            // "This spell costs {2}{U} less to cast if ...": the colored
+            // part, generic mana where the cost has too little of a color
+            // (CR 601.2f).
+            if def.less_colors != [0; 5] {
+                let less = self.less_colors(b.p, def, b.id, x);
+                for (c, n) in less.into_iter().enumerate() {
+                    let off = n.min(req.colored[c]);
+                    req.colored[c] -= off;
+                    req.generic = req.generic.saturating_sub(n - off);
+                }
+            }
         }
         if let Some(tc) = &def.target_cost {
             if b.stack {

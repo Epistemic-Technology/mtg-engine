@@ -2242,6 +2242,10 @@ pub enum Ability {
     SelfCost {
         per: u32,
         times: Num,
+        /// `this spell costs {G} less count each green creature you
+        /// control`: colored symbols of the reduction, taken off that many
+        /// times each (CR 601.2f).
+        colors: Vec<mtg_core::mana::Color>,
     },
     /// `this spell costs {3} less if it targets tapped creature`, `... {2}
     /// more if it targets Dragon`.
@@ -2261,6 +2265,10 @@ pub enum Ability {
     /// to the Roots; wording only).
     CondCost {
         delta: i32,
+        /// `this spell costs {2}{U} less if ...`: the colored symbols of
+        /// the reduction (CR 601.2f: generic mana instead where the cost
+        /// has too little of that color).
+        colors: Vec<mtg_core::mana::Color>,
         cond: StaticCond,
         as_long_as: bool,
         /// `this spell costs {6} less first if ...`: the condition printed

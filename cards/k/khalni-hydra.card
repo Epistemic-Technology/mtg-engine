@@ -1,0 +1,8 @@
+card "Khalni Hydra" {
+  oracle_id d4649dd8-9a30-4f7e-8b9d-8edee8b2dbd7
+  cost {G}{G}{G}{G}{G}{G}{G}{G}
+  type Creature — Hydra
+  pt 8/8
+  this spell costs {G} less count each green creature you control
+  keywords trample
+}

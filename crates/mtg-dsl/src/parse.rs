@@ -3263,8 +3263,10 @@ impl P {
                     })
                     .collect();
                 let per = cost.mana_value() - u32::try_from(colors.len()).unwrap_or(0);
-                if !colors.is_empty() && !self.at_words(&["less", "if", "it", "targets"]) {
-                    return self.fail("only a target cost reduction may have colored mana");
+                // "costs {2}{U} less if ...", "{G} less for each ...": a
+                // reduction; an increase is generic.
+                if !colors.is_empty() && !self.at_word("less") {
+                    return self.fail("only a cost reduction may have colored mana");
                 }
                 if self.at_words(&["less", "if", "it", "targets"])
                     || self.at_words(&["more", "if", "it", "targets"])
@@ -3310,6 +3312,7 @@ impl P {
                     let n = i32::try_from(per).unwrap_or(0);
                     return Ok(Ability::CondCost {
                         delta: if less { -n } else { n },
+                        colors,
                         cond,
                         as_long_as,
                         first,
@@ -3318,7 +3321,7 @@ impl P {
                 self.expect_word("less")?;
                 let times = self.num()?;
                 self.end_stmt()?;
-                Ok(Ability::SelfCost { per, times })
+                Ok(Ability::SelfCost { per, times, colors })
             }
             // CR 702.14a: `landwalk snow Forest` ("Snow forestwalk").
             "landwalk" => {

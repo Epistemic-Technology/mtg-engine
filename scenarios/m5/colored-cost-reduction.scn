@@ -1,0 +1,55 @@
+# A spell's own reduction by colored mana (CR 601.2f): "This spell costs
+# {2}{U} less to cast if ...", "During your turn, this spell costs
+# {2}{U}{U} less to cast.", "This spell costs {G} less to cast for each
+# green creature you control." The colored symbols come off the cost's
+# own; where it has fewer, generic mana instead.
+
+scenario "Stormwing Entity costs {2}{U} less after an instant" {
+  battlefield A: 3 "Island"
+  hand A: "Opt", "Stormwing Entity"
+  library A: "Island", "Island"
+  turn 1 A: cast "Opt"
+  turn 1 A: cast "Stormwing Entity"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Stormwing Entity"
+}
+
+scenario "Stormwing Entity costs full price without an instant first" {
+  battlefield A: 4 "Island"
+  hand A: "Stormwing Entity"
+  illegal turn 1 A: cast "Stormwing Entity"
+  run_to turn 1 end
+  assert hand A contains "Stormwing Entity"
+}
+
+scenario "Discontinuity costs {1}{U} during your turn and exiles itself" {
+  battlefield A: 2 "Island"
+  hand A: "Discontinuity"
+  turn 1 A: cast "Discontinuity"
+  run_to turn 1 end
+  assert exile A contains "Discontinuity"
+}
+
+scenario "Discontinuity costs full price during an opponent's turn" {
+  battlefield A: 5 "Island"
+  hand A: "Discontinuity"
+  illegal turn 2 upkeep A: cast "Discontinuity"
+  run_to turn 2 end
+  assert hand A contains "Discontinuity"
+}
+
+scenario "Khalni Hydra costs {G} less for each green creature" {
+  battlefield A: 5 "Forest", "Llanowar Elves", "Elvish Mystic", "Grizzly Bears"
+  hand A: "Khalni Hydra"
+  turn 1 A: cast "Khalni Hydra"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Khalni Hydra"
+}
+
+scenario "Khalni Hydra: a nongreen creature doesn't count" {
+  battlefield A: 5 "Forest", "Llanowar Elves", "Ornithopter"
+  hand A: "Khalni Hydra"
+  illegal turn 1 A: cast "Khalni Hydra"
+  run_to turn 1 end
+  assert hand A contains "Khalni Hydra"
+}

@@ -4137,6 +4137,76 @@ impl GameState {
         out
     }
 
+    /// Whether the spell's own conditional cost change (the pool's
+    /// condition `cond`, `CardDef::cond_cost`) applies to `p` casting `id`.
+    pub(super) fn cond_cost_holds(&self, p: PlayerId, cond: u16, id: ObjId) -> bool {
+        let cond = self.pool.condition(cond);
+        // "If you've cast another instant or sorcery spell this turn": the
+        // spell being cast isn't cast until its costs are paid (CR
+        // 601.2i), so it is never among the spells counted, even once it
+        // is on the stack paying them.
+        if let crate::card::StaticCondition::Happened { count, cmp, n } = cond
+            && count.kind == crate::card::TurnEvent::Cast
+            && count.other
+            && let Some(filter) = &count.filter
+        {
+            let cast = self
+                .cast_this_turn
+                .iter()
+                .filter(|(q, def)| *q == p && filter.matches_characteristics(&self.printed(*def)))
+                .count();
+            cmp.holds(u32::try_from(cast).unwrap_or(u32::MAX), *n)
+        } else {
+            self.condition_now(cond, p, id)
+        }
+    }
+
+    /// The colored mana the spell's own reduction takes off
+    /// (`CardDef::less_colors`), by color: the first conditional one while
+    /// it holds, else the counted one that many times.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn less_colors(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        chosen_x: u32,
+    ) -> [u32; 5] {
+        let times = if let Some((_, cond)) = def.cond_cost {
+            u32::from(self.cond_cost_holds(p, cond, id))
+        } else if let Some(sc) = &def.self_cost {
+            self.eval_num_x(sc.times, id, p, chosen_x)
+        } else {
+            0
+        };
+        def.less_colors.map(|n| u32::from(n).saturating_mul(times))
+    }
+
+    /// `n` evaluated for the spell `id` its controller `p` is casting, X
+    /// being `x`.
+    fn eval_num_x(&self, n: crate::card::Num, id: ObjId, p: PlayerId, x: u32) -> u32 {
+        let ctx = EffectCtx {
+            source: id,
+            controller: p,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: None,
+            trigger_player: None,
+            trigger_amount: 0,
+            created: None,
+            revealed: Vec::new(),
+            x,
+            did: true,
+            chosen: Chosen::None,
+            couldnt: 0,
+            created_tokens: SmallVec::new(),
+            counts: None,
+        };
+        self.eval_num(n, &ctx)
+    }
+
     pub(super) fn cost_changers(&self) -> SmallVec<[ObjId; 2]> {
         if self.cost_change_sources == 0 {
             return SmallVec::new();
@@ -4167,51 +4237,14 @@ impl GameState {
             d -= self.turn_spell_less(p, def, id);
         }
         for (delta, cond) in [def.cond_cost, def.cond_cost2].into_iter().flatten() {
-            let cond = self.pool.condition(cond);
-            // "If you've cast another instant or sorcery spell this turn":
-            // the spell being cast isn't cast until its costs are paid (CR
-            // 601.2i), so it is never among the spells counted, even once
-            // it is on the stack paying them.
-            let met = if let crate::card::StaticCondition::Happened { count, cmp, n } = cond
-                && count.kind == crate::card::TurnEvent::Cast
-                && count.other
-                && let Some(filter) = &count.filter
-            {
-                let cast = self
-                    .cast_this_turn
-                    .iter()
-                    .filter(|(q, def)| {
-                        *q == p && filter.matches_characteristics(&self.printed(*def))
-                    })
-                    .count();
-                cmp.holds(u32::try_from(cast).unwrap_or(u32::MAX), *n)
-            } else {
-                self.condition_now(cond, p, id)
-            };
-            if met {
+            if self.cond_cost_holds(p, cond, id) {
                 d += delta;
             }
         }
         if let Some(sc) = &def.self_cost {
-            let ctx = EffectCtx {
-                source: id,
-                controller: p,
-                targets: Vec::new(),
-                division: Vec::new(),
-                legal: Vec::new(),
-                trigger_obj: None,
-                trigger_player: None,
-                trigger_amount: 0,
-                created: None,
-                revealed: Vec::new(),
-                x: chosen_x,
-                did: true,
-                chosen: Chosen::None,
-                couldnt: 0,
-                created_tokens: SmallVec::new(),
-                counts: None,
-            };
-            let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
+            let n = sc
+                .per
+                .saturating_mul(self.eval_num_x(sc.times, id, p, chosen_x));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
         }
         for src in changers {

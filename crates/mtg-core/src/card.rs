@@ -11289,6 +11289,15 @@ pub struct CardDef {
     /// control an enchantment." (Assassin's Ink).
     #[serde(default)]
     pub cond_cost2: Option<(i32, u16)>,
+    /// Colored mana the spell's own reduction takes off too, by color
+    /// (white, blue, black, red, green): with `cond_cost`, while its
+    /// condition holds ("This spell costs {2}{U} less to cast if you've
+    /// cast an instant or sorcery spell this turn."); with `self_cost`,
+    /// that many for each it counts ("This spell costs {G} less to cast
+    /// for each green creature you control."). Where the cost has less of
+    /// a color, generic mana instead (CR 601.2f).
+    #[serde(default)]
+    pub less_colors: [u8; 5],
     /// "This spell can't be countered." (CR 101.2: a spell or ability
     /// that would counter it does nothing to it).
     #[serde(default)]
@@ -14363,6 +14372,7 @@ impl Builder {
             uncounterable_if: None,
             cond_cost: None,
             cond_cost2: None,
+            less_colors: [0; 5],
             madness: None,
             foretell: None,
             plot: None,
@@ -14889,7 +14899,16 @@ impl Builder {
         self
     }
 
-    /// A cost change by a condition (see `CardDef::cond_cost`).
+    /// The colored part of the spell's own reduction (see
+    /// `CardDef::less_colors`).
+    #[must_use]
+    pub fn less_colors(mut self, n: [u8; 5]) -> Self {
+        self.0.less_colors = n;
+        self
+    }
+
+    /// "This spell costs {3} less to cast if a creature died this turn"
+    /// (`CardDef::cond_cost`).
     #[must_use]
     pub fn cond_cost(mut self, delta: i32, cond: u16) -> Self {
         if self.0.cond_cost.is_none() {

@@ -24054,47 +24054,64 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 parts.join(" and ")
             )
         }
+        // "During your turn, this spell costs {2}{U}{U} less to cast."
+        // (Discontinuity).
+        Ability::CondCost {
+            delta,
+            colors,
+            cond: StaticCond::YourTurn | StaticCond::DuringYourTurn,
+            first: true,
+            ..
+        } => format!(
+            "During your turn, this spell costs {} {} to cast.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
+            if *delta < 0 { "less" } else { "more" },
+        ),
         // "This spell costs {1} less to cast during your turn." (Mental
         // Modulation).
         Ability::CondCost {
             delta,
+            colors,
             cond: StaticCond::YourTurn | StaticCond::DuringYourTurn,
             ..
         } => format!(
-            "This spell costs {{{}}} {} to cast during your turn.",
-            delta.unsigned_abs(),
+            "This spell costs {} {} to cast during your turn.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
         ),
         // "During turns other than yours, this spell costs {3} more to
         // cast." (Hurkyl's Final Meditation).
         Ability::CondCost {
             delta,
+            colors,
             cond: StaticCond::NotYourTurn,
             ..
         } => format!(
-            "During turns other than yours, this spell costs {{{}}} {} to cast.",
-            delta.unsigned_abs(),
+            "During turns other than yours, this spell costs {} {} to cast.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
         ),
         Ability::CondCost {
             delta,
+            colors,
             cond,
             first: true,
             ..
         } => format!(
-            "If {}, this spell costs {{{}}} {} to cast.",
+            "If {}, this spell costs {} {} to cast.",
             static_cond_text(cond, card),
-            delta.unsigned_abs(),
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
         ),
         Ability::CondCost {
             delta,
+            colors,
             cond,
             as_long_as,
             ..
         } => format!(
-            "This spell costs {{{}}} {} to cast {} {}.",
-            delta.unsigned_abs(),
+            "This spell costs {} {} to cast {} {}.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
             if *as_long_as { "as long as" } else { "if" },
             match cond {
@@ -24122,7 +24139,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 crate::ast::TargetNoun::Card => card_filter_a(filter, card),
             }
         ),
-        Ability::SelfCost { per, times } => {
+        Ability::SelfCost { per, times, colors } => {
             // "This spell costs {X} less to cast, where X is the greatest
             // power among creatures you control."
             if let Num::Count(i) = times
@@ -24159,7 +24176,10 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     .unwrap_or_default(),
                 _ => String::new(),
             };
-            format!("This spell costs {{{per}}} less to cast{tail}.")
+            format!(
+                "This spell costs {} less to cast{tail}.",
+                crate::format::less_mana(*per, colors)
+            )
         }
         Ability::Mechanic(m) => match m {
             crate::ast::Mechanic::Bushido(n) => format!("Bushido {n}"),

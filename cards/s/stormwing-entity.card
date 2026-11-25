@@ -1,0 +1,9 @@
+card "Stormwing Entity" {
+  oracle_id ea43fd04-e9fa-42fb-ba20-22dcc21c6c43
+  cost {3}{U}{U}
+  type Creature — Elemental
+  pt 3/3
+  this spell costs {2}{U} less if cast instant or sorcery spell this turn
+  keywords flying, prowess
+  triggered when this enters: scry 2
+}
