@@ -1,0 +1,8 @@
+card "Genju of the Realm" {
+  oracle_id 1da3a0c0-43f0-4feb-b20a-414b023e710c
+  cost {W}{U}{B}{R}{G}
+  type Legendary Enchantment — Aura
+  enchant land
+  activated {2}: attached becomes legendary 8/12 Spirit creature with trample until end of turn
+  triggered when enchanted land is put into a graveyard: you may return this to hand
+}

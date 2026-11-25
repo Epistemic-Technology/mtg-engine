@@ -1,0 +1,11 @@
+card "Hedron-Field Purists" {
+  oracle_id ecc3e2ac-6534-4350-92f4-2c1f578d854e
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 0/3
+  level up {2}{W}
+  levels 1 to 4 pt 1/4
+  replace damage to you or creature you control: prevent next 1
+  levels 5 or more pt 2/5
+  replace damage to you or creature you control: prevent next 2
+}

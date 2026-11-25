@@ -103,7 +103,7 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
         (TurnEvent::LandEntered, ..) => StaticCond::LandEnteredThisTurn,
         (TurnEvent::ArtifactEntered, ..) => StaticCond::ArtifactEnteredThisTurn,
         (TurnEvent::FaceDownEntered, ..) => StaticCond::FaceDownEnteredThisTurn,
-        (TurnEvent::PermanentLeft, ..) => StaticCond::PermanentLeftThisTurn,
+        (TurnEvent::PermanentLeft, ..) => StaticCond::PermanentLeftThisTurn { controlled: false },
         (TurnEvent::Died, TurnWho::Anyone, _, 1) => StaticCond::CreatureDiedThisTurn,
         (TurnEvent::Died, who, _, n) => StaticCond::CreaturesDied {
             n,
@@ -206,6 +206,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
                 count: a.count,
                 others_gain: a.others_gain,
                 cond_late: false,
+                label: None,
             }
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),

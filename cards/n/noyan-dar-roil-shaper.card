@@ -1,0 +1,7 @@
+card "Noyan Dar, Roil Shaper" {
+  oracle_id e4190320-5854-479e-be11-a5d5ef3db6a6
+  cost {3}{W}{U}
+  type Legendary Creature — Merfolk Ally
+  pt 4/4
+  triggered whenever you cast an instant or sorcery spell: you may put 3 +1/+1 counters on target land you control; if you do, that target 1 becomes 0/0 Elemental creature with haste indefinitely
+}

@@ -1,0 +1,667 @@
+# Renderer near-misses (wording-c, sixteenth wave): each card's amounts
+# and targets.
+
+# "{3}{R}{R}: Create a 5/5 red Dragon Spirit creature token with flying.
+# Activate only if you control an attacking modified creature."
+# (Goro-Goro, Disciple of Ryusei).
+scenario "Goro-Goro: a modified attacker allows the Dragon Spirit" {
+  battlefield A: "Goro-Goro, Disciple of Ryusei", "Grizzly Bears" with 1 +1/+1, 6 "Mountain"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Goro-Goro, Disciple of Ryusei" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dragon Spirit"
+  assert power "Dragon Spirit" 5
+  assert has "Dragon Spirit" flying
+}
+
+scenario "Goro-Goro: an unmodified attacker doesn't" {
+  battlefield A: "Goro-Goro, Disciple of Ryusei", "Grizzly Bears", 6 "Mountain"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers A: activate "Goro-Goro, Disciple of Ryusei" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Dragon Spirit"
+}
+
+scenario "Goro-Goro: a modified creature that isn't attacking doesn't" {
+  battlefield A: "Goro-Goro, Disciple of Ryusei", "Grizzly Bears" with 1 +1/+1, 6 "Mountain"
+  illegal turn 1 A: activate "Goro-Goro, Disciple of Ryusei" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Dragon Spirit"
+}
+
+scenario "Goro-Goro: creatures you control gain haste" {
+  battlefield A: "Goro-Goro, Disciple of Ryusei", 5 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Goro-Goro, Disciple of Ryusei" ability 1
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+# "At the beginning of each end step, if you've cast both a creature spell
+# and a noncreature spell this turn, create a Clue token, a Food token,
+# and a Treasure token." (Fae Offering).
+scenario "Fae Offering: both kinds of spell make three tokens" {
+  battlefield A: "Fae Offering", 3 "Forest"
+  hand A: "Grizzly Bears", "Giant Growth"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Clue"
+  assert battlefield A contains 1 "Food"
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "Fae Offering: a creature spell alone makes none" {
+  battlefield A: "Fae Offering", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Clue"
+  assert battlefield A lacks "Treasure"
+}
+
+# "This creature gets +1/+0 for each oil counter on it. When this creature
+# enters and whenever another creature or artifact you control is put
+# into a graveyard from the battlefield, put an oil counter on this
+# creature." (Exuberant Fuseling).
+scenario "Exuberant Fuseling: oil on entering and on another creature dying" {
+  battlefield A: "Grizzly Bears", 4 "Swamp", "Mountain"
+  hand A: "Exuberant Fuseling", "Murder"
+  turn 1 A: cast "Exuberant Fuseling"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Exuberant Fuseling" oil 2
+  assert power "Exuberant Fuseling" 2
+  assert toughness "Exuberant Fuseling" 1
+}
+
+# "Old Man Willow's power and toughness are each equal to the number of
+# lands you control. Whenever Old Man Willow attacks, you may sacrifice
+# another creature or a token. When you do, target creature an opponent
+# controls gets -2/-2 until end of turn."
+scenario "Old Man Willow: sacrificing a token shrinks an opponent's creature" {
+  battlefield A: "Old Man Willow", "Food", 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Old Man Willow"
+  turn 1 declare_attackers A: choose "Food"
+  turn 1 declare_attackers A: trigger "Old Man Willow" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Food"
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Old Man Willow" 3
+  assert life B 17
+}
+
+scenario "Old Man Willow: declining keeps the token" {
+  battlefield A: "Old Man Willow", "Food", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Old Man Willow"
+  turn 1 declare_attackers A: decline "Old Man Willow"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Food"
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 18
+}
+
+# "Whenever a Sliver becomes blocked, that Sliver gets +1/+1 until end of
+# turn for each creature blocking it." (Spined Sliver).
+scenario "Spined Sliver: each blocked Sliver grows by its blockers" {
+  battlefield A: "Spined Sliver", "Sliver Construct"
+  battlefield B: 3 "Ornithopter"
+  turn 1 A: attack "Spined Sliver", "Sliver Construct"
+  turn 1 B: block "Spined Sliver" with "Ornithopter"
+  turn 1 B: block "Spined Sliver" with "Ornithopter"
+  turn 1 B: block "Sliver Construct" with "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Spined Sliver" 4
+  assert toughness "Spined Sliver" 4
+  assert power "Sliver Construct" 3
+}
+
+# "If one or more +1/+1 counters would be put on a permanent you control,
+# that many plus one +1/+1 counters are put on that permanent instead.
+# {T}: Add X mana of any one color, where X is this creature's power."
+# (Kami of Whispered Hopes).
+scenario "Kami of Whispered Hopes: one more counter, and mana by its power" {
+  battlefield A: "Kami of Whispered Hopes", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Battlegrowth"
+  turn 1 A: cast "Battlegrowth" targeting "Kami of Whispered Hopes"
+  run_to turn 1 postcombat_main
+  assert counters "Kami of Whispered Hopes" +1/+1 2
+  assert power "Kami of Whispered Hopes" 3
+}
+
+scenario "Kami of Whispered Hopes: an opponent's creature gets only one" {
+  battlefield A: "Kami of Whispered Hopes", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Battlegrowth"
+  turn 1 A: cast "Battlegrowth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Kami of Whispered Hopes: two power pays for a two-mana spell" {
+  battlefield A: "Kami of Whispered Hopes" with 1 +1/+1
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Kami of Whispered Hopes"
+}
+
+# "Whenever this creature deals damage to an opponent, that player discards
+# a card at random. If the player does, they draw a card." (Skullknocker
+# Ogre).
+scenario "Skullknocker Ogre: the player discards at random and draws" {
+  battlefield A: "Skullknocker Ogre"
+  hand B: "Island"
+  turn 1 A: attack "Skullknocker Ogre"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Island"
+  assert hand B count 1
+}
+
+scenario "Skullknocker Ogre: no card to discard, no draw" {
+  battlefield A: "Skullknocker Ogre"
+  turn 1 A: attack "Skullknocker Ogre"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand B count 0
+}
+
+# "At the beginning of your upkeep, create a 2/2 white Cat creature token
+# for each Equipment attached to Kemba." (Kemba, Kha Regent).
+scenario "Kemba: a Cat for each Equipment attached" {
+  battlefield A: "Kemba, Kha Regent", "Bonesplitter" on "Kemba, Kha Regent", "Leonin Scimitar" on "Kemba, Kha Regent", "Leonin Scimitar"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert battlefield A contains 2 "Cat"
+  assert power "Kemba, Kha Regent" 5
+}
+
+scenario "Kemba: no Equipment, no Cat" {
+  battlefield A: "Kemba, Kha Regent", "Bonesplitter"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert battlefield A lacks "Cat"
+}
+
+# "Until end of turn, all creatures become black and all lands become
+# Swamps." (Nightcreep).
+scenario "Nightcreep: creatures black, lands Swamps, until end of turn" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  battlefield B: "Forest", "Hill Giant"
+  hand A: "Nightcreep"
+  turn 1 A: cast "Nightcreep"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" black
+  assert is "Hill Giant" black
+  assert is not "Hill Giant" red
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+  run_to turn 2 upkeep
+  assert is not "Hill Giant" black
+  assert is "Forest" forest
+}
+
+# "At the beginning of your end step, if a permanent you controlled left
+# the battlefield this turn, put a +1/+1 counter on target creature you
+# control." (Shortcut to Mushrooms).
+scenario "Shortcut to Mushrooms: the Ring tempts; a permanent left, a counter" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Swamp", 2 "Forest"
+  hand A: "Shortcut to Mushrooms", "Murder"
+  turn 1 A: cast "Shortcut to Mushrooms"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  turn 1 end A: trigger "Shortcut to Mushrooms" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert tempted A 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Shortcut to Mushrooms: an opponent's permanent leaving doesn't count" {
+  battlefield A: "Shortcut to Mushrooms", "Hill Giant", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert counters "Hill Giant" +1/+1 0
+}
+
+# "+1: Put two +1/+1 counters on up to one target creature you control. 0:
+# Until end of turn, Oko becomes a copy of target creature you control.
+# Prevent all damage that would be dealt to him this turn." (Oko, the
+# Trickster).
+scenario "Oko, the Trickster: +1 puts two counters" {
+  battlefield A: "Oko, the Trickster", "Grizzly Bears"
+  turn 1 A: activate "Oko, the Trickster" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Oko, the Trickster" loyalty 5
+}
+
+scenario "Oko, the Trickster: 0 makes a copy that takes no damage" {
+  battlefield A: "Oko, the Trickster", "Hill Giant", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: activate "Oko, the Trickster" ability 2 targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting oldest A "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Hill Giant"
+  assert damage oldest A "Hill Giant" 0
+}
+
+# "When this creature enters, attach all Equipment on the battlefield to
+# it." (Vulshok Battlemaster): anyone's; control doesn't change.
+scenario "Vulshok Battlemaster: takes every Equipment on the battlefield" {
+  battlefield A: "Leonin Scimitar", 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  hand A: "Vulshok Battlemaster"
+  turn 1 A: cast "Vulshok Battlemaster"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Vulshok Battlemaster"
+  assert attached "Leonin Scimitar" to "Vulshok Battlemaster"
+  assert power "Vulshok Battlemaster" 5
+  assert power "Grizzly Bears" 2
+  assert battlefield B contains "Bonesplitter"
+}
+
+# "Whenever this creature attacks, if you control a Ral planeswalker, this
+# creature gets +1/+0 for each card in your hand until end of turn." (Ral's
+# Staticaster).
+scenario "Ral's Staticaster: +1/+0 for each card in hand with a Ral" {
+  battlefield A: "Ral's Staticaster", "Ral, Izzet Viceroy"
+  hand A: "Island", "Island", "Island"
+  turn 1 A: attack "Ral's Staticaster"
+  run_to turn 1 postcombat_main
+  assert power "Ral's Staticaster" 6
+  assert life B 14
+}
+
+scenario "Ral's Staticaster: no Ral, no bonus" {
+  battlefield A: "Ral's Staticaster"
+  hand A: "Island", "Island", "Island"
+  turn 1 A: attack "Ral's Staticaster"
+  run_to turn 1 postcombat_main
+  assert power "Ral's Staticaster" 3
+  assert life B 17
+}
+
+# "+1: Untap up to two target artifacts. −X: Search your library for an
+# artifact card with mana value X or less, put it onto the battlefield,
+# then shuffle. −5: Artifacts you control become artifact creatures with
+# base power and toughness 5/5 until end of turn." (Tezzeret the Seeker).
+scenario "Tezzeret the Seeker: +1 untaps two artifacts" {
+  battlefield A: "Tezzeret the Seeker", "Bonesplitter" tapped, "Leonin Scimitar" tapped
+  turn 1 A: activate "Tezzeret the Seeker" ability 1 targeting "Bonesplitter", "Leonin Scimitar"
+  run_to turn 1 postcombat_main
+  assert untapped "Bonesplitter"
+  assert untapped "Leonin Scimitar"
+  assert counters "Tezzeret the Seeker" loyalty 5
+}
+
+scenario "Tezzeret the Seeker: -X finds an artifact of mana value X or less" {
+  battlefield A: "Tezzeret the Seeker"
+  library A: "Hill Giant", "Bonesplitter", "Plains"
+  turn 1 A: activate "Tezzeret the Seeker" ability 2 x 1
+  turn 1 A: choose "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+  assert counters "Tezzeret the Seeker" loyalty 3
+}
+
+scenario "Tezzeret the Seeker: -5 makes artifacts 5/5 creatures this turn" {
+  battlefield A: "Tezzeret the Seeker" with 5 loyalty, "Bonesplitter", "Ornithopter"
+  battlefield B: "Leonin Scimitar"
+  turn 1 A: activate "Tezzeret the Seeker" ability 3
+  run_to turn 1 postcombat_main
+  assert is "Bonesplitter" creature
+  assert power "Bonesplitter" 5
+  assert toughness "Ornithopter" 5
+  assert is not "Leonin Scimitar" creature
+  run_to turn 2 upkeep
+  assert is not "Bonesplitter" creature
+}
+
+# "Whenever this artifact or another artifact you control enters, put a
+# charge counter on this artifact. {4}, Sacrifice this artifact: It deals
+# damage equal to the number of charge counters on it to target player and
+# that much damage to up to one target creature." (Dragonspark Reactor).
+scenario "Dragonspark Reactor: counts artifacts, then deals that much twice" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Dragonspark Reactor", "Ornithopter"
+  turn 1 A: cast "Dragonspark Reactor"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: activate "Dragonspark Reactor" targeting player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Dragonspark Reactor"
+}
+
+scenario "Dragonspark Reactor: the creature is optional" {
+  battlefield A: 4 "Mountain", "Dragonspark Reactor" with 3 charge
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Dragonspark Reactor" targeting player B, none
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert damage "Hill Giant" 0
+}
+
+# "Untap up to two target creatures. They each get +2/+2 until end of
+# turn." (Join Forces).
+scenario "Join Forces: untaps both and each gets +2/+2" {
+  battlefield A: "Grizzly Bears" tapped, "Hill Giant" tapped, 3 "Plains"
+  hand A: "Join Forces"
+  turn 1 A: cast "Join Forces" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert power "Grizzly Bears" 4
+  assert toughness "Hill Giant" 5
+}
+
+# "{2}: Enchanted land becomes a legendary 8/12 Spirit creature with
+# trample until end of turn. It's still a land. When enchanted land is put
+# into a graveyard, you may return Genju of the Realm from your graveyard
+# to your hand."
+scenario "Genju of the Realm: the land animates, and the Aura comes back" {
+  battlefield A: "Forest", "Genju of the Realm" on "Forest", 5 "Swamp"
+  hand A: "Murder"
+  turn 1 A: activate "Genju of the Realm"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A contains "Genju of the Realm"
+}
+
+scenario "Genju of the Realm: an 8/12 legendary Spirit that's still a land" {
+  battlefield A: "Forest", "Genju of the Realm" on "Forest", 2 "Swamp"
+  turn 1 A: activate "Genju of the Realm"
+  run_to turn 1 postcombat_main
+  assert is "Forest" creature
+  assert is "Forest" land
+  assert is "Forest" legendary
+  assert is "Forest" spirit
+  assert power "Forest" 8
+  assert toughness "Forest" 12
+  assert has "Forest" trample
+  run_to turn 2 upkeep
+  assert is not "Forest" creature
+}
+
+# "{2}: Until end of turn, enchanted Swamp becomes a 2/2 black Spirit
+# creature with "{B}: This creature gets +1/+1 until end of turn." It's
+# still a land. When enchanted Swamp is put into a graveyard, you may
+# return this card from your graveyard to your hand." (Genju of the Fens).
+scenario "Genju of the Fens: a 2/2 black Spirit land, and the Aura comes back" {
+  battlefield A: "Swamp", "Genju of the Fens" on "Swamp", 5 "Swamp"
+  hand A: "Murder"
+  turn 1 A: activate "Genju of the Fens"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting oldest "Swamp"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Genju of the Fens"
+  assert battlefield A contains 5 "Swamp"
+}
+
+scenario "Genju of the Fens: declining leaves it in the graveyard" {
+  battlefield A: "Swamp", "Genju of the Fens" on "Swamp", 5 "Swamp"
+  hand A: "Murder"
+  turn 1 A: activate "Genju of the Fens"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting oldest "Swamp"
+  turn 1 A: decline "Genju of the Fens"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Genju of the Fens"
+}
+
+# "Whenever you cast an instant or sorcery spell, you may put three +1/+1
+# counters on target land you control. If you do, that land becomes a 0/0
+# Elemental creature with haste that's still a land." (Noyan Dar, Roil
+# Shaper): for good.
+scenario "Noyan Dar: the land becomes a 3/3 Elemental with haste for good" {
+  battlefield A: "Noyan Dar, Roil Shaper", "Forest", "Plains"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Noyan Dar, Roil Shaper"
+  turn 1 A: trigger "Noyan Dar, Roil Shaper" targeting "Plains"
+  turn 1 A: attack "Plains"
+  run_to turn 1 postcombat_main
+  assert is "Plains" creature
+  assert is "Plains" land
+  assert is "Plains" elemental
+  assert counters "Plains" +1/+1 3
+  assert power "Plains" 3
+  assert life B 17
+  run_to turn 3 upkeep
+  assert is "Plains" creature
+}
+
+scenario "Noyan Dar: declining leaves the land alone" {
+  battlefield A: "Noyan Dar, Roil Shaper", "Forest", "Plains"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Noyan Dar, Roil Shaper"
+  turn 1 A: decline "Noyan Dar, Roil Shaper"
+  run_to turn 1 postcombat_main
+  assert is not "Plains" creature
+  assert counters "Plains" +1/+1 0
+}
+
+# "This creature and enchanted creature each get +1/+1 for each creature
+# you control and +1/+1 for each Aura you control." (Eidolon of Countless
+# Battles).
+scenario "Eidolon of Countless Battles: counts creatures and Auras" {
+  battlefield A: "Eidolon of Countless Battles", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Eidolon of Countless Battles" 3
+  assert toughness "Eidolon of Countless Battles" 3
+}
+
+scenario "Eidolon of Countless Battles: bestowed, the creature gets both" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  hand A: "Eidolon of Countless Battles"
+  turn 1 A: cast "Eidolon of Countless Battles" bestowed targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+# "Dragon spells you cast cost {1} less to cast. Whenever a Dragon you
+# control enters, you may have Sarkhan become a copy of it until end of
+# turn, except its name is Sarkhan, Soul Aflame and it's legendary in
+# addition to its other types."
+scenario "Sarkhan, Soul Aflame: a cheaper Dragon, then a legendary copy" {
+  battlefield A: "Sarkhan, Soul Aflame", 5 "Mountain"
+  hand A: "Shivan Dragon"
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Shivan Dragon"
+  assert power "Sarkhan, Soul Aflame" 5
+  assert has "Sarkhan, Soul Aflame" flying
+  assert is "Sarkhan, Soul Aflame" legendary
+  assert is "Sarkhan, Soul Aflame" dragon
+  assert is not "Shivan Dragon" legendary
+  run_to turn 2 upkeep
+  assert power "Sarkhan, Soul Aflame" 2
+}
+
+# "Raid — If you attacked this turn, you may pay {U} rather than pay this
+# spell's mana cost. Counter target spell." (Admiral's Order).
+scenario "Admiral's Order: {U} after attacking" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  hand A: "Divination", "Admiral's Order"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Divination"
+  turn 1 postcombat_main A: cast "Admiral's Order" alternative targeting "Divination"
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+  assert graveyard A contains "Admiral's Order"
+  assert hand A count 0
+}
+
+scenario "Admiral's Order: no attack, no {U} cost" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  hand A: "Divination", "Admiral's Order"
+  turn 1 postcombat_main A: cast "Divination"
+  illegal turn 1 postcombat_main A: cast "Admiral's Order" alternative targeting "Divination"
+  run_to turn 1 end
+  assert hand A contains "Admiral's Order"
+}
+
+# "LEVEL 1-4: If a source would deal damage to you or a creature you
+# control, prevent 1 of that damage. LEVEL 5+: ... prevent 2 of that
+# damage." (Hedron-Field Purists).
+scenario "Hedron-Field Purists: level 1 prevents 1 to you and your creatures" {
+  battlefield A: "Hedron-Field Purists" with 1 level, "Hill Giant"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert damage "Hill Giant" 1
+}
+
+scenario "Hedron-Field Purists: level 5 prevents 2" {
+  battlefield A: "Hedron-Field Purists" with 5 level
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 19
+}
+
+scenario "Hedron-Field Purists: level 0 prevents nothing" {
+  battlefield A: "Hedron-Field Purists"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+# "Choose two target creature cards in your graveyard. Sacrifice a
+# creature. If you do, return the chosen cards to the battlefield tapped."
+# (Victimize).
+scenario "Victimize: a sacrifice returns both, tapped" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  graveyard A: "Hill Giant", "Serra Angel"
+  hand A: "Victimize"
+  turn 1 A: cast "Victimize" targeting "Hill Giant", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Serra Angel"
+  assert tapped "Hill Giant"
+  assert tapped "Serra Angel"
+}
+
+scenario "Victimize: no creature to sacrifice, nothing returns" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Hill Giant", "Serra Angel"
+  hand A: "Victimize"
+  turn 1 A: cast "Victimize" targeting "Hill Giant", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Serra Angel"
+}
+
+# "Kozilek's Return deals 2 damage to each creature. Whenever you cast an
+# Eldrazi creature spell with mana value 7 or greater, you may exile this
+# card from your graveyard. If you do, this card deals 5 damage to each
+# creature."
+scenario "Kozilek's Return: 2 to each creature" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Kozilek's Return"
+  turn 1 A: cast "Kozilek's Return"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Kozilek's Return: from the graveyard, 5 to each creature" {
+  battlefield A: 10 "Wastes"
+  battlefield B: "Serra Angel", "Hill Giant"
+  graveyard A: "Kozilek's Return"
+  hand A: "Ulamog's Crusher"
+  turn 1 A: cast "Ulamog's Crusher"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Kozilek's Return"
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Ulamog's Crusher"
+}
+
+# "Whenever this creature attacks, create a tapped and attacking token
+# that's a copy of it. Put a +1/+1 counter on that token for each +1/+1
+# counter on this creature. Sacrifice that token at the beginning of the
+# next end step." (Furnace-Blessed Conqueror).
+scenario "Furnace-Blessed Conqueror: an attacking copy with its counters" {
+  battlefield A: "Sun-Blessed Guardian // Furnace-Blessed Conqueror" with 2 +1/+1, 7 "Mountain"
+  turn 1 A: activate "Sun-Blessed Guardian"
+  turn 1 A: attack "Furnace-Blessed Conqueror"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Furnace-Blessed Conqueror"
+  assert counters newest A "Furnace-Blessed Conqueror" +1/+1 2
+  assert power newest A "Furnace-Blessed Conqueror" 5
+  assert life B 10
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Furnace-Blessed Conqueror"
+}
+
+# "When this enchantment enters, target player exiles all cards from their
+# hand face down, then draws that many cards. When this enchantment is put
+# into a graveyard from the battlefield, return the exiled cards to their
+# owner's hand." (Induced Amnesia).
+scenario "Induced Amnesia: the hand is exiled and redrawn, then comes back" {
+  battlefield A: 3 "Island", "Plains", "Plains"
+  hand A: "Induced Amnesia", "Disenchant"
+  hand B: "Shock", "Giant Growth", "Hill Giant"
+  turn 1 A: cast "Induced Amnesia"
+  turn 1 A: trigger "Induced Amnesia" targeting player B
+  turn 1 A: wait
+  run_to turn 1 begin_combat
+  assert hand B count 3
+  assert hand B lacks "Shock"
+  assert exile B contains "Shock"
+  assert face_down "Shock"
+  turn 1 postcombat_main A: cast "Disenchant" targeting "Induced Amnesia"
+  run_to turn 1 end
+  assert hand B count 6
+  assert hand B contains "Shock"
+}
+
+# "{T}, Sacrifice a creature: Create a Food token. If the sacrificed
+# creature's toughness was 4 or greater, create two Food tokens instead."
+# (Witch's Oven).
+scenario "Witch's Oven: toughness 3, one Food" {
+  battlefield A: "Witch's Oven", "Hill Giant"
+  turn 1 A: activate "Witch's Oven" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains 1 "Food"
+}
+
+scenario "Witch's Oven: toughness 4, two Food" {
+  battlefield A: "Witch's Oven", "Serra Angel"
+  turn 1 A: activate "Witch's Oven" sacrificing "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert battlefield A contains 2 "Food"
+}

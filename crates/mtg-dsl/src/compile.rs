@@ -2757,7 +2757,7 @@ impl Compiler<'_> {
             StaticCond::OpponentLostLifeThisTurn => {
                 StaticCondition::happened(TurnEvent::LifeLost, TurnWho::Opponent)
             }
-            StaticCond::PermanentLeftThisTurn => {
+            StaticCond::PermanentLeftThisTurn { .. } => {
                 StaticCondition::happened(TurnEvent::PermanentLeft, TurnWho::You)
             }
             StaticCond::Escaped => StaticCondition::Escaped,
@@ -5788,6 +5788,7 @@ impl Compiler<'_> {
                     Affects::Objects(f)
                     | Affects::YouAnd(f)
                     | Affects::YouAndOr(f)
+                    | Affects::YouOr(f)
                     | Affects::OpponentsAnd(f)
                     | Affects::OtherThanTarget(f, _)
                     | Affects::Chosen(f) => f.chosen.and_then(crate::ast::OfChosen::implied),
@@ -7061,7 +7062,9 @@ impl Compiler<'_> {
             Affects::You => CoreAffects::You,
             Affects::Players(w) => CoreAffects::Players(*w),
             Affects::Objects(f) => CoreAffects::Objects(self.filter(f)),
-            Affects::YouAnd(f) | Affects::YouAndOr(f) => CoreAffects::YouAnd(self.filter(f)),
+            Affects::YouAnd(f) | Affects::YouAndOr(f) | Affects::YouOr(f) => {
+                CoreAffects::YouAnd(self.filter(f))
+            }
             Affects::OpponentsAnd(f) => CoreAffects::OpponentsAnd(self.filter(f)),
             // A variable group: its targets to the end of the list.
             Affects::Target(i) if Some(*i) == self.many => CoreAffects::Targets(

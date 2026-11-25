@@ -1,0 +1,6 @@
+card "Join Forces" {
+  oracle_id 6f8bf849-890e-4fc7-981f-37ff4b4fb844
+  cost {2}{W}
+  type Instant
+  spell: untap up to two target creatures; targets 1 to 2 gets +2/+2 until end of turn
+}

@@ -1,0 +1,8 @@
+card "Kami of Whispered Hopes" {
+  oracle_id f122624f-f30d-444e-a62a-939829241045
+  cost {2}{G}
+  type Creature — Spirit
+  pt 1/1
+  replace +1/+1 counters put on permanent you control: plus one
+  activated {T}: add any count where power
+}

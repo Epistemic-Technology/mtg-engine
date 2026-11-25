@@ -1,0 +1,8 @@
+card "Ral's Staticaster" {
+  oracle_id eae7dd41-3d5f-49a7-baaa-2c03bb341c3a
+  cost {2}{U}{R}
+  type Creature — Lizard Wizard
+  pt 3/3
+  keywords trample
+  triggered whenever this attacks if you control Ral planeswalker: this gets +1/+0 count eachfirst hand until end of turn
+}

@@ -1,0 +1,8 @@
+card "Vulshok Battlemaster" {
+  oracle_id cf01312d-305a-4587-8f54-03ee471bdf8c
+  cost {4}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords haste
+  triggered when this enters: attach all Equipment to this
+}

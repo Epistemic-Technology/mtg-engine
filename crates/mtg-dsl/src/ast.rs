@@ -468,6 +468,10 @@ pub enum CountStyle {
     Equal,
     /// `count each ...`: "... for each ...".
     Each,
+    /// `count eachfirst ...`: "... for each ..." before the clause's
+    /// duration: "gets +1/+0 for each card in your hand until end of
+    /// turn" (Ral's Staticaster). Wording only.
+    EachFirst,
     /// `count foreach ...`: "For each ..., <clause>" (Brass's Bounty:
     /// "For each land you control, create a Treasure token.").
     ForEach,
@@ -1023,6 +1027,10 @@ pub struct AltCost {
     /// spell's mana cost if there are thirteen or more creatures on the
     /// battlefield."); wording only.
     pub cond_late: bool,
+    /// `label "Raid" alternative cost {U}, if attacked this turn`: "Raid —
+    /// If you attacked this turn, you may pay {U} rather than pay this
+    /// spell's mana cost." (Admiral's Order); wording only.
+    pub label: Option<String>,
 }
 
 /// `cast from graveyard [while <cond> | if <cond> | at max speed] [for
@@ -3699,8 +3707,12 @@ pub enum StaticCond {
     /// `opponent lost life this turn`: "an opponent lost life this turn".
     OpponentLostLifeThisTurn,
     /// `permanent left this turn` (revolt): "a permanent left the
-    /// battlefield under your control this turn".
-    PermanentLeftThisTurn,
+    /// battlefield under your control this turn"; `permanent you
+    /// controlled left this turn`: "a permanent you controlled left the
+    /// battlefield this turn" (Shortcut to Mushrooms; wording only).
+    PermanentLeftThisTurn {
+        controlled: bool,
+    },
     /// Cast with escape (internal: "escapes with").
     Escaped,
     /// Cast with kicker (internal: `kicked with`).
@@ -4602,6 +4614,9 @@ pub enum Affects {
     /// `you andor permanent you control`: the same as `you and`, printed
     /// "you and/or permanents you control" (Harm's Way).
     YouAndOr(Filter),
+    /// `you or creature you control`: the same as `you and`, printed "you
+    /// or a creature you control" (Hedron-Field Purists).
+    YouOr(Filter),
     /// `opponent and permanent an opponent controls`: "an opponent or a
     /// permanent an opponent controls".
     OpponentsAnd(Filter),

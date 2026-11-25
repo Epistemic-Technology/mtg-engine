@@ -1,0 +1,7 @@
+card "Kemba, Kha Regent" {
+  oracle_id 499d5801-0c56-40f2-9a46-77025ed6cb87
+  cost {1}{W}{W}
+  type Legendary Creature — Cat Cleric
+  pt 2/4
+  triggered at beginning of your upkeep: create count each Equipment attached to this "2/2 white Cat creature"
+}

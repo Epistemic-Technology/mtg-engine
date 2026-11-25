@@ -1,0 +1,7 @@
+card "Admiral's Order" {
+  oracle_id ae4fe5e0-408d-4398-84d7-a901b836df2a
+  cost {1}{U}{U}
+  type Instant
+  label "Raid" alternative cost {U}, if attacked this turn
+  spell: counter target spell
+}

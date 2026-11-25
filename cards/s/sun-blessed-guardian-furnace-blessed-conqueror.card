@@ -1,0 +1,14 @@
+card "Sun-Blessed Guardian // Furnace-Blessed Conqueror" {
+  oracle_id 0b34581e-66df-4e2f-91fb-dddba632d203
+  layout transform
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {5}{R/P}, sorcery: transform this
+  face "Furnace-Blessed Conqueror" {
+    type Creature — Phyrexian Cleric
+    pt 3/3
+    color red white
+    triggered whenever this attacks: create tapped and attacking token copy of this; put count each +1/+1 counters on this +1/+1 counters on that created token; delayed that token: sacrifice that token at beginning of the next end step
+  }
+}

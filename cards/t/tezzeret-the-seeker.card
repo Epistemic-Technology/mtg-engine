@@ -1,0 +1,9 @@
+card "Tezzeret the Seeker" {
+  oracle_id 4aeafdf3-7828-4114-8c74-3bd46357caec
+  cost {3}{U}{U}
+  type Legendary Planeswalker — Tezzeret
+  loyalty 4
+  loyalty +1: untap up to two target artifacts
+  loyalty -X: search artifact card with mana value X or less to battlefield
+  loyalty -5: each artifact you control becomes artifact creature base 5/5 until end of turn
+}

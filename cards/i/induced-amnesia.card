@@ -1,0 +1,7 @@
+card "Induced Amnesia" {
+  oracle_id 6f01c124-0518-428c-9efe-7f3741f3c109
+  cost {2}{U}
+  type Enchantment
+  triggered when this enters: target player exiles hand face down, then draws count that many exiled this way cards
+  triggered when this is put into a graveyard from the battlefield: return exiled cards to owner's hand
+}

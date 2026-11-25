@@ -1,0 +1,9 @@
+card "Exuberant Fuseling" {
+  oracle_id 754e5238-00a2-45fa-9b20-40980b73f1cc
+  cost {R}
+  type Creature — Phyrexian Goblin Warrior
+  pt 0/1
+  keywords trample
+  static this: +1/+0 count each oil counter on this
+  triggered when this enters and whenever other creature or artifact you control is put into a graveyard from the battlefield: put 1 oil counters on this
+}
