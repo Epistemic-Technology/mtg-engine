@@ -586,6 +586,9 @@ pub enum CountExpr {
     /// revealed before; `mana value of the card`: "the card's mana
     /// value"; `its mana value`: "its mana value".
     CardManaValue(CardWord),
+    /// `mana value of exiled card`: "the mana value of the exiled card"
+    /// (the source's linked exiled card, CR 607.2a).
+    ExiledCardManaValue,
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this

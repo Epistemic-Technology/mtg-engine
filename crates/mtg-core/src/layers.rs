@@ -1631,6 +1631,7 @@ fn per_count(
         | CountExpr::BlockingIt { .. }
         | CountExpr::TargetManaValue(_)
         | CountExpr::CardManaValue
+        | CountExpr::ExiledCardManaValue
         | CountExpr::GreatestPower(_)
         | CountExpr::DifferentlyNamed(_)
         | CountExpr::Devoured(_)

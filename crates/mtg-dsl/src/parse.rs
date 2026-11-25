@@ -9945,6 +9945,9 @@ impl P {
                 // "You choose a nonland card from that player's graveyard
                 // or hand and exile it."
                 if and_choose || self.eat_word("exiling") {
+                    // `exiling may nonland card split`: "You may choose a
+                    // nonland card from it. If you do, exile that card."
+                    let may = !and_choose && self.eat_word("may");
                     let filter = if self.at_word("card") {
                         Filter::default()
                     } else {
@@ -9956,11 +9959,14 @@ impl P {
                     if !self.at_word("from") {
                         let joined = !self.eat_word("split");
                         let until = self.eat_words(&["until", "this", "leaves"]);
+                        if may && joined {
+                            return self.unexpected("`split` after `exiling may`");
+                        }
                         return Ok(Effect::DiscardChosen {
                             reveal: None,
                             who: subject,
                             filter: (filter != Filter::default()).then_some(filter),
-                            may: false,
+                            may,
                             look: false,
                             exile: Some(joined),
                             until,
@@ -9968,7 +9974,7 @@ impl P {
                             top: false,
                         });
                     }
-                    if and_choose {
+                    if and_choose || may {
                         return self.unexpected("`split` or `until this leaves`");
                     }
                     self.expect_words(&["from", "graveyard", "or", "hand"])?;
@@ -15100,6 +15106,9 @@ impl P {
         }
         if self.revealed && self.eat_words(&["its", "mana", "value"]) {
             return Ok(CountExpr::CardManaValue(crate::ast::CardWord::Its));
+        }
+        if self.eat_words(&["mana", "value", "of", "exiled", "card"]) {
+            return Ok(CountExpr::ExiledCardManaValue);
         }
         if let Some(c) = self.stat_of() {
             return Ok(c);

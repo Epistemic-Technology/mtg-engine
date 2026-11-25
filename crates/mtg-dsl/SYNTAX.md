@@ -1745,7 +1745,12 @@ Another player: `counter target spell; its controller manifests dread`
 ("Its controller manifests dread.", CR 701.62a: the face-down creature is
 theirs); `exiled card owner manifests dread` ("the exiled card's owner
 manifests dread", Unidentified Hovership: the owner of each card the
-source's abilities exiled, still in exile; nobody with none, CR 607.2a). Trigger `whenever you manifest dread` (it triggers even when the
+source's abilities exiled, still in exile; nobody with none, CR 607.2a);
+`exiled card owner creates 1 "0/0 blue Illusion creature" sized count
+where mana value of exiled card` prints "the exiled card's owner creates
+an X/X blue Illusion creature token, where X is the mana value of the
+exiled card" (Skyclave Apparition: the total mana value of the source's
+linked cards still in exile, as its ruling has it for several). Trigger `whenever you manifest dread` (it triggers even when the
 library was too small to manifest anything); in it, `dread card to hand`
 prints "put a card you put into your graveyard this way into your hand"
 (the card manifest dread put into the graveyard, if any).
@@ -4345,7 +4350,9 @@ hand. You may choose ..."), `look at hand of target player discarding card`
 reveals hand exiling nonland card` ("Target opponent reveals their hand.
 You choose a nonland card from it and exile that card."; `exiling
 nonland card split`: "You choose a nonland card from it. Exile that
-card."; `... split until this leaves`: "Exile that card until this
+card."; `exiling may nonland card split`: "You may choose a nonland card
+from it. If you do, exile that card." (Severance Priest; the controller
+may choose none); `... split until this leaves`: "Exile that card until this
 creature leaves the battlefield.", CR 610.3: linked to the creature, it
 returns to its owner's hand when the creature leaves, and nothing is
 exiled if the creature has already left; `reveals hand and exiling

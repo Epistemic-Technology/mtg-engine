@@ -1097,6 +1097,16 @@ impl GameState {
                 });
                 return def.map_or(0, |d| self.pool.get(d).mana_cost.mana_value());
             }
+            CountExpr::ExiledCardManaValue => {
+                return self
+                    .linked_exiles
+                    .iter()
+                    .filter(|l| l.source == ctx.source)
+                    .filter_map(|l| self.objects.get(l.card))
+                    .filter(|o| o.zone == Zone::Exile)
+                    .map(|o| self.pool.get(o.def).mana_cost.mana_value())
+                    .sum();
+            }
             CountExpr::TargetManaValue(n) => {
                 let Some(Target::Object(id)) = ctx.targets.get(*n) else {
                     return 0;

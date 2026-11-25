@@ -3015,8 +3015,9 @@ impl Fmt {
                 }
                 let split = if *joined || *and_choose { "" } else { " split" };
                 let and = if *and_choose { "and " } else { "" };
+                let may = if *may { "may " } else { "" };
                 format!(
-                    "{} reveals hand {and}exiling {what}{split}{until}",
+                    "{} reveals hand {and}exiling {may}{what}{split}{until}",
                     self.recipient(*who, t)
                 )
             }
@@ -4781,6 +4782,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             "other instant and sorcery spells cast before it this turn".to_string()
         }
         CountExpr::SourceToughness => "toughness".to_string(),
+        CountExpr::ExiledCardManaValue => "mana value of exiled card".to_string(),
         CountExpr::CardManaValue(w) => match w {
             crate::ast::CardWord::ThatCard => "mana value of that card",
             crate::ast::CardWord::TheCard => "mana value of the card",

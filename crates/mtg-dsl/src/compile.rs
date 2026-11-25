@@ -2989,6 +2989,7 @@ impl Compiler<'_> {
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
             A::CardManaValue(_) => C::CardManaValue,
+            A::ExiledCardManaValue => C::ExiledCardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors(crate::ast::SpentOf::That) => C::ThatSpellSpentColors,
             A::SpentColors(_) => C::SpentColors,
@@ -9339,18 +9340,10 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
         def.links_exile = true;
     }
     // "When this Vehicle leaves the battlefield, the exiled card's owner
-    // manifests dread." (Unidentified Hovership): what its abilities
-    // exile.
-    if def.abilities.iter().any(|a| {
-        a.all_effects().iter().any(|e| {
-            matches!(
-                e,
-                CoreEffect::ManifestDreadBy {
-                    who: CoreRecipient::ExiledCardOwner
-                }
-            )
-        })
-    }) {
+    // manifests dread." (Unidentified Hovership), "... creates an X/X
+    // blue Illusion creature token, where X is the mana value of the
+    // exiled card" (Skyclave Apparition): what its abilities exile.
+    if def.oracle_text.contains("the exiled card's owner") {
         def.links_exile = true;
     }
     // "This artifact has all activated abilities of the exiled card"

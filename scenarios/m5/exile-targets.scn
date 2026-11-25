@@ -248,6 +248,67 @@ scenario "The Spot, Living Portal: the exiled cards return to their owners' hand
   assert graveyard A lacks "The Spot, Living Portal"
 }
 
+# "When this creature leaves the battlefield, the exiled card's owner
+# creates an X/X blue Illusion creature token, where X is the mana value of
+# the exiled card."
+
+scenario "Skyclave Apparition: the exiled card's owner gets an X/X Illusion" {
+  battlefield A: 3 "Plains", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Skyclave Apparition", "Murder"
+  turn 1 A: cast "Skyclave Apparition"
+  turn 1 A: trigger "Skyclave Apparition" targeting "Hill Giant"
+  turn 1 main2 A: cast "Murder" targeting "Skyclave Apparition"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert battlefield B contains "Illusion"
+  assert power B "Illusion" 4
+  assert toughness B "Illusion" 4
+  assert battlefield A lacks "Illusion"
+}
+
+scenario "Severance Priest: exile a nonland card from the hand; its owner gets an X/X Spirit" {
+  battlefield A: "Plains", "Forest", 4 "Swamp"
+  hand A: "Severance Priest", "Murder"
+  hand B: "Hill Giant", "Forest"
+  turn 1 A: cast "Severance Priest"
+  turn 1 A: trigger "Severance Priest" targeting player B
+  turn 1 precombat_main A: discard "Hill Giant"
+  turn 1 main2 A: cast "Murder" targeting "Severance Priest"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert hand B contains "Forest"
+  assert battlefield B contains "Spirit"
+  assert power B "Spirit" 4
+  assert toughness B "Spirit" 4
+}
+
+scenario "Severance Priest: choosing nothing exiles nothing, and no token" {
+  battlefield A: "Plains", "Forest", 4 "Swamp"
+  hand A: "Severance Priest", "Murder"
+  hand B: "Hill Giant", "Forest"
+  turn 1 A: cast "Severance Priest"
+  turn 1 A: trigger "Severance Priest" targeting player B
+  turn 1 A: choose done
+  turn 1 main2 A: cast "Murder" targeting "Severance Priest"
+  run_to turn 1 end
+  assert hand B count 2
+  assert exile B count 0
+  assert battlefield B lacks "Spirit"
+}
+
+scenario "Skyclave Apparition: with nothing exiled, no token" {
+  battlefield A: 3 "Plains", 3 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Skyclave Apparition", "Murder"
+  turn 1 A: cast "Skyclave Apparition"
+  turn 1 main2 A: cast "Murder" targeting "Skyclave Apparition"
+  run_to turn 1 end
+  assert battlefield B contains "Serra Angel"
+  assert battlefield B lacks "Illusion"
+  assert battlefield A lacks "Illusion"
+}
+
 # "When this Vehicle leaves the battlefield, the exiled card's owner
 # manifests dread." (CR 607.2a, 701.62a).
 

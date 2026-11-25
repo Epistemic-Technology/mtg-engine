@@ -2470,6 +2470,11 @@ pub enum CountExpr {
     /// filter, still in exile ("for each card exiled with this
     /// enchantment").
     ExiledWith(Option<ObjFilter>),
+    /// "the mana value of the exiled card" (Skyclave Apparition): the
+    /// total mana value of the cards the source's linked ability exiled
+    /// (`Recipient::ExiledCard`), still in exile (its ruling: the sum for
+    /// several); 0 with none.
+    ExiledCardManaValue,
     /// Cards you own in exile, all or matching the filter ("the number of
     /// cards you own in exile"); with `graveyard`, and in your graveyard
     /// too ("for each creature card you own in exile and in your
@@ -2697,6 +2702,7 @@ impl CountExpr {
             | CountExpr::BlockingIt { .. }
             | CountExpr::TargetManaValue(_)
             | CountExpr::CardManaValue
+            | CountExpr::ExiledCardManaValue
             | CountExpr::GreatestPower(_)
             | CountExpr::DifferentlyNamed(_)
             | CountExpr::Devoured(_)

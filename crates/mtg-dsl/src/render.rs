@@ -5977,6 +5977,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             )
         }
         CountExpr::SourceToughness => return "its toughness".to_string(),
+        CountExpr::ExiledCardManaValue => return "the mana value of the exiled card".to_string(),
         CountExpr::CardManaValue(w) => {
             return match w {
                 crate::ast::CardWord::ThatCard => "that card's mana value",
@@ -11438,6 +11439,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             let exile = if *joined {
                 format!(" and exile that card{until}")
+            } else if *may {
+                // "You may choose a nonland card from it. If you do, exile
+                // that card." (Severance Priest).
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!(
+                        "{} their hand. You may choose {what} from it. If you do, exile that card{until}",
+                        ctx.verb(*who, "reveals", "reveal")
+                    ),
+                );
             } else {
                 format!(". Exile that card{until}")
             };
