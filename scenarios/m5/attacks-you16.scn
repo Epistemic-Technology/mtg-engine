@@ -1,0 +1,104 @@
+# "Whenever a creature attacks you [or a planeswalker you control]"
+# (`TriggerSpec::AttacksYou`): once per matching attacker, the attacker
+# the triggering object and its controller the triggering player.
+
+scenario "Blood Reckoning: each attacker's controller loses 1 life" {
+  battlefield A: "Blood Reckoning"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 15
+}
+
+scenario "Blood Reckoning: an attack on your planeswalker counts" {
+  battlefield A: "Blood Reckoning", "Jace Beleren"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears" at "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert life A 20
+}
+
+scenario "Blood Reckoning: your own attack doesn't trigger it" {
+  battlefield A: "Blood Reckoning", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 18
+}
+
+scenario "Hissing Miasma: an attack on your planeswalker doesn't count" {
+  battlefield A: "Hissing Miasma", "Jace Beleren"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears" at "Jace Beleren"
+  turn 2 B: attack "Hill Giant" at player A
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert life A 17
+}
+
+scenario "Revenge of Ravens drains for each attacker" {
+  battlefield A: "Revenge of Ravens"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 17
+}
+
+scenario "Circle of Flame: 1 damage to a ground attacker, none to a flier" {
+  battlefield A: "Circle of Flame"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Wind Drake"
+  run_to turn 2 declare_blockers
+  assert damage "Grizzly Bears" 1
+  assert damage "Wind Drake" 0
+}
+
+scenario "Raking Canopy deals 4 to an attacking flier" {
+  battlefield A: "Raking Canopy"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Serra Angel", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Grizzly Bears"
+  assert life A 18
+}
+
+scenario "Palazzo Archers deals damage equal to its power to an attacking flier" {
+  battlefield A: "Palazzo Archers"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Wind Drake", "Grizzly Bears"
+  run_to turn 2 declare_blockers
+  assert graveyard B contains "Wind Drake"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Search the Premises investigates once per attacker" {
+  battlefield A: "Search the Premises"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Clue"
+}
+
+scenario "Isperia may draw for each attacker; declining draws nothing" {
+  battlefield A: "Isperia, Supreme Judge"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 A: accept "Isperia, Supreme Judge"
+  turn 2 A: decline "Isperia, Supreme Judge"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}

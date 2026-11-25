@@ -1,0 +1,6 @@
+card "Farsight Mask" {
+  oracle_id c82091b2-f2f1-4a85-80d6-91ab218f0a94
+  cost {5}
+  type Artifact
+  triggered whenever source an opponent controls deals damage to you if this is untapped: you may draw 1 cards
+}

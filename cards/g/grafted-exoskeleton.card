@@ -1,0 +1,8 @@
+card "Grafted Exoskeleton" {
+  oracle_id f4350c4e-7e53-4401-b889-14bed27bee9c
+  cost {4}
+  type Artifact — Equipment
+  static equipped creature: gets +2/+2 and has infect
+  triggered whenever this becomes unattached from permanent: sacrifice that creature
+  equip {2}
+}

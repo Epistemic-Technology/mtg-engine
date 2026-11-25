@@ -4614,6 +4614,11 @@ pub enum Trigger {
     GainsLifeFirst {
         whose: Who,
     },
+    /// `whenever you lose life first time each turn`: "Whenever you lose
+    /// life for the first time each turn".
+    LosesLifeFirst {
+        whose: Who,
+    },
     /// `whenever day becomes night or night becomes day` (CR 731.1a).
     DayNight,
     /// `whenever you roll dice`: "Whenever you roll one or more dice".
@@ -4724,6 +4729,9 @@ pub enum Trigger {
         /// opponent`: "Whenever a creature you control or a creature spell
         /// you control becomes the target of ..." (Surrak, Elusive Hunter).
         or_spell: bool,
+        /// `becomes targeted by instant or sorcery spell`: "... the target
+        /// of an instant or sorcery spell".
+        spell: Option<Box<Filter>>,
     },
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
@@ -4998,6 +5006,57 @@ pub enum Trigger {
     /// `whenever this transforms` (CR 701.27): "Whenever this creature
     /// transforms into <the name of the face this ability is on>".
     Transforms,
+    /// `whenever you surveil`, `whenever you proliferate`, `whenever you
+    /// get one or more energy`, `when this becomes monstrous`: a keyword
+    /// action (`TriggerSpec::Acts`).
+    Acts {
+        action: mtg_core::card::KeywordAction,
+        whose: Who,
+    },
+    /// `whenever creature attacks you`, `whenever creature with flying
+    /// attacks you or a planeswalker you control` (`TriggerSpec::AttacksYou`).
+    AttacksYou {
+        obj: TriggerObj,
+        planeswalkers: bool,
+    },
+    /// `whenever source an opponent controls deals damage to you`,
+    /// `whenever creature deals combat damage to you`, `whenever source
+    /// deals damage to this`, `whenever source you control other than this
+    /// deals damage to an opponent` (`TriggerSpec::SourceDealsDamage`).
+    /// `source`: written "a source" (the filter holds only its controller
+    /// and `other`).
+    SourceDealsDamage {
+        from: Filter,
+        source: bool,
+        to: mtg_core::card::DamageVictim,
+        combat: bool,
+    },
+    /// `whenever this becomes attached to creature`, `whenever this
+    /// becomes unattached from permanent` (`TriggerSpec::ThisAttachment`).
+    ThisAttachment {
+        attached: bool,
+    },
+    /// `when this is put into your graveyard from your library [named]`
+    /// (`TriggerSpec::ThisToGraveyardFrom`).
+    ThisToGraveyardFrom {
+        from: mtg_core::state::Zone,
+        named: bool,
+    },
+    /// `whenever card is put into an opponent's graveyard from anywhere`,
+    /// `whenever one or more creature cards are put into your graveyard
+    /// from your library` (`TriggerSpec::PutIntoGraveyardFrom`).
+    PutIntoGraveyardFrom {
+        filter: Filter,
+        whose: Who,
+        from: Option<mtg_core::state::Zone>,
+    },
+    /// `whenever you or permanent you control becomes targeted by
+    /// opponent`, `whenever you andor permanent you control ...`
+    /// (`TriggerSpec::YouOrYoursTargeted`).
+    YouOrYoursTargeted {
+        whose: Who,
+        and_or: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

@@ -1,0 +1,10 @@
+card "Hythonia the Cruel" {
+  oracle_id 48e3d832-2fe9-4ffd-8258-75451100dcfc
+  cost {4}{B}{B}
+  type Legendary Creature — Gorgon
+  short_name "Hythonia"
+  pt 4/6
+  keywords deathtouch
+  activated {6}{B}{B}: monstrosity 3
+  triggered when this becomes monstrous: destroy all non-Gorgon creature
+}

@@ -1,0 +1,183 @@
+# Becoming the target: a spell you control (`by you spell`), a spell or
+# ability you control (`by you`), an instant or sorcery spell (`by instant
+# or sorcery spell`), and "enters or becomes the target of a spell or
+# ability an opponent controls".
+
+scenario "Stormchaser Drake draws when your spell targets it" {
+  battlefield A: "Stormchaser Drake", "Forest"
+  hand A: "Giant Growth"
+  library A: "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Stormchaser Drake"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert power "Stormchaser Drake" 5
+}
+
+scenario "Stormchaser Drake: an opponent's spell doesn't draw" {
+  battlefield A: "Stormchaser Drake"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Stormchaser Drake"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Stormchaser Drake"
+}
+
+scenario "Stormchaser Drake: your ability doesn't draw" {
+  battlefield A: "Stormchaser Drake", "Prodigal Sorcerer"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Prodigal Sorcerer" targeting "Stormchaser Drake"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Stormchaser Drake"
+}
+
+scenario "Illuminator Virtuoso connives when your spell targets it" {
+  battlefield A: "Illuminator Virtuoso", "Forest"
+  hand A: "Giant Growth", "Hill Giant"
+  library A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Illuminator Virtuoso"
+  run_to turn 2 postcombat_main
+  # Drew a card, discarded a nonland card: a +1/+1 counter.
+  assert graveyard A count 2
+  assert hand A count 1
+  assert counters "Illuminator Virtuoso" +1/+1 1
+}
+
+scenario "Wild Defiance: an instant gives +3/+3, an ability doesn't" {
+  battlefield A: "Wild Defiance", "Grizzly Bears", "Hill Giant", "Mountain"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+  assert damage "Grizzly Bears" 2
+}
+
+scenario "Wild Defiance: an opponent's ability targeting your creature gives nothing" {
+  battlefield A: "Wild Defiance", "Grizzly Bears"
+  battlefield B: "Prodigal Sorcerer"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Prodigal Sorcerer" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Willbreaker takes an opponent's creature your ability targets" {
+  battlefield A: "Willbreaker", "Prodigal Sorcerer"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Prodigal Sorcerer" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 1
+}
+
+scenario "Willbreaker: the creature goes back when Willbreaker leaves" {
+  battlefield A: "Willbreaker", "Prodigal Sorcerer", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Prodigal Sorcerer" targeting "Hill Giant"
+  turn 2 A: wait
+  turn 2 A: cast "Murder" targeting "Willbreaker"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Willbreaker: an opponent's own spell on their creature takes nothing" {
+  battlefield A: "Willbreaker"
+  battlefield B: "Hill Giant", "Forest"
+  hand B: "Giant Growth"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Cowardice returns a creature an opponent's spell targets" {
+  battlefield A: "Cowardice", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}
+
+scenario "Horobi destroys a creature its own controller targets" {
+  battlefield A: "Horobi, Death's Wail", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Thunderbreak Regent deals 3 to the opponent who targets a Dragon" {
+  battlefield A: "Thunderbreak Regent"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Thunderbreak Regent"
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
+
+scenario "Thunderbreak Regent: your own spell on your Dragon does nothing" {
+  battlefield A: "Thunderbreak Regent", "Forest"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Thunderbreak Regent"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Venerated Rotpriest: a spell on your creature poisons the target opponent" {
+  battlefield A: "Venerated Rotpriest", "Forest"
+  hand A: "Giant Growth"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Giant Growth" targeting "Venerated Rotpriest"
+  turn 2 A: trigger "Venerated Rotpriest" targeting player B
+  run_to turn 2 postcombat_main
+  assert poison B 1
+}
+
+scenario "Venerated Rotpriest: an ability doesn't count" {
+  battlefield A: "Venerated Rotpriest"
+  battlefield B: "Prodigal Sorcerer"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Prodigal Sorcerer" targeting "Venerated Rotpriest"
+  run_to turn 2 postcombat_main
+  assert poison B 0
+}
+
+scenario "Shield Mare gains 3 as it enters and when an opponent targets it" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Shield Mare"
+  hand B: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shield Mare"
+  run_to turn 3 precombat_main
+  turn 3 B: cast "Shock" targeting "Shield Mare"
+  run_to turn 3 postcombat_main
+  assert life A 26
+}
+
+scenario "Mikaeus destroys a Human that deals damage to you" {
+  battlefield A: "Mikaeus, the Unhallowed"
+  battlefield B: "Illuminator Virtuoso", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Illuminator Virtuoso", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Illuminator Virtuoso"
+  assert battlefield B contains "Grizzly Bears"
+}

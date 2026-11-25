@@ -2353,7 +2353,10 @@ impl<'a> Ctx<'a> {
             }
             // "..., counter that spell or ability" (Shimmering Glasskite).
             Recipient::TriggeringObject
-                if matches!(self.trigger, Some(Trigger::TargetedFirstTime)) =>
+                if matches!(
+                    self.trigger,
+                    Some(Trigger::TargetedFirstTime | Trigger::YouOrYoursTargeted { .. })
+                ) =>
             {
                 "that spell or ability".to_string()
             }
@@ -2370,6 +2373,16 @@ impl<'a> Ctx<'a> {
                 ) =>
             {
                 "that spell".to_string()
+            }
+            // "Whenever this Equipment becomes unattached from a permanent,
+            // sacrifice that permanent."
+            Recipient::TriggeringObject
+                if matches!(
+                    self.trigger,
+                    Some(Trigger::ThisAttachment { attached: false })
+                ) =>
+            {
+                "that permanent".to_string()
             }
             Recipient::TriggeringObject if self.trigger_sacrificed_artifact() => {
                 "that artifact".to_string()
@@ -2406,6 +2419,9 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
                     enchanted_noun(self.card)
+                } else if matches!(self.trigger, Some(Trigger::SourceDealsDamage { .. })) {
+                    // "that source's controller" (Phyrexian Obliterator).
+                    "source"
                 } else if self.trigger_artifact_dies() {
                     // "Whenever another artifact is put into a graveyard
                     // from the battlefield, this artifact deals 2 damage to
@@ -10719,6 +10735,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         ..
                     })
                 ),
+                // "When this card is put into your graveyard from your
+                // library, you may put it onto the battlefield." (Narcomoeba)
+                Recipient::TriggeringIt => matches!(
+                    ctx.current,
+                    Some(Ability::Triggered {
+                        trigger: Trigger::ThisToGraveyardFrom { .. },
+                        ..
+                    })
+                ),
                 _ => false,
             };
             // "Return up to one target artifact card, up to one target land
@@ -17303,6 +17328,21 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "whenever one or more {} cards are put into your graveyard from anywhere",
                 card_filter_phrase(f, ctx.card)
             ),
+            Trigger::PutIntoGraveyardFrom {
+                filter: f,
+                whose,
+                from,
+            } => crate::format::graveyard_from_words(
+                f,
+                *whose,
+                *from,
+                true,
+                &if *f == Filter::default() {
+                    String::new()
+                } else {
+                    card_filter_phrase(f, ctx.card)
+                },
+            ),
             Trigger::BecomesTapped(TriggerObj::Filter(f)) => format!(
                 "whenever one or more {} become tapped",
                 controller_first(f, filter_phrase(f, ctx.card, true))
@@ -17569,6 +17609,92 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
+        Trigger::Acts {
+            action: mtg_core::card::KeywordAction::Monstrous,
+            ..
+        } => {
+            ctx.source_mentioned = true;
+            format!("when {} becomes monstrous", this_ref(ctx.card))
+        }
+        Trigger::Acts { action, .. } => crate::format::acts_words(*action, true),
+        Trigger::SourceDealsDamage {
+            from,
+            source,
+            to,
+            combat,
+        } => {
+            let this = this_ref(ctx.card);
+            let subject = if *source {
+                crate::format::source_words(from, &this)
+            } else {
+                trigger_subject(&TriggerObj::Filter(from.clone()), ctx)
+            };
+            format!(
+                "whenever {subject} deals {}damage to {}",
+                if *combat { "combat " } else { "" },
+                crate::format::damage_victim_words(*to, &this)
+            )
+        }
+        Trigger::YouOrYoursTargeted { whose, and_or } => format!(
+            "whenever you {} becomes the target of a spell or ability{}",
+            if *and_or {
+                "and/or at least one permanent you control"
+            } else {
+                "or a permanent you control"
+            },
+            if *whose == Who::Opponents {
+                " an opponent controls"
+            } else {
+                ""
+            }
+        ),
+        // The card names itself in the graveyard: "this card" or its name.
+        Trigger::ThisToGraveyardFrom { named, .. } => {
+            // "When Creeping Chill is put ..., Creeping Chill deals 3 damage"
+            // names it again.
+            ctx.source_mentioned = !*named;
+            format!(
+                "when {} is put into your graveyard from your library",
+                if *named {
+                    short_name(ctx.card).to_string()
+                } else {
+                    "this card".to_string()
+                }
+            )
+        }
+        Trigger::PutIntoGraveyardFrom {
+            filter: f,
+            whose,
+            from,
+        } => crate::format::graveyard_from_words(
+            f,
+            *whose,
+            *from,
+            false,
+            &if *f == Filter::default() {
+                String::new()
+            } else {
+                card_filter_phrase(f, ctx.card)
+            },
+        ),
+        Trigger::ThisAttachment { attached } => format!(
+            "whenever {} becomes {}",
+            this_ref(ctx.card),
+            if *attached {
+                "attached to a creature"
+            } else {
+                "unattached from a permanent"
+            }
+        ),
+        Trigger::AttacksYou { obj, planeswalkers } => format!(
+            "whenever {} attacks you{}",
+            trigger_subject(obj, ctx),
+            if *planeswalkers {
+                " or a planeswalker you control"
+            } else {
+                ""
+            }
+        ),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_subject(o, ctx)),
         Trigger::CrewsOrSaddles(o) => format!(
             "whenever {} saddles a Mount or crews a Vehicle",
@@ -18003,6 +18129,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::GainsLifeFirst { .. } => {
             "whenever you gain life for the first time each turn".to_string()
         }
+        Trigger::LosesLifeFirst { .. } => {
+            "whenever you lose life for the first time each turn".to_string()
+        }
         Trigger::CastsSpell {
             whose,
             noncreature,
@@ -18411,11 +18540,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             whose,
             whenever,
             or_spell,
+            spell,
         } => {
-            let what = if *spells {
-                "a spell"
-            } else {
-                "a spell or ability"
+            let what = match spell {
+                // "an instant or sorcery spell", "an Aura spell".
+                Some(f) => with_article(&format!("{} spell", filter_phrase(f, ctx.card, false))),
+                None if *spells => "a spell".to_string(),
+                None => "a spell or ability".to_string(),
             };
             let whose = match whose {
                 Who::Opponents => " an opponent controls",

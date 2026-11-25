@@ -1,0 +1,7 @@
+card "Vengeful Warchief" {
+  oracle_id be3dd4f6-794d-4bce-b71e-4b3477d5d388
+  cost {4}{B}
+  type Creature — Orc Warrior
+  pt 4/4
+  triggered whenever you lose life first time each turn: put 1 +1/+1 counter on this
+}

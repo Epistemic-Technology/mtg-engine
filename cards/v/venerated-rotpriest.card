@@ -1,0 +1,8 @@
+card "Venerated Rotpriest" {
+  oracle_id eafd7ba5-691d-4f8d-94bb-70a5612245a1
+  cost {G}
+  type Creature — Phyrexian Druid
+  pt 1/2
+  toxic 1
+  triggered whenever creature you control becomes targeted by spell: target opponent gets 1 poison counters
+}

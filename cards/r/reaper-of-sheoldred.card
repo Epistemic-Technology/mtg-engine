@@ -1,0 +1,8 @@
+card "Reaper of Sheoldred" {
+  oracle_id 251cee41-30f5-4bba-93cd-31493a5ea051
+  cost {4}{B}
+  type Creature — Phyrexian Horror
+  pt 2/5
+  keywords infect
+  triggered whenever source deals damage to this: controller of that source gets 1 poison counters
+}

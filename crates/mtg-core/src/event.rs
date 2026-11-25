@@ -93,6 +93,15 @@ pub enum Event {
     CollectedEvidence {
         player: PlayerId,
     },
+    /// A keyword action performed (`TriggerSpec::Acts`): by `player`, of
+    /// `obj` for an object's action, `n` the number involved (energy
+    /// gotten, a monstrosity's N).
+    Acted {
+        player: PlayerId,
+        obj: Option<ObjId>,
+        action: crate::card::KeywordAction,
+        n: u32,
+    },
     /// A player foraged (CR 701.61a).
     Foraged {
         player: PlayerId,
@@ -334,9 +343,11 @@ pub enum Event {
         from: PlayerId,
         to: PlayerId,
     },
-    /// An Equipment became unattached (CR 704.5n).
+    /// An Equipment or Aura became unattached from `from` (CR 701.3d,
+    /// 704.5n), or was moved from it to another permanent (CR 701.3b).
     Unattached {
         obj: ObjId,
+        from: ObjId,
     },
     /// A legendary permanent was put into its owner's graveyard by the
     /// legend rule (CR 704.5j).
@@ -468,7 +479,7 @@ impl Event {
             Event::Draw { .. } => WATCH_DRAW,
             Event::Cycled { .. } => WATCH_CYCLE,
             Event::Discard { .. } => WATCH_DISCARD,
-            Event::Attached { .. } => WATCH_ATTACH,
+            Event::Attached { .. } | Event::Unattached { .. } => WATCH_ATTACH,
             Event::RolledDie { .. } | Event::FlippedCoin { .. } => WATCH_ROLL,
             Event::DayNight { .. }
             | Event::Unlocked { .. }
@@ -488,6 +499,7 @@ impl Event {
             | Event::BecameSaddled { .. }
             | Event::Activated { .. }
             | Event::Transformed { .. }
+            | Event::Acted { .. }
             | Event::TappedBy { .. } => WATCH_ACT,
             _ => 0,
         }

@@ -1,0 +1,10 @@
+card "Gaea's Blessing" {
+  oracle_id bd5478df-3854-404b-8634-9debcef69b99
+  cost {1}{G}
+  type Sorcery
+  spell {
+    target player shuffles up to 3 target card from their graveyard into library
+    draw 1 cards
+  }
+  triggered when this is put into your graveyard from your library: shuffle graveyard into library
+}

@@ -1,0 +1,7 @@
+card "Leyline of Combustion" {
+  oracle_id 49a5c149-5067-4840-8385-c2989d7e5a34
+  cost {2}{R}{R}
+  type Enchantment
+  opening hand
+  triggered whenever you andor permanent you control becomes targeted by opponent: this deals 2 damage to that player
+}

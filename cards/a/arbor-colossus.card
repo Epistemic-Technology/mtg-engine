@@ -1,0 +1,9 @@
+card "Arbor Colossus" {
+  oracle_id bec585af-0c59-46a7-838f-d747c80a9e97
+  cost {2}{G}{G}{G}
+  type Creature — Giant
+  pt 6/6
+  keywords reach
+  activated {3}{G}{G}{G}: monstrosity 3
+  triggered when this becomes monstrous: destroy target creature with flying an opponent controls late
+}

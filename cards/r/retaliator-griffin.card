@@ -1,0 +1,8 @@
+card "Retaliator Griffin" {
+  oracle_id dd4b9e5a-b3ab-4b70-b200-228c8add9f52
+  cost {1}{R}{G}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+  triggered whenever source an opponent controls deals damage to you: you may put that much +1/+1 counters on this
+}

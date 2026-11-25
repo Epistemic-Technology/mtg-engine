@@ -80,6 +80,23 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("{} collects evidence.", who(*player, viewer))
         }
         Event::Foraged { player } => format!("{} forages.", who(*player, viewer)),
+        Event::Acted {
+            player,
+            obj,
+            action,
+            n,
+        } => {
+            use crate::card::KeywordAction as A;
+            match action {
+                A::Surveil => format!("{} surveils.", who(*player, viewer)),
+                A::Proliferate => format!("{} proliferates.", who(*player, viewer)),
+                A::GetEnergy => format!("{} gets {n} energy.", who(*player, viewer)),
+                A::Monstrous => format!(
+                    "{} becomes monstrous.",
+                    obj.map_or("", |o| state.name_of_or_lki(o))
+                ),
+            }
+        }
         Event::Searched { player } => {
             format!("{} searches their library.", who(*player, viewer))
         }
@@ -300,7 +317,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
                 obj(state, *o)
             )
         }
-        Event::Unattached { obj: o } => format!("{} becomes unattached.", obj(state, *o)),
+        Event::Unattached { obj: o, .. } => format!("{} becomes unattached.", obj(state, *o)),
         Event::LegendRule { obj: o, .. } => {
             format!("{} goes to the graveyard (legend rule).", obj(state, *o))
         }

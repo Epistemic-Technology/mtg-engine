@@ -1,0 +1,8 @@
+card "Isperia, Supreme Judge" {
+  oracle_id c46718dc-24dc-4b77-b455-aa4c89570b8d
+  cost {2}{W}{W}{U}{U}
+  type Legendary Creature — Sphinx
+  pt 6/4
+  keywords flying
+  triggered whenever creature attacks you or a planeswalker you control: you may draw 1 cards
+}

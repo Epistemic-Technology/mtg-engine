@@ -8192,6 +8192,7 @@ impl P {
             || self.at_words(&["triggering", "it"])
             || self.at_words(&["controller", "of", "that", "creature"])
             || self.at_words(&["controller", "of", "that", "artifact"])
+            || self.at_words(&["controller", "of", "that", "source"])
             || self.at_words(&["controller", "of", "enchanted"])
             || self.at_words(&["controller", "of", "granter"])
         {
@@ -17775,7 +17776,8 @@ impl P {
         }
         if self.in_trigger
             && (self.eat_words(&["controller", "of", "that", "creature"])
-                || self.eat_words(&["controller", "of", "that", "artifact"]))
+                || self.eat_words(&["controller", "of", "that", "artifact"])
+                || self.eat_words(&["controller", "of", "that", "source"]))
         {
             return Ok(Recipient::TriggeringController { that: true });
         }
@@ -20436,6 +20438,14 @@ impl P {
         if self.eat_words(&["a", "spell", "from", "a", "graveyard"]) {
             return Ok(Some(SpellOrdinal::FromGraveyard));
         }
+        if self.eat_words(&["a", "spell", "from", "your", "graveyard"]) {
+            return Ok(Some(SpellOrdinal::FromYourGraveyard));
+        }
+        if self.eat_words(&[
+            "a", "spell", "from", "anywhere", "other", "than", "your", "hand",
+        ]) {
+            return Ok(Some(SpellOrdinal::NotFromHand));
+        }
         if self.eat_words(&[
             "a", "spell", "during", "your", "turn", "other", "than", "your", "first", "spell",
             "that", "turn",
@@ -20615,11 +20625,50 @@ impl P {
             let your_turn = self.eat_words(&["during", "your", "turn"]);
             return Ok(Trigger::GainsOrLosesLife { your_turn });
         }
+        // "Whenever you or a permanent you control becomes the target of a
+        // spell or ability an opponent controls".
+        for (words, and_or) in [
+            (&["you", "or", "permanent", "you", "control"][..], false),
+            (&["you", "andor", "permanent", "you", "control"][..], true),
+        ] {
+            if self.eat_words(words) {
+                self.expect_words(&["becomes", "targeted", "by"])?;
+                let whose = if self.eat_word("opponent") {
+                    Who::Opponents
+                } else {
+                    Who::Any
+                };
+                return Ok(Trigger::YouOrYoursTargeted { whose, and_or });
+            }
+        }
         if self.eat_words(&["you", "scry", "or", "surveil"]) {
             return Ok(Trigger::ScriesOrSurveils);
         }
         if self.eat_words(&["you", "scry"]) {
             return Ok(Trigger::Scries);
+        }
+        // Keyword actions (CR 701): "Whenever you surveil", "Whenever you
+        // proliferate", "Whenever you get one or more {E}".
+        for (words, action) in [
+            (
+                &["you", "surveil"][..],
+                mtg_core::card::KeywordAction::Surveil,
+            ),
+            (
+                &["you", "proliferate"][..],
+                mtg_core::card::KeywordAction::Proliferate,
+            ),
+            (
+                &["you", "get", "one", "or", "more", "energy"][..],
+                mtg_core::card::KeywordAction::GetEnergy,
+            ),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Trigger::Acts {
+                    action,
+                    whose: Who::You,
+                });
+            }
         }
         // CR 106.11a: "a player taps a land for mana", "an opponent taps
         // a Mountain for mana".
@@ -20773,6 +20822,9 @@ impl P {
             (&["you", "lose", "life"][..], Who::You),
         ] {
             if self.eat_words(words) {
+                if whose == Who::You && self.eat_words(&["first", "time", "each", "turn"]) {
+                    return Ok(Trigger::LosesLifeFirst { whose });
+                }
                 return Ok(Trigger::LosesLife { whose });
             }
         }
@@ -21031,6 +21083,36 @@ impl P {
                 batch: false,
             });
         }
+        // "a source [you control | an opponent controls] [other than this]
+        // deals [combat] damage to ...".
+        if (self.at_word("source") && !self.at_words(&["source", "would"]))
+            || (self.at_words(&["a", "source"]) && !self.at_words(&["a", "source", "would"]))
+        {
+            let at = self.pos;
+            self.eat_word("a");
+            self.pos += 1;
+            let mut from = Filter::default();
+            if self.eat_words(&["you", "control"]) {
+                from.who = Some(Who::You);
+            } else if self.eat_words(&["an", "opponent", "controls"]) {
+                from.who = Some(Who::Opponents);
+            }
+            if self.eat_words(&["other", "than", "this"]) {
+                from.relation = Relation::Other;
+            }
+            if self.eat_word("deals") {
+                let combat = self.eat_word("combat");
+                self.expect_word("damage")?;
+                let to = self.damage_victim()?;
+                return Ok(Trigger::SourceDealsDamage {
+                    from,
+                    source: true,
+                    to,
+                    combat,
+                });
+            }
+            self.pos = at;
+        }
         if self.eat_words(&["an", "opponent", "is", "dealt", "noncombat", "damage"]) {
             return Ok(Trigger::NoncombatDamageToOpponent {
                 yours: false,
@@ -21260,6 +21342,9 @@ impl P {
             return Ok(Trigger::Batch(Box::new(Trigger::DiscardsBatch {
                 whose: Who::Any,
             })));
+        }
+        if let Some(t) = self.graveyard_from() {
+            return Ok(t);
         }
         // "one or more cards leave your graveyard", "one or more creature
         // cards leave your graveyard" (CR 603.2c).
@@ -21624,6 +21709,9 @@ impl P {
                     | Trigger::TurnedFaceUp(TriggerObj::This)
                     | Trigger::BecomesTapped(TriggerObj::This)
                     | Trigger::Transforms
+                    // "When this creature enters or becomes the target of a
+                    // spell or ability an opponent controls" (Shield Mare).
+                    | Trigger::TargetedByOpponent
                     // "Whenever Kitsune enters or deals combat damage to a
                     // player".
                     | Trigger::DealsCombatDamageToPlayer(TriggerObj::This)
@@ -21669,6 +21757,80 @@ impl P {
         Ok(first)
     }
 
+    /// `[one or more] [<filter>] card[s] [is | are] put into (your | an
+    /// opponent's) graveyard from (anywhere | your library)`: a
+    /// `PutIntoGraveyardFrom` trigger, batched with `one or more`. Not
+    /// "your graveyard from anywhere" (`PutIntoGraveyard`); nothing is
+    /// consumed unless it matches.
+    fn graveyard_from(&mut self) -> Option<Trigger> {
+        let at = self.pos;
+        let batch = self.eat_words(&["one", "or", "more"]);
+        let filter = if self.at_word("card") || self.at_word("cards") {
+            Filter::default()
+        } else {
+            let Ok(f) = self.filter() else {
+                self.pos = at;
+                return None;
+            };
+            f
+        };
+        if !(self.eat_word("card") || self.eat_word("cards")) {
+            self.pos = at;
+            return None;
+        }
+        let _ = self.eat_word("is") || self.eat_word("are");
+        let whose = if self.eat_words(&["put", "into", "your", "graveyard"]) {
+            Who::You
+        } else if self.eat_words(&["put", "into", "an", "opponent's", "graveyard"]) {
+            Who::Opponents
+        } else {
+            self.pos = at;
+            return None;
+        };
+        let from = if self.eat_words(&["from", "anywhere"]) {
+            None
+        } else if self.eat_words(&["from", "your", "library"]) {
+            Some(mtg_core::state::Zone::Library)
+        } else {
+            self.pos = at;
+            return None;
+        };
+        if whose == Who::You && from.is_none() {
+            self.pos = at;
+            return None;
+        }
+        let t = Trigger::PutIntoGraveyardFrom {
+            filter,
+            whose,
+            from,
+        };
+        Some(if batch {
+            Trigger::Batch(Box::new(t))
+        } else {
+            t
+        })
+    }
+
+    /// Who a `SourceDealsDamage` trigger's damage is dealt to: `to you [or a
+    /// permanent you control]`, `to this`, `to an opponent`.
+    fn damage_victim(&mut self) -> R<mtg_core::card::DamageVictim> {
+        use mtg_core::card::DamageVictim as V;
+        self.expect_word("to")?;
+        if self.eat_word("you") {
+            if self.eat_words(&["or", "a", "permanent", "you", "control"]) {
+                return Ok(V::YouOrYours);
+            }
+            return Ok(V::You);
+        }
+        if self.eat_word("this") {
+            return Ok(V::This);
+        }
+        if self.eat_words(&["an", "opponent"]) {
+            return Ok(V::Opponent);
+        }
+        self.unexpected("`you`, `this`, or `an opponent`")
+    }
+
     /// The event after a trigger's subject: `enters`, `dies`, `attacks`, ...
     #[allow(clippy::too_many_lines)] // one arm per trigger event
     fn trigger_verb(&mut self, obj: TriggerObj, whenever: bool) -> R<Trigger> {
@@ -21682,6 +21844,13 @@ impl P {
             "dies" => Ok(Trigger::Dies(obj)),
             // CR 701.27: "transforms into <this face>".
             "transforms" if obj == TriggerObj::This => Ok(Trigger::Transforms),
+            // CR 701.37b.
+            "becomes" if obj == TriggerObj::This && self.eat_word("monstrous") => {
+                Ok(Trigger::Acts {
+                    action: mtg_core::card::KeywordAction::Monstrous,
+                    whose: Who::You,
+                })
+            }
             "explores" => Ok(Trigger::Explores(obj)),
             "saddles" if self.at_words(&["a", "Mount", "or", "crews", "a", "Vehicle"]) => {
                 self.pos += 6;
@@ -21751,6 +21920,26 @@ impl P {
                 self.expect_words(&["or", "more", "damage"])?;
                 Ok(Trigger::DealtDamageAtLeast(obj, n))
             }
+            // CR 603.6a: "When this card is put into your graveyard from
+            // your library".
+            "is" if obj == TriggerObj::This
+                && self.at_words(&[
+                    "put",
+                    "into",
+                    "your",
+                    "graveyard",
+                    "from",
+                    "your",
+                    "library",
+                ]) =>
+            {
+                self.pos += 7;
+                let named = self.eat_word("named");
+                Ok(Trigger::ThisToGraveyardFrom {
+                    from: mtg_core::state::Zone::Library,
+                    named,
+                })
+            }
             "is" => {
                 self.expect_words(&["put", "into", "a", "graveyard"])?;
                 if obj == TriggerObj::This && self.eat_words(&["from", "anywhere"]) {
@@ -21797,6 +21986,12 @@ impl P {
                 }
                 if self.eat_words(&["a", "battle"]) {
                     return Ok(Trigger::AttacksBattle(obj));
+                }
+                // CR 508.1: "attacks you [or a planeswalker you control]".
+                if matches!(obj, TriggerObj::Filter(_)) && self.eat_word("you") {
+                    let planeswalkers =
+                        self.eat_words(&["or", "a", "planeswalker", "you", "control"]);
+                    return Ok(Trigger::AttacksYou { obj, planeswalkers });
                 }
                 Ok(Trigger::Attacks(obj))
             }
@@ -21846,6 +22041,18 @@ impl P {
                 }
                 let combat = self.eat_word("combat");
                 self.expect_word("damage")?;
+                // "Whenever a creature deals damage to you".
+                if let TriggerObj::Filter(f) = &obj
+                    && self.at_words(&["to", "you"])
+                {
+                    let to = self.damage_victim()?;
+                    return Ok(Trigger::SourceDealsDamage {
+                        from: f.clone(),
+                        source: false,
+                        to,
+                        combat,
+                    });
+                }
                 let to = if self.at_words(&["to", "that", "player"]) {
                     // In a delayed trigger about a player: that player.
                     if self.delayed_player.is_none() {
@@ -21886,6 +22093,16 @@ impl P {
                 self.pos += 1;
                 Ok(Trigger::BecomesTapped(obj))
             }
+            // CR 701.3: the source itself.
+            "becomes"
+                if obj == TriggerObj::This
+                    && (self.at_words(&["attached", "to", "creature"])
+                        || self.at_words(&["unattached", "from", "permanent"])) =>
+            {
+                let attached = self.at_word("attached");
+                self.pos += 3;
+                Ok(Trigger::ThisAttachment { attached })
+            }
             "becomes" if self.at_words(&["attached", "to", "this"]) => {
                 self.pos += 3;
                 let TriggerObj::Filter(f) = obj else {
@@ -21915,8 +22132,45 @@ impl P {
                 }
                 // "the target of a spell", "... of a spell or ability an
                 // opponent controls" (a filter's, or a spell's only).
-                if self.at_words(&["by", "spell"])
-                    || self.at_words(&["by", "opponent", "spell"])
+                // "... of a spell you control" (`by you spell`), "... of an
+                // instant or sorcery spell" (`by instant or sorcery spell`).
+                let spell_kind = |p: &mut Self| -> Option<Filter> {
+                    let at = p.pos;
+                    if !p.at_word("spell")
+                        && let Ok(f) = p.filter()
+                        && p.at_word("spell")
+                    {
+                        return Some(f);
+                    }
+                    p.pos = at;
+                    None
+                };
+                if self.at_word("by")
+                    && !self.at_words(&["by", "opponent"])
+                    && !self.at_words(&["by", "you", "first"])
+                {
+                    let at = self.pos;
+                    self.pos += 1;
+                    let whose = if self.eat_word("you") {
+                        Who::You
+                    } else {
+                        Who::Any
+                    };
+                    let spell = spell_kind(self).map(Box::new);
+                    let spells = self.eat_word("spell");
+                    if spells || whose == Who::You {
+                        return Ok(Trigger::TargetedBy {
+                            obj,
+                            spells,
+                            whose,
+                            whenever,
+                            or_spell,
+                            spell,
+                        });
+                    }
+                    self.pos = at;
+                }
+                if self.at_words(&["by", "opponent", "spell"])
                     || (obj != TriggerObj::This && self.at_words(&["by", "opponent"]))
                 {
                     self.pos += 1;
@@ -21925,6 +22179,7 @@ impl P {
                     } else {
                         Who::Any
                     };
+                    let spell = spell_kind(self).map(Box::new);
                     let spells = self.eat_word("spell");
                     return Ok(Trigger::TargetedBy {
                         obj,
@@ -21932,6 +22187,7 @@ impl P {
                         whose,
                         whenever,
                         or_spell,
+                        spell,
                     });
                 }
                 if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {
@@ -23571,7 +23827,8 @@ fn no_trigger_amount(t: &Trigger) -> bool {
         | Trigger::CastsFiltered { .. }
         | Trigger::CastThis { .. }
         | Trigger::CastsNth { .. }
-        | Trigger::GainsLifeFirst { .. } => true,
+        | Trigger::GainsLifeFirst { .. }
+        | Trigger::LosesLifeFirst { .. } => true,
         t => {
             no_trigger_object(t)
                 && !matches!(
@@ -23620,6 +23877,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::Discovers
         | Trigger::SolvesCase
         | Trigger::Forages
+        | Trigger::Acts { .. }
         | Trigger::Searches { .. }
         | Trigger::PlayerDealtDamage { .. }
         | Trigger::CreaturesDealCombatDamage(_)

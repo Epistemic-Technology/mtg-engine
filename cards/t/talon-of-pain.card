@@ -1,0 +1,7 @@
+card "Talon of Pain" {
+  oracle_id 0e4d2fbc-1b34-4501-9022-8ea800cb2d24
+  cost {4}
+  type Artifact
+  triggered whenever source you control other than this deals damage to an opponent: put 1 charge counter on this
+  activated {X}, {T}, remove X charge counters from this: this deals X damage to any target
+}

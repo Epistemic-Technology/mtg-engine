@@ -8986,9 +8986,9 @@ impl GameState {
                         // "Unattach Leonin Bola": it stays on the
                         // battlefield, unattached (CR 701.3d).
                         crate::card::ChosenCost::Unattach => {
-                            if self.objects[g].attached_to.take().is_some() {
+                            if let Some(from) = self.objects[g].attached_to.take() {
                                 self.cbump();
-                                self.emit(Event::Unattached { obj: g });
+                                self.emit(Event::Unattached { obj: g, from });
                             }
                         }
                     }
@@ -12053,8 +12053,14 @@ impl GameState {
         if !legal {
             return;
         }
-        self.objects[obj].attached_to = Some(host);
+        // CR 701.3b: moved from another permanent, it becomes unattached
+        // from that one ("Whenever this Equipment becomes unattached from
+        // a permanent").
+        let old = self.objects[obj].attached_to.replace(host);
         self.cbump();
+        if let Some(from) = old {
+            self.emit(Event::Unattached { obj, from });
+        }
         self.emit(Event::Attached { obj, to: host });
     }
 
@@ -15656,9 +15662,9 @@ impl GameState {
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
                     };
-                    if self.objects[id].attached_to.take().is_some() {
+                    if let Some(from) = self.objects[id].attached_to.take() {
                         self.cbump();
-                        self.emit(Event::Unattached { obj: id });
+                        self.emit(Event::Unattached { obj: id, from });
                     }
                 }
             }
@@ -17315,6 +17321,15 @@ impl GameState {
                     if let Target::Player(p) = t {
                         self.player_mut(p).energy += n;
                         self.bump();
+                        // "Whenever you get one or more {E}".
+                        if n > 0 {
+                            self.emit(Event::Acted {
+                                player: p,
+                                obj: None,
+                                action: crate::card::KeywordAction::GetEnergy,
+                                n,
+                            });
+                        }
                     }
                 }
             }
@@ -17353,6 +17368,13 @@ impl GameState {
             Effect::Proliferate { times } => {
                 for _ in 0..self.eval_num(*times, ctx) {
                     self.proliferate(ctx.controller);
+                    // "Whenever you proliferate" (CR 701.27).
+                    self.emit(Event::Acted {
+                        player: ctx.controller,
+                        obj: None,
+                        action: crate::card::KeywordAction::Proliferate,
+                        n: 1,
+                    });
                 }
             }
             Effect::BecomeStage(stage) => self.become_stage(ctx.source, *stage),
@@ -18693,6 +18715,15 @@ impl GameState {
                     self.objects[id].marks |= crate::state::OBJ_MONSTROUS;
                     // "As long as this creature is monstrous" (CR 701.37b).
                     self.cbump();
+                    // "When this creature becomes monstrous" (CR 701.37b);
+                    // its N is the trigger's amount ("X", CR 701.37c).
+                    let player = self.objects[id].controller;
+                    self.emit(Event::Acted {
+                        player,
+                        obj: Some(id),
+                        action: crate::card::KeywordAction::Monstrous,
+                        n,
+                    });
                 }
             }
             Effect::Connive { what } => {

@@ -1,0 +1,8 @@
+card "Flameblade Angel" {
+  oracle_id f912c739-27a2-4068-bf0c-0891309639df
+  cost {4}{R}{R}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered whenever source an opponent controls deals damage to you or a permanent you control: you may deal 1 damage to controller of that source
+}

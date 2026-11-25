@@ -1,0 +1,6 @@
+card "Revenge of Ravens" {
+  oracle_id dd96f145-73eb-4a6d-bcfd-5d6313fac1f9
+  cost {3}{B}
+  type Enchantment
+  triggered whenever creature attacks you or a planeswalker you control: controller of that creature loses 1 life and you gain 1 life
+}

@@ -1,0 +1,7 @@
+card "Scheming Aspirant" {
+  oracle_id cf4a3b1a-4b87-473e-be1f-3aa3da45c28e
+  cost {1}{B}
+  type Creature — Phyrexian Advisor
+  pt 1/3
+  triggered whenever you proliferate: each opponent loses 2 life and you gain 2 life
+}

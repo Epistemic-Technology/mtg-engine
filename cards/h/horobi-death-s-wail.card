@@ -1,0 +1,8 @@
+card "Horobi, Death's Wail" {
+  oracle_id 44e8d51e-0885-49df-a77c-cf4a88e41bc1
+  cost {2}{B}{B}
+  type Legendary Creature — Spirit
+  pt 4/4
+  keywords flying
+  triggered whenever creature becomes targeted: destroy that creature
+}

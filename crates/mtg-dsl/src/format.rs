@@ -6694,6 +6694,10 @@ pub fn natural_when(t: &Trigger) -> bool {
             }
             | Trigger::TurnedFaceUp(TriggerObj::This)
             | Trigger::Exploits
+            | Trigger::Acts {
+                action: mtg_core::card::KeywordAction::Monstrous,
+                ..
+            }
             | Trigger::HauntedDies
             | Trigger::BecomesPlotted
             | Trigger::BecomesTarget(TriggerObj::This)
@@ -6709,6 +6713,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::DiscardsThis
             | Trigger::CastThis { .. }
             | Trigger::ThisToGraveyard
+            | Trigger::ThisToGraveyardFrom { .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
             t,
@@ -6717,6 +6722,99 @@ pub fn natural_when(t: &Trigger) -> bool {
                 ..
             }
         )
+}
+
+/// A card filter's words before "card", none for any card.
+fn card_words(f: &Filter) -> String {
+    if *f == Filter::default() {
+        String::new()
+    } else {
+        filter(f)
+    }
+}
+
+/// A `PutIntoGraveyardFrom` trigger, in the DSL and (with the filter
+/// phrased for Oracle text) in Oracle text alike: "whenever [one or more]
+/// [creature] card[s] is/are put into ... graveyard from ...". `words` is
+/// the filter's phrase (empty for any card).
+pub fn graveyard_from_words(
+    f: &Filter,
+    whose: Who,
+    from: Option<mtg_core::state::Zone>,
+    batch: bool,
+    words: &str,
+) -> String {
+    let _ = f;
+    let noun = if words.is_empty() {
+        if batch { "cards" } else { "card" }.to_string()
+    } else if batch {
+        format!("{words} cards")
+    } else {
+        format!("{words} card")
+    };
+    let subject = if batch {
+        format!("one or more {noun} are")
+    } else {
+        let a = if noun.starts_with(['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']) {
+            "an"
+        } else {
+            "a"
+        };
+        format!("{a} {noun} is")
+    };
+    format!(
+        "whenever {subject} put into {} graveyard from {}",
+        if whose == Who::Opponents {
+            "an opponent's"
+        } else {
+            "your"
+        },
+        if from.is_some() {
+            "your library"
+        } else {
+            "anywhere"
+        }
+    )
+}
+
+/// "source [you control] [other than this]", the subject of a
+/// `SourceDealsDamage` trigger written "a source"; `this` names the source.
+pub fn source_words(from: &Filter, this: &str) -> String {
+    let who = match from.who {
+        Some(Who::You) => " you control",
+        Some(Who::Opponents) => " an opponent controls",
+        _ => "",
+    };
+    let other = if from.relation == mtg_core::card::Relation::Other {
+        format!(" other than {this}")
+    } else {
+        String::new()
+    };
+    format!("a source{who}{other}")
+}
+
+/// The damaged player or permanent of a `SourceDealsDamage` trigger.
+pub fn damage_victim_words(to: mtg_core::card::DamageVictim, this: &str) -> String {
+    use mtg_core::card::DamageVictim as V;
+    match to {
+        V::You => "you".to_string(),
+        V::YouOrYours => "you or a permanent you control".to_string(),
+        V::This => this.to_string(),
+        V::Opponent => "an opponent".to_string(),
+    }
+}
+
+/// A keyword-action trigger (`Trigger::Acts`), in the DSL or (`oracle`)
+/// in Oracle text, `this` standing for the source's noun.
+pub fn acts_words(action: mtg_core::card::KeywordAction, oracle: bool) -> String {
+    use mtg_core::card::KeywordAction as A;
+    match action {
+        A::Surveil => "whenever you surveil".to_string(),
+        A::Proliferate => "whenever you proliferate".to_string(),
+        A::GetEnergy if oracle => "whenever you get one or more {E}".to_string(),
+        A::GetEnergy => "whenever you get one or more energy".to_string(),
+        A::Monstrous => "when this becomes monstrous".to_string(),
+    }
 }
 
 /// "you activate an ability of a creature", "an opponent activates a
@@ -6769,6 +6867,8 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         }
         SpellOrdinal::FromExile => format!("{who} a spell from exile"),
         SpellOrdinal::FromGraveyard => format!("{who} a spell from a graveyard"),
+        SpellOrdinal::FromYourGraveyard => format!("{who} a spell from your graveyard"),
+        SpellOrdinal::NotFromHand => format!("{who} a spell from anywhere other than your hand"),
     }
 }
 
@@ -6826,6 +6926,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 "whenever one or more players discard one or more cards".to_string()
             }
             Trigger::YouTap(f) => format!("whenever you tap one or more {}", filter(f)),
+            Trigger::PutIntoGraveyardFrom {
+                filter: f,
+                whose,
+                from,
+            } => graveyard_from_words(f, *whose, *from, true, &card_words(f)),
             Trigger::LeavesWithoutDying(TriggerObj::Filter(f)) => format!(
                 "whenever one or more {} leave the battlefield without dying",
                 filter(f)
@@ -7032,6 +7137,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             Who::Any => "whenever a player loses life".to_string(),
         },
         Trigger::GainsLifeFirst { .. } => "whenever you gain life first time each turn".to_string(),
+        Trigger::LosesLifeFirst { .. } => "whenever you lose life first time each turn".to_string(),
         Trigger::CastsSpell {
             whose,
             noncreature,
@@ -7060,16 +7166,20 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             whose,
             whenever,
             or_spell,
+            spell,
         } => format!(
-            "{} {}{} becomes targeted by {}{}",
+            "{} {}{} becomes targeted by {}{}{}",
             if *whenever { "whenever" } else { "when" },
             trigger_obj(obj),
             if *or_spell { " or spell" } else { "" },
-            if *whose == Who::Opponents {
-                "opponent "
-            } else {
-                ""
+            match whose {
+                Who::Opponents => "opponent ",
+                Who::You => "you ",
+                Who::Any => "",
             },
+            spell
+                .as_ref()
+                .map_or_else(String::new, |f| format!("{} ", filter(f))),
             if *spells { "spell" } else { "" }
         )
         .trim_end()
@@ -7413,6 +7523,57 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         ),
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
+        Trigger::Acts { action, .. } => acts_words(*action, false),
+        Trigger::SourceDealsDamage {
+            from,
+            source,
+            to,
+            combat,
+        } => {
+            let subject = if *source {
+                source_words(from, "this")
+            } else {
+                trigger_obj(&TriggerObj::Filter(from.clone()))
+            };
+            format!(
+                "whenever {subject} deals {}damage to {}",
+                if *combat { "combat " } else { "" },
+                damage_victim_words(*to, "this")
+            )
+        }
+        Trigger::YouOrYoursTargeted { whose, and_or } => format!(
+            "whenever you {} permanent you control becomes targeted by{}",
+            if *and_or { "andor" } else { "or" },
+            if *whose == Who::Opponents {
+                " opponent"
+            } else {
+                ""
+            }
+        ),
+        Trigger::ThisToGraveyardFrom { named, .. } => format!(
+            "when this is put into your graveyard from your library{}",
+            if *named { " named" } else { "" }
+        ),
+        Trigger::PutIntoGraveyardFrom {
+            filter: f,
+            whose,
+            from,
+        } => graveyard_from_words(f, *whose, *from, false, &card_words(f)),
+        Trigger::ThisAttachment { attached: true } => {
+            "whenever this becomes attached to creature".to_string()
+        }
+        Trigger::ThisAttachment { attached: false } => {
+            "whenever this becomes unattached from permanent".to_string()
+        }
+        Trigger::AttacksYou { obj, planeswalkers } => format!(
+            "whenever {} attacks you{}",
+            trigger_obj(obj),
+            if *planeswalkers {
+                " or a planeswalker you control"
+            } else {
+                ""
+            }
+        ),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_obj(o)),
         Trigger::CrewsOrSaddles(o) => {
             format!(

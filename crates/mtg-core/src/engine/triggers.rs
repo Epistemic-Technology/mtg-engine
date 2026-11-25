@@ -45,7 +45,9 @@ impl GameState {
         let watchers = self.watchers(event);
         let event_amount = match event {
             Event::Damage { amount, .. } => *amount,
-            Event::CountersAdded { n, .. } | Event::CountersRemoved { n, .. } => *n,
+            Event::CountersAdded { n, .. }
+            | Event::CountersRemoved { n, .. }
+            | Event::Acted { n, .. } => *n,
             // "you gain that much life" after a player loses or gains life.
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
             // "discover again for the same value".
@@ -168,12 +170,13 @@ impl GameState {
         if let Event::ZoneChange {
             new,
             def,
+            from,
             to: Zone::Graveyard,
             ..
         } = *event
             && self.pool.get(def).has_triggers()
         {
-            self.to_graveyard_triggers(new, def, &mut fired);
+            self.to_graveyard_triggers(new, def, from, &mut fired);
         }
 
         if matches!(event, Event::Cast { .. }) {
@@ -744,6 +747,7 @@ impl GameState {
         &self,
         card: ObjId,
         def: crate::card::CardRef,
+        from: Zone,
         fired: &mut SmallVec<[PendingTrigger; 2]>,
     ) {
         let Some(owner) = self.objects.get(card).map(|o| o.owner) else {
@@ -751,7 +755,9 @@ impl GameState {
         };
         for &ability in &self.pool.get(def).ability_ids {
             if let AbilityDef::Triggered(t) = self.pool.ability(ability)
-                && matches!(t.trigger, TriggerSpec::ThisToGraveyard)
+                && (matches!(t.trigger, TriggerSpec::ThisToGraveyard)
+                    // "... into your graveyard from your library".
+                    || matches!(t.trigger, TriggerSpec::ThisToGraveyardFrom { from: z, .. } if z == from))
             {
                 fired.push(PendingTrigger {
                     controller: owner,
@@ -1230,6 +1236,29 @@ impl GameState {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
+            // CR 508.1: an attacker at the controller or (with
+            // `planeswalkers`) a planeswalker they control.
+            (
+                TriggerSpec::AttacksYou {
+                    what,
+                    planeswalkers,
+                },
+                Event::Attack { attacker, target },
+            ) => {
+                let at_you = match *target {
+                    Target::Player(p) => p == w.controller,
+                    Target::Object(o) => {
+                        *planeswalkers
+                            && self.objects.get(o).is_some_and(|o| o.controller == w.controller)
+                            && self.characteristics(o).is_some_and(|c| c.is_planeswalker())
+                    }
+                };
+                if !at_you {
+                    return None;
+                }
+                let p = on_battlefield(what, *attacker)?;
+                Some((Some(*attacker), Some(p)))
+            }
             // The attacker is recorded as it is declared, before the event.
             (TriggerSpec::AttacksFirstTime(what), Event::Attack { attacker, .. }) => {
                 let p = on_battlefield(what, *attacker)?;
@@ -1488,6 +1517,34 @@ impl GameState {
                     && self.tallied(crate::card::TurnEvent::LifeGained, *player) == delta.unsigned_abs())
                 .then_some((None, Some(*player)))
             }
+            (TriggerSpec::ThisAttachment { attached: true }, Event::Attached { obj, to })
+            | (TriggerSpec::ThisAttachment { attached: false }, Event::Unattached { obj, from: to }) => {
+                (*obj == w.source).then_some((Some(*to), Some(w.controller)))
+            }
+            // CR 701.3: leaving the battlefield while attached, as it last
+            // existed.
+            (
+                TriggerSpec::ThisAttachment { attached: false },
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    ..
+                },
+            ) => {
+                if *old != w.source {
+                    return None;
+                }
+                let host = self.lki.get(old)?.object.attached_to?;
+                Some((Some(host), Some(w.controller)))
+            }
+            // As for the first gain: the loss whose amount is all lost
+            // this turn.
+            (TriggerSpec::LosesLifeFirst { whose }, Event::LifeChange { player, delta, .. }) => {
+                (*delta < 0
+                    && whose_ok(*whose, *player)
+                    && self.tallied(crate::card::TurnEvent::LifeLost, *player) == delta.unsigned_abs())
+                .then_some((None, Some(*player)))
+            }
             (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {
                 if *to != w.source {
                     return None;
@@ -1668,6 +1725,59 @@ impl GameState {
                 }
             }
             (
+                TriggerSpec::SourceDealsDamage { from, to, combat },
+                Event::Damage {
+                    source,
+                    target,
+                    combat: c,
+                    ..
+                },
+            ) => {
+                if *combat && !*c {
+                    return None;
+                }
+                let damaged = match (to, target) {
+                    (crate::card::DamageVictim::You, Target::Player(p)) => *p == w.controller,
+                    (crate::card::DamageVictim::Opponent, Target::Player(p)) => {
+                        *p != w.controller
+                    }
+                    (crate::card::DamageVictim::This, Target::Object(o)) => *o == w.source,
+                    (crate::card::DamageVictim::YouOrYours, Target::Player(p)) => {
+                        *p == w.controller
+                    }
+                    (crate::card::DamageVictim::YouOrYours, Target::Object(o)) => {
+                        self.objects.get(*o).is_some_and(|o| o.controller == w.controller)
+                    }
+                    _ => false,
+                };
+                if !damaged {
+                    return None;
+                }
+                // The source as it is (a permanent, a spell on the stack)
+                // or as it last existed.
+                let controller = if let (Some(o), Some(ch)) =
+                    (self.objects.get(*source), self.characteristics(*source))
+                {
+                    from.matches(*source, o.controller, &ch, Some(w.source), Some(w.controller))
+                        .then_some(o.controller)?
+                } else {
+                    let l = self.lki.get(source)?;
+                    from.matches(
+                        *source,
+                        l.object.controller,
+                        &l.characteristics,
+                        Some(w.source),
+                        Some(w.controller),
+                    )
+                    .then_some(l.object.controller)?
+                };
+                let player = match (to, target) {
+                    (crate::card::DamageVictim::Opponent, Target::Player(p)) => *p,
+                    _ => controller,
+                };
+                Some((Some(*source), Some(player)))
+            }
+            (
                 TriggerSpec::DealsDamage { what, to, combat },
                 Event::Damage {
                     source,
@@ -1827,11 +1937,18 @@ impl GameState {
                     spells,
                     whose,
                     or_spell,
+                    spell: kind,
                 },
                 Event::Targeted { target, by },
             ) => {
                 let b = self.objects.get(*by)?;
                 if *spells && b.kind == crate::state::ObjKind::Ability {
+                    return None;
+                }
+                // "an instant or sorcery spell": the spell's types.
+                if let Some(f) = kind
+                    && !self.characteristics(*by).is_some_and(|c| f.matches_characteristics(&c))
+                {
                     return None;
                 }
                 let by_ctl = b.controller;
@@ -1870,6 +1987,31 @@ impl GameState {
                         .get(*target)
                         .is_some_and(|t| t.zone == Zone::Battlefield))
                 .then_some((Some(*target), Some(w.controller)))
+            }
+            // CR 603.2c: once per spell or ability: on the controller as a
+            // target (players are emitted first), else on the first
+            // permanent they control among its targets.
+            (TriggerSpec::YouOrYoursTargeted { whose, .. }, Event::PlayerTargeted { player, by }) => {
+                let by_ctl = self.objects.get(*by)?.controller;
+                (*player == w.controller && whose_ok(*whose, by_ctl))
+                    .then_some((Some(*by), Some(by_ctl)))
+            }
+            (TriggerSpec::YouOrYoursTargeted { whose, .. }, Event::Targeted { target, by }) => {
+                let b = self.objects.get(*by)?;
+                let by_ctl = b.controller;
+                let mine = |id: ObjId| {
+                    self.objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield && o.controller == w.controller)
+                };
+                if !whose_ok(*whose, by_ctl) || !mine(*target) {
+                    return None;
+                }
+                let first = b.targets.iter().find(|t| match t {
+                    Target::Player(p) => *p == w.controller,
+                    Target::Object(id) => mine(*id),
+                })?;
+                (*first == Target::Object(*target)).then_some((Some(*by), Some(by_ctl)))
             }
             (TriggerSpec::TargetedByYourAbility, Event::PlayerTargeted { player, by }) => {
                 let b = self.objects.get(*by)?;
@@ -2029,6 +2171,24 @@ impl GameState {
                     .is_some_and(|o| o.cast.cast_from() == Some(zone));
                 (whose_ok(*whose, *player) && from).then_some((Some(*spell), Some(*player)))
             }
+            (
+                TriggerSpec::CastsNth {
+                    whose,
+                    nth:
+                        nth @ (crate::card::SpellOrdinal::FromYourGraveyard
+                        | crate::card::SpellOrdinal::NotFromHand),
+                },
+                Event::Cast { player, spell, .. },
+            ) => {
+                let o = self.objects.get(*spell)?;
+                let from = o.cast.cast_from();
+                let ok = if *nth == crate::card::SpellOrdinal::NotFromHand {
+                    from != Some(Zone::Hand)
+                } else {
+                    from == Some(Zone::Graveyard) && o.owner == *player
+                };
+                (whose_ok(*whose, *player) && ok).then_some((Some(*spell), Some(*player)))
+            }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
                 let n = u8::try_from(self.tallied(crate::card::TurnEvent::Cast, *player))
                     .unwrap_or(u8::MAX);
@@ -2137,6 +2297,31 @@ impl GameState {
             }
             // "is put into your graveyard from anywhere": the card in the
             // graveyard, a new object (CR 400.7).
+            (
+                TriggerSpec::PutIntoGraveyardFrom {
+                    filter,
+                    whose,
+                    from,
+                },
+                Event::ZoneChange {
+                    new,
+                    from: z,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => {
+                if from.is_some_and(|f| f != *z) {
+                    return None;
+                }
+                let o = self.objects.get(*new)?;
+                if !whose_ok(*whose, o.owner) || o.zone != Zone::Graveyard {
+                    return None;
+                }
+                let c = self.base_characteristics(o);
+                filter
+                    .matches(*new, o.owner, &c, Some(w.source), Some(w.controller))
+                    .then_some((Some(*new), Some(o.owner)))
+            }
             (
                 TriggerSpec::PutIntoGraveyard(filter),
                 Event::ZoneChange {
@@ -2299,6 +2484,33 @@ impl GameState {
                 && *player == w.controller
                 && (!*your_turn || self.active_player == w.controller))
                 .then_some((None, Some(*player))),
+            // CR 701.25c: surveil 0 is no surveil (and emits no event).
+            (
+                TriggerSpec::Acts {
+                    action: crate::card::KeywordAction::Surveil,
+                    whose,
+                },
+                Event::Scried {
+                    player,
+                    surveil: true,
+                    ..
+                },
+            ) => whose_ok(*whose, *player).then_some((None, Some(*player))),
+            (
+                TriggerSpec::Acts { action, whose },
+                Event::Acted {
+                    player,
+                    obj,
+                    action: a,
+                    ..
+                },
+            ) if a == action => {
+                if action.of_object() {
+                    (*obj == Some(w.source)).then_some((*obj, Some(*player)))
+                } else {
+                    whose_ok(*whose, *player).then_some((None, Some(*player)))
+                }
+            }
             (TriggerSpec::ScriesOrSurveils, Event::Scried { player, .. }) => {
                 (*player == w.controller).then_some((None, Some(*player)))
             }

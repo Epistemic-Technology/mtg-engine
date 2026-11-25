@@ -6538,6 +6538,7 @@ impl Compiler<'_> {
             }
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },
             Trigger::LosesLife { whose } => TriggerSpec::LosesLife { whose: *whose },
+            Trigger::LosesLifeFirst { whose } => TriggerSpec::LosesLifeFirst { whose: *whose },
             Trigger::GainsLifeFirst { whose } => TriggerSpec::GainsLifeFirst { whose: *whose },
             Trigger::RollsDice { whose } => TriggerSpec::RollsDice { whose: *whose },
             Trigger::DayNight => TriggerSpec::DayNight,
@@ -6567,12 +6568,14 @@ impl Compiler<'_> {
                 spells,
                 whose,
                 or_spell,
+                spell,
                 ..
             } => TriggerSpec::TargetedBy {
                 what: self.trigger_obj(obj),
                 spells: *spells,
                 whose: *whose,
                 or_spell: *or_spell,
+                spell: spell.as_ref().map(|f| Box::new(self.filter(f))),
             },
             Trigger::TargetedFirstTime => TriggerSpec::TargetedFirstTime,
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
@@ -6781,6 +6784,41 @@ impl Compiler<'_> {
             },
             Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
             Trigger::Scries => TriggerSpec::Scries,
+            Trigger::SourceDealsDamage {
+                from, to, combat, ..
+            } => TriggerSpec::SourceDealsDamage {
+                from: self.filter(from),
+                to: *to,
+                combat: *combat,
+            },
+            Trigger::YouOrYoursTargeted { whose, and_or } => TriggerSpec::YouOrYoursTargeted {
+                whose: *whose,
+                and_or: *and_or,
+            },
+            Trigger::ThisToGraveyardFrom { from, named } => TriggerSpec::ThisToGraveyardFrom {
+                from: *from,
+                named: *named,
+            },
+            Trigger::PutIntoGraveyardFrom {
+                filter,
+                whose,
+                from,
+            } => TriggerSpec::PutIntoGraveyardFrom {
+                filter: self.filter(filter),
+                whose: *whose,
+                from: *from,
+            },
+            Trigger::ThisAttachment { attached } => TriggerSpec::ThisAttachment {
+                attached: *attached,
+            },
+            Trigger::AttacksYou { obj, planeswalkers } => TriggerSpec::AttacksYou {
+                what: self.trigger_obj(obj),
+                planeswalkers: *planeswalkers,
+            },
+            Trigger::Acts { action, whose } => TriggerSpec::Acts {
+                action: *action,
+                whose: *whose,
+            },
             Trigger::Explores(o) => TriggerSpec::Explores(self.trigger_obj(o)),
             Trigger::CrewsOrSaddles(o) => TriggerSpec::CrewsOrSaddles(self.trigger_obj(o)),
             Trigger::BecomesSaddled(o) => TriggerSpec::BecomesSaddled(self.trigger_obj(o)),

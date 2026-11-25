@@ -1,0 +1,9 @@
+card "Voidwing Hybrid" {
+  oracle_id 0dab592c-a230-408d-a383-044e561dbe5d
+  cost {U}{B}
+  type Creature — Phyrexian Bat
+  pt 2/1
+  keywords flying
+  toxic 1
+  triggered from graveyard when you proliferate: return this to hand
+}

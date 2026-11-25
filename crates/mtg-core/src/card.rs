@@ -8957,6 +8957,10 @@ pub enum TriggerSpec {
     /// "Whenever you gain life for the first time each turn": the life
     /// gain event that starts the player's life gained this turn.
     GainsLifeFirst { whose: Who },
+    /// "Whenever you lose life for the first time each turn" (CR 119.3):
+    /// the life-losing event that starts the player's life lost this turn;
+    /// the amount lost is the trigger's amount.
+    LosesLifeFirst { whose: Who },
     /// "Whenever you roll one or more dice" (CR 706): once per
     /// instruction to roll, not per die.
     RollsDice { whose: Who },
@@ -9329,7 +9333,124 @@ pub enum TriggerSpec {
         /// spell on the stack matching the filter counts too.
         #[serde(default)]
         or_spell: bool,
+        /// "... the target of an instant or sorcery spell", "... of an Aura
+        /// spell" (with `spells`): the spell must match.
+        #[serde(default)]
+        spell: Option<Box<ObjFilter>>,
     },
+    /// A keyword action (CR 701) or a like event happening once where it
+    /// is performed (`Event::Acted`, surveil's `Event::Scried`): "Whenever
+    /// you surveil", "Whenever you proliferate", "Whenever you get one or
+    /// more {E}", "When this creature becomes monstrous". For an action of
+    /// an object (`KeywordAction::of_object`) only the source's counts;
+    /// otherwise the player performing it must match `whose`. That player
+    /// is the triggering player, the number involved (energy gotten, the
+    /// monstrosity's N) the trigger's amount.
+    Acts { action: KeywordAction, whose: Who },
+    /// "Whenever a creature attacks you" (`planeswalkers` false), "... you
+    /// or a planeswalker you control" (CR 508.1): once for each matching
+    /// attacker declared attacking the controller (or one of their
+    /// planeswalkers), whoever controls it. The attacker is the triggering
+    /// object, its controller the triggering player ("that creature's
+    /// controller").
+    AttacksYou {
+        what: TriggerObj,
+        planeswalkers: bool,
+    },
+    /// "Whenever a source an opponent controls deals damage to you",
+    /// "Whenever a creature deals damage to you", "Whenever a source deals
+    /// damage to this creature", "Whenever a source you control other than
+    /// this artifact deals damage to an opponent": once per damage event
+    /// (CR 120.3) from a source matching `from` (as it is, or as it last
+    /// existed: a spell, a sacrificed permanent) to `to`; `combat`, combat
+    /// damage only. The source is the triggering object ("it", "that
+    /// source"); the triggering player is the damaged opponent for
+    /// `DamageVictim::Opponent`, else the source's controller ("that
+    /// source's controller", "that player"). The damage is the trigger's
+    /// amount ("that many").
+    SourceDealsDamage {
+        from: ObjFilter,
+        to: DamageVictim,
+        combat: bool,
+    },
+    /// "Whenever this Equipment becomes attached to a creature"
+    /// (`attached`), "Whenever this Equipment becomes unattached from a
+    /// permanent" (CR 701.3): the source is attached, or stops being
+    /// attached (moved to another permanent, unattached, or leaving the
+    /// battlefield while attached, judged as it last existed). The
+    /// permanent is the triggering object ("that creature", "that
+    /// permanent").
+    ThisAttachment { attached: bool },
+    /// "When this card is put into your graveyard from your library"
+    /// (Narcomoeba; `named`: "When Creeping Chill is put ...", wording
+    /// only): the card itself goes to its owner's graveyard from that zone
+    /// (CR 603.6a); it triggers from the graveyard, controlled by the
+    /// card's owner.
+    ThisToGraveyardFrom {
+        from: crate::state::Zone,
+        #[serde(default)]
+        named: bool,
+    },
+    /// "Whenever a card is put into an opponent's graveyard from
+    /// anywhere", "Whenever a creature card is put into your graveyard
+    /// from your library" (`Batch` of it: "one or more ... cards"): a card
+    /// matching the filter, judged as it is in the graveyard, goes to the
+    /// graveyard of a player matching `whose` (its owner), from `from`
+    /// (anywhere if `None`). The card is the triggering object, its owner
+    /// the triggering player.
+    PutIntoGraveyardFrom {
+        filter: ObjFilter,
+        whose: Who,
+        from: Option<crate::state::Zone>,
+    },
+    /// "Whenever you or a permanent you control becomes the target of a
+    /// spell or ability an opponent controls" (`and_or`, wording only: "you
+    /// and/or at least one permanent you control"): once per spell or
+    /// ability whose controller matches `whose` that targets the controller
+    /// or a permanent they control, however many of them (CR 603.2c). The
+    /// spell or ability is the triggering object, its controller the
+    /// triggering player.
+    YouOrYoursTargeted {
+        whose: Who,
+        #[serde(default)]
+        and_or: bool,
+    },
+}
+
+/// Who is dealt damage, for `TriggerSpec::SourceDealsDamage`.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum DamageVictim {
+    /// The controller ("you").
+    You,
+    /// "you or a permanent you control".
+    YouOrYours,
+    /// The source of the ability ("this creature").
+    This,
+    /// "an opponent", "another player".
+    Opponent,
+}
+
+/// What a `TriggerSpec::Acts` trigger watches.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum KeywordAction {
+    /// Surveil (CR 701.25): once per instruction to surveil a number above
+    /// 0 (CR 701.25c).
+    Surveil,
+    /// Proliferate (CR 701.27), once per time.
+    Proliferate,
+    /// Getting one or more {E} (CR 107.14, 122.1): once per instruction.
+    GetEnergy,
+    /// Becoming monstrous (CR 701.37b): the source's monstrosity resolves
+    /// while it isn't monstrous.
+    Monstrous,
+}
+
+impl KeywordAction {
+    /// The action is the source's own ("this creature becomes monstrous"),
+    /// not a player's.
+    pub fn of_object(self) -> bool {
+        matches!(self, KeywordAction::Monstrous)
+    }
 }
 
 /// An event about one object, counted per object each turn for
@@ -9406,6 +9527,12 @@ pub enum SpellOrdinal {
     /// "a spell from a graveyard": any spell cast from a graveyard
     /// (River Kelpie; checked by the trigger, not by `holds`).
     FromGraveyard,
+    /// "a spell from your graveyard": a spell its caster cast from their
+    /// own graveyard (checked by the trigger, not by `holds`).
+    FromYourGraveyard,
+    /// "a spell from anywhere other than your hand": any spell not cast
+    /// from its caster's hand (checked by the trigger, not by `holds`).
+    NotFromHand,
 }
 
 impl SpellOrdinal {
@@ -9422,7 +9549,10 @@ impl SpellOrdinal {
             SpellOrdinal::NotFirstOnOwnTurn => n >= 2 && own_turn,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
-            SpellOrdinal::FromExile | SpellOrdinal::FromGraveyard => true,
+            SpellOrdinal::FromExile
+            | SpellOrdinal::FromGraveyard
+            | SpellOrdinal::FromYourGraveyard
+            | SpellOrdinal::NotFromHand => true,
         }
     }
 }
@@ -9525,6 +9655,8 @@ impl TriggerSpec {
             | TriggerSpec::LeavesGraveyard(_)
             | TriggerSpec::PutIntoGraveyard(_)
             | TriggerSpec::ThisToGraveyard
+            | TriggerSpec::ThisToGraveyardFrom { .. }
+            | TriggerSpec::PutIntoGraveyardFrom { .. }
             | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
             | TriggerSpec::EntersFromGraveyard(_)
             | TriggerSpec::EntersFrom { .. } => WATCH_ZONE_CHANGE,
@@ -9541,7 +9673,8 @@ impl TriggerSpec {
             | TriggerSpec::AttacksWithPower(_)
             | TriggerSpec::PlayerAttacksWith { .. }
             | TriggerSpec::AttacksWithFilter { .. }
-            | TriggerSpec::PlayersAttacked { .. } => WATCH_ATTACK,
+            | TriggerSpec::PlayersAttacked { .. }
+            | TriggerSpec::AttacksYou { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)
@@ -9560,6 +9693,7 @@ impl TriggerSpec {
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. }
+            | TriggerSpec::SourceDealsDamage { .. }
             | TriggerSpec::PlayerDealtDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_)
             | TriggerSpec::TappedForTeamwork(_)
@@ -9576,6 +9710,7 @@ impl TriggerSpec {
             TriggerSpec::GainsLife { .. }
             | TriggerSpec::LosesLife { .. }
             | TriggerSpec::GainsLifeFirst { .. }
+            | TriggerSpec::LosesLifeFirst { .. }
             | TriggerSpec::GainsOrLosesLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
@@ -9591,8 +9726,12 @@ impl TriggerSpec {
             | TriggerSpec::TargetedByYourAbility
             | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
+            | TriggerSpec::YouOrYoursTargeted { .. }
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
-            TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
+            TriggerSpec::BecomesAttachedTo(_) | TriggerSpec::ThisAttachment { attached: true } => {
+                WATCH_ATTACH
+            }
+            TriggerSpec::ThisAttachment { attached: false } => WATCH_ATTACH | WATCH_ZONE_CHANGE,
             TriggerSpec::Discards { .. }
             | TriggerSpec::DiscardsThis
             | TriggerSpec::DiscardsBatch { .. }
@@ -9632,6 +9771,7 @@ impl TriggerSpec {
             | TriggerSpec::Explores(_)
             | TriggerSpec::Activates { .. }
             | TriggerSpec::Transforms
+            | TriggerSpec::Acts { .. }
             | TriggerSpec::YouTap(_) => WATCH_ACT,
         }
     }
@@ -12411,7 +12551,10 @@ impl DefFlags {
         flags.set(
             DefFlags::PLAYER_TARGETED,
             abilities.iter().any(|a| {
-                matches!(a, AbilityDef::Triggered(t) if t.trigger == TriggerSpec::TargetedByYourAbility)
+                matches!(a, AbilityDef::Triggered(t) if matches!(
+                    t.trigger,
+                    TriggerSpec::TargetedByYourAbility | TriggerSpec::YouOrYoursTargeted { .. }
+                ))
             }),
         );
         flags.set(

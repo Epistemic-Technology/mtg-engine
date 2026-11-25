@@ -1,0 +1,9 @@
+card "Thoughtbound Phantasm" {
+  oracle_id ca14f1b6-e8c2-4ea5-9375-5ed63f355052
+  cost {U}
+  type Creature — Spirit
+  pt 2/2
+  keywords defender
+  triggered whenever you surveil: put 1 +1/+1 counter on this
+  static as long as this has 3 or more +1/+1 counters, this: has can attack as though it didn't have defender
+}

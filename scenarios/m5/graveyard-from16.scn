@@ -1,0 +1,141 @@
+# "When this card is put into your graveyard from your library"
+# (`TriggerSpec::ThisToGraveyardFrom`) and "a card is put into an
+# opponent's graveyard from anywhere", "one or more creature cards are put
+# into your graveyard from your library" (`TriggerSpec::PutIntoGraveyardFrom`).
+
+scenario "Narcomoeba milled goes onto the battlefield" {
+  battlefield A: "Island"
+  hand A: "Thought Scour"
+  library A: "Narcomoeba", "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Thought Scour" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Narcomoeba"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Narcomoeba discarded from hand stays in the graveyard" {
+  battlefield A: 3 "Swamp"
+  hand A: "Mind Rot", "Narcomoeba", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Narcomoeba"
+  assert battlefield A lacks "Narcomoeba"
+}
+
+scenario "Narcomoeba milled by an opponent still comes back under its owner's control" {
+  battlefield B: "Island"
+  hand B: "Thought Scour"
+  library A: "Narcomoeba", "Forest", "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Thought Scour" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Narcomoeba"
+}
+
+scenario "Creeping Chill milled: exile it, 3 damage to each opponent, gain 3" {
+  battlefield A: "Island"
+  hand A: "Thought Scour"
+  library A: "Creeping Chill", "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Thought Scour" targeting player A
+  run_to turn 2 postcombat_main
+  assert exile A contains "Creeping Chill"
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Creeping Chill milled: declining to exile it does nothing" {
+  battlefield A: "Island"
+  hand A: "Thought Scour"
+  library A: "Creeping Chill", "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Thought Scour" targeting player A
+  turn 2 A: decline "Creeping Chill"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Creeping Chill"
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Gaea's Blessing milled shuffles the graveyard into the library" {
+  battlefield A: "Island"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Thought Scour"
+  library A: "Gaea's Blessing", "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Thought Scour" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A lacks "Gaea's Blessing"
+  assert library A contains "Hill Giant"
+}
+
+scenario "Vulturous Zombie grows for each card into an opponent's graveyard, not yours" {
+  battlefield A: "Vulturous Zombie", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert counters "Vulturous Zombie" +1/+1 1
+}
+
+scenario "Profane Memento: a creature card into an opponent's graveyard, not a spell" {
+  battlefield A: "Profane Memento", "Swamp", "Swamp", "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Mind Rot"
+  hand B: "Grizzly Bears", "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+  assert life A 21
+}
+
+scenario "Sidisi makes one Zombie for creature cards milled together" {
+  battlefield A: "Island", "Swamp", "Forest", "Plains"
+  hand A: "Sidisi, Brood Tyrant"
+  library A: "Grizzly Bears", "Hill Giant", "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sidisi, Brood Tyrant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains 1 "Zombie"
+}
+
+scenario "Sidisi: no creature card milled, no Zombie" {
+  battlefield A: "Island", "Swamp", "Forest", "Plains"
+  hand A: "Sidisi, Brood Tyrant"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sidisi, Brood Tyrant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 0 "Zombie"
+}
+
+scenario "Devourer of Memory: +1/+1 and unblockable when it mills" {
+  battlefield A: "Devourer of Memory", "Island", "Swamp", "Swamp"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Devourer of Memory"
+  turn 2 A: attack "Devourer of Memory"
+  illegal turn 2 B: block "Devourer of Memory" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert power "Devourer of Memory" 3
+}
+
+scenario "Devourer of Memory: a discard isn't from the library" {
+  battlefield A: "Devourer of Memory", 3 "Swamp"
+  hand A: "Mind Rot", "Forest", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert power "Devourer of Memory" 2
+}
