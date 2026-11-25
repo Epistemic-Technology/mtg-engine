@@ -7554,6 +7554,23 @@ impl Compiler<'_> {
                     "`is put into a graveyard` without `from the battlefield` would mean from anywhere; only `enchanted ...` may omit it",
                 );
             }
+            // "Do this only once each turn." limits the ability's first
+            // "you may" (or "you may cast"): with neither it would limit
+            // nothing (a mandatory "put that many +1/+1 counters on each
+            // creature you control" happened every time).
+            Ability::Triggered {
+                limit: mtg_core::card::TurnLimit::Do,
+                effects,
+                ..
+            } if {
+                let dbg = format!("{effects:?}");
+                !dbg.contains("YouMay") && !dbg.contains("Cast")
+            } =>
+            {
+                return self.err(
+                    "`do once each turn` limits a `you may` (or a cast) in the ability's effects",
+                );
+            }
             Ability::Triggered {
                 trigger,
                 condition,

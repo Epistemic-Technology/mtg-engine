@@ -1783,7 +1783,8 @@ triggers only once.": once for the object, ever (an intervening "if"
 that fails doesn't use it up). `triggered do once each turn <trigger>: you may ...` prints "Do
 this only once each turn.": the ability triggers every time, but its
 first `you may` is offered only until its controller has done it this
-turn (declining doesn't count). Both count per object and ability and
+turn (declining doesn't count); with no `you may` (or cast) in its effects
+it is an error. Both count per object and ability and
 reset each turn; a permanent that changes zones is a new object and
 starts fresh (CR 400.7). Each goes after `from graveyard`, before the
 trigger, and works in a granted ability (`has ability { triggered once

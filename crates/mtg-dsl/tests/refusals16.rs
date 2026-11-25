@@ -47,6 +47,23 @@ fn a_cost_sacrifices_permanents_of_one_filter() {
 }
 
 #[test]
+fn do_once_each_turn_limits_a_you_may() {
+    // Without a "you may" the limit limited nothing.
+    let kind = "Creature — Human\n  pt 4/6";
+    let e = load_card(
+        kind,
+        "triggered do once each turn whenever you gain life: put that much +1/+1 counters on each creature you control",
+    )
+    .unwrap_err();
+    assert!(e.contains("do once"), "{e}");
+    let r = load_card(
+        kind,
+        "triggered do once each turn whenever you gain life: you may put that much +1/+1 counters on each creature you control",
+    );
+    assert!(r.is_ok(), "{r:?}");
+}
+
+#[test]
 fn a_delayed_ability_reads_the_values_of_the_target_it_is_about() {
     // "where X is that spell's mana value" in a delayed trigger about the
     // source read the delayed ability's own (missing) target: 0.
