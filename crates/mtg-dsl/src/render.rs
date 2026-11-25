@@ -14493,6 +14493,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ("sacrifices", "discards", "that player")
                 }
                 (p, Some((s, _))) if p == s => ("sacrifice", "discard", "they"),
+                // "Mogis deals 2 damage to that player unless they
+                // sacrifice a creature of their choice."
+                (Recipient::TriggeringPlayer, _)
+                    if matches!(&**effect, Effect::DealDamage { to, .. }
+                        if to.as_slice() == [Recipient::TriggeringPlayer]) =>
+                {
+                    ("sacrifice", "discard", "they")
+                }
                 _ => ("sacrifices", "discards", "that player"),
             };
             let or = if *or_discard {
@@ -19961,6 +19969,17 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
                     .join(" ")
             )
         ),
+        Mod::RemoveTypes(types) => format!(
+            "{} {}",
+            v("isn't", "aren't"),
+            with_article(
+                &types
+                    .iter()
+                    .map(|t| type_noun(*t))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        ),
         Mod::SetTypes(types) => format!(
             "{} {}",
             v("is", "are"),
@@ -21284,6 +21303,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 }
                 _ => format!("{phrase} is {} or greater", number_word(*n)),
             }
+        }
+        // "your devotion to red is less than five".
+        StaticCond::CountBelow(e, n) => {
+            format!(
+                "{} is less than {}",
+                count_phrase(e, card, false),
+                number_word(*n)
+            )
         }
         // "the top card of your library is a Goblin card", "... is black".
         StaticCond::TopCard(f) => {

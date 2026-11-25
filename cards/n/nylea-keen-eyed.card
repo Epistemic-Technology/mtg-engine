@@ -1,0 +1,10 @@
+card "Nylea, Keen-Eyed" {
+  oracle_id 642bbdf6-9a8c-4158-83c8-d59feb49101b
+  cost {3}{G}
+  type Legendary Enchantment Creature — God
+  pt 5/6
+  keywords indestructible
+  static as long as count below 5 devotion green, this: isnt creature
+  spells creature you cast cost {1} less
+  activated {2}{G}: reveal top card; if it is creature card, put it into hand; otherwise, you may put it into graveyard
+}

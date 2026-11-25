@@ -1,0 +1,9 @@
+card "Mogis, God of Slaughter" {
+  oracle_id e5912d21-e188-4b9e-8e92-a6e8196353c6
+  cost {2}{B}{R}
+  type Legendary Enchantment Creature — God
+  pt 7/5
+  keywords indestructible
+  static as long as count below 7 devotion black and red, this: isnt creature
+  triggered at beginning of each opponent's upkeep: this deals 2 damage to that player unless they sacrifice creature
+}

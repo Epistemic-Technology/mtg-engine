@@ -1,0 +1,10 @@
+card "Thassa, Deep-Dwelling" {
+  oracle_id 2396299a-c031-4020-b13e-1f9bf9d64511
+  cost {3}{U}
+  type Legendary Enchantment Creature — God
+  pt 6/5
+  keywords indestructible
+  static as long as count below 5 devotion blue, this: isnt creature
+  triggered at beginning of your end step: exile up to 1 another target creature you control then return that card to battlefield under your control
+  activated {3}{U}: tap another target creature
+}

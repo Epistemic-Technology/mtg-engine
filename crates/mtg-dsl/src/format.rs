@@ -7709,6 +7709,13 @@ fn modification(m: &Mod) -> String {
                 .collect::<Vec<_>>()
                 .join(" ")
         ),
+        Mod::RemoveTypes(ts) => format!(
+            "isnt {}",
+            ts.iter()
+                .map(|t| format!("{t:?}").to_lowercase())
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
         Mod::SetTypes(ts) => format!(
             "set type {}",
             ts.iter()
@@ -7972,6 +7979,7 @@ fn static_cond(c: &StaticCond) -> String {
     match c {
         StaticCond::TopCard(fl) => format!("top card is {}", filter(fl)),
         StaticCond::CountAtLeast(c, n) => format!("count {n} {}", count_expr_text(c)),
+        StaticCond::CountBelow(c, n) => format!("count below {n} {}", count_expr_text(c)),
         StaticCond::CardsInGraveyard(n) => format!("{n} cards in your graveyard"),
         StaticCond::CardTypesInGraveyard(n) => format!("{n} card types in your graveyard"),
         StaticCond::YouControl {

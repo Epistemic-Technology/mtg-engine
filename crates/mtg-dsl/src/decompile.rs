@@ -855,6 +855,9 @@ impl Decompiler<'_> {
                 StaticCond::WasntCastFromHand
             }
             StaticCondition::Not(a) => match &**a {
+                StaticCondition::CountAtLeast(c, n) => {
+                    StaticCond::CountBelow(Box::new(self.cda_count(c)), *n)
+                }
                 StaticCondition::SourceHistory(what) => StaticCond::SourceHistory {
                     what: *what,
                     not: true,
@@ -3283,6 +3286,7 @@ impl Decompiler<'_> {
             Modification::AllCreatureTypes => Mod::AllCreatureTypes { every: true },
             Modification::NoCreatureTypes => Mod::NoCreatureTypes,
             Modification::SetTypes(t) => Mod::SetTypes(types(*t)),
+            Modification::RemoveTypes(t) => Mod::RemoveTypes(types(*t)),
             Modification::SetPt { power, toughness } => Mod::SetPt {
                 power: *power,
                 toughness: *toughness,

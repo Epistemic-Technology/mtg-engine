@@ -1,0 +1,10 @@
+card "Heliod, God of the Sun" {
+  oracle_id 4ea488b2-5ba0-4565-b928-570c8e03b926
+  cost {3}{W}
+  type Legendary Enchantment Creature — God
+  pt 5/6
+  keywords indestructible
+  static as long as count below 5 devotion white, this: isnt creature
+  static other creature you control: has vigilance
+  activated {2}{W}{W}: create 1 "2/1 white Cleric enchantment creature"
+}

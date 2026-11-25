@@ -2522,7 +2522,13 @@ prints "loses all abilities and is a Citizen with base power and toughness
 1/1 and \"{T}: Add {C}\" named Humble Merchant" (Honest Work). `add subtype every` is "is every
 creature type" and `add subtype all` "is all creature types" (layer 4,
 not changeling: it has no ability, and "loses all abilities" leaves it);
-`loses all creature types` removes them (a changeling's too). As effects,
+`loses all creature types` removes them (a changeling's too). `isnt
+creature` is "isn't a creature" (layer 4: that card type goes and its
+others stay, with the creature types, CR 205.3d); the Theros Gods: `static
+as long as count below 5 devotion red, this: isnt creature` prints "As
+long as your devotion to red is less than five, Purphoros isn't a
+creature." (a God that stops being a creature leaves combat, CR 506.4).
+As effects,
 `target creature gains all creature types` and `target creature loses all
 creature types` (until end of turn). `this: add subtype Cleric, add
 subtype Rogue, ...` (two or more) prints "~ is also a Cleric, Rogue, ..."
@@ -2780,7 +2786,9 @@ among permanents you control" (`to solve count 5 ...`; an activation's
 are four or more permanent types among cards in your graveyard"; `if count
 3 other Cave you control plus graveyard Cave`: "if the number of other
 Caves you control plus the number of Cave cards in your graveyard is three
-or greater"), judged as a static ability's counts are. `add chosen count
+or greater"), judged as a static ability's counts are; `count below 5
+devotion red` is the count less than N: "your devotion to red is less
+than five". `add chosen count
 each <count>` is "Choose a color. Add one mana of that color for each
 ..." (one color, as `add any count ...`). After a trigger with an amount,
 `choose up to that much target creature you control; put 1 +1/+1 counter

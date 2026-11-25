@@ -1,0 +1,9 @@
+card "Pharika, God of Affliction" {
+  oracle_id b7d05d00-1e69-4d11-bff0-c1ca2026aad6
+  cost {1}{B}{G}
+  type Legendary Enchantment Creature — God
+  pt 5/5
+  keywords indestructible
+  static as long as count below 7 devotion black and green, this: isnt creature
+  activated {B}{G}: exile target creature card from a graveyard; its owner creates 1 "1/1 black and green Snake enchantment creature with deathtouch"
+}

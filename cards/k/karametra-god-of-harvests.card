@@ -1,0 +1,9 @@
+card "Karametra, God of Harvests" {
+  oracle_id 984e763c-5a83-4231-8ec4-1be76846479a
+  cost {3}{G}{W}
+  type Legendary Enchantment Creature — God
+  pt 6/7
+  keywords indestructible
+  static as long as count below 7 devotion green and white, this: isnt creature
+  triggered whenever you cast a creature spell: you may search Forest or Plains card to battlefield tapped
+}

@@ -1,0 +1,10 @@
+card "Iroas, God of Victory" {
+  oracle_id 36041cf2-159f-4809-9377-930ac4db545f
+  cost {2}{R}{W}
+  type Legendary Enchantment Creature — God
+  pt 7/4
+  keywords indestructible
+  static as long as count below 7 devotion red and white, this: isnt creature
+  static creature you control: has menace
+  replace damage to attacking creature you control: prevent
+}

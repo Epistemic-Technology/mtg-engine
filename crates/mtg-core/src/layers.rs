@@ -1987,6 +1987,17 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 c.subtypes.retain(|s| s.basic_color().is_none());
             }
         }
+        // "Purphoros isn't a creature": CR 205.3d as for `SetTypes`.
+        Modification::RemoveTypes(t) => {
+            use crate::card::{CardType, TypeSet};
+            c.types = TypeSet::of(c.types.iter().filter(|x| !t.contains(*x)));
+            if !c.types.contains(CardType::Creature) && !c.types.contains(CardType::Kindred) {
+                c.subtypes.retain(|s| !s.is_creature_type());
+            }
+            if !c.types.contains(CardType::Land) {
+                c.subtypes.retain(|s| s.basic_color().is_none());
+            }
+        }
         Modification::AddSupertype(s) => c.supertypes = c.supertypes.with(*s),
         Modification::SetName(n) => c.name = Some(*n),
         Modification::AddLandType(color) => {

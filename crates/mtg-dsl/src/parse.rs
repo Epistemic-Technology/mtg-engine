@@ -5858,6 +5858,14 @@ impl P {
         }
         // `count 5 colors among permanents`: "there are five colors among
         // permanents you control" (a count at least N).
+        // `count below 5 devotion red`: "your devotion to red is less than
+        // five".
+        if self.at_words(&["count", "below"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let n = self.number()?;
+            let c = self.count_expr()?;
+            return Ok(StaticCond::CountBelow(Box::new(c), n));
+        }
         if self.at_word("count") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             self.pos += 1;
             let n = self.number()?;
@@ -7865,9 +7873,15 @@ impl P {
         }
         if sacrifices(self) {
             let payer = if self.eat_words(&["they", "sacrifice"]) {
-                match self.subject {
-                    Some(s) => s,
-                    None => {
+                match (self.subject, &e) {
+                    // "Mogis deals 2 damage to that player unless they
+                    // sacrifice a creature": "they" are the player dealt
+                    // damage, not the source dealing it.
+                    (Some(s), Effect::DealDamage { to, by, .. }) if to.len() == 1 && *by == s => {
+                        to[0]
+                    }
+                    (Some(s), _) => s,
+                    (None, _) => {
                         return self.fail("`unless they sacrifice` needs a clause with a subject");
                     }
                 }
@@ -23138,6 +23152,18 @@ impl P {
             }
             "control" => Ok(Mod::Control),
             "goaded" => Ok(Mod::Goaded),
+            "isnt" => {
+                let mut types = Vec::new();
+                while let Some(x) = self.word_at(0) {
+                    let Some(t) = card_type(&x) else { break };
+                    types.push(t);
+                    self.pos += 1;
+                }
+                if types.is_empty() {
+                    return self.fail("expected `isnt <card types>`");
+                }
+                Ok(Mod::RemoveTypes(types))
+            }
             "switch" => {
                 self.eat_word("pt");
                 Ok(Mod::SwitchPt)

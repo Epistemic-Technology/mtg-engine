@@ -1,0 +1,10 @@
+card "Thassa, God of the Sea" {
+  oracle_id 69e5df2f-be1f-4608-a90f-3e2f51e2fea4
+  cost {2}{U}
+  type Legendary Enchantment Creature — God
+  pt 5/5
+  keywords indestructible
+  static as long as count below 5 devotion blue, this: isnt creature
+  triggered at beginning of your upkeep: scry 1
+  activated {1}{U}: target creature you control can't be blocked
+}

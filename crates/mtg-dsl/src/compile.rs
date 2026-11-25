@@ -2493,6 +2493,9 @@ impl Compiler<'_> {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
             StaticCond::TopCard(f) => StaticCondition::TopCard(self.filter(f)),
+            StaticCond::CountBelow(c, n) => StaticCondition::Not(Box::new(
+                StaticCondition::CountAtLeast(Box::new(self.count_expr(c)), *n),
+            )),
             StaticCond::CountAtLeast(c, n) => {
                 StaticCondition::CountAtLeast(Box::new(self.count_expr(c)), *n)
             }
@@ -7036,6 +7039,7 @@ impl Compiler<'_> {
             Mod::AllCreatureTypes { .. } => Modification::AllCreatureTypes,
             Mod::NoCreatureTypes => Modification::NoCreatureTypes,
             Mod::SetTypes(t) => Modification::SetTypes(TypeSet::of(t.iter().copied())),
+            Mod::RemoveTypes(t) => Modification::RemoveTypes(TypeSet::of(t.iter().copied())),
             Mod::SetPt { power, toughness } => Modification::SetPt {
                 power: *power,
                 toughness: *toughness,

@@ -2219,6 +2219,10 @@ pub enum Modification {
     /// "loses all creature types" (layer 4): no creature types, a
     /// changeling's included (as for `SetCreatureType`).
     NoCreatureTypes,
+    /// "Purphoros isn't a creature" (layer 4): these card types go, its
+    /// others stay, with the subtypes that went with them (CR 205.3d: the
+    /// Theros Gods lose the creature type God).
+    RemoveTypes(TypeSet),
     /// "has base power and toughness 1/1" (layer 7b).
     SetPt { power: PtValue, toughness: PtValue },
     /// "+1/+1" (layer 7c).
@@ -2291,7 +2295,8 @@ impl Modification {
             | Modification::ChosenLandType
             | Modification::AddChosenType
             | Modification::AllCreatureTypes
-            | Modification::NoCreatureTypes => Layer::L4Type,
+            | Modification::NoCreatureTypes
+            | Modification::RemoveTypes(_) => Layer::L4Type,
             Modification::AddColors(_)
             | Modification::SetColors(_)
             | Modification::CdaColors(_)

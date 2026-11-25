@@ -1,0 +1,7 @@
+token "1/1 black and green Snake enchantment creature with deathtouch" {
+  name "Snake"
+  type Enchantment Creature — Snake
+  pt 1/1
+  color black green
+  keywords deathtouch
+}

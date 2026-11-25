@@ -3519,6 +3519,10 @@ pub enum StaticCond {
     /// are five colors among permanents you control", "the number of ...
     /// plus the number of ... is three or greater").
     CountAtLeast(Box<CountExpr>, u32),
+    /// `count below 5 devotion red`: the count is less than N ("your
+    /// devotion to red is less than five"; `StaticCondition::Not` of
+    /// `CountAtLeast`).
+    CountBelow(Box<CountExpr>, u32),
     /// `creature died this turn` (morbid).
     CreatureDiedThisTurn,
     /// `opponent damaged this turn`: "an opponent was dealt damage this
@@ -5089,6 +5093,9 @@ pub enum Mod {
     },
     /// `loses all creature types` (layer 4).
     NoCreatureTypes,
+    /// `isnt creature`: "isn't a creature" (layer 4: the card type goes,
+    /// its others stay; the Theros Gods).
+    RemoveTypes(Vec<CardType>),
     SetPt {
         power: PtValue,
         toughness: PtValue,
