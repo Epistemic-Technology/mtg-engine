@@ -740,6 +740,11 @@ impl Compiler<'_> {
                     if !cost.mana.is_empty() || cost.life > 0 || cost.discard > 0 || cost.tap {
                         return self.err("a buyback cost other than mana sacrifices a permanent");
                     }
+                    // "Buyback—Sacrifice three Islands." (Walk the Aeons):
+                    // the engine sacrifices one permanent for buyback.
+                    if cost.count > 1 || cost.sacrifice_any > 0 {
+                        return self.err("a buyback cost sacrifices one permanent, not several");
+                    }
                     let f = self.filter(f);
                     b = b.buyback_sacrifice(f);
                 }
