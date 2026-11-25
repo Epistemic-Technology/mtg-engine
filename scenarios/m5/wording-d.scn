@@ -521,3 +521,25 @@ scenario "Den of the Bugbear: the Goblin attacks with a tapped and attacking tok
   assert battlefield A contains "Goblin"
   assert tapped "Goblin"
 }
+
+scenario "Eldrazi Conscription: +10/+10, trample, and annihilator 2" {
+  battlefield A: "Grizzly Bears", "Eldrazi Conscription" on "Grizzly Bears"
+  battlefield B: "Forest", "Island", "Swamp", "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 12
+  assert has "Grizzly Bears" trample
+  assert battlefield B count 1
+}
+
+scenario "Eldrazi Conscription: unblocked, annihilator then 12 damage" {
+  battlefield A: "Grizzly Bears", "Eldrazi Conscription" on "Grizzly Bears"
+  battlefield B: "Forest", "Island"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 8
+  assert battlefield B count 0
+}

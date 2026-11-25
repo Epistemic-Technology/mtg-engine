@@ -12379,17 +12379,7 @@ impl GameState {
             if let Some(f) = filter {
                 let chars = st.card_characteristics(o);
                 // The mana value isn't a characteristic `matches` sees.
-                // "with mana value 1 or 2" (Founding the Third Path).
-                let in_range = f
-                    .status
-                    .mana_value_range
-                    .is_none_or(|(lo, hi)| mv == u32::from(lo) || mv == u32::from(hi));
-                if !(f
-                    .mana_value
-                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
-                    && in_range
-                    && f.matches(id, p, &chars, Some(source), Some(p)))
-                {
+                if !(mv_fits(f, mv) && f.matches(id, p, &chars, Some(source), Some(p))) {
                     return false;
                 }
             }
@@ -12556,17 +12546,7 @@ impl GameState {
             }
             if let Some(f) = filter {
                 let chars = st.card_characteristics(o);
-                // "with mana value 1 or 2" (Founding the Third Path).
-                let in_range = f
-                    .status
-                    .mana_value_range
-                    .is_none_or(|(lo, hi)| mv == u32::from(lo) || mv == u32::from(hi));
-                if !(f
-                    .mana_value
-                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
-                    && in_range
-                    && f.matches(id, p, &chars, Some(source), Some(p)))
-                {
+                if !(mv_fits(f, mv) && f.matches(id, p, &chars, Some(source), Some(p))) {
                     return false;
                 }
             }
@@ -21071,4 +21051,15 @@ pub(super) fn mode_target_starts(m: &crate::card::Mode) -> SmallVec<[usize; 4]> 
         .chain(m.more.iter().copied())
         .map(|(_, t)| usize::from(t))
         .collect()
+}
+
+/// Whether a card's mana value `mv` fits a free cast's filter: "with mana
+/// value 3 or less", "with mana value 1 or 2" (Founding the Third Path).
+/// The mana value isn't a characteristic `ObjFilter::matches` sees.
+fn mv_fits(f: &crate::card::ObjFilter, mv: u32) -> bool {
+    f.mana_value
+        .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+        && f.status
+            .mana_value_range
+            .is_none_or(|(lo, hi)| mv == u32::from(lo) || mv == u32::from(hi))
 }

@@ -3431,9 +3431,9 @@ fn basic_types_only(f: &Filter) -> bool {
     let basic = |g: &Filter| {
         g.types.is_empty()
             && !g.subtypes.is_empty()
-            && g.subtypes.iter().all(|s| {
-                ["Plains", "Island", "Swamp", "Mountain", "Forest"].contains(&s.as_str())
-            })
+            && g.subtypes
+                .iter()
+                .all(|s| ["Plains", "Island", "Swamp", "Mountain", "Forest"].contains(&s.as_str()))
     };
     basic(f) && f.or.as_ref().is_none_or(|a| basic(a) && a.or.is_none())
 }
@@ -3478,10 +3478,12 @@ fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
 /// Forest" for "Enchant Forest").
 fn enchanted_subtype_noun(card: &Card) -> String {
     let sub = card.abilities.iter().find_map(|a| match a {
-        Ability::Enchant(Target::Filter(f)) if f.types.is_empty() && f.or.is_none() => match f.subtypes.as_slice() {
-            [s] => Some(s.clone()),
-            _ => None,
-        },
+        Ability::Enchant(Target::Filter(f)) if f.types.is_empty() && f.or.is_none() => {
+            match f.subtypes.as_slice() {
+                [s] => Some(s.clone()),
+                _ => None,
+            }
+        }
         _ => None,
     });
     sub.unwrap_or_else(|| enchanted_noun(card).to_string())
@@ -4862,6 +4864,17 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
     }
 }
 
+/// "pay 6 life and sacrifice three black creatures" (Demon of Death's
+/// Gate): life written before the sacrifice is printed first.
+fn life_before_sacrifice(c: &Cost) -> bool {
+    let at = |item: crate::ast::CostItem| c.order.iter().position(|i| *i == item);
+    c.life > 0
+        && matches!(
+            (at(crate::ast::CostItem::Life), at(crate::ast::CostItem::Sacrifice)),
+            (Some(l), Some(s)) if l < s
+        )
+}
+
 /// A filter with an article: "a creature you control", "another creature".
 /// "If it's your turn, you may sacrifice a Mountain rather than pay this
 /// spell's mana cost.", "You may pay {1} and return a basic land you
@@ -4878,14 +4891,7 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
     if !mana.is_empty() {
         parts.push(format!("pay {mana}"));
     }
-    // "pay 6 life and sacrifice three black creatures" (Demon of Death's
-    // Gate): life written first is printed first.
-    let at = |item: crate::ast::CostItem| a.cost.order.iter().position(|i| *i == item);
-    let life_first = a.cost.life > 0
-        && matches!(
-            (at(crate::ast::CostItem::Life), at(crate::ast::CostItem::Sacrifice)),
-            (Some(l), Some(s)) if l < s
-        );
+    let life_first = life_before_sacrifice(&a.cost);
     if life_first {
         parts.push(format!("pay {} life", a.cost.life));
     }

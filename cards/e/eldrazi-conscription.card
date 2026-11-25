@@ -1,0 +1,7 @@
+card "Eldrazi Conscription" {
+  oracle_id 3635e4e5-e655-45f4-a444-39756f55129a
+  cost {8}
+  type Kindred Enchantment — Eldrazi Aura
+  enchant creature
+  static enchanted: +10/+10, has trample, has annihilator 2
+}

@@ -10399,6 +10399,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Annihilator(n)) => Some(format!("annihilator {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Provoke) => Some("provoke".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Mentor) => Some("mentor".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Outlast(c)) => Some(format!("outlast {c}")),
