@@ -4080,10 +4080,12 @@ impl Compiler<'_> {
                     in_addition: false,
                 });
                 let abilities = mtg_core::mana::Color::ALL.map(|c| {
-                    self.pool.register_ability(AbilityDef::HexproofFrom(mtg_core::card::ObjFilter {
-                        colors: Some(mtg_core::mana::ColorSet::of([c])),
-                        ..mtg_core::card::ObjFilter::default()
-                    }))
+                    self.pool.register_ability(AbilityDef::HexproofFrom(
+                        mtg_core::card::ObjFilter {
+                            colors: Some(mtg_core::mana::ColorSet::of([c])),
+                            ..mtg_core::card::ObjFilter::default()
+                        },
+                    ))
                 });
                 out.push(CoreEffect::HexproofFromChosen {
                     to: r(*to),

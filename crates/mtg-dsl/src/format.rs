@@ -2221,10 +2221,13 @@ impl Fmt {
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
+            // `return all card ...`: any card (an empty filter would
+            // print "permanent").
+            Effect::GraveyardToHand { filter: f } if *f == Filter::default() => {
+                "return all card from your graveyard to hand".to_string()
+            }
             Effect::GraveyardToHand { filter: f } => {
-                let f = filter(f);
-                let sep = if f.is_empty() { "" } else { " " };
-                format!("return all {f}{sep}card from your graveyard to hand")
+                format!("return all {} card from your graveyard to hand", filter(f))
             }
             Effect::GraveyardToBattlefield {
                 filter: f, tapped, ..
@@ -2338,7 +2341,9 @@ impl Fmt {
                 format!("leaving exiles {}", self.recipient(*what, t))
             }
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
-            Effect::TurnFaceUpChosen { filter: f } => format!("turn face up 1 {} chosen", filter(f)),
+            Effect::TurnFaceUpChosen { filter: f } => {
+                format!("turn face up 1 {} chosen", filter(f))
+            }
             Effect::ColorOfChoiceHexproof { to } => format!(
                 "{} becomes color of choice and gains hexproof from that color",
                 self.recipient(*to, t)

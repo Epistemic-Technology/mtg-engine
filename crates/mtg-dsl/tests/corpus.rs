@@ -207,9 +207,13 @@ fn that_much_needs_an_amount() {
 }
 
 #[test]
-fn a_delayed_trigger_about_tokens_cant_watch_the_source() {
-    let e = creature_error(
+fn a_delayed_trigger_about_tokens_cant_watch_the_source_die() {
+    // Leaving watches the source (Mysterio); dying has no such form.
+    assert!(compiles(
         "triggered when this enters: create 2 \"1/1 white Soldier creature\"; delayed those tokens: exile those tokens when this leaves the battlefield",
+    ));
+    let e = creature_error(
+        "triggered when this enters: create 2 \"1/1 white Soldier creature\"; delayed those tokens: exile those tokens when this dies",
     );
     assert!(e.contains("watch"), "{e}");
 }
