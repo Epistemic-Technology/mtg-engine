@@ -1,0 +1,9 @@
+card "Oildeep Gearhulk" {
+  oracle_id aff0740f-51d5-41c7-ac13-97c298cfd743
+  cost {U}{U}{B}{B}
+  type Artifact Creature — Construct
+  pt 4/4
+  keywords lifelink
+  ward {1}
+  triggered when this enters: look at hand of target player discarding may card; if you do, that player draws 1 card
+}

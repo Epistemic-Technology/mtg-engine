@@ -1,0 +1,8 @@
+card "Shadow Urchin" {
+  oracle_id 86bd332f-ba61-49a4-ad31-de4d7e3638c6
+  cost {2}{B/R}
+  type Creature — Ouphe
+  pt 3/4
+  triggered whenever this attacks: blight 1
+  triggered whenever creature you control with counters dies: impulse count that many counters on it next end step first
+}

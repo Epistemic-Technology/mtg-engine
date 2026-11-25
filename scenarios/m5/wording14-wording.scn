@@ -1,0 +1,99 @@
+# Wording near-misses the language now prints as Oracle does; each card's
+# behaviour checked with amounts and targets.
+
+# "As an additional cost to cast this spell, pay X life. Return each
+# artifact and creature card with mana value X from your graveyard to the
+# battlefield." (Fix What's Broken): artifacts and creatures alike, mana
+# value exactly X.
+scenario "Fix What's Broken: X 2 returns the artifact and the creature with mana value 2" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  graveyard A: "Millstone", "Grizzly Bears", "Zombie Scavengers", "Divination"
+  hand A: "Fix What's Broken"
+  turn 1 A: cast "Fix What's Broken" x 2
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert battlefield A contains "Millstone"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Zombie Scavengers"
+  assert graveyard A contains "Divination"
+}
+
+# "Whenever you cast a noncreature spell, create X 1/1 red Phyrexian
+# Goblin creature tokens, where X is the mana value of that spell. They
+# gain haste until end of turn." (Ovika, Enigma Goliath).
+scenario "Ovika: a mana value 3 noncreature spell makes three hasty Goblins" {
+  battlefield A: "Ovika, Enigma Goliath", 3 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Phyrexian Goblin"
+  assert has newest "Phyrexian Goblin" haste
+  assert has oldest "Phyrexian Goblin" haste
+}
+
+scenario "Ovika: a creature spell makes none" {
+  battlefield A: "Ovika, Enigma Goliath", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Phyrexian Goblin"
+}
+
+# "{T}: Draw a card. Activate only if you have seven or more cards in your
+# hand." (Resonating Lute); its lands make two mana of one color for an
+# instant or sorcery spell.
+scenario "Resonating Lute: seven cards in hand, it draws" {
+  battlefield A: "Resonating Lute"
+  hand A: "Shock", "Shock", "Shock", "Shock", "Shock", "Shock", "Shock"
+  turn 1 A: activate "Resonating Lute"
+  run_to turn 1 postcombat_main
+  assert hand A count 8
+}
+
+scenario "Resonating Lute: six cards in hand, it can't" {
+  battlefield A: "Resonating Lute"
+  hand A: "Shock", "Shock", "Shock", "Shock", "Shock", "Shock"
+  illegal turn 1 A: activate "Resonating Lute"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Resonating Lute: one land pays for Divination's colored part" {
+  battlefield A: "Resonating Lute", "Mountain", "Island"
+  hand A: "Divination"
+  turn 1 A: activate "Mountain"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+# "Other Ninja and Rogue creatures you control get +1/+1." (Silver-Fur
+# Master).
+scenario "Silver-Fur Master: other Ninjas and Rogues get +1/+1" {
+  battlefield A: "Silver-Fur Master", "Zulaport Cutthroat", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Silver-Fur Master" 2
+  assert power "Zulaport Cutthroat" 2
+  assert power "Grizzly Bears" 2
+}
+
+# "Other snow and Zombie creatures you control get +1/+1." (Narfi).
+scenario "Narfi: snow creatures and Zombies get +1/+1, not Narfi" {
+  battlefield A: "Narfi, Betrayer King", "Sculptor of Winter", "Zombie Scavengers", "Grizzly Bears"
+  battlefield B: "Zombie Cutthroat"
+  run_to turn 1 postcombat_main
+  assert power "Narfi, Betrayer King" 4
+  assert power "Sculptor of Winter" 3
+  assert power "Zombie Scavengers" 4
+  assert power "Grizzly Bears" 2
+  assert power "Zombie Cutthroat" 3
+}
+
+scenario "Narfi: three snow mana return it tapped" {
+  battlefield A: 3 "Snow-Covered Forest"
+  graveyard A: "Narfi, Betrayer King"
+  turn 1 A: activate "Narfi, Betrayer King"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Narfi, Betrayer King"
+  assert tapped "Narfi, Betrayer King"
+}

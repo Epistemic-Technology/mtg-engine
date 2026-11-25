@@ -401,6 +401,7 @@ impl Decompiler<'_> {
             put_there_anywhere: false,
             each: false,
             status: f.status,
+            counter_many: false,
             chosen: (f.chosen && f.status.equal_chosen.is_none())
                 .then_some(crate::ast::OfChosen::ChosenType),
             same: f.same.map(|r| {
@@ -950,6 +951,7 @@ impl Decompiler<'_> {
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
+                your: false,
             },
             StaticCondition::NoCardInHand(f) => StaticCond::NoCardInHand(self.filter(f)),
             StaticCondition::EachHandEmpty => StaticCond::EachHandEmpty,
@@ -2194,6 +2196,7 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 tapped: *tapped,
                 all_graveyards: *all_graveyards,
+                each: false,
             },
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
             CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
@@ -3522,6 +3525,7 @@ impl Decompiler<'_> {
                         || g.keywords.contains(mtg_core::card::Keyword::Wither),
                     conspire: g.conspire,
                     casualty: g.casualty,
+                    joined: false,
                 }
             }
             AbilityDef::CostChange(c) => Ability::CostChange {

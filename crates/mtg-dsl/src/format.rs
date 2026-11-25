@@ -381,7 +381,13 @@ impl Fmt {
                     // player controls": one per player.
                     Some(_) if first.ends_with(" that player controls") => first,
                     Some(rest) => format!("up to {n} {rest}"),
-                    None if first.starts_with("target ") => format!("{n} {first}"),
+                    // `2 another target creature`: "two other target
+                    // creatures" (Betrayal at the Vault).
+                    None if first.starts_with("target ")
+                        || first.starts_with("another target ") =>
+                    {
+                        format!("{n} {first}")
+                    }
                     None => first,
                 }
             }
@@ -2256,15 +2262,20 @@ impl Fmt {
                 filter: f,
                 tapped,
                 all_graveyards: true,
+                ..
             } => format!(
                 "put all {} card from all graveyards onto battlefield{} under your control",
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
             Effect::GraveyardToBattlefield {
-                filter: f, tapped, ..
+                filter: f,
+                tapped,
+                each,
+                ..
             } => format!(
-                "return all {} card from your graveyard to battlefield{}",
+                "return {} {} card from your graveyard to battlefield{}",
+                if *each { "each" } else { "all" },
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
@@ -4913,7 +4924,9 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::TriggerStat { stat, that, spell } => format!(
             "{} of {}",
             stat_word(*stat),
-            if *spell {
+            if *spell && !*that {
+                "that spell long"
+            } else if *spell {
                 "that spell"
             } else if *that {
                 "that creature"
@@ -5153,6 +5166,36 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 
 /// `target card from a graveyard`, `target instant card from your
 /// graveyard`.
+/// The mana value every alternative of `g` shares, taken out of them and
+/// printed after the card noun (" with mana value 5 or less").
+fn take_shared_mana_value(g: &mut Filter) -> Option<String> {
+    let (cmp, n) = g.mana_value?;
+    if g.or.is_none() || g.each || g.status.spent_colors {
+        return None;
+    }
+    let mut alt = g.or.as_deref();
+    while let Some(a) = alt {
+        if a.mana_value != g.mana_value || a.status.mana_value_x != g.status.mana_value_x {
+            return None;
+        }
+        alt = a.or.as_deref();
+    }
+    let n = if g.status.mana_value_x {
+        "X".to_string()
+    } else {
+        n.to_string()
+    };
+    g.mana_value = None;
+    g.status.mana_value_x = false;
+    let mut alt = g.or.as_deref_mut();
+    while let Some(a) = alt {
+        a.mana_value = None;
+        a.status.mana_value_x = false;
+        alt = a.or.as_deref_mut();
+    }
+    Some(format!(" with mana value {n}{}", cmp_suffix(cmp)))
+}
+
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     // `... from a graveyard put there this turn`: after the zone, as it
     // prints.
@@ -5233,6 +5276,14 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         let each = if g.each { " each" } else { "" };
         g.each = false;
         mv = format!("{each} with mana value {n}{}", cmp_suffix(cmp));
+    }
+    // `creature or Spacecraft card with mana value 5 or less`: one mana
+    // value for every alternative (the parser gives it to each).
+    if f.same.is_none()
+        && mv.is_empty()
+        && let Some(shared) = take_shared_mana_value(&mut g)
+    {
+        mv = shared;
     }
     // "creature card with power 2 or less".
     if f.same.is_none()
@@ -5611,6 +5662,9 @@ fn filter_one(f: &Filter) -> String {
         None => {}
     }
     match f.status.counter {
+        Some(mtg_core::card::CounterQual::Any) if f.counter_many => {
+            words.push("with counters".to_string());
+        }
         Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
         Some(mtg_core::card::CounterQual::Kind(k)) => {
             words.push(format!("with {} counter", k.name()));
@@ -7821,8 +7875,12 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
         StaticCond::ActivatedThisTurn(n) => format!("activated {n} times this turn"),
-        StaticCond::CardsInHand { n, at_most } => {
-            format!("hand {n} or {}", if *at_most { "less" } else { "more" })
+        StaticCond::CardsInHand { n, at_most, your } => {
+            let your = if *your { " your" } else { "" };
+            format!(
+                "hand {n} or {}{your}",
+                if *at_most { "less" } else { "more" }
+            )
         }
         StaticCond::HandFewerThan(n) => format!("hand fewer than {n}"),
         StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
@@ -8619,6 +8677,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 groups: groups.to_vec(),
             };
             let head = match (&rep.event, &rep.outcome) {
+                (Replaces::Enters, Outcome::EnterTapped)
+                    if rep.wording == crate::ast::ThenWording::Joined =>
+                {
+                    "enters tapped and".to_string()
+                }
                 (Replaces::Enters, o) => format!("enters {}", outcome(o)),
                 (event, Outcome::PlusToken { that_many, .. }) => format!(
                     "replace {}: plus {}\"{}\"",
@@ -8884,6 +8947,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             control,
             conspire,
             casualty,
+            joined,
         } => {
             let subject = if *f == Filter::default() {
                 String::new()
@@ -8929,9 +8993,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 items.push(format!("casualty {casualty}"));
             }
             let whose = if *control { "you control" } else { "you cast" };
+            let joined = if *joined { " joined" } else { "" };
             let _ = writeln!(
                 out,
-                "{indent}spells{subject} {whose}{from} have {}",
+                "{indent}spells{subject} {whose}{from} have {}{joined}",
                 items.join(" and ")
             );
         }

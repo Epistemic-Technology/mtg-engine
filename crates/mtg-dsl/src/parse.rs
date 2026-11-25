@@ -696,6 +696,11 @@ const NUMBER_WORDS: [&str; 20] = [
     "twenty",
 ];
 
+/// Whether `w` names a card type ("artifact", "creatures").
+pub(crate) fn is_card_type_word(w: &str) -> bool {
+    card_type(w).is_some()
+}
+
 fn card_type(w: &str) -> Option<CardType> {
     Some(match w.to_ascii_lowercase().as_str() {
         "artifact" | "artifacts" => CardType::Artifact,
@@ -4822,13 +4827,21 @@ impl P {
                         more: None,
                     });
                 }
+                // `enters tapped and` before `enters with 3 charge
+                // counters`: "This artifact enters tapped and with three
+                // charge counters on it." (Sphere of the Suns).
+                let joined = outcome == Outcome::EnterTapped && self.eat_word("and");
                 self.end_stmt()?;
                 Ok(Ability::Replacement(Replacement {
                     event: Replaces::Enters,
                     outcome,
                     then: Vec::new(),
                     token: None,
-                    wording: crate::ast::ThenWording::Sentence,
+                    wording: if joined {
+                        crate::ast::ThenWording::Joined
+                    } else {
+                        crate::ast::ThenWording::Sentence
+                    },
                     cond: None,
                 }))
             }
@@ -5077,6 +5090,7 @@ impl P {
                 control: false,
                 conspire: false,
                 casualty: 0,
+                joined: false,
             });
         }
         if cond.is_none()
@@ -5097,6 +5111,7 @@ impl P {
                 control: false,
                 conspire: false,
                 casualty: 0,
+                joined: false,
             });
         }
         // "Instant and sorcery spells you cast [from your hand] have
@@ -6527,7 +6542,8 @@ impl P {
                 self.expect_word("more")?;
                 false
             };
-            return Ok(StaticCond::CardsInHand { n, at_most });
+            let your = self.eat_word("your");
+            return Ok(StaticCond::CardsInHand { n, at_most, your });
         }
         // "unless at least two other creatures attack" (CR 508.1c).
         if self.eat_words(&["at", "least"]) {
@@ -7406,6 +7422,7 @@ impl P {
                 control: false,
                 conspire: false,
                 casualty: 0,
+                joined: false,
             });
         }
         let mut keywords = Vec::new();
@@ -7456,6 +7473,7 @@ impl P {
                 break;
             }
         }
+        let joined = control && self.eat_word("joined");
         self.end_stmt()?;
         Ok(Ability::SpellsHave {
             filter,
@@ -7469,6 +7487,7 @@ impl P {
             control,
             conspire,
             casualty,
+            joined,
         })
     }
 
@@ -10874,6 +10893,21 @@ impl P {
                 let twice = self.eat_word("twice");
                 let to = if !twice && self.eat_word("itself") {
                     subject
+                } else if matches!(self.peek(), Some(Tok::Num(_))) {
+                    // "deals damage equal to its power to each of two
+                    // other target creatures" (Betrayal at the Vault).
+                    let rs = self.recipient_group()?;
+                    match rs.as_slice() {
+                        [Recipient::Target(a), ..]
+                            if rs
+                                .iter()
+                                .enumerate()
+                                .all(|(k, r)| *r == Recipient::Target(a + k)) =>
+                        {
+                            Recipient::Targets(*a, rs.len())
+                        }
+                        _ => return self.fail("`bites N target ...`: one group of targets"),
+                    }
                 } else {
                     self.recipient()?
                 };
@@ -12984,6 +13018,7 @@ impl P {
                     filter,
                     tapped,
                     all_graveyards: true,
+                    each: false,
                 })
             }
             // `put that target 1 onto battlefield tapped`: "put that card
@@ -13113,7 +13148,16 @@ impl P {
                 })
             }
             "shuffle" if !self.at_word("library") && !self.at_word("your") => {
-                let what = self.recipient()?;
+                let mut what = self.recipient()?;
+                // "Shuffle this creature and target creature with a stun
+                // counter on it into their owners' libraries." (Floodpits
+                // Drowner).
+                if what == Recipient::Source && self.eat_word("and") {
+                    match self.recipient()? {
+                        Recipient::Target(a) => what = Recipient::SourceAndTarget(a),
+                        _ => return self.fail("`shuffle this and target N into library`"),
+                    }
+                }
                 let place = self.library_place(true)?;
                 Ok(Effect::PutInLibrary {
                     what,
@@ -13288,7 +13332,7 @@ impl P {
             // "Return all creature cards from your graveyard to the
             // battlefield."
             "return"
-                if self.at_word("all")
+                if (self.at_word("all") || self.at_word("each"))
                     // A long filter ("all creature with mana value 2 or
                     // less card from your graveyard") is still one.
                     && (1..24).any(|k| {
@@ -13298,7 +13342,10 @@ impl P {
                             && self.word_at(k + 3).as_deref() == Some("graveyard")
                     }) =>
             {
-                self.pos += 1;
+                let each = self.eat_word("each");
+                if !each {
+                    self.pos += 1;
+                }
                 let filter = self.filter()?;
                 self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
@@ -13308,6 +13355,7 @@ impl P {
                     filter,
                     tapped,
                     all_graveyards: false,
+                    each,
                 })
             }
             "return" if self.at_words(&["those", "exiled", "cards", "to", "hand"]) => {
@@ -15543,9 +15591,12 @@ impl P {
         {
             let spell = at(1).as_deref() == Some("spell");
             self.pos += len + 2;
+            // `mana value of that spell long`: "the mana value of that
+            // spell" (Ovika, Enigma Goliath), wording only.
+            let long = spell && self.eat_word("long");
             return Some(CountExpr::TriggerStat {
                 stat,
-                that: true,
+                that: !long,
                 spell,
             });
         }
@@ -17731,6 +17782,17 @@ impl P {
                 if g.same == Some(SameRef::ManaValueAtMostPower) {
                     f.same = g.same;
                 }
+                // "creature or Spacecraft card with mana value 5 or less"
+                // (Scrounge for Eternity): one mana value for every
+                // alternative.
+                let mut alt = f.or.as_deref_mut();
+                while let Some(a) = alt {
+                    if a.mana_value.is_none() {
+                        a.mana_value = g.mana_value;
+                        a.status.mana_value_x = g.status.mana_value_x;
+                    }
+                    alt = a.or.as_deref_mut();
+                }
             }
             if !self.at_word("from") {
                 return self.unexpected("`from` after the card's mana value");
@@ -18330,6 +18392,16 @@ impl P {
                 {
                     self.pos += 3;
                     f.status.counter = Some(mtg_core::card::CounterQual::NoCounters);
+                }
+                // "with one or more counters on it" (Shadow Urchin).
+                "with"
+                    if f.status.counter.is_none()
+                        && self.word_at(1).as_deref() == Some("counters")
+                        && self.word_at(2).as_deref() != Some("put") =>
+                {
+                    self.pos += 2;
+                    f.status.counter = Some(mtg_core::card::CounterQual::Any);
+                    f.counter_many = true;
                 }
                 // "with a +1/+1 counter on it", "with a counter on it".
                 "with" if f.status.counter.is_none() && self.at_counter_qual() => {

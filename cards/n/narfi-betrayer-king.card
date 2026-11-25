@@ -1,0 +1,8 @@
+card "Narfi, Betrayer King" {
+  oracle_id 18beb8eb-6f67-482f-9a7d-282f1e7ecbc1
+  cost {3}{U}{B}
+  type Legendary Snow Creature — Zombie Wizard
+  pt 4/3
+  static andlist other snow creature or Zombie creature you control: +1/+1
+  activated {S}{S}{S}, from graveyard: return this to battlefield tapped
+}

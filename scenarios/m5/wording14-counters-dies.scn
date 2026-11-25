@@ -1,0 +1,39 @@
+# "Whenever a creature you control with one or more counters on it dies,
+# exile that many cards from the top of your library. Until your next end
+# step, you may play those cards." (Shadow Urchin): "that many" is the
+# number of counters it had, of any kinds.
+
+scenario "Shadow Urchin: a creature with two counters dies, two cards are exiled" {
+  battlefield A: "Shadow Urchin", "Grizzly Bears" with 2 +1/+1
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  library A: "Shock", "Divination", "Hill Giant"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Shock"
+  assert exile A contains "Divination"
+  assert library A contains "Hill Giant"
+}
+
+scenario "Shadow Urchin: the exiled card may be played" {
+  battlefield A: "Shadow Urchin", "Grizzly Bears" with 1 +1/+1, "Mountain"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  library A: "Shock", "Hill Giant"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert library A contains "Hill Giant"
+}
+
+scenario "Shadow Urchin: a creature without counters, nothing is exiled" {
+  battlefield A: "Shadow Urchin", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  library A: "Shock", "Hill Giant"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A count 0
+  assert library A contains "Shock"
+}

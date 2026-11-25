@@ -1,0 +1,31 @@
+# "Target creature you control deals damage equal to its power to each of
+# two other target creatures." (Betrayal at the Vault).
+
+scenario "Betrayal at the Vault: each of the two other targets is dealt damage equal to the power" {
+  battlefield A: 6 "Forest", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  hand A: "Betrayal at the Vault"
+  turn 1 A: cast "Betrayal at the Vault" targeting "Hill Giant", "Grizzly Bears", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Serra Angel" 3
+  assert damage "Hill Giant" 0
+}
+
+scenario "Betrayal at the Vault: one of its own creatures may be a target" {
+  battlefield A: 6 "Forest", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  hand A: "Betrayal at the Vault"
+  turn 1 A: cast "Betrayal at the Vault" targeting "Hill Giant", "Grizzly Bears", "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+}
+
+scenario "Betrayal at the Vault: the creature dealing damage can't also be dealt it" {
+  battlefield A: 6 "Forest", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Betrayal at the Vault"
+  illegal turn 1 A: cast "Betrayal at the Vault" targeting "Hill Giant", "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

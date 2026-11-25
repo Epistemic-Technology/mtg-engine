@@ -1329,6 +1329,10 @@ pub struct Filter {
     /// `that dealt damage this turn`, `that blocked this turn`, `with mana
     /// value X` (`ObjFilter::status`).
     pub status: mtg_core::card::StatusQuals,
+    /// `with counters`: `status.counter` any kind, printed "with one or
+    /// more counters on it" (Shadow Urchin) rather than "with a counter on
+    /// it"; wording only.
+    pub counter_many: bool,
     /// `creature or Vehicle`: an alternative filter.
     pub or: Option<Box<Filter>>,
     /// `Knight or a Soldier`: the alternative written with its own article,
@@ -2157,6 +2161,11 @@ pub enum Ability {
         conspire: bool,
         /// `... have casualty 1` (CR 702.153); 0 for none.
         casualty: u8,
+        /// `spells Lesson you control have lifelink joined` after `static
+        /// Noble creature you control: has lifelink`: one sentence, "Noble
+        /// creatures you control and Lesson spells you control have
+        /// lifelink." (Lo and Li, Twin Tutors); wording only.
+        joined: bool,
     },
     /// `spells you cast have alternative cost {W}{U}{B}{R}{G}`: "You may
     /// pay {W}{U}{B}{R}{G} rather than pay the mana cost for spells you
@@ -3493,6 +3502,9 @@ pub enum StaticCond {
     CardsInHand {
         n: u32,
         at_most: bool,
+        /// `hand 7 or more your`: "seven or more cards in your hand"
+        /// (Resonating Lute); wording only.
+        your: bool,
     },
     /// `hand has no land card`: "you have no land cards in hand".
     NoCardInHand(Filter),
@@ -6757,6 +6769,10 @@ pub enum Effect {
         /// graveyards onto the battlefield under your control." (every
         /// graveyard, under the controller's control).
         all_graveyards: bool,
+        /// `return each andlist artifact or creature card ...`: "Return
+        /// each artifact and creature card ..." (Fix What's Broken);
+        /// wording only.
+        each: bool,
     },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).

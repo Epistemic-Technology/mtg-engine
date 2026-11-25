@@ -1,0 +1,52 @@
+# "This artifact enters tapped and with three charge counters on it."
+# (Sphere of the Suns, Noble's Purse): both replacements apply.
+
+scenario "Sphere of the Suns: it enters tapped with three charge counters" {
+  battlefield A: 2 "Plains"
+  hand A: "Sphere of the Suns"
+  turn 1 A: cast "Sphere of the Suns"
+  run_to turn 1 postcombat_main
+  assert tapped "Sphere of the Suns"
+  assert counters "Sphere of the Suns" charge 3
+}
+
+scenario "Noble's Purse: a coin counter for a Treasure" {
+  battlefield A: "Noble's Purse" with 3 coin
+  turn 1 A: activate "Noble's Purse"
+  run_to turn 1 postcombat_main
+  assert counters "Noble's Purse" coin 2
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Noble's Purse: it enters tapped with three coin counters" {
+  battlefield A: 2 "Plains"
+  hand A: "Noble's Purse"
+  turn 1 A: cast "Noble's Purse"
+  run_to turn 1 postcombat_main
+  assert tapped "Noble's Purse"
+  assert counters "Noble's Purse" coin 3
+}
+
+# "When this Aura enters, tap enchanted permanent. If it's an Equipment,
+# unattach it." (Tamiyo's Compleation).
+scenario "Tamiyo's Compleation: an Equipment is tapped and unattached" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  hand A: "Tamiyo's Compleation"
+  turn 1 A: cast "Tamiyo's Compleation" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert tapped "Bonesplitter"
+  assert power "Grizzly Bears" 2
+  assert attached "Tamiyo's Compleation" to "Bonesplitter"
+}
+
+scenario "Tamiyo's Compleation: a creature is tapped and loses its abilities" {
+  battlefield A: 4 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Tamiyo's Compleation"
+  turn 1 A: cast "Tamiyo's Compleation" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Serra Angel"
+  assert has not "Serra Angel" flying
+  assert battlefield B contains "Serra Angel"
+}

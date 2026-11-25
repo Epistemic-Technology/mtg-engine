@@ -2670,7 +2670,7 @@ impl Compiler<'_> {
                 at_most: true,
             },
             StaticCond::ActivatedThisTurn(n) => StaticCondition::ActivatedThisTurn(*n),
-            StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
+            StaticCond::CardsInHand { n, at_most, .. } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
             },
@@ -4027,6 +4027,7 @@ impl Compiler<'_> {
                 filter,
                 tapped,
                 all_graveyards,
+                ..
             } => {
                 out.push(CoreEffect::GraveyardToBattlefield {
                     filter: self.filter(filter),
@@ -4379,6 +4380,20 @@ impl Compiler<'_> {
                 times: *times,
                 to: r(*to),
             }),
+            // "Shuffle this creature and target creature ... into their
+            // owners' libraries": each into its owner's library.
+            Effect::PutInLibrary {
+                what: Recipient::SourceAndTarget(a),
+                place,
+                ..
+            } => {
+                for what in [CoreRecipient::Source, r(Recipient::Target(*a))] {
+                    out.push(CoreEffect::PutInLibrary {
+                        what,
+                        place: *place,
+                    });
+                }
+            }
             Effect::PutInLibrary { what, place, .. } => out.push(CoreEffect::PutInLibrary {
                 what: r(*what),
                 place: *place,
@@ -7611,6 +7626,7 @@ impl Compiler<'_> {
                 control: _,
                 conspire,
                 casualty,
+                ..
             } => AbilityDef::CostChange(mtg_core::card::CostChange {
                 spells: self.filter(filter),
                 whose: *whose,

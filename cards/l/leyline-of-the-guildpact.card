@@ -1,0 +1,8 @@
+card "Leyline of the Guildpact" {
+  oracle_id 6b2e6a51-b9e6-4848-b7d7-98f02f2b897f
+  cost {G/W}{G/U}{B/G}{R/G}
+  type Enchantment
+  opening hand
+  static each nonland permanent you control: set color white blue black red green
+  static land you control: add land all
+}

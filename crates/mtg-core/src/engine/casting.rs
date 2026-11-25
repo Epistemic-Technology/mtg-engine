@@ -15939,6 +15939,38 @@ impl GameState {
                     ctx.did = false;
                     return;
                 }
+                // "You may exile it and collect evidence 4" (Lamplight
+                // Phoenix): with too little evidence the whole action can't
+                // be done (CR 701.59b), so nothing is exiled; a card the
+                // same action exiles can't be part of the evidence (its
+                // ruling).
+                if inner.len() > 1
+                    && let Some(n) = inner.iter().find_map(|e| match e {
+                        Effect::CollectEvidence(n) => Some(*n),
+                        _ => None,
+                    })
+                {
+                    let mut except = ctx.source;
+                    let mut gone = false;
+                    for e in inner {
+                        if let Effect::Exile { what } = e {
+                            match self.recipients(ctx, *what).into_iter().next() {
+                                Some(Target::Object(id))
+                                    if self.objects.get(id).is_some_and(|o| {
+                                        matches!(o.zone, Zone::Graveyard | Zone::Battlefield)
+                                    }) =>
+                                {
+                                    except = id;
+                                }
+                                _ => gone = true,
+                            }
+                        }
+                    }
+                    if gone || !self.evidence_payable(ctx.controller, n, except) {
+                        ctx.did = false;
+                        return;
+                    }
+                }
                 let def = self
                     .objects
                     .get(ctx.source)
@@ -16768,6 +16800,13 @@ impl GameState {
                 // card.
                 let found: SmallVec<[Target; 2]> = if *what == crate::card::Recipient::Source {
                     self.current_object_from_battlefield(ctx.source)
+                        // "When this dies, you may exile it ... If you do,
+                        // return this card to the battlefield" (Lamplight
+                        // Phoenix): the card this resolution just exiled.
+                        .or_else(|| {
+                            ctx.created
+                                .filter(|c| self.current_object(ctx.source) == Some(*c))
+                        })
                         .map(Target::Object)
                         .into_iter()
                         .collect()

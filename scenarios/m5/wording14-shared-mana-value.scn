@@ -1,0 +1,40 @@
+# "target creature or Spacecraft card with mana value 5 or less" (Scrounge
+# for Eternity): the mana value bounds both alternatives, not only the
+# Spacecraft card.
+
+scenario "Scrounge for Eternity: a Spacecraft card with mana value 5" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  graveyard A: "Susurian Dirgecraft"
+  hand A: "Scrounge for Eternity"
+  turn 1 A: cast "Scrounge for Eternity" sacrificing "Grizzly Bears" targeting "Susurian Dirgecraft"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Susurian Dirgecraft"
+  assert battlefield A contains "Lander"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Scrounge for Eternity: a creature card with mana value 5" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  graveyard A: "Serra Angel"
+  hand A: "Scrounge for Eternity"
+  turn 1 A: cast "Scrounge for Eternity" sacrificing "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains "Lander"
+}
+
+scenario "Scrounge for Eternity: a creature card with mana value 6 isn't a target" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  graveyard A: "Shivan Dragon", "Serra Angel"
+  hand A: "Scrounge for Eternity"
+  illegal turn 1 A: cast "Scrounge for Eternity" sacrificing "Grizzly Bears" targeting "Shivan Dragon"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Scrounge for Eternity: a Spacecraft card with mana value 6 isn't a target" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  graveyard A: "Specimen Freighter", "Serra Angel"
+  hand A: "Scrounge for Eternity"
+  illegal turn 1 A: cast "Scrounge for Eternity" sacrificing "Grizzly Bears" targeting "Specimen Freighter"
+  run_to turn 1 postcombat_main
+}

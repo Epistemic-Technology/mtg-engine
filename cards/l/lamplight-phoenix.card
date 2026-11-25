@@ -1,0 +1,8 @@
+card "Lamplight Phoenix" {
+  oracle_id c6f7efad-381c-45ba-9976-159b7e78f7ed
+  cost {1}{R}{R}
+  type Creature — Phoenix
+  pt 3/3
+  keywords flying
+  triggered when this dies: you may exile this and collect evidence 4; if you do, return this card to battlefield tapped
+}
