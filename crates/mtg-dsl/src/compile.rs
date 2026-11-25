@@ -3738,7 +3738,37 @@ impl Compiler<'_> {
                 );
             }
             let start = out.len();
-            for e in &s.effects {
+            for (i, e) in s.effects.iter().enumerate() {
+                // "exile it at end of combat, then return it to the
+                // battlefield transformed under your control" (Conqueror's
+                // Galleon): the clauses after a delayed trigger written
+                // effects first, joined by "then", are the delayed
+                // trigger's too.
+                if let Effect::Delayed {
+                    effects: body,
+                    trigger_first: false,
+                    closed: false,
+                    ..
+                } = e
+                    && i + 1 < s.effects.len()
+                    && matches!(
+                        s.joins.get(i),
+                        Some(crate::ast::Join::Then | crate::ast::Join::ThenRepeat)
+                    )
+                    && let Some(last) = body.last()
+                {
+                    let mut last = last.clone();
+                    last.effects.extend(s.effects[i + 1..].iter().cloned());
+                    last.joins.extend(s.joins[i..].iter().copied());
+                    let mut body = body.clone();
+                    *body.last_mut().expect("a last sentence") = last;
+                    let mut e = e.clone();
+                    if let Effect::Delayed { effects, .. } = &mut e {
+                        *effects = body;
+                    }
+                    self.effect(&e, &mut out)?;
+                    break;
+                }
                 self.effect(e, &mut out)?;
             }
             // CR 611.2b: "... until your next turn", "... for as long as

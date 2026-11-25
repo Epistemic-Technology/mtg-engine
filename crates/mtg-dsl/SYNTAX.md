@@ -4083,7 +4083,12 @@ random` ("At the beginning of your next upkeep, ..."), `delayed that
 token: at beginning of the end step on your next turn, sacrifice that
 token` ("At the beginning of the end step on your next turn, ...": the
 controller's end step, but not in the turn it was created), and
-`at end of combat` ("destroy it at end of combat"). A delayed trigger
+`at end of combat` ("destroy it at end of combat"). Clauses joined by
+`then` after a delayed trigger written effects first are the delayed
+trigger's too (`delayed this: exile this at end of combat then return this
+to battlefield transformed under your control`: "exile it at end of combat,
+then return it to the battlefield transformed under your control.",
+Conqueror's Galleon). A delayed trigger
 about a triggering object that has left the battlefield whose effects make
 a token copy of it is about that permanent as it last existed (`whenever
 you sacrifice this or artifact: you may pay {2}; if you do, delayed that
