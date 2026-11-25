@@ -1814,7 +1814,7 @@ impl GameState {
                 .collect(),
             // CR 607.2a: "a creature card exiled with this land", judged
             // as a card for its owner ("you own").
-            ChooseAct::ExiledWith => self
+            ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom => self
                 .exiled_with(ctx.source)
                 .filter(|id| {
                     let o = &self.objects[*id];
@@ -2047,7 +2047,7 @@ impl GameState {
         let mut cands = self.act_candidates(ctx, act, filter);
         // "Return a creature card exiled with this land ...": with none,
         // "it" is nothing, not an earlier object.
-        if act == ChooseAct::ExiledWith {
+        if matches!(act, ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom) {
             ctx.created = None;
         }
         // "put all Elf cards from among them into your hand": every
@@ -2066,7 +2066,9 @@ impl GameState {
         while done < n && !cands.is_empty() {
             let id = if matches!(
                 act,
-                ChooseAct::ReturnRandomFromGraveyard | ChooseAct::ExileRandomFromGraveyard
+                ChooseAct::ReturnRandomFromGraveyard
+                    | ChooseAct::ExileRandomFromGraveyard
+                    | ChooseAct::ExiledWithRandom
             ) {
                 // "at random": from the game's random number generator.
                 cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
@@ -2094,7 +2096,7 @@ impl GameState {
             };
             cands.retain(|c| *c != id);
             match act {
-                ChooseAct::Choose | ChooseAct::ExiledWith => {
+                ChooseAct::Choose | ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom => {
                     ctx.created = Some(id);
                     picked.push((self.objects[id].controller, id));
                 }
@@ -2235,8 +2237,10 @@ impl GameState {
             log.group = picked.iter().map(|(_, id)| *id).collect();
         }
         // "Choose up to one creature. Destroy the rest." (Duneblast).
-        if matches!(act, ChooseAct::Choose | ChooseAct::ExiledWith)
-            && let Some(log) = self.this_way.as_mut()
+        if matches!(
+            act,
+            ChooseAct::Choose | ChooseAct::ExiledWith | ChooseAct::ExiledWithRandom
+        ) && let Some(log) = self.this_way.as_mut()
         {
             log.chosen = picked;
             log.unchosen = cands;

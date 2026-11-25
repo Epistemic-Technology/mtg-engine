@@ -7324,6 +7324,9 @@ pub enum ChooseAct {
     /// and the last choice for "each other card exiled with this"
     /// (`StatusQuals::unchosen` on an `ExiledWith` group).
     ExiledWith,
+    /// "choose a card at random exiled with this enchantment" (Omenpath
+    /// Journey): as `ExiledWith`, the card picked at random.
+    ExiledWithRandom,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,

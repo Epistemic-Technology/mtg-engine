@@ -16172,6 +16172,7 @@ impl P {
             self.expect_word("this")?;
             false
         };
+        let random = !it && self.eat_words(&["at", "random"]);
         let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
             i
         } else {
@@ -16182,7 +16183,11 @@ impl P {
             line: self.line(),
             message: "too many groups".to_string(),
         })?;
-        Ok(Some(Recipient::OneExiledWith(i, it)))
+        Ok(Some(if random {
+            Recipient::RandomExiledWith(i)
+        } else {
+            Recipient::OneExiledWith(i, it)
+        }))
     }
 
     #[allow(clippy::too_many_lines)] // one check per recipient form

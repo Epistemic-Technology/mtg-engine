@@ -5137,6 +5137,11 @@ pub enum Recipient {
     /// `n`th group's filter, chosen as the effect resolves (CR 607.2a,
     /// 608.2d; the core `ChooseAct::ExiledWith`, then `CreatedObject`).
     OneExiledWith(u16, bool),
+    /// `1 card exiled with this at random`: as `OneExiledWith`, the card
+    /// picked at random ("choose a card at random exiled with this
+    /// enchantment and put it onto the battlefield tapped", Omenpath
+    /// Journey; the core `ChooseAct::ExiledWithRandom`).
+    RandomExiledWith(u16),
     /// `those cards`: the targets declared so far (`first`, `count`),
     /// after an effect moved them ("Exile two target creatures you
     /// control, then return those cards to the battlefield").

@@ -2504,6 +2504,20 @@ impl<'a> Ctx<'a> {
                     }
                 )
             }
+            // "a card at random exiled with this enchantment".
+            Recipient::RandomExiledWith(i) => {
+                let f = self
+                    .card
+                    .groups
+                    .get(usize::from(i))
+                    .cloned()
+                    .unwrap_or_default();
+                format!(
+                    "{} at random exiled with {}",
+                    with_article(&cards_phrase(&f, self.card, false)),
+                    this_ref(self.card)
+                )
+            }
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
@@ -9592,6 +9606,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             front_up,
             enters_attacking,
         } => {
+            // "choose a card at random exiled with this enchantment and put
+            // it onto the battlefield tapped" (Omenpath Journey).
+            if let Recipient::RandomExiledWith(_) = what
+                && c.is_none()
+                && !*under_you
+            {
+                let o = ctx.obj(*what);
+                let tapped = if *tapped { " tapped" } else { "" };
+                return Clause::imperative(format!(
+                    "choose {o} and put it onto the battlefield{tapped}"
+                ));
+            }
             let what_ref = what;
             // `that card` prints "that card", `it` (inside a delayed
             // trigger) "it".
@@ -11723,6 +11749,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // Written as its recipient (`1 card exiled with this`).
                 ChooseAct::ExiledWith => format!(
                     "choose {} exiled with {}",
+                    cards(),
+                    this_ref(ctx.card)
+                ),
+                ChooseAct::ExiledWithRandom => format!(
+                    "choose {} at random exiled with {}",
                     cards(),
                     this_ref(ctx.card)
                 ),

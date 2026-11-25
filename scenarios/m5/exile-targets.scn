@@ -192,6 +192,42 @@ scenario "Pinnacle Starcage: the exiled cards go to their owners' graveyards, a 
   assert battlefield B lacks "Grizzly Bears"
 }
 
+# "At the beginning of your end step, choose a card at random exiled with
+# this enchantment and put it onto the battlefield tapped."
+
+scenario "Omenpath Journey: one exiled land at random each end step" {
+  battlefield A: 4 "Forest"
+  hand A: "Omenpath Journey"
+  library A: "Island", "Swamp", "Island", "Plains"
+  turn 1 A: cast "Omenpath Journey"
+  turn 1 A: choose "Island"
+  turn 1 A: choose "Swamp"
+  turn 1 A: choose decline
+  run_to turn 1 end
+  assert exile A count 2
+  assert library A count 2
+  run_to turn 1 cleanup
+  assert exile A count 1
+  run_to turn 3 cleanup
+  assert exile A count 0
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Swamp"
+  assert battlefield A count 7
+}
+
+scenario "Omenpath Journey: the land enters tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Omenpath Journey"
+  library A: "Island", "Plains", "Plains"
+  turn 1 A: cast "Omenpath Journey"
+  turn 1 A: choose "Island"
+  turn 1 A: choose decline
+  run_to turn 1 cleanup
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert exile A count 0
+}
+
 # "When this Vehicle leaves the battlefield, the exiled card's owner
 # manifests dread." (CR 607.2a, 701.62a).
 

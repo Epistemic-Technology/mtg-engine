@@ -545,6 +545,15 @@ impl Fmt {
                 };
                 format!("1 {noun} exiled with {}", if it { "it" } else { "this" })
             }
+            Recipient::RandomExiledWith(i) => {
+                let f = self.groups.get(usize::from(i)).cloned().unwrap_or_default();
+                let noun = if f == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", filter(&f))
+                };
+                format!("1 {noun} exiled with this at random")
+            }
             Recipient::RandomOf(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("random {}", filter(f)),
                 None => "random permanent".to_string(),
@@ -3923,6 +3932,9 @@ impl Fmt {
                     ChooseAct::Choose => format!("choose {n} {f} chosen"),
                     // Written as its recipient (`1 card exiled with this`).
                     ChooseAct::ExiledWith => format!("choose {n} {f} card exiled with this chosen"),
+                    ChooseAct::ExiledWithRandom => {
+                        format!("choose {n} {f} card exiled with this at random")
+                    }
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Transform => format!("transform {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),

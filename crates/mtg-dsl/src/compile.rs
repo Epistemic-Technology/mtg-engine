@@ -3383,6 +3383,7 @@ impl Compiler<'_> {
             // effect.
             // Chosen first (`Compiler::effect`), then "it".
             Recipient::OneExiledWith(..)
+            | Recipient::RandomExiledWith(_)
             | Recipient::ChosenOf(_)
             | Recipient::Manifested
             | Recipient::CreatedObject
@@ -3582,13 +3583,17 @@ impl Compiler<'_> {
         // "Return a creature card exiled with this land to the
         // battlefield": the card is chosen from the pile first (CR 607.2a,
         // 608.2d), then the effect acts on it.
-        if let Some(i) = one_exiled_with(e) {
+        if let Some((i, random)) = one_exiled_with(e) {
             let Some(f) = self.card.groups.get(usize::from(i)) else {
                 return self.err("`1 card exiled with this` names no filter");
             };
             let filter = self.filter(f);
             out.push(CoreEffect::ChooseAct {
-                act: mtg_core::card::ChooseAct::ExiledWith,
+                act: if random {
+                    mtg_core::card::ChooseAct::ExiledWithRandom
+                } else {
+                    mtg_core::card::ChooseAct::ExiledWith
+                },
                 filter,
                 count: mtg_core::card::Num::N(1),
                 up_to: false,
@@ -9278,9 +9283,10 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
 
 /// The group of `e`'s `1 card exiled with this` recipient, if it acts on
 /// one (`Recipient::OneExiledWith`).
-fn one_exiled_with(e: &Effect) -> Option<u16> {
+fn one_exiled_with(e: &Effect) -> Option<(u16, bool)> {
     let one = |r: &Recipient| match r {
-        Recipient::OneExiledWith(i, _) => Some(*i),
+        Recipient::OneExiledWith(i, _) => Some((*i, false)),
+        Recipient::RandomExiledWith(i) => Some((*i, true)),
         _ => None,
     };
     match e {

@@ -2803,7 +2803,10 @@ land to the battlefield under your control"; `put ... onto battlefield`
 ("Put a card exiled with this Saga into its owner's hand"), and `you may
 this becomes a copy of 1 creature card exiled with it until end of turn`
 ("you may have Lazav become a copy of a creature card exiled with it
-until end of turn"); with none, nothing happens. After it, `each other
+until end of turn"); with none, nothing happens. `put 1 card exiled with
+this at random onto battlefield tapped` prints "choose a card at random
+exiled with this enchantment and put it onto the battlefield tapped"
+(Omenpath Journey: picked by the game's random number generator). After it, `each other
 card exiled with this` ("Return each other card exiled with this land to
 its owner's hand") is the rest of them.
 `exile <what> until this leaves` ("exile target creature an opponent
