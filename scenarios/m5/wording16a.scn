@@ -517,3 +517,30 @@ scenario "Gideon, Ally of Zendikar: +1, 0, and -4" {
   assert power "Grizzly Bears" 3
   assert power "Knight Ally" 3
 }
+
+scenario "Draconic Destiny: +1/+1, flying, haste, a pump ability, and a Dragon" {
+  battlefield A: 4 "Mountain", 2 "Forest"
+  hand A: "Grizzly Bears", "Draconic Destiny"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Draconic Destiny" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" haste
+  assert is "Grizzly Bears" Dragon
+  assert is "Grizzly Bears" Bear
+  assert power "Grizzly Bears" 4
+  assert life B 16
+}
+
+scenario "Draconic Destiny: returns to its owner's hand when the creature dies" {
+  battlefield A: "Draconic Destiny" on "Grizzly Bears", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Draconic Destiny"
+}

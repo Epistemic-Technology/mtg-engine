@@ -21093,7 +21093,18 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                 run.push(rest.to_string());
                 parts.remove(i);
             }
-            parts[i - 1] = if run.len() == 2 {
+            // "has flying, haste, and \"{1}: ...\"" (Draconic Destiny): two
+            // or more keywords and a quoted ability are one serial list.
+            let kws = run[0]
+                .strip_prefix("has ")
+                .filter(|k| !k.contains('"') && !k.contains(" from ") && k.contains(" and "));
+            parts[i - 1] = if run.len() == 2
+                && run[1].starts_with('"')
+                && let Some(kws) = kws
+            {
+                let kws = kws.replacen(", and ", ", ", 1).replacen(" and ", ", ", 1);
+                format!("has {kws}, and {}", run[1])
+            } else if run.len() == 2 {
                 format!("{} and {}", run[0], run[1])
             } else {
                 let last = run.pop().expect("nonempty");
@@ -21135,8 +21146,25 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             }
         }
     }
+    // "Enchanted creature gets +1/+1 and has flying, haste, and \"{1}:
+    // ... until end of turn.\" It's a Dragon in addition to its other
+    // types." (Draconic Destiny): after a list ending in a quoted
+    // ability, the added type is a sentence of its own.
+    let type_after_list = !plural_form
+        && parts.len() == 3
+        && parts[1].contains(", and \"")
+        && parts[1].ends_with(".\"")
+        && parts[2].ends_with(" in addition to its other types")
+        && (parts[2].starts_with("is a ") || parts[2].starts_with("is an "));
     let mut body = if split {
         format!("{subject} {}. It {}", parts[0], parts[1..].join(" and "))
+    } else if type_after_list {
+        format!(
+            "{subject} {} and {} It's {}",
+            parts[0],
+            parts[1],
+            &parts[2]["is ".len()..]
+        )
     } else {
         // A quoted ability before the end of the list drops its period:
         // "has \"Whenever ..., draw a card,\" and is a Rogue", "has

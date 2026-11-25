@@ -1,0 +1,8 @@
+card "Draconic Destiny" {
+  oracle_id f034137e-c19f-48af-a2f2-f767bf87a275
+  cost {1}{R}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has flying, haste, has ability { activated {1}: this gets +1/+0 until end of turn }, add subtype Dragon
+  triggered when enchanted dies: return this card to owner's hand
+}
