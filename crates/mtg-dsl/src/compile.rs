@@ -4388,7 +4388,9 @@ impl Compiler<'_> {
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
-            Effect::ExileOnLeave { what } => out.push(CoreEffect::ExileOnLeave { what: r(*what) }),
+            Effect::ExileOnLeave { what, .. } => {
+                out.push(CoreEffect::ExileOnLeave { what: r(*what) });
+            }
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
             Effect::ColorOfChoiceHexproof { to } => {
                 out.push(CoreEffect::OfChoice {
@@ -7663,14 +7665,17 @@ impl Compiler<'_> {
                     Some(crate::ast::TrigCond::HadCounter { .. }) => {
                         Some(mtg_core::card::Condition::TriggerHadCounters)
                     }
-                    Some(crate::ast::TrigCond::Outstats) => {
+                    Some(crate::ast::TrigCond::Outstats | crate::ast::TrigCond::OutstatsThat) => {
                         Some(mtg_core::card::Condition::Evolves)
                     }
                     // Wording: the ability works only from the graveyard.
-                    Some(crate::ast::TrigCond::InGraveyard) => {
+                    Some(
+                        crate::ast::TrigCond::InGraveyard | crate::ast::TrigCond::InGraveyardIf,
+                    ) => {
                         if !*from_graveyard {
-                            return self
-                                .err("`while in graveyard` needs `triggered from graveyard`");
+                            return self.err(
+                                "`while in graveyard` and `if in graveyard` need `triggered from graveyard`",
+                            );
                         }
                         None
                     }
@@ -9934,6 +9939,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     // exile it instead of putting it anywhere else."
                     E::ExileOnLeave {
                         what: Recipient::Source,
+                        granted: false,
                     },
                     E::Delayed {
                         about: Recipient::Source,

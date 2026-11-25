@@ -1,0 +1,8 @@
+card "Aerial Modification" {
+  oracle_id 290cd0b1-55d6-4b30-962d-075a6f75d562
+  cost {4}{W}
+  type Enchantment — Aura
+  enchant creature or Vehicle
+  static as long as attached is Vehicle, enchanted: add type creature
+  static enchanted: +2/+2, has flying
+}

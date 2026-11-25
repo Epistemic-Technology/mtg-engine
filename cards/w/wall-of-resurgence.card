@@ -1,0 +1,8 @@
+card "Wall of Resurgence" {
+  oracle_id 8771e241-e69b-4e21-9108-223a9488e9c7
+  cost {2}{W}
+  type Creature — Wall
+  pt 0/6
+  keywords defender
+  triggered when this enters: you may put 3 +1/+1 counters on target land you control; if you do, that target 1 becomes 0/0 Elemental creature with haste indefinitely
+}

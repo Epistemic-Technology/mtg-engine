@@ -138,6 +138,9 @@ pub enum DontWords {
     /// `if you didnt put into hand this way, ...`: "If you didn't put a
     /// card into your hand this way, ..." (Contagious Vorrac).
     DidntPutHand,
+    /// `if you cant sacrifice creature, ...`: "If you can't sacrifice a
+    /// creature, ..." (Xathrid Demon), `if you cant, ...` in meaning.
+    CantSacrificeCreature,
 }
 
 /// How `Effect::PutCard` names the cards it moves.
@@ -2769,6 +2772,10 @@ pub enum TrigCond {
     /// trigger: "while this card is in your graveyard" (Furious
     /// Forebear). Wording only: such an ability works only from there.
     InGraveyard,
+    /// `if in graveyard`: ", if this card is in your graveyard, you may
+    /// return this card to your hand" (Auntie's Snitch). Wording only, as
+    /// `InGraveyard`.
+    InGraveyardIf,
     /// `if it had counter`, `if it had one or more counters`: the core
     /// `TriggerHadCounters` ("if it had counters on it") printed "if it had
     /// a counter on it" (Leader's Talent) or "if it had one or more
@@ -2781,6 +2788,10 @@ pub enum TrigCond {
     /// toughness is greater than this creature's toughness" (Sharp-Eyed
     /// Rookie).
     Outstats,
+    /// `if that creature power or toughness greater than this`: the same,
+    /// printed "if that creature has greater power or toughness than this
+    /// creature" (Evolving Adaptive; evolve's reminder wording).
+    OutstatsThat,
     /// `if its toughness was less than 1` (also `power`, `mana value`; `N
     /// or less`, `N or greater`): the triggering object as it last existed
     /// (`StaticCondition::TriggerIs`, Massacre Girl, Known Killer).
@@ -4259,6 +4270,10 @@ pub struct DigField {
 pub enum InsteadWording {
     /// `if kicked, instead ...`: "If this spell was kicked, instead ...".
     Lead,
+    /// `if city's blessing, instead only ...`: "If you have the city's
+    /// blessing, instead only creatures your opponents control get -2/-2
+    /// until end of turn." (Golden Demise), wording only.
+    LeadOnly,
     /// `if kicked, ... instead`: "If this spell was kicked, ... instead."
     Trail,
     /// `... instead if hand 0 or less`: "... instead if you have no cards
@@ -6009,8 +6024,12 @@ pub enum Effect {
     },
     /// `leaving exiles it`: "If it would leave the battlefield, exile it
     /// instead of putting it anywhere else." (CR 702.84a's replacement).
+    /// `leaving exiles target 1 granted`: "It gains \"If this creature
+    /// would leave the battlefield, exile it instead of putting it
+    /// anywhere else.\"" (Geth, Thane of Contracts), wording only.
     ExileOnLeave {
         what: Recipient,
+        granted: bool,
     },
     /// `detain target creature an opponent controls` (CR 701.35); `detain
     /// spelled target nonland permanent`: "Choose target nonland

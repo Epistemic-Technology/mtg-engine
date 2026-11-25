@@ -1,0 +1,7 @@
+card "Tyrite Sanctum" {
+  oracle_id 38c83332-2d21-450c-ae97-34109b565f59
+  type Land
+  activated {T}: add {C}
+  activated {2}, {T}: target legendary creature becomes God in addition indefinitely; put 1 +1/+1 counter on it
+  activated {4}, {T}, sacrifice this: put 1 indestructible counter on target God
+}

@@ -1412,7 +1412,10 @@ impl Decompiler<'_> {
             CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
-            CoreEffect::ExileOnLeave { what } => Effect::ExileOnLeave { what: r(*what) },
+            CoreEffect::ExileOnLeave { what } => Effect::ExileOnLeave {
+                what: r(*what),
+                granted: false,
+            },
             CoreEffect::TurnFaceUp { what } => Effect::TurnFaceUp { what: r(*what) },
             CoreEffect::TurnFaceDown { what } => Effect::TurnFaceDown { what: r(*what) },
             CoreEffect::LookAtFaceDown { what } => Effect::LookAtFaceDown { what: r(*what) },

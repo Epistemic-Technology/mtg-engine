@@ -1,0 +1,6 @@
+card "Luminesce" {
+  oracle_id 7b0f482d-35a3-47f1-8283-0fd47e30cc31
+  cost {W}
+  type Instant
+  spell: prevent all damage black or red would deal this turn
+}

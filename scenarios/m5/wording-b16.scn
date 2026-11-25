@@ -1,0 +1,231 @@
+# Wording near-misses, sixteenth wave (wording-b): each card's amounts and
+# targets.
+
+scenario "Harmonic Prodigy: a Shaman's trigger triggers twice" {
+  battlefield A: "Harmonic Prodigy", 2 "Forest"
+  hand A: "Elvish Visionary"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Elvish Visionary"
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Harmonic Prodigy: its own prowess and a Wall's trigger once" {
+  battlefield A: "Harmonic Prodigy", 3 "Mountain", 2 "Plains"
+  hand A: "Shock", "Wall of Omens"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Wall of Omens"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert power "Harmonic Prodigy" 2
+  assert life B 18
+}
+
+scenario "Sphinx Sovereign: untapped, you gain 3 life" {
+  battlefield A: "Sphinx Sovereign"
+  run_to turn 1 end
+  run_to turn 2 upkeep
+  assert life A 23
+  assert life B 20
+}
+
+scenario "Sphinx Sovereign: tapped, each opponent loses 3 life" {
+  battlefield A: "Sphinx Sovereign"
+  turn 1 A: attack "Sphinx Sovereign"
+  run_to turn 2 upkeep
+  assert life A 20
+  assert life B 11
+}
+
+scenario "Luminesce: black and red sources deal no damage; green ones do" {
+  battlefield A: "Plains", "Mountain", "Hill Giant", "Grizzly Bears"
+  hand A: "Luminesce", "Shock"
+  turn 1 A: cast "Luminesce"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "Thoughts of Ruin: each player sacrifices a land for each card in your hand" {
+  battlefield A: 4 "Mountain", 2 "Forest"
+  battlefield B: 5 "Island"
+  hand A: "Thoughts of Ruin", "Grizzly Bears", "Hill Giant"
+  hand B: "Island", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Thoughts of Ruin"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 4
+  assert battlefield B count 3
+  assert graveyard B count 2
+}
+
+scenario "Grasping Current: two creatures to their owners' hands and Jace from the graveyard" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Grasping Current"
+  graveyard A: "Jace, Ingenious Mind-Mage"
+  library A: "Forest", "Forest"
+  turn 1 A: cast "Grasping Current" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 A: choose "Jace, Ingenious Mind-Mage"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert hand A contains "Jace, Ingenious Mind-Mage"
+  assert graveyard A lacks "Jace, Ingenious Mind-Mage"
+}
+
+scenario "Kaldra Compleat: the Germ is 5/5 with haste and exiles a creature it damages" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Kaldra Compleat"
+  turn 1 A: cast "Kaldra Compleat"
+  turn 1 A: attack "Phyrexian Germ"
+  turn 1 B: block "Phyrexian Germ" with "Hill Giant"
+  turn 1 A: assign "Phyrexian Germ" to "Hill Giant" 3, player B 2
+  run_to turn 1 postcombat_main
+  assert power "Phyrexian Germ" 5
+  assert toughness "Phyrexian Germ" 5
+  assert has "Phyrexian Germ" first_strike
+  assert has "Phyrexian Germ" trample
+  assert has "Phyrexian Germ" indestructible
+  assert exile B contains "Hill Giant"
+  assert life B 18
+}
+
+scenario "Tocasia, Dig Site Mentor: vigilance and surveil for your creatures" {
+  battlefield A: "Tocasia, Dig Site Mentor", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Grizzly Bears"
+  turn 1 A: surveil "Forest"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" vigilance
+  assert has not "Hill Giant" vigilance
+  assert graveyard A contains "Forest"
+}
+
+scenario "Tocasia, Dig Site Mentor: artifacts with total mana value 10 or less return" {
+  battlefield A: 2 "Forest", 2 "Plains", 2 "Island", 2 "Mountain"
+  graveyard A: "Tocasia, Dig Site Mentor", "Ornithopter", "Bonesplitter"
+  turn 1 A: activate "Tocasia, Dig Site Mentor" targeting "Ornithopter", "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Bonesplitter"
+  assert exile A contains "Tocasia, Dig Site Mentor"
+}
+
+scenario "Geth, Thane of Contracts: the returned creature is exiled as it would leave" {
+  battlefield A: "Geth, Thane of Contracts", 4 "Swamp", "Mountain"
+  graveyard A: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: activate "Geth, Thane of Contracts" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+  assert toughness "Geth, Thane of Contracts" 4
+}
+
+scenario "Volcanic Vision: damage equal to the returned card's mana value, then exiled" {
+  battlefield A: 7 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Volcanic Vision"
+  graveyard A: "Divination"
+  turn 1 A: cast "Volcanic Vision" targeting "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divination"
+  assert graveyard B contains "Hill Giant"
+  assert damage "Serra Angel" 3
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A contains "Volcanic Vision"
+}
+
+scenario "Searing Blood: the creature dies and its controller takes 3" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Searing Blood"
+  turn 1 A: cast "Searing Blood" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Searing Blood: no damage to the player if the creature survives" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Searing Blood"
+  turn 1 A: cast "Searing Blood" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert life B 20
+}
+
+scenario "Hazoret the Fervent: can't attack with two cards in hand; 2 damage to each opponent" {
+  battlefield A: "Hazoret the Fervent", 3 "Mountain"
+  hand A: "Forest", "Island"
+  illegal turn 1 A: attack "Hazoret the Fervent"
+  turn 1 postcombat_main A: activate "Hazoret the Fervent" discarding "Forest"
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A contains "Forest"
+}
+
+scenario "Hazoret the Fervent: attacks with one card in hand" {
+  battlefield A: "Hazoret the Fervent"
+  hand A: "Forest"
+  turn 1 A: attack "Hazoret the Fervent"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Tyrite Sanctum: a legendary creature becomes a God with a counter, then indestructible" {
+  battlefield A: "Tyrite Sanctum", 6 "Plains", "Isamaru, Hound of Konda"
+  library A: "Forest", "Forest"
+  turn 1 A: activate "Tyrite Sanctum" ability 2 targeting "Isamaru, Hound of Konda"
+  turn 1 A: wait
+  run_to turn 2 upkeep
+  turn 3 A: activate "Tyrite Sanctum" ability 3 targeting "Isamaru, Hound of Konda"
+  run_to turn 3 postcombat_main
+  assert is "Isamaru, Hound of Konda" God
+  assert is "Isamaru, Hound of Konda" Dog
+  assert counters "Isamaru, Hound of Konda" +1/+1 1
+  assert counters "Isamaru, Hound of Konda" indestructible 1
+  assert graveyard A contains "Tyrite Sanctum"
+}
+
+scenario "Wall of Resurgence: the land is a 3/3 Elemental creature with haste" {
+  battlefield A: 3 "Plains", "Forest"
+  hand A: "Wall of Resurgence"
+  turn 1 A: cast "Wall of Resurgence"
+  turn 1 A: trigger "Wall of Resurgence" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert is "Forest" creature
+  assert is "Forest" land
+  assert is "Forest" Elemental
+  assert power "Forest" 3
+  assert toughness "Forest" 3
+  assert has "Forest" haste
+}
+
+scenario "Druid Class: landfall life, an extra land, and a land as big as your lands" {
+  battlefield A: "Druid Class", 7 "Forest"
+  hand A: "Plains", "Island"
+  turn 1 A: play "Plains"
+  turn 1 A: activate "Druid Class"
+  turn 1 A: wait
+  turn 1 A: play "Island"
+  turn 1 A: activate "Druid Class"
+  turn 1 A: wait
+  turn 1 A: trigger "Druid Class" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert is "Island" creature
+  assert is "Island" land
+  assert power "Island" 9
+  assert toughness "Island" 9
+  assert has "Island" haste
+}

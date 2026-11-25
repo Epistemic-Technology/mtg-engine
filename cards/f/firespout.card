@@ -1,0 +1,6 @@
+card "Firespout" {
+  oracle_id eb2524ae-899a-4f91-9feb-0716cf689db3
+  cost {2}{R/G}
+  type Sorcery
+  spell: deal 3 damage to each creature without flying if spent {R} and deal 3 damage to each creature with flying if spent {G}
+}

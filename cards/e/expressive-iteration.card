@@ -1,0 +1,6 @@
+card "Expressive Iteration" {
+  oracle_id c7aecca5-2f67-4245-ab2d-e723d8b23a67
+  cost {U}{R}
+  type Sorcery
+  spell: split top 3 into hand, bottom, exile; may play exiled card this turn
+}

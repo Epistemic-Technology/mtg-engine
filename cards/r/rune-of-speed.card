@@ -1,0 +1,9 @@
+card "Rune of Speed" {
+  oracle_id 94d57b98-0f96-43c6-bf04-441339c89063
+  cost {1}{R}
+  type Enchantment — Aura Rune
+  enchant permanent
+  triggered when this enters: draw 1 card
+  static as long as attached is creature, enchanted: +1/+0, has haste
+  static as long as attached is Equipment, enchanted: has ability { static equipped creature: +1/+0, has haste }
+}

@@ -20306,6 +20306,12 @@ impl GameState {
             };
             let id = left.remove(k);
             put(self, id, *d, &mut on_top);
+            // "... and exile one of them. You may play the exiled card this
+            // turn." (Expressive Iteration): the card exiled is the one a
+            // later sentence names.
+            if matches!(d, SplitDest::Exile) {
+                ctx.created = self.current_object(id);
+            }
         }
         if let Some(d) = rest {
             for id in std::mem::take(&mut left) {

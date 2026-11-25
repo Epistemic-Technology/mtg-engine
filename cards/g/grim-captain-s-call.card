@@ -1,0 +1,6 @@
+card "Grim Captain's Call" {
+  oracle_id 94d3de8c-c8a2-4775-9096-d518f227f09a
+  cost {2}{B}
+  type Sorcery
+  spell: return 1 Pirate card from your graveyard to hand chosen, then return 1 Vampire card from your graveyard to hand chosen, then return 1 Dinosaur card from your graveyard to hand chosen, then return 1 Merfolk card from your graveyard to hand chosen
+}

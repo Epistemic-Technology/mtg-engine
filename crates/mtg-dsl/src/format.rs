@@ -18,7 +18,18 @@ use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
 pub fn format(card: &Card) -> String {
     let outer = COUNTS.with(|c| c.replace(card.counts.clone()));
-    let noun = NOUN.with(|n| n.replace(crate::render::self_noun(card)));
+    // `this spell` on an instant or sorcery (`Recipient::SourceNamed`).
+    let own = if card.types.iter().any(|t| {
+        matches!(
+            t,
+            mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+        )
+    }) {
+        "spell".to_string()
+    } else {
+        crate::render::self_noun(card)
+    };
+    let noun = NOUN.with(|n| n.replace(own));
     let out = format_inner(card);
     COUNTS.with(|c| c.replace(outer));
     NOUN.with(|n| n.replace(noun));
@@ -435,7 +446,7 @@ impl Fmt {
             // is written.
             Recipient::SourceNamed => NOUN.with(|n| {
                 let n = n.borrow();
-                if crate::parse::SELF_NOUNS.contains(&n.as_str()) {
+                if crate::parse::SELF_NOUNS.contains(&n.as_str()) || *n == "spell" {
                     format!("this {n}")
                 } else {
                     "this permanent".to_string()
@@ -1564,6 +1575,7 @@ impl Fmt {
                     crate::ast::DontWords::Draw => "dont draw this way",
                     crate::ast::DontWords::PutHand => "dont put into hand this way",
                     crate::ast::DontWords::DidntPutHand => "didnt put into hand this way",
+                    crate::ast::DontWords::CantSacrificeCreature => "cant sacrifice creature",
                 },
                 self.line(then, t)
             ),
@@ -2540,8 +2552,9 @@ impl Fmt {
                 format!("face-down spells cost {{{n}}} less this turn")
             }
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
-            Effect::ExileOnLeave { what } => {
-                format!("leaving exiles {}", self.recipient(*what, t))
+            Effect::ExileOnLeave { what, granted } => {
+                let g = if *granted { " granted" } else { "" };
+                format!("leaving exiles {}{g}", self.recipient(*what, t))
             }
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
             Effect::TurnFaceUpChosen { filter: f } => {
@@ -4550,6 +4563,9 @@ impl Fmt {
                 let body = self.line(effects, t);
                 let text = match wording {
                     crate::ast::InsteadWording::Lead => format!("if {cond}, instead {body}"),
+                    crate::ast::InsteadWording::LeadOnly => {
+                        format!("if {cond}, instead only {body}")
+                    }
                     // `instead of 2`, `put instead [then]`: the search says
                     // "instead" itself.
                     crate::ast::InsteadWording::Trail
@@ -9425,8 +9441,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     head.push_str(" if its power or toughness greater than this");
                     None
                 }
+                Some(crate::ast::TrigCond::OutstatsThat) => {
+                    head.push_str(" if that creature power or toughness greater than this");
+                    None
+                }
                 Some(crate::ast::TrigCond::InGraveyard) => {
                     head.push_str(" while in graveyard");
+                    None
+                }
+                Some(crate::ast::TrigCond::InGraveyardIf) => {
+                    head.push_str(" if in graveyard");
                     None
                 }
                 Some(crate::ast::TrigCond::ItsStat {
