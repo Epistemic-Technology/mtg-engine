@@ -1,0 +1,109 @@
+# Cards the corpus line index writes since the eighteenth wave: "this
+# creature" is the source, not a card type put in ("As long as you control
+# a Nissa planeswalker, this creature gets +2/+0" from "a Griffin
+# creature, this creature gets +3/+3"), and a power and toughness ("a 2/2
+# blue Bird") is one amount.
+
+scenario "Guardian of the Great Conduit: +2/+0 and vigilance with a Nissa" {
+  battlefield A: "Guardian of the Great Conduit", "Nissa, Who Shakes the World"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Guardian of the Great Conduit" 4
+  assert toughness "Guardian of the Great Conduit" 4
+  assert has "Guardian of the Great Conduit" vigilance
+  assert has "Guardian of the Great Conduit" reach
+}
+
+scenario "Guardian of the Great Conduit: neither without a Nissa" {
+  battlefield A: "Guardian of the Great Conduit", "Chandra Nalaar"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Guardian of the Great Conduit" 2
+  assert has not "Guardian of the Great Conduit" vigilance
+}
+
+scenario "Charging War Boar: +1/+1 and trample with a Domri" {
+  battlefield A: "Charging War Boar", "Domri, City Smasher"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Charging War Boar" 4
+  assert toughness "Charging War Boar" 2
+  assert has "Charging War Boar" trample
+}
+
+scenario "Charging War Boar: a 3/1 with haste alone" {
+  battlefield A: "Charging War Boar"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Charging War Boar" 3
+  assert has not "Charging War Boar" trample
+  assert has "Charging War Boar" haste
+}
+
+scenario "Dovin's Automaton: +2/+2 and vigilance with a Dovin" {
+  battlefield A: "Dovin's Automaton", "Dovin, Architect of Law"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Dovin's Automaton" 5
+  assert toughness "Dovin's Automaton" 5
+  assert has "Dovin's Automaton" vigilance
+}
+
+scenario "Dovin's Automaton: another planeswalker doesn't count" {
+  battlefield A: "Dovin's Automaton", "Chandra Nalaar"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Dovin's Automaton" 3
+}
+
+scenario "Renegade Firebrand: +1/+0 and first strike with a Chandra" {
+  battlefield A: "Renegade Firebrand", "Chandra Nalaar"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Renegade Firebrand" 4
+  assert toughness "Renegade Firebrand" 2
+  assert has "Renegade Firebrand" first_strike
+}
+
+scenario "Renegade Firebrand: a 3/2 without one" {
+  battlefield A: "Renegade Firebrand", "Nissa, Who Shakes the World"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Renegade Firebrand" 3
+  assert has not "Renegade Firebrand" first_strike
+}
+
+scenario "Rowan's Battleguard: +3/+0 with a Rowan" {
+  battlefield A: "Rowan's Battleguard", "Rowan, Fearless Sparkmage"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Rowan's Battleguard" 6
+  assert toughness "Rowan's Battleguard" 3
+  assert has "Rowan's Battleguard" first_strike
+}
+
+scenario "Rowan's Battleguard: a 3/3 without one" {
+  battlefield A: "Rowan's Battleguard", "Chandra Nalaar"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Rowan's Battleguard" 3
+}
+
+scenario "Aerie Worshippers: becoming untapped, pay {2}{U} for a 2/2 flying Bird" {
+  battlefield A: "Aerie Worshippers" tapped, 3 "Island"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Bird"
+  assert power "Bird" 2
+  assert has "Bird" flying
+  assert is "Bird" enchantment
+  assert is "Bird" blue
+}
+
+scenario "Aerie Worshippers: declining to pay makes no Bird" {
+  battlefield A: "Aerie Worshippers" tapped, 3 "Island"
+  start turn 2 B precombat_main
+  turn 3 upkeep A: decline "Aerie Worshippers"
+  run_to turn 3 precombat_main
+  assert battlefield A lacks "Bird"
+}

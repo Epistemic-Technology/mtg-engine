@@ -9931,7 +9931,7 @@ fn dump_index(index: &std::collections::HashMap<String, String>) {
 /// target." share the shape.
 fn line_shape(line: &str) -> (String, Vec<String>) {
     let token = cached_regex(
-        r"(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+        r"(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\b\d+/\d+\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
     )
     .expect("a token pattern");
     let mut values = Vec::new();
@@ -9941,6 +9941,11 @@ fn line_shape(line: &str) -> (String, Vec<String>) {
             if t.starts_with('{') {
                 values.push(t.to_string());
                 "\u{1}M".to_string()
+            } else if t.contains('/') && !t.starts_with(['+', '-']) {
+                // "a 4/4 green Bear artifact creature": a power and
+                // toughness as one value, as the DSL writes it.
+                values.push(t.to_string());
+                "\u{1}Q".to_string()
             } else if t.contains('/') {
                 // "+2/+2" and "-1/-1" as one value: the DSL prints a
                 // change to power and toughness as Oracle does.
@@ -10135,6 +10140,18 @@ fn shape_word_regex(corpus: &[Card]) -> &'static Regex {
     })
 }
 
+/// Whether a shape word is the card type of "this creature", "This
+/// artifact": the source, which the shape keeps as it is, so "As long as
+/// you control a Nissa planeswalker, this creature gets +2/+0" takes
+/// "a Griffin creature, this creature gets +3/+3" (the two "creature"s
+/// otherwise each a word put in, and two words can't become one).
+fn this_type(line: &str, c: &regex::Captures) -> bool {
+    c.name("t").is_some_and(|t| {
+        let before = &line[..t.start()];
+        before.ends_with("this ") || before.ends_with("This ")
+    })
+}
+
 /// Whether a shape word (`word_shape`) is an article: it takes no part
 /// in the substitution but follows the word after it ("a creature", "an
 /// artifact").
@@ -10151,6 +10168,9 @@ fn word_shape(corpus: &[Card], line: &str) -> (String, Vec<String>) {
     let mut shape = String::new();
     let mut at = 0;
     for c in re.captures_iter(line) {
+        if this_type(line, &c) {
+            continue;
+        }
         let m = c.get(0).expect("a match");
         shape.push_str(&line[at..m.start()]);
         at = m.end();
@@ -10257,6 +10277,9 @@ fn corpus_statement_words(corpus: &[Card], line: &str) -> Vec<String> {
         let mut i = 0;
         let their_words = re
             .replace_all(their_line, |c: &regex::Captures| {
+                if this_type(their_line, c) {
+                    return c[0].to_string();
+                }
                 let v = &values[i];
                 i += 1;
                 match c.name("kc") {
@@ -10438,8 +10461,9 @@ fn corpus_effect(s: &str, targets: &mut usize) -> Option<String> {
 
 /// The values a statement's text is matched by when the index puts a
 /// line's amounts in (`line_shape`): a target reference (never changed),
-/// mana symbols, a change to power and toughness, a number.
-const SHAPE_TOKEN: &str = r"target \d+|(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\d+";
+/// mana symbols, a change to power and toughness, a power and toughness,
+/// a number.
+const SHAPE_TOKEN: &str = r"target \d+|(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\b\d+/\d+\b|\d+";
 
 /// The statements a corpus card prints `line` with, exactly or with other
 /// amounts and mana symbols: the exact line's alone, else each of the
