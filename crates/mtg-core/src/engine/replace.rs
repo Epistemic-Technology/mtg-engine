@@ -311,7 +311,13 @@ impl GameState {
             }
         }
     }
+}
 
+/// A token-creation replacement found: (source definition, replacement,
+/// creature tokens only, artifact tokens only, the source object).
+type FoundTokenReplacement = (CardRef, Replacement, bool, bool, ObjId);
+
+impl GameState {
     /// The tokens to create when `n` tokens of `def` would be created under
     /// `p`'s control (CR 111.1, 614.1a): "twice that many of those tokens"
     /// (Parallel Lives), "those tokens plus a 1/1 green Frog creature
@@ -319,6 +325,7 @@ impl GameState {
     /// ability of a permanent `p` controls applies once. Of the orders the
     /// player may choose (CR 616.1), the added tokens come first, so a
     /// doubling effect doubles them too.
+    #[allow(clippy::too_many_lines)] // one arm per kind of replacement
     pub(super) fn tokens_to_create(
         &mut self,
         p: PlayerId,
@@ -340,7 +347,7 @@ impl GameState {
         }
         // (source, replacement, creature tokens only, artifact tokens only,
         // the source object)
-        let mut found: SmallVec<[(CardRef, Replacement, bool, bool, ObjId); 2]> = SmallVec::new();
+        let mut found: SmallVec<[FoundTokenReplacement; 2]> = SmallVec::new();
         let granted = self.grant_sources > 0;
         for id in &self.battlefield {
             let o = &self.objects[*id];

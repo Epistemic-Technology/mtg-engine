@@ -3289,8 +3289,8 @@ impl TurnEvent {
             | TurnEvent::LoyaltyActivated
             | TurnEvent::LegendaryCombatDamaged
             | TurnEvent::LibraryToGraveyard => true,
-            TurnEvent::TokenEvents => false,
-            TurnEvent::CreatureEntered
+            TurnEvent::TokenEvents
+            | TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
             | TurnEvent::ArtifactEntered
@@ -13572,12 +13572,11 @@ impl CardPool {
 
     /// Intern a name an effect gives an object.
     pub fn name_id(&mut self, name: &str) -> NameId {
-        let i = match self.names.iter().position(|n| n == name) {
-            Some(i) => i,
-            None => {
-                self.names.push(name.to_string());
-                self.names.len() - 1
-            }
+        let i = if let Some(i) = self.names.iter().position(|n| n == name) {
+            i
+        } else {
+            self.names.push(name.to_string());
+            self.names.len() - 1
         };
         let n = u16::try_from(i + 1).expect("too many names");
         NameId(std::num::NonZeroU16::new(n).expect("from 1"))
