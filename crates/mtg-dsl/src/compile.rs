@@ -4070,6 +4070,24 @@ impl Compiler<'_> {
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::ExileOnLeave { what } => out.push(CoreEffect::ExileOnLeave { what: r(*what) }),
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
+            Effect::ColorOfChoiceHexproof { to } => {
+                out.push(CoreEffect::OfChoice {
+                    to: r(*to),
+                    kind: mtg_core::card::ChoiceKind::Color { except: None },
+                    protection: false,
+                    in_addition: false,
+                });
+                let abilities = mtg_core::mana::Color::ALL.map(|c| {
+                    self.pool.register_ability(AbilityDef::HexproofFrom(mtg_core::card::ObjFilter {
+                        colors: Some(mtg_core::mana::ColorSet::of([c])),
+                        ..mtg_core::card::ObjFilter::default()
+                    }))
+                });
+                out.push(CoreEffect::HexproofFromChosen {
+                    to: r(*to),
+                    abilities,
+                });
+            }
             // "You may turn a creature you control face up.": the
             // controller chooses one (CR 608.2d), then it turns face up.
             Effect::TurnFaceUpChosen { filter } => {

@@ -891,7 +891,10 @@ creature types, CR 205.1b) and `target creature becomes creature type of
 choice except Wall` ("Choose a creature type other than Wall. Target
 creature becomes that type until end of turn."), `target creature becomes
 colors of choice` ("the color or colors of your choice": one color at a
-time, then `done`), all until end of turn. A player gains keywords too
+time, then `done`), all until end of turn. `this becomes color of choice and gains
+hexproof from that color` prints "Until end of turn, Mondo Gecko becomes
+the color of your choice and gains hexproof from that color." (one color
+chosen for both; hexproof from it, CR 702.11d). A player gains keywords too
 (CR 702.18c, 702.11c, 702.16): `you gains shroud` ("You gain shroud until
 end of turn."), `you gains hexproof until your next turn`, `you gains
 protection from color of choice` (spells and abilities from sources of

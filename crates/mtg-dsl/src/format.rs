@@ -2331,6 +2331,10 @@ impl Fmt {
             }
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
             Effect::TurnFaceUpChosen { filter: f } => format!("turn face up 1 {} chosen", filter(f)),
+            Effect::ColorOfChoiceHexproof { to } => format!(
+                "{} becomes color of choice and gains hexproof from that color",
+                self.recipient(*to, t)
+            ),
             Effect::TurnFaceDown { what } => {
                 format!("turn face down {}", self.recipient(*what, t))
             }

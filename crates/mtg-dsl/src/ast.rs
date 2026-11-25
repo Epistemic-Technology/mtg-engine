@@ -6585,6 +6585,12 @@ pub enum Effect {
     TurnFaceUpChosen {
         filter: Filter,
     },
+    /// `this becomes color of choice and gains hexproof from that color`:
+    /// "Until end of turn, Mondo Gecko becomes the color of your choice
+    /// and gains hexproof from that color."
+    ColorOfChoiceHexproof {
+        to: Recipient,
+    },
     /// `return those exiled cards to hand`: "return those cards to your
     /// hand" (Ignorant Bliss's delayed trigger): the cards the source
     /// exiled face down, still in exile (CR 607.2a).

@@ -10053,6 +10053,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("turn {o} face down"))
         }
+        Effect::ColorOfChoiceHexproof { to } => {
+            let s = ctx.subj(*to);
+            Clause::imperative(format!(
+                "until end of turn, {s} {} the color of your choice and {} hexproof from that color",
+                ctx.verb(*to, "becomes", "become"),
+                ctx.verb(*to, "gains", "gain"),
+            ))
+        }
         Effect::TurnFaceUpChosen { filter } => {
             Clause::imperative(format!("turn {} face up", filter_a(filter, ctx.card)))
         }

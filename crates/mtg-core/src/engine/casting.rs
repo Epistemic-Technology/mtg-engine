@@ -15040,6 +15040,17 @@ impl GameState {
                 let def = self.source_def(ctx);
                 ctx.chosen = self.choose_kind(ctx.controller, *kind, def);
             }
+            Effect::HexproofFromChosen { to, abilities } => {
+                let Some(c) = self.resolution_chosen(ctx).color() else {
+                    return;
+                };
+                let part = Modification::AddAbility(abilities[c as usize]);
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                    }
+                }
+            }
             Effect::ProtectionFromChosen { to } => {
                 let Some(c) = self.resolution_chosen(ctx).color() else {
                     return;
@@ -15139,7 +15150,12 @@ impl GameState {
                     return;
                 }
                 let def = self.source_def(ctx);
-                let part = match (self.choose_kind(ctx.controller, *kind, def), *protection) {
+                let chosen = self.choose_kind(ctx.controller, *kind, def);
+                // "... and gains hexproof from that color" reads it.
+                if ctx.chosen == Chosen::None {
+                    ctx.chosen = chosen;
+                }
+                let part = match (chosen, *protection) {
                     (Chosen::Color(c), true) => {
                         Modification::AddKeywords(KeywordSet::of([Keyword::protection_from(c)]))
                     }

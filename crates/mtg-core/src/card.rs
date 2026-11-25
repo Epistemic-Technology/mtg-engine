@@ -5519,6 +5519,14 @@ pub enum Effect {
     ProtectionFromChosen {
         to: Recipient,
     },
+    /// "Until end of turn, Mondo Gecko becomes the color of your choice and
+    /// gains hexproof from that color.": after an `OfChoice` color, the
+    /// recipients gain the `HexproofFrom` ability of `abilities` for the
+    /// chosen color (white, blue, black, red, green) until end of turn.
+    HexproofFromChosen {
+        to: Recipient,
+        abilities: [AbilityId; 5],
+    },
     /// "becomes the color of your choice", "gains protection from the
     /// color of your choice", "becomes the basic land type of your
     /// choice", "becomes the creature type of your choice" until end of

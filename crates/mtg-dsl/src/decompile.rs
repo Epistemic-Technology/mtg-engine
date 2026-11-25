@@ -2076,6 +2076,7 @@ impl Decompiler<'_> {
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,
+            CoreEffect::HexproofFromChosen { to, .. } => Effect::ColorOfChoiceHexproof { to: r(*to) },
             CoreEffect::ManifestDreadTimes { count } => Effect::ManifestDreadTimes(*count),
             CoreEffect::ManifestDreadBy { who } => Effect::ManifestDreadBy { who: r(*who) },
             CoreEffect::ReduceSpeed { who } => Effect::ReduceSpeed { who: r(*who) },

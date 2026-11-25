@@ -10984,6 +10984,11 @@ impl P {
                     || self.at_words(&["creature", "type", "of", "choice"])
                 {
                     let kind = self.choice_kind(true)?;
+                    // "... and gains hexproof from that color" (Mondo
+                    // Gecko).
+                    if self.eat_words(&["and", "gains", "hexproof", "from", "that", "color"]) {
+                        return Ok(Effect::ColorOfChoiceHexproof { to: subject });
+                    }
                     let in_addition = self.eat_words(&["in", "addition"]);
                     self.until_end_of_turn();
                     return Ok(Effect::OfChoice {

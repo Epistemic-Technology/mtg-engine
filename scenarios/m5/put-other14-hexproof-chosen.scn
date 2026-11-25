@@ -1,0 +1,43 @@
+# "Until end of turn, Mondo Gecko becomes the color of your choice and
+# gains hexproof from that color." (put-other14): one choice for both.
+
+scenario "Mondo Gecko: red, and hexproof from red only" {
+  battlefield A: "Mondo Gecko", "Island"
+  battlefield B: "Mountain", 3 "Swamp"
+  hand A: "Plains"
+  hand B: "Shock", "Murder"
+  start turn 2 B
+  turn 2 upkeep A: activate "Mondo Gecko"
+  turn 2 upkeep A: choose red
+  illegal turn 2 precombat_main B: cast "Shock" targeting "Mondo Gecko"
+  run_to turn 2 precombat_main
+  assert is "Mondo Gecko" red
+  assert is not "Mondo Gecko" blue
+  assert graveyard A contains "Plains"
+  turn 2 postcombat_main B: cast "Murder" targeting "Mondo Gecko"
+  run_to turn 2 end
+  assert graveyard A contains "Mondo Gecko"
+}
+
+scenario "Mondo Gecko: the color and hexproof end with the turn" {
+  battlefield A: "Mondo Gecko", "Island"
+  battlefield B: "Mountain"
+  hand A: "Plains"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 upkeep A: activate "Mondo Gecko"
+  turn 2 upkeep A: choose red
+  turn 3 upkeep B: cast "Lightning Bolt" targeting "Mondo Gecko"
+  run_to turn 3 draw
+  assert graveyard A contains "Mondo Gecko"
+}
+
+# "draw a card for each color among permanents you control"
+scenario "Mondo Gecko: combat damage draws for each color" {
+  battlefield A: "Mondo Gecko", "Grizzly Bears", "Island"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Mondo Gecko"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}

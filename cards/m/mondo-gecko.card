@@ -1,0 +1,8 @@
+card "Mondo Gecko" {
+  oracle_id fa3ae120-756d-4c52-91f9-235767539d67
+  cost {1}{U}{U}
+  type Legendary Creature — Lizard Mutant
+  pt 2/3
+  activated {1}, discard 1 card: this becomes color of choice and gains hexproof from that color
+  triggered whenever this deals combat damage to a player: draw count each colors among permanents cards
+}
