@@ -1,0 +1,6 @@
+card "Peak Eruption" {
+  oracle_id f34eb8a9-63af-452b-8957-8587bf4fd956
+  cost {2}{R}
+  type Sorcery
+  spell: destroy target Mountain; deal 3 damage to controller of that target 1
+}

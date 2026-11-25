@@ -1,0 +1,8 @@
+card "Inkfathom Witch" {
+  oracle_id 60b6e96a-63e6-4520-b2dd-b20b7dfbcd57
+  cost {1}{U/B}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  keywords fear
+  activated {2}{U}{B}: each single unblocked creature has base power and toughness 4/1 until end of turn
+}

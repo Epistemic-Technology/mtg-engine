@@ -19848,7 +19848,11 @@ impl P {
                     f.keywords.push(k);
                     // "each creature with flying and each player": an
                     // `and` not followed by a keyword ends the filter.
-                    while self.at_word("and") && self.word_at(1).as_deref() != Some("each") {
+                    // "target creature with flying and all Equipment
+                    // attached to that creature" (Eaten by Spiders) too.
+                    while self.at_word("and")
+                        && !matches!(self.word_at(1).as_deref(), Some("each" | "all"))
+                    {
                         self.pos += 1;
                         let Some(k) = self.keyword() else {
                             return self.unexpected("a keyword after `and`");

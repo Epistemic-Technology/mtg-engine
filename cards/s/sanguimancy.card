@@ -1,0 +1,6 @@
+card "Sanguimancy" {
+  oracle_id f0a85525-b174-41d9-8871-870af29d3480
+  cost {4}{B}
+  type Sorcery
+  spell: you draw count where devotion black cards, and you lose count where devotion black life
+}

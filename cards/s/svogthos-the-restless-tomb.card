@@ -1,0 +1,6 @@
+card "Svogthos, the Restless Tomb" {
+  oracle_id a34a70b8-02e5-4e8c-a9e7-b21c5a11dddf
+  type Land
+  activated {T}: add {C}
+  activated {3}{B}{G}: until end of turn, this becomes black green Plant Zombie creature with ability { static this: cda noun pt graveyard creature }
+}

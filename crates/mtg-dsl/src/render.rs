@@ -3279,7 +3279,16 @@ fn target_noun(t: &Target) -> String {
                     .is_none_or(|a| a.types.is_empty() || a.types.contains(&CardType::Creature))
             {
                 "creature".to_string()
-            } else if f.types.contains(&CardType::Land) {
+            } else if f.types.contains(&CardType::Land)
+                // "Destroy target Mountain. Peak Eruption deals 3 damage to
+                // that land's controller.": a basic land type alone.
+                || (f.types.is_empty()
+                    && f.or.is_none()
+                    && !f.subtypes.is_empty()
+                    && f.subtypes.iter().all(|s| {
+                        ["Plains", "Island", "Swamp", "Mountain", "Forest"].contains(&s.as_str())
+                    }))
+            {
                 "land".to_string()
             } else if f.types == [CardType::Artifact] && f.or.is_none() && f.subtypes.is_empty() {
                 // "Choose target artifact you control. Each other artifact
@@ -5009,7 +5018,32 @@ fn additional_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if !mana.is_empty() && c.starts_with(&mana) {
         return format!("pay {c}");
     }
+    // "discard a card and sacrifice a creature" (Ruthless Disposal): an
+    // additional cost of several parts is a sentence, not a cost line.
+    let parts: Vec<String> = split_cost_parts(&c)
+        .iter()
+        .map(|p| lowercase_first(p))
+        .collect();
+    if parts.len() > 1 {
+        return list(&parts);
+    }
     lowercase_first(&c)
+}
+
+/// A cost line's parts: "Discard a card, Sacrifice a creature" splits at
+/// the comma before each capital (a part's own list, "an artifact,
+/// creature, or land", doesn't).
+fn split_cost_parts(c: &str) -> Vec<&str> {
+    let mut parts = Vec::new();
+    let mut start = 0;
+    for (i, _) in c.match_indices(", ") {
+        if c[i + 2..].starts_with(|ch: char| ch.is_ascii_uppercase()) {
+            parts.push(&c[start..i]);
+            start = i + 2;
+        }
+    }
+    parts.push(&c[start..]);
+    parts
 }
 
 /// A ward cost's alternatives (CR 702.21a), the first capitalized:
@@ -10142,7 +10176,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         )),
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
-            Clause::imperative(format!("switch {o}'s power and toughness")).until_eot()
+            Clause::imperative(format!("switch {} power and toughness", possessive(&o))).until_eot()
         }
         Effect::PutFromHand {
             filter,
@@ -14111,15 +14145,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 clause.tail.push_str(". They're still lands");
                 return clause;
             }
-            if (ctx.card.types.contains(&CardType::Land) || land_target)
-                && !types.contains(&CardType::Land)
-            {
+            // A land that animates another target ("Target Vehicle becomes
+            // an artifact creature until end of turn", Mech Hangar) adds no
+            // "still a land" sentence.
+            let land_source = ctx.card.types.contains(&CardType::Land)
+                && !matches!(*to, Recipient::Target(_));
+            if (land_source || land_target) && !types.contains(&CardType::Land) {
                 // "Put seven +1/+1 counters on target noncreature land you
                 // control. It becomes a 0/0 Fungus creature with haste.
                 // It's still a land." (Tendril of the Mycotyrant): after a
                 // pronoun, its own sentence.
                 let pronoun = clause.subject.as_ref().is_some_and(|(_, t)| t == "it");
-                if (*indefinite || (ctx.eot_first && keywords.is_empty()))
+                // "Target snow land becomes a 2/2 blue Elemental creature
+                // with flying. It's still a land." (Balduvian Frostwaker): a
+                // creature's ability keeps its own sentence.
+                if ((*indefinite && !ctx.card.types.contains(&CardType::Creature))
+                    || (ctx.eot_first && keywords.is_empty()))
                     && land_target
                     // "Untap it. It becomes a 0/0 Elemental creature with
                     // vigilance and haste that's still a land." (Nissa, Who
@@ -15167,7 +15208,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "It deals 5 damage instead if that target is white and/or
             // blue." (Lithomantic Barrage): a creature-or-planeswalker
             // target is "that target", and the spell isn't named again.
-            let that_target = matches!(cond, InsteadCond::Target { n, that: true, .. }
+            // "If that permanent is green, Burning Hands deals 6 damage
+            // instead.": the condition first is the usual wording.
+            let that_target = *wording == InsteadWording::After
+                && matches!(cond, InsteadCond::Target { n, that: true, .. }
                 if matches!(
                     ctx.targets.get(*n).map(Target::base),
                     Some(Target::Spec(TargetSpec::CreatureOrPlaneswalker))
@@ -20322,6 +20366,11 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         if card.kind != Kind::Token && !*noun {
             n = n.replace(&format!("exiled with {}", this_ref(card)), "exiled with it");
         }
+        // "This creature's power and toughness are each equal to the number
+        // of lore counters on it." (Myth Realized): named once already.
+        if *noun {
+            n = n.replace(&format!("counters on {}", this_ref(card)), "counters on it");
+        }
         return if *sets == mtg_core::card::CdaSets::Power {
             format!("{owner} power is equal to {n}.")
         } else if *sets == mtg_core::card::CdaSets::Toughness {
@@ -21153,7 +21202,7 @@ fn protection_text(f: &Filter, card: &Card) -> String {
                 mtg_core::card::ColorCount::Multicolored => "multicolored",
                 mtg_core::card::ColorCount::Monocolored => "monocolored",
                 mtg_core::card::ColorCount::Colorless => "colorless",
-                mtg_core::card::ColorCount::Colored => "one or more colors",
+                mtg_core::card::ColorCount::Colored => "each color",
                 mtg_core::card::ColorCount::TwoColors => "exactly two colors",
             }
         )
@@ -23441,8 +23490,11 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // "At the beginning of your end step, if this creature
                     // is equipped, transform it." (Avacynian Missionaries):
                     // a trigger that hasn't named the source names it here.
-                    let first_name = !ctx.source_mentioned
-                        && *c == StaticCond::Equipped
+                    // "Whenever this creature deals combat damage to a
+                    // player, if this creature is monstrous, ..." (Polis
+                    // Crusher): Oracle never says "if it's monstrous".
+                    let first_name = (!ctx.source_mentioned && *c == StaticCond::Equipped
+                        || *c == StaticCond::Monstrous)
                         && cond.starts_with("it's ");
                     if first_name {
                         cond = format!("{} is {}", this_ref(card), &cond["it's ".len()..]);

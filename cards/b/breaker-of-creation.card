@@ -1,0 +1,9 @@
+card "Breaker of Creation" {
+  oracle_id 785026c5-3f26-489c-8e26-96dd3ca6bc98
+  cost {6}{C}{C}
+  type Creature — Eldrazi
+  pt 8/4
+  triggered when you cast this: you gain count each colorless permanent you control life
+  hexproof from colored
+  annihilator 2
+}

@@ -1,0 +1,7 @@
+card "Valakut Fireboar" {
+  oracle_id 126bf98a-64d0-4de2-9bf4-f59d36ef6e25
+  cost {4}{R}
+  type Creature — Elemental Boar
+  pt 1/7
+  triggered whenever this attacks: switch pt of this until end of turn
+}

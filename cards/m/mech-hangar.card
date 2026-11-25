@@ -1,0 +1,7 @@
+card "Mech Hangar" {
+  oracle_id abc04775-171d-41f3-83ea-4b4eb72723d5
+  type Land
+  activated {T}: add {C}
+  activated {T}: add any only to cast Pilot or Vehicle spell
+  activated {3}, {T}: target Vehicle becomes artifact creature
+}

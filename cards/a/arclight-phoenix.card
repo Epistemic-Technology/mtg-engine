@@ -1,0 +1,8 @@
+card "Arclight Phoenix" {
+  oracle_id a80ea391-54d1-4b61-95a3-f8deb4cbe842
+  cost {3}{R}
+  type Creature — Phoenix
+  pt 3/2
+  keywords flying, haste
+  triggered from graveyard at beginning of your combat if cast 3 andlist instant or sorcery this turn: return this to battlefield
+}

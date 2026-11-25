@@ -1,0 +1,10 @@
+card "Polis Crusher" {
+  oracle_id ffd6f55f-2592-46a5-94da-cb9424783004
+  cost {2}{R}{G}
+  type Creature — Cyclops
+  pt 4/4
+  keywords trample
+  protection from enchantments
+  activated {4}{R}{G}: monstrosity 3
+  triggered whenever this deals combat damage to a player if monstrous: destroy target enchantment that player controls
+}
