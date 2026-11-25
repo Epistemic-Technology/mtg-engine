@@ -1,0 +1,11 @@
+card "Incendiary Command" {
+  oracle_id d45a4924-daa0-4ac3-afd7-b66f636ce870
+  cost {3}{R}{R}
+  type Sorcery
+  choose two {
+    mode: deal 4 damage to target player or planeswalker
+    mode: deal 2 damage to each creature
+    mode: destroy target nonbasic land
+    mode: each player discards all cards in hand then each player draws count that many discarded this way cards
+  }
+}

@@ -1,0 +1,16 @@
+# "Each <group> gets +1/+1 for each other <group member>": "other" is
+# other than the creature it applies to.
+
+scenario "Heroes' Podium: two legendary creatures each get +1/+1" {
+  battlefield A: "Heroes' Podium", "Isamaru, Hound of Konda", "Barktooth Warbeard"
+  assert power "Isamaru, Hound of Konda" 3
+  assert toughness "Isamaru, Hound of Konda" 3
+  assert power "Barktooth Warbeard" 7
+  assert toughness "Barktooth Warbeard" 6
+}
+
+scenario "Heroes' Podium: a lone legendary creature gets nothing" {
+  battlefield A: "Heroes' Podium", "Isamaru, Hound of Konda", "Grizzly Bears"
+  assert power "Isamaru, Hound of Konda" 2
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,8 @@
+card "Dream Eater" {
+  oracle_id 4ec84bb3-796a-4074-ac9a-1bd277158896
+  cost {4}{U}{U}
+  type Creature — Nightmare Sphinx
+  pt 4/3
+  keywords flash, flying
+  triggered when this enters: surveil 4; when you do, you may return target nonland permanent an opponent controls to hand
+}

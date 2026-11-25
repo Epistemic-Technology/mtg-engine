@@ -356,7 +356,7 @@ impl GameState {
                     continue;
                 }
                 let damage = self.objects[id].damage;
-                self.destroy(id);
+                self.destroy_by_rule(id);
                 if self.objects.get(id).is_some_and(|o| o.damage < damage) {
                     // Replaced (umbra armor, regeneration): its damage is
                     // gone and something else may have left, so the next

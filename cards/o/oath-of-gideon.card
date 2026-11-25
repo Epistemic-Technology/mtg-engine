@@ -1,0 +1,7 @@
+card "Oath of Gideon" {
+  oracle_id ea168acc-22a1-4ba5-affd-fb813b93535a
+  cost {2}{W}
+  type Legendary Enchantment
+  triggered when this enters: create 2 "1/1 white Kor Ally creature"
+  replace each planeswalker you control enters: with 1 loyalty counter
+}

@@ -1,0 +1,22 @@
+# "for each nontoken creature that died this turn": tokens don't count.
+
+scenario "Gadrak: a dead token makes no Treasure" {
+  battlefield A: "Gadrak, the Crown-Scourge", "Mountain"
+  battlefield B: "Soldier"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Soldier"
+  run_to turn 2 untap
+  assert battlefield A contains 0 "Treasure"
+}
+
+scenario "Gadrak: a dead nontoken creature makes one" {
+  battlefield A: "Gadrak, the Crown-Scourge", 2 "Mountain"
+  battlefield B: "Soldier", "Grizzly Bears"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Soldier"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 untap
+  assert battlefield A contains 1 "Treasure"
+}

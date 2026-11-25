@@ -1,0 +1,72 @@
+# A static ability's "as long as defending player controls ..." (CR
+# 506.2): judged against the player the creature attacks.
+
+scenario "Hazy Homunculus can't be blocked while defending player controls an untapped land" {
+  battlefield A: "Hazy Homunculus"
+  battlefield B: "Grizzly Bears", "Island"
+  start turn 2 A
+  turn 2 A: attack "Hazy Homunculus"
+  illegal turn 2 B: block "Hazy Homunculus" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Hazy Homunculus can be blocked when defending player's lands are tapped" {
+  battlefield A: "Hazy Homunculus"
+  battlefield B: "Grizzly Bears", "Island" tapped
+  start turn 2 A
+  turn 2 A: attack "Hazy Homunculus"
+  turn 2 B: block "Hazy Homunculus" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Hazy Homunculus"
+}
+
+scenario "Hazy Homunculus: lands its controller has don't count" {
+  battlefield A: "Hazy Homunculus", "Island"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Hazy Homunculus"
+  turn 2 B: block "Hazy Homunculus" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Hazy Homunculus"
+}
+
+scenario "Arctic Foxes: big creatures can't block it while defending player controls a snow land" {
+  battlefield A: "Arctic Foxes"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Snow-Covered Island"
+  start turn 2 A
+  turn 2 A: attack "Arctic Foxes"
+  illegal turn 2 B: block "Arctic Foxes" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Arctic Foxes: a power-2 creature can't block it either" {
+  battlefield A: "Arctic Foxes"
+  battlefield B: "Grizzly Bears", "Snow-Covered Island"
+  start turn 2 A
+  turn 2 A: attack "Arctic Foxes"
+  illegal turn 2 B: block "Arctic Foxes" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Arctic Foxes: a creature with power 1 may block it" {
+  battlefield A: "Arctic Foxes"
+  battlefield B: "Typhoid Rats", "Snow-Covered Island"
+  start turn 2 A
+  turn 2 A: attack "Arctic Foxes"
+  turn 2 B: block "Arctic Foxes" with "Typhoid Rats"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Arctic Foxes"
+}
+
+scenario "Arctic Foxes: without a snow land, anything may block it" {
+  battlefield A: "Arctic Foxes", "Snow-Covered Island"
+  battlefield B: "Hill Giant", "Island"
+  start turn 2 A
+  turn 2 A: attack "Arctic Foxes"
+  turn 2 B: block "Arctic Foxes" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Arctic Foxes"
+}

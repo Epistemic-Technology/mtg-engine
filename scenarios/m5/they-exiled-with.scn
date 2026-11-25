@@ -1,0 +1,27 @@
+# `they` after putting the cards exiled with this onto the battlefield.
+
+scenario "Gisa: an opponent's dying creature is exiled, then returns under her controller with decayed" {
+  battlefield A: "Gisa, Glorious Resurrector", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 2 end
+  assert graveyard B lacks "Hill Giant"
+  run_to turn 3 draw
+  assert battlefield A contains "Hill Giant"
+  assert has "Hill Giant" decayed
+  assert has not "Gisa, Glorious Resurrector" decayed
+}
+
+scenario "Gisa: the returned creature can't block" {
+  battlefield A: "Gisa, Glorious Resurrector", "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 4 B: attack "Grizzly Bears"
+  illegal turn 4 A: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 4 postcombat_main
+  assert life A 18
+}

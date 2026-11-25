@@ -1,0 +1,7 @@
+card "Veiled Serpent" {
+  oracle_id ff59a95c-28de-44cf-abbe-772417851ffa
+  cost {2}{U}
+  type Enchantment
+  triggered when an opponent casts spell if this is enchantment: this becomes 4/4 Serpent creature with ability { can't attack unless defending player controls Island } indefinitely
+  cycling {2}
+}

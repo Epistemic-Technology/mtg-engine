@@ -1,0 +1,9 @@
+card "Gadrak, the Crown-Scourge" {
+  oracle_id 42d7ec93-0943-43e2-9b65-b7edc3349410
+  cost {2}{R}
+  type Legendary Creature — Dragon
+  pt 5/4
+  keywords flying
+  can't attack unless you control 4 artifact
+  triggered at beginning of your end step: create count each nontoken creature died this turn "Treasure"
+}

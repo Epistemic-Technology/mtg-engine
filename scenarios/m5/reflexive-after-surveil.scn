@@ -1,0 +1,13 @@
+# "Surveil 4. When you do, ...": the reflexive trigger follows the surveil.
+
+scenario "Dream Eater returns an opponent's permanent after surveilling" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Dream Eater"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dream Eater"
+  turn 1 A: trigger "Dream Eater" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Dream Eater"
+}

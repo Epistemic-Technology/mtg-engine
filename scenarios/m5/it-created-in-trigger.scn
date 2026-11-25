@@ -1,0 +1,26 @@
+# `it` after putting a card exiled with this onto the battlefield is that
+# permanent, not the triggering object.
+
+scenario "Emperor of Bones: the reanimated creature gains haste and is sacrificed at end step" {
+  battlefield A: "Emperor of Bones", 2 "Swamp"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Emperor of Bones" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  turn 3 begin_combat A: activate "Emperor of Bones" ability 1
+  run_to turn 3 declare_attackers
+  assert counters "Emperor of Bones" +1/+1 2
+  assert exile B lacks "Hill Giant"
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" finality 1
+  assert has "Hill Giant" haste
+  assert has not "Emperor of Bones" haste
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  run_to turn 4 untap
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield A contains "Emperor of Bones"
+  assert exile B contains "Hill Giant"
+}

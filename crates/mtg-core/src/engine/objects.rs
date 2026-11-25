@@ -259,8 +259,17 @@ impl GameState {
                 0
             };
             let n = d.loyalty.saturating_sub(less);
+            // "Each planeswalker you control enters with an additional
+            // loyalty counter on it" (Oath of Gideon): with those the event
+            // gives, not a second entry of the same kind.
             if n > 0 {
-                counters.push((CounterKind::Loyalty, n));
+                match counters
+                    .iter_mut()
+                    .find(|(k, _)| *k == CounterKind::Loyalty)
+                {
+                    Some((_, m)) => *m += n,
+                    None => counters.push((CounterKind::Loyalty, n)),
+                }
             }
         }
         // CR 310.4b: a battle enters with its printed defense in defense
@@ -348,8 +357,12 @@ impl GameState {
         }
         if old.zone == Zone::Battlefield && to == Zone::Graveyard && characteristics.is_creature() {
             self.log_event(TurnEvent::Died, old.controller, 1);
-            self.died_this_turn
-                .push((id, old.controller, characteristics));
+            self.died_this_turn.push((
+                id,
+                old.controller,
+                characteristics,
+                old.kind == crate::state::ObjKind::Token,
+            ));
         }
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {
@@ -2433,6 +2446,17 @@ impl GameState {
     }
 
     pub(super) fn destroy_with(&mut self, id: ObjId, regenerate: bool) {
+        self.destroy_inner(id, regenerate, false);
+    }
+
+    /// Destroy a permanent by a state-based action (CR 704.5g, 704.5h):
+    /// not "as the result of an effect", so shield counters don't apply
+    /// (CR 122.1c).
+    pub(super) fn destroy_by_rule(&mut self, id: ObjId) {
+        self.destroy_inner(id, true, true);
+    }
+
+    fn destroy_inner(&mut self, id: ObjId, regenerate: bool, by_rule: bool) {
         // CR 702.12b: an indestructible permanent can't be destroyed, so
         // there is no destruction for a regeneration shield or another
         // replacement to replace (the shield stays unused).
@@ -2447,6 +2471,7 @@ impl GameState {
         self.propose(Proposed::Destroy {
             obj: id,
             regenerate,
+            by_rule,
         });
     }
 

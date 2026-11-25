@@ -2761,6 +2761,16 @@ impl GameState {
         {
             self.note_attackers(obj.controller, whose, each, sa.trigger_player);
         }
+        // "Whenever one or more creatures you control attack, they gain
+        // indestructible until end of turn" (Angelic Guardian): the
+        // controller's matching attackers.
+        if let AbilityDef::Triggered(t) = self.pool.ability(sa.ability)
+            && let TriggerSpec::AttacksWithFilter { .. }
+            | TriggerSpec::AttacksWith { this: false, .. } = t.trigger
+        {
+            let trigger = t.trigger.clone();
+            self.note_own_attackers(obj.controller, &trigger, sa.trigger_player);
+        }
         // "Do this only once each turn.": its "you may" asks only until it
         // is done (`Effect::YouMay`).
         let doing = if limit == crate::card::TurnLimit::Do {
@@ -2834,6 +2844,48 @@ impl GameState {
                 })
                 .map(|a| a.id),
         );
+    }
+
+    /// "They" in a `TriggerSpec::AttacksWithFilter` or `AttacksWith`
+    /// ability: the creatures `controller` attacks with that match the
+    /// filter (and attack the triggering player, with `player`), as the
+    /// ability resolves (`Recipient::ThoseObjects`).
+    #[cold]
+    fn note_own_attackers(
+        &mut self,
+        controller: PlayerId,
+        trigger: &TriggerSpec,
+        attacked: Option<PlayerId>,
+    ) {
+        let (Some(_), Some(c)) = (&self.this_way, &self.combat) else {
+            return;
+        };
+        let group: Vec<ObjId> = c
+            .attackers
+            .iter()
+            .filter(|a| {
+                let Some(o) = self.objects.get(a.id) else {
+                    return false;
+                };
+                o.controller == controller
+                    && match trigger {
+                        TriggerSpec::AttacksWithFilter { filter, player, .. } => {
+                            (!*player
+                                || matches!(a.attacking, Target::Player(q) if Some(q) == attacked))
+                                && self.characteristics(a.id).is_some_and(|ch| {
+                                    filter.matches(a.id, o.controller, &ch, None, Some(controller))
+                                })
+                                && self.status_ok(filter, a.id)
+                        }
+                        _ => true,
+                    }
+            })
+            .map(|a| a.id)
+            .collect();
+        if let Some(log) = &mut self.this_way {
+            log.group.clear();
+            log.group.extend(group);
+        }
     }
 
     /// An ability's intervening "if", evaluated against the current state.

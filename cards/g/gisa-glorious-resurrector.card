@@ -1,0 +1,8 @@
+card "Gisa, Glorious Resurrector" {
+  oracle_id f1354b1b-896c-4492-b0c0-3dd07c6d3917
+  cost {2}{B}{B}
+  type Legendary Creature — Human Wizard
+  pt 4/4
+  replace creature an opponent controls dies: exile
+  triggered at beginning of your upkeep step: put all creature card exiled with this onto battlefield under your control; they gain decayed indefinitely
+}

@@ -1,0 +1,8 @@
+card "Molten Primordial" {
+  oracle_id 8d8c9f7b-92c7-4284-ad9c-304ce42edba5
+  cost {5}{R}{R}
+  type Creature — Avatar
+  pt 6/4
+  keywords haste
+  triggered when this enters: for each opponent, gain control of up to 1 target creature that opponent controls until end of turn; untap those targets; they gain haste until end of turn
+}

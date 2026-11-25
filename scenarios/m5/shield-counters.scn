@@ -1,0 +1,90 @@
+# CR 122.1c: a shield counter prevents damage dealt to its permanent and
+# replaces its destruction by an effect, and is removed each time.
+
+scenario "Shield counter: non-combat damage is prevented and the counter removed" {
+  battlefield A: "Wingshield Agent" with 1 shield
+  battlefield B: 2 "Mountain"
+  hand B: 2 "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Wingshield Agent"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Wingshield Agent"
+  assert counters "Wingshield Agent" shield 0
+  assert damage "Wingshield Agent" 0
+  assert graveyard B contains "Lightning Bolt"
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Wingshield Agent"
+  run_to turn 2 end
+  assert graveyard A contains "Wingshield Agent"
+}
+
+scenario "Shield counter: combat damage is prevented; the attacker takes its damage" {
+  battlefield A: "Wingshield Agent" with 1 shield
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Wingshield Agent"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Wingshield Agent"
+  assert counters "Wingshield Agent" shield 0
+  assert damage "Wingshield Agent" 0
+  assert damage "Hill Giant" 2
+}
+
+scenario "Shield counter: destruction by an effect is replaced" {
+  battlefield A: "Wingshield Agent" with 1 shield
+  battlefield B: 2 "Swamp"
+  hand B: "Doom Blade"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Wingshield Agent"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Wingshield Agent"
+  assert counters "Wingshield Agent" shield 0
+}
+
+scenario "Shield counter: of two counters, one is removed per event" {
+  battlefield A: "Wingshield Agent" with 2 shield
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Wingshield Agent"
+  run_to turn 2 begin_combat
+  assert counters "Wingshield Agent" shield 1
+  assert damage "Wingshield Agent" 0
+}
+
+scenario "Shield counter: deathtouch damage is prevented too" {
+  battlefield A: "Wingshield Agent" with 1 shield
+  battlefield B: "Typhoid Rats"
+  start turn 2 B
+  turn 2 B: attack "Typhoid Rats"
+  turn 2 A: block "Typhoid Rats" with "Wingshield Agent"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Wingshield Agent"
+  assert counters "Wingshield Agent" shield 0
+  assert graveyard B contains "Typhoid Rats"
+}
+
+scenario "Shield counter: damage that can't be prevented is dealt, and the counter is still removed" {
+  battlefield A: "Wingshield Agent" with 1 shield
+  battlefield B: 3 "Mountain"
+  hand B: "Skullcrack", "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Skullcrack" targeting player A
+  turn 2 postcombat_main B: cast "Shock" targeting "Wingshield Agent"
+  run_to turn 2 end
+  assert counters "Wingshield Agent" shield 0
+  assert damage "Wingshield Agent" 2
+}
+
+scenario "Boon of Safety's shield counter saves a creature from Doom Blade" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: 2 "Swamp"
+  hand A: "Boon of Safety"
+  hand B: "Doom Blade"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Doom Blade" targeting "Grizzly Bears"
+  turn 2 A: cast "Boon of Safety" targeting "Grizzly Bears" in response to "Doom Blade"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" shield 0
+}

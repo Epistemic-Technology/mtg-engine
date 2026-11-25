@@ -1,0 +1,36 @@
+# `they` bound to the objects the ability names, not to a player.
+
+scenario "Molten Primordial: the stolen creature is untapped and gains haste" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Molten Primordial"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Molten Primordial"
+  turn 3 A: trigger "Molten Primordial" targeting "Hill Giant"
+  run_to turn 3 declare_attackers
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Angelic Guardian: the attackers gain indestructible" {
+  battlefield A: "Angelic Guardian", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has not "Angelic Guardian" indestructible
+}
+
+scenario "Angelic Guardian: a creature that didn't attack doesn't gain it" {
+  battlefield A: "Angelic Guardian", "Grizzly Bears", "Wind Drake"
+  start turn 2 A
+  turn 2 A: attack "Wind Drake"
+  run_to turn 2 declare_blockers
+  assert has "Wind Drake" indestructible
+  assert has not "Grizzly Bears" indestructible
+}

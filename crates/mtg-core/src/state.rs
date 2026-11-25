@@ -1697,6 +1697,9 @@ pub struct ThisWayLog {
     /// each of its players, for counts of "they"/"their"
     /// (`ThatPlayer::Acting`, `CountExpr::Their`).
     pub acting: Option<PlayerId>,
+    /// "Each player ... draws that many cards" (Incendiary Command): the
+    /// acting player's own discards are "that many" (`CountExpr::ThisWay`).
+    pub each_draws: bool,
     /// The players the most recent per-player act (a discard, a counted
     /// sacrifice, "may ... or ...") asked, for "for each opponent who
     /// didn't discard ...".
@@ -2324,7 +2327,9 @@ pub struct GameState {
     /// Those creatures as they last existed (CR 700.4): the object they
     /// were, their controller, and their characteristics, for "for each
     /// Zubera that died this turn". Empty, unallocated, on most turns.
-    pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
+    /// Each creature that died this turn: its controller, its last
+    /// characteristics, and whether it was a token ("nontoken creature").
+    pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics, bool)>,
     /// The permanents sacrificed this turn as they last existed, with the
     /// player who sacrificed them, for "if you've sacrificed a Food this
     /// turn" (CR 701.21). Empty, unallocated, on most turns.
@@ -2846,8 +2851,12 @@ impl GameState {
             TurnEvent::Died => self
                 .died_this_turn
                 .iter()
-                .filter(|(id, controller, ch)| {
-                    whose(*controller) && f.matches(*id, *controller, ch, None, Some(you))
+                .filter(|(id, controller, ch, token)| {
+                    whose(*controller)
+                        && f.matches(*id, *controller, ch, None, Some(you))
+                        // "for each nontoken creature that died this turn"
+                        // (Gadrak, the Crown-Scourge).
+                        && f.status.token.is_none_or(|t| t == *token)
                 })
                 .count(),
             TurnEvent::Sacrificed => self
@@ -5376,6 +5385,22 @@ impl GameState {
         }
     }
 
+    /// The defending player of the attacking creature `source` (CR
+    /// 506.2): the player it attacks, a planeswalker's controller, a
+    /// battle's protector. None while it isn't attacking.
+    pub fn defending_player_of(&self, source: ObjId, you: PlayerId) -> Option<PlayerId> {
+        self.combat
+            .as_ref()
+            .and_then(|c| c.attacker(source))
+            .and_then(|a| match a.attacking {
+                Target::Player(p) => Some(p),
+                Target::Object(o) => self
+                    .protector(o)
+                    .or_else(|| self.objects.get(o).map(|x| x.controller))
+                    .filter(|p| *p != you),
+            })
+    }
+
     /// Whether a player a `HandPlayer` names passes the test: "that
     /// player" as given; the defending player of the attacking source (CR
     /// 506.2; a planeswalker's controller, a battle's protector); any
@@ -5391,18 +5416,7 @@ impl GameState {
         use crate::card::HandPlayer as H;
         match who {
             H::That => that.is_some_and(test),
-            H::Defending => self
-                .combat
-                .as_ref()
-                .and_then(|c| c.attacker(source))
-                .and_then(|a| match a.attacking {
-                    Target::Player(p) => Some(p),
-                    Target::Object(o) => self
-                        .protector(o)
-                        .or_else(|| self.objects.get(o).map(|x| x.controller))
-                        .filter(|p| *p != you),
-                })
-                .is_some_and(test),
+            H::Defending => self.defending_player_of(source, you).is_some_and(test),
             H::Opponent => self.players_in_game().any(|p| p != you && test(p)),
             H::Anyone => self.players_in_game().any(test),
         }

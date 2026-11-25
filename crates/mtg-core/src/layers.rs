@@ -390,6 +390,7 @@ fn pass(
 /// Applies the live effects from index `from` on that have a part in
 /// `layer`, in dependency and timestamp order. Returns whether one of them
 /// granted a static ability with a layer-6 part.
+#[allow(clippy::too_many_lines)] // the dependency order, then one arm per kind of part
 fn apply_layer(work: &mut Work<'_>, live: &mut [Live], from: usize, layer: Layer) -> bool {
     let mut granted_static = false;
     {
@@ -456,6 +457,37 @@ fn apply_layer(work: &mut Work<'_>, live: &mut [Live], from: usize, layer: Layer
                             for a in &granted {
                                 apply(work, wi, &Modification::AddAbility(*a));
                             }
+                        }
+                    }
+                    continue;
+                }
+                // "Each legendary creature you control gets +1/+1 for each
+                // other legendary creature you control" (Heroes' Podium):
+                // over a group, "other" is other than the creature it
+                // applies to, so the count is that creature's (and a
+                // "same" filter is relative to it too).
+                if let Modification::ModifyPtPer {
+                    power,
+                    toughness,
+                    count: count @ crate::card::CountExpr::Permanents(f),
+                } = part
+                    && f.relation == crate::card::Relation::Other
+                    && f.attached_to.is_none()
+                    && l.filter.as_ref().is_some_and(|a| {
+                        a.relation != crate::card::Relation::This && !a.enchanted && !a.paired
+                    })
+                {
+                    for t in &targets {
+                        if let Some(&wi) = work.index.get(t) {
+                            let n = per_count(work, Some(*t), l.controller, count);
+                            apply(
+                                work,
+                                wi,
+                                &Modification::ModifyPt {
+                                    power: power.saturating_mul(n),
+                                    toughness: toughness.saturating_mul(n),
+                                },
+                            );
                         }
                     }
                     continue;
@@ -779,11 +811,44 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     Some(you),
                 )
         }),
+        // "This creature can't be blocked as long as defending player
+        // controls an untapped land" (Hazy Homunculus): the player the
+        // source attacks (CR 506.2); while it isn't attacking, there is
+        // none and the condition doesn't hold.
+        StaticCondition::DefenderControls { filter, at_least } => {
+            let Some(d) = state.defending_player_of(source, you) else {
+                return false;
+            };
+            let n = work
+                .ids
+                .iter()
+                .filter(|id| {
+                    work.on_battlefield(**id)
+                        && work.controller_of(**id) == d
+                        && filter
+                            .tapped
+                            .is_none_or(|t| state.objects[**id].tapped == t)
+                        // The filter's "you" is the defending player
+                        // ("defending player controls").
+                        && filter.matches(
+                            **id,
+                            d,
+                            &chars[work.index[*id]],
+                            Some(source),
+                            Some(d),
+                        )
+                })
+                .count();
+            if *at_least == 0 {
+                n == 0
+            } else {
+                n >= *at_least as usize
+            }
+        }
         // Judged as attackers are declared, or as a permanent enters; not
         // by a static ability. A static ability has no "they" or
         // triggering object, and doesn't read who is attacking.
-        StaticCondition::DefenderControls { .. }
-        | StaticCondition::DefenderPoisoned
+        StaticCondition::DefenderPoisoned
         | StaticCondition::OthersInCombat { .. }
         | StaticCondition::MoreCreaturesThanOpponent { .. }
         | StaticCondition::Escaped

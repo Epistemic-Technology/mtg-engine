@@ -966,6 +966,9 @@ impl GameState {
                                 f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
                             })
                             && self.status_ok(f, **id)
+                            // "for each creature blocked by it" (Guardian
+                            // of the Gateless, CR 509.1g).
+                            && self.combat_with_ok(f.combat_with, Some(ctx.source), **id)
                     })
                     .count()
             }
@@ -1105,10 +1108,19 @@ impl GameState {
                     .count()
             }
             CountExpr::ThisWay(verb, f) => self.this_way.as_ref().map_or(0, |log| {
+                // "Each player discards all the cards in their hand, then
+                // draws that many cards" (Incendiary Command): while each
+                // player draws, the cards that player discarded.
+                let acting = match verb {
+                    crate::card::ThisWay::Discarded if log.each_draws => log.acting,
+                    _ => None,
+                };
                 log.moved
                     .iter()
                     .filter(|m| {
-                        m.is(*verb) && f.as_ref().is_none_or(|f| self.moved_matches(ctx, m, f))
+                        m.is(*verb)
+                            && acting.is_none_or(|p| m.owner == p)
+                            && f.as_ref().is_none_or(|f| self.moved_matches(ctx, m, f))
                     })
                     .count()
             }),
@@ -13276,6 +13288,15 @@ impl GameState {
                 self.lasting_grants += 1;
             }
         }
+        // A gained "can't attack unless ..." (Veiled Serpent's "becomes a
+        // 4/4 Serpent creature with ...", CR 508.1c) is looked for from
+        // now on: counted for good, as the effect may outlast its source.
+        if parts.iter().any(|m| {
+            matches!(m, Modification::AddAbility(a)
+                if matches!(self.pool.ability(*a), AbilityDef::AttackUnless { .. }))
+        }) {
+            self.attack_rule_sources += 1;
+        }
         let timestamp = self.tick();
         self.effects.push(ContinuousEffect {
             source: Some(ctx.source),
@@ -13418,6 +13439,10 @@ impl GameState {
                 ctx.trigger_amount = lost;
             }
             Effect::DrawCards { count, who } => {
+                let each = *who == crate::card::Recipient::EachPlayer;
+                if each && let Some(l) = &mut self.this_way {
+                    l.each_draws = true;
+                }
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         self.set_acting(Some(p));
@@ -13426,6 +13451,9 @@ impl GameState {
                     }
                 }
                 self.set_acting(None);
+                if each && let Some(l) = &mut self.this_way {
+                    l.each_draws = false;
+                }
             }
             Effect::AddCounters { kind, count, to } => {
                 // CR 608.2h: the number is determined once, before any
@@ -17044,6 +17072,11 @@ impl GameState {
                 } else {
                     self.recipients(ctx, *what)
                 };
+                // "Put all creature cards exiled with Gisa onto the
+                // battlefield under your control. They gain decayed.": the
+                // permanents they became are the group (CR 400.7).
+                let group = matches!(what, crate::card::Recipient::ExiledWith(_));
+                let mut entered: Vec<ObjId> = Vec::new();
                 for t in found {
                     let Target::Object(id) = t else {
                         continue;
@@ -17126,6 +17159,12 @@ impl GameState {
                         self.cbump();
                     }
                     ctx.created = Some(new);
+                    if group {
+                        entered.push(new);
+                    }
+                }
+                if group && let Some(log) = self.this_way.as_mut() {
+                    log.group = entered;
                 }
             }
             Effect::BecomeCopy {
