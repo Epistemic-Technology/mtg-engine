@@ -1,0 +1,8 @@
+card "Samurai of the Pale Curtain" {
+  oracle_id 6df6e834-1917-4bf4-b0b7-09834bf90fb2
+  cost {W}{W}
+  type Creature — Fox Samurai
+  pt 2/2
+  bushido 1
+  replace card put into a graveyard from the battlefield: exile
+}

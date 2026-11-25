@@ -880,7 +880,24 @@ creature` ("put a +1/+1 counter on each of up to two target creatures";
 creatures you control"; `untap 2 another target permanent` is "Untap two
 other target permanents"), `... and put 1 stun counter on them` ("on each
 of them"), and `put 1 stun counter on those targets` ("on each of those
-creatures": every target declared so far, named by their kind).
+creatures": every target declared so far, named by their kind; as a
+subject, `those targets gain vigilance until end of turn` prints "Those
+creatures gain vigilance until end of turn.", Arm the Cathars). A comma
+list of counters drops the repeated "put", and the second `another target`
+of a sentence is "a third target": `put 1 +1/+1 counter on target creature,
+put 2 +1/+1 counters on another target creature, and put 3 +1/+1 counters
+on another target creature` prints "Put a +1/+1 counter on target
+creature, two +1/+1 counters on another target creature, and three +1/+1
+counters on a third target creature." (Incremental Growth).
+In a trigger, `the creature gets +2/+2 until end of turn` names the
+triggering creature "the creature" ("If you do, the creature gets +2/+2
+until end of turn.", Slab Hammer).
+In a "where X is" count, a graveyard card target returned to a hand is
+"the card returned this way" ("Target creature gets -X/-X until end of
+turn, where X is the toughness of the card returned this way.", Foul
+Renewal; `equal` keeps "that card's power", Lie in Wait); a creature
+target this ability exiled keeps "that creature's power" in a count
+("You draw cards equal to that creature's power.").
 
 `this becomes 4/4 green Bear artifact creature` (colors before
 subtypes; the card types replace the permanent's others except land, CR
@@ -1205,7 +1222,12 @@ their own), `loses half down life` ("loses half their life, rounded
 down"; `loses half life` is rounded up). A sentence with two or more
 halves, all rounded down, prints them bare and adds "Round down each
 time." (Pox Plague: `each player loses half down life, then discards half
-down hand, then sacrifices half down permanent`). The counts `their
+down hand, then sacrifices half down permanent`); a draw of `count equal
+half up library of target 1` counts as one of them and prints "draws
+cards equal to half the number of cards in their library" (`target player
+draws count equal half up library of target 1 cards and loses half up
+life`: "... and loses half their life. Round up each time.", Peer into
+the Abyss). The counts `their
 hand`, `their library`, `their life` are the acting player's, and `they
 control` in a count of `each player` or of a group of target players
 (`each player loses count each creature they control life`) is each
@@ -1554,7 +1576,9 @@ card or token would be put into your graveyard from anywhere, exile it
 instead." (Festival of Embers); `card put into your graveyard` and `card
 put into an opponent's graveyard` ("If a card would be put into ...")
 leave tokens alone (CR 108.2: a token isn't a card), `card put into a
-graveyard` prints "a card or token" and covers both. `replace instant or
+graveyard` prints "a card or token" and covers both; `replace card put into
+a graveyard from the battlefield: exile` prints "If a permanent would be put
+into a graveyard, exile it instead." (Samurai of the Pale Curtain). `replace instant or
 sorcery card put into a graveyard: exile` prints "If an instant or
 sorcery card would be put into a graveyard from anywhere, exile it
 instead." (any card filter, judged as the card is wherever it is; tokens
@@ -1911,7 +1935,8 @@ permanent a spell becomes keeps it.
 
 The mana spent to cast a spell (CR 601.2h): `mana spent` counts all of
 it ("the amount of mana spent to cast it", "this spell" on an instant or
-sorcery), and `mana spent that spell` the triggering spell's ("Whenever
+sorcery; `enters with count each mana spent +1/+1 counters`: "enters with a
++1/+1 counter on it for each mana spent to cast it", Verazol), and `mana spent that spell` the triggering spell's ("Whenever
 you cast an instant or sorcery spell, this creature gets +X/+0 until end
 of turn, where X is the amount of mana spent to cast that spell":
 `triggered whenever you cast an instant or sorcery spell: this gets
@@ -3125,7 +3150,9 @@ target creature` ("Unattach all Equipment from target creature", CR
 Equipment to the amassed Army"), `create 2 "Soldier"`,
 `create 1 tapped "Powerstone"` ("Create a tapped Powerstone token"),
 `create 1 tapped and attacking "..."` ("create a ... token that's tapped
-and attacking", "... tokens that are tapped and attacking": CR 508.4, never
+and attacking", "... tokens that are tapped and attacking"; one token with
+a quoted ability is "create a tapped and attacking 1/1 red Devil creature
+token with \"...\"", Pugnacious Pugilist: CR 508.4, never
 declared as attackers; they attack what the source is attacking, else an
 opponent; likewise `put Soldier creature card from hand onto battlefield
 tapped and attacking`, `return target creature card from your graveyard to
@@ -4950,7 +4977,9 @@ in an effect "If five or more mana was spent to cast that spell" (`if that
 spell spent 5 mana, put 2 +1/+1 counters on this creature instead`). After
 the comma, `also` prints "also" after the subject (`if that spell spent 5
 mana, also this creature gains double strike`: "this creature also gains
-double strike"). After such a condition, `that much` in a cast trigger is
+double strike"; `if you control Liliana planeswalker, also each opponent
+discards 1 card`: "each opponent also discards a card", Liliana's Triumph).
+After such a condition, `that much` in a cast trigger is
 the mana spent to cast that spell (`if that spell spent 8 mana, sacrifice
 this and it deals that much damage to each opponent`, Tellah, Great
 Sage); without one it is refused there. `that spell kicked` likewise reads the triggering
@@ -5307,7 +5336,9 @@ Forms that change only how Oracle words what an existing form does:
 | `each opponent loses 3 life unless they discard 1 card else sacrifice creature` | "Each opponent loses 3 life unless they discard a card or sacrifice a creature." (Polygraph Orb; the same choice as `unless they sacrifice creature else discard 1 card`) |
 | `opening hand` on a legendary card | "If Quicksilver, Brash Blur is in your opening hand, you may begin the game with him on the battlefield." (the full name, the card's pronoun) |
 | `until end of turn, creatures you control get +2/+2 and gain menace and gains ability { ... }` | "Until end of turn, creatures you control get +2/+2 and gain menace and \"...\"" (Root Manipulation) |
-| `flash first if 3 Lesson cards in your graveyard` | "If there are three or more Lesson cards in your graveyard, you may cast this spell as though it had flash." (the same as `flash if ...`) |
+| `flash first if 3 Lesson cards in your graveyard` | "If there are three or more Lesson cards in your graveyard, you may cast this spell as though it had flash." (the same as `flash if ...`). An ability word goes first: `label "Spell mastery" flash first if 2 instant or sorcery cards in your graveyard` prints "Spell mastery — If there are two or more instant and/or sorcery cards in your graveyard, you may cast this spell as though it had flash." (Swift Reckoning; wording only) |
+| `static each thatare Barbarian or Warrior or Berserker creature: ...`, `each single thatare Wolf or Werewolf creature you control bites that target 1` | `thatare` on alternatives of one creature type each prints them after the noun, each with its article: "Each creature that's a Barbarian, a Warrior, or a Berserker gets +2/+2 and has haste." (Lovisa Coldeyes), "Each creature you control that's a Wolf or a Werewolf deals damage equal to its power to that creature." (Moonlight Hunt). With a counter, `target thatare creature with -1/-1 counter` prints "target creature that has a -1/-1 counter on it" (Banewhip Punisher); in a target check, `if that target 1 is thatare with power 4 or greater` prints "if that creature has power 4 or greater" (Strider, Ranger of the North). Wording only. |
+| `this spell costs {1} less if you control artifact` twice | Two conditional reductions, each applied on its own (`CardDef::cond_cost`, `cond_cost2`), print as one sentence: "This spell costs {1} less to cast if you control an artifact and {1} less to cast if you control an enchantment." (Assassin's Ink) |
 | `enters with count each plus 1 other creature you control +1/+1 counters` | "This creature enters with a +1/+1 counter on it plus an additional +1/+1 counter on it for each other creature you control." (Sheriff of Safe Passage) |
 | `triggered whenever you cast a spell if that spell spent treasure: ...` | "Whenever you cast a spell, if mana from a Treasure was spent to cast it, ..." (Smaug) |
 | `activated {10}, sacrifice this, reduced {1} where differently named land you control: ...` | "This ability costs {X} less to activate, where X is the number of differently named lands you control." (Survey Mechan: {1} less for each, as `reduced {1} each ...`) |

@@ -1208,6 +1208,7 @@ impl P {
             flash_if: None,
             flash_if_may: false,
             flash_if_named: false,
+            flash_label: None,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,
@@ -1481,6 +1482,18 @@ impl P {
                     w => return self.fail(format!("unknown pronoun `{w}` (he, she, they)")),
                 });
                 self.end_stmt()
+            }
+            // `label "Spell mastery" flash first if ...` (Swift Reckoning).
+            "label"
+                if matches!(self.peek_at(1), Some(Tok::Str(_)))
+                    && self.word_at(2).as_deref() == Some("flash") =>
+            {
+                self.pos += 1;
+                card.flash_label = Some(self.string()?);
+                if !self.at_word("flash") {
+                    return self.fail("expected `flash` after its label");
+                }
+                return self.card_statement(card);
             }
             "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {
                 self.pos += 4;
@@ -7930,6 +7943,11 @@ impl P {
             return true;
         }
         if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            return true;
+        }
+        // "If you do, the creature gets +2/+2 until end of turn." (Slab
+        // Hammer): the triggering object.
+        if self.in_trigger && !self.in_delayed && self.at_words(&["the", "creature", "gets"]) {
             return true;
         }
         if self.at_words(&["those", "targets"])

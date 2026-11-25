@@ -208,6 +208,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         flash_if_may: false,
         flash_if_named: false,
+        flash_label: None,
         flash_cleanup: def.flash_cleanup,
         pronoun: None,
         short_name: None,

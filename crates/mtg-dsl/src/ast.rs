@@ -315,6 +315,11 @@ pub struct Card {
     /// though it had flash." (Serpent of the Pass).
     pub flash_if_named: bool,
     pub flash_if_may: bool,
+    /// `label "Spell mastery" flash first if ...`: the ability word before
+    /// the flash permission ("Spell mastery — If there are two or more
+    /// instant and/or sorcery cards in your graveyard, you may cast this
+    /// spell as though it had flash.", Swift Reckoning; wording only).
+    pub flash_label: Option<String>,
     /// `flash with cleanup sacrifice`: "You may cast this spell as though
     /// it had flash. If you cast it any time a sorcery couldn't have been
     /// cast, the controller of the permanent it becomes sacrifices it at
@@ -405,6 +410,7 @@ impl Card {
             flash_if: None,
             flash_if_may: false,
             flash_if_named: false,
+            flash_label: None,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,

@@ -1,0 +1,6 @@
+card "Liliana's Triumph" {
+  oracle_id c2e68ac5-cfff-4b76-8062-25a82fdf9a5c
+  cost {1}{B}
+  type Instant
+  spell: each opponent sacrifices 1 creature; if you control Liliana planeswalker, also each opponent discards 1 card
+}

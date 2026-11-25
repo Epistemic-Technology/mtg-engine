@@ -1,0 +1,9 @@
+
+card "Banewhip Punisher" {
+  oracle_id d46c397c-e772-4a29-bbd2-1d7b47a461e8
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered when this enters: you may put 1 -1/-1 counter on target creature
+  activated {B}, sacrifice this: destroy target thatare creature with -1/-1 counter
+}

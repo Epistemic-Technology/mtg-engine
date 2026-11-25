@@ -117,7 +117,11 @@ fn format_inner(card: &Card) -> String {
         } else {
             "as long as"
         };
-        let _ = writeln!(out, "  flash {how} {}", static_cond(c));
+        let label = card
+            .flash_label
+            .as_ref()
+            .map_or_else(String::new, |l| format!("label {l:?} "));
+        let _ = writeln!(out, "  {label}flash {how} {}", static_cond(c));
     }
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");

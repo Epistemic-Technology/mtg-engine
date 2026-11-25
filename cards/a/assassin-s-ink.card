@@ -1,0 +1,8 @@
+card "Assassin's Ink" {
+  oracle_id a6d95d26-48d8-4a97-9a42-f492a61300c9
+  cost {2}{B}{B}
+  type Instant
+  this spell costs {1} less if you control artifact
+  this spell costs {1} less if you control enchantment
+  spell: destroy target creature or planeswalker
+}

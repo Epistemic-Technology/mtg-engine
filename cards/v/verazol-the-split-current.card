@@ -1,0 +1,8 @@
+card "Verazol, the Split Current" {
+  oracle_id d85e5398-fa97-4bcd-8b93-008f3f435e22
+  cost {X}{G}{U}
+  type Legendary Creature — Serpent
+  pt 0/0
+  enters with count each mana spent +1/+1 counters
+  triggered whenever you cast kicked spell: you may remove 2 +1/+1 counters from this; if you do, copy that spell new targets
+}

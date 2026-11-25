@@ -238,6 +238,7 @@ impl GameState {
         }
         if def.self_cost.is_some()
             || def.cond_cost.is_some()
+            || def.cond_cost2.is_some()
             || !changers.is_empty()
             || self.next_spell_less[b.p.index().min(3)] > 0
             || !self.turn_spell_changes.is_empty()

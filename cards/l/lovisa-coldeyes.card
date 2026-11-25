@@ -1,0 +1,7 @@
+card "Lovisa Coldeyes" {
+  oracle_id 720879dc-7593-41c0-ab3d-936069f26930
+  cost {3}{R}{R}
+  type Legendary Creature — Human
+  pt 3/3
+  static each thatare Barbarian or Warrior or Berserker creature: +2/+2, has haste
+}

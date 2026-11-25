@@ -1,0 +1,6 @@
+card "Moonlight Hunt" {
+  oracle_id f38a6cb4-79dd-4c12-9896-8c6655e275f8
+  cost {1}{G}
+  type Instant
+  spell: choose target creature you don't control; each single thatare Wolf or Werewolf creature you control bites that target 1
+}
