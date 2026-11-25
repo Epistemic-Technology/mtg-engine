@@ -45,12 +45,13 @@ impl GameState {
         let watchers = self.watchers(event);
         let event_amount = match event {
             Event::Damage { amount, .. } => *amount,
-            Event::CountersAdded { n, .. } | Event::CountersRemoved { n, .. } => *n,
+            Event::CountersAdded { n, .. }
+            | Event::CountersRemoved { n, .. }
+            | Event::Acted { n, .. } => *n,
             // "you gain that much life" after a player loses or gains life.
             Event::LifeChange { delta, .. } => delta.unsigned_abs(),
             // "discover again for the same value".
             Event::Discovered { value, .. } => *value,
-            Event::Acted { n, .. } => *n,
             // "If eight or more mana was spent to cast that spell, ... that
             // much damage": the mana spent to cast it (CR 601.2h), recorded
             // only while something watches it.

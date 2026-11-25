@@ -5002,7 +5002,9 @@ pub enum Trigger {
     },
     /// `whenever this becomes attached to creature`, `whenever this
     /// becomes unattached from permanent` (`TriggerSpec::ThisAttachment`).
-    ThisAttachment { attached: bool },
+    ThisAttachment {
+        attached: bool,
+    },
     /// `when this is put into your graveyard from your library [named]`
     /// (`TriggerSpec::ThisToGraveyardFrom`).
     ThisToGraveyardFrom {
@@ -5020,7 +5022,10 @@ pub enum Trigger {
     /// `whenever you or permanent you control becomes targeted by
     /// opponent`, `whenever you andor permanent you control ...`
     /// (`TriggerSpec::YouOrYoursTargeted`).
-    YouOrYoursTargeted { whose: Who, and_or: bool },
+    YouOrYoursTargeted {
+        whose: Who,
+        and_or: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

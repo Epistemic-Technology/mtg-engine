@@ -20412,8 +20412,14 @@ impl P {
         // Keyword actions (CR 701): "Whenever you surveil", "Whenever you
         // proliferate", "Whenever you get one or more {E}".
         for (words, action) in [
-            (&["you", "surveil"][..], mtg_core::card::KeywordAction::Surveil),
-            (&["you", "proliferate"][..], mtg_core::card::KeywordAction::Proliferate),
+            (
+                &["you", "surveil"][..],
+                mtg_core::card::KeywordAction::Surveil,
+            ),
+            (
+                &["you", "proliferate"][..],
+                mtg_core::card::KeywordAction::Proliferate,
+            ),
             (
                 &["you", "get", "one", "or", "more", "energy"][..],
                 mtg_core::card::KeywordAction::GetEnergy,
@@ -21521,13 +21527,11 @@ impl P {
         let filter = if self.at_word("card") || self.at_word("cards") {
             Filter::default()
         } else {
-            match self.filter() {
-                Ok(f) => f,
-                Err(_) => {
-                    self.pos = at;
-                    return None;
-                }
-            }
+            let Ok(f) = self.filter() else {
+                self.pos = at;
+                return None;
+            };
+            f
         };
         if !(self.eat_word("card") || self.eat_word("cards")) {
             self.pos = at;
@@ -21559,7 +21563,11 @@ impl P {
             whose,
             from,
         };
-        Some(if batch { Trigger::Batch(Box::new(t)) } else { t })
+        Some(if batch {
+            Trigger::Batch(Box::new(t))
+        } else {
+            t
+        })
     }
 
     /// Who a `SourceDealsDamage` trigger's damage is dealt to: `to you [or a
@@ -21674,7 +21682,15 @@ impl P {
             // CR 603.6a: "When this card is put into your graveyard from
             // your library".
             "is" if obj == TriggerObj::This
-                && self.at_words(&["put", "into", "your", "graveyard", "from", "your", "library"]) =>
+                && self.at_words(&[
+                    "put",
+                    "into",
+                    "your",
+                    "graveyard",
+                    "from",
+                    "your",
+                    "library",
+                ]) =>
             {
                 self.pos += 7;
                 let named = self.eat_word("named");

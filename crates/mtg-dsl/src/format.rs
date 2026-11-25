@@ -7093,7 +7093,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 Who::You => "you ",
                 Who::Any => "",
             },
-            spell.as_ref().map_or_else(String::new, |f| format!("{} ", filter(f))),
+            spell
+                .as_ref()
+                .map_or_else(String::new, |f| format!("{} ", filter(f))),
             if *spells { "spell" } else { "" }
         )
         .trim_end()

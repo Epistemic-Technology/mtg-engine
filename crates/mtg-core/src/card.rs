@@ -9631,8 +9631,9 @@ impl TriggerSpec {
             | TriggerSpec::TargetedByYouFirstTime
             | TriggerSpec::YouOrYoursTargeted { .. }
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
-            TriggerSpec::BecomesAttachedTo(_)
-            | TriggerSpec::ThisAttachment { attached: true } => WATCH_ATTACH,
+            TriggerSpec::BecomesAttachedTo(_) | TriggerSpec::ThisAttachment { attached: true } => {
+                WATCH_ATTACH
+            }
             TriggerSpec::ThisAttachment { attached: false } => WATCH_ATTACH | WATCH_ZONE_CHANGE,
             TriggerSpec::Discards { .. }
             | TriggerSpec::DiscardsThis

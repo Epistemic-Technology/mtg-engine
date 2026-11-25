@@ -2352,7 +2352,10 @@ impl<'a> Ctx<'a> {
             // "Whenever this Equipment becomes unattached from a permanent,
             // sacrifice that permanent."
             Recipient::TriggeringObject
-                if matches!(self.trigger, Some(Trigger::ThisAttachment { attached: false })) =>
+                if matches!(
+                    self.trigger,
+                    Some(Trigger::ThisAttachment { attached: false })
+                ) =>
             {
                 "that permanent".to_string()
             }
