@@ -1,0 +1,7 @@
+card "Kolaghan Monument" {
+  oracle_id d8b79fed-9817-4b91-ac2e-e9fa955dd43c
+  cost {3}
+  type Artifact
+  mana {B} or {R}
+  activated {4}{B}{R}: this becomes 4/4 black red Dragon artifact creature with flying
+}

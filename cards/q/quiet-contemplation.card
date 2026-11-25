@@ -1,0 +1,6 @@
+card "Quiet Contemplation" {
+  oracle_id f87dfde4-8c57-4543-826c-6b3cf9c11b90
+  cost {2}{U}
+  type Enchantment
+  triggered whenever you cast a noncreature spell: you may pay {1}; if you do, tap target creature an opponent controls, and target 1 doesn't untap next untap step
+}

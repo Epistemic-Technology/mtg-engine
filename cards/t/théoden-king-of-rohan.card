@@ -1,0 +1,7 @@
+card "Théoden, King of Rohan" {
+  oracle_id e739e3ce-4c5e-4172-a9de-adf66ca6588c
+  cost {1}{R}{W}
+  type Legendary Creature — Human Noble
+  pt 2/3
+  triggered whenever this or Human you control enters: target creature gains double strike
+}

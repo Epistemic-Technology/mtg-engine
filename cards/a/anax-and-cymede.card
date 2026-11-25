@@ -1,0 +1,8 @@
+card "Anax and Cymede" {
+  oracle_id 9c4219db-1a7a-4d61-bb8b-7998cfed1faf
+  cost {1}{R}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/2
+  keywords first strike, vigilance
+  label "Heroic" triggered whenever you cast permanent spell that targets this: each creature you control gets +1/+1 and gains trample
+}

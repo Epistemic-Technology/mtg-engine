@@ -1,0 +1,7 @@
+card "Field Marshal" {
+  oracle_id 1c0a53fc-8037-46e3-90ea-cb8b73631a83
+  cost {1}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  static other Soldier creature: +1/+1, has first strike
+}

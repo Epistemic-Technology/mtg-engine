@@ -1,0 +1,8 @@
+card "Ring of Valkas" {
+  oracle_id 412f57e8-76af-4636-bab0-e0940300ee2e
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has haste
+  triggered at beginning of your upkeep step: put 1 +1/+1 counter on attached if attached is red permanent
+  equip {1}
+}

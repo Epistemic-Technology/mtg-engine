@@ -1,0 +1,661 @@
+# Cards the template author wrote as it stood at the start of the
+# eighteenth wave (`mtg-cards author --format modern`): manlands,
+# Keyrunes and Monuments, morph costs that reveal a card, Rings that
+# grow a creature of their color, and lines the corpus already printed.
+
+scenario "Faerie Conclave: enters tapped, attacks as a 2/1 flyer, and is a land again next turn" {
+  battlefield A: 2 "Island"
+  hand A: "Faerie Conclave"
+  start turn 1 A precombat_main
+  turn 1 A: play "Faerie Conclave"
+  run_to turn 1 postcombat_main
+  assert tapped "Faerie Conclave"
+}
+
+scenario "Faerie Conclave: {1}{U} animates it" {
+  battlefield A: "Faerie Conclave", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Faerie Conclave"
+  turn 1 A: attack "Faerie Conclave"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has "Faerie Conclave" flying
+  assert is "Faerie Conclave" Faerie
+  assert is "Faerie Conclave" land
+  run_to turn 2 precombat_main
+  assert is not "Faerie Conclave" creature
+}
+
+scenario "Treetop Village: {1}{G} makes it a 3/3 Ape with trample" {
+  battlefield A: "Treetop Village", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Treetop Village"
+  turn 1 A: attack "Treetop Village"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert has "Treetop Village" trample
+  assert is "Treetop Village" Ape
+  run_to turn 2 precombat_main
+  assert is not "Treetop Village" creature
+}
+
+scenario "Cave of the Frost Dragon: enters tapped with two other lands" {
+  battlefield A: 2 "Plains"
+  hand A: "Cave of the Frost Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: play "Cave of the Frost Dragon"
+  run_to turn 1 postcombat_main
+  assert tapped "Cave of the Frost Dragon"
+}
+
+scenario "Cave of the Frost Dragon: enters untapped with one other land, and becomes a 3/4 flyer" {
+  battlefield A: "Plains"
+  hand A: "Cave of the Frost Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: play "Cave of the Frost Dragon"
+  run_to turn 1 postcombat_main
+  assert untapped "Cave of the Frost Dragon"
+}
+
+scenario "Cave of the Frost Dragon: {4}{W} animates it" {
+  battlefield A: "Cave of the Frost Dragon", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cave of the Frost Dragon"
+  turn 1 A: attack "Cave of the Frost Dragon"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert toughness "Cave of the Frost Dragon" 4
+  assert has "Cave of the Frost Dragon" flying
+  assert is "Cave of the Frost Dragon" Dragon
+}
+
+scenario "Dromoka Monument: a 4/4 green and white flying Dragon" {
+  battlefield A: "Dromoka Monument", 3 "Forest", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dromoka Monument"
+  turn 1 A: attack "Dromoka Monument"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert has "Dromoka Monument" flying
+  assert is "Dromoka Monument" green
+  assert is "Dromoka Monument" white
+  assert is "Dromoka Monument" artifact
+  run_to turn 2 precombat_main
+  assert is not "Dromoka Monument" creature
+}
+
+scenario "Kolaghan Monument: a 4/4 black and red flying Dragon" {
+  battlefield A: "Kolaghan Monument", 3 "Swamp", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kolaghan Monument"
+  turn 1 A: attack "Kolaghan Monument"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert has "Kolaghan Monument" flying
+  assert is "Kolaghan Monument" black
+  assert is "Kolaghan Monument" Dragon
+}
+
+scenario "Atarka Monument: a 4/4 red and green flying Dragon" {
+  battlefield A: "Atarka Monument", 3 "Mountain", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Atarka Monument"
+  turn 1 A: attack "Atarka Monument"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert has "Atarka Monument" flying
+  assert is "Atarka Monument" green
+}
+
+scenario "Azorius Keyrune: a 2/2 flying Bird" {
+  battlefield A: "Azorius Keyrune", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Azorius Keyrune"
+  turn 1 A: attack "Azorius Keyrune"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has "Azorius Keyrune" flying
+  assert is "Azorius Keyrune" Bird
+  assert is "Azorius Keyrune" blue
+  run_to turn 2 precombat_main
+  assert is not "Azorius Keyrune" creature
+}
+
+scenario "Boros Keyrune: a 1/1 double strike Soldier" {
+  battlefield A: "Boros Keyrune", "Plains", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Boros Keyrune"
+  turn 1 A: attack "Boros Keyrune"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has "Boros Keyrune" double_strike
+  assert is "Boros Keyrune" Soldier
+}
+
+scenario "Orzhov Keyrune: a 1/4 lifelink Thrull" {
+  battlefield A: "Orzhov Keyrune", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Orzhov Keyrune"
+  turn 1 A: attack "Orzhov Keyrune"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert toughness "Orzhov Keyrune" 4
+  assert is "Orzhov Keyrune" Thrull
+}
+
+scenario "Rakdos Keyrune: a 3/1 first strike Devil" {
+  battlefield A: "Rakdos Keyrune", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rakdos Keyrune"
+  turn 1 A: attack "Rakdos Keyrune"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert has "Rakdos Keyrune" first_strike
+  assert is "Rakdos Keyrune" Devil
+}
+
+scenario "Simic Keyrune: a 2/3 hexproof Crab" {
+  battlefield A: "Simic Keyrune", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Simic Keyrune"
+  turn 1 A: attack "Simic Keyrune"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert toughness "Simic Keyrune" 3
+  assert has "Simic Keyrune" hexproof
+  assert is "Simic Keyrune" Crab
+}
+
+scenario "Ajani's Comrade: a counter at the beginning of combat with an Ajani" {
+  battlefield A: "Ajani's Comrade", "Ajani Goldmane"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert counters "Ajani's Comrade" +1/+1 1
+}
+
+scenario "Ajani's Comrade: no counter without an Ajani" {
+  battlefield A: "Ajani's Comrade"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert counters "Ajani's Comrade" +1/+1 0
+}
+
+scenario "Field Marshal: other Soldiers get +1/+1 and first strike" {
+  battlefield A: "Field Marshal", "Elite Vanguard", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 3
+  assert toughness "Elite Vanguard" 2
+  assert has "Elite Vanguard" first_strike
+  assert power "Field Marshal" 2
+  assert has not "Field Marshal" first_strike
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Sudden Impact: damage equal to the cards in that player's hand" {
+  battlefield A: 4 "Mountain"
+  hand A: "Sudden Impact"
+  hand B: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sudden Impact" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Eternal Skylord: amass 2, and Zombie tokens fly" {
+  battlefield A: 5 "Island", "Accursed Horde"
+  hand A: "Eternal Skylord"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Eternal Skylord"
+  run_to turn 1 postcombat_main
+  assert counters "Zombie Army" +1/+1 2
+  assert has "Zombie Army" flying
+  assert has not "Accursed Horde" flying
+  assert has not "Eternal Skylord" flying
+}
+
+scenario "Dreadhorde Twins: amass 2, and Zombie tokens have trample" {
+  battlefield A: 4 "Mountain"
+  hand A: "Dreadhorde Twins"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dreadhorde Twins"
+  run_to turn 1 postcombat_main
+  assert counters "Zombie Army" +1/+1 2
+  assert has "Zombie Army" trample
+  assert has not "Dreadhorde Twins" trample
+}
+
+scenario "Cabaretti Charm: damage equal to the number of creatures you control" {
+  battlefield A: "Mountain", "Forest", "Plains", "Grizzly Bears", "Elite Vanguard"
+  battlefield B: "Craw Wurm"
+  hand A: "Cabaretti Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cabaretti Charm" mode 1 targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert damage "Craw Wurm" 2
+}
+
+scenario "Cabaretti Charm: creatures you control get +1/+1 and trample" {
+  battlefield A: "Mountain", "Forest", "Plains", "Grizzly Bears"
+  battlefield B: "Craw Wurm"
+  hand A: "Cabaretti Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cabaretti Charm" mode 2
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert power "Craw Wurm" 6
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Cabaretti Charm: two Citizens" {
+  battlefield A: "Mountain", "Forest", "Plains"
+  hand A: "Cabaretti Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cabaretti Charm" mode 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Citizen"
+}
+
+scenario "Ring of Valkas: haste, and a counter on a red creature at upkeep" {
+  battlefield A: "Ring of Valkas" on "Raging Goblin", "Raging Goblin"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert counters "Raging Goblin" +1/+1 1
+  assert has "Raging Goblin" haste
+}
+
+scenario "Ring of Valkas: no counter on a creature of another color" {
+  battlefield A: "Ring of Valkas" on "Grizzly Bears", "Grizzly Bears"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Ring of Kalonia: trample, and a counter on a green creature" {
+  battlefield A: "Ring of Kalonia" on "Grizzly Bears", "Grizzly Bears"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Ring of Thune: vigilance, and a counter on a white creature only" {
+  battlefield A: "Ring of Thune" on "Elite Vanguard", "Elite Vanguard", "Ring of Valkas" on "Grizzly Bears", "Grizzly Bears"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert counters "Elite Vanguard" +1/+1 1
+  assert has "Elite Vanguard" vigilance
+  assert has not "Grizzly Bears" vigilance
+}
+
+scenario "Ring of Xathrid: regenerates, and a counter on a black creature" {
+  battlefield A: "Ring of Xathrid" on "Accursed Horde", "Accursed Horde", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert counters "Accursed Horde" +1/+1 1
+}
+
+scenario "Ring of Xathrid: {2} regenerates the equipped creature" {
+  battlefield A: "Ring of Xathrid" on "Grizzly Bears", "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: activate "Ring of Xathrid"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Shaman of the Great Hunt: each creature that deals combat damage to a player gets a counter" {
+  battlefield A: "Shaman of the Great Hunt", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Shaman of the Great Hunt", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert counters "Shaman of the Great Hunt" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Shaman of the Great Hunt: ferocious draws a card per creature with power 4 or greater" {
+  battlefield A: "Shaman of the Great Hunt", "Craw Wurm", "Grizzly Bears", 4 "Forest"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shaman of the Great Hunt"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Evangel of Heliod: Soldiers equal to devotion to white" {
+  battlefield A: 6 "Plains", "Elite Vanguard"
+  hand A: "Evangel of Heliod"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Evangel of Heliod"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Soldier"
+}
+
+scenario "Mayor of Avabruck: other Humans get +1/+1; it transforms after a turn with no spells" {
+  battlefield A: "Mayor of Avabruck", "Elite Vanguard", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 3
+  assert power "Grizzly Bears" 2
+  assert power "Mayor of Avabruck" 1
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Howlpack Alpha"
+}
+
+scenario "Howlpack Alpha: other Werewolves and Wolves get +1/+1, and a Wolf at your end step" {
+  battlefield A: "Mayor of Avabruck", "Ambush Wolf", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Howlpack Alpha"
+  assert power "Ambush Wolf" 5
+  assert power "Grizzly Bears" 2
+  assert power "Howlpack Alpha" 3
+  run_to turn 4 precombat_main
+  assert battlefield A contains "Howlpack Alpha"
+  assert battlefield A contains 1 "Wolf"
+}
+
+scenario "Howlpack Alpha: transforms back after a player casts two spells in a turn" {
+  battlefield A: "Mayor of Avabruck", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Howlpack Alpha"
+  turn 2 end A: cast "Shock" targeting player B
+  turn 2 end A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 precombat_main
+  assert life B 15
+  assert battlefield A contains "Mayor of Avabruck"
+}
+
+scenario "Horned Stoneseeker: a tapped Powerstone; leaving sacrifices a Powerstone" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Horned Stoneseeker"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Horned Stoneseeker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Powerstone"
+  assert tapped "Powerstone"
+  turn 1 postcombat_main B: cast "Shock" targeting "Horned Stoneseeker"
+  turn 1 postcombat_main A: wait
+  run_to turn 1 end
+  assert battlefield A lacks "Powerstone"
+}
+
+scenario "Magus of the Tabernacle: each creature asks for {1} at its controller's upkeep" {
+  battlefield A: "Magus of the Tabernacle", "Grizzly Bears", "Plains"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Magus of the Tabernacle"
+  assert tapped "Plains"
+}
+
+scenario "Magus of the Tabernacle: an opponent's creature asks too" {
+  battlefield A: "Magus of the Tabernacle"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 2 precombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Watcher of the Roost: turned up by revealing a white card, gaining 2 life" {
+  battlefield A: 3 "Plains"
+  hand A: "Watcher of the Roost", "Elite Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Watcher of the Roost" face_down
+  turn 1 postcombat_main A: unmorph "Watcher of the Roost"
+  run_to turn 1 end
+  assert life A 22
+  assert battlefield A contains "Watcher of the Roost"
+  assert hand A contains "Elite Vanguard"
+}
+
+scenario "Watcher of the Roost: can't be turned up without a white card" {
+  battlefield A: 3 "Plains"
+  hand A: "Watcher of the Roost", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Watcher of the Roost" face_down
+  illegal turn 1 postcombat_main A: unmorph "Watcher of the Roost"
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "Ruthless Ripper: turned up by revealing a black card, target player loses 2" {
+  battlefield A: 3 "Swamp"
+  hand A: "Ruthless Ripper", "Accursed Horde"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ruthless Ripper" face_down
+  turn 1 postcombat_main A: unmorph "Ruthless Ripper"
+  turn 1 postcombat_main A: trigger "Ruthless Ripper" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert has "Ruthless Ripper" deathtouch
+}
+
+scenario "Temur Charger: turned up by revealing a green card, target creature gains trample" {
+  battlefield A: 3 "Forest", "Hill Giant"
+  hand A: "Temur Charger", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Temur Charger" face_down
+  turn 1 postcombat_main A: unmorph "Temur Charger"
+  turn 1 postcombat_main A: trigger "Temur Charger" targeting "Hill Giant"
+  run_to turn 1 end
+  assert has "Hill Giant" trample
+  run_to turn 2 precombat_main
+  assert has not "Hill Giant" trample
+}
+
+scenario "Horde Ambusher: blocking deals 1 damage to its controller" {
+  battlefield A: "Horde Ambusher"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Horde Ambusher"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert life B 20
+}
+
+scenario "Horde Ambusher: turned up by revealing a red card, target creature can't block" {
+  battlefield A: 3 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Horde Ambusher", "Raging Goblin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Horde Ambusher" face_down
+  turn 1 A: unmorph "Horde Ambusher"
+  turn 1 A: trigger "Horde Ambusher" targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Toil: target player draws two cards and loses 2 life" {
+  battlefield A: 3 "Swamp"
+  hand A: "Toil // Trouble"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toil" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert life B 18
+}
+
+scenario "Trouble: damage equal to the cards in that player's hand" {
+  battlefield A: 3 "Mountain"
+  hand A: "Toil // Trouble"
+  hand B: "Forest", "Island", "Swamp", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trouble" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Laid to Rest: a Human dying draws; a creature with a +1/+1 counter dying gains 2" {
+  battlefield A: "Laid to Rest", "Elite Vanguard", "Grizzly Bears" with 1 +1/+1
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Elite Vanguard"
+  turn 2 B: wait
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert life A 22
+}
+
+scenario "Laid to Rest: a creature without a counter, not a Human, does nothing" {
+  battlefield A: "Laid to Rest", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Sword of Forge and Frontier: exile two to play this turn, and an extra land" {
+  battlefield A: "Sword of Forge and Frontier" on "Grizzly Bears", "Grizzly Bears"
+  hand A: "Forest"
+  library A: "Mountain", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: play "Mountain"
+  run_to turn 1 end
+  assert life B 16
+  assert battlefield A contains "Mountain"
+  assert exile A contains "Island"
+  assert has "Grizzly Bears" protection_from_red
+}
+
+scenario "Dance with Devils: two Devils that ping when they die" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Dance with Devils"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dance with Devils"
+  turn 1 postcombat_main B: cast "Shock" targeting oldest "Devil"
+  turn 1 postcombat_main A: trigger "Devil" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains 1 "Devil"
+  assert life B 19
+}
+
+scenario "Kashi-Tribe Elite: legendary Snakes have shroud" {
+  battlefield A: "Kashi-Tribe Elite", "Sachi, Daughter of Seshiro"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting "Sachi, Daughter of Seshiro"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Sachi, Daughter of Seshiro"
+}
+
+scenario "Kashi-Tribe Elite: a creature it damages is tapped and skips its next untap" {
+  battlefield A: "Kashi-Tribe Elite"
+  battlefield B: "Wall of Wood"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Kashi-Tribe Elite"
+  turn 1 B: block "Kashi-Tribe Elite" with "Wall of Wood"
+  run_to turn 1 postcombat_main
+  assert tapped "Wall of Wood"
+  run_to turn 2 precombat_main
+  assert tapped "Wall of Wood"
+  run_to turn 4 precombat_main
+  assert untapped "Wall of Wood"
+}
+
+scenario "Stormcloud Djinn: blocks only flyers; {R}{R} gets +2/+0 and deals 1 to you" {
+  battlefield A: "Stormcloud Djinn", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Stormcloud Djinn"
+  turn 2 postcombat_main A: activate "Stormcloud Djinn"
+  run_to turn 2 end
+  assert life A 17
+  assert power "Stormcloud Djinn" 5
+}
+
+scenario "Stormcloud Djinn: blocks a flyer" {
+  battlefield A: "Stormcloud Djinn"
+  battlefield B: "Wind Drake"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  turn 2 A: block "Wind Drake" with "Stormcloud Djinn"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Wind Drake"
+}
+
+scenario "Cavalcade of Calamity: an attacker with power 1 or less deals 1 more" {
+  battlefield A: "Cavalcade of Calamity", "Raging Goblin", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Raging Goblin", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Angelic Overseer: hexproof and indestructible while you control a Human" {
+  battlefield A: "Angelic Overseer", "Elite Vanguard"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Angelic Overseer" hexproof
+  assert has "Angelic Overseer" indestructible
+}
+
+scenario "Angelic Overseer: neither without a Human" {
+  battlefield A: "Angelic Overseer", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has not "Angelic Overseer" hexproof
+  assert has not "Angelic Overseer" indestructible
+}
+
+scenario "Embodiment of Insight: landfall makes a land a 3/3 haste Elemental with vigilance" {
+  battlefield A: "Embodiment of Insight", "Forest"
+  hand A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: trigger "Embodiment of Insight" targeting "Forest"
+  turn 1 A: attack "Forest"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert untapped "Forest"
+  assert is "Forest" Elemental
+  assert is "Forest" land
+  run_to turn 2 precombat_main
+  assert is not "Forest" creature
+}
+
+scenario "Liege of the Pit: sacrifices another creature at upkeep" {
+  battlefield A: "Liege of the Pit", "Grizzly Bears"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Liege of the Pit"
+  assert life A 20
+}
+
+scenario "Liege of the Pit: 7 damage to you with no other creature" {
+  battlefield A: "Liege of the Pit"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Liege of the Pit"
+  assert life A 13
+}

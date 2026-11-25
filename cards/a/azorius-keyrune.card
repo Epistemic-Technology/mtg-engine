@@ -1,0 +1,7 @@
+card "Azorius Keyrune" {
+  oracle_id 7266b491-54e6-4393-a448-d5ae99d965c6
+  cost {3}
+  type Artifact
+  mana {W} or {U}
+  activated {W}{U}: this becomes 2/2 white blue Bird artifact creature with flying
+}

@@ -1,0 +1,8 @@
+card "Attended Healer" {
+  oracle_id 9442a18b-9093-4a10-ab61-6962f5af3bb6
+  cost {3}{W}
+  type Creature — Kor Cleric
+  pt 2/3
+  triggered whenever you gain life first time each turn: create 1 "1/1 white Cat creature"
+  activated {2}{W}: another target Cleric gains lifelink
+}

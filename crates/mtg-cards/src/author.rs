@@ -1418,6 +1418,14 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     if PLAIN.contains(&s) {
         return Some(s.to_string());
     }
+    // "deals 1 damage to each of up to two target creatures": the group
+    // of targets (`up to 2 target creature` prints "each of").
+    if let Some(rest) = s.strip_prefix("each of ")
+        && rest.starts_with("up to ")
+        && rest.contains(" target ")
+    {
+        return recipient(rest, targets);
+    }
     if (s == "its controller" || s == "its owner") && *targets > 0 {
         return Some(s.to_string());
     }
@@ -1891,6 +1899,86 @@ impl Templates {
             (r(r"^They gain haste until end of turn$"), |_, _| {
                 Some("they gain haste".to_string())
             }),
+            // Eighteenth-wave phrases the card language already says.
+            // "Exile up to two target creatures you control, then return
+            // those cards to the battlefield under their owner's control."
+            // (Illusionist's Stratagem): a group of targets flickered.
+            (
+                r(
+                    r"^[Ee]xile (.+), then return those cards to the battlefield under (your|their owner's|their owners') control$",
+                ),
+                |c, t| {
+                    let before = *t;
+                    let what = recipient(cap(c, 1), t)?;
+                    if *t < before + 2 {
+                        return None;
+                    }
+                    let under = if cap(c, 2) == "your" {
+                        " under your control"
+                    } else {
+                        ""
+                    };
+                    Some(format!(
+                        "exile {what} then return those cards to battlefield{under}"
+                    ))
+                },
+            ),
+            // "Rowan deals 1 damage to each of up to two target creatures.
+            // Those creatures can't block this turn.": every target so
+            // far (`those targets`).
+            (r(r"^Those creatures can't block this turn$"), |_, t| {
+                (*t > 0).then(|| "those targets can't block".to_string())
+            }),
+            // "Each creature you control that's a Fungus or a Saproling
+            // gets +1/+1 until end of turn." (Pallid Mycoderm).
+            (
+                r(
+                    r"^Each (other )?creature you control that's an? ([A-Z][a-z]+) or an? ([A-Z][a-z]+) gets? ([+-]\d+/[+-]\d+) until end of turn$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "each single thatare {}{} creature or {} creature you control gets {}",
+                        cap(c, 1),
+                        cap(c, 2),
+                        cap(c, 3),
+                        cap(c, 4)
+                    ))
+                },
+            ),
+            // "You and permanents you control gain hexproof until end of
+            // turn." (Lazotep Plating).
+            (
+                r(r"^You and permanents you control gain ([a-z ,]+?) until end of turn$"),
+                |c, _| {
+                    Some(format!(
+                        "you and all permanent you control gain {}",
+                        keyword_list(cap(c, 1))?
+                    ))
+                },
+            ),
+            // "When this creature dies, destroy all permanents at the
+            // beginning of the next end step." (Bearer of the Heavens).
+            (
+                r(
+                    r"^[Dd]estroy all (permanents|creatures|lands|artifacts) at the beginning of the next end step$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "delayed this: destroy every {} at beginning of the next end step",
+                        singular(cap(c, 1))
+                    ))
+                },
+            ),
+            // "you may have Ally creatures you control gain flying until end
+            // of turn" (Seascape Aerialist; Joraga Bard's line): after "you
+            // may", `you may <who> gains ...`.
+            (
+                r(r"^Have (.+?) gain ([a-z ,]+?) until end of turn$"),
+                |c, t| {
+                    let who = recipient(cap(c, 1), t)?;
+                    Some(format!("{who} gains {}", keyword_list(cap(c, 2))?))
+                },
+            ),
             // "At the beginning of your upkeep, sacrifice a creature other
             // than this creature." (Demonic Taskmaster).
             (
@@ -2169,7 +2257,23 @@ impl Templates {
                     r"^(.+?) gets? ([+-]\d+/[+-]\d+)(?: and gains? ([a-z ,]+?))?(?: until end of turn)?$",
                 ),
                 |c, t| {
-                    let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
+                    // "Two target creatures each get +2/+0 and gain trample
+                    // until end of turn." (Invigorated Rampage).
+                    let who = match cap(c, 1).strip_suffix(" each") {
+                        Some(group) if group.contains(" target ") => {
+                            let before = *t;
+                            let who = recipient(&lowercase_first(group), t)?;
+                            if *t < before + 2 {
+                                return None;
+                            }
+                            format!(
+                                "{} each",
+                                who.replacen("two ", "2 ", 1)
+                                    .replace("creatures", "creature")
+                            )
+                        }
+                        _ => all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?),
+                    };
                     let mut s = format!("{who} gets {}", cap(c, 2));
                     if !cap(c, 3).is_empty() {
                         let _ = write!(s, " and gains {}", keyword_list(cap(c, 3))?);
@@ -4128,6 +4232,31 @@ impl Templates {
                 r(r"^Those creatures don't untap during their controller's next untap step$"),
                 |_, t| (*t > 1).then(|| format!("targets 1 to {t} doesn't untap next untap step")),
             ),
+            // "Tap target creature an opponent controls and it doesn't
+            // untap during its controller's next untap step." (Quiet
+            // Contemplation), "tap up to one target creature you don't
+            // control, and that creature doesn't untap ..." (Winterthorn
+            // Blessing): one sentence, the tapped target named again.
+            (
+                r(
+                    r"^[Tt]ap (.+?),? and (it|that creature) doesn't untap during its controller's next untap step$",
+                ),
+                |c, t| {
+                    let before = *t;
+                    let what = recipient(cap(c, 1), t)?;
+                    if *t != before + 1 {
+                        return None;
+                    }
+                    let again = if cap(c, 2) == "it" {
+                        format!("target {t}")
+                    } else {
+                        format!("that target {t}")
+                    };
+                    Some(format!(
+                        "tap {what}, and {again} doesn't untap next untap step"
+                    ))
+                },
+            ),
             (
                 r(r"^If a creature dealt damage this way would die this turn, exile it instead$"),
                 |_, _| {
@@ -4278,10 +4407,14 @@ impl Templates {
                     } else {
                         ""
                     };
-                    Some(format!(
-                        "gain control of {}{forever}",
-                        recipient(cap(c, 1), t)?
-                    ))
+                    // "Gain control of all creatures until end of turn"
+                    // (Rowan, Fearless Sparkmage): `all creature`, which
+                    // prints "all".
+                    let what = match recipient(cap(c, 1), t)?.as_str() {
+                        "all creatures" => "all creature".to_string(),
+                        other => other.to_string(),
+                    };
+                    Some(format!("gain control of {what}{forever}"))
                 },
             ),
             (
@@ -4467,6 +4600,9 @@ impl Templates {
             if let Some(c) = re.captures(s) {
                 let before = *targets;
                 if let Some(out) = f(&c, targets) {
+                    if std::env::var_os("MTG_AUTHOR_TRACE").is_some() {
+                        eprintln!("rule {} | {s} | {out}", re.as_str());
+                    }
                     return Some(out);
                 }
                 *targets = before;
@@ -5325,6 +5461,7 @@ impl Templates {
                 || body.contains(", then meld them into ")
                 || body == "Exile ~, then return it to the battlefield"
                 || body.contains(", then return that card to the battlefield under ")
+                || body.contains(", then return those cards to the battlefield under ")
                 || body.contains("ach player discards their hand, then draws ")
                 || (body.starts_with("Target player draws ") && body.contains(", then discards "))
             {
@@ -9800,7 +9937,7 @@ fn dump_index(index: &std::collections::HashMap<String, String>) {
 /// target." share the shape.
 fn line_shape(line: &str) -> (String, Vec<String>) {
     let token = cached_regex(
-        r"(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+        r"(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\b\d+/\d+\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
     )
     .expect("a token pattern");
     let mut values = Vec::new();
@@ -9810,6 +9947,11 @@ fn line_shape(line: &str) -> (String, Vec<String>) {
             if t.starts_with('{') {
                 values.push(t.to_string());
                 "\u{1}M".to_string()
+            } else if t.contains('/') && !t.starts_with(['+', '-']) {
+                // "a 4/4 green Bear artifact creature": a power and
+                // toughness as one value, as the DSL writes it.
+                values.push(t.to_string());
+                "\u{1}Q".to_string()
             } else if t.contains('/') {
                 // "+2/+2" and "-1/-1" as one value: the DSL prints a
                 // change to power and toughness as Oracle does.
@@ -9891,6 +10033,144 @@ fn corpus_statement(
         ),
         _ => Some(first),
     }
+}
+
+/// A triggered or activated line as its head (the trigger or the cost) and
+/// its effect: "Whenever you scry, put a +1/+1 counter on target
+/// creature." is "Whenever you scry" and "put a +1/+1 counter on target
+/// creature." A trigger whose effect opens with a condition ("..., if you
+/// control ...") isn't split: the DSL puts the condition in the head.
+fn oracle_split(line: &str) -> Option<(bool, &str, &str)> {
+    if line.contains('"') {
+        return None;
+    }
+    let trigger = cached_regex(r"^(?:[A-Z][A-Za-z' ]+ — )?(?:Whenever|When|At) ")
+        .unwrap()
+        .is_match(line);
+    let (head, body) = if trigger {
+        line.split_once(", ")?
+    } else {
+        line.split_once(": ")?
+    };
+    let restricted = [
+        "Activate only",
+        "Activate no more",
+        "Any player may",
+        "Only your opponents",
+        "This ability triggers only",
+        "Do this only",
+    ];
+    if body.starts_with("if ") || restricted.iter().any(|r| body.contains(r)) {
+        return None;
+    }
+    Some((trigger, head, body))
+}
+
+/// A statement as its head (`triggered ...`, `activated ...`, `loyalty
+/// +1`) and its effect, split at the first `: ` outside braces and quotes.
+fn dsl_split(st: &str) -> Option<(&str, &str)> {
+    if st.contains('\n') {
+        return None;
+    }
+    let (mut depth, mut quoted) = (0i32, false);
+    for (i, ch) in st.char_indices() {
+        match ch {
+            '"' => quoted = !quoted,
+            '{' if !quoted => depth += 1,
+            '}' if !quoted => depth -= 1,
+            ':' if !quoted && depth == 0 && st[i + 1..].starts_with(' ') => {
+                return Some((&st[..i], &st[i + 2..]));
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// An effect that means the same after any trigger or cost: none of the
+/// words that name what the trigger saw ("that player", "it", "they",
+/// "that many"), only its own objects and the source.
+fn context_free(body: &str) -> bool {
+    let body = body
+        .replace("its owner's", "")
+        .replace("their owner's", "")
+        .replace("their owners'", "");
+    !cached_regex(
+        r"(?i)\b(that|those|it|its|they|them|their|this way|defending|chosen|triggering|each of)\b",
+    )
+    .unwrap()
+    .is_match(&body)
+}
+
+/// A line no template and no corpus line writes, put together from a
+/// corpus line printing the same trigger or cost and another printing the
+/// same effect, amounts put in as `numbers_into` does: "Whenever you scry,
+/// put a +1/+1 counter on target creature." from a line beginning
+/// "Whenever you scry, ..." and one ending "..., put a +1/+1 counter on
+/// target creature." Only an effect that reads nothing from its trigger
+/// (`context_free`) moves to another; the card it goes into is rendered
+/// and checked against its Oracle text as usual.
+fn corpus_recombine(corpus: &[Card], line: &str) -> Option<String> {
+    use std::collections::HashMap;
+    use std::sync::OnceLock;
+    /// Oracle parts by shape, each with the DSL that prints it.
+    type Parts = HashMap<String, Vec<(String, String)>>;
+    static PARTS: OnceLock<(Parts, Parts)> = OnceLock::new();
+    let (heads, bodies) = PARTS.get_or_init(|| {
+        let (mut heads, mut bodies) = (Parts::new(), Parts::new());
+        let mut lines: Vec<(&String, &String)> = corpus_lines(corpus).iter().collect();
+        lines.sort();
+        for (l, st) in lines {
+            let (Some((trigger, oh, ob)), Some((dh, db))) = (oracle_split(l), dsl_split(st)) else {
+                continue;
+            };
+            // The DSL's head is a trigger exactly when Oracle's is. A head
+            // that works from another zone (`triggered from graveyard`,
+            // `activated ..., from graveyard`) does so for its effect
+            // ("return this card from your graveyard"), not its trigger.
+            if trigger != dh.contains("triggered")
+                || db.starts_with("if ")
+                || dh.contains("from graveyard")
+                || dh.contains("from hand")
+                || dh.contains("from exile")
+            {
+                continue;
+            }
+            heads
+                .entry(line_shape(oh).0)
+                .or_default()
+                .push((oh.to_string(), dh.to_string()));
+            // An activated ability's effect begins with a capital, a
+            // trigger's doesn't: the key is the lowercase form.
+            let ob = lowercase_first(ob);
+            if context_free(&ob) {
+                bodies
+                    .entry(line_shape(&ob).0)
+                    .or_default()
+                    .push((ob, db.to_string()));
+            }
+        }
+        (heads, bodies)
+    });
+    let (_, oh, ob) = oracle_split(line)?;
+    if !context_free(ob) {
+        return None;
+    }
+    let put_in = |parts: &Parts, ours: &str| -> Option<String> {
+        parts
+            .get(&line_shape(ours).0)?
+            .iter()
+            .find_map(|(theirs, dsl)| {
+                if theirs == ours {
+                    Some(dsl.clone())
+                } else {
+                    numbers_into(theirs, dsl, ours)
+                }
+            })
+    };
+    let head = put_in(heads, oh)?;
+    let body = put_in(bodies, &lowercase_first(ob))?;
+    Some(format!("{head}: {body}"))
 }
 
 /// The header lines of the file `author_card` writes for `s` (name, cost,
@@ -10004,6 +10284,18 @@ fn shape_word_regex(corpus: &[Card]) -> &'static Regex {
     })
 }
 
+/// Whether a shape word is the card type of "this creature", "This
+/// artifact": the source, which the shape keeps as it is, so "As long as
+/// you control a Nissa planeswalker, this creature gets +2/+0" takes
+/// "a Griffin creature, this creature gets +3/+3" (the two "creature"s
+/// otherwise each a word put in, and two words can't become one).
+fn this_type(line: &str, c: &regex::Captures) -> bool {
+    c.name("t").is_some_and(|t| {
+        let before = &line[..t.start()];
+        before.ends_with("this ") || before.ends_with("This ")
+    })
+}
+
 /// Whether a shape word (`word_shape`) is an article: it takes no part
 /// in the substitution but follows the word after it ("a creature", "an
 /// artifact").
@@ -10020,6 +10312,9 @@ fn word_shape(corpus: &[Card], line: &str) -> (String, Vec<String>) {
     let mut shape = String::new();
     let mut at = 0;
     for c in re.captures_iter(line) {
+        if this_type(line, &c) {
+            continue;
+        }
         let m = c.get(0).expect("a match");
         shape.push_str(&line[at..m.start()]);
         at = m.end();
@@ -10126,6 +10421,9 @@ fn corpus_statement_words(corpus: &[Card], line: &str) -> Vec<String> {
         let mut i = 0;
         let their_words = re
             .replace_all(their_line, |c: &regex::Captures| {
+                if this_type(their_line, c) {
+                    return c[0].to_string();
+                }
                 let v = &values[i];
                 i += 1;
                 match c.name("kc") {
@@ -10265,6 +10563,36 @@ fn corpus_effects_init(corpus: &[Card]) {
                     .push((key.to_string(), p.to_string()));
             }
         }
+        // And the one-sentence effects of triggered and activated lines
+        // that read nothing from their trigger (`context_free`): "Whenever
+        // you scry, this creature gets +2/+0 and gains first strike until
+        // end of turn." gives the sentence after another trigger.
+        let mut lines: Vec<(&String, &String)> = corpus_lines(corpus).iter().collect();
+        lines.sort();
+        for (l, st) in lines {
+            let (Some((trigger, _, body)), Some((head, p))) = (oracle_split(l), dsl_split(st))
+            else {
+                continue;
+            };
+            let Some(key) = body.strip_suffix('.') else {
+                continue;
+            };
+            let key = capitalize(key);
+            if trigger != head.contains("triggered")
+                || key.contains(". ")
+                || p.contains(';')
+                || p.starts_with("if ")
+                || !context_free(&key)
+                || exact.contains_key(&key)
+            {
+                continue;
+            }
+            exact.insert(key.clone(), p.to_string());
+            let (shape, values) = line_shape(&key);
+            if !values.is_empty() {
+                shapes.entry(shape).or_default().push((key, p.to_string()));
+            }
+        }
         (exact, shapes)
     });
 }
@@ -10307,8 +10635,9 @@ fn corpus_effect(s: &str, targets: &mut usize) -> Option<String> {
 
 /// The values a statement's text is matched by when the index puts a
 /// line's amounts in (`line_shape`): a target reference (never changed),
-/// mana symbols, a change to power and toughness, a number.
-const SHAPE_TOKEN: &str = r"target \d+|(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\d+";
+/// mana symbols, a change to power and toughness, a power and toughness,
+/// a number.
+const SHAPE_TOKEN: &str = r"target \d+|(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\b\d+/\d+\b|\d+";
 
 /// The statements a corpus card prints `line` with, exactly or with other
 /// amounts and mana symbols: the exact line's alone, else each of the
@@ -10672,7 +11001,7 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
     // "Return two target cards from your graveyard", "Exile five target
     // cards from an opponent's graveyard": the DSL's noun after a count is
     // singular.
-    s = re(r"\b((?:\d+|X) (?:another )?target (?:[\w-]+ )*?)cards\b")
+    s = re(r"\b((?:\d+|X) (?:another )?target (?:[\w-]+ ){0,4}?)cards\b")
         .replace_all(&s, "${1}card")
         .into_owned();
     // "deals 4 damage to target player or planeswalker and each creature
@@ -11575,7 +11904,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             b.spell_paragraphs.truncate(mark.2);
             b.spell_at = mark.3;
             b.spell_targets = mark.4;
-            let Some(st) = corpus_statement(corpus, line, b.frame.as_ref()) else {
+            let Some(st) = corpus_statement(corpus, line, b.frame.as_ref())
+                .or_else(|| corpus_recombine(corpus, line))
+            else {
                 // `MTG_AUTHOR_MISS=1`: print each line neither a template
                 // nor the corpus index writes.
                 if std::env::var_os("MTG_AUTHOR_MISS").is_some() {

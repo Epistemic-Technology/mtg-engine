@@ -1,0 +1,7 @@
+card "Dovin's Automaton" {
+  oracle_id 3d133b18-f1c7-48de-82a6-affb0514b96b
+  cost {4}
+  type Artifact Creature — Homunculus
+  pt 3/3
+  static as long as you control Dovin planeswalker, this: +2/+2, has vigilance
+}

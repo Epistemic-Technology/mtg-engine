@@ -1,0 +1,9 @@
+card "Ruthless Ripper" {
+  oracle_id cfbcd70b-d3a9-47e9-a8b3-b8134d00dff8
+  cost {B}
+  type Creature — Human Assassin
+  pt 1/1
+  keywords deathtouch
+  morph reveal black permanent card in hand
+  triggered when this is turned face up: target player loses 2 life
+}

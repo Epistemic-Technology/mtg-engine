@@ -1,0 +1,8 @@
+card "Ring of Thune" {
+  oracle_id f72e8ccb-a6fb-4161-bfa1-69c94cc5d49a
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has vigilance
+  triggered at beginning of your upkeep step: put 1 +1/+1 counter on attached if attached is white permanent
+  equip {1}
+}

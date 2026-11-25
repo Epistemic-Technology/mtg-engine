@@ -1,0 +1,8 @@
+card "Temur Charger" {
+  oracle_id a0665c10-e652-4608-920b-66206c0e5905
+  cost {1}{G}
+  type Creature — Horse
+  pt 3/1
+  morph reveal green permanent card in hand
+  triggered when this is turned face up: target creature gains trample
+}

@@ -1,0 +1,8 @@
+card "Tenured Inkcaster" {
+  oracle_id 780536da-2923-48e7-916a-61c701382d28
+  cost {4}{B}
+  type Creature — Vampire Warlock
+  pt 2/2
+  triggered when this enters: put 1 +1/+1 counters on target creature
+  triggered whenever creature with +1/+1 counter you control attacks: each opponent loses 1 life and you gain 1 life
+}

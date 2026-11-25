@@ -1,0 +1,7 @@
+card "Atarka Monument" {
+  oracle_id eb287c04-97f5-4e47-beb1-66cc7d15e748
+  cost {3}
+  type Artifact
+  mana {R} or {G}
+  activated {4}{R}{G}: this becomes 4/4 red green Dragon artifact creature with flying
+}

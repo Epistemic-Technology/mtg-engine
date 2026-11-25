@@ -1,0 +1,9 @@
+card "Watcher of the Roost" {
+  oracle_id 92cf18ab-dd7b-4bc8-8b85-a81b8cb5192c
+  cost {2}{W}
+  type Creature — Bird Soldier
+  pt 2/1
+  keywords flying
+  morph reveal white permanent card in hand
+  triggered when this is turned face up: you gains 2 life
+}

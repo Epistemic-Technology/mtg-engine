@@ -1,0 +1,6 @@
+card "Cavalcade of Calamity" {
+  oracle_id e29be33c-e5b0-428d-a057-b1cd61127557
+  cost {1}{R}
+  type Enchantment
+  triggered whenever creature with power 1 or less you control attacks: deal 1 damage to defending player
+}

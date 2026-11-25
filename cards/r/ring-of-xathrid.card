@@ -1,0 +1,8 @@
+card "Ring of Xathrid" {
+  oracle_id ceddad0d-94ad-459a-b109-f979ffc26283
+  cost {2}
+  type Artifact — Equipment
+  activated {2}: regenerate equipped creature
+  triggered at beginning of your upkeep step: put 1 +1/+1 counter on attached if attached is black permanent
+  equip {1}
+}

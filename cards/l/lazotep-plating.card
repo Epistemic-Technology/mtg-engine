@@ -1,0 +1,9 @@
+card "Lazotep Plating" {
+  oracle_id ba0082fb-2d4c-489e-8140-93a6fa693fd0
+  cost {1}{U}
+  type Instant
+  spell {
+    amass Zombies 1
+    you and all permanent you control gain hexproof
+  }
+}

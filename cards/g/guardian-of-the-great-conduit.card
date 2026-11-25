@@ -1,0 +1,8 @@
+card "Guardian of the Great Conduit" {
+  oracle_id 1342bd59-91d3-4a5b-b853-542a52d7da6d
+  cost {3}{G}
+  type Creature — Elemental
+  pt 2/4
+  keywords reach
+  static as long as you control Nissa planeswalker, this: +2/+0, has vigilance
+}

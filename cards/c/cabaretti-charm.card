@@ -1,0 +1,10 @@
+card "Cabaretti Charm" {
+  oracle_id 36d8b701-f5dc-42c0-9869-268f8149cbd1
+  cost {R}{G}{W}
+  type Instant
+  choose one {
+    mode: deal damage equal creature you control to target creature or planeswalker
+    mode: each creature you control gets +1/+1 and gains trample
+    mode: create 2 "1/1 green and white Citizen creature"
+  }
+}

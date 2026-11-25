@@ -1,0 +1,9 @@
+card "Stormcloud Djinn" {
+  oracle_id e0209690-71f1-41f3-860a-a0737edaf1f9
+  cost {4}{U}
+  type Creature — Djinn
+  pt 3/3
+  keywords flying
+  can block only creature with flying
+  activated {R}{R}: this gets +2/+0 and deal 1 damage to you
+}

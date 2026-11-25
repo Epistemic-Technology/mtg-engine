@@ -1,0 +1,8 @@
+card "Dreadhorde Twins" {
+  oracle_id 4fbb8e03-22f1-4171-88e9-877244e25613
+  cost {3}{R}
+  type Creature — Zombie Jackal Warrior
+  pt 2/2
+  triggered when this enters: amass Zombies 2
+  static Zombie token you control: has trample
+}

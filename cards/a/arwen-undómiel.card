@@ -1,0 +1,8 @@
+card "Arwen Undómiel" {
+  oracle_id 5ffbbce1-fe38-40dc-a7c3-2055ae86c6c5
+  cost {G}{U}
+  type Legendary Creature — Elf Noble
+  pt 2/2
+  triggered whenever you scry: put 1 +1/+1 counter on target creature
+  activated {4}{G}{U}: scry 2
+}

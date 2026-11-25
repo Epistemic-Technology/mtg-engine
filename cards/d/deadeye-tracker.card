@@ -1,0 +1,7 @@
+card "Deadeye Tracker" {
+  oracle_id 26184baf-5d48-4919-8df2-c98ac460b78f
+  cost {B}
+  type Creature — Human Pirate
+  pt 1/1
+  activated {1}{B}, {T}: exile 2 target card from an opponent's graveyard; this creature explores
+}

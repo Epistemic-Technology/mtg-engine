@@ -1,0 +1,7 @@
+card "Orzhov Keyrune" {
+  oracle_id 9808c424-0d74-45b8-a092-fd296c6833d2
+  cost {3}
+  type Artifact
+  mana {W} or {B}
+  activated {W}{B}: this becomes 1/4 white black Thrull artifact creature with lifelink
+}

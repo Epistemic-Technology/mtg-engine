@@ -1,0 +1,7 @@
+card "Flamespeaker Adept" {
+  oracle_id ab0707fb-b404-433d-b845-0d50d01cd72e
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 2/3
+  triggered whenever you scry: this gets +2/+0 and this gains first strike
+}

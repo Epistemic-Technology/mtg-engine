@@ -1,0 +1,9 @@
+card "Eater of Hope" {
+  oracle_id 3055381a-fb6b-47a3-8e77-a44768808e27
+  cost {5}{B}{B}
+  type Creature — Demon
+  pt 6/4
+  keywords flying
+  activated {B}, sacrifice other creature: regenerate this
+  activated {2}{B}, sacrifice 2 other creature: destroy target creature
+}

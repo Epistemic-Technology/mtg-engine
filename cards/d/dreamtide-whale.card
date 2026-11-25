@@ -1,0 +1,8 @@
+card "Dreamtide Whale" {
+  oracle_id ee8c0b4c-03c5-4da5-b4f1-028c845384af
+  cost {2}{U}
+  type Creature — Whale
+  pt 7/5
+  vanishing 2
+  triggered whenever a player casts their second spell each turn: proliferate
+}

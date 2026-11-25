@@ -1,0 +1,7 @@
+card "The Mending of Dominaria" {
+  oracle_id 9b0b8f00-6367-4dc9-b33e-680470b3a36c
+  cost {3}{G}{G}
+  type Enchantment — Saga
+  triggered chapter 1, 2: mill 2 cards then you may return 1 creature card from your graveyard to hand chosen
+  triggered chapter 3: return all land card from your graveyard to battlefield then shuffle graveyard into library
+}

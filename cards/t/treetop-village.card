@@ -1,0 +1,7 @@
+card "Treetop Village" {
+  oracle_id b53f216d-1592-4eee-b204-502a805fbc8c
+  type Land
+  enters tapped
+  mana {G}
+  activated {1}{G}: this becomes 3/3 green Ape creature with trample
+}

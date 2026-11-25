@@ -1,0 +1,9 @@
+card "Academic Dispute" {
+  oracle_id b22de128-6dad-4e15-a547-1c9ca08df5ff
+  cost {R}
+  type Instant
+  spell {
+    target creature blocks if able; you may target 1 gains reach
+    learn
+  }
+}

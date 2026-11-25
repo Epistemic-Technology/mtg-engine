@@ -1,0 +1,7 @@
+card "Erkenbrand, Lord of Westfold" {
+  oracle_id 8cac919f-3bb8-49cb-b4e4-4dd0dcd7746c
+  cost {3}{R}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  triggered whenever this or Human you control enters: each creature you control gets +1/+0
+}

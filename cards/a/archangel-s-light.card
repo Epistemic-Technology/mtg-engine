@@ -1,0 +1,6 @@
+card "Archangel's Light" {
+  oracle_id fc734a75-93bf-448b-b347-810ae835fe49
+  cost {7}{W}
+  type Sorcery
+  spell: you gain count each 2 graveyard life then shuffle graveyard into library
+}

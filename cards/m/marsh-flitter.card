@@ -1,0 +1,9 @@
+card "Marsh Flitter" {
+  oracle_id 02f8ec49-f490-408b-a76e-58e160a5a5a7
+  cost {3}{B}
+  type Creature — Faerie Rogue
+  pt 1/1
+  keywords flying
+  triggered when this enters: create 2 "1/1 black Goblin Rogue creature"
+  activated sacrifice Goblin: this has base power and toughness 3/3
+}

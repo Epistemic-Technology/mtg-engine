@@ -1,0 +1,7 @@
+card "Magus of the Tabernacle" {
+  oracle_id 8ab4d31e-7187-4ba1-97cb-1a0a11ab28bf
+  cost {3}{W}
+  type Creature — Human Wizard
+  pt 2/6
+  static creature: has ability { triggered at beginning of your upkeep step: sacrifice this unless you pay {1} }
+}

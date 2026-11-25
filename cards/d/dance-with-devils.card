@@ -1,0 +1,6 @@
+card "Dance with Devils" {
+  oracle_id caeb508a-c1fd-45b5-a14e-e0ac7321c9a9
+  cost {3}{R}
+  type Instant
+  spell: create 2 "1/1 red Devil creature that pings" it has
+}
