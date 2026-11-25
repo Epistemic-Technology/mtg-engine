@@ -1,0 +1,8 @@
+card "Xathrid Demon" {
+  oracle_id dd2bbc90-0474-42b7-afe4-3655a120ab02
+  cost {3}{B}{B}{B}
+  type Creature — Demon
+  pt 7/7
+  keywords flying, trample
+  triggered at beginning of your upkeep: you sacrifice 1 creature other than this, then each opponent loses count equal power of the sacrificed creature life; if you cant sacrifice creature, tap this and you lose 7 life
+}

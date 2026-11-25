@@ -1,0 +1,8 @@
+card "Noxious Gearhulk" {
+  oracle_id a77b5be2-f361-4135-ba25-670a74d268ac
+  cost {4}{B}{B}
+  type Artifact Creature — Construct
+  pt 5/4
+  keywords menace
+  triggered when this enters: you may destroy another target creature; if creature is destroyed this way, you gain count equal toughness of target 1 life
+}

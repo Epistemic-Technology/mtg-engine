@@ -1,0 +1,265 @@
+# Wording near-misses, sixteenth wave (wording-b), continued: each card's
+# amounts and targets.
+
+scenario "Noxious Gearhulk: destroy a creature and gain life equal to its toughness" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Noxious Gearhulk"
+  turn 1 A: cast "Noxious Gearhulk"
+  turn 1 A: trigger "Noxious Gearhulk" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life A 24
+}
+
+scenario "Noxious Gearhulk: no life if the creature isn't destroyed" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Darksteel Myr"
+  hand A: "Noxious Gearhulk"
+  turn 1 A: cast "Noxious Gearhulk"
+  turn 1 A: trigger "Noxious Gearhulk" targeting "Darksteel Myr"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Darksteel Myr"
+  assert life A 20
+}
+
+scenario "Xathrid Demon: sacrifice another creature, each opponent loses its power" {
+  battlefield A: "Xathrid Demon", "Hill Giant"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life B 17
+  assert life A 20
+  assert untapped "Xathrid Demon"
+}
+
+scenario "Xathrid Demon: with no other creature, tap it and lose 7 life" {
+  battlefield A: "Xathrid Demon"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Xathrid Demon"
+  assert tapped "Xathrid Demon"
+  assert life A 13
+  assert life B 20
+}
+
+scenario "Deathforge Shaman: twice the number of times it was kicked" {
+  battlefield A: 7 "Mountain"
+  hand A: "Deathforge Shaman"
+  turn 1 A: cast "Deathforge Shaman" multikicked 2
+  turn 1 A: trigger "Deathforge Shaman" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Rune of Speed: on an Equipment, its creature gets +1/+0 and haste" {
+  battlefield A: 2 "Mountain", "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  hand A: "Rune of Speed"
+  library A: "Forest"
+  turn 1 A: cast "Rune of Speed" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" haste
+  assert hand A count 1
+}
+
+scenario "Rune of Speed: on a creature, +1/+0 and haste" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  hand A: "Rune of Speed"
+  library A: "Forest"
+  turn 1 A: cast "Rune of Speed" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Auntie's Snitch: returns from the graveyard when a Goblin deals combat damage" {
+  battlefield A: "Raging Goblin"
+  graveyard A: "Auntie's Snitch"
+  turn 1 A: attack "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Auntie's Snitch"
+  assert life B 19
+}
+
+scenario "Evolving Adaptive: an oil counter for a greater creature only" {
+  battlefield A: 3 "Forest"
+  hand A: "Evolving Adaptive", "Grizzly Bears"
+  turn 1 A: cast "Evolving Adaptive"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Evolving Adaptive" oil 2
+  assert power "Evolving Adaptive" 2
+}
+
+scenario "Evolving Adaptive: a creature no greater adds nothing" {
+  battlefield A: "Forest", "Evolving Adaptive" with 2 oil
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Evolving Adaptive" oil 2
+  assert toughness "Evolving Adaptive" 2
+}
+
+scenario "Golden Demise: all creatures get -2/-2 without the city's blessing" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Golden Demise"
+  turn 1 A: cast "Golden Demise"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Golden Demise: with the city's blessing, only the opponents' creatures" {
+  battlefield A: 9 "Swamp", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Golden Demise"
+  turn 1 A: cast "Golden Demise"
+  run_to turn 1 postcombat_main
+  assert blessing A yes
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Firespout: red mana spent, creatures without flying take 3" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Firespout"
+  turn 1 A: cast "Firespout"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Serra Angel" 0
+}
+
+scenario "Firespout: green mana spent, creatures with flying take 3" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Firespout"
+  turn 1 A: cast "Firespout"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+  assert damage "Serra Angel" 3
+}
+
+scenario "Firespout: red and green spent, both" {
+  battlefield A: 2 "Mountain", "Forest"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Firespout"
+  turn 1 A: cast "Firespout"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Serra Angel" 3
+}
+
+scenario "Sudden Reclamation: a creature card and a land card back to hand" {
+  battlefield A: 4 "Forest"
+  hand A: "Sudden Reclamation"
+  library A: "Grizzly Bears", "Island", "Hill Giant", "Swamp", "Plains"
+  turn 1 A: cast "Sudden Reclamation"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Swamp"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Swamp"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Island"
+  assert library A count 1
+}
+
+scenario "Grim Captain's Call: one card of each of the four types" {
+  battlefield A: 3 "Swamp"
+  hand A: "Grim Captain's Call"
+  graveyard A: "Siren Lookout", "Sangromancer", "Soaring Sandwing", "Seafloor Stalker", "Grizzly Bears"
+  turn 1 A: cast "Grim Captain's Call"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Siren Lookout"
+  assert hand A contains "Sangromancer"
+  assert hand A contains "Soaring Sandwing"
+  assert hand A contains "Seafloor Stalker"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Expressive Iteration: one to hand, one to the bottom, one exiled to play" {
+  battlefield A: "Island", "Mountain"
+  hand A: "Expressive Iteration"
+  library A: "Grizzly Bears", "Forest", "Hill Giant", "Swamp"
+  turn 1 A: cast "Expressive Iteration"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Forest"
+  assert library A count 2
+}
+
+scenario "March of the Machines: noncreature artifacts are creatures as big as their mana value" {
+  battlefield A: "March of the Machines", "Bonesplitter", "Ornithopter", "Seat of the Synod"
+  run_to turn 1 precombat_main
+  assert is "Bonesplitter" creature
+  assert is "Bonesplitter" artifact
+  assert power "Bonesplitter" 1
+  assert toughness "Bonesplitter" 1
+  assert toughness "Ornithopter" 2
+  assert graveyard A contains "Seat of the Synod"
+}
+
+scenario "Aerial Modification: an enchanted Vehicle is a creature with +2/+2 and flying" {
+  battlefield A: 5 "Plains", "Smuggler's Copter"
+  hand A: "Aerial Modification"
+  turn 1 A: cast "Aerial Modification" targeting "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert is "Smuggler's Copter" creature
+  assert power "Smuggler's Copter" 5
+  assert toughness "Smuggler's Copter" 5
+  assert has "Smuggler's Copter" flying
+}
+
+scenario "Aerial Modification: on a creature, +2/+2 and flying" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Aerial Modification"
+  turn 1 A: cast "Aerial Modification" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Myr Incubator: a Myr for each artifact card exiled" {
+  battlefield A: "Myr Incubator", 6 "Wastes"
+  library A: "Ornithopter", "Forest", "Bonesplitter", "Hill Giant"
+  turn 1 A: activate "Myr Incubator"
+  turn 1 A: choose "Ornithopter"
+  turn 1 A: choose "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Ornithopter"
+  assert exile A contains "Bonesplitter"
+  assert battlefield A contains 2 "Myr"
+  assert library A count 2
+  assert graveyard A contains "Myr Incubator"
+}
+
+scenario "Rude Awakening: entwined, lands untap and are 2/2 creatures until end of turn" {
+  battlefield A: 8 "Forest"
+  hand A: "Rude Awakening"
+  turn 1 A: cast "Rude Awakening" mode 3
+  run_to turn 1 postcombat_main
+  assert untapped oldest "Forest"
+  assert is newest "Forest" creature
+  assert is newest "Forest" land
+  assert power newest "Forest" 2
+  assert toughness newest "Forest" 2
+}
+
+scenario "Rude Awakening: only your lands, and only until end of turn" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Island"
+  hand A: "Rude Awakening"
+  turn 1 A: cast "Rude Awakening" mode 2
+  run_to turn 1 postcombat_main
+  assert is oldest "Forest" creature
+  assert is not "Island" creature
+  run_to turn 2 upkeep
+  assert is not oldest "Forest" creature
+}

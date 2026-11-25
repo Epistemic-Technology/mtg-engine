@@ -1,0 +1,6 @@
+card "Volcanic Vision" {
+  oracle_id fe3b4c74-2bf8-464a-8f55-9de401a8c4b9
+  cost {5}{R}{R}
+  type Sorcery
+  spell: return target instant or sorcery card from your graveyard to hand; this deals damage equal mana value of that target 1 to each creature your opponents control; exile this spell
+}

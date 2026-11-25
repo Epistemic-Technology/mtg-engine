@@ -1,0 +1,9 @@
+card "Grasping Current" {
+  oracle_id a10a4bb2-c6fa-482b-9c8b-e64cbb8424ba
+  cost {4}{U}
+  type Sorcery
+  spell {
+    return up to 2 target creature to owner's hand
+    search library or graveyard card named "Jace, Ingenious Mind-Mage" reveal to hand
+  }
+}

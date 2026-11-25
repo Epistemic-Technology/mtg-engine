@@ -1,0 +1,6 @@
+card "Thoughts of Ruin" {
+  oracle_id bb9e1d12-ebcc-4a8a-baef-9f69638a51cd
+  cost {2}{R}{R}
+  type Sorcery
+  spell: each player sacrifices count each hand land
+}

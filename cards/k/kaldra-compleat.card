@@ -1,0 +1,9 @@
+card "Kaldra Compleat" {
+  oracle_id 7359e82b-db79-488d-a1d4-75a00f12a4cf
+  cost {7}
+  type Legendary Artifact — Equipment
+  living weapon
+  keywords indestructible
+  static enchanted: +5/+5, has first strike, trample, indestructible, haste, has ability { triggered whenever this deals combat damage to creature: exile that creature }
+  equip {7}
+}

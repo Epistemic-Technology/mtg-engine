@@ -1,0 +1,9 @@
+card "Auntie's Snitch" {
+  oracle_id d2964a68-36d9-4b05-8f34-540969b410bf
+  cost {2}{B}
+  type Creature — Goblin Rogue
+  pt 3/1
+  keywords can't block
+  prowl {1}{B}
+  triggered from graveyard whenever Goblin or Rogue you control deals combat damage to player if in graveyard: you may return this to hand
+}

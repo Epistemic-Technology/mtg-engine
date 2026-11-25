@@ -1,0 +1,8 @@
+card "Deathforge Shaman" {
+  oracle_id 1d3cfdd3-e16f-4955-9b81-0d6fc981c168
+  cost {4}{R}
+  type Creature — Ogre Shaman
+  pt 4/3
+  multikicker {R}
+  triggered when this enters: this deals count equal 2 times kicked damage to target player or planeswalker
+}

@@ -1,0 +1,6 @@
+card "Myr Incubator" {
+  oracle_id d0a493af-551e-4475-af5d-ec4e080728cb
+  cost {6}
+  type Artifact
+  activated {6}, {T}, sacrifice this: search any number artifact card to exile; create count that many exiled this way "1/1 colorless Myr artifact creature"
+}

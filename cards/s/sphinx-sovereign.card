@@ -1,0 +1,8 @@
+card "Sphinx Sovereign" {
+  oracle_id 41907508-9ffc-4e01-969a-4f9c35cdf548
+  cost {4}{W}{U}{U}{B}
+  type Artifact Creature — Sphinx
+  pt 6/6
+  keywords flying
+  triggered at beginning of your end step: you gain 3 life if this is untapped; otherwise, each opponent loses 3 life
+}

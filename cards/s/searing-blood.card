@@ -1,0 +1,6 @@
+card "Searing Blood" {
+  oracle_id 902b82fd-bb18-4833-b427-af8c9751f870
+  cost {R}{R}
+  type Instant
+  spell: deal 2 damage to target creature; delayed target 1: { when that creature dies this turn, this spell deals 3 damage to controller of the creature }
+}

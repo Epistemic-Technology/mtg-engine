@@ -1,0 +1,9 @@
+card "Evolving Adaptive" {
+  oracle_id e350c2d5-0ca2-4b9c-b01f-a3c31cbf8d10
+  cost {G}
+  type Creature — Phyrexian Warrior
+  pt 0/0
+  enters with 1 oil counters
+  static this: +1/+1 count each oil counter on it
+  triggered whenever other creature you control enters if that creature power or toughness greater than this: put 1 oil counters on this
+}

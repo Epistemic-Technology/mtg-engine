@@ -1,0 +1,10 @@
+card "Rude Awakening" {
+  oracle_id 685a7f67-6809-4386-990f-c52d1846a584
+  cost {4}{G}
+  type Sorcery
+  choose one {
+    mode: untap all land you control
+    mode: until end of turn, all land you control becomes 2/2 creature
+  }
+  entwine {2}{G}
+}

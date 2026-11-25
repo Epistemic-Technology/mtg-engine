@@ -4649,6 +4649,8 @@ impl P {
                 };
                 let condition = if self.eat_words(&["while", "in", "graveyard"]) {
                     Some(crate::ast::TrigCond::InGraveyard)
+                } else if self.eat_words(&["if", "in", "graveyard"]) {
+                    Some(crate::ast::TrigCond::InGraveyardIf)
                 } else if let Some(c) = first_time(self, false) {
                     Some(c)
                 } else if self.at_words(&["during", "your", "turn", "if", "first", "time"]) {
@@ -4679,6 +4681,17 @@ impl P {
                         "this",
                     ]) {
                         Some(crate::ast::TrigCond::Outstats)
+                    } else if self.eat_words(&[
+                        "that",
+                        "creature",
+                        "power",
+                        "or",
+                        "toughness",
+                        "greater",
+                        "than",
+                        "this",
+                    ]) {
+                        Some(crate::ast::TrigCond::OutstatsThat)
                     } else if self.at_word("its")
                         && let Some(c) = self.its_stat()?
                     {
@@ -7768,11 +7781,30 @@ impl P {
         if self.at_word("if") {
             self.pos += 1;
             let cond = self.static_cond()?;
-            return Ok(Sentence::new(vec![Effect::IfCondition(
-                cond,
-                vec![s],
-                crate::ast::IfWording::After,
-            )]));
+            let first = Effect::IfCondition(cond, vec![s], crate::ast::IfWording::After);
+            // `deal 3 damage to ... if spent {R} and deal 3 damage to ...
+            // if spent {G}`: "Firespout deals 3 damage to ... if {R} was
+            // spent to cast this spell and 3 damage to ... if {G} was spent
+            // to cast this spell." Each condition is judged alone.
+            if self.at_word("and") {
+                self.pos += 1;
+                let mut second = self.sentence()?;
+                if second.effects.len() != 1
+                    || !matches!(
+                        second.effects[0],
+                        Effect::IfCondition(_, _, crate::ast::IfWording::After)
+                    )
+                {
+                    return self.fail(
+                        "`<clause> if <condition> and` needs another `<clause> if <condition>`",
+                    );
+                }
+                let e = second.effects.remove(0);
+                let mut joined = Sentence::new(vec![first, e]);
+                joined.joins = vec![Join::And];
+                return Ok(joined);
+            }
+            return Ok(Sentence::new(vec![first]));
         }
         Ok(s)
     }
@@ -8971,6 +9003,7 @@ impl P {
     /// instead` (CR 608.2c), or else the plain sentence (`Err`).
     fn instead_body(&mut self, cond: InsteadCond) -> R<Result<Effect, Sentence>> {
         let lead = self.eat_word("instead");
+        let only = lead && self.eat_word("only");
         let saved = self.subject.take();
         let s = self.sentence()?;
         self.subject = saved;
@@ -8979,7 +9012,9 @@ impl P {
         let instead_of = matches!(s.effects.last(), Some(Effect::Search { more: Some(m), .. })
             if matches!(m.wording, crate::ast::SearchWording::InsteadOf(_)
                 | crate::ast::SearchWording::PutInstead { .. }));
-        let wording = if lead {
+        let wording = if only {
+            InsteadWording::LeadOnly
+        } else if lead {
             InsteadWording::Lead
         } else if instead_of || self.eat_word("instead") {
             InsteadWording::Trail
@@ -9603,6 +9638,9 @@ impl P {
             } else if self.at_words(&["if", "you", "didnt", "put", "into", "hand", "this", "way"]) {
                 self.pos += 8;
                 Some(DontWords::DidntPutHand)
+            } else if self.at_words(&["if", "you", "cant", "sacrifice", "creature"]) {
+                self.pos += 5;
+                Some(DontWords::CantSacrificeCreature)
             } else {
                 None
             };
@@ -9612,7 +9650,7 @@ impl P {
                 let s = self.sentence()?;
                 self.subject = saved;
                 return Ok(Effect::IfYouDont {
-                    cant: false,
+                    cant: words == DontWords::CantSacrificeCreature,
                     then: vec![s],
                     words,
                 });
@@ -14808,8 +14846,10 @@ impl P {
             }
             "leaving" => {
                 self.expect_word("exiles")?;
+                let what = self.recipient()?;
                 Ok(Effect::ExileOnLeave {
-                    what: self.recipient()?,
+                    what,
+                    granted: self.eat_word("granted"),
                 })
             }
             "goad" => Ok(Effect::Goad {
@@ -17577,11 +17617,13 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::SourceCard);
         }
-        // `this creature`: the source named in full even after a mention.
+        // `this creature`: the source named in full even after a mention;
+        // `this spell` on an instant or sorcery prints its name ("Exile
+        // Volcanic Vision.").
         if self.at_word("this")
             && self
                 .word_at(1)
-                .is_some_and(|w| SELF_NOUNS.contains(&w.as_str()))
+                .is_some_and(|w| SELF_NOUNS.contains(&w.as_str()) || w == "spell")
         {
             self.pos += 2;
             return Ok(Recipient::SourceNamed);
@@ -17654,7 +17696,11 @@ impl P {
         {
             return Ok(Recipient::TriggeringController { that: true });
         }
-        if self.in_trigger && self.eat_words(&["controller", "of", "the", "creature"]) {
+        // "When that creature dies this turn, Searing Blood deals 3 damage
+        // to the creature's controller." in a spell's delayed trigger too.
+        if (self.in_trigger || self.in_delayed)
+            && self.eat_words(&["controller", "of", "the", "creature"])
+        {
             return Ok(Recipient::TheTriggeringController);
         }
         if self.in_trigger && !self.in_delayed && self.eat_words(&["the", "creature"]) {

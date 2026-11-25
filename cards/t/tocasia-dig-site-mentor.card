@@ -1,0 +1,8 @@
+card "Tocasia, Dig Site Mentor" {
+  oracle_id e790f7e6-45f5-45df-b8e5-bcbda4f69f8a
+  cost {1}{G}{W}{U}
+  type Legendary Creature — Human Artificer
+  pt 4/3
+  static creature you control: has vigilance, has ability { activated {T}: surveil 1 }
+  activated {2}{G}{G}{W}{W}{U}{U}, exile this from graveyard, sorcery: return any number of target artifact card from your graveyard with total mana value 10 or less to battlefield
+}

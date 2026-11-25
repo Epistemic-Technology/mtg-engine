@@ -1,0 +1,6 @@
+card "March of the Machines" {
+  oracle_id 51092634-308e-4779-aa51-182715dbc734
+  cost {3}{U}
+  type Enchantment
+  static each noncreature artifact: set type artifact creature, base mv
+}
