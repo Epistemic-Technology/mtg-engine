@@ -1,0 +1,6 @@
+card "Flunk" {
+  oracle_id 5cd99378-e8e2-43fe-80fc-13d680746a4a
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -1/-1 count where 7 minus hand of controller of target 1 until end of turn
+}

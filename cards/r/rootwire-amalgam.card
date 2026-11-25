@@ -1,0 +1,8 @@
+card "Rootwire Amalgam" {
+  oracle_id 7644148f-3b26-447d-9f52-28c94c111b69
+  cost {5}
+  type Artifact Creature — Golem
+  pt 5/5
+  prototype {1}{G} 2/3
+  activated {3}{G}{G}, sacrifice this, sorcery: create 1 "0/0 colorless Golem artifact creature" sized count where 3 power; it gains haste until end of turn
+}

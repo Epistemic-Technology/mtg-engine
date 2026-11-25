@@ -6730,6 +6730,70 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "card type among cards in your graveyard".to_string(),
             "card types among cards in your graveyard".to_string(),
         ),
+        CountExpr::CardTypesInOpponentsGraveyards => (
+            "card type among cards in your opponents' graveyards".to_string(),
+            "card types among cards in your opponents' graveyards".to_string(),
+        ),
+        CountExpr::CardsInOpponentsHands => (
+            "card in your opponents' hands".to_string(),
+            "cards in your opponents' hands".to_string(),
+        ),
+        CountExpr::HighestLife => return "the highest life total among players".to_string(),
+        // "the difference" (after "If target opponent has more cards in
+        // hand than you"), "7 minus the number of ...", "the number of
+        // cards you've drawn this turn minus one".
+        CountExpr::Minus {
+            difference: true, ..
+        } => return "the difference".to_string(),
+        CountExpr::Minus { a, b, .. } => {
+            return format!(
+                "{} minus {}",
+                count_phrase(a, card, false),
+                count_phrase(b, card, false)
+            );
+        }
+        CountExpr::Const { n, word } => {
+            return if *word {
+                count_words(Num::N(*n), "one")
+            } else {
+                n.to_string()
+            };
+        }
+        // "land cards in that player's graveyard", "cards in that
+        // creature's controller's hand".
+        CountExpr::TargetPlayerCards {
+            graveyard: false,
+            controller,
+            ..
+        } => {
+            let whose = if *controller {
+                "that creature's controller's"
+            } else {
+                "that player's"
+            };
+            (
+                format!("card in {whose} hand"),
+                format!("cards in {whose} hand"),
+            )
+        }
+        CountExpr::TargetPlayerCards { filter, .. } => match filter {
+            None => (
+                "card in that player's graveyard".to_string(),
+                "cards in that player's graveyard".to_string(),
+            ),
+            Some(f) => {
+                let (mut one, mut many) =
+                    (cards_phrase(f, card, false), cards_phrase(f, card, true));
+                if !f.any_types.is_empty() {
+                    one = one.replace(" or ", " and ");
+                    many = many.replace(" or ", " and ");
+                }
+                (
+                    format!("{one} in that player's graveyard"),
+                    format!("{many} in that player's graveyard"),
+                )
+            }
+        },
         CountExpr::SourceAllCounters { it } => {
             let on = if *it {
                 "it".to_string()
@@ -7494,6 +7558,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 c.text = c.text.replacen("X ", "that many ", 1);
                 if let crate::ast::CountExpr::Plus { n, .. } = &count.expr {
                     let _ = write!(c.text, " plus {}", count_words(Num::N(*n), "one"));
+                }
+                // `count that many discarded this way minus one`: "then
+                // draws that many cards minus one" (Dark Deal).
+                if let crate::ast::CountExpr::Minus { b, .. } = &count.expr {
+                    let _ = write!(c.text, " minus {}", count_phrase(b, ctx.card, false));
                 }
             }
             // "unless its controller pays {2} for each Wizard on the

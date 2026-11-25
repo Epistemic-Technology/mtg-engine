@@ -1,0 +1,6 @@
+card "Keening Stone" {
+  oracle_id d0f06250-25a5-4003-8f3a-6d85ef32ea10
+  cost {6}
+  type Artifact
+  activated {5}, {T}: target player mills count where graveyard of target 1 cards
+}

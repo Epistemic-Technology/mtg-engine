@@ -1,0 +1,6 @@
+card "Dark Deal" {
+  oracle_id c527eb80-ccac-40b8-8377-c31121613128
+  cost {2}{B}
+  type Sorcery
+  spell: each player discards all cards in hand then draws count that many discarded this way minus one cards
+}

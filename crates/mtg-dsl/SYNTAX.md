@@ -131,7 +131,7 @@ like the card; either half may still be cast alone.
 | `oracle_id 2b93787d-...` | The Scryfall `oracle_id` the card was authored against. Required for cards. |
 | `cost {1}{G}` | Mana cost. Omit for lands and tokens. Hybrid `{R/G}`, monocolored hybrid `{2/W}`, Phyrexian `{R/P}`, and hybrid Phyrexian `{G/U/P}` (either color or 2 life, both colors, CR 107.4f) symbols are accepted (CR 107.4e–f); the engine pays hybrid symbols in a canonical order. As a spell's total cost is paid its caster announces how many of its Phyrexian symbols they pay with 2 life each (CR 601.2b), offered only the numbers the rest of the cost can then be paid with and their life covers (CR 119.4); the choice is remembered for compleated. Scenarios: `cast "Dismember" paying_life 1 ...`; unscripted, the fewest. An activated ability's Phyrexian symbols are paid with mana where it can. Snow `{S}` (CR 107.4h, in any cost) is paid by tapping a different snow permanent for each symbol (the rest of the cost from the other sources and the pool); mana already floating in the pool pays no `{S}`, since the pool doesn't remember where its mana came from. `protection from snow` prints "Protection from snow". |
 | `type Legendary Creature — Goblin Shaman` | The type line: supertypes, types, then subtypes after `—` (or `-`). |
-| `pt 2/2` | Power and toughness (`pt -2/4`: a negative printed power, Loot, the Anomaly). Omit when a characteristic-defining ability sets them (Scryfall prints `*`). When it sets one of them, write the other and `*` for it: `pt */1` with `cda power ...`, `pt 2/*` with `cda toughness ...` (`*` is 0 outside the battlefield, CR 208.2a). |
+| `pt 2/2` | Power and toughness (`pt -2/4`: a negative printed power, Loot, the Anomaly). Omit when a characteristic-defining ability sets them (Scryfall prints `*`). When it sets one of them, write the other and `*` for it: `pt */1` with `cda power ...`, `pt 2/*` with `cda toughness ...` (`*` is 0 outside the battlefield, CR 208.2a). A printed "1+*" is written as its number, the ability counting it too: `pt 1/3` with `cda power plus 1 ...` (Nighthawk Scavenger). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `defense 5` | A battle's printed defense (CR 310.4): it enters with that many defense counters. |
 | `short_name "Ajani"` | The name a legendary card's text calls itself by when it isn't the part before a comma (CR 201.5): "put a loyalty counter on Ajani" on Ajani Resolute. The template author adds it when the text uses the name's first word alone. On a card that isn't legendary, the card names itself with it everywhere instead of "this creature" (`short_name "Enduring Innocence"`: "When Enduring Innocence dies", a card that may not stay a creature). An instant or sorcery whose text says "this spell" takes `short_name "this spell"` ("• Archery — This spell deals 5 damage to target creature with flying.", Choose Your Weapon). |
@@ -2663,7 +2663,31 @@ costs of permanents you control, a hybrid symbol counting once;
 you control", the same count), `greatest power`
 ("the greatest power among creatures you control"), `greatest mana value`
 ("... among permanents you control"), `drawn this turn` ("cards you've
-drawn this turn"), `spells cast this turn`, `spells cast this turn but first` ("for each
+drawn this turn"),
+`<count> minus <count>` and `7 minus <count>`, `<count> minus one`
+(arithmetic on counts: "7 minus the number of cards in that creature's
+controller's hand", Flunk; `cda pt 20 minus highest life`: "~'s power
+and toughness are each equal to 20 minus the highest life total among
+players", Scourge of the Skyclaves; a digit prints as a digit, a number
+word as a word; `count that many discarded this way minus one`: "then
+draws that many cards minus one", Dark Deal): an effect's amount is at
+least 0 (CR 107.1b), a characteristic-defining power or toughness may be
+below 0; `difference <count> minus <count>` prints "the difference",
+after a condition saying which is greater (`difference 10 hand`, ten
+minus the count, is the older form), `highest life` ("the highest life
+total among players"), `opponents hands` ("cards in your opponents'
+hands"; in a static ability it is re-read as hands change), `card types
+in opponents graveyards` ("card types among cards in your opponents'
+graveyards"; `cda power plus 1 card types in opponents graveyards` with
+`pt 1/3` is Nighthawk Scavenger's "1+*/3"), `graveyard of target 1
+[<filter>]` ("the number of [instant and sorcery] cards in that player's
+graveyard", the target player's), `graveyard of controller of target 1
+[<filter>]` ("... land cards in that player's graveyard" after "Destroy
+target land, then ~ deals damage to that land's controller": the
+target's controller as it last existed, CR 608.2h), `hand of controller
+of target 1` ("the number of cards in that creature's controller's
+hand"); the last three only in a resolving effect,
+`spells cast this turn`, `spells cast this turn but first` ("for each
 spell you've cast this turn other than the first"), `they cast
 noncreature spell this turn` ("the number of noncreature spells they've
 cast this turn": the player the ability triggered for, Magebane Lizard;

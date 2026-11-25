@@ -1,0 +1,8 @@
+card "Scourge of the Skyclaves" {
+  oracle_id c6dfc91f-bfac-40c2-99e5-0cec981f7f1f
+  cost {1}{B}
+  type Creature — Demon
+  kicker {4}{B}
+  triggered when you cast this if kicked: each player loses half up life
+  static this: cda pt 20 minus highest life
+}

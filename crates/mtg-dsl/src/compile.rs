@@ -3007,6 +3007,24 @@ impl Compiler<'_> {
             }
             A::Plus { n, inner, .. } => C::Plus(*n, Box::new(self.count_expr(inner))),
             A::Difference { n, inner } => C::Difference(*n, Box::new(self.count_expr(inner))),
+            A::Minus { a, b, .. } => {
+                C::Minus(Box::new(self.count_expr(a)), Box::new(self.count_expr(b)))
+            }
+            A::Const { n, .. } => C::Const(*n),
+            A::HighestLife => C::HighestLife,
+            A::CardsInOpponentsHands => C::CardsInOpponentsHands,
+            A::CardTypesInOpponentsGraveyards => C::CardTypesInOpponentsGraveyards,
+            A::TargetPlayerCards {
+                n,
+                graveyard,
+                controller,
+                filter,
+            } => C::TargetPlayerCards {
+                n: target_index(self.tmap, *n),
+                graveyard: *graveyard,
+                controller: *controller,
+                filter: filter.as_ref().map(|f| self.filter(f)),
+            },
             A::ThisWay { verb, filter } => {
                 C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
             }

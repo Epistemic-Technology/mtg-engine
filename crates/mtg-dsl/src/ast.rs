@@ -889,6 +889,38 @@ pub enum CountExpr {
     /// died", the triggering creature's as it last existed (a dies
     /// trigger).
     DiedStat(mtg_core::card::Stat),
+    /// `<expr> minus <expr>`: "that many cards minus one", "7 minus the
+    /// number of ...", "your life total minus ..."; `difference <expr>
+    /// minus <expr>` prints "the difference" (after a condition saying
+    /// which is greater).
+    Minus {
+        a: Box<CountExpr>,
+        b: Box<CountExpr>,
+        difference: bool,
+    },
+    /// A number as one side of `minus`: `7` ("7"), `one` ("one").
+    Const {
+        n: u32,
+        word: bool,
+    },
+    /// `highest life`: "the highest life total among players".
+    HighestLife,
+    /// `opponents hands`: "cards in your opponents' hands".
+    CardsInOpponentsHands,
+    /// `card types in opponents graveyards`: "card types among cards in
+    /// your opponents' graveyards".
+    CardTypesInOpponentsGraveyards,
+    /// `graveyard of target 1 [<filter>]`: "[land] cards in that player's
+    /// graveyard"; `graveyard of controller of target 1 [<filter>]` the
+    /// target's controller's (also "that player's", after the sentence
+    /// names that player); `hand of controller of target 1`: "cards in
+    /// that creature's controller's hand".
+    TargetPlayerCards {
+        n: usize,
+        graveyard: bool,
+        controller: bool,
+        filter: Option<Filter>,
+    },
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a

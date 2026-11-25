@@ -1,0 +1,7 @@
+card "The Mouth of Sauron" {
+  oracle_id 49e3396a-a125-4cca-b02a-4a96102bcb16
+  cost {3}{U}{B}
+  type Legendary Creature — Human Advisor
+  pt 3/4
+  triggered when this enters: target player mills 3 cards; then amass Orcs count where graveyard of target 1 instant or sorcery
+}
