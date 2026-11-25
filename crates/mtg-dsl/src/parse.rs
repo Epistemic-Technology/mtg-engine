@@ -61,6 +61,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_activated: false,
         that_spell_spent: false,
         group_named: false,
+        or_spell: false,
         subject: None,
         subject_each: false,
         votes: Vec::new(),
@@ -791,6 +792,9 @@ struct P {
     /// A group (`each <filter>`, `creatures you control`) has been named
     /// in this ability, for `them` and `those creatures` after it.
     group_named: bool,
+    /// `<filter> or spell becomes targeted ...`: read by the trigger
+    /// subject, taken by the `becomes targeted` trigger.
+    or_spell: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
     /// The sentence's subject was followed by `each` ("one or two target
@@ -15829,6 +15833,7 @@ impl P {
             in_activated: self.in_activated,
             that_spell_spent: self.that_spell_spent,
             group_named: self.group_named,
+            or_spell: false,
             subject: None,
             subject_each: false,
             votes: self.votes.clone(),
@@ -16975,6 +16980,7 @@ impl P {
                         in_activated: false,
                         that_spell_spent: false,
                         group_named: false,
+                        or_spell: false,
                         subject: None,
                         subject_each: false,
                         votes: Vec::new(),
@@ -18713,6 +18719,12 @@ impl P {
         if article && self.at_word("dies") {
             f.article = true;
         }
+        // "a creature you control or a creature spell you control becomes
+        // the target of ..." (only that trigger takes it).
+        if self.at_words(&["or", "spell", "becomes", "targeted"]) {
+            self.pos += 2;
+            self.or_spell = true;
+        }
         Ok(TriggerObj::Filter(f))
     }
 
@@ -20079,6 +20091,9 @@ impl P {
                 Ok(Trigger::BecomesBlocked(obj))
             }
             "becomes" => {
+                // `creature you control or spell becomes targeted by
+                // opponent` (the `or spell` read just before `becomes`).
+                let or_spell = std::mem::take(&mut self.or_spell);
                 if !(self.eat_word("targeted")
                     || self.eat_words(&["the", "target", "of", "a", "spell", "or", "ability"]))
                 {
@@ -20102,6 +20117,7 @@ impl P {
                         spells,
                         whose,
                         whenever,
+                        or_spell,
                     });
                 }
                 if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {

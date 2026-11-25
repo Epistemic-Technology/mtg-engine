@@ -8803,6 +8803,11 @@ pub enum TriggerSpec {
         what: TriggerObj,
         spells: bool,
         whose: Who,
+        /// "Whenever a creature you control or a creature spell you
+        /// control becomes the target of ..." (Surrak, Elusive Hunter): a
+        /// spell on the stack matching the filter counts too.
+        #[serde(default)]
+        or_spell: bool,
     },
 }
 

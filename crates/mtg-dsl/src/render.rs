@@ -16421,6 +16421,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             spells,
             whose,
             whenever,
+            or_spell,
         } => {
             let what = if *spells {
                 "a spell"
@@ -16432,10 +16433,19 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 Who::You => " you control",
                 Who::Any => "",
             };
+            let subject = trigger_subject(obj, ctx);
+            // "a creature you control or a creature spell you control".
+            let subject = if *or_spell {
+                format!(
+                    "{subject} or {}",
+                    subject.replacen("creature", "creature spell", 1)
+                )
+            } else {
+                subject
+            };
             format!(
-                "{} {} becomes the target of {what}{whose}",
+                "{} {subject} becomes the target of {what}{whose}",
                 if *whenever { "whenever" } else { "when" },
-                trigger_subject(obj, ctx)
             )
         }
         Trigger::TargetedByOpponent => format!(

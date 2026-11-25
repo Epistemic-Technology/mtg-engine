@@ -2720,11 +2720,13 @@ impl Decompiler<'_> {
                 what,
                 spells,
                 whose,
+                or_spell,
             } => Trigger::TargetedBy {
                 obj: self.trigger_obj(what),
                 spells: *spells,
                 whose: *whose,
                 whenever: true,
+                or_spell: *or_spell,
             },
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
             TriggerSpec::TargetedFirstTime => Trigger::TargetedFirstTime,

@@ -6335,10 +6335,12 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             spells,
             whose,
             whenever,
+            or_spell,
         } => format!(
-            "{} {} becomes targeted by {}{}",
+            "{} {}{} becomes targeted by {}{}",
             if *whenever { "whenever" } else { "when" },
             trigger_obj(obj),
+            if *or_spell { " or spell" } else { "" },
             if *whose == Who::Opponents {
                 "opponent "
             } else {

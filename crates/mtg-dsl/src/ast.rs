@@ -4425,6 +4425,10 @@ pub enum Trigger {
         spells: bool,
         whose: Who,
         whenever: bool,
+        /// `whenever creature you control or spell becomes targeted by
+        /// opponent`: "Whenever a creature you control or a creature spell
+        /// you control becomes the target of ..." (Surrak, Elusive Hunter).
+        or_spell: bool,
     },
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),

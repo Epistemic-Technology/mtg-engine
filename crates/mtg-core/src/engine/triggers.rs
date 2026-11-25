@@ -1738,7 +1738,15 @@ impl GameState {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source).then_some((Some(*by), Some(by_ctl)))
             }
-            (TriggerSpec::TargetedBy { what, spells, whose }, Event::Targeted { target, by }) => {
+            (
+                TriggerSpec::TargetedBy {
+                    what,
+                    spells,
+                    whose,
+                    or_spell,
+                },
+                Event::Targeted { target, by },
+            ) => {
                 let b = self.objects.get(*by)?;
                 if *spells && b.kind == crate::state::ObjKind::Ability {
                     return None;
@@ -1752,7 +1760,20 @@ impl GameState {
                 if !ok {
                     return None;
                 }
-                on_battlefield(what, *target)?;
+                // "... or a creature spell you control": the spell on the
+                // stack matched as a permanent would be.
+                let spell = *or_spell
+                    && self.objects.get(*target).is_some_and(|t| {
+                        t.zone == Zone::Stack
+                            && t.kind != crate::state::ObjKind::Ability
+                            && matches!(what, TriggerObj::Filter(f)
+                                if self.characteristics(*target).is_some_and(|c| {
+                                    f.matches(*target, t.controller, &c, Some(w.source), Some(w.controller))
+                                }))
+                    });
+                if !spell {
+                    on_battlefield(what, *target)?;
+                }
                 Some((Some(*target), Some(by_ctl)))
             }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {

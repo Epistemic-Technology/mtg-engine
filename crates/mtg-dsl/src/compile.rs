@@ -6209,11 +6209,16 @@ impl Compiler<'_> {
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
             Trigger::TargetedBy {
-                obj, spells, whose, ..
+                obj,
+                spells,
+                whose,
+                or_spell,
+                ..
             } => TriggerSpec::TargetedBy {
                 what: self.trigger_obj(obj),
                 spells: *spells,
                 whose: *whose,
+                or_spell: *or_spell,
             },
             Trigger::TargetedFirstTime => TriggerSpec::TargetedFirstTime,
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
