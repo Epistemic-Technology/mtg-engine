@@ -1,0 +1,9 @@
+card "Hydroid Krasis" {
+  oracle_id 6bd872b2-5c40-4e11-9a7f-0136a51b0642
+  cost {X}{G}{U}
+  type Creature — Jellyfish Hydra Beast
+  pt 0/0
+  triggered when you cast this: you gain half down x life and draw half down x cards
+  keywords flying, trample
+  enters with X +1/+1 counters
+}

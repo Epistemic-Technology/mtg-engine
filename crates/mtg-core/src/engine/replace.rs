@@ -1002,6 +1002,11 @@ impl GameState {
             Affects::This => target == Target::Object(source),
             Affects::You => target == Target::Player(controller),
             Affects::Players(w) => matches!(target, Target::Player(p) if whose_ok(*w, p)),
+            // "If a source would deal damage to enchanted player" (Curse of
+            // Bloodletting, CR 303.4): an Aura with enchant player.
+            Affects::Objects(f) if f.enchanted && matches!(target, Target::Player(_)) => {
+                matches!(target, Target::Player(p) if self.attached_player_of(source) == Some(p))
+            }
             Affects::Objects(f) => {
                 matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
             }

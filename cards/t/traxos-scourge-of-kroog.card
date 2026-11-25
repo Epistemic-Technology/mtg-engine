@@ -1,0 +1,9 @@
+card "Traxos, Scourge of Kroog" {
+  oracle_id c1c78144-b335-4d22-a668-9173ab6a0d04
+  cost {4}
+  type Legendary Artifact Creature — Dragon Construct
+  pt 7/7
+  keywords trample, doesn't untap
+  enters tapped and
+  triggered whenever you cast historic spell: untap this
+}

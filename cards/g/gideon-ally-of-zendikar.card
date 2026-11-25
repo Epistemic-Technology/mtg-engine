@@ -1,0 +1,10 @@
+card "Gideon, Ally of Zendikar" {
+  oracle_id 51eae7ff-fed9-4afe-8053-7690379449dd
+  cost {2}{W}{W}
+  type Legendary Planeswalker — Gideon
+  loyalty 4
+  pronoun he
+  loyalty +1: until end of turn, this becomes 5/5 Human Soldier Ally creature with indestructible; prevent all damage to this this turn
+  loyalty 0: create 1 "2/2 white Knight Ally creature"
+  loyalty -4: emblem "Gideon, Ally of Zendikar emblem"
+}

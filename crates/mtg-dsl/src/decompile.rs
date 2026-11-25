@@ -282,6 +282,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             pt: x.pt,
             colors: x.colors.iter().collect(),
             legendary: x.legendary,
+            legendary_addition: false,
             exactly: x.exactly,
             the_token: false,
             and_is: false,

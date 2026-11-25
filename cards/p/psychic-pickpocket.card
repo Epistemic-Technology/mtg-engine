@@ -1,0 +1,7 @@
+card "Psychic Pickpocket" {
+  oracle_id 60ead8a5-11fb-4eeb-99bf-0caaf1de1731
+  cost {4}{U}
+  type Creature — Octopus Rogue
+  pt 3/2
+  triggered when this enters: it connives; when you do, return up to 1 target nonland permanent to hand
+}

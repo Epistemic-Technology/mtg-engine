@@ -1,0 +1,7 @@
+card "Dagger of the Worthy" {
+  oracle_id 459d7385-11b9-4f81-a6c1-0a77d163a0e5
+  cost {2}
+  type Artifact — Equipment
+  static equipped: +2/+0, has afflict 1
+  equip {2}
+}

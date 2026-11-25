@@ -1,0 +1,8 @@
+card "Forked-Branch Garami" {
+  oracle_id c918baa5-0e7c-4df2-8567-64a7fbef4df8
+  cost {3}{G}{G}
+  type Creature — Spirit
+  pt 4/4
+  soulshift 4
+  soulshift 4
+}

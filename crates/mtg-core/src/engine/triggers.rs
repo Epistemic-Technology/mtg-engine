@@ -2815,6 +2815,17 @@ impl GameState {
         {
             self.x_values.push((obj, x));
         }
+        // CR 107.3m: "When you cast this spell, you gain half X life"
+        // (Hydroid Krasis): the ability's X is the spell's.
+        if !self.x_values.is_empty()
+            && let AbilityDef::Triggered(tr) = self.pool.ability(t.ability.ability)
+            && tr.trigger == TriggerSpec::CastThis
+        {
+            let x = self.x_of(t.ability.source);
+            if x > 0 {
+                self.x_values.push((obj, x));
+            }
+        }
         if !self.reflexive_x.is_empty()
             && let Some(i) = self
                 .reflexive_x

@@ -1,0 +1,6 @@
+card "Provoke the Trolls" {
+  oracle_id ac844303-487b-49e9-9170-02892153ca6a
+  cost {3}{R}
+  type Instant
+  spell: deal 3 damage to any target; if creature is damaged this way, target 1 gets +5/+0 until end of turn
+}

@@ -1,0 +1,546 @@
+# Wording near-misses, list a of the sixteenth wave: "Soulshift 4,
+# soulshift 4" (Forked-Branch Garami), "If it was a Jace planeswalker
+# spell" (Jace's Defeat), "it deals double that damage to that player
+# instead" (Curse of Bloodletting, Charging Tuskodon), "enters tapped and
+# doesn't untap during your untap step" (Traxos, Scourge of Kroog), "Bolster
+# X, where X is ..." (Sunbringer's Touch), "you gain half X life and draw
+# half X cards. Round down each time." (Hydroid Krasis), "fewer than three
+# +1/+1 counters" (Runaway Steam-Kin), "Incubate 2 twice." and "Transform
+# all Incubator tokens you control." (Glissa, Herald of Predation); and
+# cards needing no change: Sire of Insanity, Sorin, Vampire Lord, Fanatic
+# of Mogis, Provoke the Trolls.
+
+scenario "Forked-Branch Garami: both soulshift abilities return a Spirit" {
+  battlefield A: "Forked-Branch Garami", 3 "Swamp"
+  graveyard A: "Cloud Spirit", "Chilling Apparition", "Belfry Spirit"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Forked-Branch Garami"
+  turn 1 A: trigger "Forked-Branch Garami" targeting "Cloud Spirit"
+  turn 1 A: trigger "Forked-Branch Garami" targeting "Chilling Apparition"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Cloud Spirit"
+  assert hand A contains "Chilling Apparition"
+  assert graveyard A contains "Belfry Spirit"
+  assert graveyard A contains "Forked-Branch Garami"
+}
+
+scenario "Forked-Branch Garami: a Spirit with mana value 5 can't be returned" {
+  battlefield A: "Forked-Branch Garami", 3 "Swamp"
+  graveyard A: "Belfry Spirit"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Forked-Branch Garami"
+  illegal turn 1 A: trigger "Forked-Branch Garami" targeting "Belfry Spirit"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Belfry Spirit"
+}
+
+scenario "Jace's Defeat: countering a Jace planeswalker spell scries 2" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Island"
+  hand A: "Jace's Defeat"
+  hand B: "Jace Beleren"
+  library A: "Forest", "Mountain", "Swamp"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Jace Beleren"
+  turn 2 A: cast "Jace's Defeat" targeting "Jace Beleren"
+  turn 2 A: scry "Forest", "Mountain"
+  run_to turn 3 precombat_main
+  assert graveyard B contains "Jace Beleren"
+  assert hand A contains "Swamp"
+  assert hand A lacks "Forest"
+}
+
+scenario "Jace's Defeat: another blue spell is countered without a scry" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Island"
+  hand A: "Jace's Defeat"
+  hand B: "Divination"
+  library A: "Forest", "Mountain", "Swamp"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Divination"
+  turn 2 A: cast "Jace's Defeat" targeting "Divination"
+  run_to turn 3 precombat_main
+  assert graveyard B contains "Divination"
+  assert hand A contains "Forest"
+}
+
+scenario "Jace's Defeat: a spell that isn't blue can't be targeted" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Mountain"
+  hand A: "Jace's Defeat"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  illegal turn 2 A: cast "Jace's Defeat" targeting "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Sire of Insanity: each player discards their hand at each end step" {
+  battlefield A: "Sire of Insanity"
+  hand A: "Shock", "Murder"
+  hand B: "Divination", "Forest"
+  run_to turn 1 cleanup
+  assert hand A count 0
+  assert hand B count 0
+  assert graveyard A contains "Shock"
+  assert graveyard B contains "Divination"
+}
+
+scenario "Sire of Insanity: it triggers in the opponent's end step too" {
+  battlefield A: "Sire of Insanity"
+  start turn 2 B precombat_main
+  hand B: "Divination"
+  hand A: "Shock"
+  run_to turn 2 cleanup
+  assert hand B lacks "Divination"
+  assert hand A count 0
+}
+
+scenario "Sorin, Vampire Lord: -8 gives each Vampire a control ability that lasts" {
+  battlefield A: "Sorin, Vampire Lord" with 8 loyalty, "Vampire Lacerator", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Sorin, Vampire Lord" ability 3
+  turn 1 A: wait
+  turn 1 A: activate "Vampire Lacerator" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+  assert counters "Sorin, Vampire Lord" loyalty 0
+}
+
+scenario "Sorin, Vampire Lord: a creature that isn't a Vampire gains nothing" {
+  battlefield A: "Sorin, Vampire Lord" with 8 loyalty, "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Sorin, Vampire Lord" ability 3
+  illegal turn 1 A: activate "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Sorin, Vampire Lord: -2 deals 4 damage and gains 4 life" {
+  battlefield A: "Sorin, Vampire Lord" with 4 loyalty
+  turn 1 A: activate "Sorin, Vampire Lord" ability 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 24
+  assert counters "Sorin, Vampire Lord" loyalty 2
+}
+
+scenario "Fanatic of Mogis: damage to each opponent equal to devotion to red" {
+  battlefield A: "Hill Giant", 4 "Mountain"
+  hand A: "Fanatic of Mogis"
+  turn 1 A: cast "Fanatic of Mogis"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Curse of Bloodletting: damage to the enchanted player is doubled" {
+  battlefield A: 7 "Mountain"
+  hand A: "Curse of Bloodletting", "Shock", "Lightning Bolt"
+  turn 1 A: cast "Curse of Bloodletting" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 17
+}
+
+scenario "Charging Tuskodon: combat damage to a player is doubled, to a blocker not" {
+  battlefield A: "Charging Tuskodon"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Charging Tuskodon"
+  turn 2 B: block "Charging Tuskodon" with "Grizzly Bears"
+  turn 2 A: assign "Charging Tuskodon" to "Grizzly Bears" 2, player B 2
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Charging Tuskodon: unblocked, eight damage" {
+  battlefield A: "Charging Tuskodon"
+  start turn 2 A
+  turn 2 A: attack "Charging Tuskodon"
+  run_to turn 2 postcombat_main
+  assert life B 12
+}
+
+scenario "Charging Tuskodon: only the trample overflow to the player is doubled" {
+  battlefield A: "Charging Tuskodon"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Charging Tuskodon"
+  turn 2 B: block "Charging Tuskodon" with "Hill Giant"
+  turn 2 A: assign "Charging Tuskodon" to "Hill Giant" 3, player B 1
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Traxos: enters tapped, stays tapped, untaps on a historic spell" {
+  battlefield A: 4 "Plains"
+  hand A: "Traxos, Scourge of Kroog", "Ornithopter"
+  turn 1 A: cast "Traxos, Scourge of Kroog"
+  run_to turn 1 postcombat_main
+  assert tapped "Traxos, Scourge of Kroog"
+  run_to turn 3 precombat_main
+  assert tapped "Traxos, Scourge of Kroog"
+  turn 3 A: cast "Ornithopter"
+  run_to turn 3 declare_attackers
+  assert untapped "Traxos, Scourge of Kroog"
+}
+
+scenario "Traxos: a spell that isn't historic doesn't untap it" {
+  battlefield A: "Traxos, Scourge of Kroog" tapped, "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Traxos, Scourge of Kroog"
+}
+
+scenario "Provoke the Trolls: a creature dealt damage gets +5/+0" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Provoke the Trolls"
+  turn 1 A: cast "Provoke the Trolls" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 3
+  assert power "Serra Angel" 9
+  assert toughness "Serra Angel" 4
+  run_to turn 2 upkeep
+  assert power "Serra Angel" 4
+}
+
+scenario "Provoke the Trolls: a player dealt damage, no creature pumped" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Provoke the Trolls"
+  turn 1 A: cast "Provoke the Trolls" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Sunbringer's Touch: bolster X for the cards in hand, trample for those with counters" {
+  battlefield A: 4 "Forest", "Serra Angel", "Grizzly Bears", "Hill Giant" with 1 +1/+1
+  hand A: "Sunbringer's Touch", "Shock", "Murder"
+  turn 1 A: cast "Sunbringer's Touch"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert has "Grizzly Bears" trample
+  assert has "Hill Giant" trample
+  assert has not "Serra Angel" trample
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "Hydroid Krasis: X 4 gains 2 life and draws 2 cards" {
+  battlefield A: 3 "Forest", 3 "Island"
+  hand A: "Hydroid Krasis"
+  turn 1 A: cast "Hydroid Krasis" x 4
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A count 2
+  assert counters "Hydroid Krasis" +1/+1 4
+}
+
+scenario "Hydroid Krasis: X 5 rounds each half down" {
+  battlefield A: 4 "Forest", 3 "Island"
+  hand A: "Hydroid Krasis"
+  turn 1 A: cast "Hydroid Krasis" x 5
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A count 2
+  assert counters "Hydroid Krasis" +1/+1 5
+}
+
+scenario "Runaway Steam-Kin: counters stop at three" {
+  battlefield A: "Runaway Steam-Kin" with 2 +1/+1, 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Runaway Steam-Kin" +1/+1 3
+  assert life B 15
+}
+
+scenario "Runaway Steam-Kin: a spell that isn't red adds nothing" {
+  battlefield A: "Runaway Steam-Kin", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Runaway Steam-Kin" +1/+1 0
+}
+
+scenario "Glissa: incubate 2 twice" {
+  battlefield A: "Glissa, Herald of Predation"
+  turn 1 begin_combat A: trigger "Glissa, Herald of Predation" mode 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Incubator"
+  assert counters oldest "Incubator" +1/+1 2
+  assert counters newest "Incubator" +1/+1 2
+}
+
+scenario "Glissa: transform all Incubator tokens you control" {
+  battlefield A: "Glissa, Herald of Predation"
+  turn 1 begin_combat A: trigger "Glissa, Herald of Predation" mode 1
+  turn 3 begin_combat A: trigger "Glissa, Herald of Predation" mode 2
+  run_to turn 3 declare_attackers
+  assert battlefield A lacks "Incubator"
+  assert battlefield A contains 2 "Phyrexian Token"
+  assert is oldest "Phyrexian Token" creature
+  assert is newest "Phyrexian Token" creature
+  assert counters newest "Phyrexian Token" +1/+1 2
+}
+
+scenario "Glissa: Phyrexians gain first strike and deathtouch" {
+  battlefield A: "Glissa, Herald of Predation", "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Glissa, Herald of Predation" mode 3
+  run_to turn 1 declare_attackers
+  assert has "Glissa, Herald of Predation" first_strike
+  assert has "Glissa, Herald of Predation" deathtouch
+  assert has not "Grizzly Bears" deathtouch
+}
+
+scenario "Pride of the Clouds: +1/+1 for each other creature on the battlefield with flying" {
+  battlefield A: "Pride of the Clouds", "Wind Drake", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Pride of the Clouds" 3
+  assert toughness "Pride of the Clouds" 3
+}
+
+scenario "Pride of the Clouds: forecast makes a white and blue Bird in the upkeep" {
+  battlefield A: 2 "Plains", 2 "Island"
+  hand A: "Pride of the Clouds"
+  start turn 3 A
+  turn 3 upkeep A: activate "Pride of the Clouds"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Bird"
+  assert is "Bird" white
+  assert is "Bird" blue
+  assert has "Bird" flying
+  assert hand A contains "Pride of the Clouds"
+}
+
+scenario "Psychic Pickpocket: it connives, then bounces a nonland permanent" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Psychic Pickpocket", "Shock"
+  library A: "Forest"
+  turn 1 A: cast "Psychic Pickpocket"
+  turn 1 precombat_main A: discard "Shock"
+  turn 1 A: trigger "Psychic Pickpocket" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert counters "Psychic Pickpocket" +1/+1 1
+  assert hand A contains "Forest"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Psychic Pickpocket: a land can't be returned" {
+  battlefield A: 5 "Island"
+  battlefield B: "Forest"
+  hand A: "Psychic Pickpocket"
+  turn 1 A: cast "Psychic Pickpocket"
+  illegal turn 1 A: trigger "Psychic Pickpocket" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+}
+
+scenario "Dagger of the Worthy: +2/+0 and afflict 1" {
+  battlefield A: "Dagger of the Worthy" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Dagger of the Worthy: unblocked, no afflict loss" {
+  battlefield A: "Dagger of the Worthy" on "Grizzly Bears", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Syr Gwyn: an equipped attacker draws a card and loses 1 life" {
+  battlefield A: "Syr Gwyn, Hero of Ashvale", "Dagger of the Worthy" on "Grizzly Bears", "Grizzly Bears", "Hill Giant"
+  library A: "Forest", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert hand A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "Syr Gwyn: equip Knight {0} onto Syr Gwyn" {
+  battlefield A: "Syr Gwyn, Hero of Ashvale", "Dagger of the Worthy"
+  turn 1 A: activate "Dagger of the Worthy" ability 2 targeting "Syr Gwyn, Hero of Ashvale"
+  run_to turn 1 postcombat_main
+  assert attached "Dagger of the Worthy" to "Syr Gwyn, Hero of Ashvale"
+  assert power "Syr Gwyn, Hero of Ashvale" 7
+}
+
+scenario "Syr Gwyn: equip Knight {0} can't target a creature that isn't a Knight" {
+  battlefield A: "Syr Gwyn, Hero of Ashvale", "Dagger of the Worthy", "Grizzly Bears"
+  illegal turn 1 A: activate "Dagger of the Worthy" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Walking Bulwark: a defender attacks with haste for its toughness" {
+  battlefield A: 3 "Plains"
+  hand A: "Walking Bulwark"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Walking Bulwark"
+  turn 3 A: activate "Walking Bulwark" targeting "Walking Bulwark"
+  turn 3 A: attack "Walking Bulwark"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Walking Bulwark: a creature without defender can't be targeted" {
+  battlefield A: "Walking Bulwark", 2 "Plains", "Grizzly Bears"
+  illegal turn 1 A: activate "Walking Bulwark" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Walking Bulwark: without the ability it can't attack" {
+  battlefield A: "Walking Bulwark"
+  start turn 3 A precombat_main
+  illegal turn 3 A: attack "Walking Bulwark"
+  run_to turn 3 postcombat_main
+  assert life B 20
+}
+
+scenario "Lazav: X copies a creature card with mana value X, keeping its name and ability" {
+  battlefield A: "Lazav, the Multifarious", 8 "Island"
+  graveyard A: "Hill Giant", "Serra Angel"
+  turn 1 A: activate "Lazav, the Multifarious" ability 1 x 4 targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Lazav, the Multifarious" ability 1 x 4 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Lazav, the Multifarious" 3
+  assert toughness "Lazav, the Multifarious" 3
+  assert is "Lazav, the Multifarious" Giant
+  assert is "Lazav, the Multifarious" legendary
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Lazav: X must be the card's mana value" {
+  battlefield A: "Lazav, the Multifarious", 3 "Island"
+  graveyard A: "Hill Giant"
+  illegal turn 1 A: activate "Lazav, the Multifarious" ability 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Lazav, the Multifarious" 1
+}
+
+scenario "Venarian Glimmer: a nonland card with mana value X or less is discarded" {
+  battlefield A: 3 "Island"
+  hand A: "Venarian Glimmer"
+  hand B: "Hill Giant", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Venarian Glimmer" x 2 targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Forest"
+}
+
+scenario "Venarian Glimmer: a card above X can't be chosen" {
+  battlefield A: 3 "Island"
+  hand A: "Venarian Glimmer"
+  hand B: "Hill Giant", "Forest"
+  turn 1 A: cast "Venarian Glimmer" x 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B count 2
+}
+
+scenario "Gideon, Martial Paragon: 0 makes him a 5/5 indestructible creature that's still a planeswalker" {
+  battlefield A: "Gideon, Martial Paragon" with 5 loyalty, "Mountain"
+  hand A: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Gideon, Martial Paragon" ability 2
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting "Gideon, Martial Paragon"
+  turn 3 A: attack "Gideon, Martial Paragon"
+  run_to turn 3 postcombat_main
+  assert is "Gideon, Martial Paragon" creature
+  assert is "Gideon, Martial Paragon" planeswalker
+  assert is "Gideon, Martial Paragon" Soldier
+  assert power "Gideon, Martial Paragon" 5
+  assert has "Gideon, Martial Paragon" indestructible
+  assert counters "Gideon, Martial Paragon" loyalty 5
+  assert damage "Gideon, Martial Paragon" 0
+  assert life B 15
+  run_to turn 4 upkeep
+  assert is not "Gideon, Martial Paragon" creature
+}
+
+scenario "Gideon, Martial Paragon: +2 untaps creatures you control and pumps those creatures" {
+  battlefield A: "Gideon, Martial Paragon" with 5 loyalty, "Grizzly Bears" tapped
+  battlefield B: "Hill Giant" tapped
+  start turn 3 A precombat_main
+  turn 3 A: activate "Gideon, Martial Paragon" ability 1
+  run_to turn 3 declare_attackers
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert tapped "Hill Giant"
+  assert power "Hill Giant" 3
+  assert counters "Gideon, Martial Paragon" loyalty 7
+}
+
+scenario "Gideon, Ally of Zendikar: +1, 0, and -4" {
+  battlefield A: "Gideon, Ally of Zendikar" with 4 loyalty, "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Gideon, Ally of Zendikar" ability 1
+  run_to turn 3 declare_attackers
+  assert is "Gideon, Ally of Zendikar" creature
+  assert is "Gideon, Ally of Zendikar" Ally
+  assert is "Gideon, Ally of Zendikar" planeswalker
+  assert power "Gideon, Ally of Zendikar" 5
+  turn 5 A: activate "Gideon, Ally of Zendikar" ability 2
+  run_to turn 5 declare_attackers
+  assert battlefield A contains "Knight Ally"
+  assert is not "Gideon, Ally of Zendikar" creature
+  turn 7 A: activate "Gideon, Ally of Zendikar" ability 3
+  run_to turn 7 declare_attackers
+  assert power "Grizzly Bears" 3
+  assert power "Knight Ally" 3
+}
+
+scenario "Draconic Destiny: +1/+1, flying, haste, a pump ability, and a Dragon" {
+  battlefield A: 4 "Mountain", 2 "Forest"
+  hand A: "Grizzly Bears", "Draconic Destiny"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Draconic Destiny" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" haste
+  assert is "Grizzly Bears" Dragon
+  assert is "Grizzly Bears" Bear
+  assert power "Grizzly Bears" 4
+  assert life B 16
+}
+
+scenario "Draconic Destiny: returns to its owner's hand when the creature dies" {
+  battlefield A: "Draconic Destiny" on "Grizzly Bears", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Draconic Destiny"
+}

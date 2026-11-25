@@ -1784,6 +1784,9 @@ impl P {
                         Some("legendary") => {
                             self.pos += 1;
                             except.legendary = true;
+                            // "it's legendary in addition to its other
+                            // types" (Lazav, the Multifarious).
+                            except.legendary_addition = self.eat_word("addition");
                             self.end_stmt()?;
                         }
                         // "it's a 1/1 green Frog": not in addition.
@@ -5636,7 +5639,7 @@ impl P {
         // "All Sliver creatures have poisonous 1", "... have provoke",
         // "... have outlast {2}".
         if let Some(w) = self.word_at(0)
-            && matches!(w.as_str(), "poisonous" | "frenzy" | "absorb")
+            && matches!(w.as_str(), "poisonous" | "frenzy" | "absorb" | "afflict")
             && matches!(self.peek_at(1), Some(Tok::Num(_)))
         {
             self.pos += 1;
@@ -5644,6 +5647,9 @@ impl P {
             return Ok(Some(Ability::Mechanic(match w.as_str() {
                 "poisonous" => Mechanic::Poisonous(n),
                 "frenzy" => Mechanic::Frenzy(n),
+                // "Equipped creature gets +2/+0 and has afflict 1."
+                // (Dagger of the Worthy).
+                "afflict" => Mechanic::Afflict(n),
                 _ => Mechanic::Absorb(n),
             })));
         }
@@ -5741,10 +5747,9 @@ impl P {
                     .word_at(2)
                     .as_deref()
                     .is_some_and(|w| color(w).is_none()))
-            || (self
-                .word_at(0)
-                .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
-                && matches!(self.peek_at(1), Some(Tok::Num(_))))
+            || (self.word_at(0).is_some_and(|w| {
+                matches!(w.as_str(), "poisonous" | "frenzy" | "absorb" | "afflict")
+            }) && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.at_word("provoke")
             || self.at_word("mentor")
             || (self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))))

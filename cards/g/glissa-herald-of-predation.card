@@ -1,0 +1,11 @@
+card "Glissa, Herald of Predation" {
+  oracle_id 9b10e0f7-9414-4769-85d7-c1cd1c74a9a6
+  cost {3}{B}{G}
+  type Legendary Creature — Phyrexian Zombie Elf
+  pt 3/5
+  triggered at beginning of your combat: choose one {
+    mode: incubate 2; incubate 2
+    mode: transform all Incubator token you control
+    mode: each Phyrexian you control gains first strike, deathtouch until end of turn
+  }
+}
