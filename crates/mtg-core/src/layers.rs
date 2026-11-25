@@ -323,6 +323,10 @@ fn pass(
 
     let mut live = stored_effects(state);
 
+    // Each object's static abilities' layers, for `gather_statics`: only
+    // layer 6 changes abilities, so these hold through layer 5 and, worked
+    // out again, from layer 7a on.
+    let mut masks = static_masks(&work);
     for layer in Layer::ALL {
         // CR 305.7: a land that became a basic land type loses the abilities
         // of its rules text; this takes effect in the ability layer.
@@ -351,7 +355,15 @@ fn pass(
                 }
             }
         }
-        gather_statics(&work, &mut live, layer);
+        if layer == Layer::L7aCda {
+            masks = static_masks(&work);
+        }
+        gather_statics(
+            &work,
+            &mut live,
+            layer,
+            (layer != Layer::L6Ability).then_some(&masks),
+        );
         // A static ability granted in layer 6 ("has 'This creature has
         // hexproof as long as it's untapped'", Giant's Amulet) exists once
         // the grant has applied; its own layer-6 effect applies after the
@@ -360,7 +372,7 @@ fn pass(
         let mut from = 0;
         while apply_layer(&mut work, &mut live, from, layer) && layer == Layer::L6Ability {
             from = live.len();
-            gather_statics(&work, &mut live, layer);
+            gather_statics(&work, &mut live, layer, None);
             if from == live.len() {
                 break;
             }
@@ -1026,13 +1038,19 @@ fn listed(
 
 /// Static abilities of battlefield permanents whose ability currently exists
 /// become live effects (CR 611.3); already-live ones persist (CR 613.6).
-fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
+fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer, masks: Option<&Masks>) {
     // `ids` and `chars` are in step; with no object listed twice (the
     // index then has one entry per id) the working characteristics are
     // read by position rather than looked up.
     let in_step = work.index.len() == work.ids.len();
     let bit = layer.bit();
+    if masks.is_some_and(|m| m.iter().all(|m| m & bit == 0)) {
+        return;
+    }
     for (i, id) in work.ids.iter().enumerate() {
+        if masks.is_some_and(|m| m[i] & bit == 0) {
+            continue;
+        }
         let c = if in_step {
             &work.chars[i]
         } else {
@@ -1132,6 +1150,31 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
             });
         }
     }
+}
+
+/// Per entry of `Work::ids`, the layers its static abilities have parts in
+/// (`CardPool::static_layers`), with its working characteristics as
+/// `gather_statics` finds them.
+type Masks = SmallVec<[u16; 64]>;
+
+fn static_masks(work: &Work<'_>) -> Masks {
+    let in_step = work.index.len() == work.ids.len();
+    work.ids
+        .iter()
+        .enumerate()
+        .map(|(i, id)| {
+            let c = if in_step {
+                Some(&work.chars[i])
+            } else {
+                work.get(*id)
+            };
+            c.map_or(0, |c| {
+                c.abilities
+                    .iter()
+                    .fold(0, |m, a| m | work.state.pool.static_layers(*a))
+            })
+        })
+        .collect()
 }
 
 /// A static ability's parts as they apply: "the chosen color" or type is

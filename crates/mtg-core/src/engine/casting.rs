@@ -3461,15 +3461,21 @@ impl GameState {
     /// permanent once, with `extra` among them.
     pub(super) fn targets_life(&self, spell: ObjId, extra: Option<Target>) -> u32 {
         let o = &self.objects[spell];
-        let mut seen: Vec<Target> = Vec::new();
-        for t in o.targets.iter().copied().chain(extra) {
-            if !seen.contains(&t) {
-                seen.push(t);
-            }
+        let ts = &o.targets;
+        // Each target once, with no allocation: this runs for every
+        // target offered.
+        let mut life: u32 = ts
+            .iter()
+            .enumerate()
+            .filter(|(i, t)| !ts[..*i].contains(t))
+            .map(|(_, t)| self.targeted_life(o.controller, *t))
+            .sum();
+        if let Some(t) = extra
+            && !ts.contains(&t)
+        {
+            life += self.targeted_life(o.controller, t);
         }
-        seen.into_iter()
-            .map(|t| self.targeted_life(o.controller, t))
-            .sum()
+        life
     }
 
     /// What plotting for `cost` costs `p` (CR 702.170a): less generic mana
@@ -8028,7 +8034,8 @@ impl GameState {
         } else {
             self.cversion
         };
-        (p.index() < 2 && cv != 0).then_some((p.index(), (cv, self.tap_epoch, self.turn_number)))
+        (p.index() < 2 && cv != 0)
+            .then(|| (p.index(), (cv, self.tap_epoch[p.index()], self.turn_number)))
     }
 
     fn mana_sources_uncached(&self, p: PlayerId) -> Sources {

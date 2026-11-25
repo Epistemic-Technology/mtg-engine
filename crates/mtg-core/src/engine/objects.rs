@@ -1625,8 +1625,11 @@ impl GameState {
             && !o.tapped
         {
             o.tapped = true;
+            let who = o.controller.index();
             self.bump();
-            self.tap_epoch = self.tap_epoch.wrapping_add(1);
+            if let Some(e) = self.tap_epoch.get_mut(who) {
+                *e = e.wrapping_add(1);
+            }
             if self.tap_static_sources > 0 {
                 self.cbump();
                 // An Aura that enchants only a tapped (or untapped)
@@ -1676,8 +1679,11 @@ impl GameState {
             && o.tapped
         {
             o.tapped = false;
+            let who = o.controller.index();
             self.bump();
-            self.tap_epoch = self.tap_epoch.wrapping_add(1);
+            if let Some(e) = self.tap_epoch.get_mut(who) {
+                *e = e.wrapping_add(1);
+            }
             if self.tap_static_sources > 0 {
                 self.cbump();
                 // An Aura that enchants only a tapped (or untapped)

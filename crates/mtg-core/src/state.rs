@@ -984,9 +984,20 @@ impl CastInfo {
 impl Clone for GameObject {
     #[inline]
     fn clone(&self) -> Self {
+        // Most objects (a library's cards) have neither targets nor
+        // counters: `from_slice` copies even an empty slice with a call
+        // to `memcpy`.
         GameObject {
-            targets: SmallVec::from_slice(&self.targets),
-            counters: SmallVec::from_slice(&self.counters),
+            targets: if self.targets.is_empty() {
+                SmallVec::new()
+            } else {
+                SmallVec::from_slice(&self.targets)
+            },
+            counters: if self.counters.is_empty() {
+                SmallVec::new()
+            } else {
+                SmallVec::from_slice(&self.counters)
+            },
             ..*self
         }
     }
@@ -2711,8 +2722,10 @@ pub struct GameState {
     /// `tap_epoch`, turn): priority listings ask for them again and again
     /// with nothing changed.
     pub mana_cache: std::cell::RefCell<[(u64, u32, u32, ManaSources); 2]>,
-    /// Bumped on every tap and untap (which leave `cversion` alone).
-    pub tap_epoch: u32,
+    /// Bumped on every tap and untap (which leave `cversion` alone) of a
+    /// permanent the first or second player controls, that player's: a
+    /// tap changes only its controller's mana sources.
+    pub tap_epoch: [u32; 2],
     /// The last decision's option list, emptied, for the next priority
     /// listing to fill (`Engine::step`); not part of the game.
     pub(crate) spare_options: Vec<crate::decision::Choice>,
@@ -3878,6 +3891,60 @@ impl GameState {
             })
     }
 
+    /// Whether a definition, one of its faces, or one of its Room door
+    /// states is legendary.
+    fn may_be_legendary(&self, r: crate::card::CardRef) -> bool {
+        let d = self.pool.get(r);
+        d.is_legendary()
+            || d.faces.iter().any(|f| self.pool.get(*f).is_legendary())
+            || d.doors.as_ref().is_some_and(|x| {
+                [x.root, x.left, x.right, x.both, x.none]
+                    .into_iter()
+                    .any(|s| self.pool.get(s).is_legendary())
+            })
+    }
+
+    /// With two or more replacement effects in play, whether two of them
+    /// could apply to one event, so that its player chooses the order (CR
+    /// 616.1): two whose events are of one kind (`replaces_kind`). A
+    /// battlefield "as this enters" effect applies only to its own permanent
+    /// entering and is not counted (`DefFlags::has_replacements`); the
+    /// entering permanent's own are judged where it enters.
+    #[cold]
+    #[inline(never)]
+    fn replacements_may_meet(&self) -> bool {
+        let mut seen = 0u16;
+        let mut meets = |r: &crate::card::Replaces| {
+            let k = replaces_kind(r);
+            let met = seen & k != 0;
+            seen |= k;
+            met
+        };
+        if self.replacements.iter().any(|e| meets(&e.ability.replaces)) {
+            return true;
+        }
+        // A permanent may have a replacement ability granted to it (as
+        // `replace::candidates` looks).
+        let granted = self.grant_sources > 0;
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            if !granted && !self.flags_of(o).has_replacements() {
+                continue;
+            }
+            let Some(c) = self.characteristics(*id) else {
+                continue;
+            };
+            for a in &c.abilities {
+                if let crate::card::AbilityDef::Replacement(r) = self.pool.ability(*a)
+                    && meets(&r.replaces)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     /// With two or more legendary permanents on the battlefield, whether
     /// an action with nothing new entering could meet the legend rule (CR
     /// 704.5j): two of them already share a name (a change of control, or
@@ -3898,7 +3965,16 @@ impl GameState {
             let o = &self.objects[*id];
             let d = self.pool.get(o.def);
             if o.def != o.card || o.except.is_some() || !d.faces.is_empty() {
-                return true;
+                // One that could never be legendary (a Room, an adventurer
+                // card, with no legendary face or door) meets no legend;
+                // making it legendary or naming it is `renamed`'s.
+                if o.except.is_some()
+                    || self.may_be_legendary(o.def)
+                    || self.may_be_legendary(o.card)
+                {
+                    return true;
+                }
+                continue;
             }
             if self.legend_of(o) {
                 let name = self.obj_name(o);
@@ -3920,19 +3996,23 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn linked_return_may_ask(&self, replacers: usize) -> bool {
+        // A card returning to its owner's hand (Kitesail Freebooter) asks
+        // nothing: no replacement effect applies to a move to a hand
+        // (`GameState::applies` knows moves to a graveyard or the
+        // battlefield only).
         self.linked_exiles.iter().any(|le| {
             le.until
+                && !le.to_hand
                 && (replacers >= 1
-                    || !le.to_hand
-                        && self.objects.get(le.card).is_some_and(|o| {
-                            [o.def, o.card].into_iter().any(|r| {
-                                let d = self.pool.get(r);
-                                d.flags().has_enters_choice()
-                                    || d.read_ahead
-                                    || d.has_mid_choice()
-                                    || d.is_legendary()
-                            })
-                        }))
+                    || self.objects.get(le.card).is_some_and(|o| {
+                        [o.def, o.card].into_iter().any(|r| {
+                            let d = self.pool.get(r);
+                            d.flags().has_enters_choice()
+                                || d.read_ahead
+                                || d.has_mid_choice()
+                                || d.is_legendary()
+                        })
+                    }))
         })
     }
 
@@ -3989,7 +4069,9 @@ impl GameState {
             // linked exiles in random games are other cards: checking
             // the whole game's counts snapshotted every action).
             || (!self.linked_exiles.is_empty() && self.linked_return_may_ask(replacers))
-            || replacers >= 2
+            // Two replacement effects that could apply to one event
+            // (CR 616.1).
+            || (replacers >= 2 && self.replacements_may_meet())
             || (self.legendary_count >= 2 && self.legends_may_meet())
             // An effect can make a permanent legendary or name it at any
             // time (CR 704.5j then asks which to keep).
@@ -6848,6 +6930,31 @@ impl GameState {
         (0..self.num_players())
             .map(|i| PlayerId(u8::try_from(i).unwrap_or(0)))
             .filter(move |p| self.player(*p).lost.is_none())
+    }
+}
+
+/// The kinds of event (`replace::Proposed`) a replacement effect of `r`
+/// can apply to (`GameState::applies`), one bit each: damage, gaining
+/// life, losing life, a draw, a move to a graveyard, entering the
+/// battlefield, counters, destruction. "As this enters" applies from the
+/// entering permanent only; any other (milling, drawing several, tokens,
+/// mana) counts as meeting every kind.
+fn replaces_kind(r: &crate::card::Replaces) -> u16 {
+    use crate::card::Replaces as R;
+    match r {
+        R::Damage { .. } | R::DamageToAndBy { .. } => 1,
+        R::GainLife { .. } => 1 << 1,
+        R::LoseLife { .. } => 1 << 2,
+        R::Draw { .. } => 1 << 3,
+        R::ToGraveyard { .. }
+        | R::FilteredToGraveyard { .. }
+        | R::ThisToGraveyard
+        | R::Dies { .. } => 1 << 4,
+        R::OthersEnter { .. } => 1 << 5,
+        R::PlusCounters { .. } | R::AnyCounters { .. } => 1 << 5 | 1 << 6,
+        R::Destroy { .. } => 1 << 7,
+        R::Enters => 0,
+        _ => u16::MAX,
     }
 }
 
