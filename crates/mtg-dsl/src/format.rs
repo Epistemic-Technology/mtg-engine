@@ -8394,6 +8394,20 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentNoncombatLastTurn => {
             "opponent dealt noncombat damage last turn".to_string()
         }
+        StaticCond::LostLifeLastTurn { opponent: false } => "lost life last turn".to_string(),
+        StaticCond::LostLifeLastTurn { opponent: true } => {
+            "opponent lost life last turn".to_string()
+        }
+        StaticCond::LifeLostAtLeast { who, n } => format!(
+            "{}lost {n} life this turn",
+            match who {
+                mtg_core::card::TurnWho::You => "",
+                mtg_core::card::TurnWho::Opponent | mtg_core::card::TurnWho::Opponents => {
+                    "opponent "
+                }
+                mtg_core::card::TurnWho::Anyone => "player ",
+            }
+        ),
         StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
         StaticCond::ScriedOrSurveilledThisTurn => "scried or surveilled this turn".to_string(),

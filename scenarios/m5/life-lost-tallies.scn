@@ -1,0 +1,174 @@
+# Life lost (or gained) this turn with an amount, and life lost last turn
+# (CR 119.3: damage to a player is life loss).
+
+# "At the beginning of your end step, if a player lost 4 or more life this
+# turn, put a +1/+1 counter on this creature." (Knight of the Ebon Legion)
+scenario "Knight of the Ebon Legion: an opponent lost 5" {
+  battlefield A: "Knight of the Ebon Legion", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert life B 15
+  assert counters "Knight of the Ebon Legion" +1/+1 1
+  assert power "Knight of the Ebon Legion" 2
+}
+
+scenario "Knight of the Ebon Legion: you lost 4 counts too" {
+  battlefield A: "Knight of the Ebon Legion", 2 "Mountain"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 2 upkeep
+  assert life A 16
+  assert counters "Knight of the Ebon Legion" +1/+1 1
+}
+
+scenario "Knight of the Ebon Legion: 3 lost is not enough" {
+  battlefield A: "Knight of the Ebon Legion", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 upkeep
+  assert life B 17
+  assert counters "Knight of the Ebon Legion" +1/+1 0
+}
+
+# Any one player's own total: 2 and 2 are not 4.
+scenario "Knight of the Ebon Legion: two players' losses don't add up" {
+  battlefield A: "Knight of the Ebon Legion", 2 "Mountain"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert life A 18
+  assert life B 18
+  assert counters "Knight of the Ebon Legion" +1/+1 0
+}
+
+scenario "Knight of the Ebon Legion: {2}{B} gives +3/+3 and deathtouch" {
+  battlefield A: "Knight of the Ebon Legion", 3 "Swamp"
+  turn 1 A: activate "Knight of the Ebon Legion"
+  run_to turn 1 postcombat_main
+  assert power "Knight of the Ebon Legion" 4
+  assert toughness "Knight of the Ebon Legion" 5
+  assert has "Knight of the Ebon Legion" deathtouch
+}
+
+# "At the beginning of each end step, if an opponent lost 3 or more life
+# this turn, you may draw a card." (Sygg, River Cutthroat)
+scenario "Sygg: an opponent lost 3, draw at the end step" {
+  battlefield A: "Sygg, River Cutthroat", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 cleanup
+  assert hand A count 1
+}
+
+scenario "Sygg: an opponent lost 2, no draw" {
+  battlefield A: "Sygg, River Cutthroat", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 cleanup
+  assert hand A count 0
+}
+
+scenario "Sygg: your own loss of 3 doesn't count" {
+  battlefield A: "Sygg, River Cutthroat", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player A
+  run_to turn 1 cleanup
+  assert hand A count 0
+}
+
+scenario "Sygg: also at the opponent's end step" {
+  battlefield A: "Sygg, River Cutthroat"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player B
+  run_to turn 2 cleanup
+  assert hand A count 1
+}
+
+# "At the beginning of your end step, if you gained 3 or more life this
+# turn, ..." (Griffin Aerie, Indulging Patrician)
+scenario "Griffin Aerie: 3 life gained makes a Griffin" {
+  battlefield A: "Griffin Aerie", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 2 upkeep
+  assert battlefield A contains "Griffin"
+  assert power "Griffin" 2
+  assert has "Griffin" flying
+}
+
+scenario "Griffin Aerie: no life gained, no Griffin" {
+  battlefield A: "Griffin Aerie"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Griffin"
+}
+
+scenario "Indulging Patrician: 3 life gained drains each opponent 3" {
+  battlefield A: "Indulging Patrician", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 2 upkeep
+  assert life A 23
+  assert life B 17
+}
+
+scenario "Indulging Patrician: lifelink damage of 1 is not 3" {
+  battlefield A: "Indulging Patrician"
+  turn 1 A: attack "Indulging Patrician"
+  run_to turn 2 upkeep
+  assert life A 21
+  assert life B 19
+}
+
+# "At the beginning of each upkeep, if you lost life last turn, ..."
+scenario "First Response: life lost last turn makes one Soldier" {
+  battlefield A: "First Response", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 3 draw
+  assert battlefield A contains 1 "Soldier"
+  assert power "Soldier" 1
+}
+
+scenario "First Response: an opponent's loss doesn't count" {
+  battlefield A: "First Response", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 draw
+  assert battlefield A lacks "Soldier"
+}
+
+scenario "Paladin of Atonement: grows after a loss; dies for its toughness" {
+  battlefield A: "Paladin of Atonement", "Mountain"
+  battlefield B: 2 "Mountain"
+  hand A: "Shock"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player A
+  turn 2 B: cast "Lightning Bolt" targeting "Paladin of Atonement"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Paladin of Atonement"
+  assert life A 20
+}
+
+scenario "Feast on the Fallen: an opponent lost life last turn" {
+  battlefield A: "Feast on the Fallen", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 2 upkeep A: trigger "Feast on the Fallen" targeting "Grizzly Bears"
+  run_to turn 2 draw
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Feast on the Fallen: no loss, no counter" {
+  battlefield A: "Feast on the Fallen", "Grizzly Bears"
+  run_to turn 2 draw
+  assert counters "Grizzly Bears" +1/+1 0
+}

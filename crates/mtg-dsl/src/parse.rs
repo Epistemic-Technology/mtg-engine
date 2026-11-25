@@ -5794,6 +5794,31 @@ impl P {
         if self.eat_words(&["opponent", "dealt", "noncombat", "damage", "last", "turn"]) {
             return Ok(StaticCond::OpponentNoncombatLastTurn);
         }
+        if self.eat_words(&["lost", "life", "last", "turn"]) {
+            return Ok(StaticCond::LostLifeLastTurn { opponent: false });
+        }
+        if self.eat_words(&["opponent", "lost", "life", "last", "turn"]) {
+            return Ok(StaticCond::LostLifeLastTurn { opponent: true });
+        }
+        // `lost 2 life this turn`, `opponent lost 2 life this turn`,
+        // `player lost 4 life this turn`.
+        {
+            use mtg_core::card::TurnWho;
+            let (who, k) = match self.word_at(0).as_deref() {
+                Some("opponent") => (TurnWho::Opponent, 1),
+                Some("player") => (TurnWho::Anyone, 1),
+                _ => (TurnWho::You, 0),
+            };
+            if self.word_at(k).as_deref() == Some("lost")
+                && matches!(self.peek_at(k + 1), Some(Tok::Num(_)))
+                && self.word_at(k + 2).as_deref() == Some("life")
+            {
+                self.pos += k + 1;
+                let n = self.number()?;
+                self.expect_words(&["life", "this", "turn"])?;
+                return Ok(StaticCond::LifeLostAtLeast { who, n });
+            }
+        }
         // `this plus counters put this turn`, `this not dealt damage`, ...
         if self.at_word("this") {
             use mtg_core::card::SourceHistory as H;

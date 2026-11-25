@@ -548,6 +548,7 @@ impl GameState {
             counters_put_this_turn: Vec::new(),
             dealt_damage_ever: Vec::new(),
             noncombat_last_turn: 0,
+            lost_life_last_turn: 0,
             entered_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
@@ -3982,6 +3983,12 @@ impl GameState {
             self.spells_last_turn = cast.map(|n| u8::try_from(n).unwrap_or(u8::MAX));
             self.noncombat_last_turn = self.turn_log.tally
                 [crate::card::TurnEvent::NoncombatDamaged as usize]
+                .iter()
+                .enumerate()
+                .filter(|(_, n)| **n > 0)
+                .fold(0, |a, (i, _)| a | (1 << i));
+            self.lost_life_last_turn = self.turn_log.tally
+                [crate::card::TurnEvent::LifeLost as usize]
                 .iter()
                 .enumerate()
                 .filter(|(_, n)| **n > 0)

@@ -3698,6 +3698,19 @@ pub enum StaticCond {
     /// `opponent dealt noncombat damage last turn`: "an opponent was dealt
     /// noncombat damage last turn".
     OpponentNoncombatLastTurn,
+    /// `lost life last turn` ("you lost life last turn"), `opponent lost
+    /// life last turn` ("an opponent lost life last turn").
+    LostLifeLastTurn {
+        opponent: bool,
+    },
+    /// `lost 2 life this turn` ("you lost 2 or more life this turn"),
+    /// `opponent lost 2 life this turn` ("an opponent lost ..."), `player
+    /// lost 4 life this turn` ("a player lost ...": any one player's own
+    /// total, not their sum).
+    LifeLostAtLeast {
+        who: mtg_core::card::TurnWho,
+        n: u32,
+    },
     /// `spell number 2 this turn`: the spell being cast would be your
     /// second this turn ("The second spell you cast each turn costs {1}
     /// less to cast.").

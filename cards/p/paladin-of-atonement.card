@@ -1,0 +1,8 @@
+card "Paladin of Atonement" {
+  oracle_id f44dc71d-d08a-45ed-ac7c-f6d1ef811d96
+  cost {1}{W}
+  type Creature — Vampire Knight
+  pt 1/1
+  triggered at beginning of every upkeep if lost life last turn: put 1 +1/+1 counter on this
+  triggered when this dies: you gain count equal toughness of it life
+}

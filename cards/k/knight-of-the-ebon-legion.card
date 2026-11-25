@@ -1,0 +1,8 @@
+card "Knight of the Ebon Legion" {
+  oracle_id 3b4eaa50-dff6-4825-97da-42b2f5554218
+  cost {B}
+  type Creature — Vampire Knight
+  pt 1/2
+  activated {2}{B}: this gets +3/+3 and gains deathtouch
+  triggered at beginning of your end step if player lost 4 life this turn: put 1 +1/+1 counter on this
+}

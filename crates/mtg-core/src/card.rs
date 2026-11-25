@@ -3912,6 +3912,10 @@ pub enum StaticCondition {
     /// "an opponent was dealt noncombat damage last turn"
     /// (`GameState::noncombat_last_turn`).
     OpponentNoncombatLastTurn,
+    /// "if you lost life last turn" (`TurnWho::You`), "if an opponent lost
+    /// life last turn" (`TurnWho::Opponent`): during the previous turn
+    /// (`GameState::lost_life_last_turn`).
+    LostLifeLastTurn(TurnWho),
     /// A count is at least `n`: "there are five colors among permanents
     /// you control", "four or more permanent types among cards in your
     /// graveyard", "the number of other Caves you control plus the number

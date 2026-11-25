@@ -22353,6 +22353,22 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::OpponentNoncombatLastTurn => {
             "an opponent was dealt noncombat damage last turn".to_string()
         }
+        StaticCond::LostLifeLastTurn { opponent: false } => "you lost life last turn".to_string(),
+        StaticCond::LostLifeLastTurn { opponent: true } => {
+            "an opponent lost life last turn".to_string()
+        }
+        // In digits, as life is written: "a player lost 4 or more life
+        // this turn" (Knight of the Ebon Legion).
+        StaticCond::LifeLostAtLeast { who, n } => format!(
+            "{} lost {n} or more life this turn",
+            match who {
+                mtg_core::card::TurnWho::You => "you",
+                mtg_core::card::TurnWho::Opponent | mtg_core::card::TurnWho::Opponents => {
+                    "an opponent"
+                }
+                mtg_core::card::TurnWho::Anyone => "a player",
+            }
+        ),
         StaticCond::SpellNumber(n) => {
             format!("it's the {} spell you cast this turn", ordinal_word(*n))
         }

@@ -2202,6 +2202,9 @@ pub struct GameState {
     /// Players dealt noncombat damage during the previous turn, one bit
     /// each ("if an opponent was dealt noncombat damage last turn").
     pub noncombat_last_turn: u8,
+    /// Players who lost life during the previous turn, one bit each ("if
+    /// you lost life last turn").
+    pub lost_life_last_turn: u8,
     /// Permanents that entered the battlefield this turn, with the player
     /// they entered under the control of ("another Knight entered the
     /// battlefield under your control this turn").
@@ -5872,6 +5875,13 @@ impl GameState {
             C::OpponentNoncombatLastTurn => self
                 .players_in_game()
                 .any(|p| p != you && self.noncombat_last_turn & (1 << p.index().min(7)) != 0),
+            C::LostLifeLastTurn(who) => self.players_in_game().any(|p| {
+                (if *who == crate::card::TurnWho::You {
+                    p == you
+                } else {
+                    p != you
+                }) && self.lost_life_last_turn & (1 << p.index().min(7)) != 0
+            }),
             C::GraveyardCards { filter, at_least } => {
                 let n = self
                     .player(you)

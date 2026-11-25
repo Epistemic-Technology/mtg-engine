@@ -2844,6 +2844,23 @@ impl Compiler<'_> {
             }
             StaticCond::EarlyTurn => StaticCondition::EarlyTurn(3),
             StaticCond::OpponentNoncombatLastTurn => StaticCondition::OpponentNoncombatLastTurn,
+            StaticCond::LostLifeLastTurn { opponent } => {
+                StaticCondition::LostLifeLastTurn(if *opponent {
+                    TurnWho::Opponent
+                } else {
+                    TurnWho::You
+                })
+            }
+            // "a player lost 4 or more life": any one player's total, you
+            // or an opponent (`TurnWho::Anyone` would sum them).
+            StaticCond::LifeLostAtLeast {
+                who: TurnWho::Anyone,
+                n,
+            } => StaticCondition::Or(
+                Box::new(at_least(TurnEvent::LifeLost, TurnWho::You, *n)),
+                Box::new(at_least(TurnEvent::LifeLost, TurnWho::Opponent, *n)),
+            ),
+            StaticCond::LifeLostAtLeast { who, n } => at_least(TurnEvent::LifeLost, *who, *n),
             StaticCond::Tally { what, n } => StaticCondition::Happened {
                 count: what.count(),
                 cmp: mtg_core::card::Cmp::AtLeast,

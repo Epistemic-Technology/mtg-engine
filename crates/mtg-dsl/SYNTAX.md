@@ -753,7 +753,13 @@ and the first that qualifies is the triggering object, `one of them`
 ("create a token that's a copy of one of them", Twilight Diviner: the
 engine picks it), `gained
 life this turn`, `gained or lost life this turn`, `lost life this turn`
-("you've lost life this turn"), `gained and lost life this turn` ("you
+("you've lost life this turn"), `lost 2 life this turn` ("you lost 2 or
+more life this turn"), `opponent lost 2 life this turn` ("an opponent lost
+2 or more life this turn": any one opponent's total), `player lost 4 life
+this turn` ("a player lost 4 or more life this turn": any one player's,
+you included, not their sum), `lost life last turn` ("you lost life last
+turn"), `opponent lost life last turn` ("an opponent lost life last
+turn"), `gained and lost life this turn` ("you
 gained and lost life this turn": both), `descended this turn`
 ("you descended this turn", CR 700.11: a permanent card was put into your
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
