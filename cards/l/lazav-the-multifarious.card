@@ -1,0 +1,13 @@
+card "Lazav, the Multifarious" {
+  oracle_id c14bcef2-6d49-4430-86d0-e5a87ba442d9
+  cost {U}{B}
+  type Legendary Creature — Shapeshifter
+  pt 1/3
+  triggered when this enters: surveil 1
+  activated {X}: this becomes a copy of target creature card with mana value X from your graveyard with exceptions
+  except {
+    named this
+    legendary addition
+    activated {X}: this becomes a copy of target creature card with mana value X from your graveyard with exceptions
+  }
+}

@@ -1,0 +1,6 @@
+card "Venarian Glimmer" {
+  oracle_id 336cc3ab-c1c7-4bf1-b1d7-dfc9f3c556ab
+  cost {X}{U}
+  type Instant
+  spell: target player reveals hand discarding nonland with mana value X or less card
+}

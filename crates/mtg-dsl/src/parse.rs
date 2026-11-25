@@ -1672,6 +1672,9 @@ impl P {
                         Some("legendary") => {
                             self.pos += 1;
                             except.legendary = true;
+                            // "it's legendary in addition to its other
+                            // types" (Lazav, the Multifarious).
+                            except.legendary_addition = self.eat_word("addition");
                             self.end_stmt()?;
                         }
                         // "it's a 1/1 green Frog": not in addition.

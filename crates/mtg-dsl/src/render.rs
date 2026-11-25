@@ -4481,6 +4481,15 @@ fn bound_words(b: mtg_core::card::StatBound, card: &Card, verb: &str) -> String 
         // the Interlopers).
         return format!("{stat} greater than or equal to {phrase}");
     }
+    // `with mana value equal to count where mana value of that spell`:
+    // "target creature with that spell's mana value" (Skyfire Kirin).
+    if b.cmp == mtg_core::card::Cmp::Exactly
+        && c.style == crate::ast::CountStyle::Where
+        && verb.is_empty()
+        && phrase.ends_with(&format!("'s {stat}"))
+    {
+        return phrase;
+    }
     if b.cmp == mtg_core::card::Cmp::Exactly {
         // "with mana value equal to the number of charge counters on this
         // artifact" (Engineered Explosives).
@@ -5862,7 +5871,11 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
         );
     }
     if x.legendary && !legendary_joined {
-        parts.push("it's legendary".to_string());
+        parts.push(if x.legendary_addition {
+            "it's legendary in addition to its other types".to_string()
+        } else {
+            "it's legendary".to_string()
+        });
     }
     // "it's a 1/1 green Frog", "it's a 4/4 black Zombie": its colors and
     // creature types are these.
@@ -12734,7 +12747,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // "You choose a nonland card from it with mana value 3 or
             // less." (Inquisition of Kozilek): the qualifier after "it".
+            // "a nonland card with mana value X or less from it" (Venarian
+            // Glimmer) keeps an X before "from it".
             let (what, after) = match what.split_once(" with mana value ") {
+                Some((w, mv)) if mv.starts_with("X ") => match mv.strip_suffix(" card") {
+                    Some(mv) => (format!("{w} card with mana value {mv}"), String::new()),
+                    None => (what.clone(), String::new()),
+                },
                 Some((w, mv)) => match mv.strip_suffix(" card") {
                     Some(mv) => (format!("{w} card"), format!(" with mana value {mv}")),
                     None => (w.to_string(), format!(" with mana value {mv}")),
@@ -14176,6 +14195,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "They're still lands." (Anthousa, Setessan Hero).
             if land_targets && !types.contains(&CardType::Land) {
                 clause.tail.push_str(". They're still lands");
+                return clause;
+            }
+            // "Until end of turn, Gideon becomes a 5/5 Human Soldier
+            // creature with indestructible that's still a planeswalker."
+            if ctx.card.types.contains(&CardType::Planeswalker)
+                && matches!(*to, Recipient::Source | Recipient::SourceNamed)
+                && types.contains(&CardType::Creature)
+                && !types.contains(&CardType::Planeswalker)
+                && !*in_addition
+                && ability.is_none()
+            {
+                clause.text.push_str(" that's still a planeswalker");
                 return clause;
             }
             if (ctx.card.types.contains(&CardType::Land) || land_target)
@@ -18776,7 +18807,9 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                 Affects::Any => String::new(),
                 // "When you do, prevent all combat damage that would be
                 // dealt to it this turn" (Oketra's Avenger).
-                Affects::This if this_turn && ctx.source_mentioned => " to it".to_string(),
+                Affects::This if this_turn && ctx.source_mentioned => {
+                    format!(" to {}", it_obj(ctx.card))
+                }
                 a => format!(" to {}", affects_all(a, ctx)),
             };
             match (from, wording) {

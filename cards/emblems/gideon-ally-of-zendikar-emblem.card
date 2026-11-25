@@ -1,0 +1,3 @@
+emblem "Gideon, Ally of Zendikar emblem" {
+  static creature you control: +1/+1
+}

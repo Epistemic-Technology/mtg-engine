@@ -207,7 +207,9 @@ fn format_inner(card: &Card) -> String {
         } else if x.not_legendary {
             out.push_str("    not legendary\n");
         }
-        if x.legendary {
+        if x.legendary && x.legendary_addition {
+            out.push_str("    legendary addition\n");
+        } else if x.legendary {
             out.push_str("    legendary\n");
         }
         if x.exactly {

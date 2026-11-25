@@ -5013,9 +5013,22 @@ impl Compiler<'_> {
             } => {
                 let subtypes = self.subtypes(subtypes);
                 let name = name.as_deref().map(|n| self.pool.name_id(n));
+                // "Gideon becomes a 5/5 Human Soldier creature ... that's
+                // still a planeswalker" (CR 205.1b): printed so by
+                // `render`, the planeswalker type stays.
+                let still_planeswalker = self
+                    .card
+                    .types
+                    .contains(&mtg_core::card::CardType::Planeswalker)
+                    && matches!(to, Recipient::Source | Recipient::SourceNamed)
+                    && types.contains(&mtg_core::card::CardType::Creature)
+                    && !*in_addition
+                    && ability.is_none();
                 out.push(CoreEffect::Animate {
                     to: r(*to),
-                    types: TypeSet::of(types.iter().copied()),
+                    types: TypeSet::of(types.iter().copied().chain(
+                        still_planeswalker.then_some(mtg_core::card::CardType::Planeswalker),
+                    )),
                     subtypes,
                     pt: *pt,
                     colors: (!colors.is_empty()).then(|| ColorSet::of(colors.iter().copied())),

@@ -1,0 +1,10 @@
+card "Gideon, Martial Paragon" {
+  oracle_id 4cbce730-7b70-41bd-b463-bfec46afe3b0
+  cost {4}{W}
+  type Legendary Planeswalker — Gideon
+  loyalty 5
+  pronoun he
+  loyalty +2: untap all creature you control; those creatures gets +1/+1 until end of turn
+  loyalty 0: until end of turn, this becomes 5/5 Human Soldier creature with indestructible; prevent all damage to this this turn
+  loyalty -10: each creature you control gets +2/+2 until end of turn; tap all creature your opponents control
+}

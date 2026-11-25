@@ -420,3 +420,100 @@ scenario "Walking Bulwark: without the ability it can't attack" {
   run_to turn 3 postcombat_main
   assert life B 20
 }
+
+scenario "Lazav: X copies a creature card with mana value X, keeping its name and ability" {
+  battlefield A: "Lazav, the Multifarious", 8 "Island"
+  graveyard A: "Hill Giant", "Serra Angel"
+  turn 1 A: activate "Lazav, the Multifarious" ability 1 x 4 targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Lazav, the Multifarious" ability 1 x 4 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Lazav, the Multifarious" 3
+  assert toughness "Lazav, the Multifarious" 3
+  assert is "Lazav, the Multifarious" Giant
+  assert is "Lazav, the Multifarious" legendary
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Lazav: X must be the card's mana value" {
+  battlefield A: "Lazav, the Multifarious", 3 "Island"
+  graveyard A: "Hill Giant"
+  illegal turn 1 A: activate "Lazav, the Multifarious" ability 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Lazav, the Multifarious" 1
+}
+
+scenario "Venarian Glimmer: a nonland card with mana value X or less is discarded" {
+  battlefield A: 3 "Island"
+  hand A: "Venarian Glimmer"
+  hand B: "Hill Giant", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Venarian Glimmer" x 2 targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Forest"
+}
+
+scenario "Venarian Glimmer: a card above X can't be chosen" {
+  battlefield A: 3 "Island"
+  hand A: "Venarian Glimmer"
+  hand B: "Hill Giant", "Forest"
+  turn 1 A: cast "Venarian Glimmer" x 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B count 2
+}
+
+scenario "Gideon, Martial Paragon: 0 makes him a 5/5 indestructible creature that's still a planeswalker" {
+  battlefield A: "Gideon, Martial Paragon" with 5 loyalty, "Mountain"
+  hand A: "Shock"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Gideon, Martial Paragon" ability 2
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting "Gideon, Martial Paragon"
+  turn 3 A: attack "Gideon, Martial Paragon"
+  run_to turn 3 postcombat_main
+  assert is "Gideon, Martial Paragon" creature
+  assert is "Gideon, Martial Paragon" planeswalker
+  assert is "Gideon, Martial Paragon" Soldier
+  assert power "Gideon, Martial Paragon" 5
+  assert has "Gideon, Martial Paragon" indestructible
+  assert counters "Gideon, Martial Paragon" loyalty 5
+  assert damage "Gideon, Martial Paragon" 0
+  assert life B 15
+  run_to turn 4 upkeep
+  assert is not "Gideon, Martial Paragon" creature
+}
+
+scenario "Gideon, Martial Paragon: +2 untaps creatures you control and pumps those creatures" {
+  battlefield A: "Gideon, Martial Paragon" with 5 loyalty, "Grizzly Bears" tapped
+  battlefield B: "Hill Giant" tapped
+  start turn 3 A precombat_main
+  turn 3 A: activate "Gideon, Martial Paragon" ability 1
+  run_to turn 3 declare_attackers
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert tapped "Hill Giant"
+  assert power "Hill Giant" 3
+  assert counters "Gideon, Martial Paragon" loyalty 7
+}
+
+scenario "Gideon, Ally of Zendikar: +1, 0, and -4" {
+  battlefield A: "Gideon, Ally of Zendikar" with 4 loyalty, "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Gideon, Ally of Zendikar" ability 1
+  run_to turn 3 declare_attackers
+  assert is "Gideon, Ally of Zendikar" creature
+  assert is "Gideon, Ally of Zendikar" Ally
+  assert is "Gideon, Ally of Zendikar" planeswalker
+  assert power "Gideon, Ally of Zendikar" 5
+  turn 5 A: activate "Gideon, Ally of Zendikar" ability 2
+  run_to turn 5 declare_attackers
+  assert battlefield A contains "Knight Ally"
+  assert is not "Gideon, Ally of Zendikar" creature
+  turn 7 A: activate "Gideon, Ally of Zendikar" ability 3
+  run_to turn 7 declare_attackers
+  assert power "Grizzly Bears" 3
+  assert power "Knight Ally" 3
+}
