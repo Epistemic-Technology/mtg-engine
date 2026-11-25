@@ -1,0 +1,8 @@
+card "Flameblast Dragon" {
+  oracle_id 3180ee4f-66d7-4b73-bc10-9ee0c790ec18
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  triggered whenever this attacks: you may pay {X}{R}; if you do, deal X damage to any target
+}

@@ -3311,7 +3311,7 @@ impl Templates {
                     number(cap(c, 2))?
                 ))
             }),
-            (r(r"^Pay ((?:\{[0-9WUBRGC]+\})+|\d+ life)$"), |c, _| {
+            (r(r"^Pay ((?:\{[0-9WUBRGCX]+\})+|\d+ life)$"), |c, _| {
                 Some(format!("pay {}", cap(c, 1)))
             }),
             (r(r"^Pay ((?:\{E\})+)$"), |c, _| {
@@ -11622,6 +11622,16 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     // Oracle's filter phrases the templates copied, in the DSL's words.
     for st in b.statements.iter_mut().chain(b.spell_paragraphs.iter_mut()) {
         *st = filter_phrases(st, &oracle);
+    }
+    // "you may pay {X}. If you do, return target ... card with mana value
+    // X": the target is chosen before X is paid and its bound isn't
+    // judged again (Relentless Dead), so the card is left to an agent.
+    let pay_x = cached_regex(r"you may pay \{X\}[^:]*; if you do, [^;]*target [^;]*with mana value X\b")
+        .unwrap();
+    if b.statements.iter().any(|st| pay_x.is_match(st)) {
+        return Err(Skip::Sentence(
+            "a target bounded by an X paid as it resolves".to_string(),
+        ));
     }
     // Assemble the file.
     let mut text = format!("card \"{}\" {{\n", s.name);

@@ -1,0 +1,6 @@
+card "Vigil for the Lost" {
+  oracle_id 87a4caa4-cb08-4a0c-b57a-d6d8474b1f5e
+  cost {3}{W}
+  type Enchantment
+  triggered whenever a creature you control dies: you may pay {X}; if you do, you gains X life
+}
