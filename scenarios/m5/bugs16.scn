@@ -275,6 +275,27 @@ scenario "Dreamtide Whale: an opponent's second spell proliferates, the first do
   assert counters "Grizzly Bears" +1/+1 2
 }
 
+scenario "Mogg Salvage: free while an opponent controls an Island and you a Mountain" {
+  battlefield A: "Mountain"
+  battlefield B: "Island", "Zuran Orb"
+  hand A: "Mogg Salvage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mogg Salvage" alternative targeting "Zuran Orb"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Zuran Orb"
+  assert untapped "Mountain"
+}
+
+scenario "Mogg Salvage: your own Island doesn't make it free" {
+  battlefield A: "Mountain", "Island"
+  battlefield B: "Zuran Orb"
+  hand A: "Mogg Salvage"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Mogg Salvage" alternative targeting "Zuran Orb"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Zuran Orb"
+}
+
 scenario "Spirit Link: its controller gains the damage the enchanted creature deals" {
   battlefield A: "Spirit Link" on "Hill Giant"
   battlefield B: "Hill Giant"

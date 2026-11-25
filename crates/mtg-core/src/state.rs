@@ -5725,10 +5725,21 @@ impl GameState {
                     h >= *n as usize
                 }
             }
-            C::OpponentControls { filter, at_least } => self
-                .players_in_game()
-                .filter(|p| *p != you)
-                .any(|p| count(filter, p) >= *at_least as usize),
+            // "If an opponent controls an Island" (Mogg Salvage): that
+            // opponent's own permanents, whatever the filter names.
+            C::OpponentControls { filter, at_least } => {
+                self.players_in_game().filter(|p| *p != you).any(|p| {
+                    let filter = &*self.source_filter(filter, Some(source), None);
+                    self.permanents_of(p)
+                        .filter(|id| {
+                            self.characteristics(*id)
+                                .is_some_and(|c| filter.matches(*id, p, &c, Some(source), Some(p)))
+                                && self.status_ok(filter, *id)
+                        })
+                        .count()
+                        >= *at_least as usize
+                })
+            }
             C::SourceIs(filter) => match self.objects.get(source) {
                 Some(o) => {
                     self.characteristics_or_lki(source).is_some_and(|c| {

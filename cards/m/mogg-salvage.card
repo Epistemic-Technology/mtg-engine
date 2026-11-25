@@ -1,0 +1,7 @@
+card "Mogg Salvage" {
+  oracle_id 0923ad85-2ea4-4463-8f71-b7d0a162b486
+  cost {2}{R}
+  type Instant
+  alternative cost if opponent controls Island and you control Mountain
+  spell: destroy target artifact
+}
