@@ -1,0 +1,6 @@
+card "Prismatic Omen" {
+  oracle_id d90882ae-6572-4214-8d9c-0bdfb75f9be2
+  cost {1}{G}
+  type Enchantment
+  static land you control: add land all
+}

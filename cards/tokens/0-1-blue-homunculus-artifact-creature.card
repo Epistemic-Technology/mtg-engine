@@ -1,0 +1,6 @@
+token "0/1 blue Homunculus artifact creature" {
+  name "Homunculus"
+  type Artifact Creature — Homunculus
+  pt 0/1
+  color blue
+}

@@ -1,0 +1,8 @@
+card "Dryad of the Ilysian Grove" {
+  oracle_id bdbde5d0-f5e4-44da-b27c-b4ad6f374cc9
+  cost {2}{G}
+  type Enchantment Creature — Nymph Dryad
+  pt 2/4
+  additional land
+  static land you control: add land all
+}

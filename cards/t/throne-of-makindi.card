@@ -1,0 +1,7 @@
+card "Throne of Makindi" {
+  oracle_id 7e8198e9-0f3b-420b-ab09-74f13f4fd548
+  type Land
+  mana {C}
+  activated {1}, {T}: put 1 charge counters on this
+  activated {T}, remove 1 charge counters from this: add any 2 only to cast kicked spells
+}

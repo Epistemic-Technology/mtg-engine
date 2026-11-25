@@ -1,0 +1,169 @@
+# Cards the template author wrote as it stood at the start of the
+# seventeenth wave (`mtg-cards author --format modern`): mana spent only
+# on kicked spells, lands of every basic land type, and lines the corpus
+# already printed.
+
+scenario "Elfhame Druid: {G}{G} pays for a kicked spell" {
+  battlefield A: "Elfhame Druid", 3 "Forest"
+  hand A: "Untamed Kavu"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elfhame Druid"
+  turn 1 A: cast "Untamed Kavu" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Untamed Kavu"
+  assert counters "Untamed Kavu" +1/+1 3
+}
+
+scenario "Elfhame Druid: {G}{G} doesn't pay for an unkicked spell" {
+  battlefield A: "Elfhame Druid"
+  hand A: "Untamed Kavu"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elfhame Druid"
+  illegal turn 1 A: cast "Untamed Kavu"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Untamed Kavu"
+}
+
+scenario "Throne of Makindi: a charge counter for two mana toward a kicked spell" {
+  battlefield A: "Throne of Makindi" with 1 charge, 3 "Forest"
+  hand A: "Untamed Kavu"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Throne of Makindi" ability 2
+  turn 1 A: cast "Untamed Kavu" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Untamed Kavu"
+  assert counters "Untamed Kavu" +1/+1 3
+  assert counters "Throne of Makindi" charge 0
+}
+
+scenario "Throne of Makindi: the two mana doesn't pay for an unkicked spell" {
+  battlefield A: "Throne of Makindi" with 1 charge
+  hand A: "Untamed Kavu"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Throne of Makindi" ability 2
+  illegal turn 1 A: cast "Untamed Kavu"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Untamed Kavu"
+}
+
+scenario "Throne of Makindi: {1}, {T} puts a charge counter on it" {
+  battlefield A: "Throne of Makindi", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Throne of Makindi"
+  run_to turn 1 postcombat_main
+  assert counters "Throne of Makindi" charge 1
+  assert tapped "Throne of Makindi"
+}
+
+scenario "Volshe Tideturner: its mana casts an instant" {
+  battlefield A: "Volshe Tideturner"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Opt"
+}
+
+scenario "Volshe Tideturner: its mana pays for a kicked creature spell" {
+  battlefield A: "Volshe Tideturner", 4 "Island"
+  hand A: "Aether Figment"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aether Figment" kicked
+  run_to turn 1 postcombat_main
+  assert counters "Aether Figment" +1/+1 2
+  assert tapped "Volshe Tideturner"
+}
+
+scenario "Volshe Tideturner: its mana doesn't cast an unkicked creature" {
+  battlefield A: "Volshe Tideturner"
+  hand A: "Spectral Sailor"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Spectral Sailor"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Spectral Sailor"
+}
+
+scenario "Volshe Tideturner: its mana doesn't pay for an unkicked kicker spell" {
+  battlefield A: "Volshe Tideturner", "Island"
+  hand A: "Aether Figment"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Aether Figment"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Aether Figment"
+}
+
+scenario "Prismatic Omen: lands you control are every basic land type" {
+  battlefield A: "Prismatic Omen", "Forest"
+  battlefield B: "Mountain"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert is "Forest" island
+  assert is "Forest" swamp
+  assert is "Forest" plains
+  assert is "Forest" mountain
+  assert is not "Mountain" forest
+}
+
+scenario "Prismatic Omen: a Forest taps for blue" {
+  battlefield A: "Prismatic Omen", "Forest"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Opt"
+}
+
+scenario "Dryad of the Ilysian Grove: an extra land and every basic land type" {
+  battlefield A: "Dryad of the Ilysian Grove"
+  hand A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: play "Island"
+  illegal turn 1 A: play "Swamp"
+  run_to turn 1 postcombat_main
+  assert is "Forest" mountain
+  assert is "Island" plains
+  assert hand A contains "Swamp"
+}
+
+scenario "Imperial Recovery Unit: attacking returns a Vehicle card with mana value 2" {
+  battlefield A: "Imperial Recovery Unit", "Grizzly Bears"
+  graveyard A: "Smuggler's Copter", "Hill Giant"
+  turn 1 A: activate "Imperial Recovery Unit"
+  turn 1 declare_attackers A: attack "Imperial Recovery Unit"
+  illegal turn 1 declare_attackers A: trigger "Imperial Recovery Unit" targeting "Hill Giant"
+  turn 1 declare_attackers A: trigger "Imperial Recovery Unit" targeting "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Smuggler's Copter"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Imperial Recovery Unit: a creature card with mana value 2 or less" {
+  battlefield A: "Imperial Recovery Unit", "Hill Giant"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: activate "Imperial Recovery Unit"
+  turn 1 declare_attackers A: attack "Imperial Recovery Unit"
+  turn 1 declare_attackers A: trigger "Imperial Recovery Unit" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Puppet Conjurer: {U}, {T} makes a Homunculus" {
+  battlefield A: "Puppet Conjurer", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Puppet Conjurer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Homunculus"
+  assert power "Homunculus" 0
+  assert toughness "Homunculus" 1
+  assert is "Homunculus" blue
+  assert is "Homunculus" artifact
+}
+
+scenario "Puppet Conjurer: the upkeep trigger sacrifices a Homunculus" {
+  battlefield A: "Puppet Conjurer", "Homunculus", "Grizzly Bears"
+  start turn 2 B
+  run_to turn 3 precombat_main
+  assert battlefield A lacks "Homunculus"
+  assert battlefield A contains "Grizzly Bears"
+}

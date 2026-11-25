@@ -1,0 +1,8 @@
+card "Puppet Conjurer" {
+  oracle_id 06494c26-3822-43ee-bedf-611c9ec7cc6b
+  cost {1}{B}
+  type Artifact Creature — Human Wizard
+  pt 1/2
+  activated {U}, {T}: create 1 "0/1 blue Homunculus artifact creature"
+  triggered at beginning of your upkeep step: sacrifice 1 Homunculus chosen
+}
