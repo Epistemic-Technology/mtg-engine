@@ -8974,7 +8974,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 format!("look at the top {n} cards of your library")
             };
-            let two = *count == Num::N(2);
+            // "Look at the top two cards ... Put one of them into your hand
+            // and the other ..." leaves one card; when the take may leave
+            // both ("You may reveal a permanent card from among them", "Put
+            // all creature and land cards revealed this way") the rest are
+            // put "in any order" (Trail of Crumbs, Lair Delve).
+            let two = *count == Num::N(2) && !*all && !*optional;
             let rest = |word: &str| {
                 // "the rest of the revealed cards" (Kruphix's Insight).
                 let word = if *rest_revealed && word == "the rest" {

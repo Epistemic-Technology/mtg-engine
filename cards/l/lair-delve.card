@@ -1,0 +1,6 @@
+card "Lair Delve" {
+  oracle_id 8d7ce7b5-2e56-4060-9406-f700ce1fbb7d
+  cost {2}{G}
+  type Sorcery
+  spell: dig 2 reveal take all andlist creature or land card rest bottom
+}

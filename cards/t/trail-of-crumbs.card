@@ -1,0 +1,7 @@
+card "Trail of Crumbs" {
+  oracle_id 185d6356-8f8d-4b32-8259-b4eb0a95866c
+  cost {1}{G}
+  type Enchantment
+  triggered whenever this enters: create 1 "Food"
+  triggered whenever you sacrifice Food: you may pay {1}; if you do, dig 2 take permanent card may revealing rest bottom
+}
