@@ -12787,12 +12787,6 @@ impl GameState {
         }
     }
 
-    /// Search `p`'s library (CR 701.19) for `count` cards matching
-    /// `filter` and put them where `to` says, then shuffle. With `may`,
-    /// declining before anything is found is not searching at all, and
-    /// the library isn't shuffled. With `reveal`, a card put into a hand
-    /// is known to every player (CR 701.20) until it moves.
-    #[allow(clippy::too_many_arguments, clippy::too_many_lines)] // one arm per destination
     /// A searched card's relation to the triggering object (`ObjFilter::same`
     /// of `SameOf::Triggering`): "with lesser mana value". With no
     /// triggering object, nothing is lesser.
@@ -12820,6 +12814,12 @@ impl GameState {
         }
     }
 
+    /// Search `p`'s library (CR 701.19) for `count` cards matching
+    /// `filter` and put them where `to` says, then shuffle. With `may`,
+    /// declining before anything is found is not searching at all, and
+    /// the library isn't shuffled. With `reveal`, a card put into a hand
+    /// is known to every player (CR 701.20) until it moves.
+    #[allow(clippy::too_many_arguments, clippy::too_many_lines)] // one arm per destination
     fn search_library(
         &mut self,
         ctx: &mut EffectCtx,
