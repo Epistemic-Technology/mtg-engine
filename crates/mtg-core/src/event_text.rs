@@ -317,7 +317,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
                 obj(state, *o)
             )
         }
-        Event::Unattached { obj: o } => format!("{} becomes unattached.", obj(state, *o)),
+        Event::Unattached { obj: o, .. } => format!("{} becomes unattached.", obj(state, *o)),
         Event::LegendRule { obj: o, .. } => {
             format!("{} goes to the graveyard (legend rule).", obj(state, *o))
         }

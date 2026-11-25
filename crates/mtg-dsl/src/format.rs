@@ -7402,6 +7402,12 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 damage_victim_words(*to, "this")
             )
         }
+        Trigger::ThisAttachment { attached: true } => {
+            "whenever this becomes attached to creature".to_string()
+        }
+        Trigger::ThisAttachment { attached: false } => {
+            "whenever this becomes unattached from permanent".to_string()
+        }
         Trigger::AttacksYou { obj, planeswalkers } => format!(
             "whenever {} attacks you{}",
             trigger_obj(obj),

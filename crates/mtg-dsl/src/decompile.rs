@@ -3086,6 +3086,9 @@ impl Decompiler<'_> {
                     combat: *combat,
                 }
             }
+            TriggerSpec::ThisAttachment { attached } => Trigger::ThisAttachment {
+                attached: *attached,
+            },
             TriggerSpec::AttacksYou {
                 what,
                 planeswalkers,

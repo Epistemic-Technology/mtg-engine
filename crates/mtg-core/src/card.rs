@@ -9272,6 +9272,14 @@ pub enum TriggerSpec {
         to: DamageVictim,
         combat: bool,
     },
+    /// "Whenever this Equipment becomes attached to a creature"
+    /// (`attached`), "Whenever this Equipment becomes unattached from a
+    /// permanent" (CR 701.3): the source is attached, or stops being
+    /// attached (moved to another permanent, unattached, or leaving the
+    /// battlefield while attached, judged as it last existed). The
+    /// permanent is the triggering object ("that creature", "that
+    /// permanent").
+    ThisAttachment { attached: bool },
 }
 
 /// Who is dealt damage, for `TriggerSpec::SourceDealsDamage`.
@@ -9572,7 +9580,9 @@ impl TriggerSpec {
             | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
-            TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
+            TriggerSpec::BecomesAttachedTo(_)
+            | TriggerSpec::ThisAttachment { attached: true } => WATCH_ATTACH,
+            TriggerSpec::ThisAttachment { attached: false } => WATCH_ATTACH | WATCH_ZONE_CHANGE,
             TriggerSpec::Discards { .. }
             | TriggerSpec::DiscardsThis
             | TriggerSpec::DiscardsBatch { .. }

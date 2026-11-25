@@ -1512,6 +1512,26 @@ impl GameState {
                     && self.tallied(crate::card::TurnEvent::LifeGained, *player) == delta.unsigned_abs())
                 .then_some((None, Some(*player)))
             }
+            (TriggerSpec::ThisAttachment { attached: true }, Event::Attached { obj, to })
+            | (TriggerSpec::ThisAttachment { attached: false }, Event::Unattached { obj, from: to }) => {
+                (*obj == w.source).then_some((Some(*to), Some(w.controller)))
+            }
+            // CR 701.3: leaving the battlefield while attached, as it last
+            // existed.
+            (
+                TriggerSpec::ThisAttachment { attached: false },
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    ..
+                },
+            ) => {
+                if *old != w.source {
+                    return None;
+                }
+                let host = self.lki.get(old)?.object.attached_to?;
+                Some((Some(host), Some(w.controller)))
+            }
             (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {
                 if *to != w.source {
                     return None;

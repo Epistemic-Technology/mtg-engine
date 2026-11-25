@@ -8946,9 +8946,9 @@ impl GameState {
                         // "Unattach Leonin Bola": it stays on the
                         // battlefield, unattached (CR 701.3d).
                         crate::card::ChosenCost::Unattach => {
-                            if self.objects[g].attached_to.take().is_some() {
+                            if let Some(from) = self.objects[g].attached_to.take() {
                                 self.cbump();
-                                self.emit(Event::Unattached { obj: g });
+                                self.emit(Event::Unattached { obj: g, from });
                             }
                         }
                     }
@@ -12013,8 +12013,14 @@ impl GameState {
         if !legal {
             return;
         }
-        self.objects[obj].attached_to = Some(host);
+        // CR 701.3b: moved from another permanent, it becomes unattached
+        // from that one ("Whenever this Equipment becomes unattached from
+        // a permanent").
+        let old = self.objects[obj].attached_to.replace(host);
         self.cbump();
+        if let Some(from) = old {
+            self.emit(Event::Unattached { obj, from });
+        }
         self.emit(Event::Attached { obj, to: host });
     }
 
@@ -15602,9 +15608,9 @@ impl GameState {
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
                     };
-                    if self.objects[id].attached_to.take().is_some() {
+                    if let Some(from) = self.objects[id].attached_to.take() {
                         self.cbump();
-                        self.emit(Event::Unattached { obj: id });
+                        self.emit(Event::Unattached { obj: id, from });
                     }
                 }
             }

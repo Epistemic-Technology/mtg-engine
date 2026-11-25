@@ -21742,6 +21742,16 @@ impl P {
                 self.pos += 1;
                 Ok(Trigger::BecomesTapped(obj))
             }
+            // CR 701.3: the source itself.
+            "becomes"
+                if obj == TriggerObj::This
+                    && (self.at_words(&["attached", "to", "creature"])
+                        || self.at_words(&["unattached", "from", "permanent"])) =>
+            {
+                let attached = self.at_word("attached");
+                self.pos += 3;
+                Ok(Trigger::ThisAttachment { attached })
+            }
             "becomes" if self.at_words(&["attached", "to", "this"]) => {
                 self.pos += 3;
                 let TriggerObj::Filter(f) = obj else {

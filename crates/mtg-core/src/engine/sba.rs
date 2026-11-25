@@ -297,9 +297,11 @@ impl GameState {
                 acted = true;
             }
             for id in unattach {
-                self.objects[id].attached_to = None;
+                let from = self.objects[id].attached_to.take();
                 self.cbump();
-                self.emit(Event::Unattached { obj: id });
+                if let Some(from) = from {
+                    self.emit(Event::Unattached { obj: id, from });
+                }
                 acted = true;
             }
             for id in unbestow {
@@ -317,10 +319,10 @@ impl GameState {
                 };
                 self.count_sources(flags, legend, true);
                 let o = &mut self.objects[id];
-                let was_attached = o.attached_to.take().is_some();
+                let was_attached = o.attached_to.take();
                 self.cbump();
-                if was_attached {
-                    self.emit(Event::Unattached { obj: id });
+                if let Some(from) = was_attached {
+                    self.emit(Event::Unattached { obj: id, from });
                 }
                 acted = true;
             }

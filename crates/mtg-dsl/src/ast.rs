@@ -4995,6 +4995,9 @@ pub enum Trigger {
         to: mtg_core::card::DamageVictim,
         combat: bool,
     },
+    /// `whenever this becomes attached to creature`, `whenever this
+    /// becomes unattached from permanent` (`TriggerSpec::ThisAttachment`).
+    ThisAttachment { attached: bool },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

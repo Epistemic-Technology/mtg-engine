@@ -2346,6 +2346,13 @@ impl<'a> Ctx<'a> {
             {
                 "that spell".to_string()
             }
+            // "Whenever this Equipment becomes unattached from a permanent,
+            // sacrifice that permanent."
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::ThisAttachment { attached: false })) =>
+            {
+                "that permanent".to_string()
+            }
             Recipient::TriggeringObject if self.trigger_sacrificed_artifact() => {
                 "that artifact".to_string()
             }
@@ -17510,6 +17517,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 crate::format::damage_victim_words(*to, &this)
             )
         }
+        Trigger::ThisAttachment { attached } => format!(
+            "whenever {} becomes {}",
+            this_ref(ctx.card),
+            if *attached {
+                "attached to a creature"
+            } else {
+                "unattached from a permanent"
+            }
+        ),
         Trigger::AttacksYou { obj, planeswalkers } => format!(
             "whenever {} attacks you{}",
             trigger_subject(obj, ctx),

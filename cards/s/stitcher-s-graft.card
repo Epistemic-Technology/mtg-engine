@@ -1,0 +1,9 @@
+card "Stitcher's Graft" {
+  oracle_id 2b73a5ec-c52e-4074-a7cb-78d6eb2adef0
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: gets +3/+3
+  triggered whenever equipped creature attacks: it doesn't untap next untap step
+  triggered whenever this becomes unattached from permanent: sacrifice that creature
+  equip {2}
+}

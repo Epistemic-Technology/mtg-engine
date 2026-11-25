@@ -6786,6 +6786,9 @@ impl Compiler<'_> {
                 to: *to,
                 combat: *combat,
             },
+            Trigger::ThisAttachment { attached } => TriggerSpec::ThisAttachment {
+                attached: *attached,
+            },
             Trigger::AttacksYou { obj, planeswalkers } => TriggerSpec::AttacksYou {
                 what: self.trigger_obj(obj),
                 planeswalkers: *planeswalkers,
