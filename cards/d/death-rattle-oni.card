@@ -1,0 +1,9 @@
+card "Death-Rattle Oni" {
+  oracle_id bea40c67-73ca-4b5e-b902-5de07f21585c
+  cost {6}{B}
+  type Creature — Demon Spirit
+  pt 5/4
+  keywords flash
+  this spell costs {2} less count each creature died this turn
+  triggered when this enters: destroy each other creature damaged
+}

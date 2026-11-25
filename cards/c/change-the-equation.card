@@ -1,0 +1,9 @@
+card "Change the Equation" {
+  oracle_id aba7e9e2-8df8-454e-a332-9abae1d95b6f
+  cost {1}{U}
+  type Instant
+  choose one {
+    mode: counter target with mana value 2 or less spell
+    mode: counter target red or green with mana value 6 or less spell
+  }
+}

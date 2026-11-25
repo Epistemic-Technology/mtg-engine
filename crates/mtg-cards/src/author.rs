@@ -8707,11 +8707,26 @@ impl Builder<'_> {
         .unwrap()
         .captures(line)
         {
+            // "if it targets a blue spell" (Mystical Dispute), "a creature
+            // card with mana value 3 or less": the kind first, `spell blue`,
+            // `card creature with mana value 3 or less`.
+            let what = cap(&c, 3);
+            let what = match cached_regex(r"^(.+?) (spell|card)( with .+)?$")
+                .unwrap()
+                .captures(what)
+            {
+                Some(k) => format!(
+                    "{} {}{}",
+                    &k[2],
+                    &k[1],
+                    k.get(3).map_or("", |m| m.as_str())
+                ),
+                None => what.to_string(),
+            };
             self.statements.push(format!(
-                "this spell costs {{{}}} {} if it targets {}",
+                "this spell costs {{{}}} {} if it targets {what}",
                 cap(&c, 1),
                 cap(&c, 2),
-                cap(&c, 3)
             ));
             return Ok(());
         }
@@ -10500,6 +10515,9 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         .into_owned();
     s = s
         .replace("with a counter on it", "with counter")
+        // "destroy all other creatures that were dealt damage this turn"
+        // (Death-Rattle Oni): `damaged`, printed in the plural.
+        .replace(" that were dealt damage this turn", " damaged")
         .replace("with no counters on it", "with no counters")
         .replace("not named ~", "not named this")
         .replace("named ~", "named this");
@@ -10531,7 +10549,7 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
     s = re(&format!(r"(\w+) or (\w+) that's ({COLORS}) or ({COLORS})"))
         .replace_all(&s, "$3 or $4 $1 or $3 or $4 $2")
         .into_owned();
-    s = re(r"counter target ((?:\w+ )?)spell (with (?:mana value|power or toughness|power|toughness) (?:\d+|X)(?: or (?:less|greater))?)")
+    s = re(r"counter target ((?:\w+ ){0,3})spell (with (?:mana value|power or toughness|power|toughness) (?:\d+|X)(?: or (?:less|greater))?)")
         .replace_all(&s, "counter target $1$2 spell")
         .into_owned();
     let num = |w: &str| match w {

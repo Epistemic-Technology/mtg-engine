@@ -1,0 +1,7 @@
+card "Mystical Dispute" {
+  oracle_id 48390b8d-db41-48a5-9bac-316660ab7252
+  cost {2}{U}
+  type Instant
+  this spell costs {2} less if it targets spell blue
+  spell: counter target spell unless its controller pays {3}
+}

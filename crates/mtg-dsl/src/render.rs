@@ -4060,7 +4060,11 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.damaged_short {
         s.push_str(" dealt damage this turn");
     } else if f.damaged {
-        s.push_str(" that was dealt damage this turn");
+        s.push_str(if plural_form {
+            " that were dealt damage this turn"
+        } else {
+            " that was dealt damage this turn"
+        });
     }
     // "that entered this turn", "that isn't enchanted".
     let that = |s: &mut String, one: &str, many: &str| {
