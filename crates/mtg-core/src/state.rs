@@ -118,6 +118,24 @@ pub struct DelayedTrigger {
     /// The turn it was created in: "At the beginning of the end step on
     /// your next turn" (`TriggerSpec::OnNextTurn`) waits for a later turn.
     pub turn: u32,
+    /// How long a `this_turn` one lasts past this turn's cleanup step.
+    pub until: DelayedUntil,
+}
+
+/// How long a delayed trigger that triggers on every matching event lasts
+/// (CR 603.7c, 611.2b).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum DelayedUntil {
+    /// "... this turn", "Until end of turn, whenever ...": the cleanup
+    /// step ends it.
+    #[default]
+    ThisTurn,
+    /// "Until your next turn, whenever ...": ends as its controller's next
+    /// turn begins.
+    YourNextTurn,
+    /// "Until the end of your next turn, whenever ...": ends with the
+    /// cleanup step of its controller's next turn.
+    EndOfYourNextTurn,
 }
 
 /// Something a spell or ability can target or an effect can act on.
@@ -2586,6 +2604,16 @@ pub struct GameState {
     /// Battlefield permanents with valiant (`DefFlags::has_valiant`):
     /// while nonzero, targeting records `targeted_by_controller`.
     pub valiant_watchers: u32,
+    /// Battlefield permanents with `DefFlags::has_object_firsts`: while
+    /// nonzero, `object_events` is kept.
+    pub object_first_watchers: u32,
+    /// Battlefield permanents with `DefFlags::watches_player_targets`:
+    /// while nonzero, targeting a player emits `Event::PlayerTargeted`.
+    pub player_target_watchers: u32,
+    /// How many times each object became tapped or had counters put on it
+    /// this turn ("if it's the first time that creature has become tapped
+    /// this turn", `Condition::FirstTime`).
+    pub object_events: Vec<(ObjId, crate::card::ObjEvent, u16)>,
     /// Permanents that became the target of a spell or ability their
     /// controller controlled this turn (valiant's "for the first time
     /// each turn"), recorded only while `valiant_watchers` is nonzero.

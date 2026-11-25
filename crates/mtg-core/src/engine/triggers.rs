@@ -369,6 +369,16 @@ impl GameState {
             let Some((trigger_obj, trigger_player)) = self.fires(spec, event, &w) else {
                 continue;
             };
+            // "... deals combat damage to that player this turn": the
+            // player it is about.
+            if let TriggerSpec::DealsDamage {
+                to: crate::card::DamageTo::ThatPlayer,
+                ..
+            } = spec
+                && trigger_player != dt.ability.trigger_player
+            {
+                continue;
+            }
             // "Whenever that creature deals combat damage this turn, you
             // may exile it": an event with no object of its own (damage to
             // a player) leaves "it" the object the trigger is about.
@@ -1219,6 +1229,22 @@ impl GameState {
                 (ok && c.attackers.len() >= usize::from(*min))
                     .then_some((this.then_some(*attacker), Some(w.controller)))
             }
+            // Once per declaration, on the first attacker declared.
+            (TriggerSpec::AttacksWithPower(n), Event::Attack { attacker, .. }) => {
+                let c = self.combat.as_ref()?;
+                if c.attackers.first().is_none_or(|a| a.id != *attacker)
+                    || self.objects.get(*attacker)?.controller != w.controller
+                {
+                    return None;
+                }
+                let total: i32 = c
+                    .attackers
+                    .iter()
+                    .filter_map(|a| self.characteristics(a.id))
+                    .map(|ch| i32::from(ch.power.max(0)))
+                    .sum();
+                (total >= i32::from(*n)).then_some((None, Some(w.controller)))
+            }
             (TriggerSpec::PlayerAttacksWith { whose, min }, Event::Attack { attacker, .. }) => {
                 // Once per declaration, on the first attacker declared.
                 let c = self.combat.as_ref()?;
@@ -1638,8 +1664,12 @@ impl GameState {
                     return None;
                 }
                 match (to, target) {
+                    // "to that player": the delayed trigger's player,
+                    // checked by `delayed_turn_triggers`.
                     (
-                        crate::card::DamageTo::Player | crate::card::DamageTo::Any,
+                        crate::card::DamageTo::Player
+                        | crate::card::DamageTo::Any
+                        | crate::card::DamageTo::ThatPlayer,
                         Target::Player(p),
                     ) => Some((None, Some(*p))),
                     (crate::card::DamageTo::Opponent, Target::Player(p)) => {
@@ -1766,7 +1796,15 @@ impl GameState {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source).then_some((Some(*by), Some(by_ctl)))
             }
-            (TriggerSpec::TargetedBy { what, spells, whose }, Event::Targeted { target, by }) => {
+            (
+                TriggerSpec::TargetedBy {
+                    what,
+                    spells,
+                    whose,
+                    or_spell,
+                },
+                Event::Targeted { target, by },
+            ) => {
                 let b = self.objects.get(*by)?;
                 if *spells && b.kind == crate::state::ObjKind::Ability {
                     return None;
@@ -1780,8 +1818,38 @@ impl GameState {
                 if !ok {
                     return None;
                 }
-                on_battlefield(what, *target)?;
+                // "... or a creature spell you control": the spell on the
+                // stack matched as a permanent would be.
+                let spell = *or_spell
+                    && self.objects.get(*target).is_some_and(|t| {
+                        t.zone == Zone::Stack
+                            && t.kind != crate::state::ObjKind::Ability
+                            && matches!(what, TriggerObj::Filter(f)
+                                if self.characteristics(*target).is_some_and(|c| {
+                                    f.matches(*target, t.controller, &c, Some(w.source), Some(w.controller))
+                                }))
+                    });
+                if !spell {
+                    on_battlefield(what, *target)?;
+                }
                 Some((Some(*target), Some(by_ctl)))
+            }
+            // "... becomes the target of an ability you control" (CR
+            // 115.1b-c: an activated or triggered ability).
+            (TriggerSpec::TargetedByYourAbility, Event::Targeted { target, by }) => {
+                let b = self.objects.get(*by)?;
+                (b.kind == crate::state::ObjKind::Ability
+                    && b.controller == w.controller
+                    && self
+                        .objects
+                        .get(*target)
+                        .is_some_and(|t| t.zone == Zone::Battlefield))
+                .then_some((Some(*target), Some(w.controller)))
+            }
+            (TriggerSpec::TargetedByYourAbility, Event::PlayerTargeted { player, by }) => {
+                let b = self.objects.get(*by)?;
+                (b.kind == crate::state::ObjKind::Ability && b.controller == w.controller)
+                    .then_some((None, Some(*player)))
             }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
@@ -2314,6 +2382,20 @@ impl GameState {
                         .characteristics(*source)
                         .or_else(|| self.lki.get(source).map(|l| l.characteristics))
                         .is_some_and(|c| c.is_creature()),
+                    // "Whenever you activate an ability that targets a
+                    // creature or player, copy that ability.": the ability.
+                    crate::card::ActivationKind::TargetsCreatureOrPlayer => {
+                        let targets = o.targets.iter().any(|t| match t {
+                            Target::Player(_) => true,
+                            Target::Object(id) => {
+                                self.objects
+                                    .get(*id)
+                                    .is_some_and(|x| x.zone == Zone::Battlefield)
+                                    && self.characteristics(*id).is_some_and(|c| c.is_creature())
+                            }
+                        });
+                        return targets.then_some((Some(*obj), Some(activator)));
+                    }
                 };
                 ok.then_some((Some(*source), Some(activator)))
             }
@@ -2647,6 +2729,13 @@ impl GameState {
             counts: self.pool.counts_owner(sa.ability),
         };
         let outer = self.begin_this_way(id);
+        // "Whenever one or more creatures attack you, those creatures get
+        // -1/-0": the attackers at that player are the ability's group.
+        if let AbilityDef::Triggered(t) = self.pool.ability(sa.ability)
+            && let TriggerSpec::PlayersAttacked { whose, each } = t.trigger
+        {
+            self.note_attackers(obj.controller, whose, each, sa.trigger_player);
+        }
         // "Do this only once each turn.": its "you may" asks only until it
         // is done (`Effect::YouMay`).
         let doing = if limit == crate::card::TurnLimit::Do {
@@ -2688,6 +2777,38 @@ impl GameState {
         if self.objects.contains_key(id) {
             self.remove_from_game(id);
         }
+    }
+
+    /// "Those creatures" in a `TriggerSpec::PlayersAttacked` ability (CR
+    /// 508.1m): the creatures attacking the player attacked (with `each`)
+    /// or any matching player, as the ability resolves, are the group its
+    /// effects name (`Recipient::ThoseObjects`).
+    #[cold]
+    fn note_attackers(
+        &mut self,
+        controller: PlayerId,
+        whose: Who,
+        each: bool,
+        attacked: Option<PlayerId>,
+    ) {
+        let (Some(log), Some(c)) = (&mut self.this_way, &self.combat) else {
+            return;
+        };
+        log.group.clear();
+        log.group.extend(
+            c.attackers
+                .iter()
+                .filter(|a| match a.attacking {
+                    Target::Player(q) if each => Some(q) == attacked,
+                    Target::Player(q) => match whose {
+                        Who::Any => true,
+                        Who::You => q == controller,
+                        Who::Opponents => q != controller,
+                    },
+                    Target::Object(_) => false,
+                })
+                .map(|a| a.id),
+        );
     }
 
     /// An ability's intervening "if", evaluated against the current state.
@@ -2746,11 +2867,14 @@ impl GameState {
                 .is_some_and(|o| self.meld_partner(source, o.controller).is_some()),
             Condition::TributeNotPaid => !self.tribute_paid(source),
             // Judged only as the ability triggered.
+            // `FirstTime`: a fact about the triggering event, judged as it
+            // triggered.
             Condition::While(_)
             | Condition::WhileSecond(_)
             | Condition::Trains
             | Condition::Dethrones
-            | Condition::AttackedOpponent => true,
+            | Condition::AttackedOpponent
+            | Condition::FirstTime { .. } => true,
             Condition::Static(i) => {
                 let you = self
                     .objects
@@ -2796,6 +2920,14 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::WasBlocking(b) => self.was_blocking(w.source) == b,
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
+            Condition::FirstTime { what, your_turn } => {
+                (!your_turn || self.active_player == w.controller)
+                    && trigger_obj.is_some_and(|o| {
+                        self.object_events
+                            .iter()
+                            .any(|(x, k, n)| *x == o && *k == what && *n == 1)
+                    })
+            }
             Condition::Harnessed => self
                 .objects
                 .get(w.source)

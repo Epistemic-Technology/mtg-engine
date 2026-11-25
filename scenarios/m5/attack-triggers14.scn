@@ -1,0 +1,115 @@
+# Attack and delayed-trigger forms (fourteenth wave): "those creatures"
+# after an attack trigger, delayed triggers until your next turn (or its
+# end), a delayed trigger's own target, and "when you next attack".
+
+scenario "Sabotage Strategist: creatures attacking you get -1/-0" {
+  battlefield A: "Sabotage Strategist"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  run_to turn 2 declare_blockers
+  assert power "Hill Giant" 2
+  assert power "Grizzly Bears" 1
+  assert power "Sabotage Strategist" 2
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert power "Hill Giant" 2
+  run_to turn 3 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "Sabotage Strategist: your own attackers are not shrunk" {
+  battlefield A: "Sabotage Strategist", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Garruk, Curse Breaker: until your next turn, creatures attacking an opponent get +2/+2 and trample" {
+  battlefield A: "Garruk, Curse Breaker", "Grizzly Bears"
+  battlefield B: "Llanowar Elves"
+  turn 1 A: activate "Garruk, Curse Breaker" ability 3
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Llanowar Elves"
+  turn 1 combat_damage A: assign "Grizzly Bears" to "Llanowar Elves" 1, player B 3
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert counters "Garruk, Curse Breaker" loyalty 1
+}
+
+scenario "Garruk, Curse Breaker: the delayed trigger ends as your next turn begins" {
+  battlefield A: "Garruk, Curse Breaker", "Grizzly Bears"
+  turn 1 A: activate "Garruk, Curse Breaker" ability 3
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Season of the Bold: until the end of your next turn, each spell you cast deals 2 damage" {
+  battlefield A: 9 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Wall of Stone"
+  hand A: "Season of the Bold", "Shock", "Shock", "Shock"
+  turn 1 A: cast "Season of the Bold" mode 15
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Season of the Bold" targeting "Grizzly Bears"
+  # On the opponent's turn too.
+  turn 2 upkeep A: cast "Shock" targeting player B
+  turn 2 upkeep A: trigger "Season of the Bold" targeting "Hill Giant"
+  turn 3 A: cast "Shock" targeting player B
+  turn 3 A: trigger "Season of the Bold" targeting "Wall of Stone"
+  run_to turn 2 draw
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  run_to turn 3 postcombat_main
+  assert damage "Wall of Stone" 2
+  assert life B 14
+}
+
+scenario "Season of the Bold: the delayed trigger is gone after your next turn" {
+  battlefield A: 9 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Season of the Bold", "Shock"
+  turn 1 A: cast "Season of the Bold" mode 15
+  turn 4 upkeep A: cast "Shock" targeting player B
+  run_to turn 4 draw
+  assert damage "Hill Giant" 0
+  assert life B 18
+  assert stack count 0
+}
+
+scenario "Roads Go Ever, Ever On: chapter IV pumps a target creature each time you attack this turn" {
+  battlefield A: "Roads Go Ever, Ever On" with 3 lore, 3 "Plains", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Roads Go Ever, Ever On" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 5
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard A contains "Roads Go Ever, Ever On"
+}
+
+scenario "Roads Go Ever, Ever On: the trigger ends with the turn" {
+  battlefield A: "Roads Go Ever, Ever On" with 3 lore, 3 "Plains", "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+}
+
+scenario "All-Out Assault: an additional combat, and the first attack untaps your creatures" {
+  battlefield A: 5 "Mountain", "Plains", "Swamp", "Grizzly Bears"
+  hand A: "All-Out Assault"
+  turn 1 A: cast "All-Out Assault"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  run_to turn 1 end
+  assert tapped "Grizzly Bears"
+  assert life B 14
+}

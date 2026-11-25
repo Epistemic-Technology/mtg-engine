@@ -1,0 +1,8 @@
+card "Ertha Jo, Frontier Mentor" {
+  oracle_id 0a66ce8b-af99-411f-8ecb-52a5d2f6af3d
+  cost {2}{R}{W}
+  type Legendary Creature — Kor Advisor
+  pt 2/4
+  triggered when this enters: create 1 "Mercenary"
+  triggered whenever you activate an ability that targets a creature or player: copy that spell new targets
+}

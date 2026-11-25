@@ -11076,6 +11076,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ..
         } => {
             let o = match what {
+                // "Whenever you activate an ability that targets ..., copy
+                // that ability." (Ertha Jo, Frontier Mentor).
+                Recipient::TriggeringObject
+                    if matches!(
+                        ctx.trigger,
+                        Some(Trigger::Activates {
+                            kind: mtg_core::card::ActivationKind::TargetsCreatureOrPlayer,
+                            ..
+                        })
+                    ) =>
+                {
+                    "that ability".to_string()
+                }
                 Recipient::TriggeringObject => "that spell".to_string(),
                 // "copy this spell" (a creature spell's own trigger).
                 Recipient::Source => {
@@ -14820,7 +14833,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 body
             };
             if *trigger_first {
-                Clause::imperative(format!("{t}, {}{tail}", lowercase_first(&body)))
+                // "..., Season of the Bold deals 2 damage ...": a name
+                // keeps its capital.
+                let name = ctx.source_name();
+                let body = if body.starts_with(&name) && name.starts_with(char::is_uppercase) {
+                    body
+                } else {
+                    lowercase_first(&body)
+                };
+                Clause::imperative(format!("{t}, {body}{tail}"))
             } else {
                 Clause::imperative(format!("{} {t}{tail}", lowercase_first(&body)))
             }
@@ -15877,6 +15898,7 @@ fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
         // No duration: "That token gains haste."
         Lasting::Forever => String::new(),
         Lasting::EndOfCombat => "until end of combat".to_string(),
+        Lasting::EndOfYourNextTurn => "until the end of your next turn".to_string(),
     }
 }
 
@@ -16142,9 +16164,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::When(_) => unreachable!("unwrapped above"),
         // "When you next cast an instant or sorcery spell" (the delayed
         // trigger adds "this turn").
-        Trigger::Next(inner) => {
-            trigger_text(inner, ctx, next).replacen("whenever you cast", "when you next cast", 1)
-        }
+        Trigger::Next(inner) => trigger_text(inner, ctx, next)
+            .replacen("whenever you cast", "when you next cast", 1)
+            .replacen("whenever you attack", "when you next attack", 1),
         // CR 603.2c.
         Trigger::Batch(inner) => match &**inner {
             Trigger::PutIntoGraveyard(f) => format!(
@@ -16598,6 +16620,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             step_name(*step, Who::You).trim_start_matches("your "),
             enchanted_noun(ctx.card)
         ),
+        Trigger::NextUpkeep => "at the beginning of the next upkeep".to_string(),
         Trigger::BeginningOfStep { step, whose } => {
             if next && *step == Step::Upkeep && *whose == Who::Any {
                 "at the beginning of the next turn's upkeep".to_string()
@@ -16666,6 +16689,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::AttacksWith { this: false, min } => format!(
             "whenever you attack with {} or more creatures",
             count_words(Num::N(u32::from(*min)), "one")
+        ),
+        Trigger::AttacksWithPower { power, first } => format!(
+            "whenever you attack with creatures with total power {power} or greater{}",
+            if *first {
+                " for the first time each turn"
+            } else {
+                ""
+            }
         ),
         // "Whenever Sokka and at least one other creature attack".
         Trigger::AttacksWith { this: true, min } => format!(
@@ -17020,6 +17051,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 mtg_core::card::DamageTo::Creature => " to a creature",
                 mtg_core::card::DamageTo::Player => " to a player",
                 mtg_core::card::DamageTo::Opponent => " to an opponent",
+                mtg_core::card::DamageTo::ThatPlayer => " to that player",
             }
         ),
         Trigger::CastsFiltered {
@@ -17238,6 +17270,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             spells,
             whose,
             whenever,
+            or_spell,
         } => {
             let what = if *spells {
                 "a spell"
@@ -17249,11 +17282,24 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 Who::You => " you control",
                 Who::Any => "",
             };
+            let subject = trigger_subject(obj, ctx);
+            // "a creature you control or a creature spell you control".
+            let subject = if *or_spell {
+                format!(
+                    "{subject} or {}",
+                    subject.replacen("creature", "creature spell", 1)
+                )
+            } else {
+                subject
+            };
             format!(
-                "{} {} becomes the target of {what}{whose}",
+                "{} {subject} becomes the target of {what}{whose}",
                 if *whenever { "whenever" } else { "when" },
-                trigger_subject(obj, ctx)
             )
+        }
+        Trigger::TargetedByYourAbility => {
+            "whenever a player or permanent becomes the target of an ability you control"
+                .to_string()
         }
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
@@ -17416,6 +17462,16 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::WasBlocking(true) => "if it was blocking".to_string(),
         Condition::WasBlocking(false) => "if it wasn't blocking".to_string(),
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
+        Condition::FirstTime { what, your_turn } => format!(
+            "{}if it's the first time {}",
+            if your_turn { "during your turn, " } else { "" },
+            match what {
+                mtg_core::card::ObjEvent::Tapped => "that creature has become tapped this turn",
+                mtg_core::card::ObjEvent::CountersPut => {
+                    "counters have been put on that creature this turn"
+                }
+            }
+        ),
         Condition::Harnessed => unreachable!("printed as the ∞ label"),
         Condition::Evolves => format!(
             "if it has greater power or toughness than {}",
@@ -21891,6 +21947,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     } else {
                         write!(out, ", if its {word} {verb} {n}{}", cmp_words(*cmp))
                     };
+                }
+                // "Whenever a creature you control becomes tapped during
+                // your turn, if it's the first time ...": the trigger
+                // condition before the intervening "if".
+                Some(crate::ast::TrigCond::Core(c @ Condition::FirstTime { your_turn, .. })) => {
+                    let cond = condition_text(*c, &mut ctx);
+                    if *your_turn {
+                        let _ = write!(
+                            out,
+                            " during your turn, {}",
+                            cond.trim_start_matches("during your turn, ")
+                        );
+                    } else {
+                        let _ = write!(out, ", {cond}");
+                    }
                 }
                 // An ∞ ability: the label says it.
                 #[allow(clippy::match_same_arms)]

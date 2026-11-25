@@ -1,0 +1,37 @@
+# "Whenever a creature you control or a creature spell you control
+# becomes the target of a spell or ability an opponent controls"
+# (fourteenth wave).
+
+scenario "Surrak, Elusive Hunter: an opponent targeting your creature draws you a card" {
+  battlefield A: "Surrak, Elusive Hunter", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Surrak, Elusive Hunter: an opponent targeting your creature spell draws you a card" {
+  battlefield A: "Surrak, Elusive Hunter", 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Surrak, Elusive Hunter: your own spells and an opponent's other targets don't count" {
+  battlefield A: "Surrak, Elusive Hunter", "Grizzly Bears", "Forest"
+  battlefield B: "Mountain", "Llanowar Elves"
+  hand A: "Giant Growth"
+  hand B: "Shock"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 2 B: cast "Shock" targeting "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}

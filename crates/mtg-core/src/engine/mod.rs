@@ -292,6 +292,8 @@ impl Engine {
                 state.trigger_grant_sources += u32::from(def.flags().grants_triggers());
                 state.spent_watchers += u32::from(def.flags().watches_spent());
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
+                state.object_first_watchers += u32::from(def.flags().has_object_firsts());
+                state.player_target_watchers += u32::from(def.flags().watches_player_targets());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 state.mark_sources += u32::from(def.flags().has_marks());
                 state.banding_sources += u32::from(def.flags().has_banding());
@@ -699,6 +701,9 @@ impl GameState {
             spending: None,
             spent_watchers: 0,
             valiant_watchers: 0,
+            object_first_watchers: 0,
+            player_target_watchers: 0,
+            object_events: Vec::new(),
             targeted_by_controller: Vec::new(),
             pending_triggers: Vec::new(),
             delayed_triggers: Vec::new(),
@@ -2091,6 +2096,7 @@ impl GameState {
                                 this_turn: false,
                                 forever: false,
                                 turn: self.turn_number,
+                                until: crate::state::DelayedUntil::ThisTurn,
                             });
                         }
                         (Choice::Accept, None) => {
@@ -3628,8 +3634,20 @@ impl GameState {
         self.grave_turn_grants.clear();
         self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
+        // "Until your next turn, whenever ..." outlasts it, and "until the
+        // end of your next turn" outlasts all but that turn's (CR 611.2b).
         if !self.delayed_triggers.is_empty() {
-            self.delayed_triggers.retain(|d| !d.this_turn);
+            let (active, turn) = (self.active_player, self.turn_number);
+            self.delayed_triggers.retain(|d| {
+                !d.this_turn
+                    || match d.until {
+                        crate::state::DelayedUntil::ThisTurn => false,
+                        crate::state::DelayedUntil::YourNextTurn => true,
+                        crate::state::DelayedUntil::EndOfYourNextTurn => {
+                            !(active == d.controller && turn > d.turn)
+                        }
+                    }
+            });
         }
         // "Until end of turn, whenever a player taps an Island for mana"
         // (High Tide) ended with them.
@@ -3922,6 +3940,7 @@ impl GameState {
             self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
             self.counters_put_this_turn.clear();
+            self.object_events.clear();
             self.entered_this_turn.clear();
             self.damaged_by_this_turn.clear();
             self.saddled.clear();
@@ -4074,6 +4093,12 @@ impl GameState {
             if !self.name_rules.is_empty() {
                 let p = self.active_player;
                 self.name_rules.retain(|r| r.until != p);
+            }
+            if !self.delayed_triggers.is_empty() {
+                let p = self.active_player;
+                self.delayed_triggers.retain(|d| {
+                    !(d.until == crate::state::DelayedUntil::YourNextTurn && d.controller == p)
+                });
             }
             if !self.player_grants.is_empty() {
                 self.player_grants.retain(|g| g.duration != ends);

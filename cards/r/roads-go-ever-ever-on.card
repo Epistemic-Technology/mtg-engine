@@ -1,0 +1,8 @@
+card "Roads Go Ever, Ever On" {
+  oracle_id 3cd3cdc9-2ed2-4cdf-b58a-12c3a2ef218b
+  cost {1}{W}
+  type Enchantment — Saga
+  triggered chapter 1: search up to 2 basic Plains card to exile; you gain 2 life
+  triggered chapter 2, 3: put 1 card exiled with this into hand
+  triggered chapter 4: delayed this: whenever you attack this turn, target creature you control gets +1/+1 count each Plains you control
+}

@@ -4387,6 +4387,10 @@ pub enum Trigger {
         step: Step,
         whose: Who,
     },
+    /// `at beginning of next upkeep`: a delayed trigger's "at the beginning
+    /// of the next upkeep" (Aang, at the Crossroads), the same as `at
+    /// beginning of the next turn's upkeep` printed without "turn's".
+    NextUpkeep,
     /// `at beginning of enchanted controller's upkeep`: "At the beginning
     /// of the upkeep of enchanted creature's controller".
     AttachedStep(Step),
@@ -4401,6 +4405,13 @@ pub enum Trigger {
     AttacksWith {
         this: bool,
         min: u8,
+    },
+    /// `whenever you attack with creatures with total power 12 or greater
+    /// first time each turn` ("... for the first time each turn": only
+    /// once each turn).
+    AttacksWithPower {
+        power: u16,
+        first: bool,
     },
     /// `whenever a player attacks with 3 or more creatures`, `whenever an
     /// opponent attacks with 2 or more creatures`.
@@ -4515,6 +4526,10 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
+    /// `whenever a player or permanent becomes targeted by your ability`:
+    /// "Whenever a player or permanent becomes the target of an ability
+    /// you control" (Loki, God of Mischief).
+    TargetedByYourAbility,
     /// `whenever this becomes targeted first time each turn`: "Whenever
     /// this creature becomes the target of a spell or ability for the first
     /// time each turn" (the spell or ability is `that spell`).
@@ -4595,6 +4610,10 @@ pub enum Trigger {
         spells: bool,
         whose: Who,
         whenever: bool,
+        /// `whenever creature you control or spell becomes targeted by
+        /// opponent`: "Whenever a creature you control or a creature spell
+        /// you control becomes the target of ..." (Surrak, Elusive Hunter).
+        or_spell: bool,
     },
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
@@ -6584,6 +6603,12 @@ pub enum Effect {
         /// are the spell's, not the delayed trigger's (wording only: both
         /// print the same).
         closed: bool,
+        /// The targets its own text declares ("Whenever you attack this
+        /// turn, target creature you control gets +1/+1"): the first's
+        /// index among the ability's targets and their number. The delayed
+        /// ability chooses them as it triggers (CR 603.7), not the ability
+        /// that creates it; they must be the ability's last targets.
+        own_targets: Option<(usize, usize)>,
     },
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),

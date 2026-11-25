@@ -1,0 +1,28 @@
+# "Whenever you attack with creatures with total power N or greater for
+# the first time each turn" (fourteenth wave).
+
+scenario "Desert Were-Worm: attacking with total power 12 untaps the attackers and adds one combat phase" {
+  life B 40
+  battlefield A: "Desert Were-Worm", "Grizzly Bears", 5 "Mountain"
+  turn 1 A: attack "Desert Were-Worm", "Grizzly Bears"
+  turn 1 declare_attackers combat 2 A: attack "Desert Were-Worm", "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Desert Were-Worm" 10
+  assert untapped "Grizzly Bears"
+  assert untapped "Desert Were-Worm"
+  run_to turn 1 end
+  assert life B 16
+  # Only the first time each turn: the second attack neither untaps nor
+  # adds a combat phase.
+  assert tapped "Grizzly Bears"
+  assert tapped "Desert Were-Worm"
+}
+
+scenario "Desert Were-Worm: less total power doesn't trigger" {
+  life B 40
+  battlefield A: "Desert Were-Worm", 5 "Mountain"
+  turn 1 A: attack "Desert Were-Worm"
+  run_to turn 1 end
+  assert life B 30
+  assert tapped "Desert Were-Worm"
+}

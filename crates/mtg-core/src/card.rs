@@ -2969,6 +2969,10 @@ pub enum Lasting {
     /// "until end of combat", "this combat" (CR 500.5a, 511.2): ends as
     /// the combat phase ends (or with the turn, if it has no combat).
     EndOfCombat,
+    /// "until the end of your next turn": only a delayed trigger takes it
+    /// ("Until the end of your next turn, whenever you cast a spell, ...",
+    /// `crate::state::DelayedUntil::EndOfYourNextTurn`).
+    EndOfYourNextTurn,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -8603,6 +8607,11 @@ pub enum TriggerSpec {
     /// at least `min` creatures (with `this`, the source among them)
     /// attack.
     AttacksWith { this: bool, min: u8 },
+    /// "Whenever you attack with creatures with total power 12 or
+    /// greater" (Desert Were-Worm): once per declaration of attackers by
+    /// the controller (CR 508.1m) whose attackers' total power, as
+    /// declared, is at least this.
+    AttacksWithPower(u16),
     /// "Whenever a player attacks with three or more creatures" (CR
     /// 508.1m): once per declaration of attackers by a player matching
     /// `whose`, when at least `min` creatures attack; that player is the
@@ -8762,6 +8771,11 @@ pub enum TriggerSpec {
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
     TargetedByOpponent,
+    /// "Whenever a player or permanent becomes the target of an ability
+    /// you control" (Loki, God of Mischief): an activated or triggered
+    /// ability its controller controls targets a permanent (the
+    /// triggering object) or a player (the triggering player).
+    TargetedByYourAbility,
     /// "Whenever this creature becomes the target of a spell or ability
     /// for the first time each turn" (Shimmering Glasskite): any
     /// controller's; the spell or ability is the triggering object. The
@@ -9083,7 +9097,22 @@ pub enum TriggerSpec {
         what: TriggerObj,
         spells: bool,
         whose: Who,
+        /// "Whenever a creature you control or a creature spell you
+        /// control becomes the target of ..." (Surrak, Elusive Hunter): a
+        /// spell on the stack matching the filter counts too.
+        #[serde(default)]
+        or_spell: bool,
     },
+}
+
+/// An event about one object, counted per object each turn for
+/// `Condition::FirstTime`.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ObjEvent {
+    /// It became tapped (CR 701.26a).
+    Tapped,
+    /// Counters were put on it (CR 122.6), one event per instruction.
+    CountersPut,
 }
 
 /// The event whose triggers an `AbilityDef::TriggerAgain` with a cause
@@ -9110,6 +9139,11 @@ pub enum ActivationKind {
     /// "a ninjutsu ability" (CR 702.49), the card's own or one a
     /// permanent gives it (Satoru Umezawa).
     Ninjutsu,
+    /// "an ability that targets a creature or player" (Ertha Jo, Frontier
+    /// Mentor): one of its targets, as activated, is a creature on the
+    /// battlefield or a player. The ability itself, not its source, is the
+    /// triggering object ("copy that ability").
+    TargetsCreatureOrPlayer,
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -9173,6 +9207,10 @@ pub enum DamageTo {
     Creature,
     Player,
     Opponent,
+    /// "to that player": in a delayed trigger about a player ("Choose
+    /// target opponent. Whenever a creature you control deals combat
+    /// damage to that player this turn, ..."), that player only.
+    ThatPlayer,
 }
 
 impl TriggerSpec {
@@ -9273,6 +9311,7 @@ impl TriggerSpec {
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksPlayerAlone(_)
             | TriggerSpec::AttacksWith { .. }
+            | TriggerSpec::AttacksWithPower(_)
             | TriggerSpec::PlayerAttacksWith { .. }
             | TriggerSpec::AttacksWithFilter { .. }
             | TriggerSpec::PlayersAttacked { .. } => WATCH_ATTACK,
@@ -9322,6 +9361,7 @@ impl TriggerSpec {
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedBy { .. }
             | TriggerSpec::TargetedByOpponent
+            | TriggerSpec::TargetedByYourAbility
             | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
@@ -9407,6 +9447,19 @@ pub enum Condition {
     WasBlocking(bool),
     /// "if this creature isn't prepared" (CR 722.3a).
     NotPrepared,
+    /// "if it's the first time that creature has become tapped this turn"
+    /// (Captain America, Living Legend), "if it's the first time counters
+    /// have been put on that creature this turn" (Stalwart Successor): the
+    /// triggering event is the first of its kind this turn for the
+    /// triggering object (`GameState::object_events`, kept while a
+    /// permanent with `DefFlags::has_object_firsts` is on the
+    /// battlefield). A fact about the event, so it still holds as the
+    /// ability resolves. `your_turn`: the trigger condition "during your
+    /// turn" before it too (CR 603.2).
+    FirstTime {
+        what: ObjEvent,
+        your_turn: bool,
+    },
     /// An ∞ ability ("∞ — At the beginning of your end step, ..."): it
     /// triggers only while the source is harnessed (`OBJ_HARNESSED`).
     /// Printed as the label, not as an "if".
@@ -11692,6 +11745,14 @@ impl DefFlags {
     /// ManaFromThis`): payment then records the permanents it taps
     /// (`GameState::cast_sources`), and casts record what was spent.
     const MANA_FROM_WATCH: u64 = 1 << 42;
+    /// A triggered ability with `Condition::FirstTime`: while one is on the
+    /// battlefield, taps and counters put are counted per object
+    /// (`GameState::object_events`).
+    const OBJECT_FIRSTS: u64 = 1 << 32;
+    /// A `TriggerSpec::TargetedByYourAbility` trigger: while one is on the
+    /// battlefield, players becoming targets are reported
+    /// (`Event::PlayerTargeted`).
+    const PLAYER_TARGETED: u64 = 1 << 33;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11824,6 +11885,14 @@ impl DefFlags {
 
     pub const fn watches_mana_from(self) -> bool {
         self.has(DefFlags::MANA_FROM_WATCH)
+    }
+
+    pub const fn has_object_firsts(self) -> bool {
+        self.has(DefFlags::OBJECT_FIRSTS)
+    }
+
+    pub const fn watches_player_targets(self) -> bool {
+        self.has(DefFlags::PLAYER_TARGETED)
     }
 
     pub const fn has_top_static(self) -> bool {
@@ -12064,6 +12133,24 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.is_valiant())),
+        );
+        flags.set(
+            DefFlags::PLAYER_TARGETED,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Triggered(t) if t.trigger == TriggerSpec::TargetedByYourAbility)
+            }),
+        );
+        flags.set(
+            DefFlags::OBJECT_FIRSTS,
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::Triggered(TriggeredAbility {
+                        condition: Some(Condition::FirstTime { .. }),
+                        ..
+                    })
+                )
+            }),
         );
         flags
     }

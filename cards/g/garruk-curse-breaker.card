@@ -1,0 +1,10 @@
+card "Garruk, Curse Breaker" {
+  oracle_id 184d4672-05a9-4182-8b3f-3561fb33ed62
+  cost {3}{G}{G}
+  type Legendary Planeswalker — Garruk
+  loyalty 5
+  triggered whenever creature you control with power 4 or greater enters: draw 1 card
+  loyalty +2: untap up to 2 target land
+  loyalty -3: create 1 "4/4 green Beast creature with trample"
+  loyalty -4: until your next turn, delayed this: whenever one or more creatures attack one of your opponents, those creatures gets +2/+2 and those creatures gain trample
+}

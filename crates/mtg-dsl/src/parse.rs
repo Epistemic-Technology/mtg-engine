@@ -61,6 +61,8 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_activated: false,
         that_spell_spent: false,
         group_named: false,
+        delayed_attackers: false,
+        or_spell: false,
         subject: None,
         subject_each: false,
         votes: Vec::new(),
@@ -836,6 +838,12 @@ struct P {
     /// A group (`each <filter>`, `creatures you control`) has been named
     /// in this ability, for `them` and `those creatures` after it.
     group_named: bool,
+    /// Inside a delayed trigger on players being attacked: `those
+    /// creatures` there are the attackers, not an earlier group.
+    delayed_attackers: bool,
+    /// `<filter> or spell becomes targeted ...`: read by the trigger
+    /// subject, taken by the `becomes targeted` trigger.
+    or_spell: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
     /// The sentence's subject was followed by `each` ("one or two target
@@ -4558,8 +4566,33 @@ impl P {
                 // "attacks while saddled", "attacks while you control two
                 // or more artifacts": a trigger condition, not an
                 // intervening "if" (CR 603.2, 603.4).
+                // "Whenever a creature you control becomes tapped during
+                // your turn, if it's the first time that creature has
+                // become tapped this turn" (Captain America, Living Legend).
+                let first_time = |p: &mut Self, your_turn: bool| {
+                    let at = p.pos;
+                    let what = if p.eat_words(&["if", "first", "time", "tapped", "this", "turn"]) {
+                        mtg_core::card::ObjEvent::Tapped
+                    } else if p.eat_words(&["if", "first", "time", "counters", "this", "turn"]) {
+                        mtg_core::card::ObjEvent::CountersPut
+                    } else {
+                        p.pos = at;
+                        return None;
+                    };
+                    Some(crate::ast::TrigCond::Core(
+                        mtg_core::card::Condition::FirstTime { what, your_turn },
+                    ))
+                };
                 let condition = if self.eat_words(&["while", "in", "graveyard"]) {
                     Some(crate::ast::TrigCond::InGraveyard)
+                } else if let Some(c) = first_time(self, false) {
+                    Some(c)
+                } else if self.at_words(&["during", "your", "turn", "if", "first", "time"]) {
+                    self.pos += 3;
+                    let Some(c) = first_time(self, true) else {
+                        return self.fail("expected `if first time tapped this turn` or `if first time counters this turn`");
+                    };
+                    Some(c)
                 } else if self.eat_word("while") {
                     Some(crate::ast::TrigCond::While(self.static_cond()?))
                 } else if self.eat_words(&["during", "your", "turn"]) {
@@ -4595,6 +4628,9 @@ impl P {
                 } else {
                     None
                 };
+                // "Whenever one or more creatures attack you, those
+                // creatures get -1/-0": the attackers are the group.
+                self.group_named = matches!(trigger, Trigger::PlayersAttacked { .. });
                 let effects = self.effects_body()?;
                 Ok(Ability::Triggered {
                     limit,
@@ -7069,6 +7105,15 @@ impl P {
             // "Until end of combat, <clauses>" (CR 500.5a).
             lasting = Some(mtg_core::card::Lasting::EndOfCombat);
             true
+        } else if self.at_words(&["until", "the", "end", "of", "your", "next", "turn"])
+            && self.peek_at(7) == Some(&Tok::Comma)
+            && self.word_at(8).as_deref() == Some("delayed")
+        {
+            // "Until the end of your next turn, whenever you cast a spell,
+            // ..." (a delayed trigger only, CR 603.7c).
+            self.pos += 7;
+            lasting = Some(mtg_core::card::Lasting::EndOfYourNextTurn);
+            true
         } else {
             self.eat_words(&["until", "end", "of", "turn"])
         };
@@ -7137,9 +7182,17 @@ impl P {
             lasting = self.lasting_suffix();
         }
         // "Until end of turn, whenever ..., <effects>": a delayed trigger
-        // that lasts the turn (CR 603.7c), as `whenever ... this turn`.
+        // that lasts the turn (CR 603.7c), as `whenever ... this turn`;
+        // "Until your next turn, whenever ..." and "Until the end of your
+        // next turn, whenever ..." last longer (the sentence's duration).
         if eot_first
-            && lasting.is_none()
+            && matches!(
+                lasting,
+                None | Some(
+                    mtg_core::card::Lasting::YourNextTurn
+                        | mtg_core::card::Lasting::EndOfYourNextTurn
+                )
+            )
             && let Some(Effect::Delayed {
                 this_turn,
                 trigger_first: true,
@@ -15087,7 +15140,18 @@ impl P {
                     // "its controller": the triggering object's.
                     let was_dies = self.delayed_dies;
                     self.delayed_dies |= turn_long;
+                    // "... whenever one or more creatures attack one of
+                    // your opponents, those creatures get +2/+2": the
+                    // attackers are the delayed ability's group.
+                    let attackers = matches!(t, Trigger::PlayersAttacked { .. });
+                    let was_group = self.group_named;
+                    let was_attackers = std::mem::replace(&mut self.delayed_attackers, attackers);
+                    // A group named before the delayed trigger stays one
+                    // inside it (`delayed them:`, Random Encounter).
+                    self.group_named = was_group || attackers;
                     let e = self.sentences_inline();
+                    self.group_named = was_group;
+                    self.delayed_attackers = was_attackers;
                     self.delayed_dies = was_dies;
                     (t, e?, true)
                 } else if closed {
@@ -15126,6 +15190,8 @@ impl P {
                     this_turn: this_turn.is_some() || turn_long,
                     it,
                     closed,
+                    own_targets: (self.targets.len() > targets_before)
+                        .then(|| (targets_before, self.targets.len() - targets_before)),
                 })
             }
             "prevent" => {
@@ -16537,6 +16603,8 @@ impl P {
             in_activated: self.in_activated,
             that_spell_spent: self.that_spell_spent,
             group_named: self.group_named,
+            delayed_attackers: self.delayed_attackers,
+            or_spell: false,
             subject: None,
             subject_each: false,
             votes: self.votes.clone(),
@@ -16805,7 +16873,11 @@ impl P {
         }
         // "return those creatures to their owner's hand" inside a delayed
         // trigger about a group (`delayed them:`): each in turn.
-        if self.in_delayed && self.group_named && self.eat_words(&["those", "creatures"]) {
+        if self.in_delayed
+            && self.group_named
+            && !self.delayed_attackers
+            && self.eat_words(&["those", "creatures"])
+        {
             return Ok(Recipient::SameCreatures);
         }
         // `them`, `those creatures`: the objects a group named earlier in
@@ -17692,6 +17764,8 @@ impl P {
                         in_activated: false,
                         that_spell_spent: false,
                         group_named: false,
+                        delayed_attackers: false,
+                        or_spell: false,
                         subject: None,
                         subject_each: false,
                         votes: Vec::new(),
@@ -19488,6 +19562,12 @@ impl P {
         if article && self.at_word("dies") {
             f.article = true;
         }
+        // "a creature you control or a creature spell you control becomes
+        // the target of ..." (only that trigger takes it).
+        if self.at_words(&["or", "spell", "becomes", "targeted"]) {
+            self.pos += 2;
+            self.or_spell = true;
+        }
         Ok(TriggerObj::Filter(f))
     }
 
@@ -19633,6 +19713,10 @@ impl P {
                 self.eat_word("step");
                 return Ok(Trigger::EachPlayersEndStep);
             }
+            // `next upkeep`: "at the beginning of the next upkeep".
+            if self.eat_words(&["next", "upkeep"]) {
+                return Ok(Trigger::NextUpkeep);
+            }
             let whose = if self.eat_word("your") {
                 // "your next upkeep" (a delayed trigger).
                 self.eat_word("next");
@@ -19679,15 +19763,25 @@ impl P {
         }
         // `when next you cast instant or sorcery spell`: "When you next
         // cast an instant or sorcery spell" (a delayed trigger, once).
-        if !whenever && self.at_words(&["next", "you", "cast"]) {
+        // `when next you attack`: "When you next attack this turn" (All-Out
+        // Assault).
+        if !whenever
+            && (self.at_words(&["next", "you", "cast"])
+                || self.at_words(&["next", "you", "attack"]))
+        {
             // Read the rest as `whenever you cast ...`.
             self.toks[self.pos].tok = Tok::Word("whenever".to_string());
             let inner = self.trigger_one()?;
             if !matches!(
                 inner,
-                Trigger::CastsSpell { .. } | Trigger::CastsFiltered { .. }
+                Trigger::CastsSpell { .. }
+                    | Trigger::CastsFiltered { .. }
+                    | Trigger::AttacksWith {
+                        this: false,
+                        min: 1
+                    }
             ) {
-                return self.fail("`when next` takes a `you cast` trigger");
+                return self.fail("`when next` takes a `you cast` or `you attack` trigger");
             }
             return Ok(Trigger::Next(Box::new(inner)));
         }
@@ -19750,6 +19844,19 @@ impl P {
         if self.eat_words(&["you", "foretell", "a", "card"]) {
             return Ok(Trigger::Foretells);
         }
+        if self.eat_words(&[
+            "a",
+            "player",
+            "or",
+            "permanent",
+            "becomes",
+            "targeted",
+            "by",
+            "your",
+            "ability",
+        ]) {
+            return Ok(Trigger::TargetedByYourAbility);
+        }
         // CR 602.2: "you activate an ability of a creature", "you activate
         // an exhaust ability", "an opponent activates a loyalty ability".
         if self.at_words(&["you", "activate"]) || self.at_words(&["an", "opponent", "activates"]) {
@@ -19768,6 +19875,10 @@ impl P {
                 ActivationKind::Loyalty
             } else if self.eat_words(&["a", "ninjutsu", "ability"]) {
                 ActivationKind::Ninjutsu
+            } else if self.eat_words(&[
+                "an", "ability", "that", "targets", "a", "creature", "or", "player",
+            ]) {
+                ActivationKind::TargetsCreatureOrPlayer
             } else {
                 return self.unexpected(
                     "`an ability of a creature`, `an exhaust ability`, `a loyalty ability`, or `a ninjutsu ability`",
@@ -20540,6 +20651,25 @@ impl P {
             });
         }
         // "Whenever you attack [with three or more creatures]" (CR 508.1m).
+        // "Whenever you attack with creatures with total power 12 or
+        // greater for the first time each turn" (Desert Were-Worm).
+        if self.eat_words(&[
+            "you",
+            "attack",
+            "with",
+            "creatures",
+            "with",
+            "total",
+            "power",
+        ]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "greater"])?;
+            let first = self.eat_words(&["first", "time", "each", "turn"]);
+            return Ok(Trigger::AttacksWithPower {
+                power: u16::try_from(n).unwrap_or(u16::MAX),
+                first,
+            });
+        }
         if self.eat_words(&["you", "attack"]) {
             // "you attack with one or more Faeries", "you attack a player
             // with one or more creatures with power 4 or greater".
@@ -20675,8 +20805,16 @@ impl P {
                     | Trigger::TurnedFaceUp(TriggerObj::This)
                     | Trigger::BecomesTapped(TriggerObj::This)
                     | Trigger::Transforms
+                    // "Whenever Kitsune enters or deals combat damage to a
+                    // player".
+                    | Trigger::DealsCombatDamageToPlayer(TriggerObj::This)
+                    | Trigger::DealsDamage {
+                        obj: TriggerObj::This,
+                        to: mtg_core::card::DamageTo::Player,
+                        combat: true,
+                    }
             ) {
-                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `becomes tapped`, `transforms`, or `is turned face up`");
+                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `becomes tapped`, `deals combat damage to a player`, `transforms`, or `is turned face up`");
             }
             return Ok(Trigger::Or {
                 first: Box::new(first),
@@ -20889,7 +21027,16 @@ impl P {
                 }
                 let combat = self.eat_word("combat");
                 self.expect_word("damage")?;
-                let to = if self.eat_word("to") {
+                let to = if self.at_words(&["to", "that", "player"]) {
+                    // In a delayed trigger about a player: that player.
+                    if self.delayed_player.is_none() {
+                        return self.fail(
+                            "`deals damage to that player` needs a delayed trigger about a player",
+                        );
+                    }
+                    self.pos += 3;
+                    mtg_core::card::DamageTo::ThatPlayer
+                } else if self.eat_word("to") {
                     self.eat_word("a");
                     self.eat_word("an");
                     // "deals damage to a Vampire": any other filter.
@@ -20939,6 +21086,9 @@ impl P {
                 Ok(Trigger::BecomesBlocked(obj))
             }
             "becomes" => {
+                // `creature you control or spell becomes targeted by
+                // opponent` (the `or spell` read just before `becomes`).
+                let or_spell = std::mem::take(&mut self.or_spell);
                 if !(self.eat_word("targeted")
                     || self.eat_words(&["the", "target", "of", "a", "spell", "or", "ability"]))
                 {
@@ -20962,6 +21112,7 @@ impl P {
                         spells,
                         whose,
                         whenever,
+                        or_spell,
                     });
                 }
                 if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {
@@ -22596,6 +22747,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::EveryStep(_)
         | Trigger::EachPlayersEndStep
         | Trigger::BeginningOfStep { .. }
+        | Trigger::NextUpkeep
         | Trigger::CreaturesYouControlAttack
         | Trigger::OpponentCreaturesAttack(_)
         | Trigger::ThisToGraveyard

@@ -2059,6 +2059,7 @@ impl Decompiler<'_> {
                     this_turn: *this_turn,
                     it: false,
                     closed: false,
+                    own_targets: None,
                 }
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
@@ -2778,6 +2779,10 @@ impl Decompiler<'_> {
                 whose: *whose,
                 min: *min,
             },
+            TriggerSpec::AttacksWithPower(power) => Trigger::AttacksWithPower {
+                power: *power,
+                first: false,
+            },
             TriggerSpec::AttacksWith { this, min } => Trigger::AttacksWith {
                 this: *this,
                 min: *min,
@@ -2833,13 +2838,16 @@ impl Decompiler<'_> {
                 what,
                 spells,
                 whose,
+                or_spell,
             } => Trigger::TargetedBy {
                 obj: self.trigger_obj(what),
                 spells: *spells,
                 whose: *whose,
                 whenever: true,
+                or_spell: *or_spell,
             },
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::TargetedByYourAbility => Trigger::TargetedByYourAbility,
             TriggerSpec::TargetedFirstTime => Trigger::TargetedFirstTime,
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),

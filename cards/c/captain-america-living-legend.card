@@ -1,0 +1,8 @@
+card "Captain America, Living Legend" {
+  oracle_id 67aa946d-e694-494e-ba0c-44880d5bc03e
+  cost {1}{W}{U}
+  type Legendary Creature — Human Soldier Hero
+  pt 3/4
+  keywords vigilance
+  triggered whenever creature you control becomes tapped during your turn if first time tapped this turn: untap it
+}

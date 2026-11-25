@@ -891,6 +891,9 @@ impl Fmt {
             out.push_str(match s.lasting {
                 Some(mtg_core::card::Lasting::YourNextTurn) => "until your next turn, ",
                 Some(mtg_core::card::Lasting::EndOfCombat) => "until end of combat, ",
+                Some(mtg_core::card::Lasting::EndOfYourNextTurn) => {
+                    "until the end of your next turn, "
+                }
                 _ => "until end of turn, ",
             });
         }
@@ -944,6 +947,7 @@ impl Fmt {
                 mtg_core::card::Lasting::UntilCastFromExile => " until this is cast from exile",
                 mtg_core::card::Lasting::Forever => " indefinitely",
                 mtg_core::card::Lasting::EndOfCombat => " until end of combat",
+                mtg_core::card::Lasting::EndOfYourNextTurn => " until the end of your next turn",
             });
         }
         out
@@ -4430,6 +4434,7 @@ impl Fmt {
                 this_turn,
                 it,
                 closed,
+                ..
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);
@@ -6312,6 +6317,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
+            | Trigger::NextUpkeep
             | Trigger::OnNextTurn(_)
             | Trigger::AttachedStep(_)
             | Trigger::State(_)
@@ -6345,6 +6351,7 @@ pub fn activates_words(whose: Who, kind: mtg_core::card::ActivationKind) -> Stri
         K::Exhaust => "an exhaust ability",
         K::Loyalty => "a loyalty ability",
         K::Ninjutsu => "a ninjutsu ability",
+        K::TargetsCreatureOrPlayer => "an ability that targets a creature or player",
     };
     format!("{who} {what}")
 }
@@ -6497,6 +6504,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             step: Step::EndOfCombat,
             ..
         } => "at end of combat".to_string(),
+        Trigger::NextUpkeep => "at beginning of next upkeep".to_string(),
         Trigger::BeginningOfStep { step, whose } => {
             let whose = match whose {
                 Who::You if next => "your next",
@@ -6561,6 +6569,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::AttacksWith { this: false, min } => {
             format!("whenever you attack with {min} or more creatures")
         }
+        Trigger::AttacksWithPower { power, first } => format!(
+            "whenever you attack with creatures with total power {power} or greater{}",
+            if *first { " first time each turn" } else { "" }
+        ),
         Trigger::AttacksWith { this: true, min } => format!(
             "whenever this and at least {} other creatures attack",
             min.saturating_sub(1)
@@ -6665,10 +6677,12 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             spells,
             whose,
             whenever,
+            or_spell,
         } => format!(
-            "{} {} becomes targeted by {}{}",
+            "{} {}{} becomes targeted by {}{}",
             if *whenever { "whenever" } else { "when" },
             trigger_obj(obj),
+            if *or_spell { " or spell" } else { "" },
             if *whose == Who::Opponents {
                 "opponent "
             } else {
@@ -6679,6 +6693,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         .trim_end()
         .to_string(),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
+        Trigger::TargetedByYourAbility => {
+            "whenever a player or permanent becomes targeted by your ability".to_string()
+        }
         Trigger::TargetedFirstTime => {
             "whenever this becomes targeted first time each turn".to_string()
         }
@@ -6791,6 +6808,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 mtg_core::card::DamageTo::Creature => " to creature",
                 mtg_core::card::DamageTo::Player => " to player",
                 mtg_core::card::DamageTo::Opponent => " to opponent",
+                mtg_core::card::DamageTo::ThatPlayer => " to that player",
             }
         ),
         Trigger::CastsFiltered {
@@ -8667,6 +8685,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::WasBlocking(false)) => {
                     head.push_str(" if it wasn't blocking");
+                }
+                Some(mtg_core::card::Condition::FirstTime { what, your_turn }) => {
+                    if *your_turn {
+                        head.push_str(" during your turn");
+                    }
+                    head.push_str(match what {
+                        mtg_core::card::ObjEvent::Tapped => " if first time tapped this turn",
+                        mtg_core::card::ObjEvent::CountersPut => {
+                            " if first time counters this turn"
+                        }
+                    });
                 }
                 Some(mtg_core::card::Condition::NotPrepared) => {
                     head.push_str(" if this isn't prepared");

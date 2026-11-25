@@ -1,0 +1,9 @@
+card "Sabotage Strategist" {
+  oracle_id 1b788680-28e3-4378-9607-bd42acb4fbad
+  cost {2}{U}{U}
+  type Creature — Vedalken Ranger
+  pt 2/2
+  keywords flying, vigilance
+  triggered whenever one or more creatures attack you: those creatures gets -1/-0
+  exhaust {5}{U}{U}: put 3 +1/+1 counters on this
+}

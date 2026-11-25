@@ -1,0 +1,35 @@
+# "Whenever this enters or deals combat damage to a player" (fourteenth
+# wave).
+
+scenario "Kitsune, Dragon's Daughter: entering exchanges two other creatures" {
+  battlefield A: 6 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Kitsune, Dragon's Daughter"
+  turn 1 A: cast "Kitsune, Dragon's Daughter"
+  turn 1 A: trigger "Kitsune, Dragon's Daughter" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Kitsune, Dragon's Daughter: combat damage to a player exchanges two other creatures" {
+  battlefield A: "Kitsune, Dragon's Daughter", "Llanowar Elves"
+  battlefield B: "Serra Angel" tapped
+  turn 1 A: attack "Kitsune, Dragon's Daughter"
+  turn 1 combat_damage A: trigger "Kitsune, Dragon's Daughter" targeting "Llanowar Elves", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Serra Angel"
+  assert battlefield B contains "Llanowar Elves"
+}
+
+scenario "Kitsune, Dragon's Daughter: the exchange may be declined" {
+  battlefield A: "Kitsune, Dragon's Daughter", "Llanowar Elves"
+  battlefield B: "Serra Angel" tapped
+  turn 1 A: attack "Kitsune, Dragon's Daughter"
+  turn 1 combat_damage A: trigger "Kitsune, Dragon's Daughter" targeting "Llanowar Elves", "Serra Angel"
+  turn 1 combat_damage A: decline "Kitsune, Dragon's Daughter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert battlefield B contains "Serra Angel"
+}

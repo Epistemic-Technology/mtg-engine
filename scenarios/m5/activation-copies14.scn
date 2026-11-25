@@ -1,0 +1,36 @@
+# "Whenever you activate an ability that targets a creature or player,
+# copy that ability. You may choose new targets for the copy."
+# (fourteenth wave).
+
+scenario "Ertha Jo, Frontier Mentor: entering makes a Mercenary" {
+  battlefield A: 4 "Mountain"
+  hand A: "Ertha Jo, Frontier Mentor"
+  battlefield A: "Plains"
+  turn 1 A: cast "Ertha Jo, Frontier Mentor"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Mercenary"
+}
+
+scenario "Ertha Jo, Frontier Mentor: an ability targeting a player is copied" {
+  battlefield A: "Ertha Jo, Frontier Mentor", "Prodigal Sorcerer"
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 18
+}
+
+scenario "Ertha Jo, Frontier Mentor: the copy may take a new target" {
+  battlefield A: "Ertha Jo, Frontier Mentor", "Mercenary", "Grizzly Bears"
+  turn 1 A: activate "Mercenary" targeting "Grizzly Bears"
+  turn 1 A: choose "Ertha Jo, Frontier Mentor"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert power "Ertha Jo, Frontier Mentor" 3
+}
+
+scenario "Ertha Jo, Frontier Mentor: an ability targeting a planeswalker is not copied" {
+  battlefield A: "Ertha Jo, Frontier Mentor", "Prodigal Sorcerer"
+  battlefield B: "Jace Beleren"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Jace Beleren"
+  run_to turn 1 begin_combat
+  assert counters "Jace Beleren" loyalty 2
+}

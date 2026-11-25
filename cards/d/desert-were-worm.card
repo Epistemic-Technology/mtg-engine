@@ -1,0 +1,8 @@
+card "Desert Were-Worm" {
+  oracle_id 81c2913f-42b7-4cfa-adc0-b3416fbe2ec6
+  cost {4}{R}{R}
+  type Creature — Dragon Wurm
+  pt 0/5
+  static this: +2/+0 count each Mountain you control
+  triggered whenever you attack with creatures with total power 12 or greater first time each turn: untap all attacking creature; after this phase, additional combat phase
+}

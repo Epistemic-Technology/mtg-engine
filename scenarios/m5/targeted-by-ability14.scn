@@ -1,0 +1,32 @@
+# "Whenever a player or permanent becomes the target of an ability you
+# control" (fourteenth wave).
+
+scenario "Loki, God of Mischief: your ability targeting a player draws a card, once each turn" {
+  battlefield A: "Loki, God of Mischief", "Prodigal Sorcerer", "Prodigal Pyromancer"
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Prodigal Pyromancer" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 18
+  assert hand A count 1
+}
+
+scenario "Loki, God of Mischief: your ability targeting a permanent draws a card" {
+  battlefield A: "Loki, God of Mischief", "Prodigal Sorcerer"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+}
+
+scenario "Loki, God of Mischief: spells and opponents' abilities don't count" {
+  battlefield A: "Loki, God of Mischief", "Mountain"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 2 B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert life B 18
+  assert hand A count 0
+}
