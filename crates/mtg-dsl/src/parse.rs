@@ -21432,6 +21432,9 @@ impl P {
                     | Trigger::TurnedFaceUp(TriggerObj::This)
                     | Trigger::BecomesTapped(TriggerObj::This)
                     | Trigger::Transforms
+                    // "When this creature enters or becomes the target of a
+                    // spell or ability an opponent controls" (Shield Mare).
+                    | Trigger::TargetedByOpponent
                     // "Whenever Kitsune enters or deals combat damage to a
                     // player".
                     | Trigger::DealsCombatDamageToPlayer(TriggerObj::This)
@@ -21768,8 +21771,45 @@ impl P {
                 }
                 // "the target of a spell", "... of a spell or ability an
                 // opponent controls" (a filter's, or a spell's only).
-                if self.at_words(&["by", "spell"])
-                    || self.at_words(&["by", "opponent", "spell"])
+                // "... of a spell you control" (`by you spell`), "... of an
+                // instant or sorcery spell" (`by instant or sorcery spell`).
+                let spell_kind = |p: &mut Self| -> Option<Filter> {
+                    let at = p.pos;
+                    if !p.at_word("spell")
+                        && let Ok(f) = p.filter()
+                        && p.at_word("spell")
+                    {
+                        return Some(f);
+                    }
+                    p.pos = at;
+                    None
+                };
+                if self.at_word("by")
+                    && !self.at_words(&["by", "opponent"])
+                    && !self.at_words(&["by", "you", "first"])
+                {
+                    let at = self.pos;
+                    self.pos += 1;
+                    let whose = if self.eat_word("you") {
+                        Who::You
+                    } else {
+                        Who::Any
+                    };
+                    let spell = spell_kind(self).map(Box::new);
+                    let spells = self.eat_word("spell");
+                    if spells || whose == Who::You {
+                        return Ok(Trigger::TargetedBy {
+                            obj,
+                            spells,
+                            whose,
+                            whenever,
+                            or_spell,
+                            spell,
+                        });
+                    }
+                    self.pos = at;
+                }
+                if self.at_words(&["by", "opponent", "spell"])
                     || (obj != TriggerObj::This && self.at_words(&["by", "opponent"]))
                 {
                     self.pos += 1;
@@ -21778,6 +21818,7 @@ impl P {
                     } else {
                         Who::Any
                     };
+                    let spell = spell_kind(self).map(Box::new);
                     let spells = self.eat_word("spell");
                     return Ok(Trigger::TargetedBy {
                         obj,
@@ -21785,6 +21826,7 @@ impl P {
                         whose,
                         whenever,
                         or_spell,
+                        spell,
                     });
                 }
                 if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {

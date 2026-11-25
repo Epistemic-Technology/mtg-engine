@@ -18361,11 +18361,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             whose,
             whenever,
             or_spell,
+            spell,
         } => {
-            let what = if *spells {
-                "a spell"
-            } else {
-                "a spell or ability"
+            let what = match spell {
+                // "an instant or sorcery spell", "an Aura spell".
+                Some(f) => with_article(&format!("{} spell", filter_phrase(f, ctx.card, false))),
+                None if *spells => "a spell".to_string(),
+                None => "a spell or ability".to_string(),
             };
             let whose = match whose {
                 Who::Opponents => " an opponent controls",

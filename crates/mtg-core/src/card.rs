@@ -9232,6 +9232,10 @@ pub enum TriggerSpec {
         /// spell on the stack matching the filter counts too.
         #[serde(default)]
         or_spell: bool,
+        /// "... the target of an instant or sorcery spell", "... of an Aura
+        /// spell" (with `spells`): the spell must match.
+        #[serde(default)]
+        spell: Option<Box<ObjFilter>>,
     },
     /// A keyword action (CR 701) or a like event happening once where it
     /// is performed (`Event::Acted`, surveil's `Event::Scried`): "Whenever

@@ -7029,16 +7029,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             whose,
             whenever,
             or_spell,
+            spell,
         } => format!(
-            "{} {}{} becomes targeted by {}{}",
+            "{} {}{} becomes targeted by {}{}{}",
             if *whenever { "whenever" } else { "when" },
             trigger_obj(obj),
             if *or_spell { " or spell" } else { "" },
-            if *whose == Who::Opponents {
-                "opponent "
-            } else {
-                ""
+            match whose {
+                Who::Opponents => "opponent ",
+                Who::You => "you ",
+                Who::Any => "",
             },
+            spell.as_ref().map_or_else(String::new, |f| format!("{} ", filter(f))),
             if *spells { "spell" } else { "" }
         )
         .trim_end()

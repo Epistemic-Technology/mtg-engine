@@ -1,0 +1,8 @@
+card "Illuminator Virtuoso" {
+  oracle_id ed2af15e-955b-43a1-80af-2484be373db3
+  cost {1}{W}
+  type Creature — Human Rogue
+  pt 1/1
+  keywords double strike
+  triggered whenever this becomes targeted by you spell: this connives
+}

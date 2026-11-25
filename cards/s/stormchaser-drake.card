@@ -1,0 +1,8 @@
+card "Stormchaser Drake" {
+  oracle_id a9530416-d5fb-4ddd-ae6f-0eefb9f276c5
+  cost {1}{U}
+  type Creature — Drake
+  pt 2/1
+  keywords flying
+  triggered whenever this becomes targeted by you spell: draw 1 cards
+}

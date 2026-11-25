@@ -1904,11 +1904,18 @@ impl GameState {
                     spells,
                     whose,
                     or_spell,
+                    spell: kind,
                 },
                 Event::Targeted { target, by },
             ) => {
                 let b = self.objects.get(*by)?;
                 if *spells && b.kind == crate::state::ObjKind::Ability {
+                    return None;
+                }
+                // "an instant or sorcery spell": the spell's types.
+                if let Some(f) = kind
+                    && !self.characteristics(*by).is_some_and(|c| f.matches_characteristics(&c))
+                {
                     return None;
                 }
                 let by_ctl = b.controller;

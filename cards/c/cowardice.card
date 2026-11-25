@@ -1,0 +1,6 @@
+card "Cowardice" {
+  oracle_id 2692dd66-c200-4d0b-9427-30deaa2342ab
+  cost {3}{U}{U}
+  type Enchantment
+  triggered whenever creature becomes targeted: return that creature to hand
+}

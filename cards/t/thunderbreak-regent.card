@@ -1,0 +1,8 @@
+card "Thunderbreak Regent" {
+  oracle_id bb04f927-0348-4a14-9e74-381f18083f6a
+  cost {2}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever Dragon you control becomes targeted by opponent: this deals 3 damage to that player
+}

@@ -1,0 +1,8 @@
+card "Shield Mare" {
+  oracle_id e07b6988-9ee7-4f20-8aa5-7dfa87ff507b
+  cost {1}{W}{W}
+  type Creature — Horse
+  pt 2/3
+  can't be blocked by red creature
+  triggered when this enters or becomes targeted by opponent: you gain 3 life
+}

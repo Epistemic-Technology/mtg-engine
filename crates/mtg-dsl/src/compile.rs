@@ -6563,12 +6563,14 @@ impl Compiler<'_> {
                 spells,
                 whose,
                 or_spell,
+                spell,
                 ..
             } => TriggerSpec::TargetedBy {
                 what: self.trigger_obj(obj),
                 spells: *spells,
                 whose: *whose,
                 or_spell: *or_spell,
+                spell: spell.as_ref().map(|f| Box::new(self.filter(f))),
             },
             Trigger::TargetedFirstTime => TriggerSpec::TargetedFirstTime,
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,

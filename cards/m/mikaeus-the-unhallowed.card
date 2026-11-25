@@ -1,0 +1,9 @@
+card "Mikaeus, the Unhallowed" {
+  oracle_id 5d27c63e-d1ef-48af-b51d-01ebc6daeac9
+  cost {3}{B}{B}{B}
+  type Legendary Creature — Zombie Cleric
+  pt 5/5
+  keywords intimidate
+  triggered whenever Human deals damage to you: destroy it
+  static other non-Human creature you control: gets +1/+1 and has undying
+}

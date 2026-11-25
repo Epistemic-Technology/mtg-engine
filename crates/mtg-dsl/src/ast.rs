@@ -4693,6 +4693,9 @@ pub enum Trigger {
         /// opponent`: "Whenever a creature you control or a creature spell
         /// you control becomes the target of ..." (Surrak, Elusive Hunter).
         or_spell: bool,
+        /// `becomes targeted by instant or sorcery spell`: "... the target
+        /// of an instant or sorcery spell".
+        spell: Option<Box<Filter>>,
     },
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
