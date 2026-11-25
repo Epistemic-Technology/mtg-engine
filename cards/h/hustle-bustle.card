@@ -1,0 +1,14 @@
+card "Hustle // Bustle" {
+  oracle_id e294d85f-caf2-4939-99d3-7ca5bba2b8d1
+  layout split
+  face "Hustle" {
+    cost {U/R}
+    type Instant
+    spell: target creature gains attacks each combat if able and blocks each combat if able
+  }
+  face "Bustle" {
+    cost {4}{R/G}{R/G}
+    type Sorcery
+    spell: each creature you control gets +2/+2 and gains trample; you may turn face up 1 creature you control chosen
+  }
+}

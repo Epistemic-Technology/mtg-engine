@@ -15540,6 +15540,17 @@ impl GameState {
                 let def = self.source_def(ctx);
                 ctx.chosen = self.choose_kind(ctx.controller, *kind, def);
             }
+            Effect::HexproofFromChosen { to, abilities } => {
+                let Some(c) = self.resolution_chosen(ctx).color() else {
+                    return;
+                };
+                let part = Modification::AddAbility(abilities[c as usize]);
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                    }
+                }
+            }
             Effect::ProtectionFromChosen { to } => {
                 let Some(c) = self.resolution_chosen(ctx).color() else {
                     return;
@@ -15639,7 +15650,12 @@ impl GameState {
                     return;
                 }
                 let def = self.source_def(ctx);
-                let part = match (self.choose_kind(ctx.controller, *kind, def), *protection) {
+                let chosen = self.choose_kind(ctx.controller, *kind, def);
+                // "... and gains hexproof from that color" reads it.
+                if ctx.chosen == Chosen::None {
+                    ctx.chosen = chosen;
+                }
+                let part = match (chosen, *protection) {
                     (Chosen::Color(c), true) => {
                         Modification::AddKeywords(KeywordSet::of([Keyword::protection_from(c)]))
                     }
@@ -18194,6 +18210,28 @@ impl GameState {
                 ps.combat_mana += n;
                 self.bump();
             }
+            Effect::GraveyardToHand { filter } => {
+                // "Return all instant and sorcery cards from your graveyard
+                // to your hand.": the matching cards, as one event.
+                let filter = &*self.chosen_filter(filter, ctx);
+                let cards: Vec<ObjId> = self
+                    .player(ctx.controller)
+                    .graveyard
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.base_characteristics(o);
+                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                            && self.status_ok(filter, *id)
+                    })
+                    .collect();
+                let together = self.begin_together(cards.len());
+                for id in cards {
+                    self.move_object(id, Zone::Hand, false);
+                }
+                self.end_together(together);
+            }
             Effect::GraveyardToBattlefield {
                 filter,
                 tapped,
@@ -18984,6 +19022,20 @@ impl GameState {
             Effect::GaveGift => self.emit(Event::GaveGift {
                 player: ctx.controller,
             }),
+            Effect::ManifestDreadTimes { count } => {
+                let n = self.eval_num(*count, ctx);
+                let mut group = Vec::new();
+                for _ in 0..n {
+                    if let Some(new) = self.manifest_dread(ctx.controller) {
+                        ctx.created = Some(new);
+                        group.push(new);
+                    }
+                }
+                // "then put X +1/+1 counters on each of those creatures".
+                if let Some(log) = self.this_way.as_mut() {
+                    log.group = group;
+                }
+            }
             Effect::ManifestDreadBy { who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t

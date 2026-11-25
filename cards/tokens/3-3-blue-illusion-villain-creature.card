@@ -1,0 +1,6 @@
+token "3/3 blue Illusion Villain creature" {
+  name "Illusion Villain"
+  type Creature — Illusion Villain
+  pt 3/3
+  color blue
+}

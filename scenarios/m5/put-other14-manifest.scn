@@ -1,0 +1,28 @@
+# "Manifest dread X times, then put X +1/+1 counters on each of those
+# creatures." (Valgavoth's Onslaught, put-other14).
+
+scenario "Valgavoth's Onslaught: X = 2 manifests two creatures with two counters each" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Valgavoth's Onslaught"
+  library A: "Forest", "Hill Giant", "Shock", "Island", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Valgavoth's Onslaught" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "face-down creature"
+  assert power oldest "face-down creature" 4
+  assert power newest "face-down creature" 4
+  assert counters "Grizzly Bears" +1/+1 0
+  assert graveyard A count 3
+  assert library A count 2
+}
+
+scenario "Valgavoth's Onslaught: X = 0 does nothing" {
+  battlefield A: "Forest"
+  hand A: "Valgavoth's Onslaught"
+  library A: "Forest", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Valgavoth's Onslaught"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "face-down creature"
+  assert library A count 2
+}

@@ -1,0 +1,6 @@
+card "Eliminate the Impossible" {
+  oracle_id c78d4cec-6764-4cce-96d2-a2d85a57b218
+  cost {1}{U}
+  type Instant
+  spell: investigate; each creature your opponents control gets -2/-0; those creatures no longer suspected
+}

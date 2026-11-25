@@ -1,0 +1,8 @@
+card "Praetor's Counsel" {
+  oracle_id 83d8eda7-b8d2-479a-b1ec-de56833a3182
+  cost {5}{G}{G}{G}
+  type Sorcery
+  spell {
+    return all card from your graveyard to hand; exile this; you have no maximum hand size for the rest of the game
+  }
+}

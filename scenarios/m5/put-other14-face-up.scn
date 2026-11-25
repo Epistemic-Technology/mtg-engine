@@ -1,0 +1,43 @@
+# "You may turn a creature you control face up." (Bustle, put-other14):
+# chosen as it resolves, turned face up without paying a cost (CR 708.8).
+
+scenario "Bustle: +2/+2 and trample, and a face-down creature turns face up for free" {
+  battlefield A: 9 "Mountain", "Grizzly Bears"
+  hand A: "Atarka Efreet", "Hustle // Bustle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atarka Efreet" face_down
+  turn 1 A: wait
+  turn 1 A: cast "Bustle"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Atarka Efreet"
+  # Megamorph adds no counter: no cost was paid.
+  assert counters "Atarka Efreet" +1/+1 0
+  assert power "Atarka Efreet" 7
+  assert toughness "Atarka Efreet" 3
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Bustle: declining leaves the creature face down" {
+  battlefield A: 9 "Mountain"
+  hand A: "Atarka Efreet", "Hustle // Bustle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Atarka Efreet" face_down
+  turn 1 A: wait
+  turn 1 A: cast "Bustle"
+  turn 1 A: decline "Bustle"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Atarka Efreet"
+  assert power "face-down creature" 4
+}
+
+# "Target creature attacks or blocks this turn if able."
+scenario "Hustle: the target attacks this turn" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Hustle // Bustle"
+  start turn 2 B
+  turn 2 upkeep A: cast "Hustle" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

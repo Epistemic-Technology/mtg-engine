@@ -855,7 +855,12 @@ impl Fmt {
                 if *artifact { "artifact " } else { "" },
                 if *effect { " by an effect" } else { "" }
             ),
-            Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
+            Replaces::PlusCounters { on, you: false } => {
+                format!("+1/+1 counters put on {}", filter(on))
+            }
+            Replaces::PlusCounters { on, you: true } => {
+                format!("+1/+1 counters you put on {}", filter(on))
+            }
             Replaces::AnyCounters { on, by } => format!(
                 "counters {} {}",
                 match by {
@@ -1050,6 +1055,7 @@ impl Fmt {
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),
+            Effect::ManifestDreadTimes(n) => format!("manifest dread {} times", num(*n)),
             Effect::ManifestDreadBy { who } => {
                 format!("{} manifests dread", self.recipient(*who, t))
             }
@@ -2308,6 +2314,14 @@ impl Fmt {
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
+            // `return all card ...`: any card (an empty filter would
+            // print "permanent").
+            Effect::GraveyardToHand { filter: f } if *f == Filter::default() => {
+                "return all card from your graveyard to hand".to_string()
+            }
+            Effect::GraveyardToHand { filter: f } => {
+                format!("return all {} card from your graveyard to hand", filter(f))
+            }
             Effect::GraveyardToBattlefield {
                 filter: f,
                 tapped,
@@ -2323,6 +2337,9 @@ impl Fmt {
                 format!("exile {} until this leaves", self.recipient(*what, t))
             }
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
+            Effect::ExileAllCardsFromAllGraveyards => {
+                "exile all cards from all graveyards".to_string()
+            }
             Effect::ExileGraveyard {
                 who,
                 filter: Some(f),
@@ -2421,6 +2438,13 @@ impl Fmt {
                 format!("leaving exiles {}", self.recipient(*what, t))
             }
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
+            Effect::TurnFaceUpChosen { filter: f } => {
+                format!("turn face up 1 {} chosen", filter(f))
+            }
+            Effect::ColorOfChoiceHexproof { to } => format!(
+                "{} becomes color of choice and gains hexproof from that color",
+                self.recipient(*to, t)
+            ),
             Effect::TurnFaceDown { what } => {
                 format!("turn face down {}", self.recipient(*what, t))
             }

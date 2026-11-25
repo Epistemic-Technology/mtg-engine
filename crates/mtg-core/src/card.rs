@@ -5647,6 +5647,14 @@ pub enum Effect {
     ProtectionFromChosen {
         to: Recipient,
     },
+    /// "Until end of turn, Mondo Gecko becomes the color of your choice and
+    /// gains hexproof from that color.": after an `OfChoice` color, the
+    /// recipients gain the `HexproofFrom` ability of `abilities` for the
+    /// chosen color (white, blue, black, red, green) until end of turn.
+    HexproofFromChosen {
+        to: Recipient,
+        abilities: [AbilityId; 5],
+    },
     /// "becomes the color of your choice", "gains protection from the
     /// color of your choice", "becomes the basic land type of your
     /// choice", "becomes the creature type of your choice" until end of
@@ -6534,6 +6542,12 @@ pub enum Effect {
         #[serde(default)]
         all_graveyards: bool,
     },
+    /// "Return all instant and sorcery cards from your graveyard to your
+    /// hand." (Wisdom of Ages): every card in the controller's graveyard
+    /// matching `filter` is put into its owner's hand, together.
+    GraveyardToHand {
+        filter: ObjFilter,
+    },
     /// Cloak (CR 701.58a): the top card of `of`'s library is put onto the
     /// battlefield face down under the controller's control as a 2/2
     /// creature with ward {2}; it may be turned face up for its mana cost
@@ -6745,6 +6759,13 @@ pub enum Effect {
     /// "Its controller manifests dread.", "the exiled card's owner
     /// manifests dread" (CR 701.62a): each recipient player manifests
     /// dread, the manifested creature under their control.
+    /// "Manifest dread X times" (Valgavoth's Onslaught): `count` separate
+    /// manifest dreads by the controller (CR 701.62), one after another;
+    /// the manifested permanents are "those creatures" for the rest of the
+    /// resolution (`ThisWayLog::group`, `Recipient::ThoseObjects`).
+    ManifestDreadTimes {
+        count: Num,
+    },
     ManifestDreadBy {
         who: Recipient,
     },
@@ -7143,6 +7164,7 @@ impl Effect {
                 | Effect::DigSplit { .. }
                 | Effect::Piles { .. }
                 | Effect::ManifestDread
+                | Effect::ManifestDreadTimes { .. }
                 | Effect::ManifestDreadBy { .. }
                 | Effect::Door { .. }
                 | Effect::Champion(_)
@@ -8239,6 +8261,11 @@ pub enum Replaces {
     /// as it enters (CR 122.6).
     PlusCounters {
         on: ObjFilter,
+        /// "If you would put one or more +1/+1 counters on ..." (Prairie
+        /// Dog): only the replacement's controller's putting (as
+        /// `CountersBy::You`).
+        #[serde(default)]
+        you: bool,
     },
     /// Counters of any kind would be put on a permanent matching `on`,
     /// including as it enters (CR 122.6): "If one or more counters would

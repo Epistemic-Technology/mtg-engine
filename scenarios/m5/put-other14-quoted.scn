@@ -1,0 +1,31 @@
+# Quoted abilities in a list (put-other14): 'It gains "This creature
+# attacks each combat if able" and "When this creature deals combat damage
+# to a player, sacrifice it."' (Carnage, Crimson Chaos), for good.
+
+scenario "Carnage: the returned creature must attack, and is sacrificed after combat damage" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Carnage, Crimson Chaos"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Carnage, Crimson Chaos"
+  turn 1 A: trigger "Carnage, Crimson Chaos" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  # Turn 3: the Bears attack unscripted; Carnage needn't.
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Carnage, Crimson Chaos"
+}
+
+scenario "Carnage: a mana value 4 creature card is not a legal target" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Carnage, Crimson Chaos"
+  graveyard A: "Serra Angel", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Carnage, Crimson Chaos"
+  illegal turn 1 A: trigger "Carnage, Crimson Chaos" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+}

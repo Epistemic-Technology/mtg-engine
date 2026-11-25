@@ -1,0 +1,52 @@
+# "Exile those tokens when Mysterio leaves the battlefield." (put-other14):
+# a delayed trigger about the tokens that watches its source leave.
+
+scenario "Mysterio: a token for each nontoken Villain, exiled when Mysterio leaves" {
+  battlefield A: "Armed Assailant", 4 "Island"
+  battlefield B: 3 "Swamp"
+  hand A: "Mysterio, Master of Illusion"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mysterio, Master of Illusion"
+  turn 1 postcombat_main B: cast "Murder" targeting "Mysterio, Master of Illusion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Illusion Villain"
+  assert power oldest "Illusion Villain" 3
+  run_to turn 1 end
+  assert graveyard A contains "Mysterio, Master of Illusion"
+  assert battlefield A lacks "Illusion Villain"
+  assert battlefield A contains "Armed Assailant"
+}
+
+# Ruling: if Mysterio leaves before the tokens are created, the ability
+# that removes them never triggers.
+scenario "Mysterio: gone before its trigger resolves, the tokens stay" {
+  battlefield A: "Armed Assailant", 4 "Island"
+  battlefield B: 3 "Swamp", 3 "Mountain"
+  hand A: "Mysterio, Master of Illusion"
+  hand B: "Murder", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mysterio, Master of Illusion"
+  turn 1 B: cast "Murder" targeting "Mysterio, Master of Illusion" in response to trigger "Mysterio, Master of Illusion"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Armed Assailant"
+  run_to turn 1 end
+  assert graveyard A contains "Mysterio, Master of Illusion"
+  assert graveyard A contains "Armed Assailant"
+  assert battlefield A contains 1 "Illusion Villain"
+}
+
+scenario "Mysterio: a token that died first, then Mysterio leaves" {
+  battlefield A: "Armed Assailant", 4 "Island"
+  battlefield B: 3 "Mountain", 3 "Swamp"
+  hand A: "Mysterio, Master of Illusion"
+  hand B: "Lightning Bolt", "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mysterio, Master of Illusion"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting newest A "Illusion Villain"
+  turn 1 end B: cast "Murder" targeting "Mysterio, Master of Illusion"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Illusion Villain"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Mysterio, Master of Illusion"
+  assert battlefield A lacks "Illusion Villain"
+}

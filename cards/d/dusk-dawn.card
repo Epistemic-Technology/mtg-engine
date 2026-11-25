@@ -1,0 +1,15 @@
+card "Dusk // Dawn" {
+  oracle_id 7bc3f92f-68a2-4934-afc4-89f6d0e8cf98
+  layout split
+  face "Dusk" {
+    cost {2}{W}{W}
+    type Sorcery
+    spell: destroy all creature with power 3 or greater
+  }
+  face "Dawn" {
+    cost {3}{W}{W}
+    type Sorcery
+    keywords aftermath
+    spell: return all creature with power 2 or less card from your graveyard to hand
+  }
+}

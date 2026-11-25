@@ -7550,6 +7550,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
+        Effect::ManifestDreadTimes(n) => {
+            Clause::imperative(format!("manifest dread {} times", digits(*n)))
+        }
         Effect::ManifestDreadBy { who } => {
             let s = ctx.subj(*who);
             Clause::with_subject(*who, s, "manifests dread".to_string())
@@ -7605,6 +7608,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.subj(*what)
             };
+            // "Creatures your opponents control get -2/-0 until end of
+            // turn. If any of them are suspected, they're no longer
+            // suspected." (Eliminate the Impossible): the group named
+            // again, where only the suspected ones change.
+            if s == "those creatures" {
+                return Clause::imperative(
+                    "if any of them are suspected, they're no longer suspected".to_string(),
+                );
+            }
             Clause::with_subject(
                 *what,
                 s,
@@ -7689,6 +7701,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if *tapped { " tapped" } else { "" }
             ))
         }
+        Effect::GraveyardToHand { filter } => Clause::imperative(format!(
+            "return all {} from your graveyard to your hand",
+            cards_phrase(filter, ctx.card, true)
+        )),
         Effect::GraveyardToBattlefield { filter, tapped, .. } => Clause::imperative(format!(
             "return all {} from your graveyard to the battlefield{}",
             cards_phrase(filter, ctx.card, true),
@@ -10310,6 +10326,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::ExileAllGraveyards => Clause::imperative("exile all graveyards".to_string()),
+        Effect::ExileAllCardsFromAllGraveyards => {
+            Clause::imperative("exile all cards from all graveyards".to_string())
+        }
         Effect::ExileGraveyard { who, filter } => {
             let o = ctx.obj(*who);
             let whose = match o.as_str() {
@@ -10530,6 +10549,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::TurnFaceDown { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("turn {o} face down"))
+        }
+        Effect::ColorOfChoiceHexproof { to } => {
+            let s = ctx.subj(*to);
+            Clause::imperative(format!(
+                "until end of turn, {s} {} the color of your choice and {} hexproof from that color",
+                ctx.verb(*to, "becomes", "become"),
+                ctx.verb(*to, "gains", "gain"),
+            ))
+        }
+        Effect::TurnFaceUpChosen { filter } => {
+            Clause::imperative(format!("turn {} face up", filter_a(filter, ctx.card)))
         }
         Effect::LookAtFaceDown { what } => {
             let o = ctx.obj(*what);
@@ -18459,7 +18489,18 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 "If {this} would be put into a graveyard from anywhere, reveal {this} and shuffle it into its owner's library instead."
             )
         }
-        (Replaces::PlusCounters { on }, Outcome::Double) => format!(
+        // "Until end of turn, if you would put ..." (Prairie Dog) as an
+        // effect.
+        (Replaces::PlusCounters { on, you: true }, Outcome::PlusOne) => format!(
+            "{}f you would put one or more +1/+1 counters on {}, put that many plus one +1/+1 counters on it instead.",
+            if this_turn {
+                "Until end of turn, i"
+            } else {
+                "I"
+            },
+            filter_a(on, ctx.card)
+        ),
+        (Replaces::PlusCounters { on, .. }, Outcome::Double) => format!(
             "If one or more +1/+1 counters would be put on {}, twice that many +1/+1 counters are put on that {} instead.",
             filter_a(on, ctx.card),
             if on.types.contains(&CardType::Creature) {
@@ -18491,7 +18532,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 ),
             }
         }
-        (Replaces::PlusCounters { on }, Outcome::PlusOne) => format!(
+        (Replaces::PlusCounters { on, .. }, Outcome::PlusOne) => format!(
             "If one or more +1/+1 counters would be put on {}, that many plus one +1/+1 counters are put on it instead.",
             filter_a(on, ctx.card)
         ),
@@ -21576,8 +21617,23 @@ fn conditional_static(
 // ---- abilities and cards ----
 
 /// The text of one ability, as Oracle prints it.
-#[allow(clippy::too_many_lines)] // one arm per ability kind
 pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
+    let text = ability_text_raw(card, a, lookup);
+    // Quoted abilities in a list end inside the quote with the list's
+    // punctuation, not their own period: 'It gains "This creature attacks
+    // each combat if able" and "When ..."', '... gains haste, "When ...,"
+    // and "At ..."' (Carnage, Crimson Chaos; Terminal Velocity).
+    if text.contains(".\" and \"") || text.contains(".\", \"") {
+        return text
+            .replace(".\" and \"", "\" and \"")
+            .replace(".\", and \"", ",\" and \"")
+            .replace(".\", \"", ",\" \"");
+    }
+    text
+}
+
+#[allow(clippy::too_many_lines)] // one arm per ability kind
+fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
     let no_targets: &[Target] = &[];
     match a {
         Ability::Keyword(k) => keyword_line(card, *k),

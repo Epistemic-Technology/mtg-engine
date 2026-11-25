@@ -4086,6 +4086,9 @@ impl Compiler<'_> {
                     all_graveyards: *all_graveyards,
                 });
             }
+            Effect::GraveyardToHand { filter } => out.push(CoreEffect::GraveyardToHand {
+                filter: self.filter(filter),
+            }),
             Effect::CloakTop => out.push(CoreEffect::CloakTop {
                 of: CoreRecipient::You,
             }),
@@ -4113,7 +4116,9 @@ impl Compiler<'_> {
                 what: r(*what),
                 until: true,
             }),
-            Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
+            Effect::ExileAllGraveyards | Effect::ExileAllCardsFromAllGraveyards => {
+                out.push(CoreEffect::ExileAllGraveyards);
+            }
             Effect::ExileGraveyard { who, filter } => out.push(CoreEffect::ExileGraveyard {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| Box::new(self.filter(f))),
@@ -4196,6 +4201,40 @@ impl Compiler<'_> {
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::ExileOnLeave { what } => out.push(CoreEffect::ExileOnLeave { what: r(*what) }),
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
+            Effect::ColorOfChoiceHexproof { to } => {
+                out.push(CoreEffect::OfChoice {
+                    to: r(*to),
+                    kind: mtg_core::card::ChoiceKind::Color { except: None },
+                    protection: false,
+                    in_addition: false,
+                });
+                let abilities = mtg_core::mana::Color::ALL.map(|c| {
+                    self.pool.register_ability(AbilityDef::HexproofFrom(
+                        mtg_core::card::ObjFilter {
+                            colors: Some(mtg_core::mana::ColorSet::of([c])),
+                            ..mtg_core::card::ObjFilter::default()
+                        },
+                    ))
+                });
+                out.push(CoreEffect::HexproofFromChosen {
+                    to: r(*to),
+                    abilities,
+                });
+            }
+            // "You may turn a creature you control face up.": the
+            // controller chooses one (CR 608.2d), then it turns face up.
+            Effect::TurnFaceUpChosen { filter } => {
+                // Only a face-down one can turn face up (CR 708.8).
+                let mut filter = self.filter(filter);
+                filter.status.face_down = true;
+                out.push(CoreEffect::PlayerChooses {
+                    who: CoreRecipient::You,
+                    filter,
+                });
+                out.push(CoreEffect::TurnFaceUp {
+                    what: CoreRecipient::CreatedObject,
+                });
+            }
             Effect::TurnFaceDown { what } => out.push(CoreEffect::TurnFaceDown { what: r(*what) }),
             Effect::LookAtFaceDown { what } => {
                 out.push(CoreEffect::LookAtFaceDown { what: r(*what) });
@@ -5374,18 +5413,12 @@ impl Compiler<'_> {
                         "a delayed `whenever` trigger needs a duration (`... this turn`, `until end of turn, ...`)",
                     );
                 }
-                // "Exile those tokens when this leaves the battlefield"
-                // about the tokens: the trigger would watch the tokens
-                // (a delayed trigger's `this` is what it is about) while
-                // printing the source. Only "... this turn" names the
-                // object it is about ("When that creature dies this
-                // turn").
-                let this_obj = |t: &Trigger| {
-                    matches!(
-                        t,
-                        Trigger::Leaves(TriggerObj::This) | Trigger::Dies(TriggerObj::This)
-                    )
-                };
+                // "Exile those tokens when Mysterio leaves the battlefield"
+                // about the tokens watches the source leave (the engine's
+                // delayed leave triggers); dying has no such form. Only
+                // "... this turn" names the object it is about ("When that
+                // creature dies this turn").
+                let this_obj = |t: &Trigger| matches!(t, Trigger::Dies(TriggerObj::This));
                 if !*this_turn
                     && !matches!(about, Recipient::Source)
                     && (this_obj(trigger) || matches!(trigger, Trigger::When(t) if this_obj(t)))
@@ -5577,6 +5610,9 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
+            Effect::ManifestDreadTimes(n) => {
+                out.push(CoreEffect::ManifestDreadTimes { count: *n });
+            }
             Effect::ManifestDreadBy { who } => {
                 out.push(CoreEffect::ManifestDreadBy { who: r(*who) });
             }
@@ -6795,8 +6831,9 @@ impl Compiler<'_> {
                 artifact: *artifact,
                 you: *you,
             },
-            Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
+            Replaces::PlusCounters { on, you } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
+                you: *you,
             },
             Replaces::TappedForMana { what } => CoreReplaces::TappedForMana {
                 what: self.filter(what),

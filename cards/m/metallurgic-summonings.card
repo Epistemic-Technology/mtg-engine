@@ -1,0 +1,7 @@
+card "Metallurgic Summonings" {
+  oracle_id 7d5149c6-0e7e-438c-a554-5235c85e2426
+  cost {3}{U}{U}
+  type Enchantment
+  triggered whenever you cast instant or sorcery spell: create 1 "0/0 colorless Construct artifact creature" sized count where mana value of that spell
+  activated {3}{U}{U}, exile this, if you control 6 artifact: return all andlist instant or sorcery card from your graveyard to hand
+}

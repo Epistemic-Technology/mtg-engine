@@ -1,0 +1,7 @@
+card "Mysterio, Master of Illusion" {
+  oracle_id 40f664d8-4c73-44aa-8fb1-d38771a42520
+  cost {3}{U}
+  type Legendary Creature — Human Villain
+  pt 3/3
+  triggered when this enters: create count each nontoken Villain you control "3/3 blue Illusion Villain creature"; delayed those tokens: exile those tokens when this leaves the battlefield
+}

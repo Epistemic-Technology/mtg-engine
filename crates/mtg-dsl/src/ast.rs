@@ -4268,8 +4268,11 @@ pub enum Replaces {
     TappedForMana {
         what: Filter,
     },
+    /// `+1/+1 counters put on creature you control`; `+1/+1 counters you
+    /// put on ...` ("If you would put one or more +1/+1 counters on ...").
     PlusCounters {
         on: Filter,
+        you: bool,
     },
     /// `counters put on permanent you control` ("If one or more counters
     /// would be put on ..."), `counters put by effect on ...` ("If an
@@ -5540,6 +5543,9 @@ pub enum Effect {
         what: Recipient,
     },
     ExileAllGraveyards,
+    /// `exile all cards from all graveyards`: "Exile all cards from all
+    /// graveyards" (Lantern of the Lost): the same effect, worded so.
+    ExileAllCardsFromAllGraveyards,
     /// `exile graveyard of target player`: "Exile target player's
     /// graveyard."
     /// `exile all creature card from graveyard of target player`: "Exile
@@ -6675,6 +6681,10 @@ pub enum Effect {
     ManifestDread,
     /// `its controller manifests dread` (CR 701.62a): a player other than
     /// the controller manifests dread.
+    /// `manifest dread x times`: "Manifest dread X times" (each a separate
+    /// manifest dread); `those creatures` after it are the manifested
+    /// permanents.
+    ManifestDreadTimes(Num),
     ManifestDreadBy {
         who: Recipient,
     },
@@ -6806,6 +6816,12 @@ pub enum Effect {
         /// wording only.
         each: bool,
     },
+    /// `return all instant or sorcery card from your graveyard to hand`:
+    /// "Return all instant and sorcery cards from your graveyard to your
+    /// hand."
+    GraveyardToHand {
+        filter: Filter,
+    },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).
     Recruit {
@@ -6824,6 +6840,19 @@ pub enum Effect {
     /// battlefield under your control." (Clone Shell, Summoner's Egg; CR
     /// 406.3, 607.2a).
     TurnFaceUpExiled,
+    /// `turn face up 1 creature you control chosen`: "turn a creature you
+    /// control face up" (Bustle): the controller chooses a permanent
+    /// matching the filter as it resolves (not targeted) and turns it face
+    /// up without paying a cost (CR 708.8).
+    TurnFaceUpChosen {
+        filter: Filter,
+    },
+    /// `this becomes color of choice and gains hexproof from that color`:
+    /// "Until end of turn, Mondo Gecko becomes the color of your choice
+    /// and gains hexproof from that color."
+    ColorOfChoiceHexproof {
+        to: Recipient,
+    },
     /// `return those exiled cards to hand`: "return those cards to your
     /// hand" (Ignorant Bliss's delayed trigger): the cards the source
     /// exiled face down, still in exile (CR 607.2a).

@@ -11456,6 +11456,11 @@ impl P {
                     || self.at_words(&["creature", "type", "of", "choice"])
                 {
                     let kind = self.choice_kind(true)?;
+                    // "... and gains hexproof from that color" (Mondo
+                    // Gecko).
+                    if self.eat_words(&["and", "gains", "hexproof", "from", "that", "color"]) {
+                        return Ok(Effect::ColorOfChoiceHexproof { to: subject });
+                    }
                     let in_addition = self.eat_words(&["in", "addition"]);
                     self.until_end_of_turn();
                     return Ok(Effect::OfChoice {
@@ -13492,7 +13497,19 @@ impl P {
                 if !each {
                     self.pos += 1;
                 }
-                let filter = self.filter()?;
+                // `return all card from your graveyard to hand`: "Return all
+                // cards from your graveyard to your hand." (Praetor's
+                // Counsel), any card.
+                let filter = if self.at_word("card") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                // `... to hand`: "Return all instant and sorcery cards from
+                // your graveyard to your hand." (Wisdom of Ages).
+                if !each && self.eat_words(&["card", "from", "your", "graveyard", "to", "hand"]) {
+                    return Ok(Effect::GraveyardToHand { filter });
+                }
                 self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
                 // "Sacrifice them at the beginning of the next end step."
@@ -13556,6 +13573,9 @@ impl P {
             "exile" => {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
+                }
+                if self.eat_words(&["all", "cards", "from", "all", "graveyards"]) {
+                    return Ok(Effect::ExileAllCardsFromAllGraveyards);
                 }
                 // `exile library face down`, `exile hand face down`, `exile
                 // 1 card from hand face down` (CR 406.3).
@@ -14195,6 +14215,14 @@ impl P {
             "turn" if self.at_words(&["face", "up"]) || self.at_words(&["face", "down"]) => {
                 self.pos += 1;
                 let up = self.word()? == "up";
+                // `turn face up 1 creature you control chosen`: "turn a
+                // creature you control face up" (Bustle).
+                if up && self.peek() == Some(&Tok::Num(1)) {
+                    self.pos += 1;
+                    let filter = self.filter()?;
+                    self.expect_word("chosen")?;
+                    return Ok(Effect::TurnFaceUpChosen { filter });
+                }
                 let what = self.recipient()?;
                 Ok(if up {
                     Effect::TurnFaceUp { what }
@@ -14255,7 +14283,16 @@ impl P {
             {
                 self.piles()
             }
-            "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
+            "manifest" if self.eat_word("dread") => {
+                // `manifest dread x times` (Valgavoth's Onslaught).
+                if self.word_at(1).as_deref() == Some("times") {
+                    let n = self.num()?;
+                    self.expect_word("times")?;
+                    self.group_named = true;
+                    return Ok(Effect::ManifestDreadTimes(n));
+                }
+                Ok(Effect::ManifestDread)
+            }
             "blight" => Ok(Effect::Blight(self.count()?)),
             "collect" if self.eat_word("evidence") => Ok(Effect::CollectEvidence(self.count()?)),
             "forage" => Ok(Effect::Forage),
@@ -22115,8 +22152,15 @@ impl P {
             })
         ) {
             self.pos += 1;
-            self.expect_words(&["counters", "put", "on"])?;
-            return Ok(Replaces::PlusCounters { on: self.filter()? });
+            // `+1/+1 counters you put on ...` (Prairie Dog).
+            let you = self.eat_words(&["counters", "you", "put", "on"]);
+            if !you {
+                self.expect_words(&["counters", "put", "on"])?;
+            }
+            return Ok(Replaces::PlusCounters {
+                on: self.filter()?,
+                you,
+            });
         }
         // Counters of any kind (CR 122.6).
         if self.at_words(&["counters", "put", "on"])

@@ -679,13 +679,21 @@ impl GameState {
                     )
             }),
             (
-                Replaces::PlusCounters { on },
+                Replaces::PlusCounters { on, you },
                 Proposed::AddCounters {
                     obj,
                     kind: CounterKind::PlusOnePlusOne,
                     n,
                 },
-            ) => *n > 0 && self.filter_matches(on, *obj, source, controller),
+            ) => {
+                *n > 0
+                    && (!*you
+                        || self
+                            .effect_controller
+                            .or_else(|| self.objects.get(*obj).map(|o| o.controller))
+                            == Some(controller))
+                    && self.filter_matches(on, *obj, source, controller)
+            }
             // "If one or more counters would be put on a permanent you
             // control" (Doubling Season, Loading Zone): any kind.
             (Replaces::AnyCounters { on, by }, Proposed::AddCounters { obj, n, .. }) => {
@@ -755,7 +763,7 @@ impl GameState {
                     })
             }
             (
-                Replaces::PlusCounters { on },
+                Replaces::PlusCounters { on, you },
                 Proposed::ZoneChange {
                     obj,
                     to: Zone::Battlefield,
@@ -770,6 +778,7 @@ impl GameState {
             ) => {
                 // CR 122.6: counters it enters with count as being put on it.
                 *n > 0
+                    && (!*you || self.effect_controller.unwrap_or(*ctl) == controller)
                     && self.objects.get(*obj).is_some_and(|o| {
                         on.matches(
                             *obj,

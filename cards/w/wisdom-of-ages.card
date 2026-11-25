@@ -1,0 +1,9 @@
+card "Wisdom of Ages" {
+  oracle_id d9722ec3-aa5e-4c69-8ff0-cef1b1839fa4
+  cost {4}{U}{U}{U}
+  type Sorcery
+  spell {
+    return all andlist instant or sorcery card from your graveyard to hand; you have no maximum hand size for the rest of the game
+    exile this
+  }
+}
