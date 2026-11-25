@@ -767,11 +767,44 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     Some(you),
                 )
         }),
+        // "This creature can't be blocked as long as defending player
+        // controls an untapped land" (Hazy Homunculus): the player the
+        // source attacks (CR 506.2); while it isn't attacking, there is
+        // none and the condition doesn't hold.
+        StaticCondition::DefenderControls { filter, at_least } => {
+            let Some(d) = state.defending_player_of(source, you) else {
+                return false;
+            };
+            let n = work
+                .ids
+                .iter()
+                .filter(|id| {
+                    work.on_battlefield(**id)
+                        && work.controller_of(**id) == d
+                        && filter
+                            .tapped
+                            .is_none_or(|t| state.objects[**id].tapped == t)
+                        // The filter's "you" is the defending player
+                        // ("defending player controls").
+                        && filter.matches(
+                            **id,
+                            d,
+                            &chars[work.index[*id]],
+                            Some(source),
+                            Some(d),
+                        )
+                })
+                .count();
+            if *at_least == 0 {
+                n == 0
+            } else {
+                n >= *at_least as usize
+            }
+        }
         // Judged as attackers are declared, or as a permanent enters; not
         // by a static ability. A static ability has no "they" or
         // triggering object, and doesn't read who is attacking.
-        StaticCondition::DefenderControls { .. }
-        | StaticCondition::DefenderPoisoned
+        StaticCondition::DefenderPoisoned
         | StaticCondition::OthersInCombat { .. }
         | StaticCondition::MoreCreaturesThanOpponent { .. }
         | StaticCondition::Escaped

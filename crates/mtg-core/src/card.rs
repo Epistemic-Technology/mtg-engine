@@ -12158,7 +12158,8 @@ impl DefFlags {
                 matches!(a, AbilityDef::Static(s) if matches!(&s.condition,
                     Some(StaticCondition::YouControlNone(f)
                         | StaticCondition::SourceIs(f)
-                        | StaticCondition::AttachedIs(f)) if f.tapped.is_some())
+                        | StaticCondition::AttachedIs(f)
+                        | StaticCondition::DefenderControls { filter: f, .. }) if f.tapped.is_some())
                     // "Other tapped creatures you control have
                     // deathtouch" (Saryth, the Viper's Fang): whom the
                     // static affects changes as permanents tap.
@@ -13715,6 +13716,7 @@ impl CardPool {
                     | StaticCondition::SourceAttackedOrBlocked
                     | StaticCondition::SourceBlocked
                     | StaticCondition::SourceBeingBlocked
+                    | StaticCondition::DefenderControls { .. }
             )))
         });
         let hand_reader = |a: &AbilityDef| {

@@ -1,0 +1,7 @@
+card "Arctic Foxes" {
+  oracle_id 898f0824-cf4c-4e34-8407-9a32fdae6dcb
+  cost {1}{W}
+  type Creature — Fox
+  pt 1/1
+  static this: has ability { can't be blocked by creature with power 2 or greater } as long as defending player controls snow land
+}

@@ -5294,6 +5294,22 @@ impl GameState {
         }
     }
 
+    /// The defending player of the attacking creature `source` (CR
+    /// 506.2): the player it attacks, a planeswalker's controller, a
+    /// battle's protector. None while it isn't attacking.
+    pub fn defending_player_of(&self, source: ObjId, you: PlayerId) -> Option<PlayerId> {
+        self.combat
+            .as_ref()
+            .and_then(|c| c.attacker(source))
+            .and_then(|a| match a.attacking {
+                Target::Player(p) => Some(p),
+                Target::Object(o) => self
+                    .protector(o)
+                    .or_else(|| self.objects.get(o).map(|x| x.controller))
+                    .filter(|p| *p != you),
+            })
+    }
+
     /// Whether a player a `HandPlayer` names passes the test: "that
     /// player" as given; the defending player of the attacking source (CR
     /// 506.2; a planeswalker's controller, a battle's protector); any
@@ -5309,18 +5325,7 @@ impl GameState {
         use crate::card::HandPlayer as H;
         match who {
             H::That => that.is_some_and(test),
-            H::Defending => self
-                .combat
-                .as_ref()
-                .and_then(|c| c.attacker(source))
-                .and_then(|a| match a.attacking {
-                    Target::Player(p) => Some(p),
-                    Target::Object(o) => self
-                        .protector(o)
-                        .or_else(|| self.objects.get(o).map(|x| x.controller))
-                        .filter(|p| *p != you),
-                })
-                .is_some_and(test),
+            H::Defending => self.defending_player_of(source, you).is_some_and(test),
             H::Opponent => self.players_in_game().any(|p| p != you && test(p)),
             H::Anyone => self.players_in_game().any(test),
         }
