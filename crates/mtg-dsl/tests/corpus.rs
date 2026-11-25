@@ -457,6 +457,19 @@ fn wrong_meaning_forms_of_the_sixth_correctness_wave_are_rejected() {
 }
 
 #[test]
+fn wrong_meaning_forms_of_the_fifteenth_wave_are_rejected() {
+    // A tap cost's "that share a creature type" was ignored (Weight of
+    // Conscience).
+    let e = creature_error(
+        "activated tap 2 untapped creature you control that share creature type: draw 1 card",
+    );
+    assert!(e.contains("that share"), "{e}");
+    assert!(compiles(
+        "activated tap 2 untapped creature you control: draw 1 card"
+    ));
+}
+
+#[test]
 fn granter_in_a_reflexive_ability_and_not_a_delayed_one() {
     let equipment = "Artifact — Equipment";
     // "When you do, <granter> deals ...": the reflexive ability carries

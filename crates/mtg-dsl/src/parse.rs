@@ -21738,7 +21738,17 @@ impl P {
                             cost.count = *n;
                             self.pos += 1;
                         }
-                        cost.sacrifice = Some(SacCost::Filter(self.filter()?));
+                        let f = self.filter()?;
+                        // "Tap two untapped creatures you control that
+                        // share a creature type" (Weight of Conscience): the
+                        // cost would ignore what the chosen permanents
+                        // share.
+                        if f.same.is_some() {
+                            return self.fail(
+                                "a cost's `that share ...` among the permanents it taps or returns isn't supported",
+                            );
+                        }
+                        cost.sacrifice = Some(SacCost::Filter(f));
                         cost.order.push(CostItem::Sacrifice);
                     }
                     "from" if self.at_words(&["from", "graveyard"]) => {
