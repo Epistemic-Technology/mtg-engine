@@ -378,6 +378,7 @@ fn pass(
 /// Applies the live effects from index `from` on that have a part in
 /// `layer`, in dependency and timestamp order. Returns whether one of them
 /// granted a static ability with a layer-6 part.
+#[allow(clippy::too_many_lines)] // the dependency order, then one arm per kind of part
 fn apply_layer(work: &mut Work<'_>, live: &mut [Live], from: usize, layer: Layer) -> bool {
     let mut granted_static = false;
     {
