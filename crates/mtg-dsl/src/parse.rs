@@ -13913,17 +13913,34 @@ impl P {
                 // `return all card from your graveyard to hand`: "Return all
                 // cards from your graveyard to your hand." (Praetor's
                 // Counsel), any card.
-                let filter = if self.at_word("card") {
+                let mut filter = if self.at_word("card") {
                     Filter::default()
                 } else {
                     self.filter()?
                 };
-                // `... to hand`: "Return all instant and sorcery cards from
-                // your graveyard to your hand." (Wisdom of Ages).
-                if !each && self.eat_words(&["card", "from", "your", "graveyard", "to", "hand"]) {
-                    return Ok(Effect::GraveyardToHand { filter });
+                // `return all creature card from your graveyard put there
+                // from battlefield this turn to hand`: "Return to your hand
+                // all creature cards in your graveyard that were put there
+                // from the battlefield this turn."
+                if self.at_words(&["card", "from", "your", "graveyard", "put", "there"]) {
+                    self.pos += 6;
+                    filter.status.put_there_this_turn = true;
+                    filter.status.from_battlefield = self.eat_words(&["from", "battlefield"]);
+                    filter.put_there_anywhere = self.eat_words(&["from", "anywhere"]);
+                    self.expect_words(&["this", "turn", "to"])?;
+                    if !each && self.eat_word("hand") {
+                        return Ok(Effect::GraveyardToHand { filter });
+                    }
+                    self.expect_word("battlefield")?;
+                } else {
+                    // `... to hand`: "Return all instant and sorcery cards
+                    // from your graveyard to your hand." (Wisdom of Ages).
+                    if !each && self.eat_words(&["card", "from", "your", "graveyard", "to", "hand"])
+                    {
+                        return Ok(Effect::GraveyardToHand { filter });
+                    }
+                    self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 }
-                self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
                 // "Sacrifice them at the beginning of the next end step."
                 self.group_named = true;
@@ -18394,6 +18411,10 @@ impl P {
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
                         && matches!(after.as_deref(), Some("from" | "with" | "each" | "exiled")))
+                    // "target creature card in a graveyard" (Grim Return).
+                    || (matches!(next.as_deref(), Some("card"))
+                        && matches!(after.as_deref(), Some("in"))
+                        && self.word_at(ws.len() + 2).as_deref() == Some("a"))
                     // "target permanent not named ~".
                     || (matches!(next.as_deref(), Some("named" | "not"))
                         && matches!(after.as_deref(), Some("named" | "this")));
@@ -18633,6 +18654,7 @@ impl P {
             if self.eat_words(&["put", "there"]) {
                 f.status.put_there_this_turn = true;
                 f.put_there_anywhere = self.eat_words(&["from", "anywhere"]);
+                f.status.from_battlefield = self.eat_words(&["from", "battlefield"]);
                 self.expect_words(&["this", "turn"])?;
             }
             return Ok(Target::GraveyardCard {
@@ -19305,6 +19327,13 @@ impl P {
                 "put" if self.at_words(&["put", "there", "from", "anywhere", "this", "turn"]) => {
                     f.status.put_there_this_turn = true;
                     f.put_there_anywhere = true;
+                    self.pos += 6;
+                }
+                "put"
+                    if self.at_words(&["put", "there", "from", "battlefield", "this", "turn"]) =>
+                {
+                    f.status.put_there_this_turn = true;
+                    f.status.from_battlefield = true;
                     self.pos += 6;
                 }
                 "that" if self.at_words(&["that", "blocked", "this", "turn"]) => {

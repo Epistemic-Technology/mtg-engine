@@ -1,0 +1,9 @@
+card "Twilight Shepherd" {
+  oracle_id eff736bc-d311-4bef-9c7e-de4ebe32e46f
+  cost {3}{W}{W}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flying, vigilance
+  triggered when this enters: return all card from your graveyard put there from battlefield this turn to hand
+  keyword persist
+}

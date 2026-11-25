@@ -1,0 +1,9 @@
+card "Samwise the Stouthearted" {
+  oracle_id 0e26b429-0469-474a-818a-2d4696c38a05
+  cost {1}{W}
+  type Legendary Creature — Halfling Peasant
+  short_name "Samwise"
+  pt 2/1
+  keywords flash
+  triggered when this enters: choose up to 1 target permanent card from your graveyard put there from battlefield this turn; return target 1 to hand; then the ring tempts you
+}

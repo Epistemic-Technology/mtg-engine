@@ -1130,7 +1130,15 @@ graveyard card target's `... from a graveyard put there this turn`
 was put there this turn" (Night Nurse: "target permanent card in your
 graveyard that was put there from anywhere this turn"; `target nonland
 card in a graveyard put there from anywhere this turn` prints "card in a
-graveyard", Reenact the Crime). A
+graveyard", Reenact the Crime). `put there from battlefield this turn`
+is "that was put there from the battlefield this turn": a card remembers
+that it was put into a graveyard from the battlefield (Grim Return:
+`choose target creature card in a graveyard put there from battlefield
+this turn; put that target 1 onto battlefield under your control`); `return
+all creature card from your graveyard put there from battlefield this turn
+to hand` prints "Return to your hand all creature cards in your graveyard
+that were put there from the battlefield this turn." (`to battlefield`:
+"Return to the battlefield all ..."). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).

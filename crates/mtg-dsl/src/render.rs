@@ -164,6 +164,8 @@ fn put_there_suffix(f: &mut Filter, plural: bool) -> String {
     f.status.put_there_this_turn = false;
     let anywhere = if std::mem::take(&mut f.put_there_anywhere) {
         " from anywhere"
+    } else if std::mem::take(&mut f.status.from_battlefield) {
+        " from the battlefield"
     } else {
         ""
     };
@@ -4312,6 +4314,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.put_there_this_turn {
         let anywhere = if f.put_there_anywhere {
             " from anywhere"
+        } else if f.status.from_battlefield {
+            " from the battlefield"
         } else {
             ""
         };
@@ -8168,6 +8172,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!(
                 "return each {p} from your graveyard to the battlefield{}",
                 if *tapped { " tapped" } else { "" }
+            ))
+        }
+        // "Return to your hand all creature cards in your graveyard that
+        // were put there from the battlefield this turn." (No Rest for the
+        // Wicked), "Return to the battlefield all permanent cards ..."
+        // (Faith's Reward).
+        Effect::GraveyardToHand { filter } if filter.status.put_there_this_turn => {
+            let mut f = filter.clone();
+            let suffix = put_there_suffix(&mut f, true);
+            Clause::imperative(format!(
+                "return to your hand all {} in your graveyard{suffix}",
+                cards_phrase(&f, ctx.card, true)
+            ))
+        }
+        Effect::GraveyardToBattlefield {
+            filter,
+            tapped,
+            each: false,
+            all_graveyards: false,
+        } if filter.status.put_there_this_turn => {
+            let mut f = filter.clone();
+            let suffix = put_there_suffix(&mut f, true);
+            Clause::imperative(format!(
+                "return to the battlefield{} all {} in your graveyard{suffix}",
+                if *tapped { " tapped" } else { "" },
+                cards_phrase(&f, ctx.card, true)
             ))
         }
         Effect::GraveyardToHand { filter } => Clause::imperative(format!(
@@ -23523,6 +23553,13 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         || first_name
                         || matches!(c, StaticCond::And(_, b)
                             if matches!(**b, StaticCond::SourceLacksCounter(_)))
+                        // "if it has fewer than four +1/+1 counters on it,
+                        // put a +1/+1 counter on it" (Ayara's Oathsworn),
+                        // but "if this creature has fewer than three ...,
+                        // put a +1/+1 counter on this creature" (Runaway
+                        // Steam-Kin): "it" only once the trigger named it.
+                        || (ctx.source_mentioned
+                            && matches!(c, StaticCond::SourceCountersBound { .. }))
                         || matches!(
                             c,
                             StaticCond::SourceCounters { .. }
@@ -23530,7 +23567,6 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                                 | StaticCond::SourceHasNoCounters(_)
                                 | StaticCond::SourceLacksCounter(_)
                                 | StaticCond::SourceCounterParity(_)
-                                | StaticCond::SourceCountersBound { .. }
                                 | StaticCond::ManaSpent { that: false, .. }
                                 | StaticCond::AttackedOrBlocked
                                 | StaticCond::SourceHistory { .. }

@@ -1463,6 +1463,10 @@ pub struct StatusQuals {
     /// graveyard this turn (its timestamp is this turn's).
     #[serde(default)]
     pub put_there_this_turn: bool,
+    /// With `put_there_this_turn`: "that was put there from the
+    /// battlefield this turn" (`CastInfo::from_battlefield`).
+    #[serde(default)]
+    pub from_battlefield: bool,
     /// "a spell that's both white and black": `ObjFilter::colors` must
     /// all be the object's, not just one (CR 105.2). A characteristic, not
     /// game state: `any` leaves it out.

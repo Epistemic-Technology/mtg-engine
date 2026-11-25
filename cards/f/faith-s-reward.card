@@ -1,0 +1,6 @@
+card "Faith's Reward" {
+  oracle_id 2fbb6703-3517-4117-9ca4-45e90a6216ce
+  cost {3}{W}
+  type Instant
+  spell: return all permanent card from your graveyard put there from battlefield this turn to battlefield
+}
