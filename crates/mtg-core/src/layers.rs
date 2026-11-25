@@ -448,6 +448,37 @@ fn apply_layer(work: &mut Work<'_>, live: &mut [Live], from: usize, layer: Layer
                     }
                     continue;
                 }
+                // "Each legendary creature you control gets +1/+1 for each
+                // other legendary creature you control" (Heroes' Podium):
+                // over a group, "other" is other than the creature it
+                // applies to, so the count is that creature's (and a
+                // "same" filter is relative to it too).
+                if let Modification::ModifyPtPer {
+                    power,
+                    toughness,
+                    count: count @ crate::card::CountExpr::Permanents(f),
+                } = part
+                    && f.relation == crate::card::Relation::Other
+                    && f.attached_to.is_none()
+                    && l.filter.as_ref().is_some_and(|a| {
+                        a.relation != crate::card::Relation::This && !a.enchanted && !a.paired
+                    })
+                {
+                    for t in &targets {
+                        if let Some(&wi) = work.index.get(t) {
+                            let n = per_count(work, Some(*t), l.controller, count);
+                            apply(
+                                work,
+                                wi,
+                                &Modification::ModifyPt {
+                                    power: power.saturating_mul(n),
+                                    toughness: toughness.saturating_mul(n),
+                                },
+                            );
+                        }
+                    }
+                    continue;
+                }
                 // "for each ...": the count is the source's, once.
                 let part = match part {
                     Modification::ModifyPtPer {

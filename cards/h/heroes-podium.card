@@ -1,0 +1,7 @@
+card "Heroes' Podium" {
+  oracle_id 85292bfb-32d7-449e-9ebb-5be828e8ecf6
+  cost {5}
+  type Legendary Artifact
+  static each legendary creature you control: +1/+1 count each other legendary creature you control
+  activated {X}, {T}: dig x take legendary creature card may revealing rest bottom random
+}
