@@ -337,7 +337,8 @@ shown; "named" filters still compare the copied card), and with types or
 subtypes `legendary` joins them ("he's a legendary 4/4 Human Villain
 creature in addition to his other types"); `noun creature` (wording: a
 spell's token copies' abilities say "sacrifice this creature", Face
-Yourself, not "this token"). The template author writes the block from the
+Yourself, not "this token"; `noun permanent`: "sacrifice this permanent",
+an artifact's copy of a creature, Minion Reflector). The template author writes the block from the
 sentence ("Create a token that's a copy of target creature, except it's an
 artifact in addition to its other types."). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
@@ -3926,7 +3927,9 @@ next untap step`, is "Those creatures don't untap during their
 controller's next untap step", or with `next untap steps` "... during
 their controllers' next untap steps", and a group `each attacking creature
 doesn't untap next untap step` "Each attacking creature doesn't untap
-..."), `<who> sacrifices that creature` ("that player sacrifices that
+...", and `all land you control doesn't untap next untap step` "Lands you
+control don't untap during your next untap step", Kefnet's Last Word),
+`<who> sacrifices that creature` ("that player sacrifices that
 creature": a sacrifice of that one permanent, worded with its
 controller), `<what> gains ability { <ability line> }` ("Target creature
 gains \"...\" until end of turn."; after `gains deathtouch and`, the
@@ -4585,7 +4588,10 @@ the objects as they last existed (CR 608.2h): `if creature card was exiled
 this way, ...`, `if artifact is destroyed this way, ...` ("If an artifact
 is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
-...` (cards you owned), `if you put Town card into hand this way, ...`,
+...` (cards you owned), `if that player discards artifact card this way,
+untap this` ("If that player discards an artifact card this way, untap
+this creature.", Lumengrid Augur: after `target player draws ... then
+target 1 discards ...`, any card discarded), `if you put Town card into hand this way, ...`,
 `if you put no cards into hand this way, ...` ("If you put no cards into
 your hand this way", Nashi), `if you returned Squirrel card to hand this
 way, ...` ("If you returned a Squirrel card to your hand this way"), `if
@@ -5232,6 +5238,11 @@ Forms that change only how Oracle words what an existing form does:
 | `cast only unless threshold` | "Threshold — You can't cast this spell unless there are seven or more cards in your graveyard." (other conditions print without the label) |
 | `flash named as long as you control Desert` | "Colossal Rattlewurm has flash as long as you control a Desert." |
 | `non-Faerie, nonland permanent` | A negated subtype written before a negated type prints first: "non-Faerie, nonland permanent". |
+| `nonSaga permanent card` | "a non-Saga permanent card" (The World Spell): a permanent card (no instant or sorcery, CR 110.4a) without that subtype. |
+| `static each other thatare Wolf creature or Werewolf creature you control: +1/+1` | "Each other creature you control that's a Wolf or a Werewolf gets +1/+1." (Immerwolf): two alternatives that differ in one subtype each, the subtypes after the noun. |
+| `static creature: has doesn't untap` | "Creatures don't untap during their controllers' untap steps." (Intruder Alarm): a group of anyone's permanents. |
+| `deal 5 damage instead if that target 1 is andor white or blue` | After a creature-or-planeswalker target: "It deals 5 damage instead if that target is white and/or blue." (Lithomantic Barrage). |
+| `static as long as any player controls creature with -1/-1 counter, this: ...` | "As long as a creature has a -1/-1 counter on it, ..." (Tenacious Hunter): any player's creature with such a counter. |
 | `this isnt token` | "it isn't a token" (`this is nontoken` prints "it's not a token") |
 | `if this isnt creature, this becomes 3/3 Angel creature with flying in addition` | "If this enchantment isn't a creature, it becomes a 3/3 Angel creature ..." (Answered Prayers; card types only, judged on the source as it resolves); `if this is Scout, this becomes ...` prints "If Kellan is a Scout, it becomes ..." |
 | `target creature you control gains firebending 4` | "Target creature you control gains firebending 4 until end of turn." (Fire Nation Palace; a granted keyword with a number, like `toxic 1`) |

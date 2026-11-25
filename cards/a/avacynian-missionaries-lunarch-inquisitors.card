@@ -1,0 +1,14 @@
+card "Avacynian Missionaries // Lunarch Inquisitors" {
+  oracle_id 5b356a01-900c-4fe5-93bd-45629528c484
+  layout transform
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 3/3
+  triggered at beginning of your end step if equipped: transform this
+  face "Lunarch Inquisitors" {
+    type Creature — Human Cleric
+    pt 4/4
+    color white
+    triggered when this transforms: you may exile another target creature until this leaves
+  }
+}

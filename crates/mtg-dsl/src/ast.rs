@@ -921,6 +921,9 @@ pub struct Except {
     /// `noun creature`: a spell's token copies' abilities call the token
     /// "this creature" (Face Yourself), not "this token". Wording only.
     pub creature_noun: bool,
+    /// `noun permanent`: "sacrifice this permanent" in a copy made by a
+    /// noncreature permanent (Minion Reflector). Wording only.
+    pub permanent_noun: bool,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -7745,6 +7748,11 @@ pub enum ThisWayWording {
     /// `you discard land card this way`: the present tense, "If you
     /// discard a land card this way" (Silvan Reveler).
     YouNow,
+    /// `that player discards artifact card this way`: "If that player
+    /// discards an artifact card this way" (Lumengrid Augur): the
+    /// discarding player is the target; any card this resolution
+    /// discarded counts.
+    ThatPlayerNow,
     /// `you returned Squirrel card to hand this way`: "returned a
     /// Squirrel card to your hand this way" (Cache Grab), put into the
     /// hand.

@@ -1,0 +1,8 @@
+card "The World Spell" {
+  oracle_id f5186d3f-52b2-43ef-be11-d183ab765663
+  cost {5}{G}{G}
+  type Enchantment — Saga
+  read ahead
+  triggered chapter 1, 2: dig 7 take nonSaga permanent card may revealing rest bottom random
+  triggered chapter 3: put up to 2 nonSaga permanent card from hand onto battlefield chosen
+}

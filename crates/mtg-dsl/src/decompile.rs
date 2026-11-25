@@ -283,6 +283,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             and_is: false,
             own_name: x.own_name,
             creature_noun: false,
+            permanent_noun: false,
         }),
         mismatch: None,
         line: 0,

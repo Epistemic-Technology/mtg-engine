@@ -195,6 +195,9 @@ fn format_inner(card: &Card) -> String {
         if x.creature_noun {
             out.push_str("    noun creature\n");
         }
+        if x.permanent_noun {
+            out.push_str("    noun permanent\n");
+        }
         if x.not_legendary && x.its_not {
             out.push_str("    its not legendary\n");
         } else if x.not_legendary {
@@ -4871,6 +4874,7 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
         ThisWayWording::Returned => format!("you returned {what} to hand this way"),
         ThisWayWording::Drew => "you drew cards this way".to_string(),
         ThisWayWording::YouNow => format!("you discard {what} this way"),
+        ThisWayWording::ThatPlayerNow => format!("that player discards {what} this way"),
         ThisWayWording::The(noun) => format!(
             "the {verb} {noun} {} {what}",
             if c.negated { "wasn't" } else { "was" }

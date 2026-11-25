@@ -1,0 +1,8 @@
+card "Thornbite Staff" {
+  oracle_id dae4815e-9025-4993-ab46-52a3f1a7219e
+  cost {2}
+  type Kindred Artifact — Shaman Equipment
+  static enchanted: has ability { activated {2}, {T}: deal 1 damage to any target }, has ability { triggered whenever a creature dies: untap this }
+  triggered whenever Shaman creature enters: you may attach to triggering it
+  equip {4}
+}

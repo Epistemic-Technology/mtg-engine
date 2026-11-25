@@ -360,3 +360,226 @@ scenario "Paradoxical Outcome: two of yours draw two, the stolen one none" {
   assert hand A contains "Swamp"
   assert hand A lacks "Forest"
 }
+
+# "At the beginning of your end step, if this creature is equipped,
+# transform it." (Avacynian Missionaries // Lunarch Inquisitors; "When
+# this creature transforms into Lunarch Inquisitors, you may exile another
+# target creature until this creature leaves the battlefield.").
+scenario "Avacynian Missionaries: equipped, it transforms and exiles a creature" {
+  battlefield A: "Avacynian Missionaries // Lunarch Inquisitors", "Bonesplitter" on "Avacynian Missionaries"
+  battlefield B: "Hill Giant"
+  turn 1 end A: trigger "Lunarch Inquisitors" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert power "Lunarch Inquisitors" 6
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Avacynian Missionaries: unequipped, it stays" {
+  battlefield A: "Avacynian Missionaries // Lunarch Inquisitors"
+  battlefield B: "Hill Giant"
+  run_to turn 2 upkeep
+  assert power "Avacynian Missionaries" 3
+  assert battlefield B contains "Hill Giant"
+}
+
+# "I, II — Look at the top seven cards of your library. You may reveal a
+# non-Saga permanent card from among them and put it into your hand. Put
+# the rest on the bottom of your library in a random order. III — Put up
+# to two non-Saga permanent cards from your hand onto the battlefield."
+# (The World Spell).
+scenario "The World Spell: chapter I takes the creature, not the Saga or the instant" {
+  battlefield A: "The World Spell"
+  library A: "Shock", "The Eldest Reborn", "Grizzly Bears", "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert counters "The World Spell" lore 1
+}
+
+scenario "The World Spell: chapter I finds no permanent among a Saga and spells" {
+  battlefield A: "The World Spell"
+  library A: "Shock", "The Eldest Reborn", "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 3
+}
+
+scenario "The World Spell: chapter III puts two permanents from hand onto the battlefield" {
+  battlefield A: "The World Spell" with 2 lore
+  hand A: "Serra Angel", "Hill Giant", "The Eldest Reborn", "Shock"
+  turn 1 precombat_main A: choose "Serra Angel"
+  turn 1 precombat_main A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "The Eldest Reborn"
+  assert hand A contains "Shock"
+}
+
+# "Whenever a nontoken creature you control enters, you may pay {2}. If
+# you do, create a token that's a copy of that creature, except it has
+# haste and \"At the beginning of the end step, sacrifice this
+# permanent.\"" (Minion Reflector).
+scenario "Minion Reflector: paying {2} makes a hasty copy that is sacrificed at end of turn" {
+  battlefield A: "Minion Reflector", 4 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert has newest "Grizzly Bears" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Minion Reflector: declining, no copy" {
+  battlefield A: "Minion Reflector", 4 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: decline "Minion Reflector"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+# "Each other creature you control that's a Wolf or a Werewolf gets
+# +1/+1." (Immerwolf).
+scenario "Immerwolf: the Wolf grows, the Bear and Immerwolf don't" {
+  battlefield A: "Immerwolf", "Arlinn's Wolf", "Grizzly Bears"
+  battlefield B: "Arlinn's Wolf"
+  run_to turn 1 precombat_main
+  assert power A "Arlinn's Wolf" 4
+  assert power "Grizzly Bears" 2
+  assert power "Immerwolf" 2
+  assert power B "Arlinn's Wolf" 3
+}
+
+# "{1}, {T}: Target player draws a card, then discards a card. If that
+# player discards an artifact card this way, untap this creature."
+# (Lumengrid Augur).
+scenario "Lumengrid Augur: the opponent discards an artifact, it untaps" {
+  battlefield A: "Lumengrid Augur", "Island"
+  hand B: "Millstone"
+  library B: "Forest"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Lumengrid Augur" targeting player B
+  turn 3 precombat_main B: discard "Millstone"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Millstone"
+  assert hand B contains "Forest"
+  assert untapped "Lumengrid Augur"
+}
+
+scenario "Lumengrid Augur: a land discarded, it stays tapped" {
+  battlefield A: "Lumengrid Augur", "Island"
+  hand B: "Millstone"
+  library B: "Forest"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Lumengrid Augur" targeting player B
+  turn 3 precombat_main B: discard "Forest"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Forest"
+  assert tapped "Lumengrid Augur"
+}
+
+# "Lithomantic Barrage deals 1 damage to target creature or planeswalker.
+# It deals 5 damage instead if that target is white and/or blue."
+scenario "Lithomantic Barrage: 5 damage to a white creature" {
+  battlefield A: "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Lithomantic Barrage"
+  turn 1 A: cast "Lithomantic Barrage" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Lithomantic Barrage: 1 damage to a green creature" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lithomantic Barrage"
+  turn 1 A: cast "Lithomantic Barrage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+}
+
+# "As long as a creature has a -1/-1 counter on it, this creature has
+# vigilance and deathtouch." (Tenacious Hunter): anyone's creature.
+scenario "Tenacious Hunter: an opponent's creature with a -1/-1 counter" {
+  battlefield A: "Tenacious Hunter"
+  battlefield B: "Grizzly Bears" with 1 -1/-1
+  run_to turn 1 precombat_main
+  assert has "Tenacious Hunter" vigilance
+  assert has "Tenacious Hunter" deathtouch
+}
+
+scenario "Tenacious Hunter: no -1/-1 counter anywhere" {
+  battlefield A: "Tenacious Hunter"
+  battlefield B: "Grizzly Bears" with 1 +1/+1
+  run_to turn 1 precombat_main
+  assert has not "Tenacious Hunter" vigilance
+  assert has not "Tenacious Hunter" deathtouch
+}
+
+# "Equipped creature has \"{2}, {T}: This creature deals 1 damage to any
+# target\" and \"Whenever a creature dies, untap this creature.\"
+# Whenever a Shaman creature enters, you may attach this Equipment to
+# it." (Thornbite Staff).
+scenario "Thornbite Staff: a Shaman entering gets it attached" {
+  battlefield A: "Thornbite Staff", 3 "Mountain"
+  hand A: "Akki Drillmaster"
+  turn 1 A: cast "Akki Drillmaster"
+  run_to turn 1 postcombat_main
+  assert attached "Thornbite Staff" to "Akki Drillmaster"
+}
+
+scenario "Thornbite Staff: the equipped creature pings, and untaps when a creature dies" {
+  battlefield A: "Akki Drillmaster", "Thornbite Staff" on "Akki Drillmaster", 4 "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Akki Drillmaster" ability 2 targeting "Llanowar Elves"
+  turn 3 A: wait
+  turn 3 A: activate "Akki Drillmaster" ability 2 targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+  assert tapped "Akki Drillmaster"
+}
+
+scenario "Thornbite Staff: an unequipped creature has no ping" {
+  battlefield A: "Thornbite Staff", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  start turn 3 A precombat_main
+  illegal turn 3 A: activate "Grizzly Bears" targeting "Llanowar Elves"
+  run_to turn 3 postcombat_main
+}
+
+# "Creatures don't untap during their controllers' untap steps. Whenever
+# a creature enters, untap all creatures." (Intruder Alarm).
+scenario "Intruder Alarm: tapped creatures stay tapped until a creature enters" {
+  battlefield A: "Intruder Alarm", "Grizzly Bears" tapped, 2 "Forest"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Llanowar Elves"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  turn 3 A: cast "Llanowar Elves"
+  run_to turn 3 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+
+# "Gain control of target artifact, creature, or enchantment. Lands you
+# control don't untap during your next untap step." (Kefnet's Last Word).
+scenario "Kefnet's Last Word: the creature is yours for good; your lands stay tapped" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Kefnet's Last Word"
+  turn 1 A: cast "Kefnet's Last Word" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped oldest "Island"
+  assert tapped newest "Island"
+  run_to turn 5 precombat_main
+  assert untapped oldest "Island"
+  assert battlefield A contains "Hill Giant"
+}

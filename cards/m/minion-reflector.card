@@ -1,0 +1,11 @@
+card "Minion Reflector" {
+  oracle_id 0124977f-06e6-430a-a874-f7d05883a97c
+  cost {5}
+  type Artifact
+  triggered whenever nontoken creature you control enters: you may pay {2}; if you do, create token copy of that creature with exceptions
+  except {
+    keywords haste
+    noun permanent
+    triggered at beginning of each end step: sacrifice this
+  }
+}

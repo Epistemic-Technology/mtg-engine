@@ -1618,6 +1618,13 @@ impl P {
                             except.creature_noun = true;
                             self.end_stmt()?;
                         }
+                        // "... sacrifice this permanent" in an artifact's
+                        // copy of a creature (Minion Reflector).
+                        Some("noun") if self.word_at(1).as_deref() == Some("permanent") => {
+                            self.pos += 2;
+                            except.permanent_noun = true;
+                            self.end_stmt()?;
+                        }
                         // "except his name is Absorbing Man".
                         Some("named") if self.word_at(1).as_deref() == Some("this") => {
                             self.pos += 2;
@@ -8770,6 +8777,18 @@ impl P {
                 card,
                 negated: false,
                 wording: ThisWayWording::YouNow,
+            }));
+        }
+        // `that player discards artifact card this way` (Lumengrid Augur).
+        if self.eat_words(&["that", "player", "discards"]) {
+            let (filter, card) = self.this_way_what()?;
+            self.expect_words(&["this", "way"])?;
+            return Ok(Some(ThisWayCond {
+                verb: mtg_core::card::ThisWay::Discarded,
+                filter,
+                card,
+                negated: false,
+                wording: ThisWayWording::ThatPlayerNow,
             }));
         }
         // `you drew cards this way`: "If you draw one or more cards this
@@ -18448,7 +18467,9 @@ impl P {
                             || (f.types.is_empty()
                                 && f.not_types.is_empty()
                                 && f.any_types.is_empty()
-                                && !f.subtypes.is_empty())) =>
+                                // "a non-Saga permanent card" (The World
+                                // Spell).
+                                && (!f.subtypes.is_empty() || !f.not_subtypes.is_empty()))) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
                     self.pos += 1;

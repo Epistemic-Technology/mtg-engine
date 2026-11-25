@@ -4517,6 +4517,35 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     format!("{p}{noun}{mv}{}", same_phrase(f, card, plural_form))
 }
 
+/// `thatare Wolf creature or Werewolf creature you control`: "creature you
+/// control that's a Wolf or a Werewolf", the subtypes after the noun.
+fn thats_a_subtype(f: &Filter, card: &Card) -> Option<String> {
+    let alt = f.or.as_deref()?;
+    if !f.that_are || alt.or.is_some() || f.subtypes.len() != 1 || alt.subtypes.len() != 1 {
+        return None;
+    }
+    let mut base = f.clone();
+    base.or = None;
+    base.that_are = false;
+    base.each = false;
+    let a = base.subtypes.remove(0);
+    let mut other = alt.clone();
+    let b = other.subtypes.remove(0);
+    other.relation = base.relation;
+    other.who = base.who;
+    other.each = false;
+    other.that_are = false;
+    if other != base {
+        return None;
+    }
+    Some(format!(
+        "{} that's {} or {}",
+        filter_phrase(&base, card, false),
+        with_article(&a),
+        with_article(&b)
+    ))
+}
+
 /// What "Choose ..." chooses: "a creature type other than Wall", "a
 /// color", "a basic land type".
 fn choice_noun(k: &ChoiceKind) -> String {
@@ -5650,6 +5679,15 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
         // "sacrifice this creature" (Face Yourself).
         let mut t = card.clone();
         t.types = vec![CardType::Creature];
+        t.supertypes.clear();
+        t.short_name = None;
+        token = t;
+        &token
+    } else if x.permanent_noun {
+        // "sacrifice this permanent" (Minion Reflector).
+        let mut t = card.clone();
+        t.types.clear();
+        t.subtypes.clear();
         t.supertypes.clear();
         t.short_name = None;
         token = t;
@@ -9615,6 +9653,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
         }
         Effect::SkipNextUntap { to, steps } => {
+            // "Lands you control don't untap during your next untap step."
+            // (Kefnet's Last Word): `all <filter> you control`.
+            if let Recipient::Group(i) = *to
+                && !ctx.groups_mentioned.contains(to)
+                && let Some(g) = ctx.card.groups.get(usize::from(i))
+                && g.all
+                && !g.all_word
+                && g.who == Some(Who::You)
+            {
+                ctx.groups_mentioned.insert(*to);
+                let s = ctx.group_phrase(i, true);
+                return Clause::with_subject(
+                    *to,
+                    s,
+                    "don't untap during your next untap step".to_string(),
+                );
+            }
             let s = match *to {
                 // "Tap up to two target creatures. Those creatures don't
                 // untap ...", named again without who controls them.
@@ -14564,8 +14619,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ) => true,
                 _ => false,
             };
+            // "It deals 5 damage instead if that target is white and/or
+            // blue." (Lithomantic Barrage): a creature-or-planeswalker
+            // target is "that target", and the spell isn't named again.
+            let that_target = matches!(cond, InsteadCond::Target { n, that: true, .. }
+                if matches!(
+                    ctx.targets.get(*n).map(Target::base),
+                    Some(Target::Spec(TargetSpec::CreatureOrPlaneswalker))
+                ));
             let cond = match cond {
                 InsteadCond::Kicked => kicked_text(ctx.card),
+                InsteadCond::Target { filter, .. } if that_target => {
+                    let p = target_predicate(filter, ctx.card);
+                    let p = if filter.and_or {
+                        p.replacen(" or ", " and/or ", 1)
+                    } else {
+                        p
+                    };
+                    format!("that target is {p}")
+                }
                 InsteadCond::Static(c) => static_cond_text(c, ctx.card),
                 InsteadCond::ThisWay(c) => this_way_text(c, ctx.card),
                 InsteadCond::Target { n, that, filter } => {
@@ -14601,7 +14673,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // A spell names itself again unless the upgrade is for kicker
             // ("If this spell was kicked, it deals 4 damage instead";
             // "Metalcraft — Galvanic Blast deals 4 damage instead ...").
-            if is_spell(ctx.card) && !kicked {
+            if is_spell(ctx.card) && !kicked && !that_target {
                 ctx.source_mentioned = false;
             }
             // "If ..., instead creatures you control get +2/+2": the group
@@ -15479,6 +15551,7 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
         ThisWayWording::Returned => format!("you returned {what} to your hand this way"),
         ThisWayWording::Drew => "you draw one or more cards this way".to_string(),
         ThisWayWording::YouNow => format!("you discard {what} this way"),
+        ThisWayWording::ThatPlayerNow => format!("that player discards {what} this way"),
         ThisWayWording::The(noun) => {
             let pred = match (&c.filter, c.card) {
                 // "If the sacrificed creature was legendary".
@@ -19446,6 +19519,21 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         };
         return format!("Untap {what} during each other player's untap step.");
     }
+    // "Creatures don't untap during their controllers' untap steps."
+    // (Intruder Alarm): a group of anyone's permanents.
+    if let [Mod::AddKeywords(ks)] = mods
+        && ks.as_slice() == [Keyword::DoesntUntap]
+        && filter.relation == Relation::Any
+        && filter.who.is_none()
+        && !filter.enchanted
+        && !filter.each
+        && !filter.all
+    {
+        return format!(
+            "{} don't untap during their controllers' untap steps.",
+            capitalize(&filter_phrase(filter, card, true))
+        );
+    }
     // Granted by an Aura, it is quoted: 'Enchanted land has "Untap this
     // land during each other player's untap step."' (Urban Burgeoning).
     if let [Mod::AddKeywords(ks)] = mods
@@ -19582,6 +19670,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         (capitalize(&this_ref(card)), false)
     } else if filter.enchanted {
         (capitalize(&filter_phrase(filter, card, false)), false)
+    } else if let Some(s) = filter.each.then(|| thats_a_subtype(filter, card)).flatten() {
+        // "Each other creature you control that's a Wolf or a Werewolf
+        // gets +1/+1." (Immerwolf).
+        (format!("Each {s}"), false)
     } else if filter.each && filter.or.is_some() {
         // "Each land and Ally you control has ..." (Great Divide Guide).
         (
@@ -20656,10 +20748,17 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         } if filter.who == Some(Who::Any) => {
             let mut f = filter.clone();
             f.who = None;
-            format!(
-                "any player controls {}",
-                with_article(&filter_phrase(&f, card, false))
-            )
+            let p = with_article(&filter_phrase(&f, card, false));
+            // "a creature has a -1/-1 counter on it" (Tenacious Hunter):
+            // a counter on any permanent, whoever controls it.
+            if f.status.counter.is_some()
+                && let Some((head, rest)) = p.split_once(" with ")
+                && rest.ends_with(" on it")
+                && head.split(' ').count() == 2
+            {
+                return format!("{head} has {rest}");
+            }
+            format!("any player controls {p}")
         }
         // "your opponents control three or more creatures" (Lashwhip
         // Predator).
@@ -22556,6 +22655,15 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             .replacen(" and it isn't ", &format!(" and {this} isn't "), 1)
                             .replacen(" and it's ", &format!(" and {this} is "), 1);
                     }
+                    // "At the beginning of your end step, if this creature
+                    // is equipped, transform it." (Avacynian Missionaries):
+                    // a trigger that hasn't named the source names it here.
+                    let first_name = !ctx.source_mentioned
+                        && *c == StaticCond::Equipped
+                        && cond.starts_with("it's ");
+                    if first_name {
+                        cond = format!("{} is {}", this_ref(card), &cond["it's ".len()..]);
+                    }
                     out.push_str(&cond);
                     // "if Katara is tapped, put a +1/+1 counter on her": a
                     // condition naming the source by name.
@@ -22568,6 +22676,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // counters on this artifact, sacrifice it").
                     ctx.source_mentioned = named
                         || names_source
+                        || first_name
                         || matches!(c, StaticCond::And(_, b)
                             if matches!(**b, StaticCond::SourceLacksCounter(_)))
                         || matches!(

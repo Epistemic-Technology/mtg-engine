@@ -1,0 +1,9 @@
+card "Immerwolf" {
+  oracle_id 3c2445ee-84d5-47de-8b09-dbdc89ca2db7
+  cost {1}{R}{G}
+  type Creature — Wolf
+  pt 2/2
+  keywords intimidate
+  static each other thatare Wolf creature or Werewolf creature you control: +1/+1
+  static non-Human Werewolf you control: has can't transform
+}
