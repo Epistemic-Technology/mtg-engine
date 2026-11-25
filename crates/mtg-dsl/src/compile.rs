@@ -3370,6 +3370,7 @@ impl Compiler<'_> {
             exert: c.exert,
             discard_hand: c.discard_hand,
             life_x: c.life_x,
+            half_life: c.half_life,
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
@@ -4446,12 +4447,19 @@ impl Compiler<'_> {
             }),
             Effect::ChangeTarget { what } => out.push(CoreEffect::ChangeTarget { what: r(*what) }),
             Effect::NewTargets { what } => out.push(CoreEffect::NewTargets { what: r(*what) }),
-            Effect::CounterUnlessPays { to, mana, x, dest } => {
+            Effect::CounterUnlessPays {
+                to,
+                mana,
+                x,
+                dest,
+                discard,
+            } => {
                 out.push(CoreEffect::CounterUnlessPays {
                     to: r(*to),
                     mana: mana.clone(),
                     x: *x,
                     dest: *dest,
+                    discard: *discard,
                 });
             }
             Effect::Scry(n) => out.push(CoreEffect::Scry {
@@ -9533,6 +9541,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 mana: cost.clone(),
                 x: Num::N(0),
                 dest: crate::ast::CounteredTo::Graveyard,
+                discard: 0,
             }),
         },
         // "Ward—Sacrifice a creature." (CR 702.21a): the player may

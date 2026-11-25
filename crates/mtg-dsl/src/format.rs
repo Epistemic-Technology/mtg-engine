@@ -2754,7 +2754,21 @@ impl Fmt {
                     format!("choose new targets for {}", self.recipient(*what, t))
                 }
             }
-            Effect::CounterUnlessPays { to, mana, x, dest } => format!(
+            Effect::CounterUnlessPays {
+                to, dest, discard, ..
+            } if *discard > 0 => format!(
+                "counter {} unless its controller discards {}{}",
+                self.recipient(*to, t),
+                if *discard == u8::MAX {
+                    "hand".to_string()
+                } else {
+                    format!("{discard} card{}", if *discard == 1 { "" } else { "s" })
+                },
+                countered_to(*dest)
+            ),
+            Effect::CounterUnlessPays {
+                to, mana, x, dest, ..
+            } => format!(
                 "counter {} unless its controller pays {mana}{}{}",
                 self.recipient(*to, t),
                 if *x == Num::X {
@@ -7549,7 +7563,9 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Life => {
-                if c.life_x {
+                if c.half_life {
+                    parts.push("pay half life".to_string());
+                } else if c.life_x {
                     parts.push("pay x life".to_string());
                 } else if c.life > 0 {
                     parts.push(format!("pay {} life", c.life));

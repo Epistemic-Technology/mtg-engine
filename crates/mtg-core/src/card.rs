@@ -5083,6 +5083,12 @@ pub enum Effect {
         mana: ManaCost,
         x: Num,
         dest: CounteredTo,
+        /// "unless its controller discards a card" (Reality Smasher): the
+        /// payment is that many cards of the controller's choice instead
+        /// (`mana` empty); `u8::MAX`, "discards their hand" (Perplex),
+        /// payable with any hand.
+        #[serde(default)]
+        discard: u8,
     },
     /// Scry N (CR 701.18): the controller puts any of the top N cards of
     /// their library on the bottom, the rest back on top.
@@ -9855,6 +9861,10 @@ pub struct Cost {
     /// least that much life.
     #[serde(default)]
     pub life_x: bool,
+    /// "Pay half your life, rounded up" (CR 119.4, 107.1a): always
+    /// payable, even with no life to pay.
+    #[serde(default)]
+    pub half_life: bool,
     /// "Put a -1/-1 counter on a creature you control" (Lethal Sting): the
     /// older wording of blight (CR 701.68a), the `blight` counters.
     #[serde(default)]
@@ -10025,6 +10035,7 @@ impl Cost {
             exert: false,
             discard_hand: false,
             life_x: false,
+            half_life: false,
             blight_put: false,
             process: 0,
             remove_from_creature: false,
@@ -13069,6 +13080,7 @@ impl CardPool {
                 mana: ManaCost::parse("{2}").expect("a mana cost"),
                 x: Num::N(0),
                 dest: CounteredTo::Graveyard,
+                discard: 0,
             }],
         });
         pool.face_down_ward = pool.add(

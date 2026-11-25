@@ -1129,6 +1129,8 @@ pub struct Cost {
     /// `pay x life`: "pay X life" (a spell's additional cost, X announced
     /// as it is cast).
     pub life_x: bool,
+    /// `pay half life`: "Pay half your life, rounded up".
+    pub half_life: bool,
     /// `put 1 -1/-1 counter on creature you control`: "Put a -1/-1 counter
     /// on a creature you control", blight's older wording.
     pub blight_put: bool,
@@ -5960,6 +5962,9 @@ pub enum Effect {
         mana: ManaCost,
         x: Num,
         dest: CounteredTo,
+        /// `counter that spell unless its controller discards 1 card`,
+        /// `... discards hand` (`u8::MAX`): a discard instead of mana.
+        discard: u8,
     },
     Scry(Num),
     /// `each player may scry 1`, `each opponent may scry 1`: each in turn

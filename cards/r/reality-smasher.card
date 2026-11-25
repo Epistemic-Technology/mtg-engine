@@ -1,0 +1,8 @@
+card "Reality Smasher" {
+  oracle_id 17c651c7-da4e-45e9-9a64-fad3e873123d
+  cost {4}{C}
+  type Creature — Eldrazi
+  pt 5/5
+  keywords trample, haste
+  triggered whenever this becomes targeted by opponent spell: counter that spell unless its controller discards 1 card
+}

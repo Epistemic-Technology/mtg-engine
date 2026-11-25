@@ -15344,6 +15344,25 @@ impl P {
             }
             "counter" => {
                 let to = self.recipient()?;
+                // `unless its controller discards 1 card`, `... discards
+                // hand`.
+                if self.eat_words(&["unless", "its", "controller", "discards"]) {
+                    let discard = if self.eat_word("hand") {
+                        u8::MAX
+                    } else {
+                        let n = u8::try_from(self.number()?).unwrap_or(u8::MAX - 1);
+                        self.cards_word()?;
+                        n
+                    };
+                    let dest = self.countered_to();
+                    return Ok(Effect::CounterUnlessPays {
+                        to,
+                        mana: mtg_core::mana::ManaCost::default(),
+                        x: Num::N(0),
+                        dest,
+                        discard,
+                    });
+                }
                 if self.eat_word("unless") {
                     self.expect_words(&["its", "controller", "pays"])?;
                     let mana = self.mana_cost()?;
@@ -15355,7 +15374,13 @@ impl P {
                         Num::X
                     };
                     let dest = self.countered_to();
-                    return Ok(Effect::CounterUnlessPays { to, mana, x, dest });
+                    return Ok(Effect::CounterUnlessPays {
+                        to,
+                        mana,
+                        x,
+                        dest,
+                        discard: 0,
+                    });
                 }
                 let dest = self.countered_to();
                 Ok(Effect::Counter { to, dest })
@@ -22256,6 +22281,13 @@ impl P {
                     {
                         self.pos += 3;
                         cost.life_x = true;
+                        cost.order.push(CostItem::Life);
+                    }
+                    // `pay half life`: "Pay half your life, rounded up".
+                    "pay" if self.word_at(1).as_deref() == Some("half") => {
+                        self.pos += 2;
+                        self.expect_word("life")?;
+                        cost.half_life = true;
                         cost.order.push(CostItem::Life);
                     }
                     "pay" => {

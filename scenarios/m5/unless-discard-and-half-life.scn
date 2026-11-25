@@ -1,0 +1,115 @@
+# "Counter that spell unless its controller discards a card" (Reality
+# Smasher), "... discards their hand" (Perplex): the controller may make
+# the discard to save the spell. "Sacrifice it unless you discard a
+# noncreature card" (Drekavac). "Pay half your life, rounded up" as a cost
+# (Murderous Betrayal, CR 107.1a).
+
+scenario "Reality Smasher: the controller discards to keep the spell" {
+  battlefield A: "Reality Smasher"
+  battlefield B: 2 "Swamp"
+  hand B: "Disfigure", "Forest", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Disfigure" targeting "Reality Smasher"
+  turn 2 B: accept "Disfigure"
+  run_to turn 2 end
+  assert power "Reality Smasher" 3
+  assert graveyard B contains "Disfigure"
+  assert hand B count 1
+}
+
+scenario "Reality Smasher: declining, the spell is countered" {
+  battlefield A: "Reality Smasher"
+  battlefield B: 2 "Swamp"
+  hand B: "Disfigure", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Disfigure" targeting "Reality Smasher"
+  turn 2 B: decline "Disfigure"
+  run_to turn 2 end
+  assert power "Reality Smasher" 5
+  assert hand B contains "Forest"
+}
+
+scenario "Reality Smasher: with no card to discard, the spell is countered" {
+  battlefield A: "Reality Smasher"
+  battlefield B: 2 "Swamp"
+  hand B: "Disfigure"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Disfigure" targeting "Reality Smasher"
+  run_to turn 2 end
+  assert power "Reality Smasher" 5
+  assert graveyard B contains "Disfigure"
+}
+
+scenario "Reality Smasher: its own controller's spell doesn't trigger it" {
+  battlefield A: "Reality Smasher", "Swamp"
+  hand A: "Disfigure", "Forest"
+  turn 1 A: cast "Disfigure" targeting "Reality Smasher"
+  run_to turn 1 end
+  assert power "Reality Smasher" 3
+  assert hand A contains "Forest"
+}
+
+scenario "Perplex: discarding their hand saves the spell" {
+  battlefield A: 2 "Island", "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Perplex"
+  hand B: "Shock", "Forest", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Perplex" targeting "Shock"
+  turn 2 B: accept "Shock"
+  run_to turn 2 end
+  assert life A 18
+  assert hand B count 0
+  assert graveyard B contains "Forest"
+}
+
+scenario "Perplex: keeping the hand, the spell is countered" {
+  battlefield A: 2 "Island", "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Perplex"
+  hand B: "Shock", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Perplex" targeting "Shock"
+  turn 2 B: decline "Shock"
+  run_to turn 2 end
+  assert life A 20
+  assert hand B contains "Forest"
+}
+
+scenario "Drekavac: discarding a noncreature card keeps it" {
+  battlefield A: 2 "Swamp"
+  hand A: "Drekavac", "Shock"
+  turn 1 A: cast "Drekavac"
+  turn 1 A: accept "Drekavac"
+  run_to turn 1 end
+  assert battlefield A contains "Drekavac"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Drekavac: a creature card can't be discarded for it" {
+  battlefield A: 2 "Swamp"
+  hand A: "Drekavac", "Grizzly Bears"
+  turn 1 A: cast "Drekavac"
+  run_to turn 1 end
+  assert graveyard A contains "Drekavac"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Murderous Betrayal: pay half your life, rounded up" {
+  battlefield A: "Murderous Betrayal", 2 "Swamp"
+  battlefield B: "Serra Angel"
+  life A 15
+  turn 1 A: activate "Murderous Betrayal" targeting "Serra Angel"
+  run_to turn 1 end
+  assert life A 7
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Murderous Betrayal: can't target a black creature" {
+  battlefield A: "Murderous Betrayal", 2 "Swamp"
+  battlefield B: "Vampire Nighthawk"
+  illegal turn 1 A: activate "Murderous Betrayal" targeting "Vampire Nighthawk"
+  run_to turn 1 end
+}

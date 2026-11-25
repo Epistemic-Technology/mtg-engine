@@ -8969,6 +8969,11 @@ impl GameState {
         if cost.life > 0 {
             self.change_life(p, -i32::try_from(cost.life).unwrap_or(i32::MAX));
         }
+        // "Pay half your life, rounded up" (CR 107.1a).
+        if cost.half_life {
+            let life = self.player(p).life.max(0);
+            self.change_life(p, -(life - life / 2));
+        }
         // CR 107.3: "pay X life", X announced as the spell was cast.
         if cost.life_x {
             let x = self.x_of(this);
@@ -13863,7 +13868,13 @@ impl GameState {
                     }
                 }
             }
-            Effect::CounterUnlessPays { to, mana, x, dest } => {
+            Effect::CounterUnlessPays {
+                to,
+                mana,
+                x,
+                dest,
+                discard,
+            } => {
                 // "{1} for each card in your hand": counted as it resolves.
                 let x = self.eval_num(*x, ctx);
                 for t in self.recipients(ctx, *to) {
@@ -13878,7 +13889,13 @@ impl GameState {
                     }
                     let (ctl, def) = (o.controller, o.def);
                     let req = mana.requirements(x);
-                    let can_pay = self.can_pay(ctl, &req);
+                    // "unless its controller discards a card": that many
+                    // cards in hand (their hand: any, CR 701.9).
+                    let can_pay = match *discard {
+                        0 => self.can_pay(ctl, &req),
+                        u8::MAX => true,
+                        n => self.player(ctl).hand.len() >= usize::from(n),
+                    };
                     let pays = can_pay
                         && self.choose_mid(
                             ctl,
@@ -13887,7 +13904,15 @@ impl GameState {
                         ) == 0;
                     // "If they do, ..." sees the payment.
                     ctx.did = pays;
-                    if pays {
+                    if pays && *discard == u8::MAX {
+                        let hand: SmallVec<[ObjId; 8]> =
+                            self.player(ctl).hand.iter().copied().collect();
+                        for card in hand {
+                            self.discard_card(ctl, card);
+                        }
+                    } else if pays && *discard > 0 {
+                        self.discard_n(ctl, u32::from(*discard));
+                    } else if pays {
                         self.pay(ctl, &req);
                     } else {
                         self.counter_spell(id, *dest);

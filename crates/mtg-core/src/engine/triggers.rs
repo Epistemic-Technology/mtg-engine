@@ -1857,6 +1857,13 @@ impl GameState {
                 if !spell {
                     on_battlefield(what, *target)?;
                 }
+                // "Whenever this creature becomes the target of a spell an
+                // opponent controls, counter that spell ..." (Reality
+                // Smasher): the source names itself, so the triggering
+                // object is the spell or ability targeting it.
+                if *target == w.source && matches!(what, TriggerObj::This) {
+                    return Some((Some(*by), Some(by_ctl)));
+                }
                 Some((Some(*target), Some(by_ctl)))
             }
             // "... becomes the target of an ability you control" (CR

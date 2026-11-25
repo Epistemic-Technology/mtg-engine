@@ -1,0 +1,7 @@
+card "Perplex" {
+  oracle_id 904f9e0c-cb7f-4611-8bf7-2e408e8ab237
+  cost {1}{U}{B}
+  type Instant
+  spell: counter target spell unless its controller discards hand
+  transmute {1}{U}{B}
+}

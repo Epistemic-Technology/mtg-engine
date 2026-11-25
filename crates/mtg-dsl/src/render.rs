@@ -5298,7 +5298,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             }
             CostItem::Life => {
-                if cost.life_x {
+                if cost.half_life {
+                    parts.push("Pay half your life, rounded up".to_string());
+                } else if cost.life_x {
                     parts.push("Pay X life".to_string());
                 } else if cost.life > 0 {
                     parts.push(format!("Pay {} life", cost.life));
@@ -11877,6 +11879,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.obj(*what)
             };
             Clause::imperative(format!("you may choose new targets for {o}"))
+        }
+        // "counter that spell unless its controller discards a card"
+        // (Reality Smasher), "... discards their hand" (Perplex).
+        Effect::CounterUnlessPays { to, discard, .. } if *discard > 0 => {
+            let o = if *to == Recipient::TriggeringObject {
+                "that spell".to_string()
+            } else {
+                ctx.obj(*to)
+            };
+            let what = if *discard == u8::MAX {
+                "their hand".to_string()
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(Num::N(u32::from(*discard)), "a"),
+                    plural(Num::N(u32::from(*discard)), "card")
+                )
+            };
+            Clause::imperative(format!("counter {o} unless its controller discards {what}"))
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;

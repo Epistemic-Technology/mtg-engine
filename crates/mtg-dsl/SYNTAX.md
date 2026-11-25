@@ -393,7 +393,8 @@ top card of your graveyard", "Exile the top creature card of your
 graveyard", the most recent, CR 404.2; `exile 2 cards from graveyard and
 this`: "Exile two cards from your graveyard and this creature", one
 part), `pay 3
-life`, `pay x life` (a spell's additional cost: "As an additional cost to
+life`, `pay half life` ("Pay half your life, rounded up", CR 107.1a:
+always payable), `pay x life` (a spell's additional cost: "As an additional cost to
 cast this spell, pay X life."; X is announced as the spell is cast, at most
 the caster's life, CR 119.4; in an activated ability's cost, "{X}{B}, {T},
 Pay X life: ...", the ability's X), `sacrifice any number creature` and
@@ -3681,6 +3682,12 @@ stays in exile (CR 406.3, Bomat Courier; the reminder "(You can't look at
 it.)" is not printed), `face down look` "face down and look at it": its
 controller may),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
+`counter target spell unless its controller discards hand` ("... discards
+their hand", Perplex: payable with any hand) and `counter that spell unless
+its controller discards 1 card` ("... discards a card", Reality Smasher:
+the controller may discard that many cards of their choice instead of
+paying mana; in `whenever this becomes targeted by opponent spell`, `that
+spell` is the spell targeting it),
 `... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
 each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for
 each Wizard on the battlefield", `count each plus 2 Faerie you control`
