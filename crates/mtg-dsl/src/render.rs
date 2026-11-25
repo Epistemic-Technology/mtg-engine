@@ -3322,11 +3322,21 @@ pub fn target_phrase(s: TargetSpec) -> String {
         instant_sorcery,
         noncreature,
         listed,
+        quals,
     } = s
     {
         let kinds = match (activated, triggered) {
+            _ if instant_sorcery && !activated => {
+                "instant spell, sorcery spell, or triggered ability"
+            }
             _ if instant_sorcery => {
                 "instant spell, sorcery spell, activated ability, or triggered ability"
+            }
+            _ if quals & mtg_core::card::STACK_COLORLESS != 0 => {
+                "triggered ability or colorless spell"
+            }
+            _ if quals & mtg_core::card::STACK_LEGENDARY != 0 => {
+                "activated ability, triggered ability, or legendary spell"
             }
             _ if noncreature => "activated ability, triggered ability, or noncreature spell",
             _ if listed => "spell, activated ability, or triggered ability",
@@ -3341,7 +3351,13 @@ pub fn target_phrase(s: TargetSpec) -> String {
             format!(" from {}", with_article(&format!("{t} source")))
         });
         // "target triggered ability you control from a creature source".
-        let yours = if yours { " you control" } else { "" };
+        let yours = if yours {
+            " you control"
+        } else if quals & mtg_core::card::STACK_OTHERS != 0 {
+            " you don't control"
+        } else {
+            ""
+        };
         let single = if single { " with a single target" } else { "" };
         return format!("target {kinds}{yours}{from}{single}");
     }

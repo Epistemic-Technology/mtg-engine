@@ -1,0 +1,7 @@
+card "Consign to Memory" {
+  oracle_id 16c39265-72d9-4c86-a961-8dd38ff9adcd
+  cost {U}
+  type Instant
+  replicate {1}
+  spell: counter target triggered ability or colorless spell
+}

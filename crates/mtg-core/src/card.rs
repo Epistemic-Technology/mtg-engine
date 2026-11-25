@@ -4578,6 +4578,10 @@ pub enum TargetSpec {
         /// triggered ability" (the same objects as "spell or ability").
         #[serde(default)]
         listed: bool,
+        /// More qualities, `STACK_*` bits: "you don't control", a
+        /// colorless or legendary spell.
+        #[serde(default)]
+        quals: u8,
     },
     /// "target opponent".
     Opponent,
@@ -4647,6 +4651,16 @@ pub enum TargetSpec {
     /// it (any owner's).
     PermanentOrSuspended(u16),
 }
+
+/// `TargetSpec::OnStack::quals`: "target activated or triggered ability
+/// you don't control" (one an opponent controls).
+pub const STACK_OTHERS: u8 = 1;
+/// `TargetSpec::OnStack::quals`: "target triggered ability or colorless
+/// spell": a spell only if it is colorless (CR 105.2c).
+pub const STACK_COLORLESS: u8 = 1 << 1;
+/// `TargetSpec::OnStack::quals`: "target activated ability, triggered
+/// ability, or legendary spell": a spell only if it is legendary.
+pub const STACK_LEGENDARY: u8 = 1 << 2;
 
 /// `CardDef::modes_if`: when a modal spell's larger choice is allowed.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

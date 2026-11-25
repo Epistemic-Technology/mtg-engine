@@ -6802,10 +6802,14 @@ impl GameState {
                     single,
                     instant_sorcery,
                     noncreature,
+                    quals,
                     ..
                 } = spec
                 {
-                    if obj.zone != Zone::Stack || (yours && obj.controller != caster) {
+                    if obj.zone != Zone::Stack
+                        || (yours && obj.controller != caster)
+                        || (quals & crate::card::STACK_OTHERS != 0 && obj.controller == caster)
+                    {
                         return false;
                     }
                     // CR 115.9a: the times a target was chosen for it.
@@ -6820,7 +6824,14 @@ impl GameState {
                                         || c.types.contains(CardType::Sorcery)
                                 }))
                             && (!noncreature
-                                || self.characteristics(id).is_some_and(|c| !c.is_creature()));
+                                || self.characteristics(id).is_some_and(|c| !c.is_creature()))
+                            // "or colorless spell", "or legendary spell".
+                            && (quals & crate::card::STACK_COLORLESS == 0
+                                || self.characteristics(id).is_some_and(|c| c.colors.count() == 0))
+                            && (quals & crate::card::STACK_LEGENDARY == 0
+                                || self.characteristics(id).is_some_and(|c| {
+                                    c.supertypes.contains(crate::card::Supertype::Legendary)
+                                }));
                     };
                     let kind_ok = match self.pool.ability(sa.ability) {
                         crate::card::AbilityDef::Activated(_) => activated,

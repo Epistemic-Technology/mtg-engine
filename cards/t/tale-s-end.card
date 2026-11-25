@@ -1,0 +1,6 @@
+card "Tale's End" {
+  oracle_id 8ebb6fe0-3ed1-4cc9-bcb1-5317de199efc
+  cost {1}{U}
+  type Instant
+  spell: counter target activated ability, triggered ability, or legendary spell
+}

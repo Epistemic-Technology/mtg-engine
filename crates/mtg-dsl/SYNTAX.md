@@ -3312,7 +3312,13 @@ controller's; `copy target instant spell, sorcery spell, activated
 ability, or triggered ability` a spell only if it is an instant or
 sorcery; `counter target activated ability, triggered ability, or
 noncreature spell`, Louisoix's Sacrifice, a spell only if it isn't a
-creature spell), `change target of target spell or ability with a single target`
+creature spell; `counter target activated or triggered ability you don't
+control`, Nimble Obstructionist, one an opponent controls; `counter target
+triggered ability or colorless spell`, Consign to Memory, a spell only if
+it is colorless; `counter target activated ability, triggered ability, or
+legendary spell`, Tale's End, a spell only if it is legendary; `counter
+target instant spell, sorcery spell, or triggered ability`, Spider-Sense,
+no activated ability), `change target of target spell or ability with a single target`
 ("Change the target of target spell or ability with a single target.",
 CR 115.7a: the effect's controller changes it to another target legal for
 that spell or ability, judged for its controller and source; with none,

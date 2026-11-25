@@ -274,6 +274,102 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
 /// Target specifications by their text, longest first. `,` stands for a
 /// comma token.
 pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
+    // "counter target activated or triggered ability you don't control"
+    // (Nimble Obstructionist).
+    (
+        &[
+            "activated",
+            "or",
+            "triggered",
+            "ability",
+            "you",
+            "don't",
+            "control",
+        ],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: false,
+            listed: false,
+            quals: mtg_core::card::STACK_OTHERS,
+        },
+    ),
+    // "counter target triggered ability or colorless spell" (Consign to
+    // Memory).
+    (
+        &["triggered", "ability", "or", "colorless", "spell"],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: false,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: false,
+            listed: false,
+            quals: mtg_core::card::STACK_COLORLESS,
+        },
+    ),
+    // "counter target activated ability, triggered ability, or legendary
+    // spell" (Tale's End).
+    (
+        &[
+            "activated",
+            "ability",
+            ",",
+            "triggered",
+            "ability",
+            ",",
+            "or",
+            "legendary",
+            "spell",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: false,
+            listed: false,
+            quals: mtg_core::card::STACK_LEGENDARY,
+        },
+    ),
+    // "counter target instant spell, sorcery spell, or triggered ability"
+    // (Spider-Sense).
+    (
+        &[
+            "instant",
+            "spell",
+            ",",
+            "sorcery",
+            "spell",
+            ",",
+            "or",
+            "triggered",
+            "ability",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: false,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: true,
+            noncreature: false,
+            listed: true,
+            quals: 0,
+        },
+    ),
     (
         &["nonlegendary", "creature", "you", "control"],
         TargetSpec::NonlegendaryCreatureYouControl,
@@ -327,6 +423,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -352,6 +449,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -366,6 +464,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -380,6 +479,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -407,6 +507,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: true,
             noncreature: false,
             listed: true,
+            quals: 0,
         },
     ),
     // "target activated ability, triggered ability, or noncreature
@@ -433,6 +534,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: true,
             listed: true,
+            quals: 0,
         },
     ),
     (
@@ -456,6 +558,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: true,
+            quals: 0,
         },
     ),
     (
@@ -470,6 +573,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -484,6 +588,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -498,6 +603,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -512,6 +618,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -526,6 +633,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -540,6 +648,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -554,6 +663,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -568,6 +678,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
