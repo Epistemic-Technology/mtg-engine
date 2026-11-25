@@ -1820,7 +1820,13 @@ impl Fmt {
                 }
                 match f {
                     Some(f) => {
-                        let _ = write!(s, " {} card", filter(f));
+                        // `take with kicker card`: no type, not "permanent"
+                        // (which a dig reads as "permanent card").
+                        let words = filter(f);
+                        let words = words
+                            .strip_prefix("permanent with ")
+                            .map_or(words.clone(), |w| format!("with {w}"));
+                        let _ = write!(s, " {words} card");
                     }
                     None => s.push_str(" card"),
                 }

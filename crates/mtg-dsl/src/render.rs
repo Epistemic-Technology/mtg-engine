@@ -4294,7 +4294,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         });
     } else if let Some(mtg_core::card::CounterQual::Without(k)) = f.status.counter {
         let name = counter_name(k);
-        let a = if article(&name) == "an" { "an" } else { "a" };
+        let a = if article(name) == "an" { "an" } else { "a" };
         if plural_form {
             let _ = write!(s, " that don't have {a} {name} counter on them");
         } else {
