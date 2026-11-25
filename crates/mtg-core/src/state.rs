@@ -5495,7 +5495,14 @@ impl GameState {
                     && self.step.is_main()
                     && self.stack.iter().all(|s| *s == source)
             }
-            C::AsCast(_) => self.objects.get(source).is_some_and(|o| o.cast.as_cast()),
+            // "Exile Emergency Powers. Addendum — If you cast this spell
+            // during your main phase, ...": the spell as it last existed,
+            // once the resolution has moved it.
+            C::AsCast(_) => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| o.cast.as_cast()),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)
