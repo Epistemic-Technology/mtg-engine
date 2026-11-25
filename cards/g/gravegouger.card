@@ -1,0 +1,8 @@
+card "Gravegouger" {
+  oracle_id 2677c0d9-1251-478e-b157-072859c593a9
+  cost {2}{B}
+  type Creature — Nightmare Horror
+  pt 2/2
+  triggered when this enters: exile up to 2 target card from a graveyard
+  triggered when this leaves the battlefield: return exiled cards to graveyard
+}

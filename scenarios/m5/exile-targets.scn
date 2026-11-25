@@ -267,6 +267,25 @@ scenario "Skyclave Apparition: the exiled card's owner gets an X/X Illusion" {
   assert battlefield A lacks "Illusion"
 }
 
+scenario "Gravegouger: the exiled cards go back to their owner's graveyard" {
+  battlefield A: 6 "Swamp"
+  hand A: "Gravegouger", "Murder"
+  graveyard B: "Hill Giant", "Shock", "Grizzly Bears"
+  exile B: "Serra Angel"
+  turn 1 A: cast "Gravegouger"
+  turn 1 A: trigger "Gravegouger" targeting "Hill Giant", "Shock"
+  run_to turn 1 begin_combat
+  assert exile B count 3
+  assert graveyard B count 1
+  turn 1 main2 A: cast "Murder" targeting "Gravegouger"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert graveyard B count 3
+  assert exile B contains "Serra Angel"
+  assert exile B count 1
+}
+
 scenario "Severance Priest: exile a nonland card from the hand; its owner gets an X/X Spirit" {
   battlefield A: "Plains", "Forest", 4 "Swamp"
   hand A: "Severance Priest", "Murder"

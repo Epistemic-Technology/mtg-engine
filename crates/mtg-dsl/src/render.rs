@@ -10806,7 +10806,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }),
         // "Put target creature card with mana value X exiled with this
         // creature into its owner's graveyard."
-        Effect::PutInGraveyard(what) => {
+        // "When this creature leaves the battlefield, return the exiled
+        // cards to their owner's graveyard." (Gravegouger: one graveyard).
+        Effect::PutInGraveyard(what, true) => {
+            let o = ctx.obj(*what);
+            let whose = if *what == Recipient::ExiledCards {
+                "their owner's graveyard"
+            } else {
+                "its owner's graveyard"
+            };
+            Clause::imperative(format!("return {o} to {whose}"))
+        }
+        Effect::PutInGraveyard(what, false) => {
             let o = ctx.obj(*what);
             let whose = if o.starts_with("each ") || !ctx.is_many(*what) {
                 "its owner's graveyard"

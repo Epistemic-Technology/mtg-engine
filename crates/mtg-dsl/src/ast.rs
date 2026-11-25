@@ -5659,7 +5659,9 @@ pub enum Effect {
     /// `put target creature card exiled with this into graveyard`, `put
     /// each card exiled with this into graveyard`: "Put ... into its
     /// owner's graveyard", from exile (CR 400.3).
-    PutInGraveyard(Recipient),
+    /// `return exiled cards to graveyard` (`.1`): "return the exiled cards
+    /// to their owner's graveyard" (Gravegouger).
+    PutInGraveyard(Recipient, bool),
     /// `each opponent sacrifices 1 creature`: "Each opponent sacrifices a
     /// creature of their choice."
     SacrificeChosen {

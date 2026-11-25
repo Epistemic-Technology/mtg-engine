@@ -2595,8 +2595,11 @@ impl Fmt {
                 self.recipient(*to, t),
                 num(*times)
             ),
-            Effect::PutInGraveyard(what) => {
+            Effect::PutInGraveyard(what, false) => {
                 format!("put {} into graveyard", self.recipient(*what, t))
+            }
+            Effect::PutInGraveyard(what, true) => {
+                format!("return {} to graveyard", self.recipient(*what, t))
             }
             Effect::PutInLibrary {
                 what,

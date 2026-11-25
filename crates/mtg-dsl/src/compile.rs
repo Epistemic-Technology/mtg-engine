@@ -4322,7 +4322,7 @@ impl Compiler<'_> {
                 times: *times,
                 to: r(*to),
             }),
-            Effect::PutInGraveyard(what) => {
+            Effect::PutInGraveyard(what, _) => {
                 out.push(CoreEffect::PutInGraveyard { what: r(*what) });
             }
             Effect::PutInLibrary { what, place, .. } => out.push(CoreEffect::PutInLibrary {
@@ -9344,6 +9344,19 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
     // blue Illusion creature token, where X is the mana value of the
     // exiled card" (Skyclave Apparition): what its abilities exile.
     if def.oracle_text.contains("the exiled card's owner") {
+        def.links_exile = true;
+    }
+    // "return the exiled cards to their owner's graveyard" (Gravegouger).
+    if def.abilities.iter().any(|a| {
+        a.all_effects().iter().any(|e| {
+            matches!(
+                e,
+                CoreEffect::PutInGraveyard {
+                    what: CoreRecipient::ExiledCard
+                }
+            )
+        })
+    }) {
         def.links_exile = true;
     }
     // "This artifact has all activated abilities of the exiled card"

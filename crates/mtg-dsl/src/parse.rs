@@ -12699,7 +12699,7 @@ impl P {
             {
                 let what = self.recipient()?;
                 if self.eat_words(&["into", "graveyard"]) {
-                    return Ok(Effect::PutInGraveyard(what));
+                    return Ok(Effect::PutInGraveyard(what, false));
                 }
                 let place = self.library_place(false)?;
                 if matches!(
@@ -12950,6 +12950,11 @@ impl P {
                         owner_hand,
                         put: false,
                     });
+                }
+                // `return exiled cards to graveyard`: from exile to their
+                // owners' graveyards (CR 400.3).
+                if !owner_hand && self.eat_word("graveyard") {
+                    return Ok(Effect::PutInGraveyard(what, true));
                 }
                 // "Return up to two target creature cards ... to the
                 // battlefield": the targets of one phrase, together.

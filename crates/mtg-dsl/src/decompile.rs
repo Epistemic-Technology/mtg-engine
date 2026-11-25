@@ -1474,7 +1474,7 @@ impl Decompiler<'_> {
                 times: *times,
                 to: r(*to),
             },
-            CoreEffect::PutInGraveyard { what } => Effect::PutInGraveyard(r(*what)),
+            CoreEffect::PutInGraveyard { what } => Effect::PutInGraveyard(r(*what), false),
             CoreEffect::PutInLibrary { what, place } => Effect::PutInLibrary {
                 what: r(*what),
                 place: *place,
