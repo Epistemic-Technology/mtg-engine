@@ -3102,3 +3102,36 @@ scenarios in both builds, both fuzzes, all 400 sweep pairs. Coverage:
 5,164), 74.6% of Modern (16,938 of 22,718); 20,097 card files, gate
 19,687 match. Throughput: 4,037 games/s on the mono-red mirror (3,985
 after the thirteenth wave, 4,158 before it); random decks 680 a core.
+
+Status 2026-11-25, the fifteenth wave: card batches again, on cards no
+agent had tried. Modern had 5,770 uncovered cards and reports for 513
+of them, so 32 Sonnet agents took about 1,230 never-tried cards (127
+Pauper and Standard, the rest Modern) against frozen binaries: 385
+accepted (31%; the Pauper and Standard leftovers 14 of 127, the Modern
+batches 10 to 19 of 40), at roughly a third of a feature agent's cost
+a card. Six were held back at integration (three gate mismatches,
+three format round trips) and fixed by a wording agent. A fifth of the
+cards tried were wording near-misses (the language says the card, the
+renderer prints it slightly wrong) and thirty lines reported a form
+that gates Match and does the wrong thing, so a second phase ran
+while the last batches finished: five Opus wording agents on the
+near-miss lines (143 cards, 114 left), a bug-fix agent on the
+wrong-meaning lines (thirteen faults: shield counters did nothing, "as
+long as defending player controls" never held, a granted attack
+restriction was not enforced, pronouns after puts and attack
+triggers), the template author (62 cards after seven the batches had
+also written; its line index now checks every candidate statement),
+and a profiling agent (the fourteenth wave had cost the mirror 1.3%,
+most of it one per-target check; 1.7% fewer instructions on the mirror
+and 6.0% on frozen random decks, snapshots halved again). The wording
+agents fixed a dozen more engine faults on the way (a kicker's X never
+asked, a second "costs less if" line dropped, a block rule compared
+with an unfilled count). The sweep after the merges failed in two
+pairs, both old: a life condition inside "and" did not refresh the
+characteristics cache, and a spree spell's mode list judged plain mana
+sources only and then offered every mode. After the fixes: release
+and debug tests, 16,008 scenarios in both builds, both fuzzes and all
+400 sweep pairs are clean. Coverage: 96.3% of Pauper (10,476 of
+10,881), 92.0% of Standard (4,752 of 5,164), 77.1% of Modern (17,524
+of 22,718); 20,720 card files, gate 20,282 match. Throughput: 4,120
+games/s on the mono-red mirror (4,046 at the wave's start).

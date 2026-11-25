@@ -110,6 +110,29 @@ still leaves more than half its list, with reasons.
 - No perf agent ran and throughput fell (KNOWN-ISSUES section 4): run
   one every wave, or at least bench merge by merge.
 
+## Card batches first for a format nobody has tried (fifteenth wave)
+
+Before partitioning a format for feature agents, count how many of its
+uncovered cards have a report line. Modern had 5,770 uncovered cards
+and 513 reports: 32 Sonnet batches of 40 never-tried cards accepted
+31% (10 to 19 a batch) at about a third of a feature agent's cost a
+card, and their reports are the partition for what follows.
+
+- At most 20 agents run at once: queue the rest and start one as each
+  finishes.
+- A fifth of the cards come back as `RENDER:` near-misses and a few
+  percent as `MEANING:`. Start wording agents (about 55 lines each)
+  and one bug-fix agent on those lines as soon as the first twenty
+  batches are in; they yielded 25 to 34 cards each.
+- Integration: build, gate, scenarios and `cargo test` on the main
+  checkout before committing. Expect leftovers: scenario files for
+  rejected cards, a card that no longer gates, a card that fails the
+  format round trip (list them all at once with a throwaway test, not
+  one failure a run), a file name that breaks the slug rule (accents
+  are kept).
+- The template agent, working in a worktree, writes some of the same
+  cards: keep the main checkout's file at the merge.
+
 ## Quick cross-pool backlog (no census inputs needed)
 
     for f in pauper standard modern; do
