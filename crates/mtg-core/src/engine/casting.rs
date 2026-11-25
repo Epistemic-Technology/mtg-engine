@@ -7554,7 +7554,17 @@ impl GameState {
                         other,
                         u8::try_from(**i).unwrap_or(0),
                     );
-                    self.spell_payable(o.controller, spell, &req)
+                    // As the offer judged it (`basis_payable`): mana from
+                    // activated mana abilities counts.
+                    let ps = self.player(o.controller);
+                    self.payable(
+                        o.controller,
+                        &self.spell_sources(spell),
+                        &ps.mana_pool,
+                        &req,
+                        ps.life,
+                        None,
+                    )
                 })
                 .map(|i| Choice::Mode(*i))
                 .collect();

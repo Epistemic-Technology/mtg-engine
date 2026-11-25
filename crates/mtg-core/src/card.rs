@@ -3916,6 +3916,28 @@ pub enum StaticCondition {
 }
 
 impl StaticCondition {
+    /// Whether the condition reads a life total or poison count, alone or
+    /// inside "and", "or" or "not" ("as long as you have 30 or more life
+    /// and an opponent has 10 or less life", Blood Baron of Vizkopa): a
+    /// life change must then invalidate the characteristics cache
+    /// (`DefFlags::LIFE_CDA`).
+    #[must_use]
+    pub fn reads_life(&self) -> bool {
+        match self {
+            StaticCondition::OpponentLifeAtMost(_)
+            | StaticCondition::YourLife { .. }
+            | StaticCondition::LifeVsStarting { .. }
+            | StaticCondition::MoreLifeThanOpponent
+            | StaticCondition::AnyPlayerLifeAtMost(_)
+            | StaticCondition::OpponentPoison(_) => true,
+            StaticCondition::And(a, b) | StaticCondition::Or(a, b) => {
+                a.reads_life() || b.reads_life()
+            }
+            StaticCondition::Not(a) | StaticCondition::AsCast(a) => a.reads_life(),
+            _ => false,
+        }
+    }
+
     /// "One or more events of this kind this turn".
     #[must_use]
     pub const fn happened(kind: TurnEvent, who: TurnWho) -> Self {
@@ -12090,14 +12112,7 @@ impl DefFlags {
                     p,
                     Modification::CdaPt { count: CountExpr::Life, .. }
                         | Modification::ModifyPtPer { count: CountExpr::Life, .. }
-                )) || matches!(s.condition, Some(
-                    StaticCondition::OpponentLifeAtMost(_)
-                        | StaticCondition::YourLife { .. }
-                        | StaticCondition::LifeVsStarting { .. }
-                        | StaticCondition::MoreLifeThanOpponent
-                        | StaticCondition::AnyPlayerLifeAtMost(_)
-                        | StaticCondition::OpponentPoison(_)
-                )))
+                )) || s.condition.as_ref().is_some_and(StaticCondition::reads_life))
             }),
         );
         flags.set(

@@ -5656,6 +5656,9 @@ pub fn filter(f: &Filter) -> String {
         // `each thatare Barbarian or Warrior creature` (Lovisa Coldeyes):
         // the parser takes `each` first.
         let inner = filter(&g);
+        if f.each {
+            return format!("each thatare {inner}");
+        }
         return match inner.strip_prefix("each ") {
             Some(rest) => format!("each thatare {rest}"),
             None => format!("thatare {inner}"),

@@ -34,3 +34,35 @@ scenario "with other mana the artifact can be tapped for the cost" {
   assert tapped "Ring of the Lucii"
   assert graveyard A count 1
 }
+
+# Faults the fifteenth wave's sweep found.
+
+scenario "a life condition inside an and is re-read as life changes" {
+  # Blood Baron of Vizkopa: +6/+6 and flying as long as you have 30 or
+  # more life and an opponent has 10 or less. Its lifelink makes it so.
+  life A 28
+  life B 10
+  battlefield A: "Blood Baron of Vizkopa"
+  start turn 1 A precombat_main
+  assert power "Blood Baron of Vizkopa" 4
+  turn 1 A: attack "Blood Baron of Vizkopa"
+  run_to turn 1 postcombat_main
+  assert life A 32
+  assert life B 6
+  assert power "Blood Baron of Vizkopa" 10
+}
+
+scenario "a spree mode paid with an activated mana ability" {
+  # Lively Dirge {1}{B}, Spree +{1} / +{2}. A Swamp and Ring of the
+  # Lucii's "{T}: Add {C}{C}" pay for the first mode. (The mode list
+  # judged plain sources only and then offered every mode; the scenario
+  # runner cannot script a refused mode, so the sweep's seed is the
+  # check: random:623 v random:1623, seed 632.)
+  battlefield A: "Swamp", "Ring of the Lucii"
+  hand A: "Lively Dirge"
+  library A: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lively Dirge" mode 1
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Lively Dirge"
+}
