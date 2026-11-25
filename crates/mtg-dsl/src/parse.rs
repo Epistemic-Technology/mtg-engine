@@ -18238,6 +18238,10 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one check per target form
     fn target_spec(&mut self) -> R<Target> {
+        // `target suspended card or permanent` (CR 702.62b).
+        if self.eat_words(&["suspended", "card", "or"]) {
+            return Ok(Target::PermanentOrSuspended(self.filter()?));
+        }
         // "target spell or creature" (CR 115.1).
         if self.at_words(&["spell", "or"])
             && !matches!(

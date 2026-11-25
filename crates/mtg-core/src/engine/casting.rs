@@ -5570,6 +5570,35 @@ impl GameState {
             )
     }
 
+    /// A suspended card a resolving effect acts on ("Remove two time
+    /// counters from target permanent or suspended card"), if `t` is one.
+    fn suspended_target(&self, t: Target) -> Option<ObjId> {
+        match t {
+            Target::Object(id) => self
+                .objects
+                .get(id)
+                .is_some_and(|o| self.is_suspended(o))
+                .then_some(id),
+            Target::Player(_) => None,
+        }
+    }
+
+    /// CR 702.62a: once the last time counter is removed from a card
+    /// suspended with its suspend ability, it may be cast without paying
+    /// its mana cost; either way it's no longer suspended. (The engine
+    /// offers the cast as the removal happens, rather than as a trigger.)
+    fn suspend_last_removed(&mut self, card: ObjId) {
+        let o = &mut self.objects[card];
+        if o.zone == Zone::Exile
+            && o.alt == AltCast::Suspended
+            && o.counters(CounterKind::Time) == 0
+        {
+            o.alt = AltCast::None;
+            self.suspended_count = self.suspended_count.saturating_sub(1);
+            self.offer_exile_cast(card, AltCast::Suspend);
+        }
+    }
+
     /// "You may cast it": if `card` can be cast `alt`'s way, its owner
     /// chooses; a yes casts it as the resolution finishes. Whether it will
     /// be cast.
@@ -7005,6 +7034,14 @@ impl GameState {
         } else if self.pool.base_spec(spec).is_exile() {
             self.players_in_game()
                 .any(|p| self.player(p).exile.iter().any(fits))
+        } else if matches!(
+            self.pool.base_spec(spec),
+            TargetSpec::PermanentOrSuspended(_)
+        ) {
+            self.battlefield.iter().any(fits)
+                || self
+                    .players_in_game()
+                    .any(|p| self.player(p).exile.iter().any(fits))
         } else if self.pool.base_spec(spec).is_spell() {
             // "counter target spell with mana value X".
             self.stack.iter().any(fits)
@@ -7981,7 +8018,7 @@ impl GameState {
             }
             return true;
         }
-        if spec.is_exile() {
+        if spec.is_exile() || matches!(spec, TargetSpec::PermanentOrSuspended(_)) {
             for p in self.players_in_game() {
                 for id in &self.player(p).exile {
                     let t = Target::Object(*id);
@@ -7990,7 +8027,10 @@ impl GameState {
                     }
                 }
             }
-            return true;
+            // "target permanent or suspended card": the permanents too.
+            if spec.is_exile() {
+                return true;
+            }
         }
         if spec.is_spell() || matches!(spec, TargetSpec::SpellOr(_)) {
             for id in &self.stack {
@@ -13486,6 +13526,10 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
                         self.add_counters(id, *kind, n);
+                    } else if let Some(id) = self.suspended_target(t) {
+                        // "Put two time counters on target ... suspended
+                        // card."
+                        self.objects[id].add_counters(*kind, n);
                     }
                 }
             }
@@ -13573,6 +13617,14 @@ impl GameState {
                             .objects
                             .get(id)
                             .is_some_and(|o| o.counters(CounterKind::Any) < before);
+                    } else if let Some(id) = self.suspended_target(t) {
+                        // "Remove two time counters from target permanent
+                        // or suspended card."
+                        let n = self.eval_num(*count, ctx);
+                        let before = self.objects[id].counters(CounterKind::Any);
+                        self.objects[id].remove_counters(*kind, n);
+                        removed |= self.objects[id].counters(CounterKind::Any) < before;
+                        self.suspend_last_removed(id);
                     }
                 }
                 ctx.did = removed;
@@ -17928,13 +17980,7 @@ impl GameState {
                     return;
                 }
                 o.remove_counters(CounterKind::Time, 1);
-                if o.counters(CounterKind::Time) == 0 {
-                    // CR 702.62a: as the last is removed, it may be cast;
-                    // either way it's no longer suspended.
-                    o.alt = AltCast::None;
-                    self.suspended_count = self.suspended_count.saturating_sub(1);
-                    self.offer_exile_cast(card, AltCast::Suspend);
-                }
+                self.suspend_last_removed(card);
             }
             Effect::Cascade => self.cascade(ctx, None),
             Effect::Ripple => self.ripple(ctx),

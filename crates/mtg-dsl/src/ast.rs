@@ -1879,6 +1879,10 @@ pub enum Target {
         who: Who,
         linked: bool,
     },
+    /// `target suspended card or nonland permanent`: "target nonland
+    /// permanent or suspended card" (CR 702.62b), a permanent matching
+    /// the filter or a suspended card.
+    PermanentOrSuspended(Filter),
     /// `up to 2 target creatures`: an optional target (CR 601.2c); the
     /// optional targets of an ability come last.
     UpTo(Box<Target>),

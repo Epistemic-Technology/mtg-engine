@@ -4641,6 +4641,11 @@ pub enum TargetSpec {
     /// "any target that was dealt damage this turn" (Needle Drop): as
     /// `Any`, but only a player or permanent dealt damage this turn.
     AnyDamaged,
+    /// "target permanent or suspended card", "target nonland permanent or
+    /// suspended card" (CR 702.62b): a permanent matching the pool's
+    /// filter, or a card in exile that has suspend and a time counter on
+    /// it (any owner's).
+    PermanentOrSuspended(u16),
 }
 
 /// `CardDef::modes_if`: when a modal spell's larger choice is allowed.
@@ -7239,6 +7244,13 @@ impl Effect {
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
                 | Effect::RemoveCounterChosen { .. }
+                // "Remove two time counters from target permanent or
+                // suspended card": the last one off lets its owner cast it
+                // (CR 702.62a).
+                | Effect::RemoveCounters {
+                    kind: CounterKind::Time,
+                    ..
+                }
                 | Effect::CopySpell
                 | Effect::CopySpells { .. }
                 | Effect::ChangeTarget { .. }

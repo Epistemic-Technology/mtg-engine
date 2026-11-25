@@ -1,0 +1,11 @@
+card "Shivan Sand-Mage" {
+  oracle_id 3afe854a-7daa-4745-a5d9-04879e5d940a
+  cost {2}{R}{R}
+  type Creature — Lizard Shaman
+  pt 3/2
+  triggered when this enters: choose one {
+    mode: remove 2 time counters from target suspended card or permanent
+    mode: put 2 time counters on target suspended card or permanent with time counter
+  }
+  suspend 4 {R}
+}

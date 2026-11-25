@@ -5034,10 +5034,21 @@ impl GameState {
             | TargetSpec::SpellOr(_)
             | TargetSpec::GraveyardCard { .. }
             | TargetSpec::ExileCard { .. }
+            | TargetSpec::PermanentOrSuspended(_)
             | TargetSpec::UpTo(_)
             | TargetSpec::Many(_)
             | TargetSpec::CreatureCardInYourGraveyard => false,
         }
+    }
+
+    /// Whether `o` is a suspended card (CR 702.62b): in exile, with
+    /// suspend, and with a time counter on it.
+    pub fn is_suspended(&self, o: &GameObject) -> bool {
+        o.zone == Zone::Exile
+            && o.kind == crate::state::ObjKind::Card
+            && o.marks & OBJ_FACE_DOWN_EXILE == 0
+            && o.counters(crate::card::CounterKind::Time) > 0
+            && self.pool.get(o.def).suspend.is_some()
     }
 
     /// Teamwork: the untapped creatures the caster of `spell` would tap,
@@ -6731,6 +6742,21 @@ impl GameState {
                         && f.matches(id, obj.owner, &c, source, None)
                         && self.status_ok(&f, id);
                 }
+                // "target permanent or suspended card": the permanent as
+                // a filtered target, the card if it's suspended.
+                if let TargetSpec::PermanentOrSuspended(f) = spec {
+                    if obj.zone == Zone::Exile {
+                        return self.is_suspended(obj);
+                    }
+                    return self.spec_matches(
+                        caster,
+                        TargetSpec::Filtered(f),
+                        target,
+                        source,
+                        x,
+                        targeting,
+                    );
+                }
                 // "target exiled card with warp", "target creature card
                 // exiled with The Darkness Crystal" (CR 607.2a): a face-up
                 // card in exile (a face-down one has no characteristics a
@@ -6935,6 +6961,7 @@ impl GameState {
                     TargetSpec::SpellFiltered(_)
                     | TargetSpec::GraveyardCard { .. }
                     | TargetSpec::ExileCard { .. }
+                    | TargetSpec::PermanentOrSuspended(_)
                     | TargetSpec::Player
                     | TargetSpec::Opponent
                     | TargetSpec::Spell

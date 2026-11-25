@@ -1,0 +1,9 @@
+card "Timecrafting" {
+  oracle_id 57939644-6f9a-4653-920b-f2d28559a9ca
+  cost {X}{R}
+  type Instant
+  choose one {
+    mode: remove X time counters from target suspended card or permanent
+    mode: put X time counters on target suspended card or permanent with time counter
+  }
+}

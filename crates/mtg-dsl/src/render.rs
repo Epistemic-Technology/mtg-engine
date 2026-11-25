@@ -2164,6 +2164,12 @@ impl<'a> Ctx<'a> {
             ),
             Target::Spell(f) => self.spell_target_phrase(f),
             Target::SpellOr(f) => format!("target spell or {}", filter_phrase(f, self.card, false)),
+            Target::PermanentOrSuspended(f) => {
+                format!(
+                    "target {} or suspended card",
+                    filter_phrase(f, self.card, false)
+                )
+            }
             Target::ExileCard {
                 filter,
                 who,
@@ -3101,6 +3107,12 @@ impl<'a> Ctx<'a> {
             Target::Filter(f) => filter_phrase(f, self.card, true),
             Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
             Target::SpellOr(f) => format!("spells and/or {}", filter_phrase(f, self.card, true)),
+            Target::PermanentOrSuspended(f) => {
+                format!(
+                    "{} and/or suspended cards",
+                    filter_phrase(f, self.card, true)
+                )
+            }
             Target::ExileCard {
                 filter,
                 who,
@@ -3228,6 +3240,7 @@ fn target_noun(t: &Target) -> String {
         Target::Spell(_) => "spell".to_string(),
         Target::SpellOr(f) if f.types == [CardType::Creature] => "spell or creature".to_string(),
         Target::SpellOr(_) => "spell or permanent".to_string(),
+        Target::PermanentOrSuspended(_) => "permanent or card".to_string(),
         Target::GraveyardCard { .. } | Target::ExileCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
             TargetSpec::Any | TargetSpec::AnyOther | TargetSpec::AnyDamaged => {
@@ -3263,6 +3276,7 @@ fn target_noun(t: &Target) -> String {
             TargetSpec::CreatureCardInYourGraveyard
             | TargetSpec::GraveyardCard { .. }
             | TargetSpec::ExileCard { .. } => "card".to_string(),
+            TargetSpec::PermanentOrSuspended(_) => "permanent or card".to_string(),
             TargetSpec::Spell
             | TargetSpec::CreatureSpell
             | TargetSpec::NoncreatureSpell
@@ -3365,6 +3379,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::BlockingCreature => "target blocking creature",
         TargetSpec::GraveyardCard { .. } => "target card from a graveyard",
         TargetSpec::ExileCard { .. } => "target card in exile",
+        TargetSpec::PermanentOrSuspended(_) => "target permanent or suspended card",
         TargetSpec::UpTo(_) => "up to one target permanent",
         TargetSpec::Many(_) => "any number of target permanents",
     }
@@ -22951,6 +22966,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             Target::Filter(f)
             | Target::Spell(f)
             | Target::SpellOr(f)
+            | Target::PermanentOrSuspended(f)
             | Target::GraveyardCard { filter: f, .. }
             | Target::ExileCard { filter: f, .. } => {
                 format!("Enchant {}", filter_phrase(f, card, false))

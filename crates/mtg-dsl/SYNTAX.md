@@ -5284,7 +5284,15 @@ graveyard") moves cards still in exile to their owners' graveyards (CR
 400.3); `return exiled cards to graveyard` is the same, printed "return
 the exiled cards to their owner's graveyard" (Gravegouger, whose cards
 come from a single graveyard). In scenarios a target name not on the battlefield, the stack or in
-a graveyard is found in exile. `exiled cards` is `exiled card` printed
+a graveyard is found in exile. `target suspended card or <filter>` ("target
+nonland permanent or suspended card", `target suspended card or nonland
+permanent`; "target permanent with a time counter on it or suspended
+card", `... or permanent with time counter`) is a permanent matching the
+filter or a suspended card (CR 702.62b: in exile, with suspend and a time
+counter on it, anyone's). `remove 2 time counters from <it>`, `put 2 time
+counters on <it>` and `return <it> to hand` act on the card in exile too;
+taking the last time counter off a card suspended by its suspend ability
+offers its owner the free cast at once (CR 702.62a, not as a trigger). `exiled cards` is `exiled card` printed
 plural ("return the exiled cards to their owners' hands", The Spot,
 Living Portal, whose linked ability exiles two); with `pronoun he`, `put
 this on bottom of library` prints "put him on the bottom of his owner's

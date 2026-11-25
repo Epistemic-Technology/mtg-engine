@@ -513,6 +513,9 @@ impl Decompiler<'_> {
             TargetSpec::Filtered(i) => Target::Filter(self.filter(self.pool.filter(i))),
             TargetSpec::SpellFiltered(i) => Target::Spell(self.filter(self.pool.filter(i))),
             TargetSpec::SpellOr(i) => Target::SpellOr(self.filter(self.pool.filter(i))),
+            TargetSpec::PermanentOrSuspended(i) => {
+                Target::PermanentOrSuspended(self.filter(self.pool.filter(i)))
+            }
             TargetSpec::GraveyardCard {
                 filter,
                 who,

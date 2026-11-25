@@ -3191,6 +3191,10 @@ impl Compiler<'_> {
                 let f = self.filter(f);
                 TargetSpec::SpellOr(self.pool.intern_filter(f))
             }
+            Target::PermanentOrSuspended(f) => {
+                let f = self.filter(f);
+                TargetSpec::PermanentOrSuspended(self.pool.intern_filter(f))
+            }
             Target::GraveyardCard {
                 filter,
                 who,
