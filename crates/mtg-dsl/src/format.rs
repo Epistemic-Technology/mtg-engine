@@ -381,7 +381,13 @@ impl Fmt {
                     // player controls": one per player.
                     Some(_) if first.ends_with(" that player controls") => first,
                     Some(rest) => format!("up to {n} {rest}"),
-                    None if first.starts_with("target ") => format!("{n} {first}"),
+                    // `2 another target creature`: "two other target
+                    // creatures" (Betrayal at the Vault).
+                    None if first.starts_with("target ")
+                        || first.starts_with("another target ") =>
+                    {
+                        format!("{n} {first}")
+                    }
                     None => first,
                 }
             }
