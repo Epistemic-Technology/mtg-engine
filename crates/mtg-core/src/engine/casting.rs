@@ -5092,7 +5092,20 @@ impl GameState {
         // 118.9), not its mana cost.
         let mut req = self.spell_requirements(spell, 0);
         req.add(&k.requirements(0));
-        self.spell_payable(o.controller, spell, &req)
+        self.kicked_payable(o.controller, spell, &req)
+    }
+
+    /// `spell_payable` for `spell` as it would be kicked: mana spent only
+    /// on kicked spells ("Spend this mana only to cast kicked spells.")
+    /// counts toward a kicker not yet chosen (CR 601.2b, 702.33d).
+    fn kicked_payable(&self, p: PlayerId, spell: ObjId, req: &ManaRequirement) -> bool {
+        if !self.restricted_mana_possible() {
+            return self.can_pay(p, req);
+        }
+        let Some(c) = self.characteristics(spell) else {
+            return false;
+        };
+        self.payable_for(p, &self.mana_sources(p), req, Spend::Kicking(&c, spell))
     }
 
     /// Whether `spell` (being cast) has a buyback cost its caster could pay
@@ -5318,7 +5331,7 @@ impl GameState {
         let mut n = 0;
         while n < 15 {
             req.add(&one);
-            if !self.spell_payable(o.controller, spell, &req) {
+            if !self.kicked_payable(o.controller, spell, &req) {
                 break;
             }
             n += 1;
@@ -5342,7 +5355,7 @@ impl GameState {
         let mut n = 0;
         while n < 15 {
             req.add(&one);
-            if !self.spell_payable(o.controller, spell, &req) {
+            if !self.kicked_payable(o.controller, spell, &req) {
                 break;
             }
             n += 1;
@@ -8280,10 +8293,11 @@ impl GameState {
     fn spend_allowed(&self, r: &crate::card::ManaRestriction, spend: Spend) -> bool {
         use crate::card::SpendWays;
         let ways = r.ways;
+        let kicking = matches!(spend, Spend::Kicking(..));
         match spend {
-            Spend::Spell(sc, id) => {
+            Spend::Spell(sc, id) | Spend::Kicking(sc, id) => {
                 if ways.0 == 0 && r.x_spells.is_none() {
-                    return self.restriction_allows_spell(r, sc, id);
+                    return self.restriction_allows_spell(r, sc, id, kicking);
                 }
                 let mut how = self.spell_ways(id);
                 if self.pool.is_face_down(sc.def) {
@@ -8298,7 +8312,7 @@ impl GameState {
                         .is_some_and(|f| f.matches_characteristics(sc))
                         && how.0 & quals == quals)
                 } else {
-                    self.restriction_allows_spell(r, sc, id) && how.0 & quals == quals
+                    self.restriction_allows_spell(r, sc, id, kicking) && how.0 & quals == quals
                 };
                 spell_ok
                     || (how.has(SpendWays::COST_X)
@@ -8325,16 +8339,53 @@ impl GameState {
         r: &crate::card::ManaRestriction,
         sc: &crate::state::Characteristics,
         id: ObjId,
+        kicking: bool,
     ) -> bool {
-        let matched = r
-            .spells
-            .as_ref()
-            .is_some_and(|f| f.matches_characteristics(sc) && self.spell_mana_value_ok(f, id));
+        let matched = r.spells.as_ref().is_some_and(|f| {
+            if f.status.kicked || f.or.as_ref().is_some_and(|o| o.status.kicked) {
+                return self.kicked_spell_filter(f, sc, id, kicking);
+            }
+            f.matches_characteristics(sc) && self.spell_mana_value_ok(f, id)
+        });
         if r.wording == crate::card::SpendWording::CantCast {
             !matched
         } else {
             matched
         }
+    }
+
+    /// A restriction's spell filter with "kicked" on a side ("an instant or
+    /// sorcery spell or a kicked spell"): that side matches a spell cast
+    /// with its kicker paid (CR 702.33d), or, while the kicker is being
+    /// weighed (`kicking`), one that would be. A card not yet cast isn't
+    /// kicked: the kicker is chosen on the stack (CR 601.2b).
+    #[cold]
+    #[inline(never)]
+    fn kicked_spell_filter(
+        &self,
+        f: &crate::card::ObjFilter,
+        sc: &crate::state::Characteristics,
+        id: ObjId,
+        kicking: bool,
+    ) -> bool {
+        let mut base = f.clone();
+        let alt = base.or.take();
+        let side = |g: &crate::card::ObjFilter| {
+            let mut g = g.clone();
+            let kicked = std::mem::take(&mut g.status.kicked);
+            g.matches_characteristics(sc)
+                && self.spell_mana_value_ok(&g, id)
+                && (!kicked
+                    || self.objects.get(id).is_some_and(|o| {
+                        let def = self.pool.get(o.def);
+                        o.zone == Zone::Stack
+                            && (def.kicker.is_some()
+                                || def.kicker_cost.is_some()
+                                || def.multikicker.is_some())
+                            && (kicking || o.cast.kicked())
+                    }))
+        };
+        side(&base) || alt.as_deref().is_some_and(side)
     }
 
     /// Whether the spell `id` (or the card, before it is cast) has the
@@ -20774,6 +20825,9 @@ enum Spend<'a> {
     /// on the stack) `.1`, for where it is cast from and how
     /// (`GameState::spell_ways`).
     Spell(&'a crate::state::Characteristics, ObjId),
+    /// The same spell, as it would be with its kicker paid: weighing
+    /// whether the kicker can be (`GameState::kicker_payable`).
+    Kicking(&'a crate::state::Characteristics, ObjId),
     /// Activating an ability of a source with these characteristics
     /// (`None`: not known), of the kind `.1` (`SpendWays::of_ability`;
     /// empty when not known).

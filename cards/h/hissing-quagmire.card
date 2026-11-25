@@ -1,0 +1,7 @@
+card "Hissing Quagmire" {
+  oracle_id 7fff5224-c002-4a32-86fe-9a4b18d78b50
+  type Land
+  enters tapped
+  mana {B} or {G}
+  activated {1}{B}{G}: until end of turn, this becomes 2/2 black green Elemental creature with deathtouch
+}

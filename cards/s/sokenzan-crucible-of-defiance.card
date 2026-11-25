@@ -1,0 +1,6 @@
+card "Sokenzan, Crucible of Defiance" {
+  oracle_id c5ee72d5-3a9e-4fe5-8802-3286ee612055
+  type Legendary Land
+  mana {R}
+  label "Channel" activated {3}{R}, discard this, reduced {1} each legendary creature you control: create 2 "1/1 colorless Spirit creature"; those tokens gains haste
+}

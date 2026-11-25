@@ -1,0 +1,91 @@
+# "Untap them", "Untap those creatures. They gain haste until end of
+# turn." after a group, and "sacrifice a creature other than this
+# creature", templated in the seventeenth wave.
+
+scenario "Rallying Roar: +1/+1 and untap the creatures you control" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Rallying Roar"
+  turn 1 declare_attackers A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 end_combat A: cast "Rallying Roar"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert power "Serra Angel" 4
+}
+
+scenario "Rally to Battle: +1/+3 and untap them" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  hand A: "Rally to Battle"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 end_combat A: cast "Rally to Battle"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert toughness "Grizzly Bears" 5
+  run_to turn 2 upkeep
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Mob Rule: take the big creatures, untapped and hasty, until end of turn" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Serra Angel" tapped, "Hill Giant"
+  hand A: "Mob Rule"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mob Rule" mode 1
+  turn 1 declare_attackers A: attack "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+  assert life B 16
+  run_to turn 2 upkeep
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Mob Rule: power 3 or less" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears" tapped, "Serra Angel"
+  hand A: "Mob Rule"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mob Rule" mode 2
+  turn 1 declare_attackers A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert life B 15
+}
+
+scenario "Sokenzan, Crucible of Defiance: channel two hasty Spirits" {
+  battlefield A: 4 "Mountain"
+  hand A: "Sokenzan, Crucible of Defiance"
+  turn 1 A: activate "Sokenzan, Crucible of Defiance"
+  turn 1 declare_attackers A: attack "Spirit", "Spirit"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Sokenzan, Crucible of Defiance"
+}
+
+scenario "Sokenzan, Crucible of Defiance: {1} less for each legendary creature" {
+  battlefield A: 3 "Mountain", "Ashnod, Flesh Mechanist"
+  hand A: "Sokenzan, Crucible of Defiance"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sokenzan, Crucible of Defiance"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Spirit"
+}
+
+scenario "Demonic Taskmaster: the upkeep sacrifice takes another creature" {
+  battlefield A: "Demonic Taskmaster", "Grizzly Bears"
+  start turn 2 B
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Demonic Taskmaster"
+}
+
+scenario "Demonic Taskmaster: alone, it stays" {
+  battlefield A: "Demonic Taskmaster"
+  start turn 2 B
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Demonic Taskmaster"
+}

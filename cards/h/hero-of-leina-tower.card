@@ -1,0 +1,7 @@
+card "Hero of Leina Tower" {
+  oracle_id ae15a96d-ce88-4cb9-a353-439387ca3d02
+  cost {G}
+  type Creature — Human Warrior
+  pt 1/1
+  label "Heroic" triggered whenever you cast a spell that targets this: you may pay {X}; if you do, put X +1/+1 counters on this
+}

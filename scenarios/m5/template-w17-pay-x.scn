@@ -1,0 +1,128 @@
+# "You may pay {X}. If you do, ..." (X as paid), templated in the
+# seventeenth wave.
+
+scenario "Vigil for the Lost: pay {X} as a creature dies, gain X life" {
+  battlefield A: "Vigil for the Lost", "Grizzly Bears", 3 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: accept "Vigil for the Lost"
+  turn 2 A: choose "3"
+  run_to turn 2 postcombat_main
+  assert life A 23
+}
+
+scenario "Vigil for the Lost: declined, no life" {
+  battlefield A: "Vigil for the Lost", "Grizzly Bears", 3 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: decline "Vigil for the Lost"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert untapped oldest "Plains"
+}
+
+scenario "Squealing Devil: pay {X} for +X/+0; no {B} spent, it is sacrificed" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Squealing Devil"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Squealing Devil"
+  turn 1 A: trigger "Squealing Devil" targeting "Grizzly Bears"
+  turn 1 A: accept "Squealing Devil"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert graveyard A contains "Squealing Devil"
+}
+
+scenario "Squealing Devil: {B} spent, it stays" {
+  battlefield A: "Mountain", "Swamp", "Grizzly Bears"
+  hand A: "Squealing Devil"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Squealing Devil"
+  turn 1 A: decline "Squealing Devil"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Squealing Devil"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Hero of Leina Tower: heroic, pay {X} for X +1/+1 counters" {
+  battlefield A: "Hero of Leina Tower", 4 "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Hero of Leina Tower"
+  turn 1 A: accept "Hero of Leina Tower"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert counters "Hero of Leina Tower" +1/+1 3
+}
+
+scenario "Decree of Justice: cycled, pay {X} for X Soldiers" {
+  battlefield A: 6 "Plains"
+  hand A: "Decree of Justice"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Decree of Justice"
+  turn 1 A: accept "Decree of Justice"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Soldier"
+  assert graveyard A contains "Decree of Justice"
+}
+
+scenario "Decree of Justice: cast, X 4/4 flying Angels" {
+  battlefield A: 8 "Plains"
+  hand A: "Decree of Justice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Decree of Justice" x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Angel"
+  assert has newest "Angel" flying
+}
+
+scenario "Taj-Nar Swordsmith: pay {X}, an Equipment with mana value X or less" {
+  battlefield A: 7 "Plains"
+  hand A: "Taj-Nar Swordsmith"
+  library A: "Whispersilk Cloak", "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Taj-Nar Swordsmith"
+  turn 1 A: accept "Taj-Nar Swordsmith"
+  turn 1 A: choose "1"
+  turn 1 A: choose "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+  assert library A contains "Whispersilk Cloak"
+}
+
+scenario "Taj-Nar Swordsmith: X too small for the Cloak" {
+  battlefield A: 7 "Plains"
+  hand A: "Taj-Nar Swordsmith"
+  library A: "Whispersilk Cloak", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Taj-Nar Swordsmith"
+  turn 1 A: accept "Taj-Nar Swordsmith"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Whispersilk Cloak"
+}
+
+scenario "Flameblast Dragon: pay {X}{R} as it attacks for X damage" {
+  battlefield A: "Flameblast Dragon", 4 "Mountain"
+  turn 1 declare_attackers A: attack "Flameblast Dragon"
+  turn 1 declare_attackers A: trigger "Flameblast Dragon" targeting player B
+  turn 1 declare_attackers A: accept "Flameblast Dragon"
+  turn 1 declare_attackers A: choose "3"
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "Flameblast Dragon: declined, no damage" {
+  battlefield A: "Flameblast Dragon", 4 "Mountain"
+  turn 1 declare_attackers A: attack "Flameblast Dragon"
+  turn 1 declare_attackers A: trigger "Flameblast Dragon" targeting player B
+  turn 1 declare_attackers A: decline "Flameblast Dragon"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

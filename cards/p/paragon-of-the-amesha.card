@@ -1,0 +1,8 @@
+card "Paragon of the Amesha" {
+  oracle_id 4e4991b3-11c4-4408-a752-67e51f0fae44
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  activated {W}{U}{B}{R}{G}: until end of turn, this becomes Angel, this gets +3/+3 and this gains flying, lifelink
+}

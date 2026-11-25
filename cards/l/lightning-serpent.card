@@ -1,0 +1,9 @@
+card "Lightning Serpent" {
+  oracle_id d07b4bb6-0c8d-44ea-a5b3-eeb6e36f3631
+  cost {X}{R}
+  type Creature — Elemental Serpent
+  pt 2/1
+  keywords trample, haste
+  enters with X +1/+0 counters
+  triggered at beginning of each end step: sacrifice this
+}

@@ -1,0 +1,6 @@
+card "Darksteel Forge" {
+  oracle_id 9b3bec05-441f-4fdf-8b51-69fa8613fcd4
+  cost {9}
+  type Artifact
+  static artifact you control: has indestructible
+}

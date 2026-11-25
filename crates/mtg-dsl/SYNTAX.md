@@ -2093,7 +2093,11 @@ creatures that don't have a name", Pompous Gadabout: a face-down
 permanent, CR 708.2a; a token always has a name), `kicked` ("Whenever you
 cast a kicked spell", CR 702.33d: cast with its kicker or multikicker
 paid; a promised gift, which the engine keeps as the kicker flag, isn't
-kicked; judged in cast triggers, not in a mana restriction),
+kicked; judged in cast triggers, and in a mana restriction, `only to
+cast kicked spells`, `only to cast instant or sorcery spell or a kicked
+spell`: a spell on the stack with its kicker paid, or one whose kicker is
+being weighed, so the mana counts toward the kicker; never a card before
+it is cast, Elfhame Druid, Throne of Makindi, Volshe Tideturner),
 colors joined with `or` or listed (`red or green creature`, `red,
 white, or black creature card`: sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,

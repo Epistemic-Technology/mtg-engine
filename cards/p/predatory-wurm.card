@@ -1,0 +1,8 @@
+card "Predatory Wurm" {
+  oracle_id 99ed6e18-7f14-4ea8-baee-ad6c081388ff
+  cost {3}{G}
+  type Creature — Wurm
+  pt 4/4
+  keywords vigilance
+  static this: +2/+2 as long as you control Garruk planeswalker
+}

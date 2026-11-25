@@ -1,0 +1,9 @@
+card "Ashnod, Flesh Mechanist" {
+  oracle_id 7dfae95e-f67e-49e3-b68a-40ea7e5099dd
+  cost {B}
+  type Legendary Creature — Human Artificer
+  pt 1/1
+  keywords deathtouch
+  triggered whenever this attacks: you may sacrifice 1 another creature chosen; if you do, create 1 tapped "Powerstone"
+  activated {5}, exile creature card from graveyard: create 1 tapped "3/3 colorless Zombie artifact creature"
+}

@@ -1,0 +1,6 @@
+card "Coastal Piracy" {
+  oracle_id 8a05ec32-7b0c-4f23-a4f7-413301c2a70a
+  cost {2}{U}{U}
+  type Enchantment
+  triggered whenever creature you control deals combat damage to an opponent: you may draw 1 card
+}

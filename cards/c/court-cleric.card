@@ -1,0 +1,8 @@
+card "Court Cleric" {
+  oracle_id dec9edbb-677b-4773-8bc4-b388d7592276
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords lifelink
+  static this: +1/+1 as long as you control Ajani planeswalker
+}

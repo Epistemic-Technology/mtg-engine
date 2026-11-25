@@ -1,0 +1,7 @@
+card "Taj-Nar Swordsmith" {
+  oracle_id dcbf8d72-3367-43e1-9a71-e674e0ed52d9
+  cost {3}{W}
+  type Creature — Cat Soldier
+  pt 2/3
+  triggered when this enters: you may pay {X}; if you do, search Equipment card with mana value X or less to battlefield that card
+}

@@ -1880,6 +1880,25 @@ impl Templates {
     fn new() -> Self {
         let r = |s: &str| cached_regex(s).unwrap();
         let rules: Vec<Rule> = vec![
+            // "Creatures you control get +1/+1 until end of turn. Untap
+            // them." (Rallying Roar), "Gain control of all creatures ...
+            // Untap those creatures. They gain haste until end of turn."
+            // (Mob Rule): the group the sentence before named; the parser
+            // refuses either without one.
+            (r(r"^Untap (them|those creatures)$"), |c, _| {
+                Some(format!("untap {}", cap(c, 1)))
+            }),
+            (r(r"^They gain haste until end of turn$"), |_, _| {
+                Some("they gain haste".to_string())
+            }),
+            // "At the beginning of your upkeep, sacrifice a creature other
+            // than this creature." (Demonic Taskmaster).
+            (
+                r(
+                    r"^[Ss]acrifice an? (creature|artifact|land|permanent) other than this (?:creature|artifact|enchantment)$",
+                ),
+                |c, _| Some(format!("you sacrifice 1 {} other than this", cap(c, 1))),
+            ),
             // "put a loyalty counter on Ral" (CR 306.5).
             (r(r"^[Pp]ut an? loyalty counter on (.+)$"), |c, t| {
                 Some(format!(
@@ -2443,6 +2462,16 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // "Create a tapped 2/2 black Zombie creature token" (CR
+            // 111.2: the token enters tapped).
+            (
+                r(&TOKEN_PHRASE.replacen(r"(\S+) (", r"(\S+) tapped (", 1)),
+                |c, _| {
+                    let key = format!("{}{}", cap(c, 2), cap(c, 3));
+                    token_block(&key)?;
+                    Some(format!("create {} tapped \"{key}\"", number(cap(c, 1))?))
+                },
+            ),
             // "Create X 1/1 green Squirrel creature tokens, where X is the
             // number of Squirrels you control."
             (
@@ -3287,7 +3316,7 @@ impl Templates {
                     number(cap(c, 2))?
                 ))
             }),
-            (r(r"^Pay ((?:\{[0-9WUBRGC]+\})+|\d+ life)$"), |c, _| {
+            (r(r"^Pay ((?:\{[0-9WUBRGCX]+\})+|\d+ life)$"), |c, _| {
                 Some(format!("pay {}", cap(c, 1)))
             }),
             (r(r"^Pay ((?:\{E\})+)$"), |c, _| {
@@ -4877,6 +4906,7 @@ impl Templates {
                 spell_targets: 0,
                 cleave: None,
                 flavor: Vec::new(),
+                frame: None,
             }
             .quoted(cap(&c, 2));
             let who = recipient(&lowercase_first(cap(&c, 1)), targets);
@@ -6741,6 +6771,10 @@ struct Builder<'a> {
     /// Cross — Whenever ..."): labels with no rules meaning, kept as
     /// `label "Fire Cross"` so the renderer prints them back.
     flavor: Vec<String>,
+    /// The card's frame (its file's header lines) and the names its text
+    /// calls it by, to render a corpus statement alone against the line
+    /// it is to print (`corpus_statement`); none inside a quoted ability.
+    frame: Option<(String, Vec<String>)>,
 }
 
 impl Builder<'_> {
@@ -6764,6 +6798,7 @@ impl Builder<'_> {
             spell_targets: 0,
             cleave: None,
             flavor: self.flavor.clone(),
+            frame: None,
         };
         // A keyword alone ("has \"Flying\"") is not an ability statement.
         inner.statements.push(String::new());
@@ -6895,7 +6930,7 @@ impl Builder<'_> {
                 self.keywords.truncate(keywords);
                 self.spell_at = spell_at;
                 self.spell_targets = spell_targets;
-                let st = corpus_statement(self.corpus, rest).ok_or(e)?;
+                let st = corpus_statement(self.corpus, rest, self.frame.as_ref()).ok_or(e)?;
                 let ability = ["static", "triggered", "activated", "mana"]
                     .iter()
                     .any(|w| st.starts_with(w));
@@ -8701,11 +8736,21 @@ impl Builder<'_> {
         .unwrap()
         .captures(line)
         {
+            // "if it targets a blue spell" (Mystical Dispute), "a creature
+            // card with mana value 3 or less": the kind first, `spell blue`,
+            // `card creature with mana value 3 or less`.
+            let what = cap(&c, 3);
+            let what = match cached_regex(r"^(.+?) (spell|card)( with .+)?$")
+                .unwrap()
+                .captures(what)
+            {
+                Some(k) => format!("{} {}{}", &k[2], &k[1], k.get(3).map_or("", |m| m.as_str())),
+                None => what.to_string(),
+            };
             self.statements.push(format!(
-                "this spell costs {{{}}} {} if it targets {}",
+                "this spell costs {{{}}} {} if it targets {what}",
                 cap(&c, 1),
                 cap(&c, 2),
-                cap(&c, 3)
             ));
             return Ok(());
         }
@@ -9641,7 +9686,7 @@ fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, S
     LINES.get_or_init(|| {
         let by_name: HashMap<&str, &Card> = corpus.iter().map(|c| (c.name.as_str(), c)).collect();
         let lookup: &dyn Lookup = &by_name;
-        let mut out = HashMap::new();
+        let mut out: HashMap<String, String> = HashMap::new();
         // A double-faced card's front (the card's own abilities) and each
         // face, each read as a card of its own.
         let fronts = corpus
@@ -9731,8 +9776,22 @@ fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, S
                 out.insert(key, st);
             }
         }
+        dump_index(&out);
         out
     })
+}
+
+/// `MTG_AUTHOR_KEYS=<file>`: the index written there, a line and its
+/// statement on each row.
+fn dump_index(index: &std::collections::HashMap<String, String>) {
+    if let Some(path) = std::env::var_os("MTG_AUTHOR_KEYS") {
+        let mut rows: Vec<String> = index
+            .iter()
+            .map(|(k, v)| format!("{k}\t{}", v.replace('\n', "\\n")))
+            .collect();
+        rows.sort();
+        let _ = std::fs::write(path, rows.join("\n"));
+    }
 }
 
 /// A line's amounts and mana symbols, each as the DSL writes it ("two" →
@@ -9741,7 +9800,7 @@ fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, S
 /// target." share the shape.
 fn line_shape(line: &str) -> (String, Vec<String>) {
     let token = cached_regex(
-        r"(?:\{[^}]+\})+|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+        r"(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
     )
     .expect("a token pattern");
     let mut values = Vec::new();
@@ -9751,6 +9810,11 @@ fn line_shape(line: &str) -> (String, Vec<String>) {
             if t.starts_with('{') {
                 values.push(t.to_string());
                 "\u{1}M".to_string()
+            } else if t.contains('/') {
+                // "+2/+2" and "-1/-1" as one value: the DSL prints a
+                // change to power and toughness as Oracle does.
+                values.push(t.to_string());
+                "\u{1}P".to_string()
             } else {
                 values.push(number(t).unwrap_or_else(|| t.to_string()));
                 "\u{1}N".to_string()
@@ -9761,10 +9825,16 @@ fn line_shape(line: &str) -> (String, Vec<String>) {
 }
 
 /// The statement a corpus card prints `line` with: the line itself, or
-/// one of the same shape with its amounts and mana symbols put in. The
-/// card it goes into is still rendered and checked against its Oracle
-/// text, so a substitution that misses shows as a mismatch.
-fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
+/// one of the same shape with its amounts, mana symbols and words put in.
+/// Of several, the first that `frame` (the card's header, `card_frame`)
+/// renders as `line` alone, else the first: the card it goes into is
+/// still rendered and checked against its Oracle text, so a substitution
+/// that misses shows as a mismatch.
+fn corpus_statement(
+    corpus: &[Card],
+    line: &str,
+    frame: Option<&(String, Vec<String>)>,
+) -> Option<String> {
     // "Prevent all combat damage that would be dealt to ~." is the line
     // "... dealt to this creature." of a card without a name in its text:
     // the statement's `this` prints either, by the card it goes into.
@@ -9802,19 +9872,89 @@ fn corpus_statement(corpus: &[Card], line: &str) -> Option<String> {
             }
         }
     }
-    variants
-        .iter()
-        .find_map(|l| corpus_statement_numbers(corpus, l))
-        .or_else(|| {
-            variants
-                .iter()
-                .find_map(|l| corpus_statement_words(corpus, l))
-        })
+    let mut candidates: Vec<String> = Vec::new();
+    for l in &variants {
+        candidates.extend(corpus_statement_numbers(corpus, l));
+    }
+    for l in &variants {
+        candidates.extend(corpus_statement_words(corpus, l));
+    }
+    let mut seen = std::collections::HashSet::new();
+    candidates.retain(|c| seen.insert(c.clone()));
+    let first = candidates.first()?.clone();
+    match frame {
+        Some(frame) if candidates.len() > 1 => Some(
+            candidates
+                .into_iter()
+                .find(|st| line_renders(corpus, frame, st, line))
+                .unwrap_or(first),
+        ),
+        _ => Some(first),
+    }
+}
+
+/// The header lines of the file `author_card` writes for `s` (name, cost,
+/// type, power and toughness, loyalty, short name), and the names its
+/// text calls it by, which the author reads as `~`.
+fn card_frame(s: &ScryCard, type_line: &str, short: Option<&str>) -> (String, Vec<String>) {
+    let mut text = format!("card {:?} {{\n", s.name);
+    if let Some(cost) = &s.mana_cost
+        && !cost.is_empty()
+    {
+        let _ = writeln!(text, "  cost {cost}");
+    }
+    let _ = writeln!(text, "  type {type_line}");
+    if let (Some(p), Some(t)) = (&s.power, &s.toughness)
+        && !p.contains('*')
+        && !t.contains('*')
+    {
+        let _ = writeln!(text, "  pt {p}/{t}");
+    }
+    if let Some(l) = &s.loyalty {
+        let _ = writeln!(text, "  loyalty {l}");
+    }
+    let mut names = vec![s.name.clone()];
+    if let Some(n) = short {
+        let _ = writeln!(text, "  short_name {n:?}");
+        names.push(n.to_string());
+    }
+    if let Some((first, _)) = s.name.split_once(", ") {
+        names.push(first.to_string());
+    }
+    (text, names)
+}
+
+/// Whether the card of `frame` with the one statement `st` prints `line`
+/// (as the author reads Oracle text: reminder text dropped, the card's
+/// names as `~`).
+fn line_renders(corpus: &[Card], frame: &(String, Vec<String>), st: &str, line: &str) -> bool {
+    use std::collections::HashMap;
+    use std::sync::OnceLock;
+    static BY_NAME: OnceLock<HashMap<String, Card>> = OnceLock::new();
+    let by_name =
+        BY_NAME.get_or_init(|| corpus.iter().map(|c| (c.name.clone(), c.clone())).collect());
+    let text = format!("{}  {st}\n}}\n", frame.0);
+    let Ok(mut cards) = mtg_dsl::parse(&text) else {
+        return false;
+    };
+    let card = cards.remove(0);
+    let mut out = strip_reminder(&render::oracle_text(&card, by_name));
+    for n in &frame.1 {
+        out = out.replace(n.as_str(), "~");
+    }
+    for noun in ["Saga", "Class", "Case"] {
+        out = out
+            .replace(&format!("this {noun}"), "this enchantment")
+            .replace(&format!("This {noun}"), "This enchantment");
+    }
+    out.trim() == line
 }
 
 /// The classes of word a line's shape abstracts besides amounts and mana
-/// (`word_shape`): colors, card types, subtypes and counter kinds, each
-/// substituted one to one.
+/// (`word_shape`): colors, card types, subtypes, counter kinds, keywords,
+/// players, "equipped" and "enchanted", the verbs draw, discard and mill,
+/// the events a trigger names, each substituted one to one; and articles,
+/// which follow the word after them.
 fn shape_word_regex(corpus: &[Card]) -> &'static Regex {
     use std::sync::OnceLock;
     static RE: OnceLock<Regex> = OnceLock::new();
@@ -9856,12 +9996,19 @@ fn shape_word_regex(corpus: &[Card]) -> &'static Regex {
         }
         alts.sort_by_key(|a| std::cmp::Reverse(a.len()));
         Regex::new(&format!(
-            r"\b(?:(?P<c>white|blue|black|red|green)|(?P<t>artifacts?|creatures?|enchantments?|lands?|planeswalkers?|instants?|sorcery|sorceries)|(?P<k>{}) (?P<kc>counters?)|(?P<w>first strike|double strike|flying|deathtouch|haste|hexproof|indestructible|lifelink|menace|reach|trample|vigilance|shroud|fear|intimidate|wither|infect)|(?P<s>{}))\b",
+            r"\b(?:(?P<c>white|blue|black|red|green)|(?P<t>[Aa]rtifacts?|[Cc]reatures?|[Ee]nchantments?|[Ll]ands?|[Pp]laneswalkers?|[Pp]ermanents?|instants?|sorcery|sorceries)|(?P<k>{}) (?P<kc>counters?)|(?P<w>first strike|double strike|battle cry|flying|deathtouch|haste|hexproof|indestructible|lifelink|menace|reach|trample|vigilance|shroud|fear|intimidate|wither|infect|defender|flash|prowess|riot|rebound|cascade|exalted|persist|undying|convoke|changeling|shadow|horsemanship|flanking|skulk|devoid|forestwalk|islandwalk|swampwalk|mountainwalk|plainswalk)|(?P<p>players?|opponents?)|(?P<e>[Ee]quipped|[Ee]nchanted)|(?P<v>draws?|discards?|mills?)|(?P<g>enters|dies|attacks|blocks)|(?P<a>an?|An?)|(?P<s>{}))\b",
             counter_names(),
             alts.join("|")
         ))
         .expect("a word-shape pattern")
     })
+}
+
+/// Whether a shape word (`word_shape`) is an article: it takes no part
+/// in the substitution but follows the word after it ("a creature", "an
+/// artifact").
+fn is_article(w: &str) -> bool {
+    matches!(w, "a" | "an" | "A" | "An")
 }
 
 /// A line's words of the classes `shape_word_regex` names, and the line
@@ -9882,16 +10029,26 @@ fn word_shape(corpus: &[Card], line: &str) -> (String, Vec<String>) {
             continue;
         }
         let w = m.as_str();
+        let plural = |base: bool| if base { "" } else { "p" };
         let class = if c.name("c").is_some() {
-            "C"
+            "C".to_string()
         } else if c.name("w").is_some() {
-            "W"
+            "W".to_string()
         } else if c.name("t").is_some() {
-            if singular_type(w) == w { "T" } else { "Tp" }
-        } else if singular(w) == w {
-            "S"
+            let low = lowercase_first(w);
+            format!("T{}", plural(singular_type(&low) == low))
+        } else if c.name("p").is_some() {
+            format!("P{}", plural(!w.ends_with('s')))
+        } else if c.name("e").is_some() {
+            "E".to_string()
+        } else if c.name("v").is_some() {
+            format!("V{}", plural(!w.ends_with('s')))
+        } else if c.name("g").is_some() {
+            "G".to_string()
+        } else if c.name("a").is_some() {
+            if w.starts_with('A') { "A" } else { "a" }.to_string()
         } else {
-            "Sp"
+            format!("S{}", plural(singular(w) == w))
         };
         values.push(w.to_string());
         let _ = write!(shape, "\u{1}{class}");
@@ -9900,16 +10057,17 @@ fn word_shape(corpus: &[Card], line: &str) -> (String, Vec<String>) {
     (shape, values)
 }
 
-/// The statement of a corpus line of the same shape as `line` with other
-/// colors, card types, subtypes or counter kinds (and amounts, as
-/// `corpus_statement_numbers` puts them in), each word put in for its
-/// counterpart: "Goblins you control get +1/+1." from Elvish Champion's
-/// "Elves you control ...", checked by the render of the card it goes
-/// into. Of several, the one with the fewest words changed.
-fn corpus_statement_words(corpus: &[Card], line: &str) -> Option<String> {
+/// The statements of corpus lines of the same shape as `line` with other
+/// words of `word_shape`'s classes (and amounts, as `numbers_into` puts
+/// them in), each word put in for its counterpart: "Goblins you control
+/// get +1/+1." from Elvish Champion's "Elves you control ...", checked by
+/// the render of the card it goes into. Those with the fewest words
+/// changed first.
+fn corpus_statement_words(corpus: &[Card], line: &str) -> Vec<String> {
     use std::collections::HashMap;
     use std::sync::OnceLock;
-    /// Statements by word shape: the corpus line and its statement.
+    /// Statements by word shape (of the line with its amounts marked):
+    /// the corpus line and its statement.
     type Shapes = HashMap<String, Vec<(String, String)>>;
     static SHAPES: OnceLock<Shapes> = OnceLock::new();
     let shapes = SHAPES.get_or_init(|| {
@@ -9917,22 +10075,32 @@ fn corpus_statement_words(corpus: &[Card], line: &str) -> Option<String> {
         let mut lines: Vec<(&String, &String)> = corpus_lines(corpus).iter().collect();
         lines.sort();
         for (l, st) in lines {
-            let (shape, values) = word_shape(corpus, l);
-            if !values.is_empty() {
+            let (shape, values) = word_shape(corpus, &line_shape(l).0);
+            if values.iter().any(|v| !is_article(v)) {
                 out.entry(shape).or_default().push((l.clone(), st.clone()));
             }
         }
         out
     });
-    let (shape, values) = word_shape(corpus, line);
-    if values.is_empty() {
-        return None;
+    let mut found: Vec<(usize, String)> = Vec::new();
+    let (shape, _) = word_shape(corpus, &line_shape(line).0);
+    let (_, values) = word_shape(corpus, line);
+    if values.iter().all(|v| is_article(v)) {
+        return Vec::new();
     }
-    let mut best: Option<(usize, String)> = None;
-    'next: for (their_line, st) in shapes.get(&shape)? {
+    let Some(theirs_all) = shapes.get(&shape) else {
+        return Vec::new();
+    };
+    'next: for (their_line, st) in theirs_all {
         let (_, theirs) = word_shape(corpus, their_line);
+        if theirs.len() != values.len() {
+            continue;
+        }
         let mut map: HashMap<&str, &str> = HashMap::new();
         for (a, b) in theirs.iter().zip(&values) {
+            if is_article(a) {
+                continue;
+            }
             if *map.entry(a.as_str()).or_insert(b.as_str()) != b.as_str() {
                 continue 'next;
             }
@@ -9945,61 +10113,27 @@ fn corpus_statement_words(corpus: &[Card], line: &str) -> Option<String> {
             }
         }
         let changed = map.iter().filter(|(a, b)| a != b).count();
-        if best.as_ref().is_some_and(|(n, _)| *n <= changed) {
-            continue;
-        }
-        // Their line with our words: the rest of its shape (amounts and
-        // mana) is matched as `corpus_statement_numbers` does.
-        let mut out = st.clone();
-        if changed > 0 {
-            // Each changed word, and its singular as the DSL writes a
-            // filter ("Elves" → `Elf`), swapped in one pass.
-            let mut pairs: Vec<(String, String)> = Vec::new();
-            for (a, b) in map.iter().filter(|(a, b)| a != b) {
-                pairs.push(((*a).to_string(), (*b).to_string()));
-                let (sa, sb) = (singular(a), singular(b));
-                if sa != *a {
-                    pairs.push((sa, sb));
-                }
-                let (ta, tb) = (singular_type(a), singular_type(b));
-                if ta != *a {
-                    pairs.push((ta.to_string(), tb.to_string()));
-                }
-            }
-            pairs.sort();
-            pairs.dedup();
-            let alt = pairs
-                .iter()
-                .map(|(a, _)| regex::escape(a))
-                .collect::<Vec<_>>()
-                .join("|");
-            let Ok(re) = cached_regex(&format!(r"\b(?:{alt})\b")) else {
+        let out = if changed > 0 {
+            let Some(out) = swap_words(st, &map) else {
                 continue;
             };
-            let swapped = re.replace_all(&out, |c: &regex::Captures| {
-                pairs
-                    .iter()
-                    .find(|(a, _)| *a == c[0])
-                    .map_or_else(|| c[0].to_string(), |(_, b)| b.clone())
-            });
-            out = swapped.into_owned();
-        }
+            out
+        } else {
+            st.clone()
+        };
         // Amounts and mana: their line with our words, then as numbers.
-        let mut their_words = their_line.clone();
-        if changed > 0 {
-            let re = shape_word_regex(corpus);
-            let mut i = 0;
-            their_words = re
-                .replace_all(their_line, |c: &regex::Captures| {
-                    let v = &values[i];
-                    i += 1;
-                    match c.name("kc") {
-                        Some(kc) => format!("{v} {}", kc.as_str()),
-                        None => v.clone(),
-                    }
-                })
-                .into_owned();
-        }
+        let re = shape_word_regex(corpus);
+        let mut i = 0;
+        let their_words = re
+            .replace_all(their_line, |c: &regex::Captures| {
+                let v = &values[i];
+                i += 1;
+                match c.name("kc") {
+                    Some(kc) => format!("{v} {}", kc.as_str()),
+                    None => v.clone(),
+                }
+            })
+            .into_owned();
         let st = if their_words == line {
             out
         } else {
@@ -10008,9 +10142,60 @@ fn corpus_statement_words(corpus: &[Card], line: &str) -> Option<String> {
             };
             st
         };
-        best = Some((changed, st));
+        found.push((changed, st));
     }
-    best.map(|(_, st)| st)
+    // Stable: of equal changes, the index's order.
+    found.sort_by_key(|(n, _)| *n);
+    found.into_iter().map(|(_, st)| st).collect()
+}
+
+/// `st` with each word of `map` (a corpus line's word to ours) swapped
+/// in, in one pass: the word, its form with a small first letter, its
+/// singular as the DSL writes a filter ("Elves" → `Elf`, "Creatures" →
+/// `creature`) and a verb's base form ("draws" → `draw`); an article the
+/// statement prints before a word put in follows it.
+fn swap_words(st: &str, map: &std::collections::HashMap<&str, &str>) -> Option<String> {
+    let verb = |w: &str| match w {
+        "draws" | "discards" | "mills" => w[..w.len() - 1].to_string(),
+        _ => w.to_string(),
+    };
+    let mut pairs: Vec<(String, String)> = Vec::new();
+    for (a, b) in map.iter().filter(|(a, b)| a != b) {
+        let (la, lb) = (lowercase_first(a), lowercase_first(b));
+        for (x, y) in [((*a).to_string(), (*b).to_string()), (la, lb)] {
+            pairs.push((singular(&x), singular(&y)));
+            pairs.push((singular_type(&x).to_string(), singular_type(&y).to_string()));
+            pairs.push((verb(&x), verb(&y)));
+            pairs.push((x, y));
+        }
+    }
+    pairs.retain(|(x, y)| x != y);
+    pairs.sort();
+    pairs.dedup();
+    // One replacement for each word.
+    let mut seen = std::collections::HashSet::new();
+    pairs.retain(|(x, _)| seen.insert(x.clone()));
+    pairs.sort_by_key(|(x, _)| std::cmp::Reverse(x.len()));
+    let alt = pairs
+        .iter()
+        .map(|(a, _)| regex::escape(a))
+        .collect::<Vec<_>>()
+        .join("|");
+    let re = cached_regex(&format!(r"\b(?:{alt})\b")).ok()?;
+    let mut out = re
+        .replace_all(st, |c: &regex::Captures| {
+            pairs
+                .iter()
+                .find(|(a, _)| *a == c[0])
+                .map_or_else(|| c[0].to_string(), |(_, b)| b.clone())
+        })
+        .into_owned();
+    for (_, b) in &pairs {
+        let vowel = b.starts_with(['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']);
+        let (wrong, right) = if vowel { ("a", "an") } else { ("an", "a") };
+        out = out.replace(&format!(" {wrong} {b}"), &format!(" {right} {b}"));
+    }
+    Some(out)
 }
 
 /// `st`, the statement printing `theirs`, with the amounts and mana of
@@ -10031,7 +10216,7 @@ fn numbers_into(theirs: &str, st: &str, ours: &str) -> Option<String> {
     if their_values.iter().any(|a| !st.contains(a.as_str())) {
         return None;
     }
-    let token = cached_regex(r"target \d+|(?:\{[^}]+\})+|\d+").expect("a token pattern");
+    let token = cached_regex(SHAPE_TOKEN).expect("a token pattern");
     let out = token.replace_all(st, |c: &regex::Captures| {
         map.get(&c[0])
             .map_or_else(|| c[0].to_string(), |b| (*b).to_string())
@@ -10120,9 +10305,15 @@ fn corpus_effect(s: &str, targets: &mut usize) -> Option<String> {
     Some(p)
 }
 
-/// The statement a corpus card prints `line` with, exactly or with other
-/// amounts and mana symbols.
-fn corpus_statement_numbers(corpus: &[Card], line: &str) -> Option<String> {
+/// The values a statement's text is matched by when the index puts a
+/// line's amounts in (`line_shape`): a target reference (never changed),
+/// mana symbols, a change to power and toughness, a number.
+const SHAPE_TOKEN: &str = r"target \d+|(?:\{[^}]+\})+|[+-]\d+/[+-]\d+\b|\d+";
+
+/// The statements a corpus card prints `line` with, exactly or with other
+/// amounts and mana symbols: the exact line's alone, else each of the
+/// same shape in the index's order.
+fn corpus_statement_numbers(corpus: &[Card], line: &str) -> Vec<String> {
     use std::collections::HashMap;
     use std::sync::OnceLock;
     /// Statements by line shape, each with its corpus line's values.
@@ -10130,7 +10321,7 @@ fn corpus_statement_numbers(corpus: &[Card], line: &str) -> Option<String> {
     static SHAPES: OnceLock<Shapes> = OnceLock::new();
     let exact = corpus_lines(corpus);
     if let Some(st) = exact.get(line) {
-        return Some(st.clone());
+        return vec![st.clone()];
     }
     let shapes = SHAPES.get_or_init(|| {
         let mut out = Shapes::new();
@@ -10145,8 +10336,12 @@ fn corpus_statement_numbers(corpus: &[Card], line: &str) -> Option<String> {
         out
     });
     let (shape, values) = line_shape(line);
-    let token = cached_regex(r"target \d+|(?:\{[^}]+\})+|\d+").expect("a token pattern");
-    'next: for (theirs, st) in shapes.get(&shape)? {
+    let token = cached_regex(SHAPE_TOKEN).expect("a token pattern");
+    let mut found = Vec::new();
+    let Some(theirs_all) = shapes.get(&shape) else {
+        return found;
+    };
+    'next: for (theirs, st) in theirs_all {
         let mut map: HashMap<&str, &str> = HashMap::new();
         for (a, b) in theirs.iter().zip(&values) {
             if *map.entry(a.as_str()).or_insert(b.as_str()) != b.as_str() {
@@ -10161,9 +10356,9 @@ fn corpus_statement_numbers(corpus: &[Card], line: &str) -> Option<String> {
             map.get(&c[0])
                 .map_or_else(|| c[0].to_string(), |b| (*b).to_string())
         });
-        return Some(out.into_owned());
+        found.push(out.into_owned());
     }
-    None
+    found
 }
 
 /// The card's flavor words and mode names (CR 207.2d, 700.2): Scryfall
@@ -10334,6 +10529,12 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n");
+    // "Create two 1/1 colorless Spirit creature tokens. They gain haste
+    // until end of turn." (Sokenzan): `they` names a group or a
+    // triggering spell, not created tokens; `those tokens` does.
+    s = re(r#"(\bcreate [^;]+"[^;]*); they gain haste\b"#)
+        .replace_all(&s, "$1; those tokens gains haste")
+        .into_owned();
     s = re(r"with an? ([+-]\d+/[+-]\d+|[a-z]+) counter on (?:it|them)")
         .replace_all(&s, "with $1 counter")
         .into_owned();
@@ -10349,6 +10550,9 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         .into_owned();
     s = s
         .replace("with a counter on it", "with counter")
+        // "destroy all other creatures that were dealt damage this turn"
+        // (Death-Rattle Oni): `damaged`, printed in the plural.
+        .replace(" that were dealt damage this turn", " damaged")
         .replace("with no counters on it", "with no counters")
         .replace("not named ~", "not named this")
         .replace("named ~", "named this");
@@ -10380,7 +10584,7 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
     s = re(&format!(r"(\w+) or (\w+) that's ({COLORS}) or ({COLORS})"))
         .replace_all(&s, "$3 or $4 $1 or $3 or $4 $2")
         .into_owned();
-    s = re(r"counter target ((?:\w+ )?)spell (with (?:mana value|power or toughness|power|toughness) (?:\d+|X)(?: or (?:less|greater))?)")
+    s = re(r"counter target ((?:\w+ ){0,3})spell (with (?:mana value|power or toughness|power|toughness) (?:\d+|X)(?: or (?:less|greater))?)")
         .replace_all(&s, "counter target $1$2 spell")
         .into_owned();
     let num = |w: &str| match w {
@@ -11197,6 +11401,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         spell_targets: 0,
         cleave: None,
         flavor: flavor_words(s),
+        frame: Some(card_frame(s, &type_line, short.as_deref())),
     };
     // CR 711.2: a leveler's "LEVEL 1-4" and the P/T box under it, one line.
     let leveler = cached_regex(r"(?m)^(LEVEL \d+(?:-\d+|\+))\n(\d+/\d+)$").unwrap();
@@ -11370,7 +11575,12 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             b.spell_paragraphs.truncate(mark.2);
             b.spell_at = mark.3;
             b.spell_targets = mark.4;
-            let Some(st) = corpus_statement(corpus, line) else {
+            let Some(st) = corpus_statement(corpus, line, b.frame.as_ref()) else {
+                // `MTG_AUTHOR_MISS=1`: print each line neither a template
+                // nor the corpus index writes.
+                if std::env::var_os("MTG_AUTHOR_MISS").is_some() {
+                    eprintln!("miss\t{line}");
+                }
                 return Err(e);
             };
             // A spell's paragraph numbers its targets from the spell's
@@ -11417,6 +11627,17 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     // Oracle's filter phrases the templates copied, in the DSL's words.
     for st in b.statements.iter_mut().chain(b.spell_paragraphs.iter_mut()) {
         *st = filter_phrases(st, &oracle);
+    }
+    // "you may pay {X}. If you do, return target ... card with mana value
+    // X": the target is chosen before X is paid and its bound isn't
+    // judged again (Relentless Dead), so the card is left to an agent.
+    let pay_x =
+        cached_regex(r"you may pay \{X\}[^:]*; if you do, [^;]*target [^;]*with mana value X\b")
+            .unwrap();
+    if b.statements.iter().any(|st| pay_x.is_match(st)) {
+        return Err(Skip::Sentence(
+            "a target bounded by an X paid as it resolves".to_string(),
+        ));
     }
     // Assemble the file.
     let mut text = format!("card \"{}\" {{\n", s.name);

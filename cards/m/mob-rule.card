@@ -1,0 +1,9 @@
+card "Mob Rule" {
+  oracle_id acca2128-6ebb-48a5-a6a2-1bc5e4aa86ce
+  cost {4}{R}{R}
+  type Sorcery
+  choose one {
+    mode: gain control of all creature with power 4 or greater; untap those creatures; they gain haste
+    mode: gain control of all creature with power 3 or less; untap those creatures; they gain haste
+  }
+}

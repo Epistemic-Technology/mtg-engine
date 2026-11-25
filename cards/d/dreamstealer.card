@@ -1,0 +1,9 @@
+card "Dreamstealer" {
+  oracle_id bf7201e6-1b3f-40f1-9b79-44921b00b0de
+  cost {2}{B}
+  type Creature — Human Wizard
+  pt 1/2
+  keywords menace
+  triggered whenever this deals combat damage to a player: that player discards that much cards
+  eternalize {4}{B}{B}
+}

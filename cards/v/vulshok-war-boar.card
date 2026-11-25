@@ -1,0 +1,7 @@
+card "Vulshok War Boar" {
+  oracle_id 4641e86f-5370-4b25-bd76-07bea856c032
+  cost {2}{R}{R}
+  type Creature — Boar Beast
+  pt 5/5
+  triggered whenever this enters: sacrifice this unless you sacrifice 1 artifact chosen
+}

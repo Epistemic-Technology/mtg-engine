@@ -1,0 +1,8 @@
+card "Elfhame Druid" {
+  oracle_id 519fccdb-fde4-42cb-b2ca-35fc36cf984a
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 0/2
+  mana {G}
+  activated {T}: add {G}{G} only to cast kicked spells
+}

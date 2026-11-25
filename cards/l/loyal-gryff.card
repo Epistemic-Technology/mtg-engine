@@ -1,0 +1,8 @@
+card "Loyal Gryff" {
+  oracle_id f5c07218-c8bf-4990-a366-f3c065d0b30c
+  cost {2}{W}
+  type Creature — Hippogriff
+  pt 2/2
+  keywords flash, flying
+  triggered whenever this enters: you may return 1 other creature you control chosen
+}

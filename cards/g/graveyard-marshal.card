@@ -1,0 +1,7 @@
+card "Graveyard Marshal" {
+  oracle_id 216c5a72-ef87-4ada-bf52-437e50874be5
+  cost {B}{B}
+  type Creature — Zombie Soldier
+  pt 3/2
+  activated {2}{B}, exile creature card from graveyard: create 1 tapped "2/2 black Zombie creature"
+}

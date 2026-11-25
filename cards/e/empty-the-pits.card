@@ -1,0 +1,7 @@
+card "Empty the Pits" {
+  oracle_id 089d91cf-ed7a-4859-8967-cad975a5127e
+  cost {X}{X}{B}{B}{B}{B}
+  type Instant
+  keywords delve
+  spell: create X tapped "2/2 black Zombie creature"
+}

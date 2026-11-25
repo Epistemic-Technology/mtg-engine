@@ -1,0 +1,7 @@
+card "Duergar Mine-Captain" {
+  oracle_id 3ac276ca-91d5-4c7d-a355-e56c67ac3ba9
+  cost {2}{R/W}
+  type Creature — Dwarf Soldier
+  pt 2/1
+  activated {1}{R/W}, {Q}: each Attacking creature gets +1/+0
+}

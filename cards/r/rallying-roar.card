@@ -1,0 +1,6 @@
+card "Rallying Roar" {
+  oracle_id 40ee79dd-cf53-415c-8e3c-d1a125a735db
+  cost {2}{W}
+  type Instant
+  spell: each creature you control gets +1/+1; untap them
+}

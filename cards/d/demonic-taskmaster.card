@@ -1,0 +1,8 @@
+card "Demonic Taskmaster" {
+  oracle_id 162e45f5-edb8-4a13-acdc-8980ce5ba8ac
+  cost {2}{B}
+  type Creature — Demon
+  pt 4/3
+  keywords flying
+  triggered at beginning of your upkeep: you sacrifice 1 creature other than this
+}

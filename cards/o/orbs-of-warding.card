@@ -1,0 +1,7 @@
+card "Orbs of Warding" {
+  oracle_id c420d9c8-dc54-46b8-bd22-39c21019c3d7
+  cost {5}
+  type Artifact
+  you have hexproof
+  replace damage from creature to you: prevent next 1
+}

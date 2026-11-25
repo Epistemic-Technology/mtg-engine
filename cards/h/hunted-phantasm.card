@@ -1,0 +1,8 @@
+card "Hunted Phantasm" {
+  oracle_id ef4b334b-8407-4147-b434-602e59806906
+  cost {1}{U}{U}
+  type Creature — Spirit
+  pt 4/6
+  keywords can't be blocked
+  triggered whenever this enters: target opponent creates 5 "1/1 red Goblin creature"
+}

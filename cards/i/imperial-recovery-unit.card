@@ -1,0 +1,8 @@
+card "Imperial Recovery Unit" {
+  oracle_id 18ad0dd1-2d0e-46b4-8ab1-ece07180267f
+  cost {2}{W}
+  type Artifact — Vehicle
+  pt 3/4
+  triggered whenever this attacks: return target creature or Vehicle card with mana value 2 or less from your graveyard to hand
+  crew 2
+}

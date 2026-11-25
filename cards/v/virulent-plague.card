@@ -1,0 +1,6 @@
+card "Virulent Plague" {
+  oracle_id adfba95e-c73c-415d-adea-edcd04372ba4
+  cost {2}{B}
+  type Enchantment
+  static creature token: -2/-2
+}

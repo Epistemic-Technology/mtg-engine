@@ -1,0 +1,8 @@
+card "Kenrith's Transformation" {
+  oracle_id a492a323-df8a-40fd-bff0-50091baa7700
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: loses all abilities, set color green, set subtype Elk, set type creature, base 3/3
+}
