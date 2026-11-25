@@ -307,10 +307,13 @@ impl Engine {
                 .battlefield
                 .iter()
                 .copied()
-                .find(|id| *id != aura && state.name_of(*id) == name)
+                // The card's own name: a name an effect gives would read
+                // characteristics before the attachments are made.
+                .find(|id| *id != aura && state.obj_name(&state.objects[*id]) == name)
                 .unwrap_or_else(|| panic!("setup: no \"{name}\" on the battlefield to attach to"));
             state.objects[aura].attached_to = Some(target);
         }
+        state.cbump();
         state.turn_number = setup.turn_number;
         state.step = setup.step;
         // The turns each player has begun, taking turns in order with the
