@@ -1,0 +1,10 @@
+card "The Darkness Crystal" {
+  oracle_id 660f370a-b25b-4ea5-b765-7abf96899c1c
+  cost {2}{B}{B}
+  type Legendary Artifact
+  spells black you cast cost {1} less
+  replace nontoken creature an opponent controls dies: exile and {
+    you gain 2 life
+  }
+  activated {4}{B}{B}, {T}: put target creature card exiled with this onto battlefield tapped under your control with 2 additional +1/+1 counters
+}

@@ -6669,7 +6669,8 @@ impl GameState {
                     && match self.pool.base_spec(*s) {
                         TargetSpec::Filtered(f)
                         | TargetSpec::SpellFiltered(f)
-                        | TargetSpec::GraveyardCard { filter: f, .. } => {
+                        | TargetSpec::GraveyardCard { filter: f, .. }
+                        | TargetSpec::ExileCard { filter: f, .. } => {
                             self.pool.filter(f).status.mana_value_x
                         }
                         _ => false,
@@ -6710,6 +6711,9 @@ impl GameState {
         if self.pool.base_spec(spec).is_graveyard() {
             self.players_in_game()
                 .any(|p| self.player(p).graveyard.iter().any(fits))
+        } else if self.pool.base_spec(spec).is_exile() {
+            self.players_in_game()
+                .any(|p| self.player(p).exile.iter().any(fits))
         } else if self.pool.base_spec(spec).is_spell() {
             // "counter target spell with mana value X".
             self.stack.iter().any(fits)
@@ -7655,6 +7659,17 @@ impl GameState {
                         && self.is_legal_target_for(caster, spec, t, source)
                         && !f(t)
                     {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        if spec.is_exile() {
+            for p in self.players_in_game() {
+                for id in &self.player(p).exile {
+                    let t = Target::Object(*id);
+                    if self.is_legal_target_for(caster, spec, t, source) && !f(t) {
                         return false;
                     }
                 }
@@ -12937,11 +12952,14 @@ impl GameState {
                     // 607.2a): a linked card, from exile.
                     let in_zone = self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard)
+                            // "Return target card you own in exile that has an
+                            // Adventure to your hand": a target card in exile.
                             || (o.zone == Zone::Exile
                                 && matches!(
                                     what,
                                     crate::card::Recipient::ExiledCard
                                         | crate::card::Recipient::ExiledWith(_)
+                                        | crate::card::Recipient::Target(_)
                                 ))
                             // "Put a card exiled with this Saga into its
                             // owner's hand": the one chosen from them.
@@ -14221,13 +14239,34 @@ impl GameState {
                     let Target::Object(id) = t else {
                         continue;
                     };
+                    // "Put target exiled card with warp on the bottom of its
+                    // owner's library": a target card in exile.
                     if !self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard | Zone::Stack)
+                            || (o.zone == Zone::Exile
+                                && matches!(what, crate::card::Recipient::Target(_)))
                     }) {
                         continue;
                     }
                     self.put_in_library(id, *place);
                 }
+            }
+            // "Put target creature card with mana value X exiled with this
+            // creature into its owner's graveyard", "Put each card exiled
+            // with this artifact into its owner's graveyard" (CR 400.3):
+            // cards in exile.
+            Effect::PutInGraveyard { what } => {
+                let ts = self.recipients(ctx, *what);
+                let together = self.begin_together(ts.len());
+                for t in ts {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    if self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.move_object(id, Zone::Graveyard, false);
+                    }
+                }
+                self.end_together(together);
             }
             Effect::CantBeTargeted { what, ban } => {
                 for t in self.recipients(ctx, *what) {

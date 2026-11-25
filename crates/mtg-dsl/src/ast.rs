@@ -1761,6 +1761,15 @@ pub enum Target {
         who: Who,
         graveyards: bool,
     },
+    /// `target creature card exiled with this` (`linked`, CR 607.2a),
+    /// `target exiled card with warp`, `target card you own in exile that
+    /// has adventure`: a face-up card in exile (whose owner: `Any`, `You`,
+    /// `Opponents`).
+    ExileCard {
+        filter: Filter,
+        who: Who,
+        linked: bool,
+    },
     /// `up to 2 target creatures`: an optional target (CR 601.2c); the
     /// optional targets of an ability come last.
     UpTo(Box<Target>),
@@ -5634,6 +5643,10 @@ pub enum Effect {
         place: LibraryPlace,
         wording: LibraryWording,
     },
+    /// `put target creature card exiled with this into graveyard`, `put
+    /// each card exiled with this into graveyard`: "Put ... into its
+    /// owner's graveyard", from exile (CR 400.3).
+    PutInGraveyard(Recipient),
     /// `each opponent sacrifices 1 creature`: "Each opponent sacrifices a
     /// creature of their choice."
     SacrificeChosen {

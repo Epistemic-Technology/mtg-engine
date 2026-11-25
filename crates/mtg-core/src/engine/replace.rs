@@ -268,13 +268,23 @@ impl GameState {
     }
 
     fn propose_with(&mut self, mut ev: Proposed, applied: &mut Applied) -> Option<ObjId> {
+        // CR 607.2a: a card a static "instead exile it" exiles is linked to
+        // the permanent whose card refers to "cards exiled with" it (The
+        // Darkness Crystal).
+        let mut link: Option<ObjId> = None;
         loop {
             if ev.is_nothing() {
                 return None;
             }
             let candidates = self.candidates(&ev, applied);
             if candidates.is_empty() {
-                return self.perform(ev);
+                let new = self.perform(ev);
+                if let (Some(src), Some(new)) = (link, new)
+                    && self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
+                {
+                    self.link_exile(src, new, false);
+                }
+                return new;
             }
             // CR 616.1: the affected player chooses which applies next;
             // a permanent's own "enters tapped" and "enters with counters"
@@ -288,6 +298,15 @@ impl GameState {
             };
             let chosen = &candidates[i];
             applied.push(chosen.key);
+            if chosen.ability.replacement == Replacement::Instead(Zone::Exile)
+                && matches!(chosen.key, Key::Ability { .. })
+                && self
+                    .objects
+                    .get(chosen.source)
+                    .is_some_and(|o| self.pool.get(o.def).links_exile)
+            {
+                link = Some(chosen.source);
+            }
             match self.apply_replacement(chosen, ev) {
                 Outcome::Event(e) => ev = e,
                 Outcome::Events(events) => {

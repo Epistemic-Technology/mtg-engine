@@ -1,0 +1,6 @@
+card "Runic Repetition" {
+  oracle_id 8ab99b5e-c9e0-45c2-8df2-864ab0ad1caf
+  cost {2}{U}
+  type Sorcery
+  spell: return target exiled card with flashback you own to hand
+}

@@ -3118,6 +3118,18 @@ impl Compiler<'_> {
                     graveyards: *graveyards,
                 }
             }
+            Target::ExileCard {
+                filter,
+                who,
+                linked,
+            } => {
+                let f = self.filter(filter);
+                TargetSpec::ExileCard {
+                    filter: self.pool.intern_filter(f),
+                    who: *who,
+                    linked: *linked,
+                }
+            }
             Target::UpTo(t) => {
                 let inner = self.target(t);
                 self.pool.intern_up_to(inner)
@@ -4301,6 +4313,9 @@ impl Compiler<'_> {
                 times: *times,
                 to: r(*to),
             }),
+            Effect::PutInGraveyard(what) => {
+                out.push(CoreEffect::PutInGraveyard { what: r(*what) });
+            }
             Effect::PutInLibrary { what, place, .. } => out.push(CoreEffect::PutInLibrary {
                 what: r(*what),
                 place: *place,

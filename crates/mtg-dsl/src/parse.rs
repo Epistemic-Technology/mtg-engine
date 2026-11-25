@@ -12691,6 +12691,9 @@ impl P {
                     }) =>
             {
                 let what = self.recipient()?;
+                if self.eat_words(&["into", "graveyard"]) {
+                    return Ok(Effect::PutInGraveyard(what));
+                }
                 let place = self.library_place(false)?;
                 if matches!(
                     place,
@@ -14930,6 +14933,15 @@ impl P {
             self.expect_words(&["this", "way"])?;
             return Ok(Some(CountExpr::ThisWay { verb, filter: None }));
         }
+        // `card graveyarded this way`: "card put into a graveyard this
+        // way" (any player's; without `card`, "into your graveyard").
+        if self.at_words(&["card", "graveyarded", "this", "way"]) {
+            self.pos += 4;
+            return Ok(Some(CountExpr::ThisWay {
+                verb: mtg_core::card::ThisWay::PutInGraveyard,
+                filter: Some(Filter::default()),
+            }));
+        }
         if (1..10).any(|k| {
             self.word_at(k).as_deref() == Some("this")
                 && self.word_at(k + 1).as_deref() == Some("way")
@@ -17055,7 +17067,7 @@ impl P {
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
-                        && matches!(after.as_deref(), Some("from" | "with" | "each")))
+                        && matches!(after.as_deref(), Some("from" | "with" | "each" | "exiled")))
                     // "target permanent not named ~".
                     || (matches!(next.as_deref(), Some("named" | "not"))
                         && matches!(after.as_deref(), Some("named" | "this")));
@@ -17089,6 +17101,22 @@ impl P {
             self.pos += 2;
             return Ok(Target::CreatureOfSubtype(sub));
         }
+        // `target exiled card with warp`, `target exiled adventurer card you
+        // own`: a card in exile.
+        if self.eat_word("exiled") {
+            let mut f = if self.at_word("card") {
+                Filter::default()
+            } else {
+                self.filter()?
+            };
+            self.expect_word("card")?;
+            let who = self.exile_card_tail(&mut f)?;
+            return Ok(Target::ExileCard {
+                filter: f,
+                who,
+                linked: false,
+            });
+        }
         // "card from a graveyard" / "instant card from your graveyard";
         // "card named ~ from your graveyard".
         // "Copy target spell you control." (Slick Imitator): a spell of
@@ -17098,6 +17126,23 @@ impl P {
         } else {
             self.filter()?
         };
+        // `target creature card [with mana value X] exiled with this` (CR
+        // 607.2a).
+        if self.at_word("card") {
+            let at = self.pos;
+            self.pos += 1;
+            let mut g = f.clone();
+            if let Ok(who) = self.exile_card_tail(&mut g)
+                && self.eat_words(&["exiled", "with", "this"])
+            {
+                return Ok(Target::ExileCard {
+                    filter: g,
+                    who,
+                    linked: true,
+                });
+            }
+            self.pos = at;
+        }
         if self.eat_word("spell") || self.eat_word("spells") {
             // "target instant or sorcery spell you control".
             if f.who.is_none() && self.eat_words(&["you", "control"]) {
@@ -17244,6 +17289,30 @@ impl P {
             });
         }
         Ok(Target::Filter(f))
+    }
+
+    /// After `card` in a target card in exile: `with mana value X`, `with
+    /// warp`, `with flashback`, and the owner (`you own`, `you don't
+    /// own`).
+    fn exile_card_tail(&mut self, f: &mut Filter) -> R<Who> {
+        if self.at_words(&["with", "mana", "value"]) {
+            let g = self.filter()?;
+            f.mana_value = g.mana_value;
+            f.status.mana_value_x = g.status.mana_value_x;
+        }
+        if self.eat_words(&["with", "warp"]) {
+            f.status.has_warp = true;
+        }
+        if self.eat_words(&["with", "flashback"]) {
+            f.status.has_flashback = true;
+        }
+        Ok(if self.eat_words(&["you", "own"]) {
+            Who::You
+        } else if self.eat_words(&["you", "don't", "own"]) {
+            Who::Opponents
+        } else {
+            Who::Any
+        })
     }
 
     // ---- filters ----

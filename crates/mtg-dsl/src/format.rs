@@ -333,6 +333,11 @@ impl Fmt {
                             who,
                             graveyards,
                         } => graveyard_target(f, *who, *graveyards),
+                        Target::ExileCard {
+                            filter: f,
+                            who,
+                            linked,
+                        } => exile_target(f, *who, *linked),
                         Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
                     };
                     if up_to {
@@ -2579,6 +2584,9 @@ impl Fmt {
                 self.recipient(*to, t),
                 num(*times)
             ),
+            Effect::PutInGraveyard(what) => {
+                format!("put {} into graveyard", self.recipient(*what, t))
+            }
             Effect::PutInLibrary {
                 what,
                 place,
@@ -4700,6 +4708,10 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             verb: mtg_core::card::ThisWay::Revealed,
             filter: Some(f),
         } => format!("{} card revealed this way", filter(f)),
+        CountExpr::ThisWay {
+            verb: mtg_core::card::ThisWay::PutInGraveyard,
+            filter: Some(f),
+        } if *f == Filter::default() => "card graveyarded this way".to_string(),
         CountExpr::ThisWay { verb, filter: f } => {
             let verb = crate::ast::this_way_word(*verb);
             match f {
@@ -5027,6 +5039,45 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 
 /// `target card from a graveyard`, `target instant card from your
 /// graveyard`.
+/// A target card in exile: `target creature card exiled with this`
+/// (`linked`), `target exiled card with warp`, `target exiled adventurer
+/// card you own`, `target exiled creature card with mana value X you don't
+/// own`.
+pub fn exile_target(f: &Filter, who: Who, linked: bool) -> String {
+    let mut g = f.clone();
+    let mut tail = String::new();
+    if let Some((cmp, n)) = g.mana_value.take() {
+        let n = if g.status.mana_value_x {
+            "X".to_string()
+        } else {
+            n.to_string()
+        };
+        g.status.mana_value_x = false;
+        tail = format!(" with mana value {n}{}", cmp_suffix(cmp));
+    }
+    if std::mem::take(&mut g.status.has_warp) {
+        tail.push_str(" with warp");
+    }
+    if std::mem::take(&mut g.status.has_flashback) {
+        tail.push_str(" with flashback");
+    }
+    match who {
+        Who::Any => {}
+        Who::You => tail.push_str(" you own"),
+        Who::Opponents => tail.push_str(" you don't own"),
+    }
+    let noun = if g == Filter::default() {
+        "card".to_string()
+    } else {
+        format!("{} card", filter(&g))
+    };
+    if linked {
+        format!("target {noun}{tail} exiled with this")
+    } else {
+        format!("target exiled {noun}{tail}")
+    }
+}
+
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     // `... from a graveyard put there this turn`: after the zone, as it
     // prints.
@@ -8008,7 +8059,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Target::Filter(f)
                 | Target::Spell(f)
                 | Target::SpellOr(f)
-                | Target::GraveyardCard { filter: f, .. } => filter(f),
+                | Target::GraveyardCard { filter: f, .. }
+                | Target::ExileCard { filter: f, .. } => filter(f),
                 Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");

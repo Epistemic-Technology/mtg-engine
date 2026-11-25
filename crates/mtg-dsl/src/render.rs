@@ -1521,6 +1521,39 @@ fn activated_of_phrase(
     format!("{have} all activated abilities of {all}{group}")
 }
 
+/// A target card in exile (`Target::ExileCard`): "target creature card
+/// exiled with The Darkness Crystal" (`linked`), "target exiled card with
+/// warp", "target exiled card with flashback you own", "target card you
+/// own in exile that has an Adventure".
+fn exile_card_phrase(f: &Filter, who: Who, linked: bool, card: &Card) -> String {
+    let mut g = f.clone();
+    let kw = if std::mem::take(&mut g.status.has_warp) {
+        " with warp"
+    } else if std::mem::take(&mut g.status.has_flashback) {
+        " with flashback"
+    } else {
+        ""
+    };
+    let adventure = if std::mem::take(&mut g.status.adventure) {
+        " that has an Adventure"
+    } else {
+        ""
+    };
+    let noun = cards_phrase(&g, card, false);
+    let owner = match who {
+        Who::Any => "",
+        Who::You => " you own",
+        Who::Opponents => " you don't own",
+    };
+    if linked {
+        format!("target {noun}{owner} exiled with {}", this_ref(card))
+    } else if !kw.is_empty() {
+        format!("target exiled {noun}{kw}{owner}{adventure}")
+    } else {
+        format!("target {noun}{owner} in exile{adventure}")
+    }
+}
+
 /// How a permanent refers to itself: "this creature", "this Aura"; a
 /// legendary permanent by its name, or the part of it before a comma
 /// ("Sacrifice Lunatic Pandora", "When Pol Jamaar enters"; CR 201.5).
@@ -2072,6 +2105,11 @@ impl<'a> Ctx<'a> {
             ),
             Target::Spell(f) => self.spell_target_phrase(f),
             Target::SpellOr(f) => format!("target spell or {}", filter_phrase(f, self.card, false)),
+            Target::ExileCard {
+                filter,
+                who,
+                linked,
+            } => exile_card_phrase(filter, *who, *linked, self.card),
             Target::GraveyardCard {
                 filter,
                 who,
@@ -2910,6 +2948,13 @@ impl<'a> Ctx<'a> {
             Target::Filter(f) => filter_phrase(f, self.card, true),
             Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
             Target::SpellOr(f) => format!("spells and/or {}", filter_phrase(f, self.card, true)),
+            Target::ExileCard {
+                filter,
+                who,
+                linked,
+            } => pluralize(
+                exile_card_phrase(filter, *who, *linked, self.card).trim_start_matches("target "),
+            ),
             Target::GraveyardCard {
                 filter,
                 who,
@@ -3028,7 +3073,7 @@ fn target_noun(t: &Target) -> String {
         Target::Spell(_) => "spell".to_string(),
         Target::SpellOr(f) if f.types == [CardType::Creature] => "spell or creature".to_string(),
         Target::SpellOr(_) => "spell or permanent".to_string(),
-        Target::GraveyardCard { .. } => "card".to_string(),
+        Target::GraveyardCard { .. } | Target::ExileCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
             TargetSpec::Any | TargetSpec::AnyOther | TargetSpec::AnyDamaged => {
                 "permanent or player".to_string()
@@ -3060,9 +3105,9 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::Filtered(_) => "permanent".to_string(),
             TargetSpec::Artifact => "artifact".to_string(),
             TargetSpec::Enchantment => "enchantment".to_string(),
-            TargetSpec::CreatureCardInYourGraveyard | TargetSpec::GraveyardCard { .. } => {
-                "card".to_string()
-            }
+            TargetSpec::CreatureCardInYourGraveyard
+            | TargetSpec::GraveyardCard { .. }
+            | TargetSpec::ExileCard { .. } => "card".to_string(),
             TargetSpec::Spell
             | TargetSpec::CreatureSpell
             | TargetSpec::NoncreatureSpell
@@ -3156,6 +3201,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::AttackingCreature => "target attacking creature",
         TargetSpec::BlockingCreature => "target blocking creature",
         TargetSpec::GraveyardCard { .. } => "target card from a graveyard",
+        TargetSpec::ExileCard { .. } => "target card in exile",
         TargetSpec::UpTo(_) => "up to one target permanent",
         TargetSpec::Many(_) => "any number of target permanents",
     }
@@ -9445,7 +9491,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     w,
                     Recipient::Target(i) if matches!(ctx.targets[*i].base(),
                         Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
-                        | Target::GraveyardCard { who: Who::You, .. })
+                        | Target::GraveyardCard { who: Who::You, .. }
+                        | Target::ExileCard { who: Who::You, .. })
                         // "Return target creature you own to your hand."
                         // (Saving Grasp).
                         || matches!(ctx.targets[*i].base(),
@@ -10727,6 +10774,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             2 => "investigate twice".to_string(),
             n => format!("investigate {} times", count_words(Num::N(*n), "one")),
         }),
+        // "Put target creature card with mana value X exiled with this
+        // creature into its owner's graveyard."
+        Effect::PutInGraveyard(what) => {
+            let o = ctx.obj(*what);
+            let whose = if o.starts_with("each ") || !ctx.is_many(*what) {
+                "its owner's graveyard"
+            } else {
+                "their owners' graveyards"
+            };
+            Clause::imperative(format!("put {o} into {whose}"))
+        }
         Effect::PutInLibrary {
             what,
             place,
@@ -17863,6 +17921,15 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             } else {
                 "exile it"
             };
+            // "If a nontoken creature an opponent controls would die,
+            // instead exile it and you gain 2 life." (The Darkness Crystal):
+            // the effects are part of the replacement.
+            if r.wording == crate::ast::ThenWording::Joined && !r.then.is_empty() {
+                ctx.source_mentioned = false;
+                let then = sentences(&r.then, ctx);
+                let then = lowercase_first(then.trim_end_matches('.'));
+                return format!("If {who} would die{when}, instead {instead} and {then}.");
+            }
             format!("If {who} would die{when}, {instead} instead.")
         }
         // CR 702.89a: an Aura's keyword ability.
@@ -20782,7 +20849,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             Target::Filter(f)
             | Target::Spell(f)
             | Target::SpellOr(f)
-            | Target::GraveyardCard { filter: f, .. } => {
+            | Target::GraveyardCard { filter: f, .. }
+            | Target::ExileCard { filter: f, .. } => {
                 format!("Enchant {}", filter_phrase(f, card, false))
             }
         },

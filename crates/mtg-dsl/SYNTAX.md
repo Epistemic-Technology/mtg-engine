@@ -4805,7 +4805,31 @@ Vehicle` is the attacking Vehicle.
 `replace this dies: exile`: "If this creature would die, exile it
 instead."; `replace this dies: library top`: "If this creature would die,
 put it on top of its owner's library instead." (`library bottom`: "on the
-bottom of its owner's library").
+bottom of its owner's library"). `replace nontoken creature an opponent
+controls dies: exile and { you gain 2 life }` prints "If a nontoken
+creature an opponent controls would die, instead exile it and you gain 2
+life." (The Darkness Crystal: the effects are part of the replacement); on
+a card that refers to "cards exiled with" it, what its static "instead
+exile it" exiles is linked to it (CR 607.2a).
+
+Targets in exile (face-up cards, CR 406.3): `target creature card exiled
+with this` ("target creature card exiled with The Darkness Crystal": only
+one of the cards the source's abilities exiled, CR 607.2a; `target creature
+card with mana value X exiled with this` "... with mana value X exiled with
+this creature"), `target exiled card with warp` ("target exiled card with
+warp": a card that has warp; `with flashback`, one with flashback, not
+retrace), with the owner after it (`target exiled card with flashback you
+own` "target exiled card with flashback you own"), and `target exiled
+adventurer card you own` / `you don't own` ("target card you own in exile
+that has an Adventure", "target card you don't own in exile that has an
+Adventure"). `return <it> to hand` from exile prints "to your hand" for a
+card you own; `put <it> on bottom of library` takes a target from exile
+too, and `put <what> into graveyard` ("Put target creature card ...
+exiled with this creature into its owner's graveyard", `each card exiled
+with this` "Put each card exiled with this artifact into its owner's
+graveyard") moves cards still in exile to their owners' graveyards (CR
+400.3). In scenarios a target name not on the battlefield, the stack or in
+a graveyard is found in exile.
 
 ### Crossover-set pieces
 
