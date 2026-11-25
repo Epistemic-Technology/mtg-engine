@@ -742,7 +742,7 @@ impl GameState {
             logging,
             cache: crate::state::DerivedCache::default(),
             mana_cache: std::cell::RefCell::new(Default::default()),
-            tap_epoch: 0,
+            tap_epoch: [0; 2],
             spare_options: Vec::new(),
         }
     }

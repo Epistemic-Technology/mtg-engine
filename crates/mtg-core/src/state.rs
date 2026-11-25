@@ -2722,8 +2722,10 @@ pub struct GameState {
     /// `tap_epoch`, turn): priority listings ask for them again and again
     /// with nothing changed.
     pub mana_cache: std::cell::RefCell<[(u64, u32, u32, ManaSources); 2]>,
-    /// Bumped on every tap and untap (which leave `cversion` alone).
-    pub tap_epoch: u32,
+    /// Bumped on every tap and untap (which leave `cversion` alone) of a
+    /// permanent the first or second player controls, that player's: a
+    /// tap changes only its controller's mana sources.
+    pub tap_epoch: [u32; 2],
     /// The last decision's option list, emptied, for the next priority
     /// listing to fill (`Engine::step`); not part of the game.
     pub(crate) spare_options: Vec<crate::decision::Choice>,

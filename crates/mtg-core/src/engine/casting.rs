@@ -8034,7 +8034,8 @@ impl GameState {
         } else {
             self.cversion
         };
-        (p.index() < 2 && cv != 0).then_some((p.index(), (cv, self.tap_epoch, self.turn_number)))
+        (p.index() < 2 && cv != 0)
+            .then(|| (p.index(), (cv, self.tap_epoch[p.index()], self.turn_number)))
     }
 
     fn mana_sources_uncached(&self, p: PlayerId) -> Sources {
