@@ -3699,7 +3699,9 @@ targets this` ("that targets this
 creature"),
 `you may <clause>`, `pay {2}` / `pay 2 life` / `pay {W}{B} and 2 life` (after `you may`; the last "you may pay {W}{B} and 2 life", both or neither),
 `target opponent may sacrifice 2 nonland nontoken permanent chosen` ("Target opponent may sacrifice two nonland, nontoken permanents of their choice."; a following `if they don't, <clause>` prints "If they don't, ...": only if the player didn't, or couldn't), `target opponent may have you create 2 "Lander"` ("Target opponent may have you create two Lander tokens.": the player decides, and the effect's controller acts), `each player may shuffle hand and graveyard into library` ("Each player may shuffle their hand and graveyard into their library.", each in turn order) and after it the recipient `each player who does` ("Each player who does draws seven cards.", also joined with `then` in the same sentence: those who did, once all have decided), `each player who controls most creature investigates` ("Each player who controls the most creatures investigates.": ties included, counted as it happens), `you and all permanent you control gain hexproof` ("You and permanents you control gain hexproof until end of turn.": the controller and the group),
-`that player may pay {4}` / `that player may discard 1 card at random`
+`that player may pay {4}` / `that player may discard 1 card at random` /
+`target opponent may draw 1 card` / `controller of that creature may draw
+1 card` ("that creature's controller may draw a card", Fecundity)
 (another player decides and acts as it resolves, CR 608.2d; an act they
 can't complete isn't offered; a following `if they do,` prints "If the
 player does,"; `deal 3 damage to any target; then controller of that

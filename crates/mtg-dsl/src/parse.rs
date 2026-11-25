@@ -11070,6 +11070,7 @@ impl P {
             "may"
                 if subject != Recipient::You
                     && (self.at_word("pay")
+                        || self.at_word("draw")
                         || self.at_word("discard")
                         || self.at_word("sacrifice")
                         || self.at_word("shuffle")
