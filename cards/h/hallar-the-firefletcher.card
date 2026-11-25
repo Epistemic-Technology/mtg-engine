@@ -1,0 +1,8 @@
+card "Hallar, the Firefletcher" {
+  oracle_id 04559759-1afd-4785-badc-c3416041f016
+  cost {1}{R}{G}
+  type Legendary Creature — Elf Archer
+  pt 3/3
+  keywords trample
+  triggered whenever you cast spell if that spell kicked: put 1 +1/+1 counter on this then this creature deals damage equal +1/+1 counters on it to each opponent
+}

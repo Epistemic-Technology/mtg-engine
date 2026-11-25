@@ -2720,7 +2720,11 @@ gained this turn` prints "you've gained"), `card types in your graveyard`
 ("the number of card types among cards in your graveyard"), `counters on
 this` ("the number of counters on Savanti Romero": every kind, as for
 `+1/+1 counters on this`; in a triggered ability `counters on it` is the
-triggering creature's, "the number of counters on it", Spider-Man Noir), `permanents sacrificed this turn` ("the number of
+triggering creature's, "the number of counters on it", Spider-Man Noir;
+in a cast trigger, whose triggering object is a spell, `counters on it`
+and `+1/+1 counters on it` are the source's: `put 1 +1/+1 counter on this
+then this creature deals damage equal +1/+1 counters on it to each
+opponent`, Hallar, the Firefletcher), `permanents sacrificed this turn` ("the number of
 permanents you've sacrificed this turn"), `two to x` (`count where two to x`
 prints "2ˣ": "Target player draws 2ˣ cards."), `creature attacked this
 turn` ("for each creature that attacked this turn": any player's

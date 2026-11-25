@@ -56,6 +56,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         it_source: false,
         no_trigger_obj: false,
         self_trigger: false,
+        cast_trigger: false,
         no_trigger_player: false,
         created_at: None,
         no_trigger_amount: false,
@@ -824,6 +825,11 @@ struct P {
     /// "that creature" after an object target is that target ("attach it
     /// to target creature you control. That creature gains hexproof").
     self_trigger: bool,
+    /// Inside a cast trigger ("Whenever you cast a spell"): the triggering
+    /// object is a spell, which has no counters, so `counters on it` are
+    /// the source's ("put a +1/+1 counter on Hallar, then Hallar deals
+    /// damage equal to the number of +1/+1 counters on it").
+    cast_trigger: bool,
     /// Inside "When this enters", "When this dies", "When this leaves the
     /// battlefield", "When you cast this spell": the event names no player,
     /// so `that player controls` would match nothing.
@@ -2712,6 +2718,7 @@ impl P {
         self.it_source = false;
         self.no_trigger_obj = false;
         self.self_trigger = false;
+        self.cast_trigger = false;
         self.no_trigger_player = false;
         self.created_at = None;
         self.no_trigger_amount = false;
@@ -4594,6 +4601,12 @@ impl P {
                     // trigger has no triggering object; "it" is the source.
                     || matches!(&trigger, Trigger::State(_));
                 self.no_trigger_obj = no_trigger_object(&trigger);
+                self.cast_trigger = matches!(
+                    trigger,
+                    Trigger::CastsSpell { .. }
+                        | Trigger::CastsFiltered { .. }
+                        | Trigger::CastsNth { .. }
+                );
                 // Also a cast trigger: the triggering object is a spell,
                 // which "that creature" doesn't name.
                 self.self_trigger = matches!(
@@ -16383,7 +16396,7 @@ impl P {
             // In a triggered ability `it` is the triggering object: its
             // counters of every kind ("the number of counters on it",
             // Spider-Man Noir).
-            if self.in_trigger && !self.it_source && !self.in_delayed {
+            if self.in_trigger && !self.it_source && !self.in_delayed && !self.cast_trigger {
                 return Ok(CountExpr::TriggerCounters(CounterKind::Any));
             }
             return Ok(CountExpr::SourceAllCounters { it: true });
@@ -16413,7 +16426,7 @@ impl P {
                 // In a triggered ability `it` is the triggering object
                 // ("for each +1/+1 counter on it" of the creature that
                 // left), as a recipient is.
-                if self.in_trigger && !self.it_source && !self.in_delayed {
+                if self.in_trigger && !self.it_source && !self.in_delayed && !self.cast_trigger {
                     return Ok(CountExpr::TriggerCounters(kind));
                 }
                 return Ok(CountExpr::SourceCounters { kind, it: true });
@@ -17032,6 +17045,7 @@ impl P {
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
             self_trigger: self.self_trigger,
+            cast_trigger: self.cast_trigger,
             no_trigger_player: self.no_trigger_player,
             created_at: self.created_at,
             no_trigger_amount: self.no_trigger_amount,
@@ -18268,6 +18282,7 @@ impl P {
                         it_source: false,
                         no_trigger_obj: false,
                         self_trigger: false,
+                        cast_trigger: false,
                         no_trigger_player: false,
                         created_at: None,
                         no_trigger_amount: false,

@@ -64,3 +64,23 @@ scenario "Bretagard Stronghold: both targets get a counter, vigilance, and lifel
   assert has "Grizzly Bears" lifelink
   assert has not "Serra Angel" lifelink
 }
+
+scenario "Hallar: a kicked spell puts a counter on Hallar, then it deals damage equal to its counters" {
+  battlefield A: "Hallar, the Firefletcher" with 1 +1/+1, 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  run_to turn 1 begin_combat
+  assert counters "Hallar, the Firefletcher" +1/+1 2
+  assert life B 18
+}
+
+scenario "Hallar: an unkicked spell does nothing" {
+  battlefield A: "Hallar, the Firefletcher", 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Bushwhacker"
+  run_to turn 1 begin_combat
+  assert counters "Hallar, the Firefletcher" +1/+1 0
+  assert life B 20
+}
