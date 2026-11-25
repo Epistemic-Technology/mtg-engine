@@ -60,6 +60,10 @@ struct Work<'a> {
     use_settled: std::cell::Cell<bool>,
     /// A first pass met such a condition: run the second.
     needs_settled: std::cell::Cell<bool>,
+    /// Some object's abilities changed in layer 6 (an ability granted or
+    /// all removed, or the rules text's lost to a land type): only then
+    /// are the static masks worked out again for the later layers.
+    abilities_changed: bool,
 }
 
 impl Work<'_> {
@@ -319,6 +323,7 @@ fn pass(
         settled,
         use_settled: std::cell::Cell::new(false),
         needs_settled: std::cell::Cell::new(false),
+        abilities_changed: false,
     };
 
     let mut live = stored_effects(state);
@@ -333,6 +338,7 @@ fn pass(
         if layer == Layer::L6Ability {
             for (i, lost) in work.lost_printed.iter().enumerate() {
                 if *lost {
+                    work.abilities_changed = true;
                     let printed = work
                         .state
                         .base_characteristics(&work.state.objects[work.ids[i]]);
@@ -355,7 +361,7 @@ fn pass(
                 }
             }
         }
-        if layer == Layer::L7aCda {
+        if layer == Layer::L7aCda && work.abilities_changed {
             masks = static_masks(&work);
         }
         gather_statics(
@@ -1438,6 +1444,7 @@ fn depends(work: &Work<'_>, _live: &[Live], a: &Live, b: &Live, layer: Layer) ->
         settled: None,
         use_settled: std::cell::Cell::new(false),
         needs_settled: std::cell::Cell::new(false),
+        abilities_changed: false,
     };
     let after = scratch.matching(filter, a.source, a.controller);
     before != after
@@ -1466,6 +1473,12 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
             c.toughness = pt16(n.saturating_add(*plus_toughness));
         }
         return;
+    }
+    if matches!(
+        part,
+        Modification::AddAbility(_) | Modification::RemoveAllAbilities
+    ) {
+        work.abilities_changed = true;
     }
     apply_to(&mut work.chars[wi], part, work.state, id);
 }
