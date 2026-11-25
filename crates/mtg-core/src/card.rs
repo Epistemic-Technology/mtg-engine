@@ -3633,6 +3633,8 @@ pub enum StaticCondition {
         n: u32,
         at_most: bool,
     },
+    /// "you have exactly thirteen cards in your hand" (Triskaidekaphile).
+    HandExactly(u32),
     /// "each player has no cards in hand" (Howltooth Hollow).
     EachHandEmpty,
     /// "a library has twenty or fewer cards in it" (Shelldock Isle): any
@@ -6720,6 +6722,12 @@ pub enum Effect {
     /// which the resolution's life-lost log then holds.
     ExchangeLife {
         with: Recipient,
+    },
+    /// "Two target players exchange life totals." (CR 701.12c): the first
+    /// two players `who` names each gain or lose the life needed to reach
+    /// the other's former total.
+    ExchangeLifeBetween {
+        who: Recipient,
     },
     /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
     /// discarded a nonland card this way, create a 1/1 white Human Soldier
@@ -13823,6 +13831,7 @@ impl CardPool {
                     if count.reads_hand()
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
+                    | StaticCondition::HandExactly(_)
                     | StaticCondition::MoreCardsInHand
                     | StaticCondition::PlayerHand { .. }
                     | StaticCondition::PlayerMoreHand(_)

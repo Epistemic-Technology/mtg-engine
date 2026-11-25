@@ -1,0 +1,6 @@
+card "Soul Conduit" {
+  oracle_id b48befc5-a9f2-4a64-a16d-c883b034ea9c
+  cost {6}
+  type Artifact
+  activated {6}, {T}: 2 target player exchange life totals
+}

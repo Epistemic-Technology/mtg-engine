@@ -6745,6 +6745,13 @@ impl P {
                 self.cards_word()?;
                 return Ok(StaticCond::NoCardInHand(f));
             }
+            // `hand exactly 13 your`: "you have exactly thirteen cards in
+            // your hand" (Triskaidekaphile).
+            if self.eat_word("exactly") {
+                let n = self.number()?;
+                self.expect_word("your")?;
+                return Ok(StaticCond::HandExactly(n));
+            }
             // `hand fewer than 10`: "you have fewer than ten cards in hand".
             if self.eat_words(&["fewer", "than"]) {
                 return Ok(StaticCond::HandFewerThan(self.number()?));
@@ -10846,6 +10853,10 @@ impl P {
                 }
             }
             "lose" | "loses" if self.eat_word("game") => Ok(Effect::LoseGame { who: subject }),
+            // CR 701.12c: "Two target players exchange life totals."
+            "exchange" if self.eat_words(&["life", "totals"]) => {
+                Ok(Effect::ExchangeLifeBetween { who: subject })
+            }
             // CR 104.2b: "you win the game".
             "win" | "wins" if self.eat_word("game") => Ok(Effect::WinGame { who: subject }),
             // CR 119.5: "target player's life total becomes 10".

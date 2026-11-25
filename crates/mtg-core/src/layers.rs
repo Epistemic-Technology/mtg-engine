@@ -896,6 +896,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::LibraryAtMost(n) => state
             .players_in_game()
             .any(|p| state.player(p).library.len() <= *n as usize),
+        StaticCondition::HandExactly(n) => state.player(you).hand.len() == *n as usize,
         StaticCondition::CardsInHand { n, at_most } => {
             let h = state.player(you).hand.len();
             if *at_most {

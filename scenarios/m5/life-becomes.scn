@@ -147,3 +147,46 @@ scenario "Form of the Dragon: 5 damage at your upkeep; creatures without flying 
   run_to turn 3 draw
   assert life B 15
 }
+
+scenario "Soul Conduit: two target players exchange life totals" {
+  battlefield A: "Soul Conduit", 6 "Plains"
+  life A 5
+  life B 17
+  turn 1 A: activate "Soul Conduit" targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 5
+}
+
+scenario "Soul Conduit: the gain is a life gain (Ajani's Pridemate)" {
+  battlefield A: "Soul Conduit", 6 "Plains", "Ajani's Pridemate"
+  life A 5
+  life B 9
+  turn 1 A: activate "Soul Conduit" targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert life A 9
+  assert life B 5
+  assert counters "Ajani's Pridemate" +1/+1 1
+}
+
+scenario "Axis of Mortality: at your upkeep you may have two target players exchange" {
+  battlefield A: "Axis of Mortality"
+  start turn 3 A untap
+  life A 3
+  life B 20
+  turn 3 upkeep A: trigger "Axis of Mortality" targeting player A, player B
+  run_to turn 3 draw
+  assert life A 20
+  assert life B 3
+}
+
+scenario "Axis of Mortality: declined, nothing changes" {
+  battlefield A: "Axis of Mortality"
+  start turn 3 A untap
+  life A 3
+  turn 3 upkeep A: trigger "Axis of Mortality" targeting player A, player B
+  turn 3 upkeep A: decline "Axis of Mortality"
+  run_to turn 3 draw
+  assert life A 3
+  assert life B 20
+}

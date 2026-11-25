@@ -2364,6 +2364,9 @@ impl Fmt {
             Effect::ExchangeControl { what } => {
                 format!("exchange control of {}", self.recipients(what, t))
             }
+            Effect::ExchangeLifeBetween { who } => {
+                format!("{} exchange life totals", self.recipient(*who, t))
+            }
             Effect::ExchangeLife { with } => {
                 format!("exchange life totals with {}", self.recipient(*with, t))
             }
@@ -8310,6 +8313,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
         StaticCond::ActivatedThisTurn(n) => format!("activated {n} times this turn"),
+        StaticCond::HandExactly(n) => format!("hand exactly {n} your"),
         StaticCond::CardsInHand { n, at_most, your } => {
             let your = if *your { " your" } else { "" };
             format!(

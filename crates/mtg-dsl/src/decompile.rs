@@ -966,6 +966,7 @@ impl Decompiler<'_> {
                 that: *that,
             },
             StaticCondition::ActivatedThisTurn(n) => StaticCond::ActivatedThisTurn(*n),
+            StaticCondition::HandExactly(n) => StaticCond::HandExactly(*n),
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -2255,6 +2256,7 @@ impl Decompiler<'_> {
                 what: std::iter::once(*a).chain(*b).map(r).collect(),
             },
             CoreEffect::ExchangeLife { with } => Effect::ExchangeLife { with: r(*with) },
+            CoreEffect::ExchangeLifeBetween { who } => Effect::ExchangeLifeBetween { who: r(*who) },
             CoreEffect::GiveControl { of, to } => Effect::GiveControl {
                 of: r(*of),
                 to: r(*to),

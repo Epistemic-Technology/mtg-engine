@@ -2685,6 +2685,7 @@ impl Compiler<'_> {
                 at_most: true,
             },
             StaticCond::ActivatedThisTurn(n) => StaticCondition::ActivatedThisTurn(*n),
+            StaticCond::HandExactly(n) => StaticCondition::HandExactly(*n),
             StaticCond::CardsInHand { n, at_most, .. } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -4134,6 +4135,9 @@ impl Compiler<'_> {
                 }),
                 _ => return self.err("exchange control of two permanents"),
             },
+            Effect::ExchangeLifeBetween { who } => {
+                out.push(CoreEffect::ExchangeLifeBetween { who: r(*who) });
+            }
             Effect::ExchangeLife { with } => {
                 out.push(CoreEffect::ExchangeLife { with: r(*with) });
             }

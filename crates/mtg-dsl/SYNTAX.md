@@ -685,7 +685,8 @@ characteristics, checked again whenever the top card changes),
 `creature died this turn` (morbid), `hand 0 or less` ("you have no cards
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `hand 7 or more your` ("you have seven or more cards in your hand",
-Resonating Lute; wording only),
+Resonating Lute; wording only), `hand exactly 13 your` ("you have exactly
+thirteen cards in your hand", Triskaidekaphile),
 `hand has no land card` ("you have no land cards in hand"), and
 the shorthands `threshold`, `delirium`, `metalcraft`; also `land entered
 this turn` (landfall: "you had a land enter the battlefield under your
@@ -1705,6 +1706,11 @@ gains or loses the life needed to reach the other's former total; a
 following `if you do,` prints "If you lost life this way, ..." and holds
 only if the controller lost life, and `count that many life lost this way`
 is that loss ("draw that many cards", Mister Negative).
+`2 target player exchange life totals` ("Two target players exchange life
+totals.", Soul Conduit; `you may 2 target player exchange life totals`:
+"you may have two target players exchange life totals", Axis of
+Mortality): the two players each gain or lose the life needed (CR
+701.12c).
 `end the turn` (CR 724.1) prints "End the turn.": triggered abilities
 waiting to be put on the stack cease to exist, every object on the stack
 (the resolving spell or ability too) is exiled (an ability or a copy of a

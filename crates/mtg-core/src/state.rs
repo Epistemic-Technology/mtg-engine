@@ -5772,6 +5772,7 @@ impl GameState {
             C::LibraryAtMost(n) => self
                 .players_in_game()
                 .any(|p| self.player(p).library.len() <= *n as usize),
+            C::HandExactly(n) => self.player(you).hand.len() == *n as usize,
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {

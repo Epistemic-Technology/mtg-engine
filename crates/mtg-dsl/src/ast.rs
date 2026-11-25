@@ -3595,6 +3595,9 @@ pub enum StaticCond {
     /// `activated 4 times this turn`: "this ability has been activated
     /// four or more times this turn".
     ActivatedThisTurn(u32),
+    /// `hand exactly 13 your`: "you have exactly thirteen cards in your
+    /// hand".
+    HandExactly(u32),
     CardsInHand {
         n: u32,
         at_most: bool,
@@ -6976,6 +6979,11 @@ pub enum Effect {
     /// following `if you do,` prints "If you lost life this way, ...".
     ExchangeLife {
         with: Recipient,
+    },
+    /// `2 target player exchange life totals`: "Two target players
+    /// exchange life totals." (CR 701.12c).
+    ExchangeLifeBetween {
+        who: Recipient,
     },
     /// `return all creature card from your graveyard to battlefield`:
     /// "Return all creature cards from your graveyard to the battlefield."

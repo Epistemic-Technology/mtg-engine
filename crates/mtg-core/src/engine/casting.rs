@@ -18092,6 +18092,32 @@ impl GameState {
                 self.gain_life(gainer, diff.unsigned_abs());
                 ctx.did = loser == me;
             }
+            Effect::ExchangeLifeBetween { who } => {
+                let ps: SmallVec<[PlayerId; 2]> = self
+                    .recipients(ctx, *who)
+                    .into_iter()
+                    .filter_map(|t| match t {
+                        Target::Player(p) if self.player(p).lost.is_none() => Some(p),
+                        _ => None,
+                    })
+                    .collect();
+                let [a, b, ..] = ps[..] else {
+                    return;
+                };
+                if a == b {
+                    return;
+                }
+                // CR 701.12c: each gains or loses the life necessary to
+                // equal the other's former total.
+                let (la, lb) = (self.player(a).life, self.player(b).life);
+                let (loser, gainer, diff) = match la.cmp(&lb) {
+                    std::cmp::Ordering::Equal => return,
+                    std::cmp::Ordering::Greater => (a, b, la - lb),
+                    std::cmp::Ordering::Less => (b, a, lb - la),
+                };
+                self.change_life(loser, -diff);
+                self.gain_life(gainer, diff.unsigned_abs());
+            }
             Effect::GiveControl { of, to } => {
                 ctx.did = false;
                 let Some(p) = self.recipients(ctx, *to).into_iter().find_map(|t| match t {

@@ -8202,6 +8202,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             cards_phrase(filter, ctx.card, true),
             if *tapped { " tapped" } else { "" }
         )),
+        // "Two target players exchange life totals." (CR 701.12c).
+        Effect::ExchangeLifeBetween { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(*who, s, "exchange life totals".to_string())
+        }
         Effect::ExchangeLife { with } => {
             // "If you lost life this way, draw that many cards." (Mister
             // Negative).
@@ -15670,6 +15675,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "another target ",
                     "up to ",
                     "this ",
+                    // "you may have two target players exchange life
+                    // totals" (Axis of Mortality).
+                    "two target ",
                 ]
                 .iter()
                 .any(|p| body.starts_with(p));
@@ -21945,6 +21953,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::ActivatedThisTurn(n) => format!(
             "this ability has been activated {} times this turn",
             or_more(*n)
+        ),
+        StaticCond::HandExactly(n) => format!(
+            "you have exactly {} cards in your hand",
+            count_words(Num::N(*n), "one")
         ),
         StaticCond::CardsInHand { n, at_most, your } => {
             let hand = if *your { "your hand" } else { "hand" };
