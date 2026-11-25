@@ -2552,6 +2552,7 @@ impl Compiler<'_> {
                 at_least: *at_least,
             },
             StaticCond::AnyPlayerLifeAtMost(n) => StaticCondition::AnyPlayerLifeAtMost(*n),
+            StaticCond::YourLifeExactly(n) => StaticCondition::YourLifeExactly(*n),
             StaticCond::OpponentPoisonAtLeast(n) => StaticCondition::OpponentPoisonAtLeast(*n),
             StaticCond::SourceCounters { kind, n, at_least } => StaticCondition::SourceCounters {
                 kind: *kind,
@@ -4930,6 +4931,13 @@ impl Compiler<'_> {
             Effect::LifeBecomesHalfStarting { who } => {
                 out.push(CoreEffect::LifeBecomesHalfStarting { who: r(*who) });
             }
+            Effect::LifeBecomes { who, to } => {
+                out.push(CoreEffect::LifeBecomes {
+                    who: r(*who),
+                    to: *to,
+                });
+            }
+            Effect::WinGame { who } => out.push(CoreEffect::WinGame { who: r(*who) }),
             Effect::NoMaxHandSize { who } => out.push(CoreEffect::NoMaxHandSize { who: r(*who) }),
             Effect::EnterTappedAttacking => {
                 return self.err(

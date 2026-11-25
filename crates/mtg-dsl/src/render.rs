@@ -5988,6 +5988,10 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         Effect::DealDamage { amount, .. }
         | Effect::DealDamageDivided { amount, .. }
         | Effect::GainLife { amount, .. }
+        | Effect::LifeBecomes {
+            to: mtg_core::card::LifeTo::Amount(amount),
+            ..
+        }
         | Effect::LoseLife { amount, .. } => vec![*amount],
         Effect::DrawCards { count, .. }
         | Effect::Mill { count, .. }
@@ -7406,6 +7410,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let phrase = count_phrase_in(&count.expr, ctx, false);
                     c.text = c.text.replacen("X cards", &phrase, 1);
                 }
+            }
+            // "Each player's life total becomes the number of creatures
+            // they control." (Biorhythm).
+            CountStyle::Equal if matches!(e, Effect::LifeBecomes { .. }) => {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c
+                    .text
+                    .replacen("becomes X", &format!("becomes {phrase}"), 1);
             }
             CountStyle::Equal => {
                 // "Create a number of 1/1 red Goblin creature tokens equal
@@ -13623,6 +13635,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::LifeBecomesHalfStarting { .. } => Clause::imperative(
             "your life total becomes half your starting life total, rounded up".to_string(),
         ),
+        // CR 119.5.
+        Effect::LifeBecomes { who, to } => {
+            let s = possessive(&ctx.subj(*who));
+            let to = match to {
+                mtg_core::card::LifeTo::Amount(n) => digits(*n),
+                mtg_core::card::LifeTo::Starting => {
+                    format!("equal to {s} starting life total")
+                }
+                mtg_core::card::LifeTo::Highest => {
+                    "the highest life total among all players".to_string()
+                }
+                mtg_core::card::LifeTo::Lowest => {
+                    "the lowest life total among all players".to_string()
+                }
+            };
+            Clause::imperative(format!("{s} life total becomes {to}"))
+        }
+        // CR 104.2b.
+        Effect::WinGame { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(*who, s, format!("{} the game", ctx.verb(*who, "wins", "win")))
+        }
         Effect::DoubleLife { who } => {
             let s = ctx.subj(*who);
             Clause::imperative(format!("double {} life total", possessive(&s)))
@@ -21665,6 +21699,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 b.strip_prefix("there is ").and_then(|y| y.strip_suffix(gy)),
             ) {
                 format!("there is {x} and {y}{gy}")
+            } else if a.starts_with("you control ")
+                && let Some(y) = b.strip_prefix("you have no ")
+            {
+                // "if you control no permanents other than this
+                // enchantment and have no cards in hand" (Barren Glory).
+                format!("{a} and have no {y}")
             } else {
                 format!("{a} and {b}")
             }
@@ -21965,6 +22005,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             3 => format!("you have at least {at_least} life more than your starting life total"),
             _ => "your life total is less than your starting life total".to_string(),
         },
+        StaticCond::YourLifeExactly(n) => format!("you have exactly {n} life"),
         StaticCond::YourLife { n, at_least } => format!(
             "you have {n} or {} life",
             if *at_least { "more" } else { "less" }
@@ -21980,8 +22021,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 W::ThereIs => return format!("there is {one} in your graveyard"),
                 W::Theres => return format!("there's {one} in your graveyard"),
                 W::IsIn => return format!("{one} is in your graveyard"),
-                W::AreIn => {
+                W::AreIn if *filter == Filter::default() => {
                     return format!("{} cards are in your graveyard", or_more(*at_least));
+                }
+                // "twenty or more creature cards are in your graveyard".
+                W::AreIn => {
+                    return format!(
+                        "{} {} cards are in your graveyard",
+                        or_more(*at_least),
+                        card_filter_phrase(filter, card)
+                    );
                 }
                 W::YouHave => true,
                 W::ThereAre => false,

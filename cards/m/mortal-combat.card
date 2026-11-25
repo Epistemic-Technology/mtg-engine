@@ -1,0 +1,6 @@
+card "Mortal Combat" {
+  oracle_id dc9d1d0c-5310-460a-a3cd-1ff1f4f83c8f
+  cost {2}{B}{B}
+  type Enchantment
+  triggered at beginning of your upkeep if 20 creature cards are in your graveyard: you win game
+}

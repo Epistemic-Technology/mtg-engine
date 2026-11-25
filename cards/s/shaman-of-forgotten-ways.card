@@ -1,0 +1,8 @@
+card "Shaman of Forgotten Ways" {
+  oracle_id ca405696-8c30-4c01-bf90-11cdf8837942
+  cost {2}{G}
+  type Creature — Human Shaman
+  pt 2/3
+  activated {T}: add 2 mana any combination only to cast creature spells
+  label "Formidable" activated {9}{G}{G}, {T}, if total power 8 or more: each player life total becomes count equal creature they control
+}

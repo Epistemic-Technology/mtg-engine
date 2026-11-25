@@ -741,6 +741,7 @@ impl Decompiler<'_> {
                 at_least: *at_least,
             },
             StaticCondition::AnyPlayerLifeAtMost(n) => StaticCond::AnyPlayerLifeAtMost(*n),
+            StaticCondition::YourLifeExactly(n) => StaticCond::YourLifeExactly(*n),
             StaticCondition::OpponentPoisonAtLeast(n) => StaticCond::OpponentPoisonAtLeast(*n),
             StaticCondition::SourceCounterParity { even } => StaticCond::SourceCounterParity(*even),
             StaticCondition::SourceCounters { kind, n, at_least } => StaticCond::SourceCounters {
@@ -2221,6 +2222,11 @@ impl Decompiler<'_> {
             CoreEffect::LifeBecomesHalfStarting { who } => {
                 Effect::LifeBecomesHalfStarting { who: r(*who) }
             }
+            CoreEffect::LifeBecomes { who, to } => Effect::LifeBecomes {
+                who: r(*who),
+                to: *to,
+            },
+            CoreEffect::WinGame { who } => Effect::WinGame { who: r(*who) },
             CoreEffect::NoMaxHandSize { who } => Effect::NoMaxHandSize { who: r(*who) },
             CoreEffect::Earthbend { count, to } => Effect::Earthbend {
                 count: *count,

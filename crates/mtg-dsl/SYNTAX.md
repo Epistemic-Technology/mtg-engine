@@ -474,7 +474,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `delayed target 1: whenever creature you control deals combat damage to that player this turn, ...` | In a delayed trigger about a player (`choose target opponent; delayed target 1: ...`): "Choose target opponent. Whenever a creature you control deals combat damage to that player this turn, create a tapped Treasure token." (Great Train Heist): damage to that player only. Elsewhere `to that player` is an error. |
 | `whenever this deals combat damage to a player or planeswalker` | Either attack target; the player dealt damage, or the planeswalker's controller, is the triggering player. Damage to a blocker doesn't trigger it. |
-| `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"), or `when there are 9 or more incarnation counters on this` ("When there are nine or more incarnation counters on this enchantment, exile it.", Nine Lives: `it` in a state trigger is the source). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
+| `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"), or `when there are 9 or more incarnation counters on this` ("When there are nine or more incarnation counters on this enchantment, exile it.", Nine Lives: `it` in a state trigger is the source), or `when this has 20 or more charge counters` ("When this artifact has twenty or more charge counters on it, you win the game.", Darksteel Reactor). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | once per life-gaining event; the life gained is `that much` (`put that much +1/+1 counter on this`: "Whenever you gain life, put that many +1/+1 counters on this creature.", Ageless Entity; granted by an Aura, `static enchanted: has ability { triggered whenever you gain life: put that much +1/+1 counter on this }`, Sunbond) |
 | `whenever an opponent loses life`, `whenever a player loses life`, `whenever you lose life` | once per life-losing event (CR 119.3; damage too); the player is `that player`, the life lost `that much` ("you gain that much life") |
 | `whenever you gain or lose life`, `whenever you gain or lose life during your turn` | once per event that changes your life total (CR 119.9: a gain or a loss of any amount is one event), only on your turn with `during your turn` |
@@ -655,6 +655,7 @@ less` ("an opponent has 10 or less life"), `target player life exactly
 10` (after `if` in a spell: "If target player has exactly 10 life, ...
 that player", declaring the target; `... life 10 or less`, `... life 10
 or more`; judged as it resolves, not in a static ability), `your life 30 or more`,
+`your life exactly 1` ("you have exactly 1 life", Near-Death Experience),
 `life above starting` ("your life total is greater than your starting
 life total", CR 103.4: 20 here; the game's own in a configured game),
 `x 10 or more` and `x 2 or less` ("X is 10 or more", CR 107.3: in a spell
@@ -704,7 +705,11 @@ the ability triggers and again as it resolves (CR 603.4).
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `2 instant or sorcery cards in your graveyard` ("there are two or more
 instant and/or sorcery cards in your graveyard"; any card filter, `4 permanent
-cards in your graveyard` for descend), `you
+cards in your graveyard` for descend; `20 creature cards are in your
+graveyard`: "twenty or more creature cards are in your graveyard", Mortal
+Combat), `you control no permanent other than this and hand 0 or less`
+("you control no permanents other than this enchantment and have no cards
+in hand", Barren Glory), `you
 have 4 creature cards in your graveyard`, `there is land card in your
 graveyard` ("there is a land card in your graveyard"; `there's Lesson card
 in your graveyard` prints "there's a"), `1 artifact card is in your
@@ -1680,6 +1685,19 @@ triggering player).
 half your starting life total, rounded up" (CR 119.5: the controller gains
 or loses the life needed; The Endstone). Numbers of 1,000 or more print
 grouped ("each opponent loses 1,000 life").
+`your life total becomes 26` ("Your life total becomes 26.", Providence),
+`target player life total becomes 10` ("target player's life total
+becomes 10", any subject: `target opponent`, `each player`), `each player
+life total becomes count equal creature they control` ("Each player's
+life total becomes the number of creatures they control.", Biorhythm:
+each player's own count, read before any total changes), `your life total
+becomes starting` ("Your life total becomes equal to your starting life
+total."), `each player life total becomes highest` / `... lowest` ("...
+becomes the highest life total among all players", read once, before any
+total changes). CR 119.5: each player gains or loses the difference, so
+"can't gain life", life-gain triggers and replacements apply.
+`you win game` ("You win the game.", CR 104.2b): every opponent loses,
+unless one of them can't lose the game (Platinum Angel).
 `exchange life totals with target opponent` (CR 701.12c): each player
 gains or loses the life needed to reach the other's former total; a
 following `if you do,` prints "If you lost life this way, ..." and holds

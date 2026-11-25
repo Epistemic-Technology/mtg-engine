@@ -701,6 +701,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             let l = state.player(you).life;
             if *at_least { l >= *n } else { l <= *n }
         }
+        StaticCondition::YourLifeExactly(n) => state.player(you).life == *n,
         // CR 103.4: the starting life total.
         StaticCondition::LifeVsStarting { at_least, below } => {
             let d = state.player(you).life - state.starting_life;

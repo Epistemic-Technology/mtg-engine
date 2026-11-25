@@ -1,0 +1,8 @@
+card "Magister Sphinx" {
+  oracle_id 1d86ae29-4705-4bbc-8922-9b4e031df5b1
+  cost {4}{W}{U}{B}
+  type Artifact Creature — Sphinx
+  pt 5/5
+  keyword flying
+  triggered when this enters: target player life total becomes 10
+}

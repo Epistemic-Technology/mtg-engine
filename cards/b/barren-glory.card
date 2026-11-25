@@ -1,0 +1,6 @@
+card "Barren Glory" {
+  oracle_id e0523435-bf0b-4568-879c-cb5dce5e0bc1
+  cost {4}{W}{W}
+  type Enchantment
+  triggered at beginning of your upkeep if you control no permanent other than this and hand 0 or less: you win game
+}

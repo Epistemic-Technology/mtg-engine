@@ -5566,6 +5566,7 @@ impl GameState {
                 let l = self.player(you).life;
                 if *at_least { l >= *n } else { l <= *n }
             }
+            C::YourLifeExactly(n) => self.player(you).life == *n,
             // CR 103.4: the starting life total.
             C::LifeVsStarting { at_least, below } => {
                 let d = self.player(you).life - self.starting_life;

@@ -1,0 +1,147 @@
+# "You win the game" as an effect (CR 104.2b): every opponent leaves the
+# game, unless one of them can't lose (Platinum Angel); as an intervening
+# "if" trigger (CR 603.4) and as a state trigger (CR 603.8).
+
+scenario "Felidar Sovereign: at your upkeep with 40 life, you win" {
+  battlefield A: "Felidar Sovereign"
+  start turn 3 A untap
+  life A 40
+  run_to turn 3 draw
+  assert winner A
+}
+
+scenario "Felidar Sovereign: with 39 life, nothing" {
+  battlefield A: "Felidar Sovereign"
+  start turn 3 A untap
+  life A 39
+  run_to turn 3 draw
+  assert not game_over
+}
+
+scenario "Felidar Sovereign: an opponent's Platinum Angel stops the win" {
+  battlefield A: "Felidar Sovereign"
+  battlefield B: "Platinum Angel"
+  start turn 3 A untap
+  life A 45
+  run_to turn 3 draw
+  assert not game_over
+}
+
+scenario "Revel in Riches: a creature an opponent controls dies, a Treasure; ten Treasures win" {
+  battlefield A: "Revel in Riches", 9 "Treasure", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 untap
+  assert battlefield A contains 10 "Treasure"
+  run_to turn 3 draw
+  assert winner A
+}
+
+scenario "Revel in Riches: nine Treasures don't" {
+  battlefield A: "Revel in Riches", 9 "Treasure"
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert not game_over
+}
+
+scenario "Mortal Combat: twenty creature cards in your graveyard win" {
+  battlefield A: "Mortal Combat"
+  graveyard A: 20 "Grizzly Bears"
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert winner A
+}
+
+scenario "Mortal Combat: nineteen creature cards and a land don't" {
+  battlefield A: "Mortal Combat"
+  graveyard A: 19 "Grizzly Bears", "Forest"
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert not game_over
+}
+
+scenario "Biovisionary: four Biovisionaries at an end step win, on either turn" {
+  battlefield A: 4 "Biovisionary"
+  start turn 2 B precombat_main
+  run_to turn 3 untap
+  assert winner A
+}
+
+scenario "Biovisionary: three Biovisionaries don't" {
+  battlefield A: 3 "Biovisionary"
+  run_to turn 2 untap
+  assert not game_over
+}
+
+scenario "Near-Death Experience: exactly 1 life at your upkeep wins" {
+  battlefield A: "Near-Death Experience"
+  start turn 3 A untap
+  life A 1
+  run_to turn 3 draw
+  assert winner A
+}
+
+scenario "Near-Death Experience: 2 life doesn't" {
+  battlefield A: "Near-Death Experience"
+  start turn 3 A untap
+  life A 2
+  run_to turn 3 draw
+  assert not game_over
+}
+
+scenario "Barren Glory: no other permanents and an empty hand win" {
+  battlefield A: "Barren Glory"
+  library A: "Island"
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert winner A
+}
+
+scenario "Barren Glory: a land of yours stops it" {
+  battlefield A: "Barren Glory", "Plains"
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert not game_over
+}
+
+scenario "Barren Glory: a card in hand stops it" {
+  battlefield A: "Barren Glory"
+  hand A: "Island"
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert not game_over
+}
+
+scenario "Hellkite Tyrant: combat damage takes that player's artifacts for good" {
+  battlefield A: "Hellkite Tyrant"
+  battlefield B: "Ornithopter" tapped, "Treasure"
+  turn 1 A: attack "Hellkite Tyrant"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Treasure"
+  assert life B 14
+}
+
+scenario "Hellkite Tyrant: twenty artifacts at your upkeep win" {
+  battlefield A: "Hellkite Tyrant", 20 "Treasure"
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert winner A
+}
+
+scenario "Darksteel Reactor: the twentieth charge counter wins at once" {
+  battlefield A: "Darksteel Reactor" with 19 charge
+  start turn 3 A untap
+  run_to turn 3 draw
+  assert winner A
+}
+
+scenario "Darksteel Reactor: declining the counter leaves 19" {
+  battlefield A: "Darksteel Reactor" with 19 charge
+  start turn 3 A untap
+  turn 3 upkeep A: decline "Darksteel Reactor"
+  run_to turn 3 draw
+  assert not game_over
+  assert counters "Darksteel Reactor" charge 19
+}

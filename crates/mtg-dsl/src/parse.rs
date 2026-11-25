@@ -6858,6 +6858,10 @@ impl P {
                 wording,
             });
         }
+        if self.eat_words(&["your", "life", "exactly"]) {
+            let n = i32::try_from(self.number()?).unwrap_or(0);
+            return Ok(StaticCond::YourLifeExactly(n));
+        }
         if self.eat_words(&["your", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_word("or")?;
@@ -6955,6 +6959,10 @@ impl P {
             // "an artifact card is in your graveyard".
             let wording = if n == 1 && self.eat_words(&["card", "is", "in", "your", "graveyard"]) {
                 crate::ast::GraveyardWording::IsIn
+            } else if n > 1 && self.eat_words(&["cards", "are", "in", "your", "graveyard"]) {
+                // "twenty or more creature cards are in your graveyard"
+                // (Mortal Combat).
+                crate::ast::GraveyardWording::AreIn
             } else {
                 self.graveyard_cards_tail()?;
                 crate::ast::GraveyardWording::ThereAre
@@ -9986,6 +9994,21 @@ impl P {
     }
 
     /// A clause whose subject is known: "<subject> gains 3 life".
+    /// What a life total becomes (CR 119.5): `starting`, `highest`,
+    /// `lowest`, or an amount.
+    fn life_to(&mut self) -> R<mtg_core::card::LifeTo> {
+        use mtg_core::card::LifeTo;
+        Ok(if self.eat_word("starting") {
+            LifeTo::Starting
+        } else if self.eat_word("highest") {
+            LifeTo::Highest
+        } else if self.eat_word("lowest") {
+            LifeTo::Lowest
+        } else {
+            LifeTo::Amount(self.num()?)
+        })
+    }
+
     fn subject_verb(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let counts = self.counts.len();
         let e = self.subject_verb_inner(subject, explicit)?;
@@ -10011,6 +10034,7 @@ impl P {
             && matches!(
                 e,
                 Effect::LoseLife { .. }
+                    | Effect::LifeBecomes { .. }
                     | Effect::DrawCards { .. }
                     | Effect::Mill { .. }
                     | Effect::Discard { .. }
@@ -10737,6 +10761,13 @@ impl P {
                 }
             }
             "lose" | "loses" if self.eat_word("game") => Ok(Effect::LoseGame { who: subject }),
+            // CR 104.2b: "you win the game".
+            "win" | "wins" if self.eat_word("game") => Ok(Effect::WinGame { who: subject }),
+            // CR 119.5: "target player's life total becomes 10".
+            "life" if self.eat_words(&["total", "becomes"]) => Ok(Effect::LifeBecomes {
+                who: subject,
+                to: self.life_to()?,
+            }),
             // "loses half their life, rounded down".
             "lose" | "loses" if self.half_ahead() => {
                 let amount = self.half_count(crate::ast::CountExpr::Their(
@@ -14162,6 +14193,10 @@ impl P {
                     who: Recipient::You,
                 })
             }
+            "your" if self.eat_words(&["life", "total", "becomes"]) => Ok(Effect::LifeBecomes {
+                who: Recipient::You,
+                to: self.life_to()?,
+            }),
             "exchange" if self.eat_words(&["life", "totals", "with"]) => Ok(Effect::ExchangeLife {
                 with: self.recipient()?,
             }),
@@ -20370,7 +20405,13 @@ impl P {
         // state trigger (CR 603.8).
         // "When there are nine or more incarnation counters on this
         // enchantment" (Nine Lives).
-        if !whenever && (self.at_words(&["you", "control"]) || self.at_words(&["there", "are"])) {
+        // "When this artifact has twenty or more charge counters on it"
+        // (Darksteel Reactor).
+        if !whenever
+            && (self.at_words(&["you", "control"])
+                || self.at_words(&["there", "are"])
+                || self.at_words(&["this", "has"]))
+        {
             return Ok(Trigger::State(self.static_cond()?));
         }
         if self.eat_words(&["you", "gain", "or", "lose", "life"]) {

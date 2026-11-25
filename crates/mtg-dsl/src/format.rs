@@ -3625,6 +3625,28 @@ impl Fmt {
             Effect::LifeBecomesHalfStarting { .. } => {
                 "your life total becomes half starting".to_string()
             }
+            Effect::LifeBecomes { who, to } => {
+                let who = if *who == Recipient::You {
+                    "your".to_string()
+                } else {
+                    self.recipient(*who, t)
+                };
+                let to = match to {
+                    mtg_core::card::LifeTo::Amount(n) => num(*n),
+                    mtg_core::card::LifeTo::Starting => "starting".to_string(),
+                    mtg_core::card::LifeTo::Highest => "highest".to_string(),
+                    mtg_core::card::LifeTo::Lowest => "lowest".to_string(),
+                };
+                format!("{who} life total becomes {to}")
+            }
+            Effect::WinGame { who } => {
+                let v = if *who == Recipient::You {
+                    "win"
+                } else {
+                    "wins"
+                };
+                format!("{} {v} game", self.recipient(*who, t))
+            }
             Effect::DoubleLife { who } => {
                 if *who == Recipient::You {
                     "double your life total".to_string()
@@ -8277,6 +8299,7 @@ fn static_cond(c: &StaticCond) -> String {
             3 => format!("life {at_least} more than starting"),
             _ => "life below starting".to_string(),
         },
+        StaticCond::YourLifeExactly(n) => format!("your life exactly {n}"),
         StaticCond::YourLife { n, at_least } => {
             format!(
                 "your life {n} or {}",
@@ -8291,7 +8314,10 @@ fn static_cond(c: &StaticCond) -> String {
             use crate::ast::GraveyardWording as W;
             match wording {
                 W::ThereAre => format!("{at_least} {} cards in your graveyard", filter(fl)),
-                W::AreIn => format!("{at_least} cards are in your graveyard"),
+                W::AreIn if *fl == Filter::default() => {
+                    format!("{at_least} cards are in your graveyard")
+                }
+                W::AreIn => format!("{at_least} {} cards are in your graveyard", filter(fl)),
                 W::YouHave => {
                     format!("you have {at_least} {} cards in your graveyard", filter(fl))
                 }

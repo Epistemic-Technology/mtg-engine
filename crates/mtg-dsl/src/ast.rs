@@ -3376,6 +3376,8 @@ pub enum StaticCond {
         n: i32,
         at_least: bool,
     },
+    /// `your life exactly 1`: "you have exactly 1 life".
+    YourLifeExactly(i32),
     /// Your life total against your starting life total: `life above
     /// starting` ("your life total is greater than your starting life
     /// total"), `life at least starting` ("... greater than or equal to
@@ -6415,6 +6417,17 @@ pub enum Effect {
     /// `your life total becomes half starting`: "your life total becomes
     /// half your starting life total, rounded up" (CR 119.5, The Endstone).
     LifeBecomesHalfStarting {
+        who: Recipient,
+    },
+    /// `your life total becomes 26`, `each player life total becomes
+    /// count equal creature they control`, `... becomes starting`,
+    /// `... becomes highest`, `... becomes lowest` (CR 119.5).
+    LifeBecomes {
+        who: Recipient,
+        to: mtg_core::card::LifeTo,
+    },
+    /// `you win game`: "you win the game" (CR 104.2b).
+    WinGame {
         who: Recipient,
     },
     /// `create 3 "..."; if sneak paid, they enter tapped and attacking`

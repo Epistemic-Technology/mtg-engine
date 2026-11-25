@@ -1,0 +1,6 @@
+card "Oketra's Last Mercy" {
+  oracle_id b5e0aa12-920d-4700-a287-5ca24933abb1
+  cost {1}{W}{W}
+  type Sorcery
+  spell: your life total becomes starting; all land you control doesn't untap next untap step
+}

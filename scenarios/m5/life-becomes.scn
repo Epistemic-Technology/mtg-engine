@@ -1,0 +1,149 @@
+# "Your life total becomes N" (CR 119.5): the player gains or loses the
+# difference, so life-gain triggers and "can't gain life" see it; "each
+# player's life total becomes the number of creatures they control" counts
+# each player's own; the highest and lowest are read before any changes.
+
+scenario "Providence: from 4, you gain 22 life (a gain: Ajani's Pridemate grows)" {
+  battlefield A: 7 "Plains", "Ajani's Pridemate"
+  hand A: "Providence"
+  life A 4
+  turn 1 A: cast "Providence"
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert life B 20
+  assert counters "Ajani's Pridemate" +1/+1 1
+}
+
+scenario "Providence: from 40, you lose 14 life" {
+  battlefield A: 7 "Plains"
+  hand A: "Providence"
+  life A 40
+  turn 1 A: cast "Providence"
+  run_to turn 1 postcombat_main
+  assert life A 26
+}
+
+scenario "Providence: players can't gain life, so from 4 it stays put" {
+  battlefield A: 7 "Plains"
+  battlefield B: "Sulfuric Vortex"
+  hand A: "Providence"
+  life A 4
+  turn 1 A: cast "Providence"
+  run_to turn 1 postcombat_main
+  # Sulfuric Vortex's upkeep damage: 4 - 2; no gain to 26.
+  assert life A 2
+}
+
+scenario "Providence: revealed from the opening hand, life becomes 26 at the first upkeep" {
+  hand A: "Providence"
+  life A 12
+  opening hand
+  run_to turn 1 draw
+  assert life A 26
+  assert hand A contains "Providence"
+}
+
+scenario "Magister Sphinx: the target player's life total becomes 10" {
+  battlefield A: 3 "Plains", 2 "Island", 2 "Swamp"
+  hand A: "Magister Sphinx"
+  turn 1 A: cast "Magister Sphinx"
+  turn 1 A: trigger "Magister Sphinx" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 10
+  assert life A 20
+}
+
+scenario "Vraska, Relic Seeker: -10, target player's life total becomes 1" {
+  battlefield A: "Vraska, Relic Seeker" with 10 loyalty
+  turn 1 A: activate "Vraska, Relic Seeker" ability 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 1
+  assert life A 20
+  assert graveyard A contains "Vraska, Relic Seeker"
+}
+
+scenario "Biorhythm: each player's life total becomes the number of creatures they control" {
+  battlefield A: 8 "Forest", 2 "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Biorhythm"
+  turn 1 A: cast "Biorhythm"
+  run_to turn 1 postcombat_main
+  assert life A 2
+  assert life B 1
+}
+
+scenario "Shaman of Forgotten Ways: formidable, each player's life total becomes their creature count" {
+  battlefield A: "Shaman of Forgotten Ways", "Hill Giant", "Hill Giant", "Grizzly Bears", 11 "Forest"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Shaman of Forgotten Ways" ability 2
+  run_to turn 1 postcombat_main
+  assert life A 4
+  assert life B 1
+}
+
+scenario "Shaman of Forgotten Ways: not with total power under 8" {
+  battlefield A: "Shaman of Forgotten Ways", "Hill Giant", 11 "Forest"
+  illegal turn 1 A: activate "Shaman of Forgotten Ways" ability 2
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Repay in Kind: each player's life total becomes the lowest" {
+  battlefield A: 5 "Swamp", 2 "Swamp"
+  hand A: "Repay in Kind"
+  life A 18
+  life B 6
+  turn 1 A: cast "Repay in Kind"
+  run_to turn 1 postcombat_main
+  assert life A 6
+  assert life B 6
+}
+
+scenario "Arbiter of Knollridge: each player's life total becomes the highest" {
+  battlefield A: 7 "Plains"
+  hand A: "Arbiter of Knollridge"
+  life A 3
+  life B 15
+  turn 1 A: cast "Arbiter of Knollridge"
+  run_to turn 1 postcombat_main
+  assert life A 15
+  assert life B 15
+}
+
+scenario "Oketra's Last Mercy: life becomes the starting total; lands stay tapped next untap" {
+  battlefield A: 2 "Plains", "Mountain"
+  hand A: "Oketra's Last Mercy"
+  life A 5
+  turn 1 A: cast "Oketra's Last Mercy"
+  run_to turn 3 upkeep
+  assert life A 20
+  assert tapped "Mountain"
+}
+
+scenario "Form of the Dragon: at each end step, on either turn, your life total becomes 5" {
+  battlefield A: "Form of the Dragon"
+  life A 14
+  run_to turn 1 cleanup
+  assert life A 5
+  run_to turn 2 precombat_main
+  assert life A 5
+}
+
+scenario "Form of the Dragon: from 2, at the opponent's end step you gain 3" {
+  battlefield A: "Form of the Dragon"
+  start turn 2 B precombat_main
+  life A 2
+  run_to turn 2 cleanup
+  assert life A 5
+}
+
+scenario "Form of the Dragon: 5 damage at your upkeep; creatures without flying can't attack you" {
+  battlefield A: "Form of the Dragon"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  start turn 2 B precombat_main
+  illegal turn 2 B: attack "Grizzly Bears"
+  turn 2 B: attack "Serra Angel"
+  turn 3 upkeep A: trigger "Form of the Dragon" targeting player B
+  run_to turn 3 draw
+  assert life B 15
+}

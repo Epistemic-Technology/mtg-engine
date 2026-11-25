@@ -3547,6 +3547,8 @@ pub enum StaticCondition {
         n: i32,
         at_least: bool,
     },
+    /// "if you have exactly 1 life" (Near-Death Experience).
+    YourLifeExactly(i32),
     /// Your life total against your starting life total (CR 103.4): at
     /// least `at_least` more than it ("greater than": 1; "at least 10
     /// greater", "at least 7 life more": 10, 7; "greater than or equal
@@ -3926,6 +3928,7 @@ impl StaticCondition {
         match self {
             StaticCondition::OpponentLifeAtMost(_)
             | StaticCondition::YourLife { .. }
+            | StaticCondition::YourLifeExactly(_)
             | StaticCondition::LifeVsStarting { .. }
             | StaticCondition::MoreLifeThanOpponent
             | StaticCondition::AnyPlayerLifeAtMost(_)
@@ -4854,6 +4857,19 @@ pub enum CopyUntil {
     EndOfTurn,
     /// "until your next turn": the effect's controller's.
     YourNextTurn,
+}
+
+/// What a life total becomes (`Effect::LifeBecomes`, CR 119.5).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum LifeTo {
+    /// "becomes 10", "becomes the number of creatures they control".
+    Amount(Num),
+    /// "becomes equal to your starting life total" (CR 103.4).
+    Starting,
+    /// "becomes the highest life total among all players".
+    Highest,
+    /// "becomes the lowest life total among all players".
+    Lowest,
 }
 
 /// A number in an effect's text: a constant, or X as chosen when the spell
@@ -6569,6 +6585,22 @@ pub enum Effect {
     /// up" (The Endstone; CR 119.5: each recipient player gains or loses
     /// the life needed to reach it).
     LifeBecomesHalfStarting {
+        who: Recipient,
+    },
+    /// "Your life total becomes 26", "each player's life total becomes
+    /// the number of creatures they control", "... becomes the lowest
+    /// life total among all players" (CR 119.5): each recipient player
+    /// gains or loses the life needed to reach it, so replacement effects
+    /// and life triggers see a gain or a loss. A count is read for each
+    /// player in turn (`ThatPlayer::Acting`); the highest and lowest are
+    /// read once, before any total changes.
+    LifeBecomes {
+        who: Recipient,
+        to: LifeTo,
+    },
+    /// "You win the game." (CR 104.2b): each recipient player wins,
+    /// unless an opponent can't lose the game.
+    WinGame {
         who: Recipient,
     },
     /// "You have no maximum hand size for the rest of the game" (CR

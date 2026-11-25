@@ -18296,6 +18296,49 @@ impl GameState {
                     }
                 }
             }
+            Effect::LifeBecomes { who, to } => {
+                // CR 119.5: the life gained or lost to reach the total.
+                let lives = || self.players_in_game().map(|p| self.player(p).life);
+                let fixed = match to {
+                    crate::card::LifeTo::Starting => Some(self.starting_life),
+                    crate::card::LifeTo::Highest => lives().max(),
+                    crate::card::LifeTo::Lowest => lives().min(),
+                    crate::card::LifeTo::Amount(_) => None,
+                };
+                let mut goals: SmallVec<[(PlayerId, i32); 4]> = SmallVec::new();
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        let goal = match (fixed, to) {
+                            (Some(g), _) => g,
+                            (None, crate::card::LifeTo::Amount(n)) => {
+                                self.set_acting(Some(p));
+                                i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX)
+                            }
+                            (None, _) => continue,
+                        };
+                        goals.push((p, goal));
+                    }
+                }
+                self.set_acting(None);
+                for (p, goal) in goals {
+                    let life = self.player(p).life;
+                    if life < goal {
+                        self.gain_life(p, (goal - life).unsigned_abs());
+                    } else if life > goal {
+                        self.lose_life(p, (life - goal).unsigned_abs());
+                    }
+                }
+            }
+            // CR 104.2b: "You win the game."
+            Effect::WinGame { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && self.player(p).lost.is_none()
+                    {
+                        self.win_game(p);
+                    }
+                }
+            }
             Effect::DoubleLife { who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {

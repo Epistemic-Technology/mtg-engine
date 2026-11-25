@@ -1,0 +1,7 @@
+card "Biovisionary" {
+  oracle_id e99fde0d-ca28-4a49-abe0-d01cf4e322b6
+  cost {1}{G}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  triggered at beginning of each end step if you control 4 creature named this: you win game
+}
