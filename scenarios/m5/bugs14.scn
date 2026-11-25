@@ -1,0 +1,125 @@
+# M5: faults fixed by the fourteenth wave's bugs branch.
+
+# ----- "Create a token ... Then exile all other Nightmare tokens you
+# control." (Abyssal Harvester): "other" spares the token just created. -----
+
+scenario "Abyssal Harvester copies a creature card that died this turn and keeps the new token" {
+  battlefield A: "Abyssal Harvester", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: activate "Abyssal Harvester" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert is A "Grizzly Bears" Nightmare
+  assert is A "Grizzly Bears" Bear
+}
+
+scenario "Abyssal Harvester: the next activation exiles the older Nightmare token" {
+  battlefield A: "Abyssal Harvester", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: activate "Abyssal Harvester" targeting "Grizzly Bears"
+  turn 3 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 3 A: activate "Abyssal Harvester" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+  assert is A "Hill Giant" Nightmare
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Abyssal Harvester can't target a creature card put into a graveyard last turn" {
+  battlefield A: "Abyssal Harvester"
+  graveyard B: "Grizzly Bears"
+  illegal turn 1 A: activate "Abyssal Harvester" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+# ----- Scenario runner: `activate "X"` without `ability N` takes an ability
+# that isn't a mana ability first (Restless Spire's "{T}: Add {U} or {R}."
+# was taken before). -----
+
+scenario "activate on a land with a mana ability takes its other ability" {
+  battlefield A: "Restless Spire", "Island", "Mountain"
+  library A: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Restless Spire"
+  run_to turn 2 declare_attackers
+  assert is "Restless Spire" creature
+  assert power "Restless Spire" 2
+}
+
+# ----- Scenario runner: a Room set up by its full name has both doors
+# locked (CR 709.5d), as one an effect puts onto the battlefield. -----
+
+scenario "a Room set up by its full name is a Room with both doors locked" {
+  battlefield A: "Derelict Attic // Widow's Walk", 4 "Swamp"
+  turn 1 A: unlock "Widow's Walk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Widow's Walk"
+  assert battlefield A lacks "Derelict Attic // Widow's Walk"
+}
+
+scenario "manifest dread: choose steers which card is manifested" {
+  battlefield A: 4 "Forest"
+  hand A: "Threats Around Every Corner"
+  library A: "Grizzly Bears", "Island", "Plains"
+  turn 1 A: cast "Threats Around Every Corner"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Island"
+}
+
+scenario "manifest dread: choose the other card" {
+  battlefield A: 4 "Forest"
+  hand A: "Threats Around Every Corner"
+  library A: "Grizzly Bears", "Island", "Plains"
+  turn 1 A: cast "Threats Around Every Corner"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+# ----- "When this land enters untapped" (Idyllic Grange) is the event,
+# judged as the land enters, not an intervening "if" checked again on
+# resolution (CR 603.4). -----
+
+scenario "Idyllic Grange: tapped with its trigger on the stack, the counter is still put" {
+  battlefield A: "Plains" tapped, "Plains" tapped, "Plains" tapped, "Grizzly Bears"
+  hand A: "Idyllic Grange", "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: play "Idyllic Grange"
+  turn 1 A: trigger "Idyllic Grange" targeting "Grizzly Bears"
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert tapped "Idyllic Grange"
+  assert life A 23
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+# ----- "Return target Aura or Equipment card from your graveyard to the
+# battlefield attached to a creature you control." with no creature: an
+# Equipment enters unattached (CR 301.5c), an Aura stays (CR 303.4g). -----
+
+scenario "One Last Job with no creature: the Equipment returns unattached" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Bonesplitter"
+  hand A: "One Last Job"
+  turn 1 A: cast "One Last Job" mode 4 targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+  assert graveyard A lacks "Bonesplitter"
+}
+
+scenario "One Last Job with no creature: the Aura stays in the graveyard" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Holy Strength"
+  hand A: "One Last Job"
+  turn 1 A: cast "One Last Job" mode 4 targeting "Holy Strength"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Holy Strength"
+}

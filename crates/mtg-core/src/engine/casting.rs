@@ -11922,6 +11922,12 @@ impl GameState {
                 .objects
                 .get(ctx.source)
                 .is_some_and(|o| o.zone == Zone::Stack);
+        // A permanent's "Create a token ... Then exile all other Nightmare
+        // tokens you control." (Abyssal Harvester): "other" tokens are
+        // other than the ones just created, as well as the source.
+        let other_than_created = filter.relation == crate::card::Relation::Other
+            && filter.status.token == Some(true)
+            && !ctx.created_tokens.is_empty();
         out.extend(
             self.battlefield
                 .iter()
@@ -11931,6 +11937,7 @@ impl GameState {
                         || !(ctx.targets.contains(&Target::Object(*id))
                             || ctx.created_tokens.contains(id))
                 })
+                .filter(|id| !other_than_created || !ctx.created_tokens.contains(id))
                 .filter(|id| host.is_none_or(|h| self.objects[*id].attached_to == h))
                 .filter(|id| that.is_none_or(|p| self.objects[*id].controller == p))
                 // "all Auras you own".
@@ -14122,11 +14129,6 @@ impl GameState {
             Effect::PlayerRule { who, kind } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        // "... for the rest of the game" (CR 402.2).
-                        if *kind == crate::card::PlayerRuleKind::NoMaxHandSize {
-                            self.player_mut(p).max_hand_size = usize::MAX;
-                            continue;
-                        }
                         self.player_rules.push(crate::state::PlayerRuleEffect {
                             player: p,
                             kind: *kind,
@@ -16744,17 +16746,18 @@ impl GameState {
                     return;
                 }
                 // CR 303.4f: "attached to that creature": the host must
-                // still be on the battlefield (CR 303.4g).
+                // still be on the battlefield. With none, an Aura stays
+                // where it is (CR 303.4g) and anything else (an Equipment,
+                // One Last Job) enters unattached (CR 301.5c).
+                let mut hostless = false;
                 let host = match attached {
                     Some(r) => {
-                        let Some(h) = self
+                        let h = self
                             .recipients(ctx, *r)
                             .into_iter()
-                            .find_map(|t| on_battlefield(self, t))
-                        else {
-                            return;
-                        };
-                        Some(h)
+                            .find_map(|t| on_battlefield(self, t));
+                        hostless = h.is_none();
+                        h
                     }
                     None => None,
                 };
@@ -16804,6 +16807,9 @@ impl GameState {
                         if !self.is_legal_attachment(spec, h) {
                             continue;
                         }
+                    }
+                    if hostless && self.pool.get(o.def).enchant().is_some() {
+                        continue;
                     }
                     let controller = if *under_you { ctx.controller } else { o.owner };
                     // CR 712.14a: "return it to the battlefield

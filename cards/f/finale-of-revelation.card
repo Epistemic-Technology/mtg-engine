@@ -3,7 +3,7 @@ card "Finale of Revelation" {
   cost {X}{U}{U}
   type Sorcery
   spell {
-    draw X cards; if x 10 or more, instead shuffle graveyard into library, draw X cards, untap up to 5 land chosen, and you have no maximum hand size for rest of game
+    draw X cards; if x 10 or more, instead shuffle graveyard into library, draw X cards, untap up to 5 land chosen, and you have no maximum hand size for the rest of the game
     exile this
   }
 }

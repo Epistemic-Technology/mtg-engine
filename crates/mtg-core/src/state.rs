@@ -3740,9 +3740,6 @@ impl GameState {
     pub fn cant_cast_spells(&self, p: PlayerId) -> bool {
         self.player_static_sources > 0
             && self.player_statics_of().any(|(who, kind, src)| match kind {
-                crate::card::PlayerStaticKind::OpponentsCantCastYourTurn => {
-                    self.active_player != p && who == self.active_player
-                }
                 crate::card::PlayerStaticKind::Silence {
                     players, during, ..
                 } => {
@@ -5854,9 +5851,14 @@ impl GameState {
             H::EnteredThisTurn => self.objects.get(source).is_some_and(|o| {
                 o.zone == Zone::Battlefield && o.timestamp >= self.turn_started_at
             }),
-            H::AttackedThisCombat => {
-                self.combat.is_some() && self.attackers_this_turn.contains(&source)
-            }
+            // Declared as an attacker in the current combat (CR 506.1):
+            // still attacking, or removed from combat since (`left` holds
+            // blockers too, so it counts only a creature that attacked this
+            // turn). An attack in an earlier combat phase doesn't count.
+            H::AttackedThisCombat => self.combat.as_ref().is_some_and(|c| {
+                c.attacker(source).is_some()
+                    || (c.left.contains(&source) && self.attackers_this_turn.contains(&source))
+            }),
         }
     }
 

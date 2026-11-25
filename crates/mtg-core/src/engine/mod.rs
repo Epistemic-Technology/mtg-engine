@@ -222,22 +222,28 @@ impl Engine {
                 state.player_mut(p).exile.push(id);
             }
             for perm in &ps.battlefield {
-                let id = state.new_object(perm.def, p, Zone::Battlefield);
+                // A Room set up by its full name has neither door unlocked,
+                // as one put onto the battlefield by an effect (CR 709.5d).
+                let placed = match state.pool.get(perm.def).doors.as_deref() {
+                    Some(d) if d.root == perm.def => d.none,
+                    _ => perm.def,
+                };
+                let id = state.new_object(placed, p, Zone::Battlefield);
                 // A Room set up by a half's name is that card with the
                 // half's door unlocked (CR 709.5).
-                if let Some(d) = state.pool.get(perm.def).doors.as_deref() {
+                if let Some(d) = state.pool.get(placed).doors.as_deref() {
                     let root = d.root;
                     state.objects[id].card = root;
                 }
                 let printed_loyalty = {
-                    let d = state.pool.get(perm.def);
+                    let d = state.pool.get(placed);
                     d.types
                         .contains(crate::card::CardType::Planeswalker)
                         .then_some(d.loyalty)
                 };
                 // A token definition set up on the battlefield is a token
                 // (CR 111.1), not a card.
-                let token = state.pool.get(perm.def).token;
+                let token = state.pool.get(placed).token;
                 let o = &mut state.objects[id];
                 if token {
                     o.kind = crate::state::ObjKind::Token;
@@ -258,7 +264,7 @@ impl Engine {
                     o.add_counters(crate::card::CounterKind::Loyalty, l);
                 }
                 // CR 310.4b: a battle likewise has its printed defense.
-                let printed_defense = state.pool.get(perm.def).defense;
+                let printed_defense = state.pool.get(placed).defense;
                 let o = &mut state.objects[id];
                 if printed_defense > 0
                     && !perm
@@ -269,7 +275,7 @@ impl Engine {
                     o.add_counters(crate::card::CounterKind::Defense, printed_defense);
                 }
                 state.battlefield.push(id);
-                let def = state.pool.get(perm.def);
+                let def = state.pool.get(placed);
                 state.trigger_sources += u32::from(def.has_triggers());
                 state.replacement_sources += u32::from(def.has_replacements());
                 state.control_sources += u32::from(def.has_control_static());

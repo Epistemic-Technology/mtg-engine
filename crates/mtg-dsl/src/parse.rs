@@ -2883,7 +2883,13 @@ impl P {
                 ]) =>
             {
                 self.pos += 7;
-                self.player_static(mtg_core::card::PlayerStaticKind::OpponentsCantCastYourTurn)
+                // The rule "During your turn, your opponents can't cast
+                // spells" (`Silence`), worded the other way round.
+                self.player_static(mtg_core::card::PlayerStaticKind::Silence {
+                    players: mtg_core::card::RulePlayers::Opponents,
+                    during: mtg_core::card::SilenceWhen::YourTurn,
+                    activate: mtg_core::card::ActivateBan::None,
+                })
             }
             // "During combat, players can't cast spells or activate
             // abilities that aren't mana abilities.", "During your turn,
@@ -9660,16 +9666,6 @@ impl P {
                     });
                 }
             }
-        }
-        // "You have no maximum hand size for the rest of the game."
-        if self.at_words(&[
-            "you", "have", "no", "maximum", "hand", "size", "for", "rest", "of", "game",
-        ]) {
-            self.pos += 10;
-            return Ok(Effect::PlayerRule {
-                who: Recipient::You,
-                kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
-            });
         }
         // `you and all permanent you control gain hexproof`: "You and
         // permanents you control gain hexproof until end of turn."

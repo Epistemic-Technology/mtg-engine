@@ -27,7 +27,7 @@ scenario "name" {
 | `hand A: "Lightning Bolt"` | Cards in hand. |
 | `graveyard A: ...`, `exile A: ...` | Likewise. |
 | `library A: "Top Card", "Next Card"` | The library, top card first, in exactly this order. Without this line the player gets 40 Plains so draws succeed. `library A:` with nothing gives an empty library. |
-| `start turn 2 B precombat_main` | Where play begins: turn number, active player, and step (default `untap`). Default `start turn 1 A`. There are no mulligans; the starting player skips the first draw as usual. |
+| `start turn 2 B precombat_main` | Where play begins: turn number, active player, and step (default `untap`). Default `start turn 1 A`. There are no mulligans; the starting player skips the first draw as usual. Each player has begun the turns they would have if the players had taken turns in order from turn 1, ending with this one ("your first, second, or third turn of the game": `start turn 5 A` is A's third turn, B's second). |
 | `opening hand` | Before play begins, each player, starting with the active player, is asked about each card in their hand with "If this card is in your opening hand, you may begin the game with it on the battlefield." (CR 103.6a): `turn 1 A: accept "Leyline of Sanctity"` puts it onto the battlefield, `decline` keeps it in hand; unscripted, it is put onto the battlefield. Without this line hands are not asked about. |
 | `seed 7` | RNG seed (only matters if something random happens: shuffles, die rolls, coin flips, cards chosen at random). The same seed gives the same outcomes, so a scenario picks one for the result it tests. |
 | `skip "reason"` | Parse but do not run (for adjudicated disagreements). |

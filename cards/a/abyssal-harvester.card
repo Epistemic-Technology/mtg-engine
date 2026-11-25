@@ -1,0 +1,10 @@
+card "Abyssal Harvester" {
+  oracle_id 68cc5065-0514-4adf-885f-da554e1db00a
+  cost {1}{B}{B}
+  type Creature — Demon Warlock
+  pt 3/2
+  activated {T}: exile target creature card from a graveyard put there this turn; create token copy of target 1 with exceptions; then exile all other Nightmare token you control
+  except {
+    subtypes Nightmare
+  }
+}

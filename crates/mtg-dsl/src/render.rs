@@ -14687,15 +14687,6 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "the \"legend rule\" doesn't apply to permanents {s} {verb} this turn"
             ))
         }
-        // "You have no maximum hand size for the rest of the game."
-        Effect::PlayerRule {
-            who,
-            kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
-        } => Clause::with_subject(
-            *who,
-            "you".to_string(),
-            "have no maximum hand size for the rest of the game".to_string(),
-        ),
         Effect::PlayerRule { who, kind } => {
             // "Your opponents can't gain life this turn." (Atarka's
             // Command).
@@ -23400,9 +23391,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::CantLose => {
                     "you can't lose the game and your opponents can't win the game".to_string()
                 }
-                K::OpponentsCantCastYourTurn => {
-                    "your opponents can't cast spells during your turn".to_string()
-                }
+                // "Your opponents can't cast spells during your turn."
+                // (Dragonlord Dromoka): `Silence` printed the other way
+                // round.
+                K::Silence {
+                    players: mtg_core::card::RulePlayers::Opponents,
+                    during: mtg_core::card::SilenceWhen::YourTurn,
+                    activate: mtg_core::card::ActivateBan::None,
+                } => "your opponents can't cast spells during your turn".to_string(),
                 K::Rule(mtg_core::card::RuleKind::NoLifeGain) => {
                     "players can't gain life".to_string()
                 }

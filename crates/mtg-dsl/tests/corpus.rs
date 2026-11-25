@@ -311,6 +311,71 @@ fn a_static_ability_rejects_a_resolution_only_count() {
 }
 
 #[test]
+fn a_static_condition_the_layers_never_hold_is_rejected() {
+    // `count N <expr>` with a resolution-only count read 0, and "not their
+    // turn", "a creature is attacking" and a triggering-object check never
+    // held, in a static ability (`layers::condition_holds`).
+    assert!(compiles(
+        "static this: has flying as long as count 2 colors among creature you control"
+    ));
+    for (line, why) in [
+        (
+            "static this: has flying as long as count 2 different powers among creature you control",
+            "can't use this count",
+        ),
+        (
+            "static this: has flying as long as not their turn",
+            "no \"they\"",
+        ),
+        (
+            "static this: has flying as long as attacker Rat",
+            "not by a static ability",
+        ),
+        (
+            "static this: has flying as long as attacker Rat at you",
+            "not by a static ability",
+        ),
+    ] {
+        let e = creature_error(line);
+        assert!(e.contains(why), "{line}: {e}");
+    }
+    // A trigger's condition still reads them.
+    assert!(compiles(
+        "triggered whenever a player casts spell if not their turn: draw 1 card"
+    ));
+}
+
+#[test]
+fn a_mana_rider_effect_lasting_on_the_spell_is_rejected() {
+    // "it" in `spent on ...` is the spell; an effect that lasts on it
+    // would end as the spell becomes a permanent (CR 400.7). A keyword
+    // given until end of turn is carried over (Generator Servant).
+    assert!(compiles(
+        "activated {T}: add {G} spent on Dragon creature spell: you gain 2 life"
+    ));
+    assert!(compiles(
+        "activated {T}: add {R} spent on Dragon creature spell: it gains haste until end of turn"
+    ));
+    let e = creature_error(
+        "activated {T}: add {R} spent on Dragon creature spell: it gets +1/+1 until end of turn",
+    );
+    assert!(e.contains("\"it\" is the spell"), "{e}");
+}
+
+#[test]
+fn the_tapped_creatures_power_is_stations_only() {
+    // Station's count reads toughness for Tapestry Warden's creatures; a
+    // hand-written "the tapped creature's power" would too, so the card
+    // language has no such count (`ast::this_way_verb`).
+    assert!(compiles(
+        "activated {1}, tap untapped creature you control: you gain count where Bear you control life"
+    ));
+    assert!(!compiles(
+        "activated {1}, tap untapped creature you control: you gain count where power of the tapped creature life"
+    ));
+}
+
+#[test]
 fn enchanted_creature_biting_any_other_target_is_rejected() {
     // Pain for All: "other" would exclude the Aura, not the creature.
     let e = load_card(

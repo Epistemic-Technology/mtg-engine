@@ -4499,10 +4499,6 @@ impl Fmt {
                 who,
                 kind: mtg_core::card::PlayerRuleKind::NoLegendRule,
             } => format!("{} ignore legend rule this turn", self.recipient(*who, t)),
-            Effect::PlayerRule {
-                kind: mtg_core::card::PlayerRuleKind::NoMaxHandSize,
-                ..
-            } => "you have no maximum hand size for rest of game".to_string(),
             Effect::PlayerRule { who, kind } => format!(
                 "{} can't {} this turn",
                 self.recipient(*who, t),
@@ -9704,9 +9700,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 .to_string(),
                 K::CantLose => "you can't lose the game".to_string(),
-                K::OpponentsCantCastYourTurn => {
-                    "opponents can't cast spells during your turn".to_string()
-                }
+                K::Silence {
+                    players: mtg_core::card::RulePlayers::Opponents,
+                    during: mtg_core::card::SilenceWhen::YourTurn,
+                    activate: mtg_core::card::ActivateBan::None,
+                } => "opponents can't cast spells during your turn".to_string(),
                 K::Rule(mtg_core::card::RuleKind::NoLifeGain) => {
                     "players can't gain life".to_string()
                 }
@@ -9966,8 +9964,6 @@ pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
         mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
         mtg_core::card::PlayerRuleKind::CantGainLife => "gain life",
         mtg_core::card::PlayerRuleKind::CantCastSpells => "cast spells",
-        // Worded apart (`you have no maximum hand size for rest of game`).
-        mtg_core::card::PlayerRuleKind::NoMaxHandSize => "have no maximum hand size",
         // Worded apart (`ignore legend rule this turn`).
         mtg_core::card::PlayerRuleKind::NoLegendRule => "ignore the legend rule",
     }

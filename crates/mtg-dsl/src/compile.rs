@@ -5024,6 +5024,28 @@ impl Compiler<'_> {
                     return self.err("`spent on ...` follows an effect that adds mana");
                 }
                 let then = self.sentences(then)?;
+                // "it" in the rider means the spell: an effect that lasts
+                // on the spell would end as it becomes a permanent, a new
+                // object (CR 400.7). Only a copy of the spell or a keyword
+                // grant may name it.
+                // `it` there compiles to the source (the mana ability's
+                // permanent), which is wrong too: refused with it.
+                if then.iter().any(|e| {
+                    let text = format!("{e:?}");
+                    // A keyword given until end of turn is carried to
+                    // the permanent the spell becomes
+                    // (`GameState::spell_grants`: Generator Servant).
+                    !matches!(
+                        e,
+                        CoreEffect::CopySpell
+                            | CoreEffect::CopySpells { .. }
+                            | CoreEffect::Grant { .. }
+                    ) && (text.contains("TriggeringObject") || text.contains("Source"))
+                }) {
+                    return self.err(
+                        "`spent on ...`: \"it\" is the spell, and an effect on it would end as it resolves",
+                    );
+                }
                 let spells = Box::new(self.filter(spells));
                 let ability = self
                     .pool
@@ -6947,8 +6969,24 @@ impl Compiler<'_> {
         })
     }
 
-    #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
+        let def = self.ability_def(a)?;
+        // A static ability's condition is judged by the layers
+        // (`layers::condition_holds`), which have no resolving effect, no
+        // "they", no triggering object, and no attackers to read: such a
+        // condition would never hold there, and a resolution-only count
+        // would read 0.
+        if let AbilityDef::Static(sa) = &def
+            && let Some(c) = &sa.condition
+            && let Some(why) = static_refusal(c)
+        {
+            return self.err(why);
+        }
+        Ok(def)
+    }
+
+    #[allow(clippy::too_many_lines)] // one arm per ability kind
+    fn ability_def(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         self.many = None;
         self.tmap = TargetMap::default();
         Ok(match a {
@@ -8581,6 +8619,28 @@ const REBEL: &str = "2/2 red Rebel creature";
 const HUMAN_SOLDIER: &str = "1/1 white Human Soldier creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
+
+/// Why a static ability can't have condition `c`, if it can't: a part the
+/// layers never find true, or a count only a resolving effect has.
+fn static_refusal(c: &StaticCondition) -> Option<&'static str> {
+    match c {
+        StaticCondition::Not(a) | StaticCondition::AsCast(a) => static_refusal(a),
+        StaticCondition::Or(a, b) | StaticCondition::And(a, b) => {
+            static_refusal(a).or_else(|| static_refusal(b))
+        }
+        StaticCondition::NotTheirTurn => {
+            Some("\"it's not their turn\" has no \"they\" in a static ability")
+        }
+        StaticCondition::Attacking { .. } => Some(
+            "\"a creature is attacking\" is judged by effects and triggers, not by a static ability",
+        ),
+        StaticCondition::TriggerIs(_) => Some("a static ability has no triggering object"),
+        StaticCondition::CountAtLeast(n, _) if !n.in_static() => {
+            Some("a static ability can't use this count: it exists only while an effect resolves")
+        }
+        _ => None,
+    }
+}
 
 /// Soulbond's two triggers (CR 702.95a): as this creature enters
 /// (`triggering` false: pair it with a creature chosen), and as another
