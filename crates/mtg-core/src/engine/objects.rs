@@ -259,8 +259,17 @@ impl GameState {
                 0
             };
             let n = d.loyalty.saturating_sub(less);
+            // "Each planeswalker you control enters with an additional
+            // loyalty counter on it" (Oath of Gideon): with those the event
+            // gives, not a second entry of the same kind.
             if n > 0 {
-                counters.push((CounterKind::Loyalty, n));
+                match counters
+                    .iter_mut()
+                    .find(|(k, _)| *k == CounterKind::Loyalty)
+                {
+                    Some((_, m)) => *m += n,
+                    None => counters.push((CounterKind::Loyalty, n)),
+                }
             }
         }
         // CR 310.4b: a battle enters with its printed defense in defense

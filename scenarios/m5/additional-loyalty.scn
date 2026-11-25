@@ -1,0 +1,20 @@
+# "Each planeswalker you control enters with an additional loyalty
+# counter on it": on top of its printed loyalty (CR 306.5b).
+
+scenario "Oath of Gideon: Jace Beleren enters with 4 loyalty" {
+  battlefield A: "Oath of Gideon", 4 "Island"
+  hand A: "Jace Beleren"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert counters "Jace Beleren" loyalty 4
+}
+
+scenario "Oath of Gideon makes two Kor Ally tokens" {
+  battlefield A: 3 "Plains"
+  hand A: "Oath of Gideon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Oath of Gideon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Kor Ally"
+}
