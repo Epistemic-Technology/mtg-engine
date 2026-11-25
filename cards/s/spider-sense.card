@@ -1,0 +1,7 @@
+card "Spider-Sense" {
+  oracle_id c4485bf9-e7ff-48b5-a983-02900939ee9d
+  cost {1}{U}
+  type Instant
+  web slinging {U}
+  spell: counter target instant spell, sorcery spell, or triggered ability
+}

@@ -1,0 +1,100 @@
+# "target permanent or suspended card" (CR 702.62b: a card in exile with
+# suspend and a time counter on it). Removing the last time counter from a
+# card suspended with suspend lets its owner cast it (CR 702.62a).
+
+scenario "Fury Charm: remove two time counters from target suspended card" {
+  battlefield A: 3 "Mountain"
+  hand A: "Shivan Sand-Mage", "Fury Charm"
+  turn 1 A: suspend "Shivan Sand-Mage"
+  turn 1 A: cast "Fury Charm" mode 3 targeting "Shivan Sand-Mage"
+  run_to turn 1 end
+  assert exile A contains "Shivan Sand-Mage"
+  assert counters "Shivan Sand-Mage" time 2
+  assert graveyard A contains "Fury Charm"
+}
+
+scenario "Fury Charm: remove two time counters from target permanent" {
+  battlefield A: 2 "Mountain", "Grizzly Bears" with 3 time
+  hand A: "Fury Charm"
+  turn 1 A: cast "Fury Charm" mode 3 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" time 1
+}
+
+scenario "Fury Charm: a card in exile without suspend is not a target" {
+  battlefield A: 2 "Mountain"
+  exile A: "Grizzly Bears"
+  hand A: "Fury Charm"
+  illegal turn 1 A: cast "Fury Charm" mode 3 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Fury Charm"
+}
+
+scenario "Timecrafting: removing the last time counter casts the suspended card" {
+  battlefield A: 6 "Mountain"
+  hand A: "Shivan Sand-Mage", "Timecrafting"
+  turn 1 A: suspend "Shivan Sand-Mage"
+  turn 1 A: cast "Timecrafting" mode 1 x 4 targeting "Shivan Sand-Mage"
+  turn 1 A: trigger "Shivan Sand-Mage" mode 1 targeting "Grizzly Bears"
+  battlefield B: "Grizzly Bears" with 3 time
+  run_to turn 1 end
+  assert battlefield A contains "Shivan Sand-Mage"
+  assert has "Shivan Sand-Mage" haste
+  assert exile A lacks "Shivan Sand-Mage"
+  assert counters "Grizzly Bears" time 1
+}
+
+scenario "Timecrafting: put X time counters on target suspended card" {
+  battlefield A: 4 "Mountain"
+  hand A: "Shivan Sand-Mage", "Timecrafting"
+  turn 1 A: suspend "Shivan Sand-Mage"
+  turn 1 A: cast "Timecrafting" mode 2 x 2 targeting "Shivan Sand-Mage"
+  run_to turn 1 end
+  assert counters "Shivan Sand-Mage" time 6
+}
+
+scenario "Shivan Sand-Mage: two time counters on a permanent with a time counter, not one without" {
+  battlefield A: 4 "Mountain", "Grizzly Bears" with 1 time, "Hill Giant"
+  hand A: "Shivan Sand-Mage"
+  turn 1 A: cast "Shivan Sand-Mage"
+  illegal turn 1 A: trigger "Shivan Sand-Mage" mode 2 targeting "Hill Giant"
+  turn 1 A: trigger "Shivan Sand-Mage" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" time 3
+  assert counters "Hill Giant" time 0
+}
+
+scenario "Venser's Diffusion: return target suspended card to its owner's hand" {
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand B: "Shivan Sand-Mage"
+  hand A: "Venser's Diffusion"
+  start turn 2 B
+  turn 2 B: suspend "Shivan Sand-Mage"
+  turn 2 end A: cast "Venser's Diffusion" targeting "Shivan Sand-Mage"
+  run_to turn 3 upkeep
+  assert hand B contains "Shivan Sand-Mage"
+  assert exile B count 0
+}
+
+scenario "Venser's Diffusion: return target nonland permanent; a land is not a target" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Venser's Diffusion"
+  illegal turn 1 A: cast "Venser's Diffusion" targeting "Mountain"
+  turn 1 A: cast "Venser's Diffusion" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert battlefield B contains "Mountain"
+}
+
+scenario "Timebender: turned face up, remove two time counters from target suspended card" {
+  battlefield A: 4 "Island", "Mountain"
+  hand A: "Timebender", "Shivan Sand-Mage"
+  turn 1 A: suspend "Shivan Sand-Mage"
+  turn 1 A: cast "Timebender" face_down
+  turn 1 A: unmorph "Timebender"
+  turn 1 A: trigger "Timebender" mode 1 targeting "Shivan Sand-Mage"
+  run_to turn 1 end
+  assert counters "Shivan Sand-Mage" time 2
+}

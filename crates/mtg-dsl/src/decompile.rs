@@ -475,6 +475,7 @@ impl Decompiler<'_> {
             name_unlike: f.name_unlike.as_ref().map(|g| Box::new(self.filter(g))),
 
             basic_land_type: false,
+            greatest_per_player: false,
             unchosen_wording: crate::ast::UnchosenWording::Other,
             and_you: false,
             and_this: false,
@@ -512,6 +513,9 @@ impl Decompiler<'_> {
             TargetSpec::Filtered(i) => Target::Filter(self.filter(self.pool.filter(i))),
             TargetSpec::SpellFiltered(i) => Target::Spell(self.filter(self.pool.filter(i))),
             TargetSpec::SpellOr(i) => Target::SpellOr(self.filter(self.pool.filter(i))),
+            TargetSpec::PermanentOrSuspended(i) => {
+                Target::PermanentOrSuspended(self.filter(self.pool.filter(i)))
+            }
             TargetSpec::GraveyardCard {
                 filter,
                 who,
@@ -3339,6 +3343,12 @@ impl Decompiler<'_> {
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
             AbilityDef::Landwalk(f) => Ability::Landwalk(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
+            AbilityDef::Untargetable(u) => Ability::Untargetable {
+                from: self.filter(&u.from),
+                spells: u.spells,
+                abilities: u.abilities,
+                opponents: u.opponents,
+            },
             AbilityDef::OpeningHand => Ability::OpeningHand,
             AbilityDef::PlotLess(n) => Ability::PlotLess(*n),
             AbilityDef::TargetedLife(n) => Ability::TargetedLife(*n),

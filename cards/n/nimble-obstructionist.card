@@ -1,0 +1,9 @@
+card "Nimble Obstructionist" {
+  oracle_id 750d846e-2774-4296-8d9f-5207477d842d
+  cost {2}{U}
+  type Creature — Bird Wizard
+  pt 3/1
+  keywords flash, flying
+  cycling {2}{U}
+  triggered when you cycle this: counter target activated or triggered ability you don't control
+}

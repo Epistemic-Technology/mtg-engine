@@ -1,0 +1,7 @@
+card "Karplusan Strider" {
+  oracle_id f2074c37-6e76-4460-9666-010c7f38ae66
+  cost {3}{G}
+  type Creature — Yeti
+  pt 3/4
+  untargetable by blue or black spells
+}

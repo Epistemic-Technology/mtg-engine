@@ -1,0 +1,120 @@
+# "This creature can't be the target of blue or black spells" and the like
+# (CR 115.4): spells and abilities from sources of the named colors, with
+# "your opponents control" only an opponent's.
+
+scenario "Karplusan Strider: a black spell can't target it" {
+  battlefield A: "Karplusan Strider"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  illegal turn 2 B: cast "Murder" targeting "Karplusan Strider"
+  run_to turn 2 end
+  assert battlefield A contains "Karplusan Strider"
+}
+
+scenario "Karplusan Strider: a red spell can, and so can an ability" {
+  battlefield A: "Karplusan Strider"
+  battlefield B: "Mountain", "Prodigal Sorcerer"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Karplusan Strider"
+  turn 2 B: wait
+  turn 2 B: activate "Prodigal Sorcerer" targeting "Karplusan Strider"
+  run_to turn 2 end
+  assert graveyard A contains "Karplusan Strider"
+}
+
+scenario "Karplusan Strider: its controller's blue spell can't target it either" {
+  battlefield A: "Karplusan Strider", 2 "Island"
+  hand A: "Unsummon"
+  illegal turn 1 A: cast "Unsummon" targeting "Karplusan Strider"
+  run_to turn 1 end
+  assert battlefield A contains "Karplusan Strider"
+}
+
+scenario "Fiendslayer Paladin: an opponent's red spell can't target it" {
+  battlefield A: "Fiendslayer Paladin"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  illegal turn 2 B: cast "Lightning Bolt" targeting "Fiendslayer Paladin"
+  run_to turn 2 end
+  assert battlefield A contains "Fiendslayer Paladin"
+}
+
+scenario "Fiendslayer Paladin: its controller's black spell can target it" {
+  battlefield A: "Fiendslayer Paladin", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Fiendslayer Paladin"
+  run_to turn 1 end
+  assert graveyard A contains "Fiendslayer Paladin"
+}
+
+scenario "Fiendslayer Paladin: an opponent's blue creature's ability can target it" {
+  battlefield A: "Fiendslayer Paladin", "Grizzly Bears"
+  battlefield B: "Mountain", "Prodigal Sorcerer"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: activate "Prodigal Sorcerer" targeting "Fiendslayer Paladin"
+  run_to turn 2 end
+  assert damage "Fiendslayer Paladin" 1
+}
+
+scenario "Gaea's Revenge: nongreen spells and abilities from nongreen sources can't target it" {
+  battlefield A: "Gaea's Revenge"
+  battlefield B: "Mountain", "Prodigal Sorcerer"
+  hand B: "Shock"
+  start turn 2 B
+  illegal turn 2 B: cast "Shock" targeting "Gaea's Revenge"
+  illegal turn 2 B: activate "Prodigal Sorcerer" targeting "Gaea's Revenge"
+  run_to turn 2 end
+  assert damage "Gaea's Revenge" 0
+}
+
+scenario "Gaea's Revenge: a green spell can target it" {
+  battlefield A: "Gaea's Revenge", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Gaea's Revenge"
+  run_to turn 1 begin_combat
+  assert power "Gaea's Revenge" 11
+}
+
+scenario "Thrun, Breaker of Silence: an opponent's nongreen spell can't target it; its controller's can" {
+  battlefield A: "Thrun, Breaker of Silence", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Shock"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  illegal turn 2 B: cast "Lightning Bolt" targeting "Thrun, Breaker of Silence"
+  turn 2 end A: cast "Shock" targeting "Thrun, Breaker of Silence"
+  run_to turn 3 upkeep
+  assert damage "Thrun, Breaker of Silence" 0
+  assert graveyard A contains "Shock"
+}
+
+scenario "Thrun, Breaker of Silence: indestructible during your turn" {
+  battlefield A: "Thrun, Breaker of Silence", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Thrun, Breaker of Silence"
+  run_to turn 1 end
+  assert has "Thrun, Breaker of Silence" indestructible
+  assert battlefield A contains "Thrun, Breaker of Silence"
+}
+
+scenario "Shanna, Sisay's Legacy: an opponent's ability can't target it; a spell can" {
+  battlefield A: "Shanna, Sisay's Legacy", "Grizzly Bears"
+  battlefield B: "Mountain", "Prodigal Sorcerer"
+  hand B: "Shock"
+  start turn 2 B
+  illegal turn 2 B: activate "Prodigal Sorcerer" targeting "Shanna, Sisay's Legacy"
+  turn 2 B: cast "Shock" targeting "Shanna, Sisay's Legacy"
+  run_to turn 2 end
+  assert graveyard A contains "Shanna, Sisay's Legacy"
+}
+
+scenario "Shanna, Sisay's Legacy: +1/+1 for each creature you control" {
+  battlefield A: "Shanna, Sisay's Legacy", "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Shanna, Sisay's Legacy" 2
+  assert toughness "Shanna, Sisay's Legacy" 2
+}

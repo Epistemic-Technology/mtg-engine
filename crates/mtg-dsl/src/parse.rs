@@ -274,6 +274,102 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
 /// Target specifications by their text, longest first. `,` stands for a
 /// comma token.
 pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
+    // "counter target activated or triggered ability you don't control"
+    // (Nimble Obstructionist).
+    (
+        &[
+            "activated",
+            "or",
+            "triggered",
+            "ability",
+            "you",
+            "don't",
+            "control",
+        ],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: false,
+            listed: false,
+            quals: mtg_core::card::STACK_OTHERS,
+        },
+    ),
+    // "counter target triggered ability or colorless spell" (Consign to
+    // Memory).
+    (
+        &["triggered", "ability", "or", "colorless", "spell"],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: false,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: false,
+            listed: false,
+            quals: mtg_core::card::STACK_COLORLESS,
+        },
+    ),
+    // "counter target activated ability, triggered ability, or legendary
+    // spell" (Tale's End).
+    (
+        &[
+            "activated",
+            "ability",
+            ",",
+            "triggered",
+            "ability",
+            ",",
+            "or",
+            "legendary",
+            "spell",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: false,
+            noncreature: false,
+            listed: false,
+            quals: mtg_core::card::STACK_LEGENDARY,
+        },
+    ),
+    // "counter target instant spell, sorcery spell, or triggered ability"
+    // (Spider-Sense).
+    (
+        &[
+            "instant",
+            "spell",
+            ",",
+            "sorcery",
+            "spell",
+            ",",
+            "or",
+            "triggered",
+            "ability",
+        ],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: false,
+            triggered: true,
+            source: None,
+            yours: false,
+            single: false,
+            instant_sorcery: true,
+            noncreature: false,
+            listed: true,
+            quals: 0,
+        },
+    ),
     (
         &["nonlegendary", "creature", "you", "control"],
         TargetSpec::NonlegendaryCreatureYouControl,
@@ -327,6 +423,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -352,6 +449,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -366,6 +464,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -380,6 +479,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -407,6 +507,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: true,
             noncreature: false,
             listed: true,
+            quals: 0,
         },
     ),
     // "target activated ability, triggered ability, or noncreature
@@ -433,6 +534,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: true,
             listed: true,
+            quals: 0,
         },
     ),
     (
@@ -456,6 +558,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: true,
+            quals: 0,
         },
     ),
     (
@@ -470,6 +573,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -484,6 +588,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -498,6 +603,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -512,6 +618,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -526,6 +633,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -540,6 +648,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -554,6 +663,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (
@@ -568,6 +678,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             instant_sorcery: false,
             noncreature: false,
             listed: false,
+            quals: 0,
         },
     ),
     (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
@@ -2742,6 +2853,13 @@ impl P {
                 ))
             }
             "spells" => self.cost_change(None),
+            // `untargetable by blue or black spells` (CR 115.4).
+            "untargetable" if self.word_at(1).as_deref() == Some("by") => {
+                self.pos += 2;
+                let ability = self.untargetable()?;
+                self.end_stmt()?;
+                Ok(ability)
+            }
             "hexproof" if self.word_at(1).as_deref() == Some("from") => {
                 self.pos += 2;
                 let filter = self.filter()?;
@@ -4492,6 +4610,13 @@ impl P {
                     Some(Tok::Word(w)) if w == "worthy" => {
                         self.pos += 1;
                         Target::Filter(Filter::worthy())
+                    }
+                    // "Equip legendary creature {3}" (Blackblade Reforged).
+                    Some(Tok::Word(w))
+                        if w == "legendary" && self.word_at(1).as_deref() == Some("creature") =>
+                    {
+                        self.pos += 2;
+                        Target::Filter(Filter::equip_legendary())
                     }
                     Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase) => {
                         let sub = w.clone();
@@ -18224,6 +18349,10 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one check per target form
     fn target_spec(&mut self) -> R<Target> {
+        // `target suspended card or permanent` (CR 702.62b).
+        if self.eat_words(&["suspended", "card", "or"]) {
+            return Ok(Target::PermanentOrSuspended(self.filter()?));
+        }
         // "target spell or creature" (CR 115.1).
         if self.at_words(&["spell", "or"])
             && !matches!(
@@ -18309,7 +18438,7 @@ impl P {
                         | (Some("with" | "without"), Some("aura"))
                         | (
                             Some("with"),
-                            Some("counter" | "toxic" | "morph" | "no" | "same" | "lesser")
+                            Some("counter" | "toxic" | "morph" | "no" | "same" | "lesser" | "greatest")
                         )
                         | (Some("blocked" | "controlled"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
@@ -18335,7 +18464,7 @@ impl P {
                         && matches!(after.as_deref(), Some("power" | "toughness" | "mana" | "total")))
                     // "target creature that's one or more colors".
                     || (matches!(next.as_deref(), Some("that's"))
-                        && matches!(after.as_deref(), Some("one")))
+                        && matches!(after.as_deref(), Some("one" | "attacking")))
                     || next.as_deref().and_then(card_type).is_some()
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
@@ -18589,6 +18718,59 @@ impl P {
             });
         }
         Ok(Target::Filter(f))
+    }
+
+    /// After `untargetable by`: the colors, then `spells` and `or
+    /// abilities from <colors> sources` (or `abilities` alone), each with
+    /// `your opponents control` (`Ability::Untargetable`).
+    fn untargetable(&mut self) -> R<Ability> {
+        let mut from = Filter::default();
+        let colors = |p: &mut Self, from: &mut Filter| loop {
+            let w = p.word_at(0).unwrap_or_default();
+            if let Some(c) = color(&w) {
+                from.colors.get_or_insert_with(Vec::new).push(c);
+                p.pos += 1;
+            } else if let Some(c) = w.strip_prefix("non").and_then(color) {
+                from.not_colors.push(c);
+                p.pos += 1;
+            } else if w == "or" && p.word_at(1).as_deref().and_then(color).is_some() {
+                p.pos += 1;
+            } else {
+                break;
+            }
+        };
+        colors(self, &mut from);
+        let opponents;
+        let (mut spells, mut abilities) = (false, false);
+        if self.eat_word("spells") {
+            spells = true;
+            opponents = self.eat_words(&["your", "opponents", "control"]);
+            if self.eat_words(&["or", "abilities"]) {
+                abilities = true;
+                if self.eat_word("from") {
+                    let mut again = Filter::default();
+                    colors(self, &mut again);
+                    self.expect_word("sources")?;
+                }
+                if opponents {
+                    self.expect_words(&["your", "opponents", "control"])?;
+                }
+            }
+        } else {
+            self.expect_word("abilities")?;
+            abilities = true;
+            if self.eat_word("from") {
+                colors(self, &mut from);
+                self.expect_word("sources")?;
+            }
+            opponents = self.eat_words(&["your", "opponents", "control"]);
+        }
+        Ok(Ability::Untargetable {
+            from,
+            spells,
+            abilities,
+            opponents,
+        })
     }
 
     /// After `card` in a target card in exile: `with mana value X`, `with
@@ -19241,6 +19423,43 @@ impl P {
                     f.status.dealt_damage = true;
                     self.pos += 5;
                 }
+                // "that dealt damage to you this turn".
+                "that"
+                    if self.at_words(&["that", "dealt", "damage", "to", "you", "this", "turn"]) =>
+                {
+                    f.status.damaged_you = true;
+                    self.pos += 7;
+                }
+                // "that's attacking alone" (CR 506.5).
+                "that's" if self.at_words(&["that's", "attacking", "alone"]) => {
+                    f.status.attacking_alone = true;
+                    self.pos += 3;
+                }
+                // "that's attacking you or a planeswalker you control".
+                "that's"
+                    if self.at_words(&[
+                        "that's",
+                        "attacking",
+                        "you",
+                        "or",
+                        "planeswalker",
+                        "you",
+                        "control",
+                    ]) =>
+                {
+                    f.status.attacking_you = true;
+                    self.pos += 7;
+                }
+                // "that doesn't have a +1/+1 counter on it".
+                "that"
+                    if f.status.counter.is_none()
+                        && self.at_words(&["that", "doesn't", "have"])
+                        && self.word_at(4).as_deref() == Some("counter") =>
+                {
+                    self.pos += 3;
+                    let k = self.counter_kind()?;
+                    f.status.counter = Some(mtg_core::card::CounterQual::Without(k));
+                }
                 "with" if self.at_words(&["with", "counters", "put", "this", "turn"]) => {
                     f.status.counters_put = true;
                     self.pos += 5;
@@ -19319,6 +19538,24 @@ impl P {
                     let g = self.filter()?;
                     f.name_unlike = Some(Box::new(g));
                 }
+                // "with modular", "with a kicker ability", "with flashback
+                // or disturb": judged on the card.
+                "with" if self.at_words(&["with", "modular"]) && !f.status.has_modular => {
+                    f.status.has_modular = true;
+                    self.pos += 2;
+                }
+                "with" if self.at_words(&["with", "kicker"]) && !f.status.has_kicker => {
+                    f.status.has_kicker = true;
+                    self.pos += 2;
+                }
+                "with"
+                    if self.at_words(&["with", "flashback", "or", "disturb"])
+                        && !f.status.has_disturb =>
+                {
+                    f.status.has_flashback = true;
+                    f.status.has_disturb = true;
+                    self.pos += 4;
+                }
                 // "with the greatest power among creatures they control".
                 "with"
                     if self.at_words(&["with", "greatest"])
@@ -19338,6 +19575,7 @@ impl P {
                             mtg_core::card::Stat::ManaValue
                         }
                     });
+                    f.greatest_per_player = self.eat_words(&["per", "player"]);
                 }
                 // "with toughness greater than its power".
                 "with" if self.at_words(&["with", "toughness", "greater", "than", "power"]) => {

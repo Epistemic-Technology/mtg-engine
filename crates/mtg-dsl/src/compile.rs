@@ -538,7 +538,7 @@ impl Compiler<'_> {
         let hexproof_from = card
             .abilities
             .iter()
-            .any(|a| matches!(a, Ability::HexproofFrom(_)))
+            .any(|a| matches!(a, Ability::HexproofFrom(_) | Ability::Untargetable { .. }))
             .then_some(mtg_core::card::Keyword::HexproofFromFilter);
         let landwalk = card
             .abilities
@@ -3190,6 +3190,10 @@ impl Compiler<'_> {
             Target::SpellOr(f) => {
                 let f = self.filter(f);
                 TargetSpec::SpellOr(self.pool.intern_filter(f))
+            }
+            Target::PermanentOrSuspended(f) => {
+                let f = self.filter(f);
+                TargetSpec::PermanentOrSuspended(self.pool.intern_filter(f))
             }
             Target::GraveyardCard {
                 filter,
@@ -7853,6 +7857,17 @@ impl Compiler<'_> {
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
+            Ability::Untargetable {
+                from,
+                spells,
+                abilities,
+                opponents,
+            } => AbilityDef::Untargetable(Box::new(mtg_core::card::Untargetable {
+                from: self.filter(from),
+                spells: *spells,
+                abilities: *abilities,
+                opponents: *opponents,
+            })),
             Ability::OpeningHand => AbilityDef::OpeningHand,
             Ability::PlotLess(n) => AbilityDef::PlotLess(*n),
             Ability::TargetedLife(n) => AbilityDef::TargetedLife(*n),

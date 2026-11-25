@@ -1,0 +1,8 @@
+card "Coralhelm Chronicler" {
+  oracle_id 621fc513-b16a-4c09-93f8-424e688471e2
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered whenever you cast kicked spell: draw 1 card then discard 1 card
+  triggered when this enters: dig 5 take with kicker card may revealing rest bottom random
+}

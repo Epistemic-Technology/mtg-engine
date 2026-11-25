@@ -1,0 +1,6 @@
+card "Reciprocate" {
+  oracle_id ebdd29c0-2c33-4410-a05c-80ced58c7b81
+  cost {W}
+  type Instant
+  spell: exile target creature that dealt damage to you this turn
+}

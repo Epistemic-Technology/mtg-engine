@@ -349,6 +349,7 @@ fn pluralize(word: &str) -> String {
 pub(crate) fn equip_subtype(targets: &[Target]) -> Option<&str> {
     match targets {
         [Target::Filter(f)] if *f == Filter::worthy() => Some("worthy"),
+        [Target::Filter(f)] if *f == Filter::equip_legendary() => Some("legendary creature"),
         [Target::Filter(f)] if f.subtypes.len() == 1 => Some(f.subtypes[0].as_str()),
         [Target::CreatureOfSubtype(s)] => Some(s.as_str()),
         _ => None,
@@ -2010,6 +2011,24 @@ impl<'a> Ctx<'a> {
     /// +1/+1 counters on a third target creature.", Incremental Growth).
     fn target_first(&mut self, i: usize) -> String {
         let t = self.target_first_inner(i);
+        // "1 damage to any target, 2 damage to another target, and 3
+        // damage to a third target" (Cone of Flame): with two "any other
+        // target"s, the first is "another target".
+        if t == "any other target"
+            && self
+                .targets
+                .iter()
+                .filter(|t| matches!(t, Target::Spec(TargetSpec::AnyOther)))
+                .count()
+                >= 2
+        {
+            self.another_targets += 1;
+            return if self.another_targets >= 2 {
+                "a third target".to_string()
+            } else {
+                "another target".to_string()
+            };
+        }
         if let Some(rest) = t.strip_prefix("another target ") {
             self.another_targets += 1;
             if self.another_targets == 2 {
@@ -2163,6 +2182,12 @@ impl<'a> Ctx<'a> {
             ),
             Target::Spell(f) => self.spell_target_phrase(f),
             Target::SpellOr(f) => format!("target spell or {}", filter_phrase(f, self.card, false)),
+            Target::PermanentOrSuspended(f) => {
+                format!(
+                    "target {} or suspended card",
+                    filter_phrase(f, self.card, false)
+                )
+            }
             Target::ExileCard {
                 filter,
                 who,
@@ -3100,6 +3125,12 @@ impl<'a> Ctx<'a> {
             Target::Filter(f) => filter_phrase(f, self.card, true),
             Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
             Target::SpellOr(f) => format!("spells and/or {}", filter_phrase(f, self.card, true)),
+            Target::PermanentOrSuspended(f) => {
+                format!(
+                    "{} and/or suspended cards",
+                    filter_phrase(f, self.card, true)
+                )
+            }
             Target::ExileCard {
                 filter,
                 who,
@@ -3227,6 +3258,7 @@ fn target_noun(t: &Target) -> String {
         Target::Spell(_) => "spell".to_string(),
         Target::SpellOr(f) if f.types == [CardType::Creature] => "spell or creature".to_string(),
         Target::SpellOr(_) => "spell or permanent".to_string(),
+        Target::PermanentOrSuspended(_) => "permanent or card".to_string(),
         Target::GraveyardCard { .. } | Target::ExileCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
             TargetSpec::Any | TargetSpec::AnyOther | TargetSpec::AnyDamaged => {
@@ -3262,6 +3294,7 @@ fn target_noun(t: &Target) -> String {
             TargetSpec::CreatureCardInYourGraveyard
             | TargetSpec::GraveyardCard { .. }
             | TargetSpec::ExileCard { .. } => "card".to_string(),
+            TargetSpec::PermanentOrSuspended(_) => "permanent or card".to_string(),
             TargetSpec::Spell
             | TargetSpec::CreatureSpell
             | TargetSpec::NoncreatureSpell
@@ -3307,11 +3340,21 @@ pub fn target_phrase(s: TargetSpec) -> String {
         instant_sorcery,
         noncreature,
         listed,
+        quals,
     } = s
     {
         let kinds = match (activated, triggered) {
+            _ if instant_sorcery && !activated => {
+                "instant spell, sorcery spell, or triggered ability"
+            }
             _ if instant_sorcery => {
                 "instant spell, sorcery spell, activated ability, or triggered ability"
+            }
+            _ if quals & mtg_core::card::STACK_COLORLESS != 0 => {
+                "triggered ability or colorless spell"
+            }
+            _ if quals & mtg_core::card::STACK_LEGENDARY != 0 => {
+                "activated ability, triggered ability, or legendary spell"
             }
             _ if noncreature => "activated ability, triggered ability, or noncreature spell",
             _ if listed => "spell, activated ability, or triggered ability",
@@ -3326,7 +3369,13 @@ pub fn target_phrase(s: TargetSpec) -> String {
             format!(" from {}", with_article(&format!("{t} source")))
         });
         // "target triggered ability you control from a creature source".
-        let yours = if yours { " you control" } else { "" };
+        let yours = if yours {
+            " you control"
+        } else if quals & mtg_core::card::STACK_OTHERS != 0 {
+            " you don't control"
+        } else {
+            ""
+        };
         let single = if single { " with a single target" } else { "" };
         return format!("target {kinds}{yours}{from}{single}");
     }
@@ -3364,6 +3413,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::BlockingCreature => "target blocking creature",
         TargetSpec::GraveyardCard { .. } => "target card from a graveyard",
         TargetSpec::ExileCard { .. } => "target card in exile",
+        TargetSpec::PermanentOrSuspended(_) => "target permanent or suspended card",
         TargetSpec::UpTo(_) => "up to one target permanent",
         TargetSpec::Many(_) => "any number of target permanents",
     }
@@ -4126,6 +4176,15 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(stat) = f.status.greatest {
         let _ = write!(s, " {}", greatest_phrase(f, stat));
     }
+    if f.status.has_modular {
+        s.push_str(" with modular");
+    }
+    if f.status.has_kicker {
+        s.push_str(" with a kicker ability");
+    }
+    if f.status.has_disturb && f.status.has_flashback {
+        s.push_str(" with flashback or disturb");
+    }
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
     }
@@ -4233,9 +4292,19 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         } else {
             " with no counters on it"
         });
+    } else if let Some(mtg_core::card::CounterQual::Without(k)) = f.status.counter {
+        let name = counter_name(k);
+        let a = if article(name) == "an" { "an" } else { "a" };
+        if plural_form {
+            let _ = write!(s, " that don't have {a} {name} counter on them");
+        } else {
+            let _ = write!(s, " that doesn't have {a} {name} counter on it");
+        }
     } else if let Some(q) = f.status.counter {
         let kind = match q {
-            mtg_core::card::CounterQual::AtLeast(..) | mtg_core::card::CounterQual::NoCounters => {
+            mtg_core::card::CounterQual::AtLeast(..)
+            | mtg_core::card::CounterQual::NoCounters
+            | mtg_core::card::CounterQual::Without(_) => {
                 unreachable!("above")
             }
             mtg_core::card::CounterQual::Any => String::new(),
@@ -4305,6 +4374,15 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.dealt_damage {
         s.push_str(" that dealt damage this turn");
+    }
+    if f.status.damaged_you {
+        s.push_str(" that dealt damage to you this turn");
+    }
+    if f.status.attacking_alone {
+        s.push_str(" that's attacking alone");
+    }
+    if f.status.attacking_you {
+        s.push_str(" that's attacking you or a planeswalker you control");
     }
     if f.status.counters_put {
         s.push_str(" that you've put one or more +1/+1 counters on this turn");
@@ -4405,6 +4483,11 @@ fn greatest_phrase(f: &Filter, stat: mtg_core::card::Stat) -> String {
         mtg_core::card::Stat::Toughness => "toughness",
         mtg_core::card::Stat::ManaValue => "mana value",
     };
+    // "target creature you control with the greatest power" (Triumph of
+    // Gerrard): among the creatures you control, said once.
+    if f.who == Some(Who::You) {
+        return format!("with the greatest {what}");
+    }
     let types: Vec<String> = f
         .types
         .iter()
@@ -4416,7 +4499,7 @@ fn greatest_phrase(f: &Filter, stat: mtg_core::card::Stat) -> String {
     } else {
         types.join(" and ")
     };
-    let who = if f.who == Some(Who::Opponents) {
+    let who = if f.who == Some(Who::Opponents) || f.greatest_per_player {
         "that player controls"
     } else {
         "they control"
@@ -4822,6 +4905,11 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
     {
         // Grandeur: "Discard another card named Skoa, Embermage".
         with_article(&format!("{before}card named {name}"))
+    } else if f.or.is_none()
+        && let Some(quality) = p.strip_prefix("permanent with ")
+    {
+        // "a card with a kicker ability" (Coralhelm Chronicler): no type.
+        format!("a card with {quality}")
     } else if f.or.is_none()
         && let Some((kind, quality)) = p.split_once(" with ")
     {
@@ -22926,6 +23014,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             Target::Filter(f)
             | Target::Spell(f)
             | Target::SpellOr(f)
+            | Target::PermanentOrSuspended(f)
             | Target::GraveyardCard { filter: f, .. }
             | Target::ExileCard { filter: f, .. } => {
                 format!("Enchant {}", filter_phrase(f, card, false))
@@ -24842,6 +24931,16 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 &protection_text(f, card)["Protection".len()..]
             )
         }
+        Ability::Untargetable {
+            from,
+            spells,
+            abilities,
+            opponents,
+        } => format!(
+            "{} can't be the target of {}.",
+            capitalize(&this_ref(card)),
+            crate::format::untargetable_words(from, *spells, *abilities, *opponents)
+        ),
         // A legendary card names itself ("If Quicksilver is in your
         // opening hand, ...").
         // "You may reveal this card from your opening hand. If you do, at

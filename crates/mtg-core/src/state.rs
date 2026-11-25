@@ -1035,6 +1035,7 @@ impl GameObject {
             crate::card::CounterQual::Kind(k) => self.counters(k) > 0,
             crate::card::CounterQual::AtLeast(k, n) => self.counters(k) >= n,
             crate::card::CounterQual::NoCounters => self.counters.iter().all(|(_, n)| *n == 0),
+            crate::card::CounterQual::Without(k) => self.counters(k) == 0,
         }
     }
 
@@ -2192,6 +2193,10 @@ pub struct GameState {
     /// Sources that dealt damage this turn ("that dealt damage this
     /// turn"), each once.
     pub dealt_damage_this_turn: Vec<ObjId>,
+    /// (source, player) pairs: the source dealt damage to the player this
+    /// turn ("target creature that dealt damage to you this turn"), each
+    /// once.
+    pub damaged_players_this_turn: Vec<(ObjId, PlayerId)>,
     /// Counters put on permanents this turn, with the player who put them
     /// and whether they were +1/+1 counters ("as long as you've put one or
     /// more +1/+1 counters on this creature this turn"), each once; kept
@@ -4697,14 +4702,57 @@ impl GameState {
         (!q.x_in_cost || def.mana_cost.has_x())
             && (!q.adventure || def.layout == crate::card::Layout::Adventure)
             && (!q.has_warp || def.warp.is_some())
-            && (!q.has_flashback
-                || (def.flashback.is_some() && !def.retrace && def.graveyard_cast.is_none()))
+            && (!q.has_kicker
+                || def.kicker.is_some()
+                || def.kicker_cost.is_some()
+                || def.multikicker.is_some())
+            && (!q.has_modular || def.modular > 0)
+            // "with flashback or disturb": either.
+            && match (q.has_flashback, q.has_disturb) {
+                (false, false) => true,
+                (true, false) => {
+                    def.flashback.is_some() && !def.retrace && def.graveyard_cast.is_none()
+                }
+                (false, true) => def.disturb.is_some(),
+                (true, true) => {
+                    def.disturb.is_some()
+                        || (def.flashback.is_some() && !def.retrace && def.graveyard_cast.is_none())
+                }
+            }
+    }
+
+    /// The qualifiers of `StatusQuals` judged against a player, `you`
+    /// (`StatusQuals::player_quals`): "that's attacking you or a
+    /// planeswalker you control" (CR 506.3), "that dealt damage to you this
+    /// turn".
+    pub fn player_quals_ok(&self, q: &crate::card::StatusQuals, id: ObjId, you: PlayerId) -> bool {
+        (!q.attacking_you
+            || self
+                .combat
+                .as_ref()
+                .and_then(|cb| cb.attacker(id))
+                .is_some_and(|a| match a.attacking {
+                    Target::Player(p) => p == you,
+                    Target::Object(pw) => self.objects.get(pw).is_some_and(|o| {
+                        o.controller == you
+                            && self
+                                .characteristics(pw)
+                                .is_some_and(|c| c.types.contains(CardType::Planeswalker))
+                    }),
+                }))
+            && (!q.damaged_you || self.damaged_players_this_turn.contains(&(id, you)))
     }
 
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
     #[allow(clippy::too_many_lines)] // one check per qualifier
     fn status_quals_ok(&self, q: crate::card::StatusQuals, id: ObjId, o: &GameObject) -> bool {
-        if (q.x_in_cost || q.adventure || q.has_warp || q.has_flashback)
+        if (q.x_in_cost
+            || q.adventure
+            || q.has_warp
+            || q.has_flashback
+            || q.has_kicker
+            || q.has_modular
+            || q.has_disturb)
             && !Self::card_quals_ok(&q, self.pool.get(o.def))
         {
             return false;
@@ -4760,6 +4808,15 @@ impl GameState {
             return false;
         }
         if q.dealt_damage && !self.dealt_damage_this_turn.contains(&id) {
+            return false;
+        }
+        // CR 506.5: the only attacking creature.
+        if q.attacking_alone
+            && !self
+                .combat
+                .as_ref()
+                .is_some_and(|c| c.attackers.len() == 1 && c.attackers[0].id == id)
+        {
             return false;
         }
         // "that you've put one or more +1/+1 counters on this turn": by
@@ -5001,10 +5058,21 @@ impl GameState {
             | TargetSpec::SpellOr(_)
             | TargetSpec::GraveyardCard { .. }
             | TargetSpec::ExileCard { .. }
+            | TargetSpec::PermanentOrSuspended(_)
             | TargetSpec::UpTo(_)
             | TargetSpec::Many(_)
             | TargetSpec::CreatureCardInYourGraveyard => false,
         }
+    }
+
+    /// Whether `o` is a suspended card (CR 702.62b): in exile, with
+    /// suspend, and with a time counter on it.
+    pub fn is_suspended(&self, o: &GameObject) -> bool {
+        o.zone == Zone::Exile
+            && o.kind == crate::state::ObjKind::Card
+            && o.marks & OBJ_FACE_DOWN_EXILE == 0
+            && o.counters(crate::card::CounterKind::Time) > 0
+            && self.pool.get(o.def).suspend.is_some()
     }
 
     /// Teamwork: the untapped creatures the caster of `spell` would tap,
@@ -6698,6 +6766,21 @@ impl GameState {
                         && f.matches(id, obj.owner, &c, source, None)
                         && self.status_ok(&f, id);
                 }
+                // "target permanent or suspended card": the permanent as
+                // a filtered target, the card if it's suspended.
+                if let TargetSpec::PermanentOrSuspended(f) = spec {
+                    if obj.zone == Zone::Exile {
+                        return self.is_suspended(obj);
+                    }
+                    return self.spec_matches(
+                        caster,
+                        TargetSpec::Filtered(f),
+                        target,
+                        source,
+                        x,
+                        targeting,
+                    );
+                }
                 // "target exiled card with warp", "target creature card
                 // exiled with The Darkness Crystal" (CR 607.2a): a face-up
                 // card in exile (a face-down one has no characteristics a
@@ -6743,10 +6826,14 @@ impl GameState {
                     single,
                     instant_sorcery,
                     noncreature,
+                    quals,
                     ..
                 } = spec
                 {
-                    if obj.zone != Zone::Stack || (yours && obj.controller != caster) {
+                    if obj.zone != Zone::Stack
+                        || (yours && obj.controller != caster)
+                        || (quals & crate::card::STACK_OTHERS != 0 && obj.controller == caster)
+                    {
                         return false;
                     }
                     // CR 115.9a: the times a target was chosen for it.
@@ -6761,7 +6848,14 @@ impl GameState {
                                         || c.types.contains(CardType::Sorcery)
                                 }))
                             && (!noncreature
-                                || self.characteristics(id).is_some_and(|c| !c.is_creature()));
+                                || self.characteristics(id).is_some_and(|c| !c.is_creature()))
+                            // "or colorless spell", "or legendary spell".
+                            && (quals & crate::card::STACK_COLORLESS == 0
+                                || self.characteristics(id).is_some_and(|c| c.colors.count() == 0))
+                            && (quals & crate::card::STACK_LEGENDARY == 0
+                                || self.characteristics(id).is_some_and(|c| {
+                                    c.supertypes.contains(crate::card::Supertype::Legendary)
+                                }));
                     };
                     let kind_ok = match self.pool.ability(sa.ability) {
                         crate::card::AbilityDef::Activated(_) => activated,
@@ -6890,6 +6984,7 @@ impl GameState {
                             && self.status_ok(&f, id)
                             // "target creature you own".
                             && (!f.status.you_own || obj.owner == caster)
+                            && (!f.status.player_quals() || self.player_quals_ok(&f.status, id, caster))
                             && self.combat_with_ok(f.combat_with, source, id)
                             // "other than enchanted creature".
                             && !(f.not_attached
@@ -6901,6 +6996,7 @@ impl GameState {
                     TargetSpec::SpellFiltered(_)
                     | TargetSpec::GraveyardCard { .. }
                     | TargetSpec::ExileCard { .. }
+                    | TargetSpec::PermanentOrSuspended(_)
                     | TargetSpec::Player
                     | TargetSpec::Opponent
                     | TargetSpec::Spell
@@ -6919,14 +7015,26 @@ impl GameState {
                     // CR 702.11d: "hexproof from [quality]": not by spells
                     // or abilities an opponent controls from such sources.
                     && (!c.has(Keyword::HexproofFromFilter)
-                        || obj.controller == caster
                         || !source
                             .and_then(|s| self.characteristics_or_lki(s))
                             .is_some_and(|sc| {
-                                c.abilities.iter().any(|a| {
-                                    matches!(self.pool.ability(*a),
-                                        crate::card::AbilityDef::HexproofFrom(f)
-                                            if f.matches_characteristics(&sc))
+                                // A spell is its own source (an ability's
+                                // is its permanent or card).
+                                let spell = source
+                                    .and_then(|s| self.objects.get(s))
+                                    .is_some_and(|o| o.zone == Zone::Stack && o.ability.is_none());
+                                c.abilities.iter().any(|a| match self.pool.ability(*a) {
+                                    crate::card::AbilityDef::HexproofFrom(f) => {
+                                        obj.controller != caster && f.matches_characteristics(&sc)
+                                    }
+                                    // CR 115.4: "can't be the target of
+                                    // blue or black spells".
+                                    crate::card::AbilityDef::Untargetable(u) => {
+                                        (!u.opponents || obj.controller != caster)
+                                            && (if spell { u.spells } else { u.abilities })
+                                            && u.from.matches_characteristics(&sc)
+                                    }
+                                    _ => false,
                                 })
                             }));
                 // CR 702.16b: protection from a quality forbids targeting by

@@ -2072,7 +2072,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             }
             if matches!(
                 state.pool.ability(*a),
-                crate::card::AbilityDef::HexproofFrom(_)
+                crate::card::AbilityDef::HexproofFrom(_) | crate::card::AbilityDef::Untargetable(_)
             ) {
                 c.keywords = c.keywords.with(crate::card::Keyword::HexproofFromFilter);
             }

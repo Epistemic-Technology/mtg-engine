@@ -1,0 +1,6 @@
+card "Soul Snare" {
+  oracle_id 52bd4331-67b6-4eb8-9566-e00359889fc6
+  cost {W}
+  type Enchantment
+  activated {W}, sacrifice this: exile target creature that's attacking you or planeswalker you control
+}

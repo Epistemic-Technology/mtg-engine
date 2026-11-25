@@ -1,0 +1,198 @@
+# Relative clauses on targets and groups: "that dealt damage to you this
+# turn" (CR 120.1), "that's attacking alone" (CR 506.5), "that's attacking
+# you or a planeswalker you control" (CR 506.3), "that doesn't have a
+# +1/+1 counter on it", and "with the greatest power" on a target.
+
+scenario "Reciprocate: exile target creature that dealt damage to you this turn" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Reciprocate"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 postcombat_main A: cast "Reciprocate" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert life A 18
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Reciprocate: a creature that didn't deal damage to you is not a target" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Reciprocate"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 postcombat_main A: cast "Reciprocate" targeting "Hill Giant"
+  run_to turn 2 end
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Reciprocate: damage to another player doesn't count" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Reciprocate"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Reciprocate" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Retaliate: destroy all creatures that dealt damage to you this turn" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Retaliate"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 postcombat_main A: cast "Retaliate"
+  run_to turn 2 end
+  assert life A 15
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Spear of Heliod: creatures get +1/+1 and destroy target creature that dealt damage to you" {
+  battlefield A: "Spear of Heliod", 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 postcombat_main A: activate "Spear of Heliod" targeting "Hill Giant"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert life A 17
+  assert graveyard B contains "Hill Giant"
+  assert tapped "Spear of Heliod"
+}
+
+scenario "Giltspire Avenger: destroy target creature that dealt damage to you, not one that didn't" {
+  battlefield A: "Giltspire Avenger"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 postcombat_main A: activate "Giltspire Avenger" targeting "Grizzly Bears"
+  turn 2 end A: activate "Giltspire Avenger" targeting "Hill Giant"
+  run_to turn 3 upkeep
+  assert life A 17
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Crowd of True Believers: target creature you control that's attacking alone gets +1/+0, you gain 1 life" {
+  battlefield A: "Crowd of True Believers", "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers A: activate "Crowd of True Believers" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert life B 16
+  assert power "Hill Giant" 4
+}
+
+scenario "Crowd of True Believers: a creature attacking with another is not a target" {
+  battlefield A: "Crowd of True Believers", "Hill Giant", "Grizzly Bears"
+  turn 1 A: attack "Hill Giant", "Grizzly Bears"
+  illegal turn 1 declare_attackers A: activate "Crowd of True Believers" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 15
+}
+
+scenario "Soul Snare: exile target creature that's attacking you" {
+  battlefield A: "Soul Snare", "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: activate "Soul Snare" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert graveyard A contains "Soul Snare"
+  assert life A 20
+}
+
+scenario "Soul Snare: a creature that isn't attacking is not a target" {
+  battlefield A: "Soul Snare", "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 declare_attackers A: activate "Soul Snare" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains "Soul Snare"
+  assert life A 17
+}
+
+scenario "Soul Snare: a creature attacking your planeswalker is a target" {
+  battlefield A: "Soul Snare", "Plains", "Jace Beleren"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant" at "Jace Beleren"
+  turn 2 declare_attackers A: activate "Soul Snare" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Jace Beleren" loyalty 3
+}
+
+scenario "Coiling Stalker: a +1/+1 counter on target creature you control without one" {
+  battlefield A: "Coiling Stalker", "Grizzly Bears", "Hill Giant" with 1 +1/+1
+  turn 1 A: attack "Coiling Stalker"
+  turn 1 combat_damage A: trigger "Coiling Stalker" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Coiling Stalker: a creature with a +1/+1 counter is not a target" {
+  battlefield A: "Coiling Stalker", "Hill Giant" with 1 +1/+1
+  turn 1 A: attack "Coiling Stalker"
+  illegal turn 1 combat_damage A: trigger "Coiling Stalker" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Triumph of Gerrard: a +1/+1 counter on your creature with the greatest power" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Triumph of Gerrard"
+  turn 1 A: cast "Triumph of Gerrard"
+  turn 1 A: trigger "Triumph of Gerrard" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Triumph of Gerrard: a creature without the greatest power is not a target" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Triumph of Gerrard"
+  turn 1 A: cast "Triumph of Gerrard"
+  illegal turn 1 A: trigger "Triumph of Gerrard" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Triumph of Gerrard: chapter III grants flying, first strike, and lifelink" {
+  battlefield A: "Triumph of Gerrard" with 2 lore, "Grizzly Bears", "Hill Giant"
+  turn 1 A: trigger "Triumph of Gerrard" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert has "Hill Giant" flying
+  assert has "Hill Giant" first_strike
+  assert has "Hill Giant" lifelink
+  assert has not "Grizzly Bears" flying
+  assert graveyard A contains "Triumph of Gerrard"
+}
+
+scenario "Crackling Doom: 2 damage to each opponent, who sacrifices their greatest-power creature" {
+  battlefield A: "Mountain", "Plains", "Swamp", "Serra Angel"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Crackling Doom"
+  turn 1 A: cast "Crackling Doom"
+  run_to turn 1 end
+  assert life B 18
+  assert life A 20
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains "Serra Angel"
+}

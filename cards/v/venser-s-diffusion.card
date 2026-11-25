@@ -1,0 +1,6 @@
+card "Venser's Diffusion" {
+  oracle_id 048f4bb9-c5da-42d4-9af0-bd8754afce1a
+  cost {2}{U}
+  type Instant
+  spell: return target suspended card or nonland permanent to hand
+}

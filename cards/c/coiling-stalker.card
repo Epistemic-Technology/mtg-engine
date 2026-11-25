@@ -1,0 +1,8 @@
+card "Coiling Stalker" {
+  oracle_id 54dc1c02-2d71-465b-a285-d6d11113991c
+  cost {1}{G}
+  type Creature — Snake Ninja
+  pt 2/1
+  ninjutsu {1}{G}
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on target creature you control that doesn't have +1/+1 counter
+}

@@ -1,0 +1,6 @@
+card "Retaliate" {
+  oracle_id 37f5d022-2989-4b44-9bca-dc6b606afe10
+  cost {2}{W}{W}
+  type Instant
+  spell: destroy all creatures that dealt damage to you this turn
+}

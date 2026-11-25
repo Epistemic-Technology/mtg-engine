@@ -1,0 +1,8 @@
+card "Giltspire Avenger" {
+  oracle_id e29350cd-c6ff-454d-a1fc-0c1bb60047b1
+  cost {G}{W}{U}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords exalted
+  activated {T}: destroy target creature that dealt damage to you this turn
+}
