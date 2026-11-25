@@ -1,0 +1,6 @@
+card "Murderous Betrayal" {
+  oracle_id a2fe1e2b-b621-4406-b5e0-f2eebd12c2ba
+  cost {B}{B}{B}
+  type Enchantment
+  activated {B}{B}, pay half life: destroy target nonblack creature without regeneration
+}

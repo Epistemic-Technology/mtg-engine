@@ -1843,6 +1843,10 @@ struct Ctx<'a> {
     /// then discard a card"): a reflexive trigger after it is "When you
     /// discard a card this way".
     discarded_one: bool,
+    /// "you may pay {1}{G} any number of times" was just printed: a
+    /// reflexive trigger after it is "When you pay this cost one or more
+    /// times".
+    paid_times: bool,
     /// Counters were just removed from the source: a reflexive trigger
     /// after it is "When one or more counters are removed from this
     /// creature this way" (Magma Pummeler).
@@ -1958,6 +1962,7 @@ impl<'a> Ctx<'a> {
             those_tokens: None,
             last_token_tapped: false,
             discarded_one: false,
+            paid_times: false,
             removed_from_source: false,
             round_each: false,
             attached_mentioned: false,
@@ -5230,15 +5235,27 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             }
             CostItem::Sacrifice => match &cost.sacrifice {
                 // "you may sacrifice any number of Spirits" (CR 601.2b).
-                Some(SacCost::Filter(f)) if cost.sacrifice_any > 0 => parts.push(format!(
-                    "{} any number of {}",
-                    if cost.sacrifice_any == 2 {
-                        "you may sacrifice"
-                    } else {
-                        "Sacrifice"
-                    },
-                    filter_phrase(f, ctx.card, true)
-                )),
+                // "Sacrifice X Goats", "Tap X untapped artifacts you
+                // control", "tap any number of untapped creatures you
+                // control".
+                Some(SacCost::Filter(f)) if cost.sacrifice_any > 0 => {
+                    let tap = cost.chosen == mtg_core::card::ChosenCost::Tap;
+                    let lead = match (tap, cost.sacrifice_any == 2) {
+                        (false, false) => "Sacrifice",
+                        (false, true) => "you may sacrifice",
+                        (true, false) => "Tap",
+                        (true, true) => "you may tap",
+                    };
+                    parts.push(format!(
+                        "{lead} {} {}",
+                        if cost.sacrifice_any == 3 {
+                            "X"
+                        } else {
+                            "any number of"
+                        },
+                        filter_phrase(f, ctx.card, true)
+                    ));
+                }
                 Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
                 // "Tap Fishing Pole", "Unattach Leonin Bola".
                 Some(SacCost::Granter) => parts.push(format!(
@@ -5403,7 +5420,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             }
             CostItem::Life => {
-                if cost.life_x {
+                if cost.half_life {
+                    parts.push("Pay half your life, rounded up".to_string());
+                } else if cost.life_x {
                     parts.push("Pay X life".to_string());
                 } else if cost.life > 0 {
                     parts.push(format!("Pay {} life", cost.life));
@@ -10434,7 +10453,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::PhaseOut { what } => {
             let s = ctx.subj(*what);
-            Clause::with_subject(*what, s, "phases out".to_string())
+            // "up to that many other target artifacts ... phase out".
+            let verb = ctx.verb(*what, "phases", "phase");
+            Clause::with_subject(*what, s, format!("{verb} out"))
         }
         Effect::Endure { what, count } => {
             let s = ctx.subj(*what);
@@ -12114,6 +12135,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.obj(*what)
             };
             Clause::imperative(format!("you may choose new targets for {o}"))
+        }
+        // "counter that spell unless its controller discards a card"
+        // (Reality Smasher), "... discards their hand" (Perplex).
+        Effect::CounterUnlessPays { to, discard, .. } if *discard > 0 => {
+            let o = if *to == Recipient::TriggeringObject {
+                "that spell".to_string()
+            } else {
+                ctx.obj(*to)
+            };
+            let what = if *discard == u8::MAX {
+                "their hand".to_string()
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(Num::N(u32::from(*discard)), "a"),
+                    plural(Num::N(u32::from(*discard)), "card")
+                )
+            };
+            Clause::imperative(format!("counter {o} unless its controller discards {what}"))
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
             ctx.they_paid = true;
@@ -14278,7 +14318,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.targets.get(a).map(Target::base),
                 Some(Target::Filter(f)) if f.types == [CardType::Land]
             ));
-            let mut text = if plural && (*in_addition || group || land_targets) {
+            // "up to that many target lands you control become 3/3 Wolf
+            // creatures with haste that are still lands" (Primal
+            // Adversary): several targets of one spec, plural.
+            let many_lands = plural
+                && matches!(*to, Recipient::Target(i) if matches!(
+                    ctx.targets.get(i).map(Target::base),
+                    Some(Target::Filter(f)) if f.types == [CardType::Land]
+                ));
+            let mut text = if plural && (*in_addition || group || land_targets || many_lands) {
                 if let Some(last) = words.pop() {
                     words.push(pluralize(&last));
                 }
@@ -14411,7 +14459,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     // Wilds), "Until end of turn, target land becomes a 3/3
                     // creature that's still a land" (Lifespark Spellbomb):
                     // with no duration after it.
-                    clause.text.push_str(" that's still a land");
+                    clause.text.push_str(if many_lands {
+                        " that are still lands"
+                    } else {
+                        " that's still a land"
+                    });
                 } else if clause.text.ends_with(".\"") {
                     // "... with \"... until end of turn.\" It's still a
                     // land." (Great Hall of the Biblioplex).
@@ -14582,6 +14634,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 )
             } else if ctx.discarded_one {
                 "when you discard a card this way".to_string()
+            } else if std::mem::take(&mut ctx.paid_times) {
+                "when you pay this cost one or more times".to_string()
             } else if ctx.removed_from_source {
                 format!(
                     "when one or more counters are removed from {} this way",
@@ -14663,10 +14717,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("if {who}, {}", body.trim_end_matches('.')))
         }
         Effect::Waterbend(mana) => Clause::imperative(format!("waterbend {mana}")),
-        Effect::Pay { mana, life } => Clause::imperative(if *life > 0 && !mana.is_empty() {
+        Effect::Pay {
+            mana,
+            life,
+            any_times,
+        } => Clause::imperative(if *life > 0 && !mana.is_empty() {
             format!("pay {mana} and {life} life")
         } else if *life > 0 {
             format!("pay {life} life")
+        } else if *any_times {
+            // "When you pay this cost one or more times, ..." follows.
+            ctx.paid_times = true;
+            format!("pay {mana} any number of times")
         } else {
             format!("pay {mana}")
         }),
@@ -14761,11 +14823,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             payer,
             filter,
             or_discard,
+            or_life,
             effect,
             ..
         } => {
             let mut c = clause(effect, ctx);
             let what = filter_a(filter, ctx.card);
+            let target_payer = if matches!(payer, Recipient::Target(_)) {
+                ctx.subj(*payer)
+            } else {
+                String::new()
+            };
             let (sac, disc, who) = match (payer, &c.subject) {
                 (Recipient::EachOpponent | Recipient::EachPlayer, _) => {
                     ("sacrifices", "discards", "that player")
@@ -14779,10 +14847,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 {
                     ("sacrifice", "discard", "they")
                 }
+                // "draw a card unless target opponent sacrifices ..."
+                // (Indulgent Tormentor): the target's first mention.
+                (Recipient::Target(_), _) if target_payer.starts_with("target ") => {
+                    ("sacrifices", "discards", target_payer.as_str())
+                }
                 _ => ("sacrifices", "discards", "that player"),
             };
             let or = if *or_discard {
                 format!(" or {disc} a card")
+            } else if *or_life > 0 {
+                // "or pays 3 life".
+                let pay = if who == "they" { "pay" } else { "pays" };
+                format!(" or {pay} {or_life} life")
             } else {
                 String::new()
             };
@@ -24237,7 +24314,40 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             first,
             flash,
             from,
+            floor,
+            off_turn,
         } => {
+            // "As long as this artifact is untapped, each spell that would
+            // cost less than three mana to cast costs three mana to cast."
+            if *floor > 0 {
+                let n = count_words(Num::N(u32::from(*floor)), "one");
+                // "As long as this artifact is untapped": the source named.
+                let head = cond.as_ref().map_or_else(String::new, |c| {
+                    let t = static_cond_text(c, card);
+                    let t = match t.strip_prefix("it's ") {
+                        Some(rest) => format!("{} is {rest}", this_ref(card)),
+                        None => t,
+                    };
+                    format!("As long as {t}, ")
+                });
+                let each = format!(
+                    "each spell that would cost less than {n} mana to cast costs {n} mana to cast."
+                );
+                return if head.is_empty() {
+                    capitalize(&each)
+                } else {
+                    format!("{head}{each}")
+                };
+            }
+            // "Each spell costs {3} more to cast except during its
+            // controller's turn." (Defense Grid).
+            if *off_turn {
+                return format!(
+                    "Each spell costs {{{}}} {} to cast except during its controller's turn.",
+                    generic.unsigned_abs(),
+                    if *generic > 0 { "more" } else { "less" }
+                );
+            }
             // "The first creature spell you cast each turn costs {2} less to
             // cast [and can be cast as though it had flash]"; "... you cast
             // during each of your turns ...".
@@ -24519,47 +24629,64 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 parts.join(" and ")
             )
         }
+        // "During your turn, this spell costs {2}{U}{U} less to cast."
+        // (Discontinuity).
+        Ability::CondCost {
+            delta,
+            colors,
+            cond: StaticCond::YourTurn | StaticCond::DuringYourTurn,
+            first: true,
+            ..
+        } => format!(
+            "During your turn, this spell costs {} {} to cast.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
+            if *delta < 0 { "less" } else { "more" },
+        ),
         // "This spell costs {1} less to cast during your turn." (Mental
         // Modulation).
         Ability::CondCost {
             delta,
+            colors,
             cond: StaticCond::YourTurn | StaticCond::DuringYourTurn,
             ..
         } => format!(
-            "This spell costs {{{}}} {} to cast during your turn.",
-            delta.unsigned_abs(),
+            "This spell costs {} {} to cast during your turn.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
         ),
         // "During turns other than yours, this spell costs {3} more to
         // cast." (Hurkyl's Final Meditation).
         Ability::CondCost {
             delta,
+            colors,
             cond: StaticCond::NotYourTurn,
             ..
         } => format!(
-            "During turns other than yours, this spell costs {{{}}} {} to cast.",
-            delta.unsigned_abs(),
+            "During turns other than yours, this spell costs {} {} to cast.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
         ),
         Ability::CondCost {
             delta,
+            colors,
             cond,
             first: true,
             ..
         } => format!(
-            "If {}, this spell costs {{{}}} {} to cast.",
+            "If {}, this spell costs {} {} to cast.",
             static_cond_text(cond, card),
-            delta.unsigned_abs(),
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
         ),
         Ability::CondCost {
             delta,
+            colors,
             cond,
             as_long_as,
             ..
         } => format!(
-            "This spell costs {{{}}} {} to cast {} {}.",
-            delta.unsigned_abs(),
+            "This spell costs {} {} to cast {} {}.",
+            crate::format::less_mana(delta.unsigned_abs(), colors),
             if *delta < 0 { "less" } else { "more" },
             if *as_long_as { "as long as" } else { "if" },
             match cond {
@@ -24587,7 +24714,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 crate::ast::TargetNoun::Card => card_filter_a(filter, card),
             }
         ),
-        Ability::SelfCost { per, times } => {
+        Ability::SelfCost { per, times, colors } => {
             // "This spell costs {X} less to cast, where X is the greatest
             // power among creatures you control."
             if let Num::Count(i) = times
@@ -24600,6 +24727,23 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 );
             }
             let tail = match times {
+                // "for each creature tapped this way": the number its
+                // additional cost taps or sacrifices (X).
+                Num::X => match card.additional.as_ref() {
+                    Some(c) if c.sacrifice_any > 0 => {
+                        let noun = match &c.sacrifice {
+                            Some(SacCost::Filter(f)) if f.types.len() == 1 => type_noun(f.types[0]),
+                            _ => "permanent",
+                        };
+                        let verb = if c.chosen == mtg_core::card::ChosenCost::Tap {
+                            "tapped"
+                        } else {
+                            "sacrificed"
+                        };
+                        format!(" for each {noun} {verb} this way")
+                    }
+                    _ => String::new(),
+                },
                 Num::Count(i) => card
                     .counts
                     .get(usize::from(*i))
@@ -24607,7 +24751,10 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     .unwrap_or_default(),
                 _ => String::new(),
             };
-            format!("This spell costs {{{per}}} less to cast{tail}.")
+            format!(
+                "This spell costs {} less to cast{tail}.",
+                crate::format::less_mana(*per, colors)
+            )
         }
         Ability::Mechanic(m) => match m {
             crate::ast::Mechanic::Bushido(n) => format!("Bushido {n}"),
@@ -25908,8 +26055,19 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     for a in card.abilities.iter().filter(|a| gift(a)) {
         lines.push(ability_text(card, a, lookup));
     }
+    // "This spell costs {1} less to cast for each creature tapped this
+    // way." ends the additional cost's paragraph.
+    let after_additional = |a: &Ability| {
+        card.additional
+            .as_ref()
+            .is_some_and(|c| c.sacrifice_any > 0)
+            && matches!(a, Ability::SelfCost { times: Num::X, .. })
+    };
     let cost_line = |a: &Ability| {
-        matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. }) || bargain(a) || gift(a)
+        matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. })
+            || bargain(a)
+            || gift(a)
+            || after_additional(a)
     };
     // "This spell costs {2} less to cast if evidence was collected." ends
     // the optional additional cost's paragraph.
@@ -25923,11 +26081,9 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
                 }
             )
     };
-    for a in card
-        .abilities
-        .iter()
-        .filter(|a| cost_line(a) && !bargain(a) && !gift(a) && !after_optional(a))
-    {
+    for a in card.abilities.iter().filter(|a| {
+        cost_line(a) && !bargain(a) && !gift(a) && !after_optional(a) && !after_additional(a)
+    }) {
         let text = ability_text(card, a, lookup);
         // "This spell costs {1} less to cast if you control an artifact
         // and {1} less to cast if you control an enchantment." (Assassin's
@@ -26018,7 +26174,12 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             Some(or) => format!("{c} or {}", additional_text(or, &mut ctx)),
             None => c,
         };
-        lines.push(format!("As an additional cost to cast this spell, {c}."));
+        let mut line = format!("As an additional cost to cast this spell, {c}.");
+        for a in card.abilities.iter().filter(|a| after_additional(a)) {
+            line.push(' ');
+            line.push_str(&ability_text(card, a, lookup));
+        }
+        lines.push(line);
     }
     // "As an additional cost to cast this spell, you may collect evidence
     // 6." (CR 601.2b).

@@ -1,0 +1,7 @@
+card "Devastating Summons" {
+  oracle_id 5eb6626a-1e0a-438e-9e95-a1e86be6489d
+  cost {R}
+  type Sorcery
+  additional cost sacrifice X land
+  spell: create 2 "0/0 red Elemental creature" sized x
+}

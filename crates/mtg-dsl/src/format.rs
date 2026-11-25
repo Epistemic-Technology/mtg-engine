@@ -2785,7 +2785,21 @@ impl Fmt {
                     format!("choose new targets for {}", self.recipient(*what, t))
                 }
             }
-            Effect::CounterUnlessPays { to, mana, x, dest } => format!(
+            Effect::CounterUnlessPays {
+                to, dest, discard, ..
+            } if *discard > 0 => format!(
+                "counter {} unless its controller discards {}{}",
+                self.recipient(*to, t),
+                if *discard == u8::MAX {
+                    "hand".to_string()
+                } else {
+                    format!("{discard} card{}", if *discard == 1 { "" } else { "s" })
+                },
+                countered_to(*dest)
+            ),
+            Effect::CounterUnlessPays {
+                to, mana, x, dest, ..
+            } => format!(
                 "counter {} unless its controller pays {mana}{}{}",
                 self.recipient(*to, t),
                 if *x == Num::X {
@@ -4556,7 +4570,15 @@ impl Fmt {
                     None => text,
                 }
             }
-            Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
+            Effect::Pay {
+                mana,
+                life,
+                any_times,
+            } => format!(
+                "pay {}{}",
+                pay_amount(mana, *life),
+                if *any_times { " any times" } else { "" }
+            ),
             Effect::Waterbend(mana) => format!("waterbend {mana}"),
             // No syntax of its own: written as the ward keyword.
             Effect::UnlessPaysCost { alts, effect, .. } => {
@@ -4597,18 +4619,24 @@ impl Fmt {
                 payer,
                 filter: f,
                 or_discard,
+                or_life,
                 effect,
                 ..
             } => {
                 let inner = self.effect(effect, t);
                 format!(
-                    "{inner} unless {} sacrifices {}{}",
+                    "{inner} unless {} sacrifices {}{}{}",
                     self.recipient(*payer, t),
                     filter(f),
                     if *or_discard {
                         " else discards 1 card"
                     } else {
                         ""
+                    },
+                    if *or_life > 0 {
+                        format!(" else pays {or_life} life")
+                    } else {
+                        String::new()
                     }
                 )
             }
@@ -7786,8 +7814,18 @@ fn cost_text(c: &Cost) -> String {
             }
             CostItem::Sacrifice => match &c.sacrifice {
                 Some(SacCost::Filter(f)) if c.sacrifice_any > 0 => parts.push(format!(
-                    "{}sacrifice any number {}",
+                    "{}{} {} {}",
                     if c.sacrifice_any == 2 { "may " } else { "" },
+                    if c.chosen == mtg_core::card::ChosenCost::Tap {
+                        "tap"
+                    } else {
+                        "sacrifice"
+                    },
+                    if c.sacrifice_any == 3 {
+                        "X"
+                    } else {
+                        "any number"
+                    },
                     filter(f)
                 )),
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),
@@ -7912,7 +7950,9 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Life => {
-                if c.life_x {
+                if c.half_life {
+                    parts.push("pay half life".to_string());
+                } else if c.life_x {
                     parts.push("pay x life".to_string());
                 } else if c.life > 0 {
                     parts.push(format!("pay {} life", c.life));
@@ -9721,15 +9761,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             first,
             flash,
             from,
+            floor,
+            off_turn,
         } => {
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
                 Some(StaticCond::DuringYourTurn) => "static during your turn, ",
-                Some(c @ StaticCond::SpellNumber(_)) => {
+                Some(c) if matches!(c, StaticCond::SpellNumber(_)) || *floor > 0 => {
                     &format!("static as long as {}, ", static_cond(c))
                 }
                 _ => "",
             };
+            if *floor > 0 {
+                let _ = writeln!(out, "{indent}{head}spells cost at least {floor}");
+                return;
+            }
             let subject = if *f == Filter::default() {
                 String::new()
             } else {
@@ -9747,8 +9793,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let from = spell_from(*from);
             let _ = writeln!(
                 out,
-                "{indent}{head}spells{first}{subject}{whose}{from} cost {{{}}} {more}{per}{flash}",
-                generic.unsigned_abs()
+                "{indent}{head}spells{first}{subject}{whose}{from} cost {{{}}} {more}{per}{flash}{}",
+                generic.unsigned_abs(),
+                if *off_turn {
+                    " except controller turn"
+                } else {
+                    ""
+                }
             );
         }
         Ability::SpellsHave {
@@ -9840,14 +9891,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::CondCost {
             delta,
+            colors,
             cond,
             as_long_as,
             first,
         } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{}}} {} {} {}",
-                delta.unsigned_abs(),
+                "{indent}this spell costs {} {} {} {}",
+                less_mana(delta.unsigned_abs(), colors),
                 if *delta < 0 { "less" } else { "more" },
                 if *as_long_as {
                     "as long as"
@@ -9878,10 +9930,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 filter(f)
             );
         }
-        Ability::SelfCost { per, times } => {
+        Ability::SelfCost { per, times, colors } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{per}}} less {}",
+                "{indent}this spell costs {} less {}",
+                less_mana(*per, colors),
                 num(*times)
             );
         }
@@ -11048,4 +11101,20 @@ pub fn target_cost_mana(delta: i32, colors: &[mtg_core::mana::Color]) -> String 
         let _ = write!(s, "{{{}}}", c.letter());
     }
     s
+}
+
+/// A cost reduction's mana: `{2}{U}`, `{G}` (no `{0}` before colored
+/// symbols), `{3}`.
+pub(crate) fn less_mana(generic: u32, colors: &[mtg_core::mana::Color]) -> String {
+    let mut out = if generic > 0 || colors.is_empty() {
+        format!("{{{generic}}}")
+    } else {
+        String::new()
+    };
+    for c in colors {
+        out.push('{');
+        out.push(c.letter());
+        out.push('}');
+    }
+    out
 }

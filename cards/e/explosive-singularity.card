@@ -1,0 +1,8 @@
+card "Explosive Singularity" {
+  oracle_id 30d79f61-f9d9-441a-b600-83721af8553b
+  cost {8}{R}{R}
+  type Sorcery
+  additional cost may tap any number untapped creature you control
+  this spell costs {1} less X
+  spell: deal 10 damage to any target
+}

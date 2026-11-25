@@ -1519,6 +1519,7 @@ impl P {
                 } else if !self.at_words(&["may", "behold"])
                     && !self.at_words(&["may", "reveal"])
                     && !self.at_words(&["may", "sacrifice", "any"])
+                    && !self.at_words(&["may", "tap", "any"])
                     && self.eat_word("may")
                 {
                     // `additional cost may collect evidence 6` (CR 601.2b);
@@ -3493,8 +3494,10 @@ impl P {
                     })
                     .collect();
                 let per = cost.mana_value() - u32::try_from(colors.len()).unwrap_or(0);
-                if !colors.is_empty() && !self.at_words(&["less", "if", "it", "targets"]) {
-                    return self.fail("only a target cost reduction may have colored mana");
+                // "costs {2}{U} less if ...", "{G} less for each ...": a
+                // reduction; an increase is generic.
+                if !colors.is_empty() && !self.at_word("less") {
+                    return self.fail("only a cost reduction may have colored mana");
                 }
                 if self.at_words(&["less", "if", "it", "targets"])
                     || self.at_words(&["more", "if", "it", "targets"])
@@ -3540,6 +3543,7 @@ impl P {
                     let n = i32::try_from(per).unwrap_or(0);
                     return Ok(Ability::CondCost {
                         delta: if less { -n } else { n },
+                        colors,
                         cond,
                         as_long_as,
                         first,
@@ -3548,7 +3552,7 @@ impl P {
                 self.expect_word("less")?;
                 let times = self.num()?;
                 self.end_stmt()?;
-                Ok(Ability::SelfCost { per, times })
+                Ok(Ability::SelfCost { per, times, colors })
             }
             // CR 702.14a: `landwalk snow Forest` ("Snow forestwalk").
             "landwalk" => {
@@ -5498,6 +5502,23 @@ impl P {
             return self.spells_have(filter, from, true);
         }
         self.expect_word("cost")?;
+        // `spells cost at least 3` (Trinisphere).
+        if self.eat_words(&["at", "least"]) {
+            let floor = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            self.end_stmt()?;
+            return Ok(Ability::CostChange {
+                filter,
+                whose,
+                generic: 0,
+                cond,
+                per: None,
+                first,
+                flash: false,
+                from,
+                floor,
+                off_turn: false,
+            });
+        }
         let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
         let generic = if self.eat_word("less") {
             -n
@@ -5511,6 +5532,8 @@ impl P {
             None
         };
         let flash = first && self.eat_words(&["and", "flash"]);
+        // `except controller turn` (Defense Grid).
+        let off_turn = self.eat_words(&["except", "controller", "turn"]);
         self.end_stmt()?;
         Ok(Ability::CostChange {
             filter,
@@ -5521,6 +5544,8 @@ impl P {
             first,
             flash,
             from,
+            floor: 0,
+            off_turn,
         })
     }
 
@@ -8168,6 +8193,7 @@ impl P {
                 filter,
                 or_discard: true,
                 discard_first: true,
+                or_life: 0,
                 effect: Box::new(e),
             });
         }
@@ -8207,11 +8233,25 @@ impl P {
             if or_discard {
                 self.pos += 4;
             }
+            // `else pays 3 life`: "or pays 3 life" (Indulgent Tormentor).
+            let or_life = if self.at_word("else")
+                && matches!(self.word_at(1).as_deref(), Some("pay" | "pays"))
+                && matches!(self.peek_at(2), Some(Tok::Num(_)))
+                && self.word_at(3).as_deref() == Some("life")
+            {
+                self.pos += 2;
+                let n = self.number()?;
+                self.pos += 1;
+                n
+            } else {
+                0
+            };
             return Ok(Effect::UnlessSacrifices {
                 payer,
                 filter,
                 or_discard,
                 discard_first: false,
+                or_life,
                 effect: Box::new(e),
             });
         }
@@ -14490,7 +14530,13 @@ impl P {
             }
             "pay" => {
                 let (mana, life) = self.pay_amount()?;
-                Ok(Effect::Pay { mana, life })
+                // `pay {1}{G} any times`: "any number of times".
+                let any_times = life == 0 && self.eat_words(&["any", "times"]);
+                Ok(Effect::Pay {
+                    mana,
+                    life,
+                    any_times,
+                })
             }
             "proliferate" => {
                 // `proliferate X times`.
@@ -15736,6 +15782,25 @@ impl P {
             }
             "counter" => {
                 let to = self.recipient()?;
+                // `unless its controller discards 1 card`, `... discards
+                // hand`.
+                if self.eat_words(&["unless", "its", "controller", "discards"]) {
+                    let discard = if self.eat_word("hand") {
+                        u8::MAX
+                    } else {
+                        let n = u8::try_from(self.number()?).unwrap_or(u8::MAX - 1);
+                        self.cards_word()?;
+                        n
+                    };
+                    let dest = self.countered_to();
+                    return Ok(Effect::CounterUnlessPays {
+                        to,
+                        mana: mtg_core::mana::ManaCost::default(),
+                        x: Num::N(0),
+                        dest,
+                        discard,
+                    });
+                }
                 if self.eat_word("unless") {
                     self.expect_words(&["its", "controller", "pays"])?;
                     let mana = self.mana_cost()?;
@@ -15747,7 +15812,13 @@ impl P {
                         Num::X
                     };
                     let dest = self.countered_to();
-                    return Ok(Effect::CounterUnlessPays { to, mana, x, dest });
+                    return Ok(Effect::CounterUnlessPays {
+                        to,
+                        mana,
+                        x,
+                        dest,
+                        discard: 0,
+                    });
                 }
                 let dest = self.countered_to();
                 Ok(Effect::Counter { to, dest })
@@ -16471,7 +16542,15 @@ impl P {
             {
                 self.pos += 1;
             }
-            let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {
+            // `creature tapped this way`: those an additional cost tapped
+            // ("the number of creatures tapped this way").
+            let Some(verb) = self.word_at(0).and_then(|w| {
+                if w == "tapped" {
+                    Some(mtg_core::card::ThisWay::Tapped)
+                } else {
+                    crate::ast::this_way_verb(&w)
+                }
+            }) else {
                 return self.unexpected("`destroyed`, `exiled`, ...");
             };
             self.pos += 1;
@@ -17584,7 +17663,8 @@ impl P {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
             || (self.at_words(&["up", "to", "x"]) && target(3))
-            || (self.at_words(&["up", "to", "that", "much"]) && target(4))
+            || (self.at_words(&["up", "to", "that", "much"])
+                && (target(4) || (self.word_at(4).as_deref() == Some("another") && target(5))))
             || (self.at_words(&["any", "number", "of"])
                 && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
@@ -20051,7 +20131,11 @@ impl P {
                 // tapped "Robot"`: `tapped` before the token is the token's
                 // ("create a tapped ... token for each ..."), not the
                 // filter's.
-                "tapped" | "untapped" if !matches!(self.peek_at(1), Some(Tok::Str(_))) => {
+                // `creature tapped this way` is a count's verb.
+                "tapped" | "untapped"
+                    if !matches!(self.peek_at(1), Some(Tok::Str(_)))
+                        && !self.at_words(&["tapped", "this", "way"]) =>
+                {
                     f.tapped = Some(w == "tapped");
                     self.pos += 1;
                 }
@@ -22760,15 +22844,31 @@ impl P {
                 Some(Tok::Word(w)) => match w.to_ascii_lowercase().as_str() {
                     // `sacrifice any number creature`, `may sacrifice any
                     // number Spirit` (a spell's additional cost, CR 601.2b).
-                    "sacrifice" | "may"
-                        if (self.word_at(0).as_deref() == Some("sacrifice")
-                            && self.word_at(1).as_deref() == Some("any"))
-                            || (self.word_at(1).as_deref() == Some("sacrifice")
+                    // `tap any number untapped creature you control`, `may
+                    // tap any number ...`; `sacrifice X land`, `tap X
+                    // untapped artifact you control` (3: X worded).
+                    "sacrifice" | "may" | "tap"
+                        if (matches!(self.word_at(0).as_deref(), Some("sacrifice" | "tap"))
+                            && matches!(self.word_at(1).as_deref(), Some("any" | "x")))
+                            || (self.word_at(0).as_deref() == Some("may")
+                                && matches!(
+                                    self.word_at(1).as_deref(),
+                                    Some("sacrifice" | "tap")
+                                )
                                 && self.word_at(2).as_deref() == Some("any")) =>
                     {
-                        cost.sacrifice_any = if self.eat_word("may") { 2 } else { 1 };
-                        self.pos += 1;
-                        self.expect_words(&["any", "number"])?;
+                        let may = self.eat_word("may");
+                        if self.eat_word("tap") {
+                            cost.chosen = mtg_core::card::ChosenCost::Tap;
+                        } else {
+                            self.expect_word("sacrifice")?;
+                        }
+                        cost.sacrifice_any = if self.eat_word("x") {
+                            3
+                        } else {
+                            self.expect_words(&["any", "number"])?;
+                            if may { 2 } else { 1 }
+                        };
                         cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         cost.order.push(CostItem::Sacrifice);
                     }
@@ -23127,6 +23227,13 @@ impl P {
                     {
                         self.pos += 3;
                         cost.life_x = true;
+                        cost.order.push(CostItem::Life);
+                    }
+                    // `pay half life`: "Pay half your life, rounded up".
+                    "pay" if self.word_at(1).as_deref() == Some("half") => {
+                        self.pos += 2;
+                        self.expect_word("life")?;
+                        cost.half_life = true;
                         cost.order.push(CostItem::Life);
                     }
                     "pay" => {

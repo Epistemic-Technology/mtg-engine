@@ -1,0 +1,7 @@
+card "Discontinuity" {
+  oracle_id 5cfd73ab-8509-4e4b-9704-68d8dad3b301
+  cost {3}{U}{U}{U}
+  type Instant
+  this spell costs {2}{U}{U} less first if your turn
+  spell: end the turn
+}

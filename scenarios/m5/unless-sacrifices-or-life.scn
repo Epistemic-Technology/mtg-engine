@@ -1,0 +1,55 @@
+# "Draw a card unless target opponent sacrifices a creature of their
+# choice or pays 3 life." (Indulgent Tormentor, CR 608.2d): the opponent
+# chooses as it resolves among what they can do: `choose "1"` sacrifices,
+# `choose "4"` pays the life (with at least that much), `choose "3"` lets
+# the card be drawn.
+
+scenario "Indulgent Tormentor: the opponent sacrifices a creature" {
+  battlefield A: "Indulgent Tormentor"
+  battlefield B: "Grizzly Bears"
+  library A: "Island", "Island"
+  start turn 3 A untap
+  turn 3 upkeep A: trigger "Indulgent Tormentor" targeting player B
+  turn 3 upkeep B: choose "1"
+  run_to turn 3 precombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+  assert hand A count 1
+}
+
+scenario "Indulgent Tormentor: the opponent pays 3 life" {
+  battlefield A: "Indulgent Tormentor"
+  battlefield B: "Grizzly Bears"
+  library A: "Island", "Island"
+  start turn 3 A untap
+  turn 3 upkeep A: trigger "Indulgent Tormentor" targeting player B
+  turn 3 upkeep B: choose "4"
+  run_to turn 3 precombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 17
+  assert hand A count 1
+}
+
+scenario "Indulgent Tormentor: the opponent declines, A draws" {
+  battlefield A: "Indulgent Tormentor"
+  battlefield B: "Grizzly Bears"
+  library A: "Island", "Island"
+  start turn 3 A untap
+  turn 3 upkeep A: trigger "Indulgent Tormentor" targeting player B
+  turn 3 upkeep B: choose "3"
+  run_to turn 3 precombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 20
+  assert hand A count 2
+}
+
+scenario "Indulgent Tormentor: with too little life, paying isn't offered" {
+  battlefield A: "Indulgent Tormentor"
+  library A: "Island", "Island"
+  life B 2
+  start turn 3 A untap
+  turn 3 upkeep A: trigger "Indulgent Tormentor" targeting player B
+  run_to turn 3 precombat_main
+  assert life B 2
+  assert hand A count 2
+}

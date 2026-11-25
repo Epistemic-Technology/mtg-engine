@@ -615,13 +615,30 @@ impl Compiler<'_> {
                 }
             }
         }
+        // Colored mana a reduction takes off (`CardDef::less_colors`).
+        let mut cond_costs = 0;
+        let mut less_colors = false;
+        let tally = |colors: &[mtg_core::mana::Color]| {
+            let mut n = [0u8; 5];
+            for c in colors {
+                n[*c as usize] = n[*c as usize].saturating_add(1);
+            }
+            n
+        };
         for a in &card.abilities {
             match unlabeled(a) {
-                Ability::SelfCost { per, times } => {
+                Ability::SelfCost { per, times, colors } => {
                     b = b.self_cost(mtg_core::card::SelfCost {
                         per: *per,
                         times: *times,
                     });
+                    if !colors.is_empty() {
+                        if less_colors {
+                            return self.err("one cost reduction with colored mana");
+                        }
+                        less_colors = true;
+                        b = b.less_colors(tally(colors));
+                    }
                 }
                 Ability::TargetCost {
                     delta,
@@ -660,10 +677,25 @@ impl Compiler<'_> {
                         b.equip_discount(*n)
                     };
                 }
-                Ability::CondCost { delta, cond, .. } => {
+                Ability::CondCost {
+                    delta,
+                    cond,
+                    colors,
+                    ..
+                } => {
                     let c = self.static_cond(cond);
                     let i = self.pool.intern_condition(c);
                     b = b.cond_cost(*delta, i);
+                    cond_costs += 1;
+                    // "This spell costs {2}{U} less to cast if ...": the
+                    // first conditional reduction's colors.
+                    if !colors.is_empty() {
+                        if less_colors || cond_costs > 1 {
+                            return self.err("one cost reduction with colored mana, the first");
+                        }
+                        less_colors = true;
+                        b = b.less_colors(tally(colors));
+                    }
                 }
                 Ability::Mechanic(Mechanic::Buyback(cost)) => {
                     b = b.buyback(cost.clone());
@@ -3458,6 +3490,7 @@ impl Compiler<'_> {
             exert: c.exert,
             discard_hand: c.discard_hand,
             life_x: c.life_x,
+            half_life: c.half_life,
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
@@ -4537,12 +4570,19 @@ impl Compiler<'_> {
             }),
             Effect::ChangeTarget { what } => out.push(CoreEffect::ChangeTarget { what: r(*what) }),
             Effect::NewTargets { what } => out.push(CoreEffect::NewTargets { what: r(*what) }),
-            Effect::CounterUnlessPays { to, mana, x, dest } => {
+            Effect::CounterUnlessPays {
+                to,
+                mana,
+                x,
+                dest,
+                discard,
+            } => {
                 out.push(CoreEffect::CounterUnlessPays {
                     to: r(*to),
                     mana: mana.clone(),
                     x: *x,
                     dest: *dest,
+                    discard: *discard,
                 });
             }
             Effect::Scry(n) => out.push(CoreEffect::Scry {
@@ -5430,7 +5470,19 @@ impl Compiler<'_> {
                     },
                     _ => effects,
                 };
-                let effects = self.sentences(effects)?;
+                // "then up to that many target lands you control become
+                // ...": a variable group among the reflexive ability's own
+                // targets is all of them.
+                let outer_many = self.many;
+                if let Some(m) = targets
+                    .iter()
+                    .position(|t| matches!(t, Target::Many { .. }))
+                {
+                    self.many = Some(m);
+                }
+                let effects = self.sentences(effects);
+                self.many = outer_many;
+                let effects = effects?;
                 // "When you do, Hankyu deals ...": the granter carries over
                 // to the reflexive ability (`CardPool::register`).
                 if !self.granting && effects.iter().any(CoreEffect::names_granter) {
@@ -5494,9 +5546,14 @@ impl Compiler<'_> {
                 return self.err("`instead` is a sentence of its own, after the one it replaces");
             }
             Effect::Waterbend(cost) => out.push(CoreEffect::Waterbend(cost.clone())),
-            Effect::Pay { mana, life } => out.push(CoreEffect::Pay {
+            Effect::Pay {
+                mana,
+                life,
+                any_times,
+            } => out.push(CoreEffect::Pay {
                 mana: mana.clone(),
                 life: *life,
+                any_times: *any_times,
             }),
             Effect::UnlessYou { act, effect } => {
                 let mut acts = Vec::new();
@@ -5514,6 +5571,7 @@ impl Compiler<'_> {
                 payer,
                 filter,
                 or_discard,
+                or_life,
                 effect,
                 ..
             } => {
@@ -5523,6 +5581,7 @@ impl Compiler<'_> {
                     payer: r(*payer),
                     filter: self.filter(filter),
                     or_discard: *or_discard,
+                    or_life: *or_life,
                     effects,
                 });
             }
@@ -7947,6 +8006,8 @@ impl Compiler<'_> {
                 first,
                 flash,
                 from,
+                floor,
+                off_turn,
             } => {
                 let cond = cond.as_ref().map(|c| {
                     let c = self.static_cond(c);
@@ -7976,6 +8037,8 @@ impl Compiler<'_> {
                     per: *per,
                     first: *first,
                     from: *from,
+                    floor: *floor,
+                    off_turn: *off_turn,
                 })
             }
             Ability::SpellsHave {
@@ -8011,6 +8074,8 @@ impl Compiler<'_> {
                 per: None,
                 first: false,
                 from: *from,
+                floor: 0,
+                off_turn: false,
             }),
             Ability::SpellsAlt {
                 filter,
@@ -8030,6 +8095,8 @@ impl Compiler<'_> {
                 per: None,
                 first: false,
                 from: *from,
+                floor: 0,
+                off_turn: false,
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Landwalk(f) => AbilityDef::Landwalk(self.filter(f)),
@@ -9140,6 +9207,7 @@ fn extort(i: u8) -> Ability {
     let pay = E::YouMay(vec![Sentence::new(vec![E::Pay {
         mana: mtg_core::mana::ManaCost::parse("{W/B}").expect("a mana cost"),
         life: 0,
+        any_times: false,
     }])]);
     let drain = Sentence {
         effects: vec![
@@ -9717,6 +9785,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 mana: cost.clone(),
                 x: Num::N(0),
                 dest: crate::ast::CounteredTo::Graveyard,
+                discard: 0,
             }),
         },
         // "Ward—Sacrifice a creature." (CR 702.21a): the player may
@@ -9732,6 +9801,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 filter: ward_sacrifice(cost).cloned().unwrap_or_default(),
                 or_discard: false,
                 discard_first: false,
+                or_life: 0,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,

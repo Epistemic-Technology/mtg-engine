@@ -1,0 +1,7 @@
+card "Merchant's Dockhand" {
+  oracle_id 7cd95b92-8828-4b84-be58-4ce3e948dc8c
+  cost {1}
+  type Artifact Creature — Construct
+  pt 1/2
+  activated {3}{U}, {T}, tap X untapped artifact you control: dig X take card rest bottom
+}

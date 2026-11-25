@@ -1,0 +1,8 @@
+card "Champion of Stray Souls" {
+  oracle_id 4edbaac4-dcb3-40b4-abd7-ff2683bd366d
+  cost {4}{B}{B}
+  type Creature — Skeleton Warrior
+  pt 4/4
+  activated {3}{B}{B}, {T}, sacrifice X other creature: return X target creature card from your graveyard to battlefield
+  activated {5}{B}{B}, from graveyard: put this on top of library
+}

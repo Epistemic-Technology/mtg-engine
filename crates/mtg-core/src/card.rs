@@ -5244,6 +5244,12 @@ pub enum Effect {
         mana: ManaCost,
         x: Num,
         dest: CounteredTo,
+        /// "unless its controller discards a card" (Reality Smasher): the
+        /// payment is that many cards of the controller's choice instead
+        /// (`mana` empty); `u8::MAX`, "discards their hand" (Perplex),
+        /// payable with any hand.
+        #[serde(default)]
+        discard: u8,
     },
     /// Scry N (CR 701.18): the controller puts any of the top N cards of
     /// their library on the bottom, the rest back on top.
@@ -5959,6 +5965,14 @@ pub enum Effect {
     Pay {
         mana: ManaCost,
         life: u32,
+        /// "you may pay {1}{G} any number of times" (the Adversaries):
+        /// the controller chooses how many times as they pay (CR 601.2b
+        /// by analogy: the number is chosen, then `mana` that many times
+        /// paid at once); the number is the resolution's X, so the
+        /// reflexive ability after ("When you pay this cost one or more
+        /// times, ...", only if it was paid at least once) sees it.
+        #[serde(default)]
+        any_times: bool,
     },
     /// "If you do, [these]": only if the optional action before happened
     /// (CR 608.2c).
@@ -6013,6 +6027,11 @@ pub enum Effect {
         payer: Recipient,
         filter: ObjFilter,
         or_discard: bool,
+        /// "... unless target opponent sacrifices a creature of their
+        /// choice or pays 3 life" (Indulgent Tormentor): paying this much
+        /// life stops it too (CR 119.4: with at least that much). 0: no.
+        #[serde(default)]
+        or_life: u32,
         effects: Vec<Effect>,
     },
     /// "Each opponent may discard a card or sacrifice a permanent of their
@@ -10247,6 +10266,10 @@ pub struct Cost {
     /// least that much life.
     #[serde(default)]
     pub life_x: bool,
+    /// "Pay half your life, rounded up" (CR 119.4, 107.1a): always
+    /// payable, even with no life to pay.
+    #[serde(default)]
+    pub half_life: bool,
     /// "Put a -1/-1 counter on a creature you control" (Lethal Sting): the
     /// older wording of blight (CR 701.68a), the `blight` counters.
     #[serde(default)]
@@ -10274,7 +10297,12 @@ pub struct Cost {
     /// announced as the spell is cast (CR 601.2b, 107.3), at most the
     /// matching permanents, and X permanents matching the `sacrifice`
     /// filter sacrificed (the caster chooses the first, the engine the
-    /// rest). 0: none.
+    /// rest). 0: none. 3: the same worded with X ("sacrifice X lands",
+    /// "{T}, Sacrifice X Goats:", "Tap X untapped artifacts you
+    /// control"). `chosen` says what is done to them: with
+    /// `ChosenCost::Tap` they are tapped ("tap any number of untapped
+    /// creatures you control"). On an activated ability X is the
+    /// ability's (CR 602.2b) and the engine picks them all.
     #[serde(default)]
     pub sacrifice_any: u8,
     /// "Remove X ki counters from this creature" (CR 107.3, 602.2b): the
@@ -10412,6 +10440,7 @@ impl Cost {
             exert: false,
             discard_hand: false,
             life_x: false,
+            half_life: false,
             blight_put: false,
             process: 0,
             remove_from_creature: false,
@@ -10884,6 +10913,16 @@ pub struct CostChange {
     /// from).
     #[serde(default)]
     pub from: SpellFrom,
+    /// "Each spell that would cost less than three mana to cast costs
+    /// three mana to cast." (Trinisphere): after every other change (CR
+    /// 601.2f), a matching spell's total cost below this much gets generic
+    /// mana up to it. 0: none.
+    #[serde(default)]
+    pub floor: u8,
+    /// "Each spell costs {3} more to cast except during its controller's
+    /// turn." (Defense Grid): not while its caster is the active player.
+    #[serde(default)]
+    pub off_turn: bool,
 }
 
 /// Where the spells a `CostChange` applies to are cast from.
@@ -11685,6 +11724,15 @@ pub struct CardDef {
     /// control an enchantment." (Assassin's Ink).
     #[serde(default)]
     pub cond_cost2: Option<(i32, u16)>,
+    /// Colored mana the spell's own reduction takes off too, by color
+    /// (white, blue, black, red, green): with `cond_cost`, while its
+    /// condition holds ("This spell costs {2}{U} less to cast if you've
+    /// cast an instant or sorcery spell this turn."); with `self_cost`,
+    /// that many for each it counts ("This spell costs {G} less to cast
+    /// for each green creature you control."). Where the cost has less of
+    /// a color, generic mana instead (CR 601.2f).
+    #[serde(default)]
+    pub less_colors: [u8; 5],
     /// "This spell can't be countered." (CR 101.2: a spell or ability
     /// that would counter it does nothing to it).
     #[serde(default)]
@@ -13029,6 +13077,9 @@ pub struct CardPool {
     /// Whether some card lets mana be spent as though it were of any color
     /// for a class of spells (`SpellGrant::spend`).
     pub spend_grants: bool,
+    /// Whether some card sets a least total cost for spells
+    /// (`CostChange::floor`, Trinisphere).
+    pub cost_floors: bool,
     /// Whether some card gives spells an alternative cost
     /// (`SpellGrant::alt`): until one is added, no cast offer looks for
     /// one.
@@ -13151,6 +13202,7 @@ impl CardPool {
             equip_discounts: false,
             card_grants: false,
             spend_grants: false,
+            cost_floors: false,
             alt_grants: false,
             plot_discounts: false,
             targeted_life: false,
@@ -13459,6 +13511,7 @@ impl CardPool {
                 mana: ManaCost::parse("{2}").expect("a mana cost"),
                 x: Num::N(0),
                 dest: CounteredTo::Graveyard,
+                discard: 0,
             }],
         });
         pool.face_down_ward = pool.add(
@@ -13960,6 +14013,10 @@ impl CardPool {
             matches!(a, AbilityDef::CostChange(cc)
                 if cc.grant.as_ref().is_some_and(|g| g.spend != SpendAs::Normal))
         });
+        self.cost_floors |= def
+            .abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::CostChange(cc) if cc.floor > 0));
         self.targeted_life |= def
             .abilities
             .iter()
@@ -14763,6 +14820,7 @@ impl Builder {
             uncounterable_if: None,
             cond_cost: None,
             cond_cost2: None,
+            less_colors: [0; 5],
             madness: None,
             foretell: None,
             plot: None,
@@ -15289,7 +15347,16 @@ impl Builder {
         self
     }
 
-    /// A cost change by a condition (see `CardDef::cond_cost`).
+    /// The colored part of the spell's own reduction (see
+    /// `CardDef::less_colors`).
+    #[must_use]
+    pub fn less_colors(mut self, n: [u8; 5]) -> Self {
+        self.0.less_colors = n;
+        self
+    }
+
+    /// "This spell costs {3} less to cast if a creature died this turn"
+    /// (`CardDef::cond_cost`).
     #[must_use]
     pub fn cond_cost(mut self, delta: i32, cond: u16) -> Self {
         if self.0.cond_cost.is_none() {

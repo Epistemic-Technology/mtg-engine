@@ -1,0 +1,8 @@
+card "Primal Adversary" {
+  oracle_id 087d6330-c9de-42b7-a804-1202bc6aa682
+  cost {2}{G}
+  type Creature — Wolf
+  pt 4/3
+  keywords trample
+  triggered when this enters: you may pay {1}{G} any times; when you do, put that much +1/+1 counters on this creature, then up to that much target land you control become 3/3 Wolf creature with haste indefinitely
+}

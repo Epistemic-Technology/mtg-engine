@@ -1,0 +1,6 @@
+card "Trinisphere" {
+  oracle_id 69d994f2-b8f6-425f-9655-977c2144d40c
+  cost {3}
+  type Artifact
+  static as long as this is untapped, spells cost at least 3
+}

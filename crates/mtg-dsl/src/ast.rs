@@ -1165,6 +1165,8 @@ pub struct Cost {
     /// `pay x life`: "pay X life" (a spell's additional cost, X announced
     /// as it is cast).
     pub life_x: bool,
+    /// `pay half life`: "Pay half your life, rounded up".
+    pub half_life: bool,
     /// `put 1 -1/-1 counter on creature you control`: "Put a -1/-1 counter
     /// on a creature you control", blight's older wording.
     pub blight_put: bool,
@@ -2241,6 +2243,12 @@ pub enum Ability {
         /// exile`, `from other than hand`: "from anywhere other than your
         /// hand").
         from: mtg_core::card::SpellFrom,
+        /// `spells cost at least 3`: "each spell that would cost less than
+        /// three mana to cast costs three mana to cast" (Trinisphere).
+        floor: u8,
+        /// `spells cost {3} more except controller turn`: "Each spell costs
+        /// {3} more to cast except during its controller's turn."
+        off_turn: bool,
     },
     /// `spells instant or sorcery you cast have storm`, `spells you cast
     /// have delve`, `spells instant or sorcery you cast from hand have
@@ -2301,6 +2309,10 @@ pub enum Ability {
     SelfCost {
         per: u32,
         times: Num,
+        /// `this spell costs {G} less count each green creature you
+        /// control`: colored symbols of the reduction, taken off that many
+        /// times each (CR 601.2f).
+        colors: Vec<mtg_core::mana::Color>,
     },
     /// `this spell costs {3} less if it targets tapped creature`, `... {2}
     /// more if it targets Dragon`.
@@ -2320,6 +2332,10 @@ pub enum Ability {
     /// to the Roots; wording only).
     CondCost {
         delta: i32,
+        /// `this spell costs {2}{U} less if ...`: the colored symbols of
+        /// the reduction (CR 601.2f: generic mana instead where the cost
+        /// has too little of that color).
+        colors: Vec<mtg_core::mana::Color>,
         cond: StaticCond,
         as_long_as: bool,
         /// `this spell costs {6} less first if ...`: the condition printed
@@ -6158,6 +6174,9 @@ pub enum Effect {
         mana: ManaCost,
         x: Num,
         dest: CounteredTo,
+        /// `counter that spell unless its controller discards 1 card`,
+        /// `... discards hand` (`u8::MAX`): a discard instead of mana.
+        discard: u8,
     },
     Scry(Num),
     /// `each player may scry 1`, `each opponent may scry 1`: each in turn
@@ -6863,6 +6882,8 @@ pub enum Effect {
     Pay {
         mana: ManaCost,
         life: u32,
+        /// `pay {1}{G} any times`: "pay {1}{G} any number of times".
+        any_times: bool,
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
@@ -6918,6 +6939,9 @@ pub enum Effect {
         /// `unless they discard 1 card else sacrifice creature`: "unless
         /// they discard a card or sacrifice a creature" (wording only).
         discard_first: bool,
+        /// `<clause> unless target 1 sacrifices creature else pays 3 life`:
+        /// "... or pays 3 life".
+        or_life: u32,
         effect: Box<Effect>,
     },
     /// `each opponent may discard 1 card or sacrifice permanent`: "Each

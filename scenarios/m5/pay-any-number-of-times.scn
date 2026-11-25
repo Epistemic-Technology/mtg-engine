@@ -1,0 +1,84 @@
+# "When this creature enters, you may pay {2}{B} any number of times. When
+# you pay this cost one or more times, ..." (the Adversaries): the number
+# is chosen as the cost is paid, at most what can be paid; the reflexive
+# ability (CR 603.12) triggers only if it was paid at least once, and its
+# "that many" is the number.
+
+scenario "Tainted Adversary: paid twice, two counters and four Zombies" {
+  battlefield A: 8 "Swamp"
+  hand A: "Tainted Adversary"
+  turn 1 A: cast "Tainted Adversary"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Tainted Adversary" +1/+1 2
+  assert battlefield A contains 4 "Zombie"
+  assert power oldest "Zombie" 2
+}
+
+scenario "Tainted Adversary: the number is at most what can be paid" {
+  battlefield A: 7 "Swamp"
+  hand A: "Tainted Adversary"
+  turn 1 A: cast "Tainted Adversary"
+  illegal turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Tainted Adversary" +1/+1 0
+}
+
+scenario "Tainted Adversary: paid once, one counter and two Zombies" {
+  battlefield A: 7 "Swamp"
+  hand A: "Tainted Adversary"
+  turn 1 A: cast "Tainted Adversary"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert counters "Tainted Adversary" +1/+1 1
+  assert battlefield A contains 2 "Zombie"
+}
+
+scenario "Tainted Adversary: paying zero times doesn't trigger" {
+  battlefield A: 8 "Swamp"
+  hand A: "Tainted Adversary"
+  turn 1 A: cast "Tainted Adversary"
+  turn 1 A: choose "0"
+  run_to turn 1 postcombat_main
+  assert counters "Tainted Adversary" +1/+1 0
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "Tainted Adversary: declining pays nothing" {
+  battlefield A: 8 "Swamp"
+  hand A: "Tainted Adversary"
+  turn 1 A: cast "Tainted Adversary"
+  turn 1 A: decline "Tainted Adversary"
+  run_to turn 1 postcombat_main
+  assert counters "Tainted Adversary" +1/+1 0
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "Primal Adversary: paid twice, two lands become 3/3 Wolves" {
+  battlefield A: 7 "Forest"
+  hand A: "Primal Adversary"
+  turn 1 A: cast "Primal Adversary"
+  turn 1 A: choose "2"
+  turn 1 A: trigger "Primal Adversary" targeting oldest "Forest", newest "Forest"
+  run_to turn 1 postcombat_main
+  assert counters "Primal Adversary" +1/+1 2
+  assert power oldest "Forest" 3
+  assert power newest "Forest" 3
+  assert toughness newest "Forest" 3
+  assert is newest "Forest" creature
+  assert is newest "Forest" land
+  assert has newest "Forest" haste
+}
+
+scenario "Spectral Adversary: paid once, one permanent phases out" {
+  battlefield A: 4 "Island"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Spectral Adversary"
+  turn 1 A: cast "Spectral Adversary"
+  turn 1 A: choose "1"
+  turn 1 A: trigger "Spectral Adversary" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Spectral Adversary" +1/+1 1
+  assert battlefield B lacks "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+}

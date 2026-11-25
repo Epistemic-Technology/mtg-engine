@@ -1,0 +1,8 @@
+card "Spectral Adversary" {
+  oracle_id 0de4171e-5908-408e-9852-25f148d0fb47
+  cost {1}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords flash, flying
+  triggered when this enters: you may pay {1}{U} any times; when you do, put that much +1/+1 counters on this creature, then up to that much another target andor artifact or creature or enchantment phases out
+}

@@ -1,0 +1,75 @@
+# "As long as this artifact is untapped, each spell that would cost less
+# than three mana to cast costs three mana to cast." (Trinisphere, CR
+# 601.2f: after every other change, generic mana up to three) and "Each
+# spell costs {3} more to cast except during its controller's turn."
+# (Defense Grid).
+
+scenario "Trinisphere: a one-mana spell costs three" {
+  battlefield A: "Trinisphere"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert hand B contains "Shock"
+}
+
+scenario "Trinisphere: with three mana the spell is cast" {
+  battlefield A: "Trinisphere"
+  battlefield B: 3 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 18
+}
+
+scenario "Trinisphere: tapped, it does nothing" {
+  battlefield A: "Trinisphere" tapped
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B upkeep
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 18
+}
+
+scenario "Trinisphere: a four-mana spell costs four" {
+  battlefield A: "Trinisphere", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Defense Grid: an opponent's turn costs {3} more" {
+  battlefield A: "Defense Grid", 3 "Mountain"
+  battlefield B: 2 "Island"
+  hand B: "Opt"
+  start turn 2 A precombat_main
+  illegal turn 2 B: cast "Opt"
+  run_to turn 2 end
+  assert hand B contains "Opt"
+}
+
+scenario "Defense Grid: during its controller's own turn, no more" {
+  battlefield A: "Defense Grid"
+  battlefield B: "Island"
+  hand B: "Opt"
+  library B: "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Opt"
+  run_to turn 2 end
+  assert graveyard B contains "Opt"
+}
+
+scenario "Defense Grid: an opponent pays the {3} more" {
+  battlefield A: "Defense Grid"
+  battlefield B: 4 "Island"
+  hand B: "Opt"
+  library B: "Island"
+  start turn 2 A precombat_main
+  turn 2 B: cast "Opt"
+  run_to turn 2 end
+  assert graveyard B contains "Opt"
+}

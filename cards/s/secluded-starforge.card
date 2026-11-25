@@ -1,0 +1,7 @@
+card "Secluded Starforge" {
+  oracle_id 69f55a7c-6ddf-412e-b63b-b395731a1ff2
+  type Land
+  activated {T}: add {C}
+  activated {2}, {T}, tap X untapped artifact you control, sorcery: target creature gets +1/+0 X
+  activated {5}, {T}: create 1 "2/2 colorless Robot artifact creature"
+}

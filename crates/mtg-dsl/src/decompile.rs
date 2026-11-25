@@ -646,6 +646,7 @@ impl Decompiler<'_> {
             exert: c.exert,
             discard_hand: c.discard_hand,
             life_x: c.life_x,
+            half_life: c.half_life,
             blight_put: c.blight_put,
             process: c.process,
             remove_from_creature: c.remove_from_creature,
@@ -1514,11 +1515,18 @@ impl Decompiler<'_> {
             },
             CoreEffect::ChangeTarget { what } => Effect::ChangeTarget { what: r(*what) },
             CoreEffect::NewTargets { what } => Effect::NewTargets { what: r(*what) },
-            CoreEffect::CounterUnlessPays { to, mana, x, dest } => Effect::CounterUnlessPays {
+            CoreEffect::CounterUnlessPays {
+                to,
+                mana,
+                x,
+                dest,
+                discard,
+            } => Effect::CounterUnlessPays {
                 to: r(*to),
                 mana: mana.clone(),
                 x: *x,
                 dest: *dest,
+                discard: *discard,
             },
             CoreEffect::Scry {
                 count,
@@ -2036,9 +2044,14 @@ impl Decompiler<'_> {
                 }
             }
             CoreEffect::Waterbend(mana) => Effect::Waterbend(mana.clone()),
-            CoreEffect::Pay { mana, life } => Effect::Pay {
+            CoreEffect::Pay {
+                mana,
+                life,
+                any_times,
+            } => Effect::Pay {
                 mana: mana.clone(),
                 life: *life,
+                any_times: *any_times,
             },
             CoreEffect::UnlessYou { act, effects } => Effect::UnlessYou {
                 act: Box::new(
@@ -2083,11 +2096,13 @@ impl Decompiler<'_> {
                 payer,
                 filter,
                 or_discard,
+                or_life,
                 effects,
             } => Effect::UnlessSacrifices {
                 payer: Self::recipient(*payer),
                 filter: self.filter(filter),
                 or_discard: *or_discard,
+                or_life: *or_life,
                 discard_first: false,
                 effect: Box::new(
                     effects
@@ -3750,6 +3765,8 @@ impl Decompiler<'_> {
                     .as_ref()
                     .is_some_and(|g| g.keywords.contains(mtg_core::card::Keyword::Flash)),
                 from: c.from,
+                floor: c.floor,
+                off_turn: c.off_turn,
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {

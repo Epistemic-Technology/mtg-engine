@@ -1,0 +1,7 @@
+card "Drekavac" {
+  oracle_id f7971f22-2689-4c6f-9fea-1afc4f5afed3
+  cost {1}{B}
+  type Creature — Beast
+  pt 3/3
+  triggered when this enters: sacrifice this unless you discard 1 noncreature card chosen
+}
