@@ -1,0 +1,7 @@
+card "Beacon Bolt" {
+  oracle_id 884686dd-515c-4484-a324-e7d126903a42
+  cost {1}{U}{R}
+  type Sorcery
+  spell: deal count equal exile and graveyard instant or sorcery card damage to target creature
+  jump start
+}

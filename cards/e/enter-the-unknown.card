@@ -1,0 +1,9 @@
+card "Enter the Unknown" {
+  oracle_id 4b031bb3-4bbc-4158-8485-b3fc42c6bd50
+  cost {G}
+  type Sorcery
+  spell {
+    target creature you control explores
+    play additional land this turn
+  }
+}

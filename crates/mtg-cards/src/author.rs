@@ -10555,6 +10555,36 @@ fn corpus_effects_init(corpus: &[Card]) {
                     .push((key.to_string(), p.to_string()));
             }
         }
+        // And the one-sentence effects of triggered and activated lines
+        // that read nothing from their trigger (`context_free`): "Whenever
+        // you scry, this creature gets +2/+0 and gains first strike until
+        // end of turn." gives the sentence after another trigger.
+        let mut lines: Vec<(&String, &String)> = corpus_lines(corpus).iter().collect();
+        lines.sort();
+        for (l, st) in lines {
+            let (Some((trigger, _, body)), Some((head, p))) = (oracle_split(l), dsl_split(st))
+            else {
+                continue;
+            };
+            let Some(key) = body.strip_suffix('.') else {
+                continue;
+            };
+            let key = capitalize(key);
+            if trigger != head.contains("triggered")
+                || key.contains(". ")
+                || p.contains(';')
+                || p.starts_with("if ")
+                || !context_free(&key)
+                || exact.contains_key(&key)
+            {
+                continue;
+            }
+            exact.insert(key.clone(), p.to_string());
+            let (shape, values) = line_shape(&key);
+            if !values.is_empty() {
+                shapes.entry(shape).or_default().push((key, p.to_string()));
+            }
+        }
         (exact, shapes)
     });
 }

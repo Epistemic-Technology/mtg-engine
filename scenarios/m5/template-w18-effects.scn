@@ -1,0 +1,172 @@
+# Cards whose sentences the corpus prints as the effect of a triggered or
+# activated line (eighteenth wave: the one-sentence effects index takes
+# those that read nothing from their trigger, besides the spells).
+
+scenario "Deadeye Tracker: exiles two cards from an opponent's graveyard and explores" {
+  battlefield A: "Deadeye Tracker", 2 "Swamp"
+  graveyard B: "Shock", "Opt", "Hill Giant"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Deadeye Tracker" targeting "Shock", "Opt"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert exile B contains "Opt"
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Forest"
+  assert counters "Deadeye Tracker" +1/+1 0
+}
+
+scenario "Deadeye Tracker: exploring a nonland card puts a +1/+1 counter on it" {
+  battlefield A: "Deadeye Tracker", 2 "Swamp"
+  graveyard B: "Shock", "Opt"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Deadeye Tracker" targeting "Shock", "Opt"
+  run_to turn 1 postcombat_main
+  assert counters "Deadeye Tracker" +1/+1 1
+}
+
+scenario "Enter the Unknown: target creature explores, and you may play another land" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Enter the Unknown", "Island", "Swamp"
+  library A: "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: cast "Enter the Unknown" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: play "Swamp"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert battlefield A contains "Swamp"
+  assert battlefield A contains "Island"
+}
+
+scenario "Weatherseed Totem: a 5/3 trampler; dying as a creature returns it to hand" {
+  battlefield A: "Weatherseed Totem", 5 "Forest"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Weatherseed Totem"
+  turn 1 A: attack "Weatherseed Totem"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Weatherseed Totem"
+  run_to turn 1 end
+  assert life B 15
+  assert hand A contains "Weatherseed Totem"
+}
+
+scenario "Weatherseed Totem: destroyed as a noncreature, it stays in the graveyard" {
+  battlefield A: "Weatherseed Totem"
+  battlefield B: 2 "Mountain"
+  hand B: "Shatter"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shatter" targeting "Weatherseed Totem"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Weatherseed Totem"
+}
+
+scenario "Hornswoggle: counters a creature spell and makes you a Treasure" {
+  battlefield A: 3 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Hornswoggle"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Hornswoggle" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Treasure"
+  assert battlefield B lacks "Treasure"
+}
+
+scenario "Hornswoggle: a noncreature spell can't be targeted" {
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand A: "Hornswoggle"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  illegal turn 2 A: cast "Hornswoggle" targeting "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Beacon Bolt: damage equal to your instant and sorcery cards in exile and graveyard" {
+  battlefield A: "Mountain", "Island", "Swamp"
+  battlefield B: "Craw Wurm"
+  hand A: "Beacon Bolt"
+  graveyard A: "Shock", "Opt", "Grizzly Bears"
+  exile A: "Lightning Bolt"
+  exile B: "Opt"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beacon Bolt" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert damage "Craw Wurm" 3
+}
+
+scenario "The First Eruption: I deals 1 to each creature without flying" {
+  battlefield A: 3 "Mountain", "Raging Goblin"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  hand A: "The First Eruption"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The First Eruption"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Raging Goblin"
+  assert damage "Grizzly Bears" 1
+  assert damage "Wind Drake" 0
+}
+
+scenario "The First Eruption: III sacrifices a Mountain to deal 3 to each creature" {
+  battlefield A: "The First Eruption" with 2 lore, "Mountain", "Forest"
+  battlefield B: "Hill Giant", "Craw Wurm"
+  start turn 2 B precombat_main
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Mountain"
+  assert graveyard B contains "Hill Giant"
+  assert damage "Craw Wurm" 3
+  assert graveyard A contains "The First Eruption"
+}
+
+scenario "The First Eruption: III without a Mountain deals nothing" {
+  battlefield A: "The First Eruption" with 2 lore, "Forest"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 0
+}
+
+scenario "The Mending of Dominaria: I mills two and may return a creature card" {
+  battlefield A: 5 "Forest"
+  hand A: "The Mending of Dominaria"
+  library A: "Grizzly Bears", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Mending of Dominaria"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Island"
+}
+
+scenario "The Mending of Dominaria: III returns lands, then shuffles the graveyard into the library" {
+  battlefield A: "The Mending of Dominaria" with 2 lore
+  graveyard A: "Forest", "Island", "Grizzly Bears"
+  start turn 2 B precombat_main
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Forest"
+  assert battlefield A contains "Island"
+  assert graveyard A lacks "Grizzly Bears"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Archangel's Light: 2 life for each card in your graveyard, then it's shuffled away" {
+  battlefield A: 8 "Plains"
+  hand A: "Archangel's Light"
+  graveyard A: "Forest", "Island", "Grizzly Bears"
+  graveyard B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Archangel's Light"
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert graveyard A lacks "Grizzly Bears"
+  assert library A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}

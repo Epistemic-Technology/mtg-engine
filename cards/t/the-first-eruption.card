@@ -1,0 +1,8 @@
+card "The First Eruption" {
+  oracle_id df7a3868-4f03-452c-8307-1493977d42ef
+  cost {2}{R}
+  type Enchantment — Saga
+  triggered chapter 1: deal 1 damage to each creature without flying
+  triggered chapter 2: add {R}{R}
+  triggered chapter 3: sacrifice 1 Mountain chosen; if you do, deal 3 damage to each creature
+}

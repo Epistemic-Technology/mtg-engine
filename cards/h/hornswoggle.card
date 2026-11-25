@@ -1,0 +1,6 @@
+card "Hornswoggle" {
+  oracle_id 71b178bd-3b37-4de9-97a3-96e23d5444a4
+  cost {2}{U}
+  type Instant
+  spell: counter target creature spell; you create 1 "Treasure"
+}
