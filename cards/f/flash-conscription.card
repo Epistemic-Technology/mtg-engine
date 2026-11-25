@@ -1,0 +1,6 @@
+card "Flash Conscription" {
+  oracle_id a2019c23-09b8-4b0f-8b91-d8137804cb95
+  cost {5}{R}
+  type Instant
+  spell: untap target creature and gain control of it until end of turn; that creature gains haste until end of turn; if spent {W}, the target 1 gains ability { triggered whenever this deals combat damage: you gain that much life } until end of turn
+}

@@ -45,6 +45,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         counts: Vec::new(),
         in_delayed: false,
         delayed_that: false,
+        delayed_it: false,
         delayed_player: None,
         delayed_dies: false,
         in_trigger: false,
@@ -783,6 +784,10 @@ struct P {
     /// Inside a delayed trigger about the triggering object: "that
     /// creature" is the object it is about (`it`).
     delayed_that: bool,
+    /// Parsing a delayed trigger written about "it" (`whenever it deals
+    /// combat damage to a player this turn`): the next trigger object
+    /// `it` is the object the trigger is about, as "that creature" is.
+    delayed_it: bool,
     /// Inside a delayed trigger about a target player (`delayed target
     /// player: that player draws 1 card ...`): that target's index, "that
     /// player" being the player it is about.
@@ -3244,9 +3249,21 @@ impl P {
                 }
                 let as_long_as = self.at_words(&["less", "as", "long", "as"])
                     || self.at_words(&["more", "as", "long", "as"]);
-                if self.at_words(&["less", "if"]) || self.at_words(&["more", "if"]) || as_long_as {
+                let first = self.at_words(&["less", "first", "if"])
+                    || self.at_words(&["more", "first", "if"]);
+                if self.at_words(&["less", "if"])
+                    || self.at_words(&["more", "if"])
+                    || as_long_as
+                    || first
+                {
                     let less = self.at_word("less");
-                    self.pos += if as_long_as { 4 } else { 2 };
+                    self.pos += if as_long_as {
+                        4
+                    } else if first {
+                        3
+                    } else {
+                        2
+                    };
                     let cond = self.static_cond()?;
                     self.end_stmt()?;
                     let n = i32::try_from(per).unwrap_or(0);
@@ -3254,6 +3271,7 @@ impl P {
                         delta: if less { -n } else { n },
                         cond,
                         as_long_as,
+                        first,
                     });
                 }
                 self.expect_word("less")?;
@@ -5621,6 +5639,9 @@ impl P {
         }
         if self.eat_word("no") {
             let kind = self.counter_kind()?;
+            if self.eat_words(&["on", "it"]) {
+                return Ok(StaticCond::SourceHasNoCounters(kind));
+            }
             return Ok(StaticCond::SourceCounters {
                 kind,
                 n: 0,
@@ -7130,7 +7151,10 @@ impl P {
         let mut clauses = vec![self.unless_suffix(first)?];
         let mut joins = Vec::new();
         loop {
-            if self.at_word("and") {
+            if self.at_words(&["and", "then"]) {
+                self.pos += 2;
+                joins.push(Join::ThenRepeat);
+            } else if self.at_word("and") {
                 self.pos += 1;
                 joins.push(Join::And);
             } else if self.peek() == Some(&Tok::Comma) && self.word_at(1).as_deref() == Some("and")
@@ -7926,6 +7950,8 @@ impl P {
             || w == "target"
             || w == "another"
             || self.at_words(&["creature", "dealt", "damage", "this", "way"])
+            || self.at_words(&["each", "creature", "dealt", "damage", "this", "way"])
+            || self.at_words(&["creatures", "dealt", "damage", "this", "way"])
         {
             return true;
         }
@@ -7937,6 +7963,9 @@ impl P {
             || (self.at_words(&["the", "chosen", "target"])
                 && matches!(self.peek_at(3), Some(Tok::Num(_))))
             || self.at_words(&["the", "full", "target"])
+            // "If {W} was spent to cast this spell, the creature gains
+            // ..." (Flash Conscription).
+            || (self.at_words(&["the", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))))
             || self.at_words(&["the", "chosen", "full", "target"])
             || (self.at_words(&["the", "other", "target"])
                 && matches!(self.peek_at(3), Some(Tok::Num(_))))
@@ -7968,6 +7997,7 @@ impl P {
         if self.at_words(&["triggering", "card"])
             || self.at_words(&["triggering", "it"])
             || self.at_words(&["controller", "of", "that", "creature"])
+            || self.at_words(&["controller", "of", "that", "artifact"])
             || self.at_words(&["controller", "of", "enchanted"])
             || self.at_words(&["controller", "of", "granter"])
         {
@@ -8485,8 +8515,12 @@ impl P {
         }
         // `if target 1 wasnt attacking, ...`: "If it wasn't attacking"
         // (negated).
-        let (tense, negated) = if !that && self.eat_word("had") {
-            (crate::ast::TargetTense::Had, false)
+        let (tense, negated) = if self.eat_word("had") {
+            if that {
+                (crate::ast::TargetTense::ThatHad, false)
+            } else {
+                (crate::ast::TargetTense::Had, false)
+            }
         } else {
             let negated = self.eat_word("wasnt");
             if !negated {
@@ -8576,7 +8610,8 @@ impl P {
         if !self.in_trigger || self.no_trigger_obj || self.revealed || self.it_source {
             return None;
         }
-        if !self.at_word("if") {
+        // `if it was kicked, ... instead` (`InsteadCond::KickedIt`).
+        if !self.at_word("if") || self.at_words(&["if", "it", "was", "kicked"]) {
             return None;
         }
         let (words, noun) = match self.word_at(1).as_deref() {
@@ -9605,6 +9640,17 @@ impl P {
             return match self.instead_body(InsteadCond::ThisWay(cond.clone()))? {
                 Ok(e) => Ok(e),
                 Err(s) => Ok(Effect::IfThisWay(cond, vec![s])),
+            };
+        }
+        // "If it was kicked, destroy all other creatures instead."
+        if self.at_words(&["if", "it", "was", "kicked"]) {
+            self.pos += 4;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            return match self.instead_body(InsteadCond::KickedIt)? {
+                Ok(e) => Ok(e),
+                Err(_) => self.fail("`if it was kicked, ...` takes an `instead` sentence"),
             };
         }
         if self.at_word("if")
@@ -15281,7 +15327,18 @@ impl P {
                     self.delayed_dies = was_dies;
                     (t, e?, true)
                 } else if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
-                    let t = self.trigger()?;
+                    // "Whenever it deals combat damage to a player this
+                    // turn, ..." (Fire Giant's Fury): "it" is the object
+                    // the trigger is about.
+                    it = self.word_at(1).as_deref() == Some("it");
+                    self.delayed_it = it;
+                    let t = self.trigger();
+                    self.delayed_it = false;
+                    let t = t?;
+                    if it && crate::format::about_that_creature(&t) {
+                        return self
+                            .fail("write `when it dies this turn` for a dies trigger about it");
+                    }
                     turn_long = self.eat_words(&["this", "turn"]);
                     if self.peek() == Some(&Tok::Comma) {
                         self.pos += 1;
@@ -16748,6 +16805,7 @@ impl P {
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
             delayed_that: self.delayed_that,
+            delayed_it: false,
             delayed_player: self.delayed_player,
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
@@ -17119,6 +17177,12 @@ impl P {
         if self.eat_words(&["creature", "dealt", "damage", "this", "way"]) {
             return Ok(Recipient::DamagedThisWay);
         }
+        if self.eat_words(&["each", "creature", "dealt", "damage", "this", "way"]) {
+            return Ok(Recipient::DamagedThisWayEach);
+        }
+        if self.eat_words(&["creatures", "dealt", "damage", "this", "way"]) {
+            return Ok(Recipient::DamagedThisWayPlural);
+        }
         // "Destroy the rest.": what the last choice didn't choose.
         if self.eat_words(&["the", "rest"]) {
             return Ok(Recipient::Rest);
@@ -17360,7 +17424,10 @@ impl P {
         {
             return Ok(Recipient::TriggeringController { that: false });
         }
-        if self.in_trigger && self.eat_words(&["controller", "of", "that", "creature"]) {
+        if self.in_trigger
+            && (self.eat_words(&["controller", "of", "that", "creature"])
+                || self.eat_words(&["controller", "of", "that", "artifact"]))
+        {
             return Ok(Recipient::TriggeringController { that: true });
         }
         if self.in_trigger && self.eat_words(&["controller", "of", "the", "creature"]) {
@@ -17920,6 +17987,7 @@ impl P {
                         counts: Vec::new(),
                         in_delayed: false,
                         delayed_that: false,
+                        delayed_it: false,
                         delayed_player: None,
                         delayed_dies: false,
                         in_trigger: false,
@@ -19773,6 +19841,10 @@ impl P {
         // In a delayed trigger, "that creature" is what it is about (the
         // trigger's own object, as `this` is for `delayed this:`).
         if self.in_delayed && self.eat_words(&["that", "creature"]) {
+            return Ok(TriggerObj::This);
+        }
+        if self.delayed_it && self.eat_word("it") {
+            self.delayed_it = false;
             return Ok(TriggerObj::This);
         }
         if self.at_word("this")

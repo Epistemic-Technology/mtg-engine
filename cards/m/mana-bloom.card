@@ -1,0 +1,8 @@
+card "Mana Bloom" {
+  oracle_id 7c699180-d18e-4599-acd1-27b951d82136
+  cost {X}{G}
+  type Enchantment
+  enters with X charge counters
+  activated remove 1 charge counter from this, once: add any
+  triggered at beginning of your upkeep if this has no charge counters on it: return this to owner's hand
+}

@@ -1,0 +1,16 @@
+# Wording near-misses, fifteenth wave (wording-b): each card's amounts and
+# targets.
+
+scenario "Harness by Force: gain, untap, and haste both targets" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears" tapped, "Hill Giant" tapped, "Wind Drake"
+  hand A: "Harness by Force"
+  turn 1 A: cast "Harness by Force" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Wind Drake"
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Hill Giant"
+}

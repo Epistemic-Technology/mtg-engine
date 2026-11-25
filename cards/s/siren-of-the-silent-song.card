@@ -1,0 +1,8 @@
+card "Siren of the Silent Song" {
+  oracle_id abb9a164-34cd-41d7-8e89-5700fff336dd
+  cost {1}{U}{B}
+  type Creature — Zombie Siren
+  pt 2/1
+  keywords flying
+  label "Inspired" triggered whenever this becomes untapped: each opponent discards 1 card and then each opponent mills 1 card
+}

@@ -1,0 +1,6 @@
+card "Gaze of Adamaro" {
+  oracle_id 91a69925-1e9b-433a-ad58-88bfd3c4bc46
+  cost {2}{R}{R}
+  type Instant — Arcane
+  spell: deal count equal hand of target player damage to target 1
+}

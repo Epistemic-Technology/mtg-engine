@@ -1,0 +1,8 @@
+card "Desolation Giant" {
+  oracle_id c23aaf6d-151e-481a-a345-ca00c14940d1
+  cost {2}{R}{R}
+  type Creature — Giant
+  pt 3/3
+  kicker {W}{W}
+  triggered when this enters: destroy all other creature you control; if it was kicked, destroy all other creature instead
+}

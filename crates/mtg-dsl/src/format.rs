@@ -520,6 +520,8 @@ impl Fmt {
                 format!("{first} and {group}")
             }
             Recipient::DamagedThisWay => "creature dealt damage this way".to_string(),
+            Recipient::DamagedThisWayEach => "each creature dealt damage this way".to_string(),
+            Recipient::DamagedThisWayPlural => "creatures dealt damage this way".to_string(),
             Recipient::Rest => "the rest".to_string(),
             Recipient::Declined(d) => format!(
                 "each {} who {}",
@@ -935,6 +937,7 @@ impl Fmt {
                 out.push_str(match s.joins.get(i - 1) {
                     Some(Join::Then) => " then ",
                     Some(Join::AndRepeat) => ", and ",
+                    Some(Join::ThenRepeat) => " and then ",
                     Some(Join::Comma) => ", ",
                     _ => " and ",
                 });
@@ -1010,6 +1013,20 @@ impl Fmt {
                     Recipient::Source => "deal".to_string(),
                     r => format!("{} deals", self.recipient(*r, t)),
                 };
+                // `deal count equal hand of target player damage to target
+                // 1` (Gaze of Adamaro): the count, written first, declares
+                // the target.
+                if let Num::Count(i) = amount
+                    && let Some(n) = COUNTS.with(|c| {
+                        c.borrow().get(usize::from(*i)).and_then(|c| match c.expr {
+                            crate::ast::CountExpr::TargetHandDeclared { n, .. } => Some(n),
+                            _ => None,
+                        })
+                    })
+                    && let Some(m) = self.mentioned.get_mut(n)
+                {
+                    *m = true;
+                }
                 if *that_amount {
                     format!("{verb} that amount of damage to {}", self.recipients(to, t))
                 } else if to.is_empty() {
@@ -4025,6 +4042,7 @@ impl Fmt {
                     TargetTense::ThatWas if check.negated => ("that ", "wasnt"),
                     TargetTense::Was => ("", "was"),
                     TargetTense::Had => ("", "had"),
+                    TargetTense::ThatHad => ("that ", "had"),
                     TargetTense::Is => ("", "is"),
                     TargetTense::ThatIs => ("that ", "is"),
                     TargetTense::TheFullIs => ("the full ", "is"),
@@ -4369,6 +4387,7 @@ impl Fmt {
             } => {
                 let cond = match cond {
                     crate::ast::InsteadCond::Kicked => "kicked".to_string(),
+                    crate::ast::InsteadCond::KickedIt => "it was kicked".to_string(),
                     crate::ast::InsteadCond::Static(c) => static_cond(c),
                     crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
                         "{}target {} is {}",
@@ -4539,8 +4558,16 @@ impl Fmt {
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);
-                let trig = if *it {
+                let trig = if *it && about_that_creature(trigger) {
                     this_turn_trigger(trigger).replacen("that creature", "it", 1)
+                } else if *it {
+                    // `whenever it deals combat damage to a player this turn`
+                    let t = trigger_text(trigger, true).replacen(" this ", " it ", 1);
+                    if *this_turn {
+                        format!("{t} this turn")
+                    } else {
+                        t
+                    }
                 } else if *this_turn && !about_that_creature(trigger) {
                     let next = !matches!(trigger, Trigger::BeginningOfStep { .. });
                     format!("{} this turn", trigger_text(trigger, next))
@@ -4675,6 +4702,7 @@ thread_local! {
 fn instead_cond_text(c: &crate::ast::InsteadCond) -> String {
     match c {
         crate::ast::InsteadCond::Kicked => "kicked".to_string(),
+        crate::ast::InsteadCond::KickedIt => "it was kicked".to_string(),
         crate::ast::InsteadCond::Static(c) => static_cond(c),
         crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
             "{}target {} is {}",
@@ -7846,6 +7874,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::SourceCountersOneOrMore(kind) => {
             format!("this has one or more {} counters", kind.name())
         }
+        StaticCond::SourceHasNoCounters(kind) => {
+            format!("this has no {} counters on it", kind.name())
+        }
         StaticCond::SourceCounterParity(even) => {
             format!("this has {} counters", if *even { "even" } else { "odd" })
         }
@@ -9245,13 +9276,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             delta,
             cond,
             as_long_as,
+            first,
         } => {
             let _ = writeln!(
                 out,
                 "{indent}this spell costs {{{}}} {} {} {}",
                 delta.unsigned_abs(),
                 if *delta < 0 { "less" } else { "more" },
-                if *as_long_as { "as long as" } else { "if" },
+                if *as_long_as {
+                    "as long as"
+                } else if *first {
+                    "first if"
+                } else {
+                    "if"
+                },
                 static_cond(cond)
             );
         }

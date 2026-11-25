@@ -1,0 +1,6 @@
+card "Polymorphist's Jest" {
+  oracle_id 5bc66b2d-a93c-449d-a090-b61e1613aa15
+  cost {1}{U}{U}
+  type Instant
+  spell: until end of turn, each single creature target player controls loses all abilities and becomes blue Frog base 1/1
+}

@@ -110,6 +110,9 @@ pub enum TargetTense {
     /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
     /// or less", as it last existed, like `Was`.
     Had,
+    /// `if that target 1 had with mana value 3 or less`: "If that
+    /// permanent had mana value 3 or less" (Serum Snare), as `Had`.
+    ThatHad,
     /// `if the full target 1 is that entered this turn`: "If the creature
     /// you control entered this turn", as it is now, like `Is`.
     TheFullIs,
@@ -2220,6 +2223,10 @@ pub enum Ability {
         delta: i32,
         cond: StaticCond,
         as_long_as: bool,
+        /// `this spell costs {6} less first if ...`: the condition printed
+        /// first ("If you have 3 or less life, this spell costs {6} less to
+        /// cast.", Avatar of Hope).
+        first: bool,
     },
     /// `affinity for artifact`: "Affinity for artifacts" (CR 702.41), this
     /// spell costs {1} less for each such permanent you control.
@@ -3361,6 +3368,10 @@ pub enum StaticCond {
     /// more +1/+1 counters on it" (Ingenious Prodigy; `1 or more` prints
     /// "a +1/+1 counter").
     SourceCountersOneOrMore(CounterKind),
+    /// `this has no charge counters on it`: "this enchantment has no
+    /// charge counters on it" (Mana Bloom; `this has no charge counters`
+    /// prints "there are no charge counters on this enchantment").
+    SourceHasNoCounters(CounterKind),
     /// `this doesn't have flying counter`: "this creature doesn't have a
     /// flying counter on it" (Inventive Wingsmith; the same condition as
     /// `this has no flying counters`, worded from the source).
@@ -3987,6 +3998,9 @@ impl GiftKind {
 pub enum InsteadCond {
     /// `kicked`: "this spell was kicked".
     Kicked,
+    /// `if it was kicked, ... instead`: the same, printed "If it was
+    /// kicked" (Desolation Giant's enters trigger, Cinderclasm).
+    KickedIt,
     Static(StaticCond),
     /// `target 1 is Human` ("it's a Human"), `that target 1 is Human`
     /// ("that creature is a Human"): the target as it resolves.
@@ -4146,6 +4160,10 @@ pub enum Join {
     /// `, and`: "and" with the subject printed again ("you draw a card and
     /// you lose 1 life").
     AndRepeat,
+    /// `and then`: ", then" with the subject printed again ("each
+    /// opponent discards a card, then each opponent mills a card", Siren
+    /// of the Silent Song).
+    ThenRepeat,
     /// `,`: a list of three or more clauses, "A, B, and C" (the last `and`
     /// takes the serial comma) or "A, B, then C".
     Comma,
@@ -5162,6 +5180,12 @@ pub enum Recipient {
     /// `creature dealt damage this way`: "a creature dealt damage this
     /// way" (each permanent the resolution has dealt damage to).
     DamagedThisWay,
+    /// `each creature dealt damage this way`, `creatures dealt damage this
+    /// way`: the same objects, printed "Each creature dealt damage this
+    /// way" (Aggravate) and "Creatures dealt damage this way" (Huatli,
+    /// Warrior Poet; a plural subject).
+    DamagedThisWayEach,
+    DamagedThisWayPlural,
     /// `the rest`: after a choice, what wasn't chosen ("Destroy the
     /// rest.", "then sacrifices the rest").
     Rest,

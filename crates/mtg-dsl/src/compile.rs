@@ -2566,11 +2566,13 @@ impl Compiler<'_> {
             StaticCond::SourceCounterParity(even) => {
                 StaticCondition::SourceCounterParity { even: *even }
             }
-            StaticCond::SourceLacksCounter(kind) => StaticCondition::SourceCounters {
-                kind: *kind,
-                n: 0,
-                at_least: false,
-            },
+            StaticCond::SourceHasNoCounters(kind) | StaticCond::SourceLacksCounter(kind) => {
+                StaticCondition::SourceCounters {
+                    kind: *kind,
+                    n: 0,
+                    at_least: false,
+                }
+            }
             StaticCond::SourceCountersThere { kind, n } => StaticCondition::SourceCounters {
                 kind: *kind,
                 n: *n,
@@ -3395,7 +3397,9 @@ impl Compiler<'_> {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
             Recipient::ExiledWith(i) => CoreRecipient::ExiledWith(groups[usize::from(i)]),
-            Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
+            Recipient::DamagedThisWay
+            | Recipient::DamagedThisWayEach
+            | Recipient::DamagedThisWayPlural => CoreRecipient::DamagedThisWay,
             Recipient::Rest => CoreRecipient::Rest,
             Recipient::Declined(d) if d.tense == crate::ast::DeclinedTense::Does => {
                 CoreRecipient::Accepted
@@ -3520,7 +3524,7 @@ impl Compiler<'_> {
     /// What an `instead` sentence checks, as it resolves.
     fn instead_cond(&mut self, cond: &InsteadCond) -> EffectCond {
         match cond {
-            InsteadCond::Kicked => EffectCond::Kicked,
+            InsteadCond::Kicked | InsteadCond::KickedIt => EffectCond::Kicked,
             InsteadCond::Static(c) => {
                 let c = self.static_cond(c);
                 EffectCond::Static(self.pool.intern_condition(c))

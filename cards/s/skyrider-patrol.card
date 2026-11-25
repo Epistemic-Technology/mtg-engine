@@ -1,0 +1,8 @@
+card "Skyrider Patrol" {
+  oracle_id 104386d9-93b4-4a18-86d5-68718b474f4a
+  cost {2}{G}{U}
+  type Creature — Elf Scout
+  pt 2/3
+  keywords flying
+  triggered at beginning of your combat: you may pay {G}{U}; when you do, put 1 +1/+1 counter on another target creature you control, and that creature gains flying until end of turn
+}

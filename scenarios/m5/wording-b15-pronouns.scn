@@ -1,0 +1,19 @@
+# Wording near-misses, fifteenth wave (wording-b): pronoun and noun
+# choices. Each card's amounts and targets.
+
+scenario "Fire Giant's Fury: the Giant's combat damage exiles that many to play" {
+  battlefield A: 3 "Mountain", "Hill Giant", "Grizzly Bears"
+  hand A: "Fire Giant's Fury"
+  library A: "Shock", "Forest", "Island", "Swamp", "Plains", "Mountain", "Wind Drake"
+  turn 1 A: cast "Fire Giant's Fury" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant", "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert power "Hill Giant" 5
+  assert has "Hill Giant" trample
+  assert life B 11
+  assert exile A contains "Plains"
+  assert library A contains "Wind Drake"
+  assert library A count 2
+  assert graveyard A contains "Shock"
+}

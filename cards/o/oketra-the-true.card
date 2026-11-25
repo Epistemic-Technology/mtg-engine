@@ -1,0 +1,10 @@
+card "Oketra the True" {
+  oracle_id 646e68c8-cc42-4d6c-8363-a18b10a10eae
+  cost {3}{W}
+  type Legendary Creature — God
+  pt 3/6
+  short_name "Oketra"
+  keywords double strike, indestructible
+  can't attack or block unless you control at least 3 other creature
+  activated {3}{W}: create 1 "1/1 white Warrior creature with vigilance"
+}
