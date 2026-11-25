@@ -984,9 +984,20 @@ impl CastInfo {
 impl Clone for GameObject {
     #[inline]
     fn clone(&self) -> Self {
+        // Most objects (a library's cards) have neither targets nor
+        // counters: `from_slice` copies even an empty slice with a call
+        // to `memcpy`.
         GameObject {
-            targets: SmallVec::from_slice(&self.targets),
-            counters: SmallVec::from_slice(&self.counters),
+            targets: if self.targets.is_empty() {
+                SmallVec::new()
+            } else {
+                SmallVec::from_slice(&self.targets)
+            },
+            counters: if self.counters.is_empty() {
+                SmallVec::new()
+            } else {
+                SmallVec::from_slice(&self.counters)
+            },
             ..*self
         }
     }
