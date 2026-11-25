@@ -1894,7 +1894,9 @@ impl Templates {
             // "At the beginning of your upkeep, sacrifice a creature other
             // than this creature." (Demonic Taskmaster).
             (
-                r(r"^[Ss]acrifice an? (creature|artifact|land|permanent) other than this (?:creature|artifact|enchantment)$"),
+                r(
+                    r"^[Ss]acrifice an? (creature|artifact|land|permanent) other than this (?:creature|artifact|enchantment)$",
+                ),
                 |c, _| Some(format!("you sacrifice 1 {} other than this", cap(c, 1))),
             ),
             // "put a loyalty counter on Ral" (CR 306.5).
@@ -2462,11 +2464,14 @@ impl Templates {
             }),
             // "Create a tapped 2/2 black Zombie creature token" (CR
             // 111.2: the token enters tapped).
-            (r(&TOKEN_PHRASE.replacen(r"(\S+) (", r"(\S+) tapped (", 1)), |c, _| {
-                let key = format!("{}{}", cap(c, 2), cap(c, 3));
-                token_block(&key)?;
-                Some(format!("create {} tapped \"{key}\"", number(cap(c, 1))?))
-            }),
+            (
+                r(&TOKEN_PHRASE.replacen(r"(\S+) (", r"(\S+) tapped (", 1)),
+                |c, _| {
+                    let key = format!("{}{}", cap(c, 2), cap(c, 3));
+                    token_block(&key)?;
+                    Some(format!("create {} tapped \"{key}\"", number(cap(c, 1))?))
+                },
+            ),
             // "Create X 1/1 green Squirrel creature tokens, where X is the
             // number of Squirrels you control."
             (
@@ -8739,12 +8744,7 @@ impl Builder<'_> {
                 .unwrap()
                 .captures(what)
             {
-                Some(k) => format!(
-                    "{} {}{}",
-                    &k[2],
-                    &k[1],
-                    k.get(3).map_or("", |m| m.as_str())
-                ),
+                Some(k) => format!("{} {}{}", &k[2], &k[1], k.get(3).map_or("", |m| m.as_str())),
                 None => what.to_string(),
             };
             self.statements.push(format!(
@@ -9776,18 +9776,22 @@ fn corpus_lines(corpus: &[Card]) -> &'static std::collections::HashMap<String, S
                 out.insert(key, st);
             }
         }
-        // `MTG_AUTHOR_KEYS=<file>`: the index, a line and its statement
-        // on each row.
-        if let Some(path) = std::env::var_os("MTG_AUTHOR_KEYS") {
-            let mut rows: Vec<String> = out
-                .iter()
-                .map(|(k, v)| format!("{k}\t{}", v.replace('\n', "\\n")))
-                .collect();
-            rows.sort();
-            let _ = std::fs::write(path, rows.join("\n"));
-        }
+        dump_index(&out);
         out
     })
+}
+
+/// `MTG_AUTHOR_KEYS=<file>`: the index written there, a line and its
+/// statement on each row.
+fn dump_index(index: &std::collections::HashMap<String, String>) {
+    if let Some(path) = std::env::var_os("MTG_AUTHOR_KEYS") {
+        let mut rows: Vec<String> = index
+            .iter()
+            .map(|(k, v)| format!("{k}\t{}", v.replace('\n', "\\n")))
+            .collect();
+        rows.sort();
+        let _ = std::fs::write(path, rows.join("\n"));
+    }
 }
 
 /// A line's amounts and mana symbols, each as the DSL writes it ("two" →
@@ -9927,12 +9931,8 @@ fn line_renders(corpus: &[Card], frame: &(String, Vec<String>), st: &str, line: 
     use std::collections::HashMap;
     use std::sync::OnceLock;
     static BY_NAME: OnceLock<HashMap<String, Card>> = OnceLock::new();
-    let by_name = BY_NAME.get_or_init(|| {
-        corpus
-            .iter()
-            .map(|c| (c.name.clone(), c.clone()))
-            .collect()
-    });
+    let by_name =
+        BY_NAME.get_or_init(|| corpus.iter().map(|c| (c.name.clone(), c.clone())).collect());
     let text = format!("{}  {st}\n}}\n", frame.0);
     let Ok(mut cards) = mtg_dsl::parse(&text) else {
         return false;
@@ -10113,58 +10113,14 @@ fn corpus_statement_words(corpus: &[Card], line: &str) -> Vec<String> {
             }
         }
         let changed = map.iter().filter(|(a, b)| a != b).count();
-        let mut out = st.clone();
-        if changed > 0 {
-            // Each changed word, its form with a small first letter, and
-            // its singular as the DSL writes a filter ("Elves" → `Elf`,
-            // "Creatures" → `creature`), swapped in one pass.
-            let mut pairs: Vec<(String, String)> = Vec::new();
-            for (a, b) in map.iter().filter(|(a, b)| a != b) {
-                let (la, lb) = (lowercase_first(a), lowercase_first(b));
-                for (x, y) in [((*a).to_string(), (*b).to_string()), (la, lb)] {
-                    let (sx, sy) = (singular(&x), singular(&y));
-                    let (tx, ty) = (singular_type(&x).to_string(), singular_type(&y).to_string());
-                    // A verb's base form ("draws" → `draw`).
-                    let verb = |w: &str| match w {
-                        "draws" | "discards" | "mills" => w[..w.len() - 1].to_string(),
-                        _ => w.to_string(),
-                    };
-                    let (vx, vy) = (verb(&x), verb(&y));
-                    pairs.push((x, y));
-                    pairs.push((sx, sy));
-                    pairs.push((tx, ty));
-                    pairs.push((vx, vy));
-                }
-            }
-            pairs.retain(|(x, y)| x != y);
-            pairs.sort();
-            pairs.dedup();
-            // One replacement for each word.
-            let mut seen = std::collections::HashSet::new();
-            pairs.retain(|(x, _)| seen.insert(x.clone()));
-            pairs.sort_by_key(|(x, _)| std::cmp::Reverse(x.len()));
-            let alt = pairs
-                .iter()
-                .map(|(a, _)| regex::escape(a))
-                .collect::<Vec<_>>()
-                .join("|");
-            let Ok(re) = cached_regex(&format!(r"\b(?:{alt})\b")) else {
+        let out = if changed > 0 {
+            let Some(out) = swap_words(st, &map) else {
                 continue;
             };
-            let swapped = re.replace_all(&out, |c: &regex::Captures| {
-                pairs
-                    .iter()
-                    .find(|(a, _)| *a == c[0])
-                    .map_or_else(|| c[0].to_string(), |(_, b)| b.clone())
-            });
-            out = swapped.into_owned();
-            // An article the statement prints before a word put in.
-            for (_, b) in &pairs {
-                let vowel = b.starts_with(['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']);
-                let (wrong, right) = if vowel { ("a", "an") } else { ("an", "a") };
-                out = out.replace(&format!(" {wrong} {b}"), &format!(" {right} {b}"));
-            }
-        }
+            out
+        } else {
+            st.clone()
+        };
         // Amounts and mana: their line with our words, then as numbers.
         let re = shape_word_regex(corpus);
         let mut i = 0;
@@ -10191,6 +10147,55 @@ fn corpus_statement_words(corpus: &[Card], line: &str) -> Vec<String> {
     // Stable: of equal changes, the index's order.
     found.sort_by_key(|(n, _)| *n);
     found.into_iter().map(|(_, st)| st).collect()
+}
+
+/// `st` with each word of `map` (a corpus line's word to ours) swapped
+/// in, in one pass: the word, its form with a small first letter, its
+/// singular as the DSL writes a filter ("Elves" → `Elf`, "Creatures" →
+/// `creature`) and a verb's base form ("draws" → `draw`); an article the
+/// statement prints before a word put in follows it.
+fn swap_words(st: &str, map: &std::collections::HashMap<&str, &str>) -> Option<String> {
+    let verb = |w: &str| match w {
+        "draws" | "discards" | "mills" => w[..w.len() - 1].to_string(),
+        _ => w.to_string(),
+    };
+    let mut pairs: Vec<(String, String)> = Vec::new();
+    for (a, b) in map.iter().filter(|(a, b)| a != b) {
+        let (la, lb) = (lowercase_first(a), lowercase_first(b));
+        for (x, y) in [((*a).to_string(), (*b).to_string()), (la, lb)] {
+            pairs.push((singular(&x), singular(&y)));
+            pairs.push((singular_type(&x).to_string(), singular_type(&y).to_string()));
+            pairs.push((verb(&x), verb(&y)));
+            pairs.push((x, y));
+        }
+    }
+    pairs.retain(|(x, y)| x != y);
+    pairs.sort();
+    pairs.dedup();
+    // One replacement for each word.
+    let mut seen = std::collections::HashSet::new();
+    pairs.retain(|(x, _)| seen.insert(x.clone()));
+    pairs.sort_by_key(|(x, _)| std::cmp::Reverse(x.len()));
+    let alt = pairs
+        .iter()
+        .map(|(a, _)| regex::escape(a))
+        .collect::<Vec<_>>()
+        .join("|");
+    let re = cached_regex(&format!(r"\b(?:{alt})\b")).ok()?;
+    let mut out = re
+        .replace_all(st, |c: &regex::Captures| {
+            pairs
+                .iter()
+                .find(|(a, _)| *a == c[0])
+                .map_or_else(|| c[0].to_string(), |(_, b)| b.clone())
+        })
+        .into_owned();
+    for (_, b) in &pairs {
+        let vowel = b.starts_with(['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']);
+        let (wrong, right) = if vowel { ("a", "an") } else { ("an", "a") };
+        out = out.replace(&format!(" {wrong} {b}"), &format!(" {right} {b}"));
+    }
+    Some(out)
 }
 
 /// `st`, the statement printing `theirs`, with the amounts and mana of
@@ -11626,8 +11631,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     // "you may pay {X}. If you do, return target ... card with mana value
     // X": the target is chosen before X is paid and its bound isn't
     // judged again (Relentless Dead), so the card is left to an agent.
-    let pay_x = cached_regex(r"you may pay \{X\}[^:]*; if you do, [^;]*target [^;]*with mana value X\b")
-        .unwrap();
+    let pay_x =
+        cached_regex(r"you may pay \{X\}[^:]*; if you do, [^;]*target [^;]*with mana value X\b")
+            .unwrap();
     if b.statements.iter().any(|st| pay_x.is_match(st)) {
         return Err(Skip::Sentence(
             "a target bounded by an X paid as it resolves".to_string(),
