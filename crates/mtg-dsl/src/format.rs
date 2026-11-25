@@ -6649,6 +6649,15 @@ pub fn natural_when(t: &Trigger) -> bool {
         )
 }
 
+/// A card filter's words before "card", none for any card.
+fn card_words(f: &Filter) -> String {
+    if *f == Filter::default() {
+        String::new()
+    } else {
+        filter(f)
+    }
+}
+
 /// A `PutIntoGraveyardFrom` trigger, in the DSL and (with the filter
 /// phrased for Oracle text) in Oracle text alike: "whenever [one or more]
 /// [creature] card[s] is/are put into ... graveyard from ...". `words` is
@@ -6846,7 +6855,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 filter: f,
                 whose,
                 from,
-            } => graveyard_from_words(f, *whose, *from, true, &filter(f)),
+            } => graveyard_from_words(f, *whose, *from, true, &card_words(f)),
             Trigger::LeavesWithoutDying(TriggerObj::Filter(f)) => format!(
                 "whenever one or more {} leave the battlefield without dying",
                 filter(f)
@@ -7474,7 +7483,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             filter: f,
             whose,
             from,
-        } => graveyard_from_words(f, *whose, *from, false, &filter(f)),
+        } => graveyard_from_words(f, *whose, *from, false, &card_words(f)),
         Trigger::ThisAttachment { attached: true } => {
             "whenever this becomes attached to creature".to_string()
         }

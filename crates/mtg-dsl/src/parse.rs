@@ -20847,8 +20847,11 @@ impl P {
         }
         // "a source [you control | an opponent controls] [other than this]
         // deals [combat] damage to ...".
-        if self.at_word("source") && !self.at_words(&["source", "would"]) {
+        if (self.at_word("source") && !self.at_words(&["source", "would"]))
+            || (self.at_words(&["a", "source"]) && !self.at_words(&["a", "source", "would"]))
+        {
             let at = self.pos;
+            self.eat_word("a");
             self.pos += 1;
             let mut from = Filter::default();
             if self.eat_words(&["you", "control"]) {
