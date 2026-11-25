@@ -214,3 +214,39 @@ scenario "Puca's Eye: it becomes the chosen color, and stays so" {
   run_to turn 3 upkeep
   assert is "Puca's Eye" green
 }
+
+# "This spell can't be copied." (CR 101.2) and a creature spell's copy
+# that gains haste and "At the beginning of the end step, sacrifice this
+# token." (Choreographed Sparks; the copy becomes a token, CR 707.10f).
+
+scenario "Choreographed Sparks: the creature spell's copy is a token with haste, sacrificed at the end step" {
+  battlefield A: 2 "Forest", 2 "Mountain"
+  hand A: "Grizzly Bears", "Choreographed Sparks"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Choreographed Sparks" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert has oldest A "Grizzly Bears" haste
+  assert has not newest A "Grizzly Bears" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Choreographed Sparks: copies an instant spell you control" {
+  battlefield A: 3 "Mountain"
+  hand A: "Lightning Bolt", "Choreographed Sparks"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Choreographed Sparks" mode 1 targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Choreographed Sparks: it can't be copied" {
+  battlefield A: 5 "Mountain"
+  hand A: "Lightning Bolt", "Choreographed Sparks", "Choreographed Sparks"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Choreographed Sparks" mode 1 targeting "Lightning Bolt"
+  turn 1 A: cast "Choreographed Sparks" mode 1 targeting oldest "Choreographed Sparks"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}

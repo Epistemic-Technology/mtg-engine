@@ -3095,6 +3095,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Uncounterable)
             }
+            "this" if self.at_words(&["this", "spell", "can't", "be", "copied"]) => {
+                self.pos += 5;
+                self.end_stmt()?;
+                Ok(Ability::Uncopyable)
+            }
             "this" if self.at_words(&["this", "spell", "costs"]) => {
                 self.pos += 3;
                 let cost = self.mana_cost()?;

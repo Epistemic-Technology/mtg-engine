@@ -9017,6 +9017,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");
         }
+        Ability::Uncopyable => {
+            let _ = writeln!(out, "{indent}this spell can't be copied");
+        }
         Ability::UncounterableIf {
             cond,
             unpreventable,

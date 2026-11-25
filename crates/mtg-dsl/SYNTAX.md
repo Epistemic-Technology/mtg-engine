@@ -1053,7 +1053,9 @@ cast` are the same condition, printed by the card's pronoun): the
 condition of `you cast it`.
 `this spell can't be countered`: "This spell can't be countered." (CR
 101.2: a spell or ability that would counter it, ward included, does
-nothing to it). `if x 5 or more, this spell can't be countered and the
+nothing to it). `this spell can't be copied`: "This spell can't be
+copied." (CR 101.2: an effect that would copy it makes no copy;
+Choreographed Sparks). `if x 5 or more, this spell can't be countered and the
 damage can't be prevented` prints "If X is 5 or more, this spell can't be
 countered and the damage can't be prevented." (Banefire; any static
 condition, `label "Hellbent" if hand 0 or less, ...`; without the `and`
@@ -3046,7 +3048,10 @@ ability's controller's, is not cast, keeps the spell's mode, X, and
 targets, and with `new targets` its controller may change them (CR
 707.10c; `choose "Hill Giant"` in scenarios); `with exceptions` applies
 the card's `except` block to the copy, "except the copy isn't
-legendary". A copy of a permanent spell becomes a token as it resolves,
+legendary"; a block of keywords and abilities alone prints "Copy target
+creature spell you control. The copy gains haste and \"At the beginning
+of the end step, sacrifice this token.\"" (Choreographed Sparks: the token
+it becomes has them). A copy of a permanent spell becomes a token as it resolves,
 CR 608.3f; a copy of a spell that has left the stack is made from it as
 it last existed). Abilities on the stack are copied the same way (CR
 707.10, 707.10b: the copy has the same source and isn't activated): `copy

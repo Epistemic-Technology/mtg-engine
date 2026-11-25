@@ -2501,6 +2501,8 @@ pub enum Ability {
     Companion(String),
     /// `this spell can't be countered`: "This spell can't be countered."
     Uncounterable,
+    /// `this spell can't be copied`: "This spell can't be copied."
+    Uncopyable,
     /// `if x 5 or more, this spell can't be countered and the damage can't
     /// be prevented`: "If X is 5 or more, this spell can't be countered and
     /// the damage can't be prevented." (Banefire); without the `and`

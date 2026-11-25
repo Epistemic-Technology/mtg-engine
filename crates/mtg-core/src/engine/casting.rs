@@ -10513,6 +10513,10 @@ impl GameState {
                 _ => return None,
             },
         };
+        // "This spell can't be copied." (CR 101.2).
+        if self.pool.get(orig.def).uncopyable {
+            return None;
+        }
         let copy = self.new_object(orig.def, controller, Zone::Stack);
         self.stack.push(copy);
         {

@@ -10671,9 +10671,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let _ = write!(text, " {} times", count_words(*n, "one"));
                 }
             }
+            let x = except_text(ctx.card, ctx.current);
+            // "Copy target creature spell you control. The copy gains
+            // haste and \"At the beginning of the end step, sacrifice this
+            // token.\"" (Choreographed Sparks): what it only has more.
+            if *except && let Some(rest) = x.strip_prefix("it has ") {
+                let _ = write!(text, ". The copy gains {rest}");
+                return Clause::imperative(text);
+            }
             if *except {
                 // "except the copy isn't legendary".
-                let x = except_text(ctx.card, ctx.current)
+                let x = x
                     .replace("it isn't", "the copy isn't")
                     .replace("it's", "the copy is");
                 let _ = write!(text, ", except {x}");
@@ -22393,6 +22401,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             this_ref(card)
         ),
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
+        Ability::Uncopyable => "This spell can't be copied.".to_string(),
         Ability::UncounterableIf {
             cond,
             unpreventable,

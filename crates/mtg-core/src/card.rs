@@ -10838,6 +10838,10 @@ pub struct CardDef {
     /// that would counter it does nothing to it).
     #[serde(default)]
     pub uncounterable: bool,
+    /// "This spell can't be copied." (CR 101.2: an effect that would copy
+    /// it makes no copy; Choreographed Sparks).
+    #[serde(default)]
+    pub uncopyable: bool,
     /// "If X is 5 or more, this spell can't be countered and the damage
     /// can't be prevented." (Banefire), "Spell mastery — If there are two
     /// or more instant and/or sorcery cards in your graveyard, this spell
@@ -13773,6 +13777,7 @@ impl Builder {
             target_cost: None,
             target_cost_colors: crate::mana::ColorSet::default(),
             uncounterable: false,
+            uncopyable: false,
             uncounterable_if: None,
             cond_cost: None,
             madness: None,
@@ -14312,6 +14317,13 @@ impl Builder {
     #[must_use]
     pub fn uncounterable(mut self) -> Self {
         self.0.uncounterable = true;
+        self
+    }
+
+    /// "This spell can't be copied."
+    #[must_use]
+    pub fn uncopyable(mut self) -> Self {
+        self.0.uncopyable = true;
         self
     }
 

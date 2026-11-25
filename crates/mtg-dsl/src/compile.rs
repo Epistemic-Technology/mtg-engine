@@ -622,6 +622,9 @@ impl Compiler<'_> {
                 Ability::Uncounterable => {
                     b = b.uncounterable();
                 }
+                Ability::Uncopyable => {
+                    b = b.uncopyable();
+                }
                 Ability::UncounterableIf {
                     cond,
                     unpreventable,
@@ -1606,6 +1609,7 @@ impl Compiler<'_> {
                     | Ability::Companion(_)
                     | Ability::KeepsDamage
                     | Ability::Uncounterable
+                    | Ability::Uncopyable
                     | Ability::UncounterableIf { .. }
                     | Ability::EquipDiscount { .. }
                     | Ability::AuraStays
@@ -6775,6 +6779,9 @@ impl Compiler<'_> {
             }
             Ability::Uncounterable | Ability::UncounterableIf { .. } => {
                 return self.err("\"can't be countered\" is a property of the spell");
+            }
+            Ability::Uncopyable => {
+                return self.err("\"can't be copied\" is a property of the spell");
             }
             Ability::EquipDiscount { .. } => {
                 return self.err("an equip discount is a property of the card");
