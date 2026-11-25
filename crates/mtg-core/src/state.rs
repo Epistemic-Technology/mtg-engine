@@ -3902,6 +3902,47 @@ impl GameState {
             })
     }
 
+    /// With two or more replacement effects in play, whether two of them
+    /// could apply to one event, so that its player chooses the order (CR
+    /// 616.1): two whose events are of one kind (`replaces_kind`). A
+    /// battlefield "as this enters" effect applies only to its own permanent
+    /// entering and is not counted (`DefFlags::has_replacements`); the
+    /// entering permanent's own are judged where it enters.
+    #[cold]
+    #[inline(never)]
+    fn replacements_may_meet(&self) -> bool {
+        let mut seen = 0u16;
+        let mut meets = |r: &crate::card::Replaces| {
+            let k = replaces_kind(r);
+            let met = seen & k != 0;
+            seen |= k;
+            met
+        };
+        if self.replacements.iter().any(|e| meets(&e.ability.replaces)) {
+            return true;
+        }
+        // A permanent may have a replacement ability granted to it (as
+        // `replace::candidates` looks).
+        let granted = self.grant_sources > 0;
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            if !granted && !self.flags_of(o).has_replacements() {
+                continue;
+            }
+            let Some(c) = self.characteristics(*id) else {
+                continue;
+            };
+            for a in &c.abilities {
+                if let crate::card::AbilityDef::Replacement(r) = self.pool.ability(*a)
+                    && meets(&r.replaces)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     /// With two or more legendary permanents on the battlefield, whether
     /// an action with nothing new entering could meet the legend rule (CR
     /// 704.5j): two of them already share a name (a change of control, or
@@ -4026,7 +4067,9 @@ impl GameState {
             // linked exiles in random games are other cards: checking
             // the whole game's counts snapshotted every action).
             || (!self.linked_exiles.is_empty() && self.linked_return_may_ask(replacers))
-            || replacers >= 2
+            // Two replacement effects that could apply to one event
+            // (CR 616.1).
+            || (replacers >= 2 && self.replacements_may_meet())
             || (self.legendary_count >= 2 && self.legends_may_meet())
             // An effect can make a permanent legendary or name it at any
             // time (CR 704.5j then asks which to keep).
@@ -6885,6 +6928,31 @@ impl GameState {
         (0..self.num_players())
             .map(|i| PlayerId(u8::try_from(i).unwrap_or(0)))
             .filter(move |p| self.player(*p).lost.is_none())
+    }
+}
+
+/// The kinds of event (`replace::Proposed`) a replacement effect of `r`
+/// can apply to (`GameState::applies`), one bit each: damage, gaining
+/// life, losing life, a draw, a move to a graveyard, entering the
+/// battlefield, counters, destruction. "As this enters" applies from the
+/// entering permanent only; any other (milling, drawing several, tokens,
+/// mana) counts as meeting every kind.
+fn replaces_kind(r: &crate::card::Replaces) -> u16 {
+    use crate::card::Replaces as R;
+    match r {
+        R::Damage { .. } | R::DamageToAndBy { .. } => 1,
+        R::GainLife { .. } => 1 << 1,
+        R::LoseLife { .. } => 1 << 2,
+        R::Draw { .. } => 1 << 3,
+        R::ToGraveyard { .. }
+        | R::FilteredToGraveyard { .. }
+        | R::ThisToGraveyard
+        | R::Dies { .. } => 1 << 4,
+        R::OthersEnter { .. } => 1 << 5,
+        R::PlusCounters { .. } | R::AnyCounters { .. } => 1 << 5 | 1 << 6,
+        R::Destroy { .. } => 1 << 7,
+        R::Enters => 0,
+        _ => u16::MAX,
     }
 }
 
