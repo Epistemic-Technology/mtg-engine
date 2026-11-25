@@ -1,0 +1,8 @@
+card "Sidisi, Brood Tyrant" {
+  oracle_id 3fad7072-21e3-446e-a28f-615038c8bfea
+  cost {1}{B}{G}{U}
+  type Legendary Creature — Snake Shaman
+  pt 3/3
+  triggered whenever this enters or attacks: mill 3 cards
+  triggered whenever one or more creature cards are put into your graveyard from your library: create 1 "2/2 black Zombie creature"
+}

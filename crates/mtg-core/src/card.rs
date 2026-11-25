@@ -9284,6 +9284,28 @@ pub enum TriggerSpec {
     /// permanent is the triggering object ("that creature", "that
     /// permanent").
     ThisAttachment { attached: bool },
+    /// "When this card is put into your graveyard from your library"
+    /// (Narcomoeba; `named`: "When Creeping Chill is put ...", wording
+    /// only): the card itself goes to its owner's graveyard from that zone
+    /// (CR 603.6a); it triggers from the graveyard, controlled by the
+    /// card's owner.
+    ThisToGraveyardFrom {
+        from: crate::state::Zone,
+        #[serde(default)]
+        named: bool,
+    },
+    /// "Whenever a card is put into an opponent's graveyard from
+    /// anywhere", "Whenever a creature card is put into your graveyard
+    /// from your library" (`Batch` of it: "one or more ... cards"): a card
+    /// matching the filter, judged as it is in the graveyard, goes to the
+    /// graveyard of a player matching `whose` (its owner), from `from`
+    /// (anywhere if `None`). The card is the triggering object, its owner
+    /// the triggering player.
+    PutIntoGraveyardFrom {
+        filter: ObjFilter,
+        whose: Who,
+        from: Option<crate::state::Zone>,
+    },
     /// "Whenever you or a permanent you control becomes the target of a
     /// spell or ability an opponent controls" (`and_or`, wording only: "you
     /// and/or at least one permanent you control"): once per spell or
@@ -9536,6 +9558,8 @@ impl TriggerSpec {
             | TriggerSpec::LeavesGraveyard(_)
             | TriggerSpec::PutIntoGraveyard(_)
             | TriggerSpec::ThisToGraveyard
+            | TriggerSpec::ThisToGraveyardFrom { .. }
+            | TriggerSpec::PutIntoGraveyardFrom { .. }
             | TriggerSpec::PutIntoGraveyardFromBattlefield(_)
             | TriggerSpec::EntersFromGraveyard(_)
             | TriggerSpec::EntersFrom { .. } => WATCH_ZONE_CHANGE,

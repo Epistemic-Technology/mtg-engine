@@ -1,0 +1,8 @@
+card "Vulturous Zombie" {
+  oracle_id 11a28f60-2456-4ed5-b1cc-03c395f55e59
+  cost {3}{B}{G}
+  type Creature — Plant Zombie
+  pt 3/3
+  keywords flying
+  triggered whenever card is put into an opponent's graveyard from anywhere: put 1 +1/+1 counter on this
+}

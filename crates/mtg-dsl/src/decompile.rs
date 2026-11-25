@@ -3091,6 +3091,19 @@ impl Decompiler<'_> {
                 whose: *whose,
                 and_or: *and_or,
             },
+            TriggerSpec::ThisToGraveyardFrom { from, named } => Trigger::ThisToGraveyardFrom {
+                from: *from,
+                named: *named,
+            },
+            TriggerSpec::PutIntoGraveyardFrom {
+                filter,
+                whose,
+                from,
+            } => Trigger::PutIntoGraveyardFrom {
+                filter: self.filter(filter),
+                whose: *whose,
+                from: *from,
+            },
             TriggerSpec::ThisAttachment { attached } => Trigger::ThisAttachment {
                 attached: *attached,
             },

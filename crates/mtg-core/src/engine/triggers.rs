@@ -169,12 +169,13 @@ impl GameState {
         if let Event::ZoneChange {
             new,
             def,
+            from,
             to: Zone::Graveyard,
             ..
         } = *event
             && self.pool.get(def).has_triggers()
         {
-            self.to_graveyard_triggers(new, def, &mut fired);
+            self.to_graveyard_triggers(new, def, from, &mut fired);
         }
 
         if matches!(event, Event::Cast { .. }) {
@@ -745,6 +746,7 @@ impl GameState {
         &self,
         card: ObjId,
         def: crate::card::CardRef,
+        from: Zone,
         fired: &mut SmallVec<[PendingTrigger; 2]>,
     ) {
         let Some(owner) = self.objects.get(card).map(|o| o.owner) else {
@@ -752,7 +754,9 @@ impl GameState {
         };
         for &ability in &self.pool.get(def).ability_ids {
             if let AbilityDef::Triggered(t) = self.pool.ability(ability)
-                && matches!(t.trigger, TriggerSpec::ThisToGraveyard)
+                && (matches!(t.trigger, TriggerSpec::ThisToGraveyard)
+                    // "... into your graveyard from your library".
+                    || matches!(t.trigger, TriggerSpec::ThisToGraveyardFrom { from: z, .. } if z == from))
             {
                 fired.push(PendingTrigger {
                     controller: owner,
@@ -2292,6 +2296,31 @@ impl GameState {
             }
             // "is put into your graveyard from anywhere": the card in the
             // graveyard, a new object (CR 400.7).
+            (
+                TriggerSpec::PutIntoGraveyardFrom {
+                    filter,
+                    whose,
+                    from,
+                },
+                Event::ZoneChange {
+                    new,
+                    from: z,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => {
+                if from.is_some_and(|f| f != *z) {
+                    return None;
+                }
+                let o = self.objects.get(*new)?;
+                if !whose_ok(*whose, o.owner) || o.zone != Zone::Graveyard {
+                    return None;
+                }
+                let c = self.base_characteristics(o);
+                filter
+                    .matches(*new, o.owner, &c, Some(w.source), Some(w.controller))
+                    .then_some((Some(*new), Some(o.owner)))
+            }
             (
                 TriggerSpec::PutIntoGraveyard(filter),
                 Event::ZoneChange {

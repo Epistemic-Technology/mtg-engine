@@ -5003,6 +5003,20 @@ pub enum Trigger {
     /// `whenever this becomes attached to creature`, `whenever this
     /// becomes unattached from permanent` (`TriggerSpec::ThisAttachment`).
     ThisAttachment { attached: bool },
+    /// `when this is put into your graveyard from your library [named]`
+    /// (`TriggerSpec::ThisToGraveyardFrom`).
+    ThisToGraveyardFrom {
+        from: mtg_core::state::Zone,
+        named: bool,
+    },
+    /// `whenever card is put into an opponent's graveyard from anywhere`,
+    /// `whenever one or more creature cards are put into your graveyard
+    /// from your library` (`TriggerSpec::PutIntoGraveyardFrom`).
+    PutIntoGraveyardFrom {
+        filter: Filter,
+        whose: Who,
+        from: Option<mtg_core::state::Zone>,
+    },
     /// `whenever you or permanent you control becomes targeted by
     /// opponent`, `whenever you andor permanent you control ...`
     /// (`TriggerSpec::YouOrYoursTargeted`).

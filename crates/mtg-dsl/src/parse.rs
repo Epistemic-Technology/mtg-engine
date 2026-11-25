@@ -21096,6 +21096,9 @@ impl P {
                 whose: Who::Any,
             })));
         }
+        if let Some(t) = self.graveyard_from() {
+            return Ok(t);
+        }
         // "one or more cards leave your graveyard", "one or more creature
         // cards leave your graveyard" (CR 603.2c).
         if self.at_words(&["one", "or", "more"]) {
@@ -21507,6 +21510,58 @@ impl P {
         Ok(first)
     }
 
+    /// `[one or more] [<filter>] card[s] [is | are] put into (your | an
+    /// opponent's) graveyard from (anywhere | your library)`: a
+    /// `PutIntoGraveyardFrom` trigger, batched with `one or more`. Not
+    /// "your graveyard from anywhere" (`PutIntoGraveyard`); nothing is
+    /// consumed unless it matches.
+    fn graveyard_from(&mut self) -> Option<Trigger> {
+        let at = self.pos;
+        let batch = self.eat_words(&["one", "or", "more"]);
+        let filter = if self.at_word("card") || self.at_word("cards") {
+            Filter::default()
+        } else {
+            match self.filter() {
+                Ok(f) => f,
+                Err(_) => {
+                    self.pos = at;
+                    return None;
+                }
+            }
+        };
+        if !(self.eat_word("card") || self.eat_word("cards")) {
+            self.pos = at;
+            return None;
+        }
+        let _ = self.eat_word("is") || self.eat_word("are");
+        let whose = if self.eat_words(&["put", "into", "your", "graveyard"]) {
+            Who::You
+        } else if self.eat_words(&["put", "into", "an", "opponent's", "graveyard"]) {
+            Who::Opponents
+        } else {
+            self.pos = at;
+            return None;
+        };
+        let from = if self.eat_words(&["from", "anywhere"]) {
+            None
+        } else if self.eat_words(&["from", "your", "library"]) {
+            Some(mtg_core::state::Zone::Library)
+        } else {
+            self.pos = at;
+            return None;
+        };
+        if whose == Who::You && from.is_none() {
+            self.pos = at;
+            return None;
+        }
+        let t = Trigger::PutIntoGraveyardFrom {
+            filter,
+            whose,
+            from,
+        };
+        Some(if batch { Trigger::Batch(Box::new(t)) } else { t })
+    }
+
     /// Who a `SourceDealsDamage` trigger's damage is dealt to: `to you [or a
     /// permanent you control]`, `to this`, `to an opponent`.
     fn damage_victim(&mut self) -> R<mtg_core::card::DamageVictim> {
@@ -21615,6 +21670,18 @@ impl P {
                 let n = self.number()?;
                 self.expect_words(&["or", "more", "damage"])?;
                 Ok(Trigger::DealtDamageAtLeast(obj, n))
+            }
+            // CR 603.6a: "When this card is put into your graveyard from
+            // your library".
+            "is" if obj == TriggerObj::This
+                && self.at_words(&["put", "into", "your", "graveyard", "from", "your", "library"]) =>
+            {
+                self.pos += 7;
+                let named = self.eat_word("named");
+                Ok(Trigger::ThisToGraveyardFrom {
+                    from: mtg_core::state::Zone::Library,
+                    named,
+                })
             }
             "is" => {
                 self.expect_words(&["put", "into", "a", "graveyard"])?;

@@ -10644,6 +10644,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         ..
                     })
                 ),
+                // "When this card is put into your graveyard from your
+                // library, you may put it onto the battlefield." (Narcomoeba)
+                Recipient::TriggeringIt => matches!(
+                    ctx.current,
+                    Some(Ability::Triggered {
+                        trigger: Trigger::ThisToGraveyardFrom { .. },
+                        ..
+                    })
+                ),
                 _ => false,
             };
             // "Return up to one target artifact card, up to one target land
@@ -17228,6 +17237,21 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "whenever one or more {} cards are put into your graveyard from anywhere",
                 card_filter_phrase(f, ctx.card)
             ),
+            Trigger::PutIntoGraveyardFrom {
+                filter: f,
+                whose,
+                from,
+            } => crate::format::graveyard_from_words(
+                f,
+                *whose,
+                *from,
+                true,
+                &if *f == Filter::default() {
+                    String::new()
+                } else {
+                    card_filter_phrase(f, ctx.card)
+                },
+            ),
             Trigger::BecomesTapped(TriggerObj::Filter(f)) => format!(
                 "whenever one or more {} become tapped",
                 controller_first(f, filter_phrase(f, ctx.card, true))
@@ -17532,6 +17556,35 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             } else {
                 ""
             }
+        ),
+        // The card names itself in the graveyard: "this card" or its name.
+        Trigger::ThisToGraveyardFrom { named, .. } => {
+            // "When Creeping Chill is put ..., Creeping Chill deals 3 damage"
+            // names it again.
+            ctx.source_mentioned = !*named;
+            format!(
+                "when {} is put into your graveyard from your library",
+                if *named {
+                    short_name(ctx.card).to_string()
+                } else {
+                    "this card".to_string()
+                }
+            )
+        }
+        Trigger::PutIntoGraveyardFrom {
+            filter: f,
+            whose,
+            from,
+        } => crate::format::graveyard_from_words(
+            f,
+            *whose,
+            *from,
+            false,
+            &if *f == Filter::default() {
+                String::new()
+            } else {
+                card_filter_phrase(f, ctx.card)
+            },
         ),
         Trigger::ThisAttachment { attached } => format!(
             "whenever {} becomes {}",

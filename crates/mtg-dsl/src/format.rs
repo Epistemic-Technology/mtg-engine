@@ -6638,6 +6638,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::DiscardsThis
             | Trigger::CastThis { .. }
             | Trigger::ThisToGraveyard
+            | Trigger::ThisToGraveyardFrom { .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
             t,
@@ -6646,6 +6647,50 @@ pub fn natural_when(t: &Trigger) -> bool {
                 ..
             }
         )
+}
+
+/// A `PutIntoGraveyardFrom` trigger, in the DSL and (with the filter
+/// phrased for Oracle text) in Oracle text alike: "whenever [one or more]
+/// [creature] card[s] is/are put into ... graveyard from ...". `words` is
+/// the filter's phrase (empty for any card).
+pub fn graveyard_from_words(
+    f: &Filter,
+    whose: Who,
+    from: Option<mtg_core::state::Zone>,
+    batch: bool,
+    words: &str,
+) -> String {
+    let _ = f;
+    let noun = if words.is_empty() {
+        if batch { "cards" } else { "card" }.to_string()
+    } else if batch {
+        format!("{words} cards")
+    } else {
+        format!("{words} card")
+    };
+    let subject = if batch {
+        format!("one or more {noun} are")
+    } else {
+        let a = if noun.starts_with(['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']) {
+            "an"
+        } else {
+            "a"
+        };
+        format!("{a} {noun} is")
+    };
+    format!(
+        "whenever {subject} put into {} graveyard from {}",
+        if whose == Who::Opponents {
+            "an opponent's"
+        } else {
+            "your"
+        },
+        if from.is_some() {
+            "your library"
+        } else {
+            "anywhere"
+        }
+    )
 }
 
 /// "source [you control] [other than this]", the subject of a
@@ -6797,6 +6842,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 "whenever one or more players discard one or more cards".to_string()
             }
             Trigger::YouTap(f) => format!("whenever you tap one or more {}", filter(f)),
+            Trigger::PutIntoGraveyardFrom {
+                filter: f,
+                whose,
+                from,
+            } => graveyard_from_words(f, *whose, *from, true, &filter(f)),
             Trigger::LeavesWithoutDying(TriggerObj::Filter(f)) => format!(
                 "whenever one or more {} leave the battlefield without dying",
                 filter(f)
@@ -7414,6 +7464,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 ""
             }
         ),
+        Trigger::ThisToGraveyardFrom { named, .. } => format!(
+            "when this is put into your graveyard from your library{}",
+            if *named { " named" } else { "" }
+        ),
+        Trigger::PutIntoGraveyardFrom {
+            filter: f,
+            whose,
+            from,
+        } => graveyard_from_words(f, *whose, *from, false, &filter(f)),
         Trigger::ThisAttachment { attached: true } => {
             "whenever this becomes attached to creature".to_string()
         }

@@ -6791,6 +6791,19 @@ impl Compiler<'_> {
                 whose: *whose,
                 and_or: *and_or,
             },
+            Trigger::ThisToGraveyardFrom { from, named } => TriggerSpec::ThisToGraveyardFrom {
+                from: *from,
+                named: *named,
+            },
+            Trigger::PutIntoGraveyardFrom {
+                filter,
+                whose,
+                from,
+            } => TriggerSpec::PutIntoGraveyardFrom {
+                filter: self.filter(filter),
+                whose: *whose,
+                from: *from,
+            },
             Trigger::ThisAttachment { attached } => TriggerSpec::ThisAttachment {
                 attached: *attached,
             },

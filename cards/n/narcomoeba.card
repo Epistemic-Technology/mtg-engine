@@ -1,0 +1,8 @@
+card "Narcomoeba" {
+  oracle_id dc65bb62-4ba2-4ec1-b3b9-9c51e64cbfc8
+  cost {1}{U}
+  type Creature — Illusion
+  pt 1/1
+  keywords flying
+  triggered when this is put into your graveyard from your library: you may put it onto battlefield
+}
