@@ -371,6 +371,18 @@ impl Fmt {
             Recipient::Targets(a, n) if self.mentioned[a] => {
                 format!("targets {} to {}", a + 1, a + n)
             }
+            // "up to 1 target artifact card ... and up to 1 target land
+            // card ...": different kinds, one at a time (Relive the Past).
+            Recipient::Targets(a, n)
+                if targets
+                    .get(a..a + n)
+                    .is_some_and(|ts| ts.iter().any(|t| *t != ts[0])) =>
+            {
+                let each: Vec<String> = (a..a + n)
+                    .map(|i| self.recipient(Recipient::Target(i), targets))
+                    .collect();
+                each.join(" and ")
+            }
             Recipient::Targets(a, n) => {
                 let first = self.recipient(Recipient::Target(a), targets);
                 for m in &mut self.mentioned[a..a + n] {
