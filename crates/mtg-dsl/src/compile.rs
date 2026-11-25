@@ -5450,7 +5450,24 @@ impl Compiler<'_> {
                 }
             }
             Effect::IfYouDo(inner) => {
-                let effects = self.sentences(inner)?;
+                let mut effects = self.sentences(inner)?;
+                // "you may draw cards equal to its power. If you do,
+                // discard that many cards." (Horrid Shadowspinner): "that
+                // many" is the number drawn, not the triggering event's
+                // amount.
+                if let Some(CoreEffect::YouMay(may)) = out.last()
+                    && let [CoreEffect::DrawCards { count, .. }] = may.as_slice()
+                {
+                    for e in &mut effects {
+                        if let CoreEffect::Discard {
+                            count: c @ Num::ThatMuch,
+                            ..
+                        } = e
+                        {
+                            *c = *count;
+                        }
+                    }
+                }
                 out.push(CoreEffect::IfYouDo(effects));
             }
             Effect::Otherwise(inner) => {

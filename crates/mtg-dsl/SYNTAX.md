@@ -1422,6 +1422,9 @@ keywords for as long as it is on the stack (lifelink, deathtouch, wither
 and split second act there, CR 702.15, 702.2, 702.80, 702.61).
 `learn` (CR 701.48) prints "Learn."; there are no Lesson cards outside the
 game here, so it is "you may discard a card; if you do, draw a card".
+After `you may draw count equal power cards`, `if you do, discard that much
+cards` discards the number drawn ("If you do, discard that many cards.",
+Horrid Shadowspinner), not the triggering event's amount.
 `goad target creature` (CR 701.15; `goad target 1` prints "Goad it.",
 `goad targets 1 to 3` "Goad them."): until the controller's next turn the
 creature attacks each combat if able, and attacks a player other than the
