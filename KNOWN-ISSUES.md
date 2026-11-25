@@ -95,12 +95,9 @@ wrong thing in some case.
   Writhing Township): its definition is the back face, which has no mana
   cost; it should be the sum of its front faces' (CR 202.3c, 712.8g). The
   other card that represents it waits in exile (`GameState::melded`), so
-  "cards in exile" counts it.
+  "cards in exile" counts it. Left open: the fix needs the front faces'
+  sum without giving the back face a mana cost.
 
-- **"When this land enters untapped"** (Idyllic Grange) is the
-  intervening-if trigger `when this enters if this is untapped`: tapping
-  the land with its trigger on the stack stops it (CR 603.4); the printed
-  trigger event is judged only as the land enters.
 - **Restricted mana in the pool** (CR 106.6; `GameState::restricted_pool`):
   payment spends unrestricted floating mana before restricted units,
   which is legal but not what a player would choose; restricted and
@@ -121,8 +118,6 @@ wrong thing in some case.
 - **"For each opponent, ..." assumes two players** (Hapatra, the Desert
   Frost, Lich's Relic, Riptide Gearhulk, Celebrate the Mountain-king,
   The Theorist, Jace Beleren): it happens once.
-- **Conditions on the starting life total** read 20 in a scenario's
-  prepared position, whatever `life A N` says.
 - **A leaves-the-battlefield trigger granted by another permanent that
   leaves at the same time** may still be missed: the pre-check looks at
   the departing object's own grants, not at grants that left with it.
@@ -203,22 +198,23 @@ wrong thing in some case.
   for life or for mana is cast for mana; a granted foretell's cost is
   always the mana cost less {2}; looking at a new top card while a
   spell is being cast is not held back.
-- **Found in the thirteenth wave, in cards that are in:**
+- **Found in the thirteenth wave, in cards that are in** (the fourteenth
+  wave's bugs branch left these open: no corpus card does the wrong
+  thing, or the fix is a mechanism of its own):
   - Several spells cast "from among" exiled cards (`Effect::CastAmong`:
     Etali, Improvisation Capstone, Doom Reigns Supreme) are offered one
     card at a time and cast in exile order, not the player's order;
     castability is judged for all before the first is cast, so one that
     loses its only target to an earlier one is dropped as its cast
-    begins.
-  - "Do this only once each turn" (Planetarium of Wan Shi Tong) counts
-    only a cast taken: declining leaves the limit unused, as for any
-    `TurnLimit::Do` "you may".
-  - "Lands you control enter untapped" always wins (Spelunking, The
-    Wandering Minstrel): the player can't order the replacements (CR
-    616.1) to have a land enter tapped. No card known to want that.
+    begins. The fix is a decision loop in the middle of the resolution.
+  - "Lands you control enter untapped" always wins (The Wandering
+    Minstrel): the player can't order the replacements (CR 616.1) to
+    have a land enter tapped. No card known to want that; replacement
+    ordering by the player is the missing mechanism.
   - Mill and "one or more" draw replacements (The Water Crystal, Quantum
-    Riddler) see only `mill` and `draw_n`; mulligan draws don't use
-    `draw_n`.
+    Riddler) see only `mill` and `draw_n`; other draw paths are not
+    audited. Mulligan draws don't use `draw_n`, but no permanent exists
+    to see them.
   - Bumi's "Only land creatures can attack during that combat phase"
     applies to the next additional combat phase to begin
     (`GameState::pending_combat_attackers`), which may be another
@@ -239,21 +235,14 @@ wrong thing in some case.
   - A granted mana ability with a spend restriction (Clement, the
     Worrywort's Frogs) isn't used by automatic payment; the player
     activates it by hand first.
-  - "You may put a ... card from your hand onto the battlefield" now
-    counts as not done when nothing is put (Origin of the Avengers);
-    other "if you don't" cards were not audited against the old
-    behaviour.
   - "Card types among spells you've cast this turn" (April O'Neil,
     Hacktivist) reads the cast cards' printed types, not the spells as
-    they were on the stack.
-  - Kid Loki's "that you've put one or more +1/+1 counters on this turn"
-    is judged by the permanent's controller, not the static ability's
-    controller (the same for "creature you control").
+    they were on the stack. Only an effect changing a spell's types
+    would differ.
   - Several cards put onto the battlefield at once enter one at a time,
     each seeing the earlier ones enter (CR 603.6a; Ghalta, Stampede
-    Tyrant, Rise of the Dark Realms, Push the Limit, "return all").
-  - One Last Job with no creature to attach to returns nothing: an
-    Equipment should enter unattached; an Aura stays (CR 303.4g).
+    Tyrant, Rise of the Dark Realms, Push the Limit, "return all"). The
+    fix is a simultaneous-entry mechanism.
   - "Choose new targets" doesn't refuse a change that makes a kept
     target illegal (CR 115.7d). No corpus card known.
   - Granted spell keywords ("Instant and sorcery spells you control have
@@ -268,8 +257,6 @@ wrong thing in some case.
     by `GameState::obj_name`, but `ObjFilter::named` compares the copied
     definition, so "named" filters still match the copied card's name.
     No card known to care.
-  - Follow the Lumarets' "You may instead reveal two creature and/or
-    land cards" lets the player take fewer than two.
   - Rowan's Grim Search puts the two cards back on top in the order they
     were; the player doesn't choose (as the other "any order" digs).
   - Reveal-until digs (`dig N until`) don't count for "cards revealed
@@ -279,10 +266,8 @@ wrong thing in some case.
     would print it last. None known.
   - "Deals 4 or more damage" (Spinneret and Spiderling) is judged per
     recipient: combat damage split among several recipients doesn't add
-    up.
-  - "Whenever one or more creatures attack you"
-    (`TriggerSpec::PlayersAttacked`) sees attacks at players only, not
-    at their planeswalkers.
+    up. The fix is a batched damage trigger summing one combat damage
+    event across recipients.
   - King T'Challa is written `transform this` on a `modal_dfc` card; its
     scenario tests only the draw trigger.
   - `if player is damaged this way` prints "they" by rewriting a leading
@@ -300,6 +285,67 @@ wrong thing in some case.
   card's own graveyard way or a granted flashback, jump-start, retrace
   or mayhem is used ahead of them (CR 601.3 lets the player choose);
   foraging as the added cost is the engine's pick.
+- **Found in the fourteenth wave, in cards that are in:**
+  - A mana multiplier ("it produces three times as much of that mana
+    instead", `Replaces::TappedForMana`: Nyxbloom Ancient, Mana
+    Reflection, Virtue of Strength) is foreseen by payment only when each
+    mana the permanent makes is of one known kind. A dual land is tapped
+    as one mana and the extra goes into the pool afterwards, so a spell
+    that needs the extra mana can't be cast with it; an activated mana
+    ability making one of several kinds, tapped while paying, gets no
+    extra mana; restricted mana from a `mana ... only to` ability is not
+    multiplied.
+  - "Whenever you cast a spell using mana produced by this"
+    (`SpellFrom::ManaFromThis`: Tecutlan, Barracks of the Thousand) sees
+    only the permanents payment tapped for the spell: mana made with it
+    earlier (by hand, or kept in the pool) and then spent doesn't count.
+  - "Those creatures" after an attack trigger (Sabotage Strategist,
+    Garruk, Curse Breaker; `GameState::note_attackers`) are the
+    creatures attacking that player as the ability resolves, so one
+    removed from combat in response isn't pumped; they should be the
+    attackers as declared.
+  - Per-object "the first time this turn" (Captain America, Living
+    Legend; Stalwart Successor; `GameState::object_events`) counts only
+    while its card is on the battlefield: a creature tapped before
+    Captain America entered, then tapped again, counts that tap as its
+    first.
+  - Geralf, the Fleshwright's "for each other Zombie that entered this
+    turn" is the filtered entered count less one: if the triggering
+    Zombie stopped being a Zombie before resolution, one too few is
+    counted.
+  - A bare `pay {..}` outside `you may` (the Pacts: "pay {2}{B}. If you
+    don't, you lose the game") is paid automatically whenever the
+    player can; the player is never asked (`Effect::Pay` outside
+    `YouMay`).
+  - Token copies from Moonlit Meditation and Mirrormind Crown are made
+    from the permanent's copiable definition (`GameObject::def`): a copy
+    exception it has (`except`) or an X/X size (`sized`) is not carried
+    over (`tokens_to_create` returns definitions only).
+  - "Same name" filters (`SameWhat::Name`) compare definitions, not
+    names: two permanents an effect named the same (two Humble
+    Merchants) don't share a name, and a set name equal to a real card's
+    doesn't match that card's "named" filter. The legend rule and the log
+    use the set name. No card known to care.
+  - Once a renaming or "is legendary" effect has been in the game
+    (`GameState::renamed`, sticky), `name_of` reads characteristics: a
+    caller asking a name between a change and its `cbump` caches stale
+    characteristics (the debug build's stale-cache check catches it).
+  - `enchanted by aura you control` (`StatusQuals::aura_yours`, Archon of
+    the Wild Rose, Eriette of the Charmed Apple) matches nothing outside
+    a static ability's affected set and an attack ban: a target or group
+    with it would need the judging player passed to `status_ok`.
+- **Engine picks, fourteenth wave:** a card with an alternative cost of
+  its own is offered only that one, not a permanent's granted one too
+  (Force of Will under Leyline of Mutation), and of several permanents
+  granting one (Leyline of Mutation, Conspiracy Unraveler) the first is
+  used; a card cast "from your graveyard" or "from each opponent's
+  graveyard" by an effect paying its costs (Bilbo, Thief in the Night;
+  Flotsam // Jetsam) is chosen from the cards castable now, and its rider
+  is combined with any other permission's for that card (the most
+  generous wins); a once-each-turn graveyard permission
+  (`GraveRider::once`) ranks after one without a limit, so a second
+  source's unlimited permission is used first (CR 601.3 lets the player choose); "Then
+  choose an opponent" (Memories Returning) takes the one opponent.
 - **Engine picks, eleventh wave:** the cards exiled by a "search their
   graveyard, hand, and library for cards with that name" (hand first);
   the
@@ -355,49 +401,52 @@ by rejecting the form at compile time or by binding it correctly.
     into your graveyard" returns nothing; `triggering card` works
     (Angelic Renewal, accepted with that form). A fix needs to know
     which of about thirty effects set the created object.
-  - "you may exile it and collect evidence 4" in a dies trigger exiles
-    the card even when the evidence can't be collected, and `return this
-    card` after `exile it` returns nothing (Lamplight Phoenix): needs a
-    joint optional cost.
   - An "If you do" after a target check (`if target 1 is ...`) reads the
     check, not an earlier optional action. No card has that order.
 - **Found in the twelfth wave:** `discard that much cards` after "you
   may draw cards equal to its power. If you do," renders right; whether
   "that many" is the number drawn is not checked (Horrid Shadowspinner
   left out).
-- **Found in the thirteenth wave:**
-  - `you may exile this and collect evidence 4; if you do, ...`
-    (Lamplight Phoenix) exiles even when no evidence can be collected,
-    and "if you do" then follows the exile alone: the two need to be one
-    optional cost paid in full or not at all. The card is left out.
-  - `target creature or Spacecraft card with mana value 5 or less`
-    (Scrounge for Eternity) parses "or less" as a third alternative: a
-    mana value after an alternative filter isn't read as one qualifier
-    for both. The card is left out.
-  - "exile all other Nightmare tokens you control" after creating a
-    token (Abyssal Harvester): `other` excludes the source, not the
-    token just created, so the new token is exiled too. The card is
-    left out.
-  - A mana rider's effect on "it" (`spent on <filter> spell: ...`,
-    `Effect::SpendRider`) acts on the spell, so "it gains haste until
-    end of turn" ends when the spell becomes a permanent (CR 400.7):
-    Carnelian Orb of Dragonkind can't be written.
-  - `count N <expr>` (`StaticCondition::CountAtLeast`) accepts any
-    count, but a resolution-only count (`CountExpr::in_static` false,
-    such as `different powers among`) reads 0 in a static. The cards
-    using it read static counts; a compile-time refusal would be safer.
-  - `this attacked this combat` (`SourceHistory::AttackedThisCombat`) is
-    "declared as an attacker this turn, during a combat": with two
-    combat phases, an attack in the first counts in the second. No
-    accepted card uses it yet.
-  - `StaticCondition::NotTheirTurn`, `Attacking` and `TriggerIs` never
-    hold in a static ability; only effects, costs and trigger conditions
-    read them. `decompile` of `TriggerIs` is `unreachable!`.
-  - Station by toughness reads the tapped creature's keyword for any
-    tapped stat: a later count of "the tapped creature's power" by
-    another route (`CountExpr::MovedStat { verb: Tapped, stat: Power }`)
-    would count toughness for a creature with `stations using
-    toughness`.
+- **Found in the fourteenth wave:**
+  - `deals combat damage` with no recipient (`TriggerSpec::DealsDamage`
+    with `DamageTo::Any`) makes "it" the object dealt the damage (none
+    when a player was), not the creature that dealt it: Quilled
+    Greatwurm's `whenever creature you control deals combat damage
+    during your turn: put that much +1/+1 counters on it` gates Match
+    and puts no counters. The card is left out.
+  - `they gain haste until end of turn` after `create N "..."` in a cast
+    trigger prints "They gain haste until end of turn." but `they` is
+    `TriggeringThey`, the triggering spell, so the tokens don't gain
+    haste. `those tokens gains haste` works (Ovika, Enigma Goliath). A
+    refusal of `they` as an object in a trigger about one spell would be
+    safer; corpus cards with `; they gain` after a create in a trigger
+    are not audited.
+  - The imperative `sacrifice N <filter> chosen` offers "done", and
+    unscripted the first option sacrifices nothing even when the
+    sacrifice is mandatory ("sacrifice that much permanent chosen" in a
+    lose-life trigger). `you sacrifice N <filter>` (`SacrificeChosen`)
+    works. Corpus cards using the `chosen` form for a mandatory
+    sacrifice are not audited.
+  - A group of `other` tokens (`group_into`) excludes every token the
+    resolution created, not only the one the sentence names: "Create two
+    tokens. Then exile all other tokens" would keep both. No card known.
+  - `it is <types> ... and loses other card types` uses `BecomeTypes`,
+    which keeps Land: a returned Dryad Arbor stays a land. No test card.
+  - A trigger's object filter with a count bound ("with mana value equal
+    to this creature's power") now restricts in a cast trigger only;
+    other trigger kinds don't fill the bound. None known in the corpus.
+  - `StaticCondition::ThatLife` (`if target player life ...`) never
+    holds in a static ability, as `NotTheirTurn` didn't before it was
+    refused there. `EffectCond::Did` means something only inside
+    `Effect::IfAny`; `decompile` of an `Instead` with it, and of a
+    `StaticCondition::TriggerIs` from a hand-built definition, is
+    `unreachable!`.
+  - The corpus line index replaced every digit of a statement through
+    the amount map, so a line with amount 1 written into a card with
+    amount 2 turned `that target 1` into `that target 2` (fixed in the
+    fourteenth wave). Cards the twelfth and thirteenth waves wrote
+    through the index with two targets and a 1 among their amounts are
+    not audited; most would render differently and fail the gate.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -423,8 +472,8 @@ named the feature; a card may need more than one.
   card is in): the discarded card (Malcolm), cards exiled by the effect
   or "with this" (Ugin's -11, Maralen, Collector's Cage's hideaway),
   "equal to" or "lesser" mana-value bounds (Brain in a Jar, Press the
-  Enemy), cards in an opponent's graveyard (Memory Plunder), and "once
-  each turn" permissions (Zaffai, One with the Multiverse).
+  Enemy), and "once each turn" permissions (Zaffai, One with the
+  Multiverse).
 - **Graveyard keyword grants still missing** (`gains harmonize` and the
   spells-you-cast grants are in): static grants to graveyard cards
   (Iroh's flashback, Green Goblin's mayhem), embalm until end of turn
@@ -444,10 +493,7 @@ named the feature; a card may need more than one.
   into" on a card whose faces have different types (Sidequest: Raise a
   Chocobo: the face doesn't know the other face's types); "whenever you
   give a gift" (a permanent's gift is given by its own enters trigger);
-  "whenever you discover" and "discover again for the same value"; "the
-  first time that creature has become tapped this turn"
-  (Captain America); "whenever one or more creatures attack you, those
-  creatures ..." (Sabotage Strategist).
+  "whenever you discover" and "discover again for the same value".
 - **Counts:** a count per player ("Each player loses 1 life for each
   creature they control", Stronghold Discipline: `they control` there is
   an error, since it compiled to "an opponent controls"); counters of
@@ -489,8 +535,7 @@ named the feature; a card may need more than one.
   other target" other than the enchanted creature dealing the damage
   (Pain for All; `enchanted creature bites another target any` is a
   parse error now).
-- **Other effects:** "exile those tokens when this leaves the
-  battlefield" (Mysterio; the old form is a compile error now); return all land cards from your graveyard to the
+- **Other effects:** return all land cards from your graveyard to the
   battlefield tapped; put a card from among milled cards onto the
   battlefield; pile splitting (Fact or Fiction); choose a card name / a
   number / odd or even; win-the-game effects with a condition; a variable
@@ -600,7 +645,7 @@ named the feature; a card may need more than one.
   types and abilities" (Vraska, Kitesail Larcenist); "you win the
   game" on an empty library (Jace, Wielder of Mysteries); "Skip your
   draw step"; a cost filter and trigger for "spells you cast but don't
-  own" (Gonti, Canny Acquisitor; Nita); gaining the activated abilities
+  own" (Gonti, Canny Acquisitor); gaining the activated abilities
   of opponents' permanents (Drana and Linvala, Sharkey); a cost change
   by a count for a player static (Agatha of the Vile Cauldron,
   Dragonkin Berserker); "the first activated ability you activate each
@@ -614,54 +659,53 @@ named the feature; a card may need more than one.
   player (Vaevictis Asmadi); companion (Zirda); "assign combat damage
   as though it weren't blocked"; the amount of life gained in a
   "whenever you gain life" trigger; "Equipped creatures you control".
-- **Left by the thirteenth wave's branches** (merged from the branches'
-  notes; each card is listed once, under the form that blocks it):
-  - Triggers: "those creatures" after an attack trigger (Sabotage
-    Strategist; Garruk, Curse Breaker and Jace, Reality Sculptor, which
-    also need delayed triggers until your next turn); a delayed trigger
-    lasting "until your next turn" (Season of the Bold); a delayed
-    trigger's own target (Roads Go Ever, Ever On); "when you next attack
-    this turn" (All-Out Assault); a delayed trigger made by a leaves
-    trigger (Aang, at the Crossroads); per-object "the first time this
-    turn" (Captain America, Living Legend; Stalwart Successor); one
+- **Left by the fourteenth wave's branches** (merged from the thirteenth
+  and fourteenth waves' notes, less the cards now in the corpus; each
+  card is listed once, under the form that blocks it):
+  - Triggers: "whenever a creature attacks you or a planeswalker you
+    control" (Jace, Reality Sculptor, also empower, "exile all but the
+    bottom card of each opponent's library" and a condition on loyalty
+    among Jaces; its "until your next turn" delayed trigger is in); one
     trigger on two events, "When this enters and at the beginning of
-    your upkeep" (Gathering Stone, Obsessive Pursuit); "an opponent
-    searches their library" (Wan Shi Tong, Librarian); "your first or
-    second card each turn" (Lady Octopus); "a spell you don't own"
-    (Vaan, Street Thief; Nita, Forum Conciliator); "one or more land
-    cards are put into your graveyard from your library" (Hedge
-    Shredder); "you play a land from exile or cast a spell from exile"
-    (Gwen Stacy // Ghost-Spider); "you play a land" (The Endstone, also
-    "half your starting life total"); "enchanted player is dealt damage"
-    (Grievous Wound); "enters or deals combat damage to a player"
-    (Kitsune, Dragon's Daughter); any bending action and "all four this
-    turn" (Avatar Aang // Aang, Master of Elements, also a colored cost
-    reduction); attacks by total power (Desert Were-Worm), by a lone
-    creature at a player (Jiang Yanggu, Alone), and by "a Vehicle
-    crewed by this creature this turn" (Balthier and Fran, also "the
-    first combat phase" and an additional combat phase); combat damage
-    to a chosen player this turn (Great Train Heist) or from a delayed
-    or quoted ability (Flitterwing Nuisance; Sygg, with "protection from
-    each color"); "becomes the target of an ability you control" (Loki,
-    Surrak); "activate an ability that targets" and copying it (Ertha
-    Jo); "when you next activate an exhaust ability", copying it (Pit
-    Automaton, also "Spend this mana only to activate abilities");
-    "untap one or more permanents during your untap step" (The
-    Millennium Calendar); "you're dealt combat damage" and point
-    counters (Contested Game Ball); a spell's damage trigger filtered by
-    its targets (Imodane, the Pyrohammer); "while this card is in your
-    graveyard" (Furious Forebear); a filtered reflexive "when you
-    discard a nonland card this way" (Glacial Dragonhunt, Miasma Demon)
-    and one on what a dig put onto the battlefield (Gilgamesh,
-    Master-at-Arms); "whenever you gain life, put that many" (Ageless
-    Entity, Light of Promise, Sunbond); a cast trigger's filter compared
-    with the source's power (Jackal, Genius Geneticist; Loki Laufeyson);
-    transform-into triggers on faces held by other parts (Ultimecia's
-    joint pay-and-exile cost); Kaya, Spirits' Justice, Fblthp, Way of
-    the Mind Sculptor, Nicanzil, Stolen Uniform, Taii Wakeen, Market
-    Gnome, Rhino's Rampage, Thorin, Prishe's Wanderings, Wilt-Leaf
-    Liege, Feral Encounter, Dalkovan Encampment and Tomik each need a
-    one-off trigger form.
+    your upkeep", is a one-line parse addition (`and at beginning` in
+    `Parser::trigger`) left for want of a card: Ashling, Rekindled is
+    held by it alone; the per-object crew history "a Vehicle crewed by
+    this creature this turn", "if it's the first combat phase of the
+    turn" and an additional combat phase after a payment (Balthier and
+    Fran); "it" for the creature that dealt damage in a trigger with no
+    recipient (Quilled Greatwurm, section 2); a damage trigger from "an
+    instant or sorcery spell you control that targets only a single
+    creature" (Imodane, the Pyrohammer); "when you next activate an
+    exhaust ability", copying it, and "Spend this mana only to activate
+    abilities" (Pit Automaton); a batched trigger's cards as "them"
+    (Hedge Shredder: `join_batch` only counts); "When you search your
+    library this way" (Prishe's Wanderings: `Effect::Search` sets no
+    `did` when it finds nothing); filtered reflexive triggers of other
+    verbs: "When you put one or more Equipment onto the battlefield this
+    way", attaching one to a Samurai (Gilgamesh, Master-at-Arms), "When
+    excess damage is dealt ... this way" (Rhino's Rampage), "When one or
+    more Equipment become attached to that creature this way" (Thorin),
+    "When you exile a nonland card this way" (Hidetsugu, Devouring
+    Chaos); "deals damage to one or more creatures" (Briarbridge Patrol,
+    whose condition is in); "At the beginning of enchanted player's
+    first upkeep each turn" (Paradox Haze) and "each of enchanted
+    player's postcombat main phases" (Shadow of the Second Sun: the
+    engine has the extra phase, no DSL form); a delayed trigger at "that
+    turn's end step" for an extra turn (Chance for Glory, Alchemist's
+    Gambit); a fully unlocked Room (Victor, Valgavoth's Seneschal); any
+    bending action and "all four this turn" (Avatar Aang // Aang, Master
+    of Elements, also a colored cost reduction); single-card events,
+    each its own kind: Kaya, Spirits' Justice (batched exile over
+    battlefield and graveyard, a temporary copy), Fblthp, Impossibly
+    Lost (opponents dealt combat damage during your turn, win the game),
+    Way of the Mind Sculptor (loyalty removed to activate), Nicanzil
+    ("explores a land card"), Stolen Uniform (a lose-control delayed
+    trigger), Taii Wakeen (damage equal to toughness, a "plus X"
+    replacement), Market Gnome (exiled while activating craft),
+    Wilt-Leaf Liege (a discard by an opponent's effect), Feral Encounter
+    (a next-combat delayed trigger with targets), Dalkovan Encampment
+    (tapped and attacking tokens from a delayed trigger), Tomik
+    (attackers counted at you and your planeswalkers).
   - Counts: a group's total power (Kylox, Visionary Inventor; The
     Skullspore Nexus, also "double target creature's power"); a
     per-recipient amount (Sunspine Lynx); the difference between two
@@ -669,283 +713,388 @@ named the feature; a card may need more than one.
     characteristic (Sovereign Okinec Ahau; Kutzil, Malamet Exemplar); a
     per-type count to a maximum in a static (Diligent Zookeeper); color
     pairs (Niv-Mizzet, Guildpact); planeswalker types and "proliferate X
-    times" (Tam, the Possibility); "different mana values among" (Lunar
-    Insight), "with different powers" (Rip, Spawn Hunter), "eight
-    different names among unlocked doors" (Central Elevator // Promising
-    Stairs); graveyards with seven or more cards (The Master of
-    Lake-town); seven or more cards in exile (Ketramose, also its
-    trigger); the sacrificed object's mana value (Repurposing Bay,
-    Sidisi) or power, putting up to X lands from the hand (The Gitrog,
-    Ravenous Ride); the power of the creature that died or the spell's
-    mana value (Death's Presence, Dancing from Dark to Dawn); the
-    enchanted creature's last-known power in a dies trigger (Avatar
-    Destiny, also "put up to one creature card milled this way onto the
-    battlefield"); the triggering spell's X (Geometer's Arthropod) and
-    blue symbols in its cost (Namor the Sub-Mariner); spells cast this
-    turn other than the first (Outlaw Stitcher) and noncreature spells
-    the triggering player cast (Magebane Lizard); permanents sacrificed
-    this turn as a damage amount (Sawblade Skinripper); "exile cards
-    equal to its mana value from target player's library" (Rakdos, the
-    Muscle); the web-slinging cost's returned creature (Scarlet Spider,
-    Ben Reilly); "where X is the amount of mana spent to cast this
-    creature" after a target (Astelli Reclaimer); counters given to a
-    spell being cast, by colors of mana spent (Wildgrowth Archaic) or
-    "for each" on "your first Human creature spell each turn" (Torgal,
-    A Fine Hound); cards put on top after surveil (Starving Revenant);
-    "Add {R} for each card exiled this way" with a play permission
-    (Quintorius Kand).
-  - Turn tallies: a filtered died tally (Undead Sprinter) and a
-    sacrificed Food (Bonecache Overseer); exhaust activations (Elvish
-    Refueler); cards put into a target player's graveyard from their
-    library (Cruel Calculations); players dealt combat damage by this
-    creature (Steel Hellkite); "if a Pirate and a Vehicle attacked this
-    combat" (Fearless Swashbuckler); Zombies entered and "other than
-    your first spell that turn" (Geralf, the Fleshwright); a filtered
-    `Entered` count's wording and "as though its power were 2 greater"
-    (Cloudspire Coordinator); three kinds of "first spell this turn"
-    and "have target opponent draw a card. If you do, copy that spell"
-    (Alania, Divergent Storm); the wording "You can't cast ~ during your
-    first, second, or third turns of the game" (the condition exists:
-    Jace Reawakened, also "it becomes plotted"; Spider-Man 2099).
-  - Conditions: joined by "or" with a target check, an "If you do" or a
-    "this way" check (Reptilian Recruiter, Armored Kincaller, Cache
-    Grab); a target first named inside the condition (Hidetsugu's
-    Second Rite); "if they lost life this turn" of a target player
-    (Thought-Stalker Warlock); the most life or tied for most life
-    (Preacher of the Schism); "if it's not their turn" of the triggering
-    player (Adrenaline Jockey); "this way" checks: a Cave put onto the
-    battlefield (Spelunking), an artifact put (Oviya, Automech Artisan,
-    also "attacking one of your opponents"), cards drawn (Transcendent
-    Archaic), a discarded land, then "it" as that card (Silvan Reveler),
-    a surveilled noncreature, nonland card (Chandra, Chill of
-    Compliance); a condition on the created token (Yenna, Redtooth
-    Regent), on an impulse-exiled card (Bruse Tarl, Daredevil), and on
-    a revealed, chosen or countered card's mana value (Part in
-    Friendship, Quag Feast, Soul Search, Unravel, Whiskervale
-    Forerunner, Break Out); comparisons with other creatures (Getaway
-    Glamer, Evil's Thrall); "if this creature isn't saddled. Otherwise"
-    in a trigger (Caustic Bronco); "if a player controls no creatures"
-    and "each opponent chooses a creature they control and exiles it"
-    (Sothera, the Supervoid); "as long as you own a card in exile that
-    has an Adventure" (Howling Galefang); excess damage from a fight or
-    noncombat damage (The Last Agni Kai, Magmatic Galleon); "if the gift
-    was promised and that creature isn't legendary" with "except it's
-    1/1" (Coiling Rebirth).
-  - Costs: removing counters from among several permanents (Iron
-    Spider, Quilled Greatwurm, Dawnhand Dissident; lore counters from
-    any number of Sagas, Garnet); "Tap X untapped artifacts" (Secluded
-    Starforge); sacrificing one or more artifacts for mana (Radiant
-    Lotus) or exiling them with total mana value X (Fabrication
-    Foundry); "Sacrifice an artifact or discard a nonland card"
-    (Bullseye); non-mana kicker with "twice that much damage instead"
-    (Chocobo Kick); "exile a creature you control" as an additional
-    cost (Fear of Abduction); flash "if you pay {2} more" (Asinine
-    Antics) or if you behold a Dragon (Molten Exhale); "choose a
+    times" (Tam, the Possibility); "with different powers" (Rip, Spawn
+    Hunter), "eight different names among unlocked doors" (Central
+    Elevator // Promising Stairs) and "unlocked doors among Rooms you
+    control" (Smoky Lounge // Misty Salon); seven or more cards in exile
+    (Ketramose, also its trigger); "eight or more permanents named ~"
+    (Phoenix Fleet Airship); the sacrificed object's mana value
+    (Repurposing Bay, Sidisi) or power, putting up to X lands from the
+    hand (The Gitrog, Ravenous Ride); the enchanted creature's
+    last-known power in a dies trigger (Avatar Destiny, also "put up to
+    one creature card milled this way onto the battlefield"); the
+    source's own mana value inside a quoted ability (Terminal Velocity);
+    the triggering spell's X (Geometer's Arthropod) and blue symbols in
+    its cost (Namor the Sub-Mariner); "exile cards equal to its mana
+    value from target player's library" (Rakdos, the Muscle); the
+    web-slinging cost's returned creature (Scarlet Spider, Ben Reilly);
+    "where X is the amount of mana spent to cast this creature" after a
+    target (Astelli Reclaimer); counters given to a spell being cast, by
+    colors of mana spent (Wildgrowth Archaic) or "for each" on "your
+    first Human creature spell each turn" (Torgal, A Fine Hound); cards
+    put on top after surveil (Starving Revenant); "Add {R} for each card
+    exiled this way" with a play permission (Quintorius Kand); a count
+    over exile and graveyards with an or-filter of a subtype and a name
+    (Slime Against Humanity).
+  - Turn tallies: "a non-Zombie creature died this turn" as a condition
+    (the filtered died count works) and a graveyard-cast rider "If you
+    do, this creature enters with a +1/+1 counter" (Undead Sprinter);
+    exhaust activations (Elvish Refueler); players dealt combat damage
+    by this creature (Steel Hellkite); "if a Pirate and a Vehicle
+    attacked this combat" (Fearless Swashbuckler); "saddles Mounts and
+    crews Vehicles as though its power were 2 greater" on a token
+    (Cloudspire Coordinator; its count is in); three kinds of "first
+    spell this turn" and "have target opponent draw a card. If you do,
+    copy that spell" (Alania, Divergent Storm); the wording "You can't
+    cast ~ during your first, second, or third turns of the game" (the
+    condition exists: Jace Reawakened, also "it becomes plotted";
+    Spider-Man 2099).
+  - Conditions: "if they lost life this turn" of a target player (a
+    "that player" `TurnWho`) and "they reveal their hand, you choose a
+    nonland card from it, and they discard that card" (Thought-Stalker
+    Warlock); the most life or tied for most life, as an attack trigger
+    and a static (Preacher of the Schism); "If X is three or more" about
+    a count X (Obsessive Pursuit: `if x 3 or more` is the cast X; its
+    two-event trigger is the parse addition above); "if its controller
+    has three or more poison counters" of a target's controller (Anoint
+    with Affliction, Bring the Ending); a trailing "or if {G}{W} was
+    spent to cast this spell" (Mythos of Nethroi: `either` has only the
+    leading form); "three or more different kinds of counters"
+    (Hundred-Battle Veteran, also its finality-counter sentence order);
+    "Then if it has no oil counters on it" (Archfiend of the Dross:
+    renders "there are no oil counters on this creature"); "If that
+    spell is a Lesson" (Toph, Hardheaded Teacher); "this way" checks: a
+    Cave put onto the battlefield (Spelunking), an artifact put (Oviya,
+    Automech Artisan, also "attacking one of your opponents"); a
+    condition on the created token (Yenna, Redtooth Regent), on an
+    impulse-exiled card (Bruse Tarl, Daredevil), and on a revealed,
+    chosen or countered card's mana value (Part in Friendship, Quag
+    Feast, Soul Search, Unravel); comparisons with other creatures
+    (Getaway Glamer, Evil's Thrall); "if this creature isn't saddled" in
+    an effect and "that much life" naming the sentence before's amount
+    (Caustic Bronco); "if a player controls no creatures" and "each
+    opponent chooses a creature they control and exiles it" (Sothera,
+    the Supervoid); excess damage from a fight or noncombat damage (The
+    Last Agni Kai, Magmatic Galleon); "if the gift was promised and that
+    creature isn't legendary" with "except it's 1/1" (Coiling Rebirth).
+  - Costs: removing counters from among several permanents for a cast
+    from exile with this (Dawnhand Dissident: the cost part is `remove 3
+    counters from among creature you control`, the permission is
+    missing); "Tap X untapped artifacts" (Secluded Starforge);
+    sacrificing one or more artifacts for mana with "Target player adds"
+    (Radiant Lotus) or exiling them with total mana value X (Fabrication
+    Foundry); a -X loyalty cost (Chandra, Chill of Compliance); a joint
+    optional "pay {4}{U}{U}{B}{B} and exile eight cards from your
+    graveyard" (Ultimecia, whose transform-into trigger exists); flash
+    only when an optional behold is paid (Molten Exhale); "choose a
     creature type and behold two creatures of that type" (Celestial
     Reunion); behold's older "choose a creature you control or reveal a
     creature card" with the chosen creature's power (Monstrous
-    Emergence); X in an additional waterbend cost (Foggy Swamp Visions)
-    and waterbend as a permission's cost (Hama); convoke for an
-    activated ability (Heirloom Epic); "cost an additional 3 life" for
-    opponents' spells targeting it (Terror of the Peaks); warp with a
-    life cost and warp from a graveyard (Timeline Culler); a cost
-    change by equipped creature's power (Glamdring, Foe-hammer), colored
+    Emergence); "you may pay {1} up to three times" (Hawkeye, a
+    flavor-word card); convoke for an activated ability (Heirloom Epic);
+    warp with a life cost and warp from a graveyard (Timeline Culler); a
+    cost change by total toughness (The Pride of Hull Clade), colored
     and per count (Eluge, the Shoreless Sea, also "for as long as it has
-    a flood counter"), or for plotting (Doc Aurlock); an alternative
-    cost granted to all spells (Leyline of Mutation, Conspiracy
-    Unraveler); "pay {0} rather than pay the mana cost" once each turn
-    for a spell from exile (Charred Foyer // Warped Space).
-  - Mana: "whenever you cast a spell using mana produced by this"
-    (Tecutlan, The Myriad Pools, Barracks of the Thousand); a trigger on
-    the kind of mana made (Ultima); mana replacement (Virtue of
-    Strength, Ozai); a spell-made "whenever you tap a Mountain for mana"
-    until end of turn (Molten Tide); mana from a Cave spent (Bat
-    Colony); mana equal to mana spent, at the next main phase (Mana
-    Sculpt); "can't be spent to cast spells from your hand" (Heartwood
-    Crafter); "Put any number of permanent cards from your hand onto the
-    battlefield" (Redshift); "one mana of any of the exiled cards'
-    colors" (Pit of Offerings); restricted mana from a triggered add
-    (Ashling, Rekindled); "it gains rebound" and a land's "Remove a time
-    counter from this land" (Ojer Pakpatiq).
-  - Digs: a take that is a number expression (Stargaze); two takes
-    (Choco, Seeker of Paradise); one card of each of two kinds (Ojer
-    Kaslem); a total mana value over the cards taken (Michelangelo's
-    Technique; without targets, Lively Dirge); "put all ... from among
-    them into your hand" (Seek Thrills, Gleam of Death); "exile a
-    nonland card from among them" and one card per card type (The Key to
-    the Vault, Portent of Calamity); an impulse's `instead` (Burning
-    Curiosity); a conditional destination (Back for Seconds); "they" for
-    the group a chosen act moved (Random Encounter); a card exiled and
-    plotted (Make Your Own Luck); alternating picks (Memories
-    Returning); two target players each revealing (Parker Luck); "You
-    may reveal a creature card ... and put it onto the battlefield"
-    (Loot, Exuberant Explorer).
+    a flood counter"); "Spells you cast of the chosen type cost {1}
+    less" and "a card of the chosen type" (Gathering Stone).
+  - Mana: "for as long as that land has a blight counter on it, it loses
+    all land types and abilities and has ..." (Ultima, Origin of
+    Oblivion; its {C} trigger is in); mana replacement and keeping or
+    recoloring unspent mana, and counts on it (Ozai, the Phoenix King;
+    Omnath, Locus of All; Omnath, Locus of Mana; Upwelling); "it
+    produces {U} instead of any other type" (Deep Water, Harvest Mage,
+    Damping Sphere: `Replaces::TappedForMana` only multiplies); "If that
+    mana is spent on a creature spell, it gains haste" with no duration,
+    or "it gains riot" (Hall of the Bandit Lord, Domri, Chaos Bringer,
+    Arena of Glory); "Spend only mana produced by basic lands /
+    creatures to cast this spell" (Imperiosaur, Myr Superion); "Spend
+    this mana only to cast kicked spells" (Elfhame Druid, Throne of
+    Makindi, Volshe Tideturner: `restriction_allows_spell` ignores
+    status qualifiers, and payment would need to know the spell is
+    kicked); mana equal to mana spent on a target spell, at the next
+    main phase (Mana Sculpt); "it gains rebound" and a land's "Remove a
+    time counter from this land" (Ojer Pakpatiq).
+  - Digs: "put all ... from among them into your hand" (Glamdring,
+    Foe-hammer; Seek Thrills and Gleam of Death are not in the
+    snapshot); one card matching either of two filters (Garruk's
+    Harbinger: `and` is "and/or", one of each); a per-card `instead` on
+    a target group's return (Back for Seconds); two target players each
+    revealing (Parker Luck).
   - Casting from exile and graveyards: casting from among cards looked
-    at or exiled (Cosmic Cube, Kotis, the Fangkeeper, Black Cat, Cunning
-    Thief), one exile per color then casting them (Sanar, Innovative
+    at or exiled (Cosmic Cube; Kotis, the Fangkeeper, also "where X is
+    the amount of damage dealt"; Black Cat, Cunning Thief, with "exile
+    two of them face down"; The Key to the Vault, Portent of Calamity),
+    one exile per color then casting them (Sanar, Innovative
     First-Year), exile three, choose one, play it this turn (Case of the
-    Burning Masks), exiling a hand and playing the cards (Hex Magic);
-    "the discarded card" cast (Malcolm, Alluring Scoundrel); "the
-    exiled card" permissions after an optional action (Reno and Rude,
-    Black Widow, Super Spy); one-card or turn-long permissions
-    (Raphael, Superior Foes, Maralen), each opponent's own permission
-    with a tax (Lightstall Inquisitor), a cast paying from the pile
-    (Boiling Rock Rioter, Kylox's Voltstrider); casting a graveyard card
-    as an effect resolves, paying its costs or free from an opponent's
-    graveyard (Bilbo, Thief in the Night; Tinybones, the Pickpocket;
-    Flotsam // Jetsam); one permanent spell of each type each turn
-    (Muldrotha, the Gravetide); one creature spell from the graveyard
-    this turn with a finality counter and an added type (Tarrian's
-    Journal // The Tomb of Aclazotz); land mayhem and "enters from a
-    graveyard" (Oscorp Industries); "a permanent spell with equal or
-    lesser mana value" free from the hand (Kellan, the Kid); plot on
-    the top card of the library (Fblthp, Lost on the Range); "If a
-    permanent spell is countered this way, exile it instead" (Thranduil's
-    Decree); one target per card type and copies cast under a total mana
-    value cap (Uldaros Theorix, The Tale of Tamiyo); comparisons between
-    cards exiled this way (Triple Triad); an until-end-of-turn "exile it
+    Burning Masks, whose solve condition is a count), exiling a hand and
+    playing the cards until the end of your next turn (Hex Magic:
+    `MayCastExiled` is cast-only, this turn); "the discarded card" cast
+    (Malcolm, Alluring Scoundrel); "the exiled card's owner may cast it"
+    (Spell Queller); "the exiled nonland card" with a postpositive
+    "until end of turn" (Black Widow, Super Spy); one-card or turn-long
+    permissions (Raphael, Most Attitude; Superior Foes of Spider-Man;
+    Maralen, Fae Ascendant), each opponent's own permission with "Each
+    land played this way enters tapped" (Lightstall Inquisitor); collect
+    evidence 6 as an activation cost linking the cards, and "put it on
+    the bottom of its owner's library instead" (Kylox's Voltstrider);
+    casting the exiled card by waterbending (Hama); an until-end-of-turn
+    Omniscience (Chandra, Flame's Catalyst); a spell cast from the
+    graveyard gaining a quoted ability (Rivaz of the Claw); "by
+    sacrificing a creature in addition to paying its other costs" on a
+    once-each-turn graveyard permission (Maestros Ascendancy:
+    `GraveRider` has life and forage only); a cast from exile with
+    "creatures you control but don't own" (Laughing Jasper Flint); one
+    permanent spell of each type each turn (Muldrotha, the Gravetide);
+    one creature spell from the graveyard this turn with a finality
+    counter and an added type (Tarrian's Journal // The Tomb of
+    Aclazotz); land mayhem and "enters from a graveyard" (Oscorp
+    Industries); "a permanent spell with equal or lesser mana value"
+    free from the hand (Kellan, the Kid); plot on the top card of the
+    library (Fblthp, Lost on the Range); "If a permanent spell is
+    countered this way, exile it instead" (Thranduil's Decree); one
+    target per card type and copies cast under a total mana value cap
+    (Uldaros Theorix, The Tale of Tamiyo); comparisons between cards
+    exiled this way (Triple Triad); an until-end-of-turn "exile it
     instead" replacement made by a trigger (Walk-In Closet // Forgotten
     Cellar).
-  - Linked exile: moving cards exiled with this to graveyards, counted
-    "this way" (Pinnacle Starcage); "for each of those cards that are
-    still exiled" (Dragonhawk, Fate's Tempest); "the exiled card's owner
-    manifests dread" (Unidentified Hovership); an X/X token for the
-    exiled card's owner (Severance Priest); copies of a linked card
-    attacking each opponent (Mardu Siegebreaker), until an Aura leaves
-    (Secret Invasion), or Shards becoming copies until the next end step
-    (Niko, Light of Hope); exiled creature cards' activated abilities
-    granted (Agatha's Soul Cauldron); "the last chosen card"'s abilities
-    (Koh); the craft card's mana value (Jade Seedstones); a copy "for as
-    long as this Equipment remains attached" (Assimilation Aegis);
-    "that have different names" with exiled-with (Omenpath Journey);
-    stash counters and cards you don't own (Tinybones).
-  - Copies, types and names: a name set by a static or an effect
-    (Witness Protection, Honest Work, Tenth District Hero, The
-    Irencrag); a supertype from `Effect::Animate` (Origin of
-    Spider-Man); "in addition to its other types" on a returned
-    permanent or group (Infernal Vessel, Ghost Vacuum; Relive the Past,
-    also a shared "from your graveyard"); a returned card that becomes
-    another type and loses its others (Vraska, the Silencer; Supper for
-    Spiders; Brilliance Unleashed); "becomes the chosen color" (Puca's
-    Eye); a chosen type in other zones (Leyline of Transformation); a
-    once-a-turn replacement of token creation by copies (Mirrormind
-    Crown, Moonlit Meditation); "for each of them" over a batch of
-    entering tokens (Kambal, Profiteering Mayor); copy exceptions per
-    mode (Ember Island Production) or changing equip costs (Firion,
-    Wild Rose Warrior, also "Equipped creatures you control"); "a copy
-    of the blighted creature" (Grub, Storied Matriarch); "repeat this
-    process" (Sin, Spira's Punishment; Calamity, Galloping Inferno);
-    "enter as a copy ... with mana value less than or equal to the
-    amount of mana spent" (Mockingbird); the Mutavault token (Mutable
-    Explorer); transform-on-pay and a back-face emblem with a chosen
-    type (Oko, Lorwyn Liege); transforming a modal double-faced card and
-    web-slinging granted to spells (Peter Parker // Amazing Spider-Man);
-    "This spell can't be copied" (Choreographed Sparks); "those spells
-    gain wither" for a spell and its copy (Spinerock Tyrant); a
-    multi-face card with no prompt pack (Eddie Brock, not tried).
-  - Targets and filters: one target across zones (Taskmaster,
-    Mercenary Mimic; "target permanent or suspended card": Fury Charm,
-    Shivan Sand-Mage, Timebender, Timecrafting); a target card in exile
-    (The Darkness Crystal, Blade of the Swarm, Sentinel of Lost Lore); a
-    card from the defending player's graveyard (Chorale of the Void) or
-    any graveyard (Victor, Valgavoth's Seneschal); `target permanent of
-    chosen color` (Pentarch Paladin); "has a basic land type" (Perilous
-    Forays, Nervous Gardener, Sprouting Goblin, Boseiju, Slimefoot's
-    Survey); "has an Adventure" (Edgewall Inn; Beluna Grandsquall,
-    whose cost change works but has no wording); "kicked spell"
-    (Lullmage's Familiar, Merfolk Falconer, Roost of Drakes, Elfhame
-    Druid, Throne of Makindi, Volshe Tideturner); spells by controller
-    (Counterflux, Hope-Ender Coatl, Hullbreaker Horror); target
-    "activated ability, triggered ability, or noncreature spell"
-    (Louisoix's Sacrifice); all opponents' spells and abilities and a
-    count of them (Glen Elendra's Answer); "creatures you control but
-    don't own" (Laughing Jasper Flint); "creatures that don't have a
-    name" (Pompous Gadabout); an or-filter of a subtype and a name
-    (Slime Against Humanity); "enchanted by an Aura you control" in a
-    static (Archon of the Wild Rose, Eriette of the Charmed Apple); a
-    filter compared with life gained this turn (Enlightened Confidant);
-    "greatest power" in a dies trigger (Kraven the Hunter); "that Wolf"
-    for the triggering creature (Tolsimir, Midnight's Light); a group
-    as the damage source (Case of the Gateway Express); "each player who
-    doesn't have max speed" (Outpace Oblivion).
+  - Linked exile: "for each of those cards that are still exiled" in a
+    delayed end-step trigger, with "where X is the number of creatures
+    you control with power 4 or greater" (Dragonhawk, Fate's Tempest);
+    putting the creature cards exiled with this onto the battlefield
+    with a flying counter, "Each of them is a 1/1 Spirit in addition to
+    its other types" (Ghost Vacuum); "Otherwise, you may put a face-up
+    exiled card they own into their graveyard" (Binding Negotiation);
+    exiled creature cards' activated abilities granted (Agatha's Soul
+    Cauldron); "the last chosen card"'s abilities (Koh); the craft
+    card's mana value (Jade Seedstones; also Saheeli's Lattice, Sunbird
+    Standard, Throne of the Grim Captain, which need more: craft records
+    no exiled cards); stash counters and cards you don't own (Tinybones,
+    Bauble Burglar).
+  - Copies, types and names: copies of a linked card attacking each
+    opponent (Mardu Siegebreaker), until an Aura leaves (Secret
+    Invasion), Shards becoming copies until the next end step (Niko,
+    Light of Hope), a copy "for as long as this Equipment remains
+    attached" (Assimilation Aegis), "becomes a copy of target creature
+    card exiled with it, except it's 0/0 and has this ability" with an
+    as-enters exile from a graveyard (Mimeoplasm, Revered One; its
+    target exists); token copies of exiled cards (Foggy Swamp Visions);
+    "becomes a copy of that spell until end of turn" (The Everflowing
+    Well // The Myriad Pools; its "using mana from this" trigger is in);
+    copies until your next turn (Taskmaster, Mercenary Mimic); "gains
+    <two abilities, one of them equip> and loses all other abilities"
+    (The Irencrag; the name and supertype work); "They are Food
+    artifacts" with its reminder and "creature cards in your opponents'
+    graveyards that were put there from the battlefield this turn"
+    (Supper for Spiders); "Return it to the battlefield if it's an
+    artifact creature card. Otherwise, ..." (Brilliance Unleashed); a
+    chosen type in other zones (Leyline of Transformation); "for each of
+    them" over a batch of entering tokens (Kambal, Profiteering Mayor);
+    copy exceptions per mode (Ember Island Production) or changing equip
+    costs (Firion, Wild Rose Warrior, also "Equipped creatures you
+    control"); "a copy of the blighted creature" (Grub, Storied
+    Matriarch); "repeat this process" (Sin, Spira's Punishment;
+    Calamity, Galloping Inferno); "enter as a copy ... with mana value
+    less than or equal to the amount of mana spent" (Mockingbird); the
+    Mutavault token (Mutable Explorer); transform-on-pay and a back-face
+    emblem with a chosen type (Oko, Lorwyn Liege); transforming a modal
+    double-faced card and web-slinging granted to spells (Peter Parker
+    // Amazing Spider-Man); "those spells gain wither" for a spell and
+    its copy (Spinerock Tyrant); a multi-face card with no prompt pack
+    (Eddie Brock, not tried).
+  - Targets and filters: one target across zones ("target permanent or
+    suspended card": Fury Charm, Shivan Sand-Mage, Timebender,
+    Timecrafting, Venser's Diffusion, Dust of Moments; graveyard or
+    exile: Sorceress's Schemes; battlefield and graveyards: Angel of
+    Serenity, Aurelia's Vindicator); a card from the defending player's
+    graveyard put tapped and attacking (Chorale of the Void, also the
+    Void "sacrifice ... unless"); `target permanent of chosen color`
+    (Pentarch Paladin); "has a basic land type" works now, other
+    sentences not retried (Boseiju, Who Endures; Slimefoot's Survey);
+    "has an Adventure" in a cost change (Beluna Grandsquall, which has
+    no wording); "any other target" than the enchanted creature (Pain
+    for All: `another target any` excludes the source and is refused);
+    "up to that many target creatures" in a reflexive trigger after
+    "discard any number of cards" (Miasma Demon); a `renowned` qualifier
+    (Enshrouding Mist); "if it shares a color with a creature you
+    control" (Jaded Response); "each permanent you control that's a
+    creature or Vehicle" (Ao, the Dawn Sky: `or` is read as a second
+    effect); all opponents' spells and abilities countered and a count
+    of them (Glen Elendra's Answer); a filter compared with life gained
+    this turn (Enlightened Confidant); "greatest power" in a dies
+    trigger (Kraven the Hunter); "that Wolf" for the triggering creature
+    and "if Tolsimir attacked this combat" on another creature's trigger
+    (Tolsimir, Midnight's Light); a group as the damage source (Case of
+    the Gateway Express).
   - Players and turns: controlling another player (Construct a Cosmic
-    Cube, The Dominion Bracelet, Secret of Bloodbending); skipped turns,
-    additional upkeeps and end steps (Ral Zarek, Obeka, Y'shtola); "don't
-    lose the game for having 0 or less life", "you lose the game" and
-    "Whenever you lose life" (Marina Vendrell's Grimoire); a maximum hand
-    size from a count (Winter, Misanthropic Guide); another player
-    amassing (Azog); protection from each of your opponents on a
-    creature (Figure of Fable); "they may pay 3 life" for the dying
-    creature's controller (Meathook Massacre II); "that player" for a
-    destroyed target's controller (Volatile Fault); "Each player may put
-    any number of creature cards from their hand" (Worlds Within
-    Worlds); "For each opponent who can't" (Aclazotz, Deepest Betrayal);
-    "Starting with you, each player chooses up to one permanent" and
-    airbend (The Legend of Yangchen); "target opponent reveals X cards
-    from their hand" (Taster of Wares); an opponent gaining control of
-    your permanents (Coveted Falcon); "each creature attacks each combat
-    if able and attacks a player other than you" until your next turn
-    (Maximum Carnage).
-  - Put and return: a mass return to the hand (Wisdom of Ages); "Choose
-    up to two" with target-only modes and a shared return (Call Damage
-    Control); a same-name search that draws for each card exiled from
-    the hand (The End, Deadly Cover-Up); "library and/or graveyard"
-    with X additional counters (Vision Quest) and "hand and/or library"
-    (Last Light of Durin's Day); "If that card is an enchantment card, it
-    enters tapped and attacking" (Summoner's Grimoire); a sacrificed
-    source's counters and attachments (Zack Fair); "return it" for what
-    a destroyed target became (Come Back Wrong); "one that hasn't been
-    chosen" and a return under an opponent's control (Zuko,
-    Conflicted); "exile all cards from <zone>" with no target (Leveler,
-    Identity Crisis, Lantern of the Lost, Bottled Cloister).
-  - Other effects: "exile those tokens when this leaves" (Mysterio,
-    Master of Illusion); hexproof from a chosen color (Mondo Gecko); an
-    indefinite quoted "attacks each combat if able" (Carnage, Crimson
-    Chaos; Terminal Velocity); "put an additional +1/+1 counter" (Toph,
-    Hardheaded Teacher); "put that many plus one" made until end of turn
-    (Prairie Dog) and counter doubling on players (Innkeeper's Talent);
-    "loses all abilities for as long as" after countering (Tishana's
-    Tidebinder); granted riot and "abilities can't be countered"
-    (Spider-Punk); a chosen face-up turn (Hustle // Bustle); "Manifest
-    dread X times" (Valgavoth's Onslaught); the discovered card's mana
-    value and another player discovering (Hit the Mother Lode, Zoyowa's
-    Justice); suspect forms (Airtight Alibi, Eliminate the Impossible,
-    Frantic Scapegoat); the source and a chosen creature as one group
-    (Fortune, Loyal Steed); "Lock or unlock a door" (Marina Vendrell);
-    the noncombat damage replacement up to its power (Ojer Axonil); a
-    variable mode count (Riku of Many Paths); tiered modes that are only
-    a chosen base power and toughness (Vincent's Limit Break);
-    transform returns held by other parts: lore counters on a token copy
-    and two-mana adds (Terra, Magical Adept), a Saga gaining a quoted
-    mana ability (Huatli, Poet of Unity), "That land becomes an Island"
-    after earthbend (The Legend of Kyoshi), exile and put onto the
-    battlefield transformed if cast from a graveyard (Esper Origins).
-  - Wording: "Return all artifact or creature cards" for "each artifact
-    and creature card" (Fix What's Broken); "that spell's mana value"
-    (Ovika, Enigma Goliath); "in hand" (Resonating Lute); a token's
-    first quoted ability and a token key that is a card's name (Roxanne,
-    Starfall Savant); a quote in a three-part list (The Pride of Hull
-    Clade); the graveyard-cast rider's sentence order (Hundred-Battle
-    Veteran); "Return to the battlefield target ..." (Squirming
-    Emergence); two target checks as one sentence (Alacrian Armory);
-    "a 4/4 Gorgon creature with deathtouch and lifelink in addition"
-    (Case of the Gorgon's Kiss); a permanent static and a spell grant in
-    one sentence (Lo and Li, Twin Tutors); "Other Ninja and Rogue
-    creatures" (Silver-Fur Master, Narfi, Betrayer King); the name
-    repeated in an attack trigger (Drakuseth, Maw of Flames).
+    Cube, The Dominion Bracelet, Secret of Bloodbending, Mindslaver,
+    Sorin Markov, Worst Fears); other "lose the game" forms (Immortal
+    Coil, Phage the Untouchable, Lich's Mastery) and "all damage is
+    dealt to you as though its source had infect" (Phyrexian Unlife);
+    "The next time a source of your choice would deal damage to you this
+    turn, prevent that damage" (Intervention Pact); an `eon` counter
+    (Magosi, the Waterveil: `CounterKind::NAMED` is fixed-length); "the
+    attacking player gains control of this artifact and untaps it"
+    (Contested Game Ball, whose trigger and point counters are in);
+    another player amassing (Azog); protection from each of your
+    opponents on a creature (Figure of Fable); "they may pay 3 life" for
+    the dying creature's controller (Meathook Massacre II); "that
+    player" for a destroyed target's controller (Volatile Fault); "Each
+    player may put any number of creature cards from their hand" (Worlds
+    Within Worlds); "For each opponent who can't" (Aclazotz, Deepest
+    Betrayal); "Starting with you, each player chooses up to one
+    permanent" and airbend (The Legend of Yangchen); "target opponent
+    reveals X cards from their hand" (Taster of Wares); an opponent
+    gaining control of your permanents (Coveted Falcon); "each creature
+    attacks each combat if able and attacks a player other than you"
+    until your next turn (Maximum Carnage).
+  - Put and return: "Choose up to two" with target-only modes and a
+    shared return (Call Damage Control); a same-name search that draws
+    for each card exiled from the hand (The End, Deadly Cover-Up);
+    "library and/or graveyard" with X additional counters (Vision Quest)
+    and "hand and/or library" (Last Light of Durin's Day); "If that card
+    is an enchantment card, it enters tapped and attacking" (Summoner's
+    Grimoire); a sacrificed source's counters and attachments (Zack
+    Fair); "return it" for the card a destroyed target became and "If a
+    creature card is put into a graveyard this way" (Come Back Wrong);
+    "one that hasn't been chosen" and a return under an opponent's
+    control (Zuko, Conflicted); "exile all cards from" a target player's
+    hand and graveyard and a count of them (Identity Crisis; Kaya, Geist
+    Hunter; Ashiok, Nightmare Weaver; Worldfire; Bottled Cloister),
+    "return all cards named ~" (Demigod of Revenge); "Put any number of
+    permanent cards from your hand onto the battlefield" (Redshift,
+    Rocketeer Chief); "Choose a permanent type." before a mass return
+    (Creeping Renaissance); Wrenn and Seven's +1 and Treefolk token.
+  - Other effects: "the creature you control deals twice that much
+    damage instead" (Chocobo Kick, whose non-mana kicker is in); "For
+    each creature your opponents control, create a Cursed Role token
+    attached to that creature" (Asinine Antics, whose "flash if you pay
+    {2} more" is in); "remove a lore counter from each of any number of
+    Sagas you control" with "for each lore counter removed this way"
+    (Garnet, Princess of Alexandria); a granted quoted ability with
+    "protection from each color" (Sygg, Wanderwine Wisdom); counter
+    doubling on players (Innkeeper's Talent); "loses all abilities for
+    as long as" after countering (Tishana's Tidebinder); granted riot
+    and "abilities can't be countered" (Spider-Punk); the discovered
+    card's mana value and another player discovering (Hit the Mother
+    Lode, Zoyowa's Justice); "can't become suspected" (Airtight Alibi: a
+    `Keyword` would be a merge hazard) and "suspect one of the other
+    creatures" (Frantic Scapegoat); the source and a chosen creature as
+    one group (Fortune, Loyal Steed); "Lock or unlock a door" (Marina
+    Vendrell); the noncombat damage replacement up to its power (Ojer
+    Axonil); a variable mode count (Riku of Many Paths); tiered modes
+    that are only a chosen base power and toughness (Vincent's Limit
+    Break); transform returns held by other parts: a Saga gaining a
+    quoted mana ability (Huatli, Poet of Unity), "That land becomes an
+    Island" after earthbend (The Legend of Kyoshi), exile and put onto
+    the battlefield transformed if cast from a graveyard (Esper
+    Origins).
+  - Wording: a token's first quoted ability printed without its final
+    period (Roxanne, Starfall Savant; its mana trigger and token are
+    in); "Return to the battlefield target ... with mana value less than
+    or equal to ..." (Squirming Emergence); two type checks in one
+    sentence (Alacrian Armory); "a 4/4 Gorgon creature with deathtouch
+    and lifelink in addition" (Case of the Gorgon's Kiss); "If you
+    sacrificed a permanent this way" and "another permanent card" other
+    than the sacrificed one (Deadly Brew); a filter on `those targets`
+    (Lost in the Maze); "a land card milled this way" without "from
+    among" and a trailing "You gain 2 life if a Lesson card is milled
+    this way" (Sparring Dummy); "you may have <face> deal that much
+    damage" with "Do this only once each turn" (Jennifer Walters); "put
+    each card exiled with it into its owner's hand" (Fear of Abduction,
+    whose additional cost gates); "for as long as you control this
+    creature" on a legendary card's impulse (Gwen Stacy // Ghost-Spider,
+    whose trigger is built); "Surveil 2. Then draw a card for each ..."
+    as two sentences, with a turn-limited creature static and an emblem
+    (Kaito, Bane of Nightmares); "this artifact" as the self-noun of
+    "{0}: This creature gets +3/+3" (Chronatog Totem); "another target"
+    for `another target any` (Magma Burst), "where X is this creature's
+    power" after the source is named (Nested Shambler), "If a creature
+    enters this way" for `if creature` (Recommission); "Tap ... and it
+    doesn't untap during its controller's next untap step" without a
+    semicolon (Quiet Contemplation) or with a comma before "and"
+    (Winterthorn Blessing); creature lands' "until end of turn ... It's
+    still a land." with a quoted trigger (Hall of Storm Giants, Lair of
+    the Hydra, Cave of the Frost Dragon, Hive of the Eye Tyrant, Den of
+    the Bugbear: their enters-tapped sentence is templated now);
+    Unexpected Request, Torch the Tower (other forms, as before). Not
+    attempted: Rat King, Repulsive Mutation, End-Blaze Epiphany, Saw,
+    Archaic's Agony, about 40 more Pauper and 69 Modern `RENDER:` lines.
+  - Sentences that don't parse (249 cards over the three pools, grouped
+    by phrase in the template branch's notes): relative clauses on a
+    target or group: "that dealt damage to you this turn" (Spear of
+    Heliod, Giltspire Avenger, Reciprocate, Retaliate), "that convoked
+    it" (Venerated Loxodon, Zephyr Singer), "that targets you or a
+    creature you control" (Siren Stormtamer, Not of This World), "that
+    wasn't cast from its owner's hand" (Wash Away), "that blocked or was
+    blocked by" (Time to Reflect, You Cannot Pass!), "that entered since
+    your last turn ended" (Premature Burial), "that has a -1/-1 counter
+    on it" (Banewhip Punisher), "that doesn't have a +1/+1 counter on
+    it" (Coiling Stalker), "that aren't legendary" (Urza's Ruinous
+    Blast), "that has an activated ability with {T} in its cost"
+    (Magewright's Stone), "that shares a card type with it" (Daring
+    Thief), "that entered the battlefield this turn" on a subtype list
+    (Oakhollow Village), "is snow or could produce {C}" (Break the Ice),
+    "that was activated this turn" (Cut Short), "that were dealt damage
+    this turn" (Death-Rattle Oni); "that's ...": an artifact, creature,
+    or enchantment (Bounty Agent), attacking you or a planeswalker you
+    control (Soul Snare), attacking or blocking (Surge of
+    Righteousness), blocking it (Arc Spitter), the second spell cast
+    this turn (Second Guess), a Wolf or a Werewolf (Spirit of the Hunt,
+    Pallid Mycoderm), attacking alone (Crowd of True Believers); return
+    and search filters ("card with awaken", cycling, a kicker ability,
+    flashback or disturb, a mana ability, "of an opponent's choice", one
+    target per card type: Reconstruct History; 21 cards); spells by
+    controller (Drown in the Loch); divided X with a "where X is"
+    (Monstrous Onslaught, Magmatic Core, Undercity Upheaval, Quirion
+    Beastcaller) and three targets with three amounts (Incremental
+    Growth, Incremental Blight); target lists of kinds (Tale's End,
+    Spider-Sense, Consign to Memory, Thraben Exorcism); "if it ..."
+    checks on a countered target (Hisoka, Minamo Sensei, Equinox,
+    Wretched Banquet, Corrupted Resolve, Nix, Unified Will); "unless its
+    controller" does something other than pay (Grip of Amnesia, Perplex,
+    Protect the Negotiators, Concerted Defense, Thassa's Intervention)
+    or "has ~ deal N damage to them" (Blazing Salvo, Combustion Man,
+    Dwarven Scorcher); "except for" in a group (Flame Sweep, Elspeth
+    Tirel, Scourglass); "who" clauses on players (Creeping Dread,
+    Bonder's Ornament, Rix Maadi Guildmage); "whose" clauses (Gilt-Leaf
+    Winnower, Lullmage's Domination); "with the same controller / mana
+    value as" (Fear, Fire, Foes!, Sanguine Praetor, Culling Scales); "1
+    plus the sacrificed ...'s mana value" (Enigmatic Incarnation, Prime
+    Speaker Vannifar); the power of the creature that entered or died as
+    a count (Kresh the Bloodbraided, Hamletback Goliath); the rest are
+    single cards.
   - Flavor-word cards still skipped for their other sentences (each
-    names its own feature in `mtg-cards author --verbose`): Spider-Ham,
-    The Emperor of Palamecia, G'raha Tia, Magitek Scythe, Aerith Rescue
-    Mission, Klaw, Edgar, Omega, Emet-Selch, Diamond Weapon, Dion,
-    Terra, Shocker, Lightning, Superior Spider-Man, Malboro, Hawkeye,
-    Sephiroth, Blitzball, The Unbeatable Squirrel Girl, Quistis Trepe,
-    Daredevil, Zenos yae Galvus, Falcon, Sidequest: Play Blitzball,
-    Captain Mar-Vell, Symbiote Spider-Man, Prompto Argentum, Cecil, Dark
-    Knight's Greatsword, Shadow of the Goblin, Flash Thompson, Tifa's
-    Limit Break, and the cloak cards (Expose the Culprit, Etrata, Hide
-    in Plain Sight, Vannifar).
-  - Not in the Scryfall snapshot: Ultron, Nick Fury, Tony Stark, Tokka &
-    Rahzar, Teo, Seasoned Cryomancer, Ojer Taq, Master's Guide-Mural.
+    names its own feature in `mtg-cards author --verbose`): "if at least
+    four mana was spent to cast it" (The Emperor of Palamecia, Prompto
+    Argentum); dealt 6 or more combat damage this turn, then transform
+    and attach (Sidequest: Play Blitzball); flash as long as an opponent
+    cast a spell this turn (Captain Mar-Vell); "one or more other
+    creatures and/or artifacts you control die", once each turn (G'raha
+    Tia); "When you discard this card" (Edgar's Awakening); "for each
+    opponent, tap up to one target nonland permanent that opponent
+    controls" (Omega); "choose a creature an opponent controls", then
+    "creatures other than ~ and the chosen creature" (Zenos yae Galvus);
+    "the fourth time this ability has resolved this turn" (Sephiroth);
+    "one plus the number of creature cards in your graveyard" cards
+    revealed (Klaw); "you lose that much life" after a damage trigger
+    and half the starting life total (Cecil); "up to one enchantment
+    card milled this way" (Terra, Magical Adept, also lore counters on a
+    token copy and two-mana adds); "look at that many cards" now
+    renders, "It gains this card's other abilities" doesn't (Symbiote
+    Spider-Man); "you may exile the top card of your library" and play
+    it (Daredevil); enter as a copy of a creature card in a graveyard
+    with exceptions (Superior Spider-Man); "Put a stun counter on one of
+    them" (Aerith Rescue Mission); one subject with three verbs
+    (Malboro); "that creature ... must be blocked this turn if able"
+    after an optional attach (Magitek Scythe); a legendary token with a
+    quoted ability (Falcon); double damage to a player and their
+    permanents until your next turn (Lightning, Army of One); a token
+    and a bloodline counter, transform (Edgar, Charmed Groom); coin
+    flips come up heads (Edgar, King of Figaro); cloak (Expose the
+    Culprit, Etrata, Deadly Fugitive, Hide in Plain Sight, Vannifar).
+  - Not in the Scryfall snapshot: Ultron, Nick Fury, Tony Stark,
+    Seasoned Cryomancer, Master's Guide-Mural, Seek Thrills, Gleam of
+    Death.
 - **Mechanics not yet in:** harness, cloak, epic,
   offering, companion, mutate, the Everywhere land token;
   "Each Sliver card in each player's hand has slivercycling {3}" (an
@@ -954,36 +1103,12 @@ named the feature; a card may need more than one.
 - **"This creature or equipped creature" as a leaves or dies trigger's
   subject** still sees only the equipped creature, not the source (the
   attack, block, and damage forms see both). No card known.
-- **Left by the thirteenth wave's wording branch:** "return another
-  permanent card" other than the one sacrificed this way (Deadly Brew);
-  a filter on `those targets` (Lost in the Maze); "any other target"
-  than the enchanted creature (Pain for All); a bite to each of two
-  other targets (Betrayal at the Vault); a discard printed before its
-  "if you do" (Oildeep Gearhulk); "a land card milled this way" and a
-  trailing "if a Lesson card is milled this way" (Sparring Dummy);
-  "with one or more counters on it" on a dies filter with "that many"
-  (Shadow Urchin); the source and a target shuffled into libraries in
-  one clause (Floodpits Drowner); "is all colors" for a group (Leyline
-  of the Guildpact); "you may have <face name> deal that much damage"
-  (Jennifer Walters); The Spot, Unexpected Request, Torch the Tower.
-  Not attempted: Relive the Past, Rat King, Repulsive Mutation,
-  End-Blaze Epiphany, Saw, Choreographed Sparks, Archaic's Agony,
-  Alacrian Armory, and the Pauper and Modern report lists.
-- **Duplicated this wave:** "no maximum hand size for the rest of the
-  game" exists twice (`PlayerRuleKind::NoMaxHandSize` from players13,
-  `Effect::NoMaxHandSize` from universes13): collapse to one.
-- **Scenario runner, thirteenth wave:** `activate "X"` on a land with several
-  abilities silently picks the first, its mana ability (Restless Spire
-  needed `ability 2`); `battlefield A: "Derelict Attic
-  // Widow's Walk"` places the Room's root split card, which has no
-  doors and isn't a legal "target Room you control" (unlock in the
-  scenario instead; whether a Room put onto the battlefield by an effect
-  gets the both-locked definition is untested); a `choose "X"` line
-  doesn't steer manifest dread (Threats Around Every Corner manifested
-  the other card; Conductive Machete's `choose` works); "your first,
-  second, or third turn" (`PlayerState::turns_begun`) from a set-up
-  position counts turns as if the players had alternated from turn 1
-  (Starting Town).
+- **Scenario runner, fourteenth wave:** `illegal activate ... x N
+  targeting ...` passes for a wrong X when the ability's targets are
+  chosen before X (`scripted_target_refused`): a scripted X the engine
+  doesn't offer falls back to the first option instead of counting as
+  refused, so a scenario can't show "with mana value X" refusing a
+  target (Gelatinous Cube; the engine filters X through `x_fits`).
 - **Scenario runner, twelfth wave:** `illegal ... choose "X"` never
   fires at a library search's decision; `illegal activate ... x N
   targeting` passes when X has no legal target; a "cast from exile"
@@ -1003,18 +1128,53 @@ named the feature; a card may need more than one.
 
 ## 4. Process
 
-- **Throughput after the thirteenth wave.** Twenty branches and no
-  perf branch: the mono-red mirror fell 4.4% (4,148 to 3,967 games/s,
-  same run), and random:3 v random:4 went from 612 to 454 games/s a
-  core. The random decks changed with the corpus (725 decisions a game
-  against 630), so that is about 15% a decision, not 26%. Not profiled.
-  Suspects: `ObjFilter` grew to 208 bytes (four new `StatusQuals`
-  fields and `name_unlike`; clippy's large-variant lint is silenced on
-  `TriggerObj`, `SacCost` and `Replaces`), per-object histories and six
-  more tally kinds, the spell-keyword and graveyard-grant checks on the
-  priority listing, and whatever new card makes `may_need_mid_decision`
-  snapshot. Measure merge by merge as the twelfth wave's perf branch
-  did (`git log --merges 613ed113..`).
+- **Throughput after the fourteenth wave.** Measured merge by merge in
+  game-only instructions (`perf stat -e instructions:u` of `--games
+  N+1` less `--games 1`, steady to 0.05% under load; games/s on this
+  machine with sixteen agents compiling meant nothing), the thirteenth
+  wave cost the mono-red mirror 2.5% (2,116,055 to 2,169,673
+  instructions a game); the 4.4% throughput drop was that plus layout
+  noise. Two merges were most of it: costs-mana13's red-mana loop at
+  every step end (+35.7k) and turn-tallies13's characteristics bump on
+  every first damage (+16.3k: `pool.history` is a pool flag, so on for
+  the whole corpus). The fourteenth wave's perf branch fixed both, gated
+  the target listing behind activated abilities' cost discounts
+  (`pool.equip_discounts` is on for the corpus, so every targeted
+  ability listed its targets at every priority: 12% of a random game,
+  from wording12), gated snapshots, gave statics layer bits, borrowed
+  cached mana sources instead of copying them, and stopped cloning a
+  filter alternative. Against main at 01bb8644 the mirror runs 2.0%
+  fewer instructions (2,169,634 to 2,126,651, still above the 2,116,055
+  before the thirteenth wave) and random:3 v random:4 29.7% fewer
+  (18,502,576 to 13,004,839). It also fixed a cache bug: the mana-source
+  cache shared one slot among every player beyond the first two, so in
+  a game of three or more `mana_sources(2)` right after
+  `mana_sources(1)` returned player 1's sources (players beyond two are
+  now not cached, `mana_key`). Since copies-names14 a static "is
+  legendary" or a set name makes `GameState::renamed` sticky, and from
+  then on every action snapshots for the legend rule's question. Left
+  for later: pool-level flags (`equip_discounts`, `card_grants`,
+  `spend_grants`, `stack_grants`, `history`) are on for the whole
+  corpus and want game-level counts (a `DefFlags` bit or a per-game scan
+  at setup); about 19k snapshots per 500 random games remain ("you may"
+  triggers at the resolving pass, inherent, and
+  `own_graveyard_replacers`, about 4.5k); in random games the priority
+  listing is 37% inclusive, the layer pass 22% (`characteristics_miss`
+  12.5%, `battlefield_chars` 10%, `gather_statics` 7%: a per-object
+  layer mask per pass would skip more), `detect_triggers` 16%,
+  `GameState::clone` 11% (about 50 snapshots a game of 124 objects),
+  `ability_plan` and `ability_plan_tapping` 5% each, with
+  `activation_allowed` and `ObjFilter::matches` behind; `run` is 10%
+  exclusive in the mirror; `mana_sources` misses 39% of calls in the
+  mirror (its key has the global `tap_epoch` and `cversion`; a
+  per-player tap epoch would keep the other player's list); `castable`
+  per hand card; `CardPool::intern_filter` compares filters linearly at
+  load (35M instructions, not per game). Re-bench games/s on a quiet
+  machine.
+  Quiet-machine games/s after the wave's merges (pinned, best of five):
+  mirror 4,037, against 3,985 after the thirteenth wave and 4,158
+  before it; random:3 v random:4 680 a core against 457 and 615 (the
+  random decks differ between the three binaries).
 - **Throughput after the twelfth wave.** The eleventh period (two
   refactorings and fourteen branches) added 6.4% instructions to a
   mono-red mirror game; measured merge by merge, the largest parts were
@@ -1094,12 +1254,18 @@ named the feature; a card may need more than one.
   `Keyword::ALL`. Only `CastInfo` is checked automatically.
   The twelfth wave had one collision (two branches took `DefFlags` bit
   29). Both words have since been widened: `DefFlags` is a u64 and
-  `GameObject::marks` a u16 (bits 10 and 12 newly taken, `skip_untap`
-  moved to bit 8).
+  `GameObject::marks` a u16. After the fourteenth wave `DefFlags` bits
+  32, 33, 38, 42, 50 and 51 are taken, `GameObject::marks` bits 0-8, 10
+  and 12, and `SpendWays` bit 17.
 - **The template author copies statements from corpus cards whose
   rendered line matches**, so a wrong-meaning card (section 2) spreads
   its form to every card with the same line: when a section-2 entry is
-  fixed, rerun `mtg-cards author` for the cards written from it.
+  fixed, rerun `mtg-cards author` for the cards written from it. Since
+  the fourteenth wave the corpus line index also substitutes colors,
+  card types, subtypes, keywords and counter kinds one to one, so a
+  wrong-meaning form spreads across its word shape, not only its number
+  shape: rerun the author for cards written from the same line with
+  other words too.
   Legendary sorceries had no legend check until the thirteenth wave;
   other per-type casting rules may be missing the same way.
 - **The census scripts** (`scripts/coverage/census/`) still name Pauper
