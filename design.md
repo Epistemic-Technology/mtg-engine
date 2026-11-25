@@ -3135,3 +3135,41 @@ and debug tests, 16,008 scenarios in both builds, both fuzzes and all
 10,881), 92.0% of Standard (4,752 of 5,164), 77.1% of Modern (17,524
 of 22,718); 20,720 card files, gate 20,282 match. Throughput: 4,120
 games/s on the mono-red mirror (4,046 at the wave's start).
+
+Status 2026-11-25, the sixteenth wave: card batches and feature
+agents together. 32 Sonnet agents took 1,280 more never-tried Modern
+cards: 400 accepted (31%, 6 to 18 a batch); four were held back at
+integration (two wrong meanings, two format round trips), one of them
+fixed and added later. Eight Opus agents worked from the fifteenth
+wave's missing-rule list: trigger events (keyword actions, damage by
+a filtered source, becoming a target, attacks on you; 61 cards),
+player effects ("your life total becomes N", "you win the game",
+graveyard locks, cast bans; 42), conditions and tallies (the Theros
+Gods' "isn't a creature", life lost with an amount; 36), targets and
+filters (31), costs (21), counts (13), the template author (99
+written, 91 after eight the batches also wrote; it now recombines one
+accepted line's trigger with another's effect), and a profiling agent
+(four changes, 5.1% fewer instructions per decision on frozen random
+decks, the mirror flat). Four wording agents took 177 near-miss lines
+from the first 23 batches and added 111 cards; a bug-fix agent took
+the wrong-meaning lines (17 faults fixed, five forms now refused by
+the compiler). The wording and bug-fix agents found a dozen engine
+faults behind forms that gated Match (a "when you cast this spell"
+trigger saw X as 0, a planeswalker that became a creature stopped
+being a planeswalker, an alternative cost of life and several
+permanents paid the life once a permanent, Guilty Conscience dealt
+its damage to the wrong object). Two pairs of branches built the same
+form under two names and three merges changed the wording of cards
+the branch had not seen; each was settled at the merge. The sweep
+after the merges failed in seven of 400 pairs, five faults: a spell
+that makes permanents legendary (Leyline of Singularity), a
+replacement created as a spell resolves meeting a static one, and a
+dredge card discarded and drawn over by one effect each asked a
+question with no snapshot; a count of untapped permanents did not
+refresh as permanents tapped; a card cast as an ability resolved was
+screened with that ability as its target. After the fixes: release
+and debug tests (109), 17,634 scenarios in both builds, both fuzzes
+and all 400 sweep pairs are clean. Coverage: 96.4% of Pauper (10,485
+of 10,881), 92.1% of Standard (4,755 of 5,164), 80.7% of Modern
+(18,323 of 22,718); 21,552 card files, gate 21,082 match. Throughput:
+4,050 games/s on the mono-red mirror (4,065 at the wave's start).

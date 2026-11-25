@@ -67,13 +67,28 @@ your reply.
 5. Performance matters: keep hot paths (priority options, characteristics,
    trigger detection) free of new per-call work; gate new checks on a
    cheap flag or counter the way existing features do.
-6. Commit on your branch as you go (one commit per mechanic is fine),
+6. A question asked in the middle of an event needs a snapshot: the
+   engine saves the state before an action only when
+   `GameState::may_need_mid_decision` says the action could ask (which
+   replacement applies first, which legend to keep, whether to dredge,
+   a "you may" as an effect resolves). If your feature can ask a
+   player something while an action is being applied, or makes an
+   existing question arise in a new place (a static that makes
+   permanents legendary, a replacement created as a spell resolves, a
+   card moved and then drawn over by one effect), teach that function
+   about it, with the check gated on a count so games without the
+   feature pay nothing. A debug build asserts on a missed one
+   ("mid-event decision without a snapshot"); a release build does
+   not, so run your scenarios with `target/debug/mtg scenario` too.
+   Likewise `cbump()` when anything a static ability reads changes
+   (a debug build asserts on a stale characteristics cache).
+7. Commit on your branch as you go (one commit per mechanic is fine),
    each with a message in the repository's style (a summary line, then
    what and why), ending with the `Co-Authored-By` line given in your
    instructions. Write the message to a file first and use `git commit
    -F <file>`. Do not push, do not touch `main`, never force anything.
    When everything is committed, delete your worktree's `target/`.
-7. Reply with: the branch name, the commit hash, what you implemented,
+8. Reply with: the branch name, the commit hash, what you implemented,
    the cards you added, and anything you left out or are unsure of.
 
 ## Known issues

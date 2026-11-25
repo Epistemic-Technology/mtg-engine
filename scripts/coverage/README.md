@@ -133,6 +133,45 @@ card, and their reports are the partition for what follows.
 - The template agent, working in a worktree, writes some of the same
   cards: keep the main checkout's file at the merge.
 
+## Batches and feature agents in one wave (sixteenth wave)
+
+32 batches (1,280 never-tried Modern cards, 400 accepted) ran beside
+eight Opus agents assigned from the previous wave's missing-rule list,
+with four wording agents and a bug-fix agent started as reports came
+in. Modern went from 77.1% to 80.7%.
+
+- Slots: start the long Opus agents first, fill the rest of the twenty
+  with batches, and give a freed slot to a wording agent as soon as
+  twelve batches have reported (about 40 `RENDER:` lines an agent).
+  The bug-fix agent starts when twenty are in; append later `MEANING:`
+  lines to its file, but expect it not to reach them.
+- Count the notes-folding agent in the budget: it is one more Opus
+  agent every wave.
+- Two wording agents will build the same form under two names (this
+  wave: "legendary in addition to its other types", "fewer than N
+  counters"). After merging the second, grep the AST for a twin and
+  keep one; the gate shows it as a mismatch only when the two print
+  differently.
+- A branch's renderer rule is checked against the corpus the branch
+  saw. The batch cards are not in it, so run the gate after every
+  merge: three merges this wave changed the wording of batch cards or
+  of another branch's cards, each fixed by narrowing the rule (by card
+  type, by a filter having subtypes, by the keyword qualities the rule
+  was written for).
+- Before committing the batch cards: gate, scenarios, `cargo test`,
+  and a throwaway test that lists every slug and round-trip failure at
+  once. Four files were misnamed and four cards held (two wrong
+  meanings found by re-running a scenario after fixing the card's
+  line to the form the agent's report named, two round trips).
+- The sweep is where batch cards meet debug assertions: card agents
+  use release binaries, so a card whose rule needs a snapshot or a
+  cache bump (a static making permanents legendary, a count of
+  untapped permanents) passes everything until a debug game plays it.
+  Seven of 400 pairs failed after the merges, five faults, all on
+  cards or combinations no branch had touched. Trace each to its game
+  (`trace.rs`), reproduce in a scenario, fix, and rerun the whole
+  verification.
+
 ## Quick cross-pool backlog (no census inputs needed)
 
     for f in pauper standard modern; do
