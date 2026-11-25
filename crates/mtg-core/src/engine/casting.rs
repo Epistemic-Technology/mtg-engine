@@ -14988,6 +14988,9 @@ impl GameState {
                 let exile = matches!(effect, Effect::ExileChosen { .. });
                 let players = self.recipients(ctx, *who);
                 self.begin_asking();
+                // "If the player can't, they lose 5 life." (Cruel Reality):
+                // `ForEachCouldnt` counts the players who fell short.
+                ctx.couldnt = 0;
                 for t in players {
                     let Target::Player(p) = t else {
                         continue;
@@ -15029,6 +15032,9 @@ impl GameState {
                             }
                             done += 1;
                         }
+                    }
+                    if done < n {
+                        ctx.couldnt += 1;
                     }
                     self.note_asked(p, done < n);
                 }

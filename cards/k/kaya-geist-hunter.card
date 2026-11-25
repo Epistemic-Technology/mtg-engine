@@ -1,0 +1,9 @@
+card "Kaya, Geist Hunter" {
+  oracle_id e0edb2fc-2533-407c-85e5-4337f4233f05
+  cost {1}{W}{B}
+  type Legendary Planeswalker — Kaya
+  loyalty 3
+  loyalty +1: creatures you control gain deathtouch until end of turn; put 1 +1/+1 counter on up to 1 target creature token you control
+  loyalty -2: this turn, replace tokens created under your control: double
+  loyalty -6: exile all cards from all graveyards, then create count each exiled this way "1/1 white Spirit creature with flying"
+}

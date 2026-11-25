@@ -1,0 +1,9 @@
+card "Sky Hussar" {
+  oracle_id 21b41dd6-bff7-4e3d-aa28-551a30194225
+  cost {3}{W}{U}
+  type Creature — Human Knight
+  pt 4/3
+  keywords flying
+  triggered whenever this enters: untap all creature you control
+  label "Forecast" activated tap 2 untapped white or blue creature you control, reveal this card: draw 1 card
+}

@@ -376,33 +376,52 @@ impl GameState {
             [p.index().min(3)]
             == 0;
         self.log_event(crate::card::TurnEvent::TokenEvents, p, 1);
-        if self.replacement_sources == 0 {
+        if self.replacement_sources == 0 && self.replacements.is_empty() {
             return out;
         }
         // (source, replacement, creature tokens only, artifact tokens only,
         // the source object)
         let mut found: SmallVec<[FoundTokenReplacement; 2]> = SmallVec::new();
         let granted = self.grant_sources > 0;
-        for id in &self.battlefield {
-            let o = &self.objects[*id];
-            if o.controller != p || (!granted && !self.flags_of(o).has_replacements()) {
+        if self.replacement_sources > 0 {
+            for id in &self.battlefield {
+                let o = &self.objects[*id];
+                if o.controller != p || (!granted && !self.flags_of(o).has_replacements()) {
+                    continue;
+                }
+                let Some(c) = self.characteristics(*id) else {
+                    continue;
+                };
+                for ability in c.abilities.iter().copied() {
+                    if let AbilityDef::Replacement(ReplacementAbility {
+                        replaces:
+                            Replaces::CreateTokens {
+                                creature, artifact, ..
+                            },
+                        replacement,
+                        ..
+                    }) = self.pool.ability(ability)
+                    {
+                        found.push((o.def, *replacement, *creature, *artifact, *id));
+                    }
+                }
+            }
+        }
+        // "Until end of turn, if one or more tokens would be created under
+        // your control, twice that many of those tokens are created
+        // instead." (Kaya, Geist Hunter): an effect a resolved spell or
+        // ability created (CR 614.3), its controller's.
+        for e in &self.replacements {
+            if e.controller != p {
                 continue;
             }
-            let Some(c) = self.characteristics(*id) else {
-                continue;
-            };
-            for ability in c.abilities.iter().copied() {
-                if let AbilityDef::Replacement(ReplacementAbility {
-                    replaces:
-                        Replaces::CreateTokens {
-                            creature, artifact, ..
-                        },
-                    replacement,
-                    ..
-                }) = self.pool.ability(ability)
-                {
-                    found.push((o.def, *replacement, *creature, *artifact, *id));
-                }
+            if let Replaces::CreateTokens {
+                creature, artifact, ..
+            } = e.ability.replaces
+                && !matches!(e.ability.replacement, Replacement::CopiesOfAttached { .. })
+                && let Some(source) = e.source
+            {
+                found.push((e.def, e.ability.replacement, creature, artifact, source));
             }
         }
         if found.is_empty() {

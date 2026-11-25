@@ -1,0 +1,8 @@
+card "Blight Pile" {
+  oracle_id 1c0fc9b4-177e-4529-827f-a1e17ff7a752
+  cost {1}{B}
+  type Creature — Phyrexian
+  pt 3/3
+  keywords defender
+  activated {2}{B}, {T}: each opponent loses count where creature with defender you control late life
+}

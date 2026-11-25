@@ -1,0 +1,6 @@
+card "Boseiju, Who Endures" {
+  oracle_id bf1341dd-41a3-49f6-87ec-63170dde4324
+  type Legendary Land
+  mana {G}
+  label "Channel" activated {1}{G}, discard this, reduced {1} each legendary creature you control: destroy target artifact or enchantment or nonbasic land an opponent controls; that player may search land card with basic land type to battlefield
+}

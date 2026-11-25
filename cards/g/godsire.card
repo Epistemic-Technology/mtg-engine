@@ -1,0 +1,8 @@
+card "Godsire" {
+  oracle_id 4252d7f4-c582-4a21-b3af-829c84cb0b09
+  cost {4}{R}{G}{G}{W}
+  type Creature — Beast
+  pt 8/8
+  keywords vigilance
+  activated {T}: create 1 "8/8 Beast creature that's red, green, and white"
+}

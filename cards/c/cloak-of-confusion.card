@@ -1,0 +1,7 @@
+card "Cloak of Confusion" {
+  oracle_id 5d258409-28d3-4eac-9f1a-3e494db818bf
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered whenever enchanted creature attacks and isn't blocked: you may it assigns no combat damage this turn; if you do, defending player discards 1 card at random
+}

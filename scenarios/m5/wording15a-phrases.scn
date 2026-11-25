@@ -1,0 +1,327 @@
+# Wording near-misses: "that entered the battlefield this turn" (Oakhollow
+# Village), "Reveal a blue card in your hand" (Dragon's Eye Savants),
+# "if there is a land card in your graveyard" (Igneous Elemental), "Equip
+# {2} or {B}" (Transmogrant's Crown), "a spell that targets one or more
+# permanents" (Tiller of Flesh), "creatures with defender you control"
+# (Blight Pile), "Saproling creatures and other Treefolk creatures"
+# (Verdeloth the Ancient), "Reveal this card from your hand" on a creature
+# (Sky Hussar).
+
+scenario "Oakhollow Village: counters only on the listed types that entered this turn" {
+  battlefield A: 3 "Forest"
+  hand A: "Zodiac Rabbit", "Llanowar Elves", "Spore Frog", "Oakhollow Village"
+  turn 1 A: cast "Zodiac Rabbit"
+  turn 3 A: cast "Spore Frog"
+  turn 3 A: cast "Llanowar Elves"
+  turn 3 A: play "Oakhollow Village"
+  turn 3 A: activate "Oakhollow Village"
+  run_to turn 3 postcombat_main
+  assert counters "Spore Frog" +1/+1 1
+  assert counters "Zodiac Rabbit" +1/+1 0
+  assert counters "Llanowar Elves" +1/+1 0
+}
+
+scenario "Oakhollow Village: its {G} casts a creature spell" {
+  battlefield A: "Oakhollow Village"
+  hand A: "Zodiac Rabbit"
+  turn 1 A: cast "Zodiac Rabbit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zodiac Rabbit"
+}
+
+scenario "Oakhollow Village: its {G} doesn't cast a noncreature spell" {
+  battlefield A: "Oakhollow Village", "Grizzly Bears"
+  hand A: "Giant Growth"
+  illegal turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Giant Growth"
+}
+
+scenario "Dragon's Eye Savants: turned up by revealing a blue card, looks at a hand" {
+  battlefield A: 3 "Island"
+  hand A: "Dragon's Eye Savants", "Wind Drake"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Dragon's Eye Savants" face_down
+  turn 1 postcombat_main A: unmorph "Dragon's Eye Savants"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Dragon's Eye Savants"
+  assert hand A contains "Wind Drake"
+  assert known A "Lightning Bolt"
+}
+
+scenario "Dragon's Eye Savants: no blue card in hand, no unmorph" {
+  battlefield A: 3 "Island"
+  hand A: "Dragon's Eye Savants", "Lightning Bolt"
+  turn 1 A: cast "Dragon's Eye Savants" face_down
+  illegal turn 1 postcombat_main A: unmorph "Dragon's Eye Savants"
+  run_to turn 2 upkeep
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "Igneous Elemental: {2} less with a land card in the graveyard; 2 damage" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Forest"
+  hand A: "Igneous Elemental"
+  turn 1 A: cast "Igneous Elemental"
+  turn 1 A: trigger "Igneous Elemental" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Igneous Elemental"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Igneous Elemental: full cost without a land card in the graveyard" {
+  battlefield A: 4 "Mountain"
+  graveyard A: "Lightning Bolt"
+  hand A: "Igneous Elemental"
+  illegal turn 1 A: cast "Igneous Elemental"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Igneous Elemental"
+}
+
+scenario "Transmogrant's Crown: equip for {B}; +2/+0; draw when it dies" {
+  battlefield A: "Transmogrant's Crown", "Grizzly Bears", "Swamp", "Mountain"
+  hand A: "Shock"
+  library A: "Forest"
+  turn 1 A: activate "Transmogrant's Crown" ability 2 targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+}
+
+scenario "Transmogrant's Crown: equip for {2}" {
+  battlefield A: "Transmogrant's Crown", "Grizzly Bears", 2 "Plains"
+  turn 1 A: activate "Transmogrant's Crown" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Transmogrant's Crown" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Tiller of Flesh: a spell that targets a permanent incubates 2" {
+  battlefield A: "Tiller of Flesh", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Tiller of Flesh"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Incubator"
+  assert counters "Incubator" +1/+1 2
+}
+
+scenario "Tiller of Flesh: a spell that targets only a player doesn't" {
+  battlefield A: "Tiller of Flesh", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A lacks "Incubator"
+}
+
+scenario "Blight Pile: each opponent loses life for each creature with defender" {
+  battlefield A: "Blight Pile", "Wall of Wood", "Grizzly Bears", 3 "Swamp"
+  turn 1 A: activate "Blight Pile"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Verdeloth the Ancient: kicked for 2, two Saprolings get +1/+1" {
+  battlefield A: 8 "Forest", "Scarwood Treefolk"
+  hand A: "Verdeloth the Ancient"
+  turn 1 A: cast "Verdeloth the Ancient" kicked x 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Saproling"
+  assert power newest A "Saproling" 2
+  assert toughness newest A "Saproling" 2
+  assert power "Scarwood Treefolk" 4
+  assert toughness "Scarwood Treefolk" 6
+  assert power "Verdeloth the Ancient" 4
+}
+
+scenario "Verdeloth the Ancient: not kicked, no tokens" {
+  battlefield A: 6 "Forest"
+  hand A: "Verdeloth the Ancient"
+  turn 1 A: cast "Verdeloth the Ancient"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Saproling"
+}
+
+scenario "Sky Hussar: entering untaps all creatures you control" {
+  battlefield A: 4 "Plains", "Island", "Grizzly Bears" tapped
+  battlefield B: "Wind Drake" tapped
+  hand A: "Sky Hussar"
+  turn 1 A: cast "Sky Hussar"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert tapped "Wind Drake"
+}
+
+scenario "Sky Hussar: forecast in the upkeep taps two blue creatures, draws" {
+  battlefield A: 2 "Wind Drake"
+  hand A: "Sky Hussar"
+  library A: "Forest", "Island"
+  start turn 2 A upkeep
+  turn 2 upkeep A: activate "Sky Hussar"
+  run_to turn 2 draw
+  assert hand A contains "Forest"
+  assert hand A contains "Sky Hussar"
+  assert tapped oldest A "Wind Drake"
+  assert tapped newest A "Wind Drake"
+}
+
+scenario "Sky Hussar: no forecast outside the upkeep" {
+  battlefield A: 2 "Wind Drake"
+  hand A: "Sky Hussar"
+  illegal turn 1 A: activate "Sky Hussar"
+  run_to turn 1 postcombat_main
+  assert untapped oldest A "Wind Drake"
+}
+
+# "If the player can't, they lose 5 life." (Cruel Reality).
+scenario "Cruel Reality: the enchanted player sacrifices a creature" {
+  battlefield A: 7 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Cruel Reality"
+  turn 1 A: cast "Cruel Reality" targeting player B
+  run_to turn 2 precombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Cruel Reality: with nothing to sacrifice, the player loses 5 life" {
+  battlefield A: 7 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Cruel Reality"
+  turn 1 A: cast "Cruel Reality" targeting player B
+  run_to turn 2 precombat_main
+  assert life B 15
+  assert battlefield B contains "Forest"
+}
+
+# "Then you return up to two creature cards from your graveyard to your
+# hand." (Unseal the Necropolis).
+scenario "Unseal the Necropolis: everyone mills three, you return two creatures" {
+  battlefield A: 3 "Swamp"
+  hand A: "Unseal the Necropolis"
+  library A: "Grizzly Bears", "Hill Giant", "Forest", "Island"
+  library B: "Serra Angel", "Forest", "Island", "Plains"
+  turn 1 A: cast "Unseal the Necropolis"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Forest"
+  assert graveyard B contains "Serra Angel"
+  assert library A contains "Island"
+}
+
+# "Until end of turn, if one or more tokens would be created under your
+# control, twice that many of those tokens are created instead." (Kaya,
+# Geist Hunter).
+scenario "Kaya, Geist Hunter: -2 doubles tokens this turn" {
+  battlefield A: "Kaya, Geist Hunter", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: activate "Kaya, Geist Hunter" ability 2
+  turn 1 A: wait
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Soldier"
+  assert counters "Kaya, Geist Hunter" loyalty 1
+}
+
+scenario "Kaya, Geist Hunter: the doubling ends with the turn" {
+  battlefield A: "Kaya, Geist Hunter", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: activate "Kaya, Geist Hunter" ability 2
+  turn 3 A: cast "Raise the Alarm"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+}
+
+scenario "Kaya, Geist Hunter: +1 grants deathtouch and counters a token" {
+  battlefield A: "Kaya, Geist Hunter", "Grizzly Bears", "Soldier"
+  turn 1 A: activate "Kaya, Geist Hunter" ability 1 targeting "Soldier"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" deathtouch
+  assert counters "Soldier" +1/+1 1
+  assert counters "Kaya, Geist Hunter" loyalty 4
+}
+
+scenario "Kaya, Geist Hunter: -6 exiles all graveyards, a Spirit for each card" {
+  battlefield A: "Kaya, Geist Hunter" with 6 loyalty
+  graveyard A: "Grizzly Bears", "Forest"
+  graveyard B: "Shock"
+  turn 1 A: activate "Kaya, Geist Hunter" ability 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Spirit"
+  assert exile A contains "Kaya, Geist Hunter"
+  assert exile A contains "Grizzly Bears"
+  assert exile B contains "Shock"
+}
+
+# "If you win, those creatures gain deathtouch until end of turn."
+# (Gilt-Leaf Ambush).
+scenario "Gilt-Leaf Ambush: two Elf Warriors gain deathtouch on a won clash" {
+  battlefield A: 3 "Forest"
+  hand A: "Gilt-Leaf Ambush"
+  library A: "Serra Angel"
+  library B: "Forest"
+  turn 1 A: cast "Gilt-Leaf Ambush"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elf Warrior"
+  assert has oldest A "Elf Warrior" deathtouch
+  assert has newest A "Elf Warrior" deathtouch
+}
+
+scenario "Gilt-Leaf Ambush: a lost clash gives no deathtouch" {
+  battlefield A: 3 "Forest"
+  hand A: "Gilt-Leaf Ambush"
+  library A: "Forest"
+  library B: "Serra Angel"
+  turn 1 A: cast "Gilt-Leaf Ambush"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elf Warrior"
+  assert has not oldest A "Elf Warrior" deathtouch
+}
+
+# "It enters with two additional +1/+1 counters on it if it's a creature."
+# (What Must Be Done).
+scenario "What Must Be Done: return a historic creature with two counters" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Ornithopter"
+  hand A: "What Must Be Done"
+  turn 1 A: cast "What Must Be Done" mode 2 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert counters "Ornithopter" +1/+1 2
+}
+
+scenario "What Must Be Done: a noncreature historic card gets no counters" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Sol Ring"
+  hand A: "What Must Be Done"
+  turn 1 A: cast "What Must Be Done" mode 2 targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sol Ring"
+  assert counters "Sol Ring" +1/+1 0
+}
+
+scenario "What Must Be Done: not a nonhistoric card" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "What Must Be Done"
+  illegal turn 1 A: cast "What Must Be Done" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "What Must Be Done: destroy all artifacts and creatures" {
+  battlefield A: 5 "Plains", "Sol Ring"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "What Must Be Done"
+  turn 1 A: cast "What Must Be Done" mode 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Sol Ring"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Forest"
+}

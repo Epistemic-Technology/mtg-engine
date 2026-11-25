@@ -1,0 +1,8 @@
+card "Igneous Elemental" {
+  oracle_id 4dc8e91a-2c00-4de2-bada-80f323a4ec9d
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 4/3
+  this spell costs {2} less if there is land card in your graveyard
+  triggered whenever this enters: you may this deals 2 damage to target creature
+}

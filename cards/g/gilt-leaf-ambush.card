@@ -1,0 +1,6 @@
+card "Gilt-Leaf Ambush" {
+  oracle_id e5a06062-0513-48af-b92a-420ebbeb1695
+  cost {2}{G}
+  type Kindred Instant — Elf
+  spell: create 2 "1/1 green Elf Warrior creature"; clash; if you win, those creatures gain deathtouch until end of turn
+}

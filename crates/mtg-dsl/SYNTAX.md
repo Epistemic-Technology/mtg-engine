@@ -491,6 +491,28 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you discard one or more cards` | once for the cards you discard together (CR 603.2c), counted as `that much` ("put that many +1/+1 counters", "deals that much damage"); cards discarded before the next time a player gets priority count as together. Cycling a card discards it |
 | `whenever you sacrifice one or more Food` | once for the matching permanents you sacrifice together (CR 603.2c), counted as `that much` |
 | `they lose 2 life`, `deal 2 damage to they` | The triggering player written "they" ("Whenever a player casts a noncreature spell, they lose 2 life.") and "them" as an object ("... deals 2 damage to them"); the same player as `that player`. In a "when this enters" trigger with targets (whose triggering player is you) "they" is the first target's controller, or that player: `triggered whenever this enters: destroy target permanent an opponent controls; they create 1 "Treasure"` ("They create a Treasure token.", Vraska, the Cutting Glare) |
+| `destroy target artifact or enchantment or nonbasic land an opponent controls; that player may search land card with basic land type to battlefield` | Outside a trigger, `that player` after a target permanent an opponent controls is that permanent's controller: "Destroy target artifact, enchantment, or nonbasic land an opponent controls. That player may search their library for a land card with a basic land type, ..." (Boseiju, Who Endures). Three alternatives whose last is a "non"-qualified noun print as a list ("artifact, enchantment, or nonbasic land"). |
+| `target creature you control loses all abilities and becomes blue Dragon Illusion base 4/4 and gains flying` | With base power and toughness and `and gains`, the loss prints between them: "becomes a blue Dragon Illusion with base power and toughness 4/4, loses all abilities, and gains flying" (Dance of the Skywise). |
+| `you may it assigns no combat damage this turn` | "you may have it assign no combat damage this turn" (Cloak of Confusion). |
+| `dig 3 reveal take all nonland permanent card rest bottom` | "Put all nonland permanent cards revealed this way ..." (Ajani Unyielding): a permanent card with a "non" type prints "nonland permanent", not "nonland, noninstant, nonsorcery". |
+| `up to 3 target land you control each become 2/2 Warrior creature until end of turn` | Several target lands print plural, each: "up to three target lands you control each become 2/2 Warrior creatures until end of turn. They're still lands." (Anthousa, Setessan Hero). |
+| `you may exile another target nontoken creature; if you do, this creature becomes a copy of that target 1 until end of turn; delayed target 1: return the exiled card to battlefield at beginning of the next end step` | After the target was exiled, a copy of it is "a copy of that creature" (as it last existed); `the exiled card` in a delayed trigger about one target is that card, "Return the exiled card to the battlefield under its owner's control ..." (Identity Thief). |
+| `put 1 +1/+1 counter on each Frog or Rabbit or Raccoon or Squirrel you control that entered the battlefield this turn` | `that entered the battlefield this turn` is `that entered this turn` printed in the long form (Oakhollow Village). After a chain of alternatives it qualifies every side, as `you control` does (it qualified the last side only before). |
+| `morph reveal blue card in hand`, `reveal this card` | "Morph—Reveal a blue card in your hand." (Dragon's Eye Savants: `in hand` for "from your hand"); `reveal this card` prints "Reveal this card from your hand" on a creature card, where `reveal this` prints "this creature" (Sky Hussar's forecast). Wording only. |
+| `equip {2} or {B}` | Two mana costs print as the keyword, "Equip {2} or {B}" (Transmogrant's Crown); any other second cost prints "Equip—Pay {3} or discard a card." |
+| `whenever you cast spell that targets one or more permanent: ...` | "Whenever you cast a spell that targets one or more permanents, ..." (Tiller of Flesh): the same as `that targets permanent`. |
+| `that player sacrifices 1 creature or planeswalker of their choice; if the player can't, they lose 5 life` | "If the player can't, they lose 5 life." (Cruel Reality): `if the player can't` is `if they can't` worded so. A sacrifice (or a return or exile) of chosen permanents now counts a player who had too few as one who couldn't, as a discard does. |
+| `each player mills 3 cards; then you return up to 2 creature card from your graveyard to hand chosen` | "Then you return up to two creature cards from your graveyard to your hand." (Unseal the Necropolis): `you` before the return prints the subject. |
+| `loyalty -2: this turn, replace tokens created under your control: double` | "Until end of turn, if one or more tokens would be created under your control, twice that many of those tokens are created instead." (Kaya, Geist Hunter): an effect a spell or ability creates applies to token creation like a permanent's static ability (CR 614.3). |
+| `create 2 "1/1 green Elf Warrior creature"; clash; if you win, those creatures gain deathtouch until end of turn` | `those creatures` after creating creature tokens, with no group named, is `those tokens` printed "those creatures" (Gilt-Leaf Ambush). |
+| `return target historic permanent card from your graveyard to battlefield with 2 additional +1/+1 counters if creature late` | `late` after `if creature` prints the condition last: "It enters with two additional +1/+1 counters on it if it's a creature." (What Must Be Done). |
+| `this spell costs {3} more if not your turn` | "During turns other than yours, this spell costs {3} more to cast." (Hurkyl's Final Meditation). |
+| `create 1 "8/8 Beast creature that's red, green, and white"` | A token of three or four colors prints them after the noun: "an 8/8 Beast creature token that's red, green, and white" (Godsire). |
+| `each single thatare other Wolf creature or Werewolf creature you control gets +0/+3` | `thatare` on a group of creature types prints them after the noun: "each other creature you control that's a Wolf or a Werewolf gets +0/+3 until end of turn" (Spirit of the Hunt). |
+| `static Saproling creature or other Treefolk creature: +1/+1` | When only the second side is `other`, each side keeps its type noun: "Saproling creatures and other Treefolk creatures get +1/+1." (Verdeloth the Ancient). |
+| `kicker {X}` | "Kicker {X}": X is announced as the spell is cast kicked (CR 601.2b) and paid with the kicker; `create X ...` uses it (Verdeloth the Ancient). |
+| `triggered whenever creature you control with power 2 or less attacks: deal 1 damage to defending player` | From a noncreature source, "... deals 1 damage to the player or planeswalker that creature is attacking" (Raid Bombardment); from a creature, "... it's attacking" (Hellrider). |
+| `destroy target attacking or blocking late black or red creature` | "Destroy target black or red creature that's attacking or blocking." (Surge of Righteousness). |
 | `whenever you attack with one or more Faerie`, `whenever you attack a player with one or more creature with power 4 or greater` | once as you declare attackers if a matching creature attacks (CR 508.1m); with `a player`, once for each player a matching creature attacks, that player being `that player` |
 | `whenever you tap this for mana`, `whenever a player taps land for mana`, `whenever an opponent taps Mountain for mana`, `whenever you tap creature for mana` | "Whenever you tap this creature for mana", "Whenever a player taps a land for mana" (CR 106.11a): a matching permanent, controlled by that player, is tapped for mana by a mana ability (activated, or tapped while paying a cost); not a mana ability (CR 605.1b: it adds no mana), so it uses the stack. The permanent is the triggering object and its controller `that player` |
 | `whenever this transforms`, `whenever this enters or transforms` | "Whenever this creature transforms into Ashling, Rimebound" (CR 701.27): the ability is on that face, so it sees only the transformation to it; the face's name prints |
@@ -1134,7 +1156,10 @@ created prints "Otherwise, create one of those tokens."
 nonbasic, ..." (the target as it last existed); a state alone prints "it":
 `if target 1 was attacking` ("If it was attacking"), `if target 1 was
 tapped` ("If it was tapped"), judged as it last existed on the
-battlefield, so a target returned to its owner's hand still counts. Without `instead`, `if
+battlefield, so a target returned to its owner's hand still counts.
+`if it was <filter>, <sentence>` after a target is the same check on the
+last object target, printed "If it was a Soldier, ..." (Zephyr
+Sentinel). Without `instead`, `if
 target 1 is <filter>, <sentence>` is "If it's a Vampire, ..." and `if
 that target 1 is <filter>, ...` is "If that creature is a Goat, ..." (the
 target as it resolves, or last existed); `also` after the comma prints
@@ -4792,7 +4817,8 @@ revealed (an empty library) neither holds. `otherwise, <sentence>` after
 it happens when it didn't. The card or cards move with `put it into
 hand`, `put that card into hand`, `put it into graveyard` (`put that card
 into graveyard of that player`: "into that player's graveyard", after
-looking at another player's library), `put it onto
+looking at another player's library; `into graveyard of their`: "into
+their graveyard", Draugr Thought-Thief), `put it onto
 battlefield [tapped]` (under your control, CR 110.2a), `put it on bottom of
 library`, and for every revealed card still in the library `put all
 revealed into hand` ("put all cards revealed this way into your hand"),

@@ -893,6 +893,16 @@ impl P {
         self.toks.get(self.pos).map(|t| &t.tok)
     }
 
+    /// Whether a token was created earlier in this ability's effects (a
+    /// `create` since the last `:`).
+    fn created_before(&self) -> bool {
+        self.toks[..self.pos.min(self.toks.len())]
+            .iter()
+            .rev()
+            .take_while(|t| t.tok != Tok::Colon)
+            .any(|t| matches!(&t.tok, Tok::Word(w) if w == "create" || w == "creates"))
+    }
+
     fn peek_at(&self, n: usize) -> Option<&Tok> {
         self.toks.get(self.pos + n).map(|t| &t.tok)
     }
@@ -8035,7 +8045,11 @@ impl P {
         }
         // "They gain haste until end of turn." after creating tokens
         // (Salt Road Skirmish).
-        if (self.at_words(&["those", "tokens"]) || self.at_words(&["those", "copies"]))
+        if (self.at_words(&["those", "tokens"])
+            || self.at_words(&["those", "copies"])
+            || (self.at_words(&["those", "creatures"])
+                && !self.in_delayed
+                && self.created_before()))
             && matches!(
                 self.word_at(2).as_deref(),
                 Some("gain" | "gains" | "get" | "gets")
@@ -8139,11 +8153,13 @@ impl P {
             CardWords::TheRevealed
         };
         let mut that_player = false;
+        let mut their = false;
         let mut attacking = false;
         let to = if self.eat_words(&["into", "hand"]) {
             CardDest::Hand
         } else if self.eat_words(&["into", "graveyard"]) {
             that_player = self.eat_words(&["of", "that", "player"]);
+            their = !that_player && self.eat_words(&["of", "their"]);
             CardDest::Graveyard
         } else if self.eat_words(&["onto", "battlefield"]) {
             let tapped = self.eat_word("tapped");
@@ -8176,6 +8192,7 @@ impl P {
             to,
             who,
             that_player,
+            their,
             random,
             rest,
             attacking,
@@ -9263,6 +9280,7 @@ impl P {
                     to: mtg_core::card::CardDest::Hand,
                     who: None,
                     that_player: false,
+                    their: false,
                     random: false,
                     rest: None,
                     attacking: false,
@@ -9477,6 +9495,29 @@ impl P {
         {
             return self.if_target();
         }
+        // `if it was Soldier, ...` after a target: "If it was a Soldier,
+        // ..." about the last object target, as it last existed.
+        if self.at_words(&["if", "it", "was"])
+            && let Some(n) = self.last_object_target()
+        {
+            self.pos += 3;
+            let filter = self.filter()?;
+            Self::no_host_check(&filter).or_else(|m| self.fail(m))?;
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                n,
+                filter,
+                vec![s],
+                crate::ast::TargetCheck {
+                    tense: crate::ast::TargetTense::Was,
+                    it: true,
+                    ..crate::ast::TargetCheck::default()
+                },
+            ));
+        }
         if self.it_check_ahead().is_some() {
             let (filter, check) = self.it_check()?;
             self.expect(&Tok::Comma)?;
@@ -9690,13 +9731,16 @@ impl P {
             return Ok(e);
         }
         // "If they can't, you draw a card." (Brain Pry).
-        if self.at_words(&["if", "they", "can't"]) {
-            self.pos += 3;
+        if self.at_words(&["if", "they", "can't"])
+            || self.at_words(&["if", "the", "player", "can't"])
+        {
+            let player = self.word_at(1).as_deref() == Some("the");
+            self.pos += if player { 4 } else { 3 };
             if self.peek() == Some(&Tok::Comma) {
                 self.pos += 1;
             }
             let inner = vec![self.sentence()?];
-            return Ok(Effect::IfTheyCant(inner));
+            return Ok(Effect::IfTheyCant(inner, player));
         }
         // "For each opponent who can't, you draw a card."
         if self.at_words(&["for", "each"])
@@ -11869,6 +11913,37 @@ impl P {
                     _ => self.fail("expected a token after `create`"),
                 }
             }
+            // "Then you return up to two creature cards from your graveyard
+            // to your hand." (Unseal the Necropolis).
+            "return" if subject == Recipient::You => {
+                self.pos -= 1;
+                match self.verb_first()? {
+                    Effect::ChooseAct {
+                        act: act @ mtg_core::card::ChooseAct::ReturnFromGraveyard,
+                        count,
+                        up_to,
+                        filter,
+                        among_them,
+                        among_those,
+                        this_way,
+                        returns,
+                        by: None,
+                    } => Ok(Effect::ChooseAct {
+                        act,
+                        count,
+                        up_to,
+                        filter,
+                        among_them,
+                        among_those,
+                        this_way,
+                        returns,
+                        by: Some(Recipient::You),
+                    }),
+                    _ => self.fail(
+                        "expected `return ... from your graveyard to hand chosen` after `you`",
+                    ),
+                }
+            }
             _ => self.fail(format!("unknown verb `{w}` after a subject")),
         }
     }
@@ -12613,6 +12688,7 @@ impl P {
         let mut additional = false;
         let mut more = None;
         let mut if_creature = false;
+        let mut if_creature_late = false;
         let counters = if self.eat_word("with") {
             let n = self.count()?;
             additional = self.eat_word("additional");
@@ -12625,6 +12701,7 @@ impl P {
             }
             self.eat_words(&["on", "it"]);
             if_creature = self.eat_words(&["if", "creature"]);
+            if_creature_late = if_creature && self.eat_word("late");
             Some((kind, n))
         } else {
             None
@@ -12691,6 +12768,7 @@ impl P {
             additional,
             more,
             if_creature,
+            if_creature_late,
             transformed,
             front_up,
             enters_attacking,
@@ -17175,6 +17253,12 @@ impl P {
                 self.pos += n;
                 return Ok(Recipient::Those(t));
             }
+            // "If you win, those creatures gain deathtouch until end of
+            // turn." after creating creature tokens (Gilt-Leaf Ambush).
+            if t == crate::ast::Those::Creatures && !self.in_delayed && self.created_before() {
+                self.pos += n;
+                return Ok(Recipient::CreatedCreatures);
+            }
             if n == 2 {
                 return self.fail(
                     "`those creatures` needs a group (`each creature you control`) before it",
@@ -17532,6 +17616,9 @@ impl P {
         if self.in_delayed && self.eat_words(&["the", "exiled", "cards"]) {
             return Ok(Recipient::SameExiledCards);
         }
+        if self.in_delayed && self.eat_words(&["the", "exiled", "card"]) {
+            return Ok(Recipient::SameExiledCard);
+        }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
                 return self.fail("`those cards` needs targets declared before it");
@@ -17818,6 +17905,20 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // "Destroy target artifact ... an opponent controls. That player may
+        // search ..." (Boseiju, Who Endures): the opponent who controls the
+        // last target, outside a trigger (where "that player" is the
+        // triggering player).
+        if self.at_words(&["that", "player"])
+            && !self.in_trigger
+            && matches!(
+                self.targets.last(),
+                Some(Target::Filter(f)) if f.who == Some(Who::Opponents)
+            )
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatController(self.targets.len() - 1));
+        }
         // "An opponent gains control of this artifact."
         if self.at_words(&["an", "opponent", "gains", "control"]) {
             self.pos += 2;
@@ -18014,6 +18115,12 @@ impl P {
             return Ok(None);
         }
         let mut t = crate::ast::Targeting::default();
+        // "that targets one or more permanents" (Tiller of Flesh).
+        if self.eat_words(&["one", "or", "more"]) {
+            t.one_or_more = true;
+            t.filter = Some(self.filter()?);
+            return Ok(Some(Box::new(t)));
+        }
         // "that targets only a single creature you control".
         if self.eat_words(&["only", "a", "single"]) {
             t.single = true;
@@ -19039,6 +19146,20 @@ impl P {
                 "that" if self.at_words(&["that", "entered", "this", "turn"]) => {
                     f.status.entered_this_turn = true;
                     self.pos += 4;
+                }
+                "that"
+                    if self.at_words(&[
+                        "that",
+                        "entered",
+                        "the",
+                        "battlefield",
+                        "this",
+                        "turn",
+                    ]) =>
+                {
+                    f.status.entered_this_turn = true;
+                    f.entered_long = true;
+                    self.pos += 6;
                 }
                 "that" if self.at_words(&["that", "dealt", "damage", "this", "turn"]) => {
                     f.status.dealt_damage = true;
@@ -22054,6 +22175,7 @@ impl P {
                             optional,
                             reveal: false,
                             x: false,
+                            in_hand: false,
                         }));
                         cost.order.push(CostItem::Behold);
                     }
@@ -22096,7 +22218,11 @@ impl P {
                     "reveal" if self.word_at(1).as_deref() == Some("this") => {
                         self.pos += 2;
                         cost.reveal_this = true;
-                        cost.order.push(CostItem::RevealThis);
+                        cost.order.push(if self.eat_word("card") {
+                            CostItem::RevealThisCard
+                        } else {
+                            CostItem::RevealThis
+                        });
                     }
                     // `reveal Kithkin card`, `may reveal Dragon card`: "reveal
                     // a Kithkin card from your hand" (a behold from the hand
@@ -22111,6 +22237,7 @@ impl P {
                         let x = self.eat_word("x");
                         let filter = self.filter()?;
                         self.cards_word()?;
+                        let in_hand = self.eat_words(&["in", "hand"]);
                         cost.behold = Some(Box::new(crate::ast::Behold {
                             filter,
                             n: u32::from(!x),
@@ -22118,6 +22245,7 @@ impl P {
                             optional,
                             reveal: true,
                             x,
+                            in_hand,
                         }));
                         cost.order.push(CostItem::Behold);
                     }

@@ -61,6 +61,7 @@ pub enum SpendWording {
 
 /// How `Effect::IfTarget` words its check.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed wording
 pub struct TargetCheck {
     pub tense: TargetTense,
     /// `also` after the comma: "it also gains lifelink".
@@ -79,6 +80,10 @@ pub struct TargetCheck {
     /// `if that land is Mountain` about the triggering object
     /// (`IT_TRIGGER`): the noun printed after "that".
     pub noun: Option<&'static str>,
+    /// `if it was Soldier` after a target: "If it was a Soldier" (Zephyr
+    /// Sentinel) for `if target 1 was`'s "If that creature was". Wording
+    /// only; the check is `Was` on the last object target.
+    pub it: bool,
 }
 
 /// `Effect::IfTarget`'s index for a check of the triggering object, not a
@@ -1150,6 +1155,9 @@ pub struct Behold {
     /// `reveal X red cards`: "Reveal X red cards from your hand", X the
     /// ability's.
     pub x: bool,
+    /// `reveal blue card in hand`: "Reveal a blue card in your hand"
+    /// (Dragon's Eye Savants) for "from your hand". Wording only.
+    pub in_hand: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -1196,6 +1204,9 @@ pub enum CostItem {
     RevealHand,
     /// `reveal this`: "Reveal this card from your hand".
     RevealThis,
+    /// `reveal this card`: "Reveal this card from your hand" on a creature
+    /// card, for `reveal this`'s "this creature" (Sky Hussar).
+    RevealThisCard,
     /// `blight 1`.
     Blight,
     /// `behold Kithkin`.
@@ -1235,6 +1246,10 @@ pub struct Targeting {
     /// `that targets only single creature you control`: "that targets
     /// only a single creature you control".
     pub single: bool,
+    /// `that targets one or more permanent`: "that targets one or more
+    /// permanents" (Tiller of Flesh), the same as "a permanent". Wording
+    /// only.
+    pub one_or_more: bool,
 }
 
 /// The subtype name standing for every creature type in a `becomes`
@@ -1329,6 +1344,9 @@ pub struct Filter {
     /// damage this turn" rather than "creature that was dealt damage this
     /// turn".
     pub damaged_short: bool,
+    /// `that entered the battlefield this turn`: `status.entered_this_turn`
+    /// printed in the long form (Oakhollow Village). Wording only.
+    pub entered_long: bool,
     /// `put there from anywhere this turn`: `status.put_there_this_turn`
     /// printed "that was put there from anywhere this turn" rather than
     /// "that was put there this turn".
@@ -5128,6 +5146,10 @@ pub enum Recipient {
     /// the owner of the `n`th target, printed "that player" (Recoil's
     /// "Then that player discards a card").
     ThatOwner(usize),
+    /// "that player" after a target permanent "an opponent controls": the
+    /// controller of the `n`th target, printed "that player" (Boseiju, Who
+    /// Endures: "That player may search their library ...").
+    ThatController(usize),
     /// `controller of the target 1`: "the creature's controller".
     TheControllerOf(usize),
     /// `the target 1`: the `n`th target, "the creature" (Dark Temper's
@@ -5315,6 +5337,11 @@ pub enum Recipient {
     /// the battlefield under their owners' control ...", Hide on the
     /// Ceiling).
     SameExiledCards,
+    /// `the exiled card` inside a delayed trigger about one target:
+    /// `SameCards` for it, printed "the exiled card" ("Return the exiled
+    /// card to the battlefield under its owner's control at the beginning
+    /// of the next end step.", Identity Thief).
+    SameExiledCard,
     /// `them` inside a delayed trigger about created tokens: those tokens
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").
@@ -5332,6 +5359,12 @@ pub enum Recipient {
     /// too ("Those tokens gain haste until end of turn.", where `those
     /// tokens` prints "They gain ...").
     CreatedThose,
+    /// `those creatures` after creating creature tokens, with no group
+    /// named: `those tokens` printed "those creatures" ("Create two 1/1
+    /// green Elf Warrior creature tokens. Clash with an opponent. If you
+    /// win, those creatures gain deathtouch until end of turn.", Gilt-Leaf
+    /// Ambush).
+    CreatedCreatures,
     /// `manifested creature`: the creature the resolution manifested
     /// (manifest dread, CR 701.62), printed "that creature" ("manifest
     /// dread, then put three +1/+1 counters on that creature").
@@ -5571,6 +5604,10 @@ pub enum Effect {
         /// `with 1 additional +1/+1 counter if creature`: "If it enters as
         /// a creature, it enters with an additional +1/+1 counter on it."
         if_creature: bool,
+        /// `... if creature late`: the condition printed last, "It enters
+        /// with two additional +1/+1 counters on it if it's a creature."
+        /// (What Must Be Done). Wording only.
+        if_creature_late: bool,
         /// `... to battlefield transformed`, `tapped and transformed`:
         /// "return it to the battlefield transformed under your control"
         /// (CR 712.14a).
@@ -7359,6 +7396,9 @@ pub enum Effect {
         /// `into graveyard of that player`: "into that player's
         /// graveyard" (the card's owner's, where it goes anyway).
         that_player: bool,
+        /// `into graveyard of their`: "into their graveyard" (Draugr
+        /// Thought-Thief), the same; wording only.
+        their: bool,
         /// `on bottom of library random`: "in a random order".
         random: bool,
         /// `put that card into hand and the rest on bottom of library
@@ -7656,7 +7696,10 @@ pub enum Effect {
         /// `target 1 puts all Goblin card from among milled this way cards
         /// into hand chosen`, wording only: "then puts each Goblin card
         /// milled this way into their hand" (every card goes to its
-        /// owner's hand; with `all` no one chooses).
+        /// owner's hand; with `all` no one chooses). With
+        /// `ReturnFromGraveyard`, `you return up to 2 creature card from
+        /// your graveyard to hand chosen`: "Then you return up to two
+        /// creature cards ..." (Unseal the Necropolis), `Some(You)`.
         by: Option<Recipient>,
     },
     /// `sacrifice 1 artifact chosen or discard 1 card`: one of these, as
@@ -7691,8 +7734,10 @@ pub enum Effect {
     },
     /// `if they can't, you draw 1 card` (after `that player discards 1
     /// with that name card`): "If they can't, you draw a card."
-    /// (`Effect::ForEachCouldnt` for one player).
-    IfTheyCant(Vec<Sentence>),
+    /// (`Effect::ForEachCouldnt` for one player). `if the player can't, ...`
+    /// (`true`): "If the player can't, they lose 5 life." (Cruel Reality),
+    /// wording only.
+    IfTheyCant(Vec<Sentence>, bool),
 }
 
 /// `<filter> was exiled this way`, `you discarded card this way`, `the

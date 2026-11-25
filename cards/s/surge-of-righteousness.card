@@ -1,0 +1,6 @@
+card "Surge of Righteousness" {
+  oracle_id 5c9a2789-4b8c-4706-a95a-99561cd6d09c
+  cost {1}{W}
+  type Instant
+  spell: destroy target attacking or blocking late black or red creature; you gain 2 life
+}

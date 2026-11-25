@@ -1,0 +1,10 @@
+card "Verdeloth the Ancient" {
+  oracle_id 8222321f-b74d-4f74-9ee7-79455433345a
+  cost {4}{G}{G}
+  type Legendary Creature — Treefolk
+  pt 4/7
+  short_name "Verdeloth"
+  kicker {X}
+  static Saproling creature or other Treefolk creature: +1/+1
+  triggered when this enters if kicked: create X "1/1 green Saproling creature"
+}

@@ -1,0 +1,55 @@
+# "Look at the top two cards ... Put the rest on the bottom of your library
+# in any order." when the take may leave both (Trail of Crumbs, Lair Delve).
+
+scenario "Trail of Crumbs: pay {1} after sacrificing a Food, take a permanent card" {
+  battlefield A: "Trail of Crumbs", "Food", 3 "Forest"
+  library A: "Lightning Bolt", "Grizzly Bears", "Island"
+  turn 1 A: activate "Food"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert library A contains "Lightning Bolt"
+  assert library A contains "Island"
+}
+
+scenario "Trail of Crumbs: declining the payment takes nothing" {
+  battlefield A: "Trail of Crumbs", "Food", 3 "Forest"
+  library A: "Lightning Bolt", "Grizzly Bears", "Island"
+  turn 1 A: activate "Food"
+  turn 1 A: decline "Trail of Crumbs"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert hand A count 0
+}
+
+scenario "Trail of Crumbs: entering creates a Food" {
+  battlefield A: 2 "Forest"
+  hand A: "Trail of Crumbs"
+  turn 1 A: cast "Trail of Crumbs"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Food"
+}
+
+scenario "Lair Delve: creature and land cards to hand, the rest to the bottom" {
+  battlefield A: 3 "Forest"
+  hand A: "Lair Delve"
+  library A: "Grizzly Bears", "Forest", "Lightning Bolt"
+  turn 1 A: cast "Lair Delve"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Forest"
+  assert hand A count 2
+  assert library A contains "Lightning Bolt"
+}
+
+scenario "Lair Delve: a nonland noncreature card stays in the library" {
+  battlefield A: 3 "Forest"
+  hand A: "Lair Delve"
+  library A: "Lightning Bolt", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Lair Delve"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Lightning Bolt"
+  assert library A contains "Shock"
+}

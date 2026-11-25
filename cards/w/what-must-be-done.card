@@ -1,0 +1,9 @@
+card "What Must Be Done" {
+  oracle_id bd0df0a8-c2ec-4d1f-9ada-cc91f7a20e1a
+  cost {3}{W}{W}
+  type Sorcery
+  choose one {
+    mode "Let the World Burn": destroy all artifact or creature
+    mode "Release Juno": return target historic permanent card from your graveyard to battlefield with 2 additional +1/+1 counters if creature late
+  }
+}

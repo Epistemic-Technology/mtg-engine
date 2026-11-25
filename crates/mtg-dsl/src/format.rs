@@ -440,7 +440,9 @@ impl Fmt {
                 "controller of that creature".to_string()
             }
             Recipient::TheTriggeringController => "controller of the creature".to_string(),
-            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
+            Recipient::TriggeringPlayer
+            | Recipient::ThatOwner(_)
+            | Recipient::ThatController(_) => "that player".to_string(),
             Recipient::TriggeringThey => "they".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),
@@ -462,12 +464,13 @@ impl Fmt {
             Recipient::GranterIt => "granter as it".to_string(),
             Recipient::GranterController => "controller of granter".to_string(),
             Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
-            Recipient::SameCreatures => "those creatures".to_string(),
+            Recipient::SameCreatures | Recipient::CreatedCreatures => "those creatures".to_string(),
             Recipient::EachExiledThisWay(_, _, false) => "each card exiled this way".to_string(),
             Recipient::EachExiledThisWay(_, _, true) => {
                 "each creature card exiled this way".to_string()
             }
             Recipient::SameExiledCards => "the exiled cards".to_string(),
+            Recipient::SameExiledCard => "the exiled card".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::Those(t) => those_word(t).to_string(),
             Recipient::EachPlayer => "each player".to_string(),
@@ -1598,6 +1601,7 @@ impl Fmt {
                 to,
                 who,
                 that_player,
+                their,
                 random,
                 rest,
                 attacking,
@@ -1627,6 +1631,7 @@ impl Fmt {
                 let d = match to {
                     CardDest::Hand => "into hand",
                     CardDest::Graveyard if *that_player => "into graveyard of that player",
+                    CardDest::Graveyard if *their => "into graveyard of their",
                     CardDest::Graveyard => "into graveyard",
                     CardDest::Battlefield { tapped: false } => "onto battlefield",
                     CardDest::Battlefield { tapped: true } => "onto battlefield tapped",
@@ -2292,6 +2297,7 @@ impl Fmt {
                 additional,
                 more,
                 if_creature,
+                if_creature_late,
                 transformed,
                 front_up,
                 enters_attacking,
@@ -2328,6 +2334,9 @@ impl Fmt {
                     }
                     if *if_creature {
                         s.push_str(" if creature");
+                    }
+                    if *if_creature_late {
+                        s.push_str(" late");
                     }
                 }
                 if let Some(a) = attached {
@@ -2705,6 +2714,11 @@ impl Fmt {
                 s
             }
             Effect::CreateEmblem { emblem } => format!("emblem \"{emblem}\""),
+            // A cast trigger's spell, as written (`that spell`).
+            Effect::Counter {
+                to: Recipient::TriggeringObject,
+                dest,
+            } => format!("counter that spell{}", countered_to(*dest)),
             Effect::Counter { to, dest } => {
                 format!("counter {}{}", self.recipient(*to, t), countered_to(*dest))
             }
@@ -3959,9 +3973,11 @@ impl Fmt {
                 self.recipient(*who, t),
                 filter(f)
             ),
-            Effect::IfTheyCant(inner) => {
-                format!("if they can't, {}", self.line(inner, t))
-            }
+            Effect::IfTheyCant(inner, player) => format!(
+                "if {} can't, {}",
+                if *player { "the player" } else { "they" },
+                self.line(inner, t)
+            ),
             Effect::ForEachCouldnt { opponent, inner } => format!(
                 "for each {} who can't, {}",
                 if *opponent { "opponent" } else { "player" },
@@ -4076,6 +4092,14 @@ impl Fmt {
                     ),
                     None => (verb, f),
                 };
+                if check.it {
+                    return format!(
+                        "if it {verb} {}, {}{}",
+                        filter(f),
+                        if check.also { "also " } else { "" },
+                        self.line(inner, t)
+                    );
+                }
                 format!(
                     "if {that}target {} {verb} {}, {}{}",
                     n + 1,
@@ -4143,7 +4167,9 @@ impl Fmt {
                 by,
             } => {
                 use mtg_core::card::ChooseAct;
-                if let Some(w) = by {
+                if let Some(w) = by
+                    && *act != ChooseAct::ReturnFromGraveyard
+                {
                     return format!(
                         "{} puts all {} card from among milled this way cards into hand chosen",
                         self.recipient(*w, t),
@@ -4240,11 +4266,14 @@ impl Fmt {
                     }
                     // "return two cards at random from your graveyard": no
                     // filter.
-                    ChooseAct::ReturnFromGraveyard if unfiltered => {
+                    ChooseAct::ReturnFromGraveyard if unfiltered && by.is_none() => {
                         format!("return {n} {cs} from your graveyard to hand chosen")
                     }
                     ChooseAct::ReturnRandomFromGraveyard if unfiltered => {
                         format!("return {n} {cs} from your graveyard to hand at random")
+                    }
+                    ChooseAct::ReturnFromGraveyard if by.is_some() => {
+                        format!("you return {n} {f} {cs} from your graveyard to hand chosen")
                     }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
@@ -6005,7 +6034,9 @@ fn filter_one(f: &Filter) -> String {
             .to_string(),
         );
     }
-    if f.status.entered_this_turn {
+    if f.status.entered_this_turn && f.entered_long {
+        words.push("that entered the battlefield this turn".to_string());
+    } else if f.status.entered_this_turn {
         words.push("that entered this turn".to_string());
     }
     if f.status.dealt_damage {
@@ -6230,6 +6261,11 @@ pub fn targeting_suffix(t: &crate::ast::Targeting, phrase: impl Fn(&Filter) -> S
     {
         return format!(" that targets only a single {}", phrase(f));
     }
+    if t.one_or_more
+        && let Some(f) = &t.filter
+    {
+        return format!(" that targets one or more {}", phrase(f));
+    }
     format!(" that targets {}", targeting(t, phrase))
 }
 
@@ -6282,6 +6318,13 @@ pub fn share_qualifiers(base: &mut Filter, alt: &mut Filter) {
     if base.relation == Relation::Other && alt.relation == Relation::Any {
         alt.relation = Relation::Other;
     }
+    // "each Frog, Rabbit, Raccoon, or Squirrel you control that entered
+    // the battlefield this turn" (Oakhollow Village): every side entered
+    // this turn, as every side is controlled by you.
+    if alt.status.entered_this_turn && !base.status.entered_this_turn {
+        base.status.entered_this_turn = true;
+        base.entered_long = alt.entered_long;
+    }
 }
 
 /// The filter without "other", on each side of an `or` ("another Wolf or
@@ -6301,6 +6344,10 @@ pub fn relation_any(f: &mut Filter) {
 pub fn factor_qualifiers(base: &Filter, alt: &Filter) -> (Filter, Filter) {
     let (mut b, mut a) = (base.clone(), alt.clone());
     b.or = None;
+    if b.status.entered_this_turn && a.status.entered_this_turn {
+        b.status.entered_this_turn = false;
+        b.entered_long = false;
+    }
     if b.who.is_some()
         && b.who == a.who
         && b.dont_control == a.dont_control
@@ -7073,6 +7120,19 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 )
             });
             let base = filter(&g);
+            // `casts with mana value equal to ... spell` (Chalice of the
+            // Void): no noun, any spell, not "permanent".
+            let base = match base.strip_prefix("permanent with ") {
+                Some(rest)
+                    if g.types.is_empty()
+                        && g.not_types.is_empty()
+                        && g.subtypes.is_empty()
+                        && g.any_types.is_empty() =>
+                {
+                    format!("with {rest}")
+                }
+                _ => base,
+            };
             let mut s = format!(
                 "whenever {} {} spell",
                 match whose {
@@ -7448,6 +7508,7 @@ fn cost_text(c: &Cost) -> String {
             CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::RevealThis => parts.push("reveal this".to_string()),
+            CostItem::RevealThisCard => parts.push("reveal this card".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
                 if c.blight > 0 && c.blight_put {
@@ -7473,6 +7534,9 @@ fn cost_text(c: &Cost) -> String {
                     }
                     if b.reveal {
                         let _ = write!(s, "reveal {} card", filter(&b.filter));
+                        if b.in_hand {
+                            s.push_str(" in hand");
+                        }
                         parts.push(s);
                         continue;
                     }

@@ -1,0 +1,8 @@
+card "Phyrexian Totem" {
+  oracle_id 65afedc9-9446-4417-8576-807279061342
+  cost {3}
+  type Artifact
+  mana {B}
+  activated {2}{B}: this becomes 5/5 black Phyrexian Horror artifact creature with trample until end of turn
+  triggered whenever this is dealt damage if this is creature: you sacrifice that much permanent
+}
