@@ -1,0 +1,7 @@
+token "1/1 black Bird creature with flying and can't block" {
+  name "Bird"
+  type Creature — Bird
+  pt 1/1
+  color black
+  keywords flying, can't block
+}

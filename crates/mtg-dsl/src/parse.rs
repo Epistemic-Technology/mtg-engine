@@ -6820,6 +6820,14 @@ impl P {
             let filter = self.filter()?;
             return Ok(StaticCond::YouControlAtMost { filter, n });
         }
+        if self.eat_words(&["you", "control", "exactly"]) {
+            let n = self.number()?;
+            let filter = self.filter()?;
+            return Ok(StaticCond::YouControlExactly { filter, n });
+        }
+        if self.eat_words(&["player", "discarded", "this", "turn"]) {
+            return Ok(StaticCond::PlayerDiscardedThisTurn);
+        }
         if self.eat_words(&["you", "control", "at", "least"]) {
             let n = self.number()?;
             let filter = self.filter()?;

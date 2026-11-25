@@ -1,0 +1,60 @@
+# "a player discarded a card this turn" (any one player, you included) and
+# "you control exactly thirteen permanents".
+
+# "At the beginning of each end step, if a player discarded a card this
+# turn, create a 1/1 black Bird creature token with flying and "This
+# token can't block."" (The Raven Man)
+scenario "The Raven Man: an opponent discarded, a Bird at the end step" {
+  battlefield A: "The Raven Man", 4 "Swamp"
+  hand B: "Island"
+  turn 1 A: activate "The Raven Man"
+  run_to turn 2 upkeep
+  assert graveyard B contains "Island"
+  assert battlefield A contains 1 "Bird"
+  assert power "Bird" 1
+  assert has "Bird" flying
+}
+
+scenario "The Raven Man: no discard, no Bird" {
+  battlefield A: "The Raven Man"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Bird"
+}
+
+scenario "The Raven Man: the Bird can't block" {
+  battlefield A: "The Raven Man", 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand B: "Island"
+  turn 1 A: activate "The Raven Man"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Bird"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+# "At the beginning of your end step, create a 1/1 red Human creature
+# token. Then if you control exactly thirteen permanents, you may sacrifice
+# this enchantment. When you do, it deals 7 damage to any target."
+scenario "Stensia Uprising: the thirteenth permanent fires it" {
+  battlefield A: "Stensia Uprising", 11 "Mountain"
+  turn 1 end A: trigger "Stensia Uprising" targeting player B
+  run_to turn 2 upkeep
+  assert battlefield A contains "Human"
+  assert graveyard A contains "Stensia Uprising"
+  assert life B 13
+}
+
+scenario "Stensia Uprising: twelve permanents, it stays" {
+  battlefield A: "Stensia Uprising", 10 "Mountain"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Human"
+  assert battlefield A contains "Stensia Uprising"
+  assert life B 20
+}
+
+scenario "Stensia Uprising: fourteen permanents, it stays" {
+  battlefield A: "Stensia Uprising", 12 "Mountain"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Stensia Uprising"
+  assert life B 20
+}

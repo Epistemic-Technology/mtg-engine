@@ -3488,6 +3488,15 @@ pub enum StaticCond {
         filter: Filter,
         n: u32,
     },
+    /// `you control exactly 13 permanent`: "you control exactly thirteen
+    /// permanents" (Stensia Uprising): at least and at most N.
+    YouControlExactly {
+        filter: Filter,
+        n: u32,
+    },
+    /// `player discarded this turn`: "a player discarded a card this
+    /// turn" (you or any one opponent).
+    PlayerDiscardedThisTurn,
     /// `you control at least 5 other Forest`: "you control at least five
     /// other Forests" (Roiling Canopy; the same condition as `you control
     /// 5 other Forest`).

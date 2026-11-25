@@ -8122,6 +8122,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YouControlAtLeast { filter: fl, n } => {
             format!("you control at least {n} {}", filter(fl))
         }
+        StaticCond::YouControlExactly { filter: fl, n } => {
+            format!("you control exactly {n} {}", filter(fl))
+        }
+        StaticCond::PlayerDiscardedThisTurn => "player discarded this turn".to_string(),
         StaticCond::YouControlEach(fs) => format!(
             "you control {}",
             fs.iter().map(filter).collect::<Vec<_>>().join(" and ")

@@ -668,7 +668,9 @@ starting life total"), `life below starting` ("your life total is less
 than ..."), `player life 13 or less` ("a player has 13 or less life"), `defending
 player controls Island`, `you control no untapped land`, `you control
 at most 2 other land` ("you control two or fewer other lands": the fast
-lands), `you control Mountain or a Plains` ("you control a Mountain or a
+lands), `you control exactly 13 permanent` ("you control exactly thirteen
+permanents": at least and at most), `player discarded this turn` ("a
+player discarded a card this turn": you or any one opponent), `you control Mountain or a Plains` ("you control a Mountain or a
 Plains"), `you control 2 basic land`, `any player controls black
 permanent` ("any player controls a black permanent"), `you control
 other Goblin` ("you control another Goblin"), `team controls other

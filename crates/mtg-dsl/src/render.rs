@@ -21649,6 +21649,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             f.who = None;
             format!("you control no {}", filter_phrase(&f, card, true))
         }
+        StaticCond::YouControlExactly { filter, n } => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!(
+                "you control exactly {} {}",
+                count_words(Num::N(*n), "one"),
+                filter_phrase(&f, card, *n != 1)
+            )
+        }
+        StaticCond::PlayerDiscardedThisTurn => "a player discarded a card this turn".to_string(),
         StaticCond::YouControlAtMost { filter, n } => {
             let mut f = filter.clone();
             f.who = None;

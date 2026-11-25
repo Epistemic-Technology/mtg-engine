@@ -885,6 +885,13 @@ impl Decompiler<'_> {
             {
                 StaticCond::GainedLifeThisTurn { or_lost: true }
             }
+            StaticCondition::Or(a, b)
+                if **a == StaticCondition::happened(TurnEvent::Discarded, TurnWho::You)
+                    && **b
+                        == StaticCondition::happened(TurnEvent::Discarded, TurnWho::Opponent) =>
+            {
+                StaticCond::PlayerDiscardedThisTurn
+            }
             // "a player lost 4 or more life this turn": you or an opponent.
             StaticCondition::Or(a, b)
                 if matches!(

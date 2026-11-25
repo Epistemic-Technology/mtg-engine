@@ -2642,6 +2642,26 @@ impl Compiler<'_> {
                 filter: self.filter(filter).who(Who::You),
                 n: *n,
             },
+            StaticCond::YouControlExactly { filter, n } => StaticCondition::And(
+                Box::new(StaticCondition::YouControl {
+                    filter: self.filter(filter).who(Who::You),
+                    at_least: *n,
+                }),
+                Box::new(StaticCondition::YouControlAtMost {
+                    filter: self.filter(filter).who(Who::You),
+                    n: *n,
+                }),
+            ),
+            StaticCond::PlayerDiscardedThisTurn => StaticCondition::Or(
+                Box::new(StaticCondition::happened(
+                    TurnEvent::Discarded,
+                    TurnWho::You,
+                )),
+                Box::new(StaticCondition::happened(
+                    TurnEvent::Discarded,
+                    TurnWho::Opponent,
+                )),
+            ),
             StaticCond::YouControlEach(filters) => StaticCondition::YouControlEach(
                 filters
                     .iter()
