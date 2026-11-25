@@ -583,3 +583,55 @@ scenario "Kefnet's Last Word: the creature is yours for good; your lands stay ta
   assert untapped oldest "Island"
   assert battlefield A contains "Hill Giant"
 }
+
+# "{2}: Search your library for a Dragon permanent card and put it into
+# your graveyard. If you do, Scion of the Ur-Dragon becomes a copy of that
+# card until end of turn. Then shuffle."
+scenario "Scion of the Ur-Dragon: it becomes a copy of the Dragon it found" {
+  battlefield A: "Scion of the Ur-Dragon", 2 "Mountain"
+  library A: "Grizzly Bears", "Adult Gold Dragon", "Forest"
+  turn 1 A: activate "Scion of the Ur-Dragon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Adult Gold Dragon"
+  assert battlefield A contains "Adult Gold Dragon"
+  assert battlefield A lacks "Scion of the Ur-Dragon"
+  assert toughness "Adult Gold Dragon" 3
+  assert has "Adult Gold Dragon" lifelink
+  assert library A count 2
+  run_to turn 2 upkeep
+  assert toughness "Scion of the Ur-Dragon" 4
+  assert has not "Scion of the Ur-Dragon" lifelink
+}
+
+scenario "Scion of the Ur-Dragon: no Dragon found, no copy" {
+  battlefield A: "Scion of the Ur-Dragon", 2 "Mountain"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 A: activate "Scion of the Ur-Dragon"
+  run_to turn 1 postcombat_main
+  assert toughness "Scion of the Ur-Dragon" 4
+  assert has not "Scion of the Ur-Dragon" lifelink
+  assert library A count 2
+}
+
+# "Creatures with power less than the number of Islands you control can't
+# block this creature." (Kraken of the Straits).
+scenario "Kraken of the Straits: with three Islands a 2/2 can't block" {
+  battlefield A: "Kraken of the Straits", 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Kraken of the Straits"
+  illegal turn 3 declare_blockers B: block "Kraken of the Straits" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 14
+}
+
+scenario "Kraken of the Straits: the 3/3 blocks" {
+  battlefield A: "Kraken of the Straits", 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Kraken of the Straits"
+  turn 3 declare_blockers B: block "Kraken of the Straits" with "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Hill Giant"
+}

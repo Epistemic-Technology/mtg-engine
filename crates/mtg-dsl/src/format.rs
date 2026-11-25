@@ -9060,6 +9060,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
                 crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),
+                crate::ast::BlockRule::NotByWorded(f) => format!("can't block this: {}", filter(f)),
                 crate::ast::BlockRule::MinBlockers(n) => {
                     format!("can't be blocked except by {n} or more creatures")
                 }

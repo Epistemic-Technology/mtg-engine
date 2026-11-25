@@ -1,0 +1,7 @@
+card "Kraken of the Straits" {
+  oracle_id c282581f-3d77-47ce-ac92-ed6217754e38
+  cost {5}{U}{U}
+  type Creature — Kraken
+  pt 6/6
+  can't block this: creature with power less than count each Island you control
+}

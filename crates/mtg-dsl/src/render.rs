@@ -8274,6 +8274,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             library: true,
             ..
         } => Clause::imperative("shuffle your library".to_string()),
+        // "..., then shuffle", "Then shuffle." (Scion of the Ur-Dragon).
+        Effect::Shuffle {
+            who: Recipient::You,
+            library: false,
+            ..
+        } => Clause::imperative("shuffle".to_string()),
         Effect::Shuffle { who, library, .. } => {
             let subject = ctx.subj(*who);
             let v = ctx.verb(*who, "shuffles", "shuffle");
@@ -11357,6 +11363,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.subj(*who)
             };
             let mut o = ctx.obj(*of);
+            // "Search your library for a Dragon permanent card and put it
+            // into your graveyard. If you do, Scion of the Ur-Dragon
+            // becomes a copy of that card until end of turn."
+            if *of == Recipient::CreatedObject && o == "it" {
+                o = "that card".to_string();
+            }
             // "Target artifact you control becomes a copy of a second
             // target artifact you control" (Shuri): the same kind of target
             // twice.
@@ -20359,6 +20371,7 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
         }
         BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
         BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
+        BlockRule::NotByWorded(f) => format!("can't be blocked by {}{turn}", pl(f)),
         BlockRule::MinBlockers(n) => format!(
             "can't be blocked{turn} except by {} or more creatures",
             count_words(Num::N(u32::from(*n)), "one")
@@ -22878,6 +22891,15 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::BlockRule(r) => {
             let me = capitalize(&this_ref(card));
+            // "Creatures with power less than the number of Islands you
+            // control can't block this creature."
+            if let crate::ast::BlockRule::NotByWorded(f) = r {
+                return format!(
+                    "{} can't block {}.",
+                    capitalize(&filter_phrase(f, card, true)),
+                    this_ref(card)
+                );
+            }
             if *r == crate::ast::BlockRule::NotByLesserPower {
                 // Wandering Wolf.
                 return format!(

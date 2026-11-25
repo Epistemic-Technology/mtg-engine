@@ -7730,6 +7730,9 @@ impl Compiler<'_> {
                 crate::ast::BlockRule::BlocksOnly(f) => {
                     mtg_core::card::BlockRule::BlocksOnly(self.filter(f))
                 }
+                crate::ast::BlockRule::NotByWorded(f) => {
+                    mtg_core::card::BlockRule::NotBy(self.filter(f))
+                }
                 crate::ast::BlockRule::CantBlock(f) => {
                     mtg_core::card::BlockRule::CantBlock(self.filter(f))
                 }

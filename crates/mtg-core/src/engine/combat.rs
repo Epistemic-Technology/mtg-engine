@@ -440,13 +440,19 @@ impl GameState {
         for id in &a.abilities {
             if let AbilityDef::BlockRule(r) = self.pool.ability(*id) {
                 let ok = match r {
+                    // "Creatures with power less than the number of
+                    // Islands you control can't block this creature"
+                    // (Kraken of the Straits): a count in the filter is
+                    // the attacker's controller's.
                     BlockRule::NotBy(f) => {
+                        let f = self.source_filter(f, Some(attacker), None);
                         !(f.matches(blocker, bc, b, Some(attacker), Some(ac))
-                            && self.status_ok(f, blocker))
+                            && self.status_ok(&f, blocker))
                     }
                     BlockRule::OnlyBy(f) => {
+                        let f = self.source_filter(f, Some(attacker), None);
                         f.matches(blocker, bc, b, Some(attacker), Some(ac))
-                            && self.status_ok(f, blocker)
+                            && self.status_ok(&f, blocker)
                     }
                     BlockRule::NotByLesserPower => b.power >= a.power,
                     BlockRule::NotByGreaterPower => b.power <= a.power,

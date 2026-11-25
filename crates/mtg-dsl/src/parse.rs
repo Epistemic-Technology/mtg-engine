@@ -4969,7 +4969,12 @@ impl P {
                         BlockRule::BlocksOnly(self.filter()?)
                     }
                 } else if self.eat_word("block") {
-                    BlockRule::CantBlock(self.filter()?)
+                    if self.at_word("this") && self.peek_at(1) == Some(&Tok::Colon) {
+                        self.pos += 2;
+                        BlockRule::NotByWorded(self.filter()?)
+                    } else {
+                        BlockRule::CantBlock(self.filter()?)
+                    }
                 } else {
                     self.expect_words(&["be", "blocked"])?;
                     if self.eat_words(&["by", "more", "than", "one", "creature"]) {

@@ -1,0 +1,8 @@
+card "Scion of the Ur-Dragon" {
+  oracle_id b4031540-584b-4c8a-9e4e-d68ae5cdec5b
+  cost {W}{U}{B}{R}{G}
+  type Legendary Creature — Dragon Avatar
+  pt 4/4
+  keywords flying
+  activated {2}: search Dragon permanent card to graveyard unshuffled; if you do, this becomes a copy of that card until end of turn; then shuffle
+}

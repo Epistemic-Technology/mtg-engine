@@ -3086,6 +3086,10 @@ pub enum Mechanic {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum BlockRule {
     NotBy(Filter),
+    /// `can't block this: <filter>`: `NotBy` worded from the blockers'
+    /// side, "Creatures with power less than the number of Islands you
+    /// control can't block this creature." (Kraken of the Straits).
+    NotByWorded(Filter),
     OnlyBy(Filter),
     AtMostOne,
     BlocksOnly(Filter),

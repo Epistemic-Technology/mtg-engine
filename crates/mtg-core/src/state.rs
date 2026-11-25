@@ -6045,7 +6045,7 @@ impl GameState {
     /// permanent not named ~"); other filters as they are.
     /// "with mana value X" is filled in from `x`, or else the X chosen for
     /// the source spell (CR 107.3), if known.
-    fn source_filter<'f>(
+    pub(crate) fn source_filter<'f>(
         &self,
         f: &'f crate::card::ObjFilter,
         source: Option<ObjId>,
