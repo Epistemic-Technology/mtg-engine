@@ -614,6 +614,8 @@ impl GameState {
                     skip_draw: 0,
                     skip_combat: 0,
                     skip_creature_untap: 0,
+                    skip_untap: 0,
+                    skip_turns: 0,
                     skip_combat_this_turn: 0,
                     combat_mana: 0,
                     turn_mana: crate::mana::ManaPool::default(),
@@ -706,6 +708,10 @@ impl GameState {
             combat_attackers: None,
             resume_step: None,
             combats_this_turn: 0,
+            end_steps_this_turn: 0,
+            coins_heads: 0,
+            extra_steps: Vec::new(),
+            upkeep_phase: false,
             result: None,
             log: Vec::new(),
             logging,
@@ -3073,9 +3079,13 @@ impl GameState {
         }
         self.untap_all(active, keep, no_creatures);
         self.untap_others(active, no_creatures);
-        self.player_mut(active).lands_played_this_turn = 0;
-        for p in 0..self.num_players() {
-            self.players[p].extra_land_plays = 0;
+        // Land plays are counted per turn (CR 305.2): an additional
+        // beginning phase's untap step (CR 500.8) doesn't start them over.
+        if self.resume_step.is_none() {
+            self.player_mut(active).lands_played_this_turn = 0;
+            for p in 0..self.num_players() {
+                self.players[p].extra_land_plays = 0;
+            }
         }
         self.flow = Flow::EndStep;
     }
@@ -3172,8 +3182,25 @@ impl GameState {
     /// step rules), then priority or straight to the end of the step.
     #[allow(clippy::too_many_lines)] // one arm per step
     fn begin_step(&mut self) {
-        self.emit(Event::StepBegin { step: self.step });
         let active = self.active_player;
+        if self.step == Step::End {
+            self.end_steps_this_turn = self.end_steps_this_turn.saturating_add(1);
+        }
+        // CR 500.11: "skips their next untap step": the step doesn't
+        // happen, nothing in it untaps (the turn's land plays still start
+        // over, CR 305.2).
+        if self.step == Step::Untap && self.players[active.index()].skip_untap > 0 {
+            self.players[active.index()].skip_untap -= 1;
+            if self.resume_step.is_none() {
+                self.player_mut(active).lands_played_this_turn = 0;
+                for p in 0..self.num_players() {
+                    self.players[p].extra_land_plays = 0;
+                }
+            }
+            self.flow = Flow::EndStep;
+            return;
+        }
+        self.emit(Event::StepBegin { step: self.step });
         match self.step {
             Step::Untap => {
                 // CR 502.2, 731.2: day may become night, or night day.
@@ -3391,6 +3418,24 @@ impl GameState {
                 }
             }
         }
+        // "Your maximum hand size is equal to ..." (after the others; a
+        // player with no maximum hand size returned above).
+        if self.player_static_sources > 0 {
+            let sizes: Vec<(crate::card::Num, ObjId, PlayerId)> = self
+                .player_statics_of()
+                .filter_map(|(who, kind, src)| match kind {
+                    crate::card::PlayerStaticKind::HandSizeCount { opponents, n }
+                        if (who == p) != opponents =>
+                    {
+                        Some((n, src, who))
+                    }
+                    _ => None,
+                })
+                .collect();
+            for (k, src, who) in sizes {
+                n = i64::from(self.eval_num_of(k, src, who));
+            }
+        }
         usize::try_from(n.max(0)).unwrap_or(0)
     }
 
@@ -3410,6 +3455,8 @@ impl GameState {
         self.pending_combat_attackers = None;
         self.combat_attackers = None;
         self.extra_phases.clear();
+        self.extra_steps.clear();
+        self.upkeep_phase = false;
         self.resume_step = None;
         self.cleanup_repeat = false;
         self.step = Step::Cleanup;
@@ -3599,10 +3646,7 @@ impl GameState {
     /// were added after ends, and the turn goes on after them with what
     /// would have followed it. `None` after cleanup.
     fn next_step(&self) -> Option<Step> {
-        let phase_ends = matches!(
-            self.step,
-            Step::Draw | Step::PrecombatMain | Step::EndOfCombat | Step::PostcombatMain
-        );
+        let phase_ends = self.phase_ends();
         if phase_ends && (!self.extra_phases.is_empty() || self.resume_step.is_some()) {
             return self.extra_phases.first().copied().or(self.resume_step);
         }
@@ -3611,14 +3655,20 @@ impl GameState {
 
     /// Takes the next additional phase off the queue as it begins (or the
     /// step the turn resumes with after the last).
-    fn take_extra_phase(&mut self, next: Step) {
-        let phase_ends = matches!(
+    /// Whether the current step is the last of its phase (an additional
+    /// beginning phase of only an upkeep step ends with it).
+    fn phase_ends(&self) -> bool {
+        matches!(
             self.step,
             Step::Draw | Step::PrecombatMain | Step::EndOfCombat | Step::PostcombatMain
-        );
-        if !phase_ends {
+        ) || (self.upkeep_phase && self.step == Step::Upkeep)
+    }
+
+    fn take_extra_phase(&mut self, next: Step) {
+        if !self.phase_ends() {
             return;
         }
+        self.upkeep_phase = false;
         // The restricted combat phase is over.
         if self.step == Step::EndOfCombat {
             self.combat_attackers = None;
@@ -3631,6 +3681,9 @@ impl GameState {
             if self.resume_step.is_none() {
                 self.resume_step = self.step.next();
             }
+            // "additional upkeep steps after this phase": a beginning
+            // phase whose untap and draw steps are skipped.
+            self.upkeep_phase = next == Step::Upkeep;
         } else if self.resume_step == Some(next) {
             self.resume_step = None;
         }
@@ -3727,15 +3780,25 @@ impl GameState {
             self.flow = Flow::BeginStep;
             return;
         }
-        if let Some(mut next) = self.next_step() {
-            self.take_extra_phase(next);
+        // CR 500.10: an additional step comes directly after the step it
+        // was added after.
+        let added = if self.extra_steps.is_empty() {
+            None
+        } else {
+            Some(self.extra_steps.remove(0))
+        };
+        if let Some(mut next) = added.or_else(|| self.next_step()) {
+            if added.is_none() {
+                self.take_extra_phase(next);
+            }
             // CR 500.11: a skipped step or phase doesn't happen; the game
             // proceeds to the one after it.
             let ap = self.active_player.index();
-            if next == Step::Draw && self.players[ap].skip_draw > 0 {
+            if added.is_none() && next == Step::Draw && self.players[ap].skip_draw > 0 {
                 self.players[ap].skip_draw -= 1;
                 next = Step::PrecombatMain;
-            } else if next == Step::BeginningOfCombat
+            } else if added.is_none()
+                && next == Step::BeginningOfCombat
                 && (self.players[ap].skip_combat > 0 || self.players[ap].skip_combat_this_turn > 0)
             {
                 let p = &mut self.players[ap];
@@ -3818,8 +3881,11 @@ impl GameState {
                 self.sba_touch();
             }
             self.extra_phases.clear();
+            self.extra_steps.clear();
+            self.upkeep_phase = false;
             self.resume_step = None;
             self.combats_this_turn = 0;
+            self.end_steps_this_turn = 0;
             for p in &mut self.players {
                 p.skip_combat_this_turn = 0;
                 p.keep_red_turn = false;
@@ -3910,18 +3976,29 @@ impl GameState {
             // most recently created first.
             // The turn order then goes on from the player whose regular
             // turn this would have been.
-            self.active_player = match self.next_extra_turn() {
-                Some(p) => {
-                    if self.resume_player.is_none() {
-                        self.resume_player = Some(self.next_player_in_game(self.active_player));
+            // CR 500.11: a skipped turn doesn't happen; the turn after it
+            // is chosen as if it had (each skip is used up once).
+            let mut current = self.active_player;
+            self.active_player = loop {
+                let next = match self.next_extra_turn() {
+                    Some(p) => {
+                        if self.resume_player.is_none() {
+                            self.resume_player = Some(self.next_player_in_game(current));
+                        }
+                        p
                     }
-                    p
+                    None => match self.resume_player.take() {
+                        Some(p) if self.player(p).lost.is_none() => p,
+                        Some(p) => self.next_player_in_game(p),
+                        None => self.next_player_in_game(current),
+                    },
+                };
+                if self.players[next.index()].skip_turns > 0 {
+                    self.players[next.index()].skip_turns -= 1;
+                    current = next;
+                    continue;
                 }
-                None => match self.resume_player.take() {
-                    Some(p) if self.player(p).lost.is_none() => p,
-                    Some(p) => self.next_player_in_game(p),
-                    None => self.next_player_in_game(self.active_player),
-                },
+                break next;
             };
             self.player_mut(self.active_player).turns_begun += 1;
             // CR 611.2b: "until your next turn" ends as that turn begins.

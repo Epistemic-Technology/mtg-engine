@@ -1,0 +1,8 @@
+card "Shisato, Whispering Hunter" {
+  oracle_id 8658cd14-6826-4308-b6ce-fcfd8f2e17ed
+  cost {3}{G}
+  type Legendary Creature — Snake Warrior
+  pt 2/2
+  triggered at beginning of your upkeep: sacrifice 1 Snake chosen
+  triggered whenever this deals combat damage to a player: that player skips next untap step
+}

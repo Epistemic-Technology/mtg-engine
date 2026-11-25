@@ -2581,6 +2581,9 @@ pub enum CountExpr {
     /// ("where X is the difference between its power and toughness"), as
     /// it last existed (CR 608.2h).
     TriggerPtDifference,
+    /// "the number of coins that came up heads" after "Flip five coins."
+    /// (`Effect::FlipCoins`, CR 705) in the same resolution.
+    CoinsHeads,
     /// X of the resolving spell or of the source (CR 107.3), for a count
     /// built on it ("half X, rounded up").
     X,
@@ -2643,6 +2646,7 @@ impl CountExpr {
     /// did) and read 0 in a static ability, so the card language rejects
     /// them there.
     #[must_use]
+    #[allow(clippy::too_many_lines)] // one arm per count
     pub fn in_static(&self) -> bool {
         match self {
             // The card language keeps the rest (your draws, discards, life
@@ -2746,6 +2750,7 @@ impl CountExpr {
             | CountExpr::HappenedTo { .. }
             | CountExpr::DifferentManaValues { .. }
             | CountExpr::TriggerPtDifference
+            | CountExpr::CoinsHeads
             | CountExpr::X
             | CountExpr::DamageThisWay { .. } => false,
         }
@@ -3422,6 +3427,9 @@ pub enum StaticCondition {
     YourMainPhase,
     YourCombatPhase,
     FirstCombatPhase,
+    /// "it's the first end step of the turn" (CR 500.10: an additional
+    /// end step is the second).
+    FirstEndStep,
     /// "this is the second time this ability has resolved this turn": the
     /// resolving ability's object has resolved it this many times this
     /// turn, counting this time.
@@ -5091,6 +5099,9 @@ pub enum Effect {
     FlipCoin {
         won: Vec<Effect>,
     },
+    /// "Flip five coins." (CR 705): flips `n` coins, no call made; the
+    /// heads are counted for `CountExpr::CoinsHeads`.
+    FlipCoins(u8),
     /// "Clash with an opponent. If you win, ..." (CR 701.23): the
     /// controller and an opponent each reveal the top card of their
     /// library and put it on the top or bottom; the controller wins if
@@ -6761,6 +6772,18 @@ pub enum Effect {
         combats: u8,
         main: bool,
     },
+    /// "There is an additional end step after this step." (CR 500.10),
+    /// "you get that many additional upkeep steps after this phase",
+    /// "there is an additional beginning phase after this phase" (CR
+    /// 500.8): `n` more of `step` directly after the current step, or
+    /// (`after_phase`) after the current phase, the most recently added
+    /// first. After a phase, `Upkeep` is a beginning phase whose untap and
+    /// draw steps are skipped, `Untap` a whole beginning phase.
+    ExtraSteps {
+        step: crate::turn::Step,
+        n: Num,
+        after_phase: bool,
+    },
     /// "Only land creatures can attack during that combat phase." (Bumi,
     /// Unleashed, CR 508.1c): in the next additional combat phase to
     /// begin, only creatures matching the filter can attack.
@@ -7152,6 +7175,13 @@ pub enum SkipWhat {
     /// (Blinding Beam): no creature untaps in that player's next untap
     /// step, whoever controls it.
     CreatureUntap,
+    /// "Each opponent skips their next untap step." (CR 500.11): the
+    /// whole step doesn't happen, so nothing untaps.
+    UntapStep,
+    /// "You skip your next turn.", "Target opponent skips their next X
+    /// turns" (CR 500.11): the player's next turns, extra or not, don't
+    /// happen; the turn order goes on as if each had.
+    Turns(Num),
 }
 
 /// `Effect::MoveCounters::count` for "move any number of +1/+1 counters":
@@ -7480,6 +7510,15 @@ pub enum PlayerStaticKind {
     /// "You can't lose the game and your opponents can't win the game."
     /// (CR 104.3a-b, 104.2b; Platinum Angel).
     CantLose,
+    /// "You don't lose the game for having 0 or less life." (CR 704.5a,
+    /// Lich's Tomb): only that state-based action stops applying to the
+    /// controller; the others still do.
+    NoZeroLifeLoss,
+    /// "Your maximum hand size is equal to the number of hour counters on
+    /// this enchantment.", "each opponent's maximum hand size is equal to
+    /// seven minus the number of those card types" (CR 402.2): the size
+    /// is the amount, judged as the hand size is checked.
+    HandSizeCount { opponents: bool, n: Num },
     /// A rule for the whole game while the source is on the battlefield:
     /// "Players can't gain life.", "Damage can't be prevented." (CR
     /// 614.17; `GameState::rule_in_force`).

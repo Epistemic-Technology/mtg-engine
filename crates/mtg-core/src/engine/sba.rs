@@ -146,7 +146,7 @@ impl GameState {
                 {
                     continue;
                 }
-                let reason = if ps.life <= 0 {
+                let reason = if ps.life <= 0 && !self.no_zero_life_loss(p) {
                     Some(LossReason::LifeZeroOrLess)
                 } else if ps.drew_from_empty_library {
                     Some(LossReason::DrewFromEmptyLibrary)

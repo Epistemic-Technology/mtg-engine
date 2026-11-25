@@ -1,0 +1,10 @@
+card "Pact of Negation" {
+  oracle_id f3e213a4-ba5a-468a-93b3-c0a34e1bd725
+  cost {0}
+  type Instant
+  color blue
+  spell {
+    counter target spell
+    delayed this: at beginning of your next upkeep, pay {3}{U}{U}; if you dont, you lose game
+  }
+}

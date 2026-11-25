@@ -1,0 +1,10 @@
+card "Marina Vendrell's Grimoire" {
+  oracle_id 096eac52-00c2-4439-b2f3-ff555d15ec88
+  cost {5}{U}
+  type Legendary Artifact — Book
+  triggered when this enters if you cast it: draw 5 cards
+  hand size none
+  you don't lose for zero life
+  triggered whenever you gain life: draw that much cards
+  triggered whenever you lose life: discard that much cards; then if hand 0 or less, you lose game
+}

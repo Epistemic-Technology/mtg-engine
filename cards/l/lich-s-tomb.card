@@ -1,0 +1,7 @@
+card "Lich's Tomb" {
+  oracle_id 600b9ab8-36dc-4f02-b48c-091348d132ac
+  cost {4}
+  type Artifact
+  you don't lose for zero life
+  triggered whenever you lose life: you sacrifice that much permanent
+}

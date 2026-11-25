@@ -1,0 +1,8 @@
+card "Obeka, Splitter of Seconds" {
+  oracle_id 1d15a06f-5471-48f2-8c4a-9b0886bef5af
+  cost {1}{U}{B}{R}
+  type Legendary Creature — Ogre Warlock
+  pt 2/5
+  keywords menace
+  triggered whenever this deals combat damage to a player: you get that much additional upkeep steps after this phase
+}

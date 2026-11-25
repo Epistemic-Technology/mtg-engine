@@ -2769,6 +2769,10 @@ impl P {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
             }
+            "you" if self.at_words(&["you", "don't", "lose", "for", "zero", "life"]) => {
+                self.pos += 6;
+                self.player_static(mtg_core::card::PlayerStaticKind::NoZeroLifeLoss)
+            }
             "you" if self.at_words(&["you", "don't", "lose", "unspent", "red", "mana"]) => {
                 self.pos += 6;
                 self.player_static(mtg_core::card::PlayerStaticKind::KeepRedMana)
@@ -3444,6 +3448,16 @@ impl P {
                 } else {
                     Who::You
                 };
+                // `hand size count equal <count>`: "Your maximum hand size
+                // is equal to ..." (a player static, so `as long as` may
+                // follow).
+                if self.at_word("count") {
+                    let n = self.num()?;
+                    return self.player_static(mtg_core::card::PlayerStaticKind::HandSizeCount {
+                        opponents: whose == Who::Opponents,
+                        n,
+                    });
+                }
                 let mut set = false;
                 let delta = if self.eat_word("none") {
                     None
@@ -5795,6 +5809,9 @@ impl P {
         }
         if self.eat_words(&["first", "combat", "phase"]) {
             return Ok(StaticCond::FirstCombatPhase);
+        }
+        if self.eat_words(&["first", "end", "step"]) {
+            return Ok(StaticCond::FirstEndStep);
         }
         if self.eat_words(&["put", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutCounterThisTurn);
@@ -9742,7 +9759,7 @@ impl P {
                 })
             }
             "sacrifices" | "sacrifice"
-                if self.at_word("that")
+                if (self.at_word("that") && !self.at_words(&["that", "much"]))
                     || self.at_word("it")
                     || self.at_word("this")
                     || self.at_word("attached")
@@ -10884,6 +10901,14 @@ impl P {
                     SkipWhat::DrawStep
                 } else if self.eat_words(&["creature", "untap"]) {
                     SkipWhat::CreatureUntap
+                } else if self.eat_words(&["untap", "step"]) {
+                    SkipWhat::UntapStep
+                } else if self.eat_word("turn") {
+                    SkipWhat::Turns(Num::N(1))
+                } else if !self.at_word("combat") {
+                    let n = self.num()?;
+                    self.expect_word("turns")?;
+                    SkipWhat::Turns(n)
                 } else {
                     self.expect_words(&["combat", "phase"])?;
                     if self.eat_words(&["this", "turn"]) {
@@ -10922,6 +10947,17 @@ impl P {
                     self.expect_word("step")?;
                 }
                 Ok(Effect::SkipNextUntap { to: subject, steps })
+            }
+            // "you get that many additional upkeep steps after this
+            // phase", "that player gets an additional upkeep step after
+            // this step" (CR 500.8, 500.10).
+            "get" | "gets" if self.extra_steps_ahead() => {
+                let n = if self.at_word("additional") {
+                    Num::N(1)
+                } else {
+                    self.num()?
+                };
+                self.extra_steps(n, Some(subject))
             }
             "get" | "gets" => match self.next() {
                 Some(Tok::Pt {
@@ -12057,6 +12093,51 @@ impl P {
         Ok((combats, main))
     }
 
+    /// Whether `[<n>] additional upkeep|end step(s)|beginning phase(s)`
+    /// follows.
+    fn extra_steps_ahead(&self) -> bool {
+        let at = if self.at_word("additional") {
+            0
+        } else if self.at_words(&["that", "much"]) {
+            2
+        } else if matches!(self.peek(), Some(Tok::Num(_))) || self.at_word("X") {
+            1
+        } else {
+            return false;
+        };
+        self.word_at(at).as_deref() == Some("additional")
+            && matches!(self.word_at(at + 1).as_deref(), Some("upkeep" | "end"))
+    }
+
+    /// The rest of `additional upkeep step(s) after this step|phase`,
+    /// `additional end step after this step` (`Effect::ExtraSteps`), at
+    /// `additional`.
+    fn extra_steps(&mut self, n: Num, who: Option<Recipient>) -> R<Effect> {
+        use mtg_core::turn::Step;
+        self.expect_word("additional")?;
+        let step = match self.word()?.as_str() {
+            "upkeep" => Step::Upkeep,
+            "end" => Step::End,
+            _ => return self.fail("expected `upkeep` or `end`"),
+        };
+        if !self.eat_word("step") {
+            self.expect_word("steps")?;
+        }
+        self.expect_words(&["after", "this"])?;
+        let after_phase = if self.eat_word("phase") {
+            true
+        } else {
+            self.expect_word("step")?;
+            false
+        };
+        Ok(Effect::ExtraSteps {
+            step,
+            n,
+            after_phase,
+            who,
+        })
+    }
+
     /// Whether `exile <limit> with chosen name` follows.
     fn chosen_name_ahead(&self) -> bool {
         let skip = match self.word_at(0).as_deref() {
@@ -12341,6 +12422,12 @@ impl P {
             // "Roll a d20." (CR 706); its results table follows on the
             // next lines (`result 1 to 9: ...`, see `effects_body`).
             "flip" if self.eat_word("coin") => Ok(Effect::FlipCoin),
+            // "Flip five coins." (CR 705).
+            "flip" if matches!(self.peek(), Some(Tok::Num(_))) => {
+                let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+                self.expect_word("coins")?;
+                Ok(Effect::FlipCoins(n))
+            }
             // CR 701.23: "clash with an opponent".
             "clash" => Ok(Effect::Clash),
             // "Only land creatures can attack during that combat phase."
@@ -12363,6 +12450,12 @@ impl P {
                     leading: true,
                     main_phase,
                 })
+            }
+            // "There is an additional end step after this step." (CR
+            // 500.10).
+            "additional" if self.at_word("end") || self.at_word("upkeep") => {
+                self.pos -= 1;
+                self.extra_steps(Num::N(1), None)
             }
             "additional" if self.at_words(&["combat", "phase", "after"]) => {
                 self.pos -= 1;
@@ -15157,6 +15250,9 @@ impl P {
         }
         if self.eat_words(&["difference", "of", "power", "and", "toughness"]) {
             return Ok(CountExpr::TriggerPtDifference);
+        }
+        if self.eat_words(&["coins", "heads"]) {
+            return Ok(CountExpr::CoinsHeads);
         }
         if self.at_word("x") || self.at_word("X") {
             self.pos += 1;

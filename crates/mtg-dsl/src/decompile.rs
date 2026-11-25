@@ -879,6 +879,7 @@ impl Decompiler<'_> {
             StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
             StaticCondition::FirstCombatPhase => StaticCond::FirstCombatPhase,
+            StaticCondition::FirstEndStep => StaticCond::FirstEndStep,
             StaticCondition::NthResolution(n) => StaticCond::NthResolution {
                 n: *n,
                 again: false,
@@ -1511,6 +1512,7 @@ impl Decompiler<'_> {
                 another: false,
             },
             CoreEffect::FlipCoin { .. } => Effect::FlipCoin,
+            CoreEffect::FlipCoins(n) => Effect::FlipCoins(*n),
             CoreEffect::Clash { .. } => Effect::Clash,
             CoreEffect::Vote { options } => {
                 Effect::Vote((1..=*options).map(|i| format!("choice{i}")).collect())
@@ -2515,6 +2517,16 @@ impl Decompiler<'_> {
                 no_powerup: *no_powerup,
             },
             CoreEffect::AddedCombatAttackers(f) => Effect::AddedCombatAttackers(self.filter(f)),
+            CoreEffect::ExtraSteps {
+                step,
+                n,
+                after_phase,
+            } => Effect::ExtraSteps {
+                step: *step,
+                n: *n,
+                after_phase: *after_phase,
+                who: None,
+            },
             CoreEffect::AdditionalPhases { combats, main } => Effect::AdditionalPhases {
                 combats: *combats,
                 main: *main,

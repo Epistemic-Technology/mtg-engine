@@ -817,6 +817,9 @@ pub enum CountExpr {
     /// `difference of power and toughness`: "the difference between its
     /// power and toughness" (the triggering object's).
     TriggerPtDifference,
+    /// `coins heads`: "the number of coins that came up heads" (after
+    /// `flip 5 coins`).
+    CoinsHeads,
     /// `x`: X, under a count built on it (`half up x`: "half X, rounded
     /// up").
     X,
@@ -3604,6 +3607,8 @@ pub enum StaticCond {
     YourMainPhase,
     YourCombatPhase,
     FirstCombatPhase,
+    /// `first end step`: "it's the first end step of the turn".
+    FirstEndStep,
     /// `put counter this turn`: "you've put one or more +1/+1 counters on
     /// a creature this turn".
     PutCounterThisTurn,
@@ -5813,6 +5818,8 @@ pub enum Effect {
     /// `flip coin`: "flip a coin" (CR 705); what happens if the flip is won
     /// is the next sentence, `if you win the flip, <sentence>`.
     FlipCoin,
+    /// `flip 5 coins`: "Flip five coins." (CR 705; no call).
+    FlipCoins(u8),
     /// `if you win the flip, <sentence>`, after `flip coin`.
     IfWonFlip(Vec<Sentence>),
     /// `clash`: "clash with an opponent" (CR 701.23); what happens if the
@@ -7154,6 +7161,17 @@ pub enum Effect {
         leading: bool,
         /// "this main phase" rather than "this phase" (wording only).
         main_phase: bool,
+    },
+    /// `additional end step after this step` ("There is an additional
+    /// end step after this step.", CR 500.10), `you get that much additional upkeep
+    /// steps after this phase` ("you get that many additional upkeep
+    /// steps after this phase"), `that player gets additional upkeep step
+    /// after this step`. `who` is wording only.
+    ExtraSteps {
+        step: Step,
+        n: Num,
+        after_phase: bool,
+        who: Option<Recipient>,
     },
     /// `only land creature can attack during that combat phase` (Bumi,
     /// Unleashed): after `after this phase, additional combat phase`.

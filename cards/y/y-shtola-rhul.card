@@ -1,0 +1,7 @@
+card "Y'shtola Rhul" {
+  oracle_id a6a7bf77-0560-4572-a826-3bc9df1f78d1
+  cost {4}{U}{U}
+  type Legendary Creature — Cat Druid
+  pt 3/5
+  triggered at beginning of your end step: exile target creature you control then return it to battlefield under its owner's control; then if first end step, additional end step after this step
+}

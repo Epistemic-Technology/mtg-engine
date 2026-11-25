@@ -1,0 +1,9 @@
+card "Dovin, Architect of Law" {
+  oracle_id a3386efe-d6c5-4853-a4db-61460da3364a
+  cost {4}{W}{U}
+  type Legendary Planeswalker — Dovin
+  loyalty 5
+  loyalty +1: you gain 2 life and draw 1 card
+  loyalty -1: tap target creature; it doesn't untap next untap step
+  loyalty -9: tap all permanent target opponent controls; that player skips next untap step
+}

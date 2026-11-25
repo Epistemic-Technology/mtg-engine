@@ -2868,6 +2868,7 @@ impl Compiler<'_> {
             StaticCond::YourMainPhase => StaticCondition::YourMainPhase,
             StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
             StaticCond::FirstCombatPhase => StaticCondition::FirstCombatPhase,
+            StaticCond::FirstEndStep => StaticCondition::FirstEndStep,
             StaticCond::PutCounterThisTurn => {
                 StaticCondition::happened(TurnEvent::PlusCountersBy, TurnWho::You)
             }
@@ -3123,6 +3124,7 @@ impl Compiler<'_> {
             A::DifferentPowers(f) => C::DifferentPowers(self.filter(f)),
             A::SharingCreatureType(f) => C::SharingCreatureType(self.filter(f)),
             A::TriggerPtDifference => C::TriggerPtDifference,
+            A::CoinsHeads => C::CoinsHeads,
             A::X => C::X,
         }
     }
@@ -4446,6 +4448,7 @@ impl Compiler<'_> {
             // the stack.
             Effect::ChooseTarget(r) => self.chose_target = Some(*r),
             Effect::FlipCoin => out.push(CoreEffect::FlipCoin { won: Vec::new() }),
+            Effect::FlipCoins(n) => out.push(CoreEffect::FlipCoins(*n)),
             Effect::Clash => out.push(CoreEffect::Clash { won: Vec::new() }),
             // What winning the clash just before does.
             Effect::IfWonClash(inner) => {
@@ -5941,6 +5944,16 @@ impl Compiler<'_> {
             Effect::AddedCombatAttackers(f) => {
                 out.push(CoreEffect::AddedCombatAttackers(self.filter(f)));
             }
+            Effect::ExtraSteps {
+                step,
+                n,
+                after_phase,
+                ..
+            } => out.push(CoreEffect::ExtraSteps {
+                step: *step,
+                n: *n,
+                after_phase: *after_phase,
+            }),
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
