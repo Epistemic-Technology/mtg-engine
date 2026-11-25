@@ -20731,8 +20731,23 @@ fn conditional_static(
 // ---- abilities and cards ----
 
 /// The text of one ability, as Oracle prints it.
-#[allow(clippy::too_many_lines)] // one arm per ability kind
 pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
+    let text = ability_text_raw(card, a, lookup);
+    // Quoted abilities in a list end inside the quote with the list's
+    // punctuation, not their own period: 'It gains "This creature attacks
+    // each combat if able" and "When ..."', '... gains haste, "When ...,"
+    // and "At ..."' (Carnage, Crimson Chaos; Terminal Velocity).
+    if text.contains(".\" and \"") || text.contains(".\", \"") {
+        return text
+            .replace(".\" and \"", "\" and \"")
+            .replace(".\", and \"", ",\" and \"")
+            .replace(".\", \"", ",\" \"");
+    }
+    text
+}
+
+#[allow(clippy::too_many_lines)] // one arm per ability kind
+fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
     let no_targets: &[Target] = &[];
     match a {
         Ability::Keyword(k) => keyword_line(card, *k),

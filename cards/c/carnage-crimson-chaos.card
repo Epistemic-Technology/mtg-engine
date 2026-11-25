@@ -1,0 +1,9 @@
+card "Carnage, Crimson Chaos" {
+  oracle_id c0efafc6-8ffb-4908-ae64-3f391722370a
+  cost {2}{B}{R}
+  type Legendary Creature — Symbiote Villain
+  pt 4/3
+  keywords trample
+  triggered when this enters: return target creature card with mana value 3 or less from your graveyard to battlefield; target 1 gains ability { static this: has attacks each combat if able } and gains ability { triggered when this deals combat damage to a player: sacrifice this } indefinitely
+  mayhem {B}{R}
+}
