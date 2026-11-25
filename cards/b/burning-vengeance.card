@@ -1,0 +1,6 @@
+card "Burning Vengeance" {
+  oracle_id ef1fb174-9a34-43d0-8caf-9c1938147a12
+  cost {2}{R}
+  type Enchantment
+  triggered whenever you cast a spell from your graveyard: this deals 2 damage to any target
+}

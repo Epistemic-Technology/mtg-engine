@@ -6738,6 +6738,8 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         }
         SpellOrdinal::FromExile => format!("{who} a spell from exile"),
         SpellOrdinal::FromGraveyard => format!("{who} a spell from a graveyard"),
+        SpellOrdinal::FromYourGraveyard => format!("{who} a spell from your graveyard"),
+        SpellOrdinal::NotFromHand => format!("{who} a spell from anywhere other than your hand"),
     }
 }
 
@@ -7001,6 +7003,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             Who::Any => "whenever a player loses life".to_string(),
         },
         Trigger::GainsLifeFirst { .. } => "whenever you gain life first time each turn".to_string(),
+        Trigger::LosesLifeFirst { .. } => "whenever you lose life first time each turn".to_string(),
         Trigger::CastsSpell {
             whose,
             noncreature,

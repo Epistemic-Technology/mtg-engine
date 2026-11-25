@@ -2858,6 +2858,7 @@ impl Decompiler<'_> {
             }
             TriggerSpec::GainsLife { whose } => Trigger::GainsLife { whose: *whose },
             TriggerSpec::LosesLife { whose } => Trigger::LosesLife { whose: *whose },
+            TriggerSpec::LosesLifeFirst { whose } => Trigger::LosesLifeFirst { whose: *whose },
             TriggerSpec::GainsLifeFirst { whose } => Trigger::GainsLifeFirst { whose: *whose },
             TriggerSpec::RollsDice { whose } => Trigger::RollsDice { whose: *whose },
             TriggerSpec::DayNight => Trigger::DayNight,

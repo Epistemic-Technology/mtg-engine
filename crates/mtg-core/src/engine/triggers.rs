@@ -1532,6 +1532,14 @@ impl GameState {
                 let host = self.lki.get(old)?.object.attached_to?;
                 Some((Some(host), Some(w.controller)))
             }
+            // As for the first gain: the loss whose amount is all lost
+            // this turn.
+            (TriggerSpec::LosesLifeFirst { whose }, Event::LifeChange { player, delta, .. }) => {
+                (*delta < 0
+                    && whose_ok(*whose, *player)
+                    && self.tallied(crate::card::TurnEvent::LifeLost, *player) == delta.unsigned_abs())
+                .then_some((None, Some(*player)))
+            }
             (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {
                 if *to != w.source {
                     return None;
@@ -2132,6 +2140,24 @@ impl GameState {
                     .get(*spell)
                     .is_some_and(|o| o.cast.cast_from() == Some(zone));
                 (whose_ok(*whose, *player) && from).then_some((Some(*spell), Some(*player)))
+            }
+            (
+                TriggerSpec::CastsNth {
+                    whose,
+                    nth:
+                        nth @ (crate::card::SpellOrdinal::FromYourGraveyard
+                        | crate::card::SpellOrdinal::NotFromHand),
+                },
+                Event::Cast { player, spell, .. },
+            ) => {
+                let o = self.objects.get(*spell)?;
+                let from = o.cast.cast_from();
+                let ok = if *nth == crate::card::SpellOrdinal::NotFromHand {
+                    from != Some(Zone::Hand)
+                } else {
+                    from == Some(Zone::Graveyard) && o.owner == *player
+                };
+                (whose_ok(*whose, *player) && ok).then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
                 let n = u8::try_from(self.tallied(crate::card::TurnEvent::Cast, *player))

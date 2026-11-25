@@ -1,0 +1,8 @@
+card "Vega, the Watcher" {
+  oracle_id 95e66851-7aff-4559-91b4-6b8a95c6e1f8
+  cost {1}{W}{U}
+  type Legendary Creature — Bird Spirit
+  pt 2/2
+  keywords flying
+  triggered whenever you cast a spell from anywhere other than your hand: draw 1 cards
+}

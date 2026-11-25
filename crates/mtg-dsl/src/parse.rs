@@ -20200,6 +20200,14 @@ impl P {
         if self.eat_words(&["a", "spell", "from", "a", "graveyard"]) {
             return Ok(Some(SpellOrdinal::FromGraveyard));
         }
+        if self.eat_words(&["a", "spell", "from", "your", "graveyard"]) {
+            return Ok(Some(SpellOrdinal::FromYourGraveyard));
+        }
+        if self.eat_words(&[
+            "a", "spell", "from", "anywhere", "other", "than", "your", "hand",
+        ]) {
+            return Ok(Some(SpellOrdinal::NotFromHand));
+        }
         if self.eat_words(&[
             "a", "spell", "during", "your", "turn", "other", "than", "your", "first", "spell",
             "that", "turn",
@@ -20554,6 +20562,9 @@ impl P {
             (&["you", "lose", "life"][..], Who::You),
         ] {
             if self.eat_words(words) {
+                if whose == Who::You && self.eat_words(&["first", "time", "each", "turn"]) {
+                    return Ok(Trigger::LosesLifeFirst { whose });
+                }
                 return Ok(Trigger::LosesLife { whose });
             }
         }
@@ -23476,7 +23487,8 @@ fn no_trigger_amount(t: &Trigger) -> bool {
         | Trigger::CastsFiltered { .. }
         | Trigger::CastThis { .. }
         | Trigger::CastsNth { .. }
-        | Trigger::GainsLifeFirst { .. } => true,
+        | Trigger::GainsLifeFirst { .. }
+        | Trigger::LosesLifeFirst { .. } => true,
         t => {
             no_trigger_object(t)
                 && !matches!(

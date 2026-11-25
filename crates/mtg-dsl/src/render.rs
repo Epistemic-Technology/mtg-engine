@@ -17969,6 +17969,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::GainsLifeFirst { .. } => {
             "whenever you gain life for the first time each turn".to_string()
         }
+        Trigger::LosesLifeFirst { .. } => {
+            "whenever you lose life for the first time each turn".to_string()
+        }
         Trigger::CastsSpell {
             whose,
             noncreature,

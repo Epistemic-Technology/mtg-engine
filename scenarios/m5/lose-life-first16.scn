@@ -1,0 +1,56 @@
+# "Whenever you lose life for the first time each turn" (CR 119.3): the
+# first life-losing event of the turn, damage included.
+
+scenario "Vengeful Warchief: one counter for two losses in a turn" {
+  battlefield A: "Vengeful Warchief"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 16
+  assert counters "Vengeful Warchief" +1/+1 1
+}
+
+scenario "Vengeful Warchief: again on a later turn" {
+  battlefield A: "Vengeful Warchief"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 4 precombat_main
+  turn 4 B: cast "Shock" targeting player A
+  run_to turn 4 postcombat_main
+  assert counters "Vengeful Warchief" +1/+1 2
+}
+
+scenario "Vengeful Warchief: an opponent losing life doesn't count" {
+  battlefield A: "Vengeful Warchief", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert counters "Vengeful Warchief" +1/+1 0
+}
+
+scenario "Gonti's Machinations: energy from the first loss, then drain 3" {
+  battlefield A: "Gonti's Machinations"
+  battlefield B: 2 "Mountain"
+  energy A: 1
+  hand B: "Shock", "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert energy A 2
+  run_to turn 3 precombat_main
+  turn 3 A: activate "Gonti's Machinations"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert life A 19
+  assert energy A 0
+  assert graveyard A contains "Gonti's Machinations"
+}

@@ -8860,6 +8860,10 @@ pub enum TriggerSpec {
     /// "Whenever you gain life for the first time each turn": the life
     /// gain event that starts the player's life gained this turn.
     GainsLifeFirst { whose: Who },
+    /// "Whenever you lose life for the first time each turn" (CR 119.3):
+    /// the life-losing event that starts the player's life lost this turn;
+    /// the amount lost is the trigger's amount.
+    LosesLifeFirst { whose: Who },
     /// "Whenever you roll one or more dice" (CR 706): once per
     /// instruction to roll, not per die.
     RollsDice { whose: Who },
@@ -9392,6 +9396,12 @@ pub enum SpellOrdinal {
     /// "a spell from a graveyard": any spell cast from a graveyard
     /// (River Kelpie; checked by the trigger, not by `holds`).
     FromGraveyard,
+    /// "a spell from your graveyard": a spell its caster cast from their
+    /// own graveyard (checked by the trigger, not by `holds`).
+    FromYourGraveyard,
+    /// "a spell from anywhere other than your hand": any spell not cast
+    /// from its caster's hand (checked by the trigger, not by `holds`).
+    NotFromHand,
 }
 
 impl SpellOrdinal {
@@ -9408,7 +9418,10 @@ impl SpellOrdinal {
             SpellOrdinal::NotFirstOnOwnTurn => n >= 2 && own_turn,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
-            SpellOrdinal::FromExile | SpellOrdinal::FromGraveyard => true,
+            SpellOrdinal::FromExile
+            | SpellOrdinal::FromGraveyard
+            | SpellOrdinal::FromYourGraveyard
+            | SpellOrdinal::NotFromHand => true,
         }
     }
 }
@@ -9564,6 +9577,7 @@ impl TriggerSpec {
             TriggerSpec::GainsLife { .. }
             | TriggerSpec::LosesLife { .. }
             | TriggerSpec::GainsLifeFirst { .. }
+            | TriggerSpec::LosesLifeFirst { .. }
             | TriggerSpec::GainsOrLosesLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }

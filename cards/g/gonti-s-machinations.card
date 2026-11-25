@@ -1,0 +1,7 @@
+card "Gonti's Machinations" {
+  oracle_id 4e6238d8-bd6a-4952-a7dd-9c41a78a2cba
+  cost {B}
+  type Enchantment
+  triggered whenever you lose life first time each turn: you get 1 energy
+  activated pay 2 energy, sacrifice this: each opponent loses 3 life; you gain count equal life lost this way life
+}
