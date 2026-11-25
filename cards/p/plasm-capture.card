@@ -1,0 +1,6 @@
+card "Plasm Capture" {
+  oracle_id 3673219d-d2b5-43ad-b0c8-58b583491158
+  cost {G}{G}{U}{U}
+  type Instant
+  spell: counter target spell; delayed target 1: at beginning of your next first main, add X mana any combination count where mana value of that target 1
+}

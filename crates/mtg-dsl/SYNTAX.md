@@ -4104,7 +4104,15 @@ tapped` covers them all, "... under their owners' control", Morningtide's
 Light); in one about `that creature` (the triggering object),
 `that creature` is that object too, only while it is the same object
 (CR 603.7c), and prints "that creature"; in one about a target, `that
-creature` is the object too. `delayed target 1: when that creature dies
+creature` is the object too. In a delayed ability about a target with no
+targets of its own, `mana value of that target 1`, `power of that target
+1`, and `toughness of that target 1` read the object it is about, as it
+last existed (`counter target spell; delayed target 1: at beginning of your
+next first main, add X mana any combination count where mana value of that
+target 1`: "... where X is that spell's mana value.", Plasm Capture; Vanish
+into Memory's "discard cards equal to that creature's toughness"); about
+another object (`delayed this:`), or read outside the delayed ability as
+well, they are an error. `delayed target 1: when that creature dies
 this turn, <effects>` (and `when that creature leaves the battlefield this
 turn`) triggers once if that object dies (leaves) and ends unfired at the
 cleanup step (CR 603.7c); `when it dies under your control this turn`

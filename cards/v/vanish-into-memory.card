@@ -1,0 +1,6 @@
+card "Vanish into Memory" {
+  oracle_id d3beb624-f589-4ed5-97a0-11ad61481250
+  cost {2}{W}{U}
+  type Instant
+  spell: exile target creature; you draw count equal power of that target 1 cards; delayed target 1: at beginning of your next upkeep, return that card to battlefield under its owner's control; if you do, discard count equal toughness of that target 1 cards
+}

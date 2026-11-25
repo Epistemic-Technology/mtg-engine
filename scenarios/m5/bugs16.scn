@@ -1,0 +1,34 @@
+# The sixteenth wave's bug fixes (KNOWN-ISSUES.md section 2 and the card
+# agents' MEANING / ENGINE BUG reports).
+
+scenario "Plasm Capture: the countered spell's mana value in mana at your next main phase" {
+  battlefield A: 2 "Forest", 2 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Plasm Capture", "Hill Giant", "Wind Drake"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: cast "Plasm Capture" targeting "Hill Giant" in response to "Hill Giant"
+  turn 3 A: choose red
+  turn 3 A: cast "Hill Giant"
+  turn 3 A: wait
+  turn 3 A: cast "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Wind Drake"
+}
+
+scenario "Vanish into Memory: draw its power, then discard its toughness as it returns" {
+  battlefield A: "Hill Giant", 2 "Plains", 2 "Island"
+  hand A: "Vanish into Memory"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vanish into Memory" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand A count 3
+  assert exile A contains "Hill Giant"
+  run_to turn 3 draw
+  assert battlefield A contains "Hill Giant"
+  assert hand A count 1
+  assert graveyard A contains 3 "Plains"
+}

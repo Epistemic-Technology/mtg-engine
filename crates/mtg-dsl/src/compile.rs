@@ -177,6 +177,7 @@ pub fn add_card(
             token: None,
             cast_snapshot: None,
             granting: false,
+            delayed_counts: Vec::new(),
         };
         let from = c.pool.ability_count();
         let def = c.card()?;
@@ -225,6 +226,7 @@ pub fn add_card(
                 token: None,
                 cast_snapshot: None,
                 granting: false,
+                delayed_counts: Vec::new(),
             };
             let from = c.pool.ability_count();
             let def = c.card()?;
@@ -262,6 +264,7 @@ pub fn add_card(
         token,
         cast_snapshot: None,
         granting: false,
+        delayed_counts: Vec::new(),
     };
     let from = c.pool.ability_count();
     let mut def = c.card()?;
@@ -363,6 +366,7 @@ fn add_stages(
             token: None,
             cast_snapshot: None,
             granting: false,
+            delayed_counts: Vec::new(),
             sunburst: None,
         };
         let from = c.pool.ability_count();
@@ -497,6 +501,12 @@ struct Compiler<'a> {
     /// Compiling the mods of a static ability of the attached permanent
     /// ("enchanted", "equipped"): a quoted ability may name its `granter`.
     granting: bool,
+    /// Counts read only by a delayed ability about one of the creating
+    /// ability's targets ("At the beginning of your next upkeep, ... discard
+    /// cards equal to that creature's toughness."): the count's index and
+    /// what it becomes, the triggering object's stat (CR 603.7c), since the
+    /// delayed ability has no targets of its own.
+    delayed_counts: Vec<(usize, mtg_core::card::CountExpr)>,
 }
 
 impl Compiler<'_> {
@@ -505,6 +515,73 @@ impl Compiler<'_> {
             card: self.card.name.clone(),
             message: message.into(),
         })
+    }
+
+    /// A delayed ability with no targets of its own, about the creating
+    /// ability's target `about` (or `usize::MAX`: another recipient), whose
+    /// effects read a target's power, toughness, or mana value through the
+    /// card's counts ("add X mana ..., where X is that spell's mana value",
+    /// Plasm Capture): those counts read the triggering object instead
+    /// (`delayed_counts`), since the delayed ability has no targets (they
+    /// would be 0). Refused about another object, or when the same count is
+    /// also used outside the delayed ability.
+    fn delayed_target_counts(
+        &mut self,
+        effects: &[Sentence],
+        about: usize,
+    ) -> Result<(), CompileError> {
+        use crate::ast::CountExpr as A;
+        use mtg_core::card::{CountExpr as C, Stat};
+        fn uses(dbg: &str) -> Vec<usize> {
+            let b = dbg.as_bytes();
+            let mut out = Vec::new();
+            for (at, _) in dbg.match_indices("Count(") {
+                if at > 0 && b[at - 1].is_ascii_alphanumeric() {
+                    continue;
+                }
+                let rest = &dbg[at + 6..];
+                let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+                if !digits.is_empty() && rest[digits.len()..].starts_with(')') {
+                    out.extend(digits.parse::<usize>());
+                }
+            }
+            out
+        }
+        let inside = uses(&format!("{effects:?}"));
+        if inside.is_empty() {
+            return Ok(());
+        }
+        let all = uses(&format!("{:?}", self.card.abilities));
+        for &i in &inside {
+            let Some(c) = self.card.counts.get(i) else {
+                continue;
+            };
+            let (n, stat) = match &c.expr {
+                A::TargetStat { n, toughness, .. } => (
+                    *n,
+                    if *toughness {
+                        Stat::Toughness
+                    } else {
+                        Stat::Power
+                    },
+                ),
+                A::TargetManaValue { n, .. } => (*n, Stat::ManaValue),
+                _ => continue,
+            };
+            if n != about {
+                return self.err(
+                    "a delayed ability reads a target's power, toughness, or mana value only of the target it is about (`delayed target 1: ... mana value of that target 1`)",
+                );
+            }
+            if all.iter().filter(|j| **j == i).count() > inside.iter().filter(|j| **j == i).count()
+            {
+                return self.err(
+                    "a count of a target's power, toughness, or mana value is read either inside a delayed ability or outside it, not both",
+                );
+            }
+            self.delayed_counts.push((i, C::TriggerStat(stat)));
+        }
+        Ok(())
     }
 
     #[allow(clippy::too_many_lines)] // one step per header part
@@ -1901,7 +1978,11 @@ impl Compiler<'_> {
         if let Some(c) = self.cast_snapshot.take() {
             b = b.cast_snapshot(self.pool.intern_condition(c));
         }
-        Ok(b.build())
+        let mut def = b.build();
+        for (i, c) in std::mem::take(&mut self.delayed_counts) {
+            def.counts[i] = c;
+        }
+        Ok(def)
     }
 
     fn subtypes(&mut self, names: &[String]) -> SubtypeSet {
@@ -2985,6 +3066,13 @@ impl Compiler<'_> {
             A::CardsInHand => C::CardsInHand,
             A::CardsInGraveyard(f) => C::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
             A::SourcePower => C::SourcePower,
+            A::TargetStat { n, toughness, .. } if self.tmap.delayed_about == Some(*n) => {
+                C::TriggerStat(if *toughness {
+                    mtg_core::card::Stat::Toughness
+                } else {
+                    mtg_core::card::Stat::Power
+                })
+            }
             A::TargetStat { n, toughness, .. } => C::TargetStat {
                 n: target_index(self.tmap, *n),
                 toughness: *toughness,
@@ -3040,6 +3128,9 @@ impl Compiler<'_> {
             }),
             A::OtherInstantSorceryCast { before } => C::OtherInstantSorceryCast { before: *before },
             A::SourceToughness => C::SourceToughness,
+            A::TargetManaValue { n, .. } if self.tmap.delayed_about == Some(*n) => {
+                C::TriggerStat(mtg_core::card::Stat::ManaValue)
+            }
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
             A::CardManaValue(_) => C::CardManaValue,
             A::ExiledCardManaValue => C::ExiledCardManaValue,
@@ -3309,6 +3400,7 @@ impl Compiler<'_> {
             spell: false,
             put_creature: false,
             kicked: None,
+            delayed_about: None,
         };
         let mut specs: Vec<TargetSpec> = ts.iter().map(|t| self.target(t)).collect();
         if let Some((m, _)) = self.tmap.group {
@@ -5483,6 +5575,14 @@ impl Compiler<'_> {
                 self.tmap.put_creature = false;
                 self.tmap.spell = false;
                 let outer_targets = std::mem::take(&mut self.delayed_targets);
+                self.tmap.delayed_about = match about {
+                    _ if own_targets.is_some() => None,
+                    Recipient::Target(n) => Some(*n),
+                    _ => Some(usize::MAX),
+                };
+                if let Some(about) = self.tmap.delayed_about {
+                    self.delayed_target_counts(effects, about)?;
+                }
                 // Its own targets, numbered from 0 among its own.
                 if let Some((start, _)) = own_targets {
                     let own = self.own_targets.take().filter(|(at, _)| at == start);
@@ -5499,6 +5599,17 @@ impl Compiler<'_> {
                 self.tmap = outer;
                 let own_targets = std::mem::replace(&mut self.delayed_targets, outer_targets);
                 let effects = effects?;
+                // "where X is that spell's mana value" about another of the
+                // creating ability's targets: the delayed ability has none
+                // to read (it would be 0).
+                if own_targets.is_empty() {
+                    let dbg = format!("{effects:?}");
+                    if dbg.contains("TargetStat") || dbg.contains("TargetManaValue") {
+                        return self.err(
+                            "a delayed ability reads a target's power, toughness, or mana value only of the target it is about (`delayed target 1: ... mana value of that target 1`)",
+                        );
+                    }
+                }
                 // A delayed triggered mana ability ("Until end of turn,
                 // whenever a player taps an Island for mana, that player
                 // adds an additional {U}.", CR 605.1b, 603.7c): it adds
@@ -10102,6 +10213,12 @@ struct TargetMap {
     /// names the kicked target as written (`kicked_drops` or more), which
     /// is the engine's first target either way (Expel the Unworthy).
     kicked: Option<usize>,
+    /// Compiling a delayed ability with no targets of its own: the
+    /// creating ability's target it is about (`delayed target 1:`), or
+    /// `usize::MAX` for another recipient. "that spell's mana value",
+    /// "that creature's toughness" of that target read the triggering
+    /// object (CR 603.7c): the delayed ability has no targets to read.
+    delayed_about: Option<usize>,
 }
 
 /// "N or more events of this kind this turn" (`StaticCondition::Happened`).
