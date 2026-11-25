@@ -510,6 +510,18 @@ impl Compiler<'_> {
     #[allow(clippy::too_many_lines)] // one step per header part
     fn card(&mut self) -> Result<mtg_core::card::CardDef, CompileError> {
         let card = self.card;
+        // "counters removed this way" is the X of a "Remove X counters"
+        // cost (`CountExpr::X`): without one it would read 0 or another X.
+        if card
+            .counts
+            .iter()
+            .any(|c| matches!(c.expr, crate::ast::CountExpr::RemovedThisWay(_)))
+            && !card.abilities.iter().any(
+                |a| matches!(a, Ability::Activated { cost, .. } if cost.remove_x && !cost.mana.has_x()),
+            )
+        {
+            return self.err("`counters removed this way` needs a `remove X ... counters` cost");
+        }
         // A leveler's keywords after its first level symbol are that
         // level's (CR 711.2), not the card's.
         let unbanded = card
@@ -1937,6 +1949,22 @@ impl Compiler<'_> {
     }
 
     #[allow(clippy::too_many_lines)] // one line per filter field
+    /// "with power less than or equal to the number of +1/+1 counters
+    /// removed this way": the ability's X, known once announced (CR
+    /// 602.2b) and so as targets are chosen, like `with power X or less`.
+    fn bound_x(&self, mut s: mtg_core::card::StatusQuals) -> mtg_core::card::StatusQuals {
+        if let Some(b) = &mut s.bound
+            && let mtg_core::card::Num::Count(i) = b.n
+            && matches!(
+                self.card.counts.get(usize::from(i)).map(|c| &c.expr),
+                Some(crate::ast::CountExpr::RemovedThisWay(_))
+            )
+        {
+            b.n = mtg_core::card::Num::X;
+        }
+        s
+    }
+
     fn filter(&mut self, f: &Filter) -> ObjFilter {
         // "that you've put one or more +1/+1 counters on this turn": the
         // game keeps who put counters on what.
@@ -2092,7 +2120,7 @@ impl Compiler<'_> {
             attacking: f.attacking,
             blocking: f.blocking,
             damaged: f.damaged,
-            status: f.status,
+            status: self.bound_x(f.status),
             // "equal to the chosen number" is filled in with the choice.
             chosen: f.chosen.is_some() || f.status.equal_chosen.is_some(),
             attached_to: f.attached_to.map(|a| {
@@ -3011,6 +3039,7 @@ impl Compiler<'_> {
                 C::Minus(Box::new(self.count_expr(a)), Box::new(self.count_expr(b)))
             }
             A::Const { n, .. } => C::Const(*n),
+            A::RemovedThisWay(_) => C::X,
             A::HighestLife => C::HighestLife,
             A::CardsInOpponentsHands => C::CardsInOpponentsHands,
             A::CardTypesInOpponentsGraveyards => C::CardTypesInOpponentsGraveyards,
@@ -3340,7 +3369,8 @@ impl Compiler<'_> {
         CoreCost {
             craft: None,
             mana: c.mana.clone(),
-            x_not_zero: c.x_not_zero,
+            // "Remove one or more +1/+1 counters": X is at least 1.
+            x_not_zero: c.x_not_zero || c.remove_one_or_more,
             discard_self: c.discard_self,
             exile_self: c.exile_self,
             exile_hand: c.exile_hand,

@@ -898,6 +898,10 @@ pub enum CountExpr {
         b: Box<CountExpr>,
         difference: bool,
     },
+    /// `+1/+1 counters removed this way`: "the number of +1/+1 counters
+    /// removed this way", the X of the ability's `remove one or more` or
+    /// `remove any number` cost.
+    RemovedThisWay(mtg_core::card::CounterKind),
     /// A number as one side of `minus`: `7` ("7"), `one` ("one").
     Const {
         n: u32,
@@ -1185,6 +1189,10 @@ pub struct Cost {
     /// "Remove any number of +1/+1 counters from ~", the ability's X
     /// called "that many" in its effects. Wording only.
     pub remove_any: bool,
+    /// `remove one or more +1/+1 counters from this` (with `remove_x` and
+    /// `x_not_zero`): "Remove one or more +1/+1 counters from ~". Wording
+    /// only.
+    pub remove_one_or_more: bool,
     /// `{Q}`: the untap symbol.
     pub untap: bool,
 }

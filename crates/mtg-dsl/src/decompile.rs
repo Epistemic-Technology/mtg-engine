@@ -646,6 +646,7 @@ impl Decompiler<'_> {
             sacrifice_any: c.sacrifice_any,
             remove_x: c.remove_x,
             remove_any: false,
+            remove_one_or_more: false,
             untap: c.untap,
             chosen: c.chosen,
             count: c.count,

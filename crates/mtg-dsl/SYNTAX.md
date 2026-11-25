@@ -892,7 +892,15 @@ same X; not in a mana ability; `remove any number +1/+1 counters from
 this` prints "Remove any number of +1/+1 counters from ~", the same X,
 and the first X in its effects prints "that many": `create X "1/1 green
 Insect creature"` is "Create that many 1/1 green Insect creature
-tokens."), or
+tokens."), `remove one or more +1/+1 counters from this` ("Remove one
+or more +1/+1 counters from this creature": X at least 1, so the ability
+can't be activated with none); the count `+1/+1 counters
+removed this way` ("the number of +1/+1 counters removed this way", `add
+{C} count each storage counters removed this way`: "Add {C} for each
+storage counter removed this way"; `counters removed this way` for any
+kind) is that X, and as a target's bound (`with power at most count
+equal +1/+1 counters removed this way`, Simic Manipulator) it is known
+as targets are chosen (CR 601.2b-c), or
 `put 1 -1/-1 counter on this`
 ("Put a -1/-1 counter on this creature", CR 118.3: put on as the cost is
 paid, so a creature it kills is gone before the ability resolves; a mana
@@ -3054,7 +3062,7 @@ on target creature"), `put up to x +1/+0 counters on this capped 4` ("Put
 up to X +1/+0 counters on this creature. This ability can't cause the
 total number of +1/+0 counters on this creature to be greater than
 four.": the engine puts as many as it may),
-`remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove up to 3 counters from <what>` ("remove up to three counters from target permanent": one at a time, each of a kind the controller chooses, or stop; scenarios `choose "1"` the first kind on it, `choose done`; unscripted, all three), `remove all counters from <what>`,
+`remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove up to 3 counters from <what>` ("remove up to three counters from target permanent": one at a time, each of a kind the controller chooses, or stop; scenarios `choose "1"` the first kind on it, `choose done`; unscripted, all three), `remove all counters from <what>`, `remove all -1/-1 counters from this` ("remove all -1/-1 counters from it": every counter of that kind, the others staying; Witherscale Wurm, Ammit Eternal),
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
 `put all card exiled with this into hand` ("Put all cards exiled with

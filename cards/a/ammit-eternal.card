@@ -1,0 +1,9 @@
+card "Ammit Eternal" {
+  oracle_id c2f6ddc2-86bc-43da-9bdd-0c2af79c62fd
+  cost {2}{B}
+  type Creature — Zombie Crocodile Demon
+  pt 5/5
+  afflict 3
+  triggered whenever an opponent casts a spell: put 1 -1/-1 counter on this
+  triggered whenever this deals combat damage to a player: remove all -1/-1 counters from it
+}

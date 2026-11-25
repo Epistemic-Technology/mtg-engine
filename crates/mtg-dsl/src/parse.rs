@@ -13820,8 +13820,17 @@ impl P {
                         up_to: u8::try_from(n).unwrap_or(u8::MAX).max(1),
                     });
                 }
-                let count = self.num()?;
+                // `remove all -1/-1 counters from it`: every counter of
+                // that kind (`REMOVE_ALL`).
+                let count = if self.eat_word("all") {
+                    Num::N(mtg_core::card::REMOVE_ALL)
+                } else {
+                    self.num()?
+                };
                 let kind = self.counter_kind()?;
+                if count == Num::N(mtg_core::card::REMOVE_ALL) && kind == CounterKind::Any {
+                    return self.fail("`remove all counters from` names no kind");
+                }
                 self.expect_word("from")?;
                 let to = self.recipient()?;
                 Ok(Effect::RemoveCounters { kind, count, to })
@@ -16510,6 +16519,25 @@ impl P {
         }
         if self.eat_words(&["highest", "life"]) {
             return Ok(CountExpr::HighestLife);
+        }
+        // `+1/+1 counters removed this way`, `counters removed this way`:
+        // what the ability's "Remove X ... counters" cost removed.
+        if let Some(k) = (0..4).find(|k| {
+            matches!(self.word_at(*k).as_deref(), Some("counter" | "counters"))
+                && self.word_at(k + 1).as_deref() == Some("removed")
+                && self.word_at(k + 2).as_deref() == Some("this")
+                && self.word_at(k + 3).as_deref() == Some("way")
+        }) {
+            let kind = if k == 0 {
+                mtg_core::card::CounterKind::Any
+            } else {
+                self.counter_kind()?
+            };
+            if !self.eat_word("counters") {
+                self.eat_word("counter");
+            }
+            self.expect_words(&["removed", "this", "way"])?;
+            return Ok(CountExpr::RemovedThisWay(kind));
         }
         if self.eat_words(&["opponents", "hands"]) {
             return Ok(CountExpr::CardsInOpponentsHands);
@@ -21980,7 +22008,7 @@ impl P {
                         cost.order.push(CostItem::Sacrifice);
                     }
                     "remove"
-                        if (1..6).any(|k| {
+                        if (1..8).any(|k| {
                             self.word_at(k).as_deref() == Some("from")
                                 && self.word_at(k + 1).as_deref() == Some("this")
                         }) =>
@@ -21995,6 +22023,12 @@ impl P {
                             cost.remove_x = true;
                             cost.remove_any = true;
                             0
+                        } else if self.eat_words(&["one", "or", "more"]) {
+                            // "Remove one or more +1/+1 counters": X at
+                            // least 1, so a counter is needed to activate.
+                            cost.remove_x = true;
+                            cost.remove_one_or_more = true;
+                            1
                         } else {
                             self.count()?
                         };

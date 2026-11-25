@@ -2271,7 +2271,11 @@ impl Fmt {
             ),
             Effect::RemoveCounters { kind, count, to } => format!(
                 "remove {} {} from {}",
-                num(*count),
+                if *count == Num::N(mtg_core::card::REMOVE_ALL) {
+                    "all".to_string()
+                } else {
+                    num(*count)
+                },
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
@@ -5021,6 +5025,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             .get(*n as usize - 1)
             .map_or_else(|| n.to_string(), |w| (*w).to_string()),
         CountExpr::HighestLife => "highest life".to_string(),
+        CountExpr::RemovedThisWay(k) => format!("{} removed this way", counter(*k, Num::X)),
         CountExpr::CardsInOpponentsHands => "opponents hands".to_string(),
         CountExpr::CardTypesInOpponentsGraveyards => {
             "card types in opponents graveyards".to_string()
@@ -7486,6 +7491,11 @@ fn cost_text(c: &Cost) -> String {
                     if c.remove_any {
                         parts.push(format!(
                             "remove any number {} from {from}",
+                            counter(k, Num::X)
+                        ));
+                    } else if c.remove_one_or_more {
+                        parts.push(format!(
+                            "remove one or more {} from {from}",
                             counter(k, Num::X)
                         ));
                     } else if c.remove_x {

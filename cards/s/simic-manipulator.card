@@ -1,0 +1,8 @@
+card "Simic Manipulator" {
+  oracle_id 8f06fcc9-9018-4c55-af63-c44350a6cfeb
+  cost {1}{U}{U}
+  type Creature — Mutant Wizard
+  pt 0/1
+  evolve
+  activated {T}, remove one or more +1/+1 counters from this: gain control of target creature with power at most count equal +1/+1 counters removed this way indefinitely
+}

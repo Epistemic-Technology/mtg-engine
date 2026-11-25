@@ -5196,6 +5196,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                         // "Remove any number of +1/+1 counters from ~".
                         let what = what.replacen("X ", "any number of ", 1);
                         parts.push(format!("Remove {what} from {src}"));
+                    } else if cost.remove_one_or_more {
+                        let what = what.replacen("X ", "one or more ", 1);
+                        parts.push(format!("Remove {what} from {src}"));
                     } else {
                         parts.push(format!("Remove {what} from {src}"));
                     }
@@ -6739,6 +6742,16 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "cards in your opponents' hands".to_string(),
         ),
         CountExpr::HighestLife => return "the highest life total among players".to_string(),
+        // "the number of +1/+1 counters removed this way", "for each
+        // storage counter removed this way".
+        CountExpr::RemovedThisWay(mtg_core::card::CounterKind::Any) => (
+            "counter removed this way".to_string(),
+            "counters removed this way".to_string(),
+        ),
+        CountExpr::RemovedThisWay(k) => (
+            format!("{} counter removed this way", counter_name(*k)),
+            format!("{} counters removed this way", counter_name(*k)),
+        ),
         // "the difference" (after "If target opponent has more cards in
         // hand than you"), "7 minus the number of ...", "the number of
         // cards you've drawn this turn minus one".
@@ -10466,7 +10479,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative("remove those counters".to_string())
         }
         Effect::RemoveCounters { kind, count, to } => {
-            let c = counters(*count, *kind);
+            let c = if *count == Num::N(mtg_core::card::REMOVE_ALL) {
+                format!("all {}", counters(Num::X, *kind).replacen("X ", "", 1))
+            } else {
+                counters(*count, *kind)
+            };
             // "remove that many +1/+1 counters from it" (a prevention's
             // follow-up, Magma Pummeler), not "you may remove two oil
             // counters from it. When you do, ...".

@@ -1,0 +1,7 @@
+card "Mage-Ring Network" {
+  oracle_id 136596a0-b179-40be-b42d-c0b992621c95
+  type Land
+  activated {T}: add {C}
+  activated {1}, {T}: put 1 storage counter on this
+  activated {T}, remove any number storage counters from this: add {C} count each storage counters removed this way
+}

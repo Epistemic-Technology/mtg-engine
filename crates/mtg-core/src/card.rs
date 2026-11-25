@@ -2678,6 +2678,10 @@ pub enum CountExpr {
     },
 }
 
+/// `Effect::RemoveCounters::count` for "remove all -1/-1 counters from
+/// it": every counter of the kind (a kind, not `CounterKind::Any`).
+pub const REMOVE_ALL: u32 = u32::MAX;
+
 /// What `CountExpr::Their` counts of a player.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum PlayerCount {
