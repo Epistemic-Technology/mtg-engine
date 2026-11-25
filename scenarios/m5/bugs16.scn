@@ -84,3 +84,45 @@ scenario "Hallar: an unkicked spell does nothing" {
   assert counters "Hallar, the Firefletcher" +1/+1 0
   assert life B 20
 }
+
+scenario "Visions of Brutality: the enchanted creature's controller loses the damage it deals to a player" {
+  battlefield A: "Visions of Brutality" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 17
+}
+
+scenario "Visions of Brutality: damage to a creature costs its controller life too" {
+  battlefield A: "Visions of Brutality" on "Hill Giant", "Serra Angel"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 17
+  assert damage "Serra Angel" 3
+}
+
+scenario "Guilty Conscience: the enchanted creature is dealt the damage it deals" {
+  battlefield A: "Guilty Conscience" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Spirit Link: its controller gains the damage the enchanted creature deals" {
+  battlefield A: "Spirit Link" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  life A 10
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 10
+}

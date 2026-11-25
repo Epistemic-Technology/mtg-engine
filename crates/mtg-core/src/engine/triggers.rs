@@ -1688,6 +1688,20 @@ impl GameState {
                 if !ok {
                     return None;
                 }
+                // "Whenever enchanted creature deals damage, its controller
+                // loses that much life." (Visions of Brutality), "...
+                // deals that much damage to that creature" (Guilty
+                // Conscience): with no recipient named, the triggering
+                // object is the creature that dealt the damage, as it last
+                // existed (CR 603.10a), not what it was dealt to.
+                if *to == crate::card::DamageTo::Any {
+                    let controller = self
+                        .objects
+                        .get(*source)
+                        .map(|o| o.controller)
+                        .or_else(|| self.lki.get(source).map(|l| l.object.controller));
+                    return Some((Some(*source), controller));
+                }
                 match (to, target) {
                     // "to that player": the delayed trigger's player,
                     // checked by `delayed_turn_triggers`.
