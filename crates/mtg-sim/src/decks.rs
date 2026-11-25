@@ -45,7 +45,24 @@ pub fn by_name_seeded(pool: &CardPool, name: &str, seed: u64) -> Option<Vec<Card
     if let Some(s) = name.strip_prefix("random:") {
         return s.parse().ok().map(|s| random_deck(pool, s));
     }
+    if let Some(path) = name.strip_prefix("file:") {
+        return from_file(pool, path);
+    }
     by_name(pool, name)
+}
+
+/// A deck list file, one `<count> <name>` per line (what `mtg deck`
+/// prints), so a benchmark can keep a random deck fixed while the corpus
+/// grows. `None` if the file can't be read or names a card not in the pool.
+fn from_file(pool: &CardPool, path: &str) -> Option<Vec<CardRef>> {
+    let text = std::fs::read_to_string(path).ok()?;
+    let mut deck = Vec::new();
+    for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
+        let (n, card) = line.split_once(' ')?;
+        let r = pool.lookup(card.trim())?;
+        deck.extend(std::iter::repeat_n(r, n.parse().ok()?));
+    }
+    Some(deck)
 }
 
 /// A 60-card deck in two colors chosen by `seed`: 24 basic lands split
