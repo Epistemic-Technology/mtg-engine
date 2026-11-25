@@ -248,7 +248,10 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
                 obj(state, *card)
             )
         }
-        Event::EffectEnded { .. } | Event::Replaced { .. } | Event::Targeted { .. } => {
+        Event::EffectEnded { .. }
+        | Event::Replaced { .. }
+        | Event::Targeted { .. }
+        | Event::PlayerTargeted { .. } => {
             return None;
         }
         Event::CountersAdded {

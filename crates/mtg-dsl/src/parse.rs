@@ -18995,6 +18995,19 @@ impl P {
         if self.eat_words(&["you", "foretell", "a", "card"]) {
             return Ok(Trigger::Foretells);
         }
+        if self.eat_words(&[
+            "a",
+            "player",
+            "or",
+            "permanent",
+            "becomes",
+            "targeted",
+            "by",
+            "your",
+            "ability",
+        ]) {
+            return Ok(Trigger::TargetedByYourAbility);
+        }
         // CR 602.2: "you activate an ability of a creature", "you activate
         // an exhaust ability", "an opponent activates a loyalty ability".
         if self.at_words(&["you", "activate"]) || self.at_words(&["an", "opponent", "activates"]) {
@@ -19013,6 +19026,10 @@ impl P {
                 ActivationKind::Loyalty
             } else if self.eat_words(&["a", "ninjutsu", "ability"]) {
                 ActivationKind::Ninjutsu
+            } else if self.eat_words(&[
+                "an", "ability", "that", "targets", "a", "creature", "or", "player",
+            ]) {
+                ActivationKind::TargetsCreatureOrPlayer
             } else {
                 return self.unexpected(
                     "`an ability of a creature`, `an exhaust ability`, `a loyalty ability`, or `a ninjutsu ability`",
@@ -19841,8 +19858,16 @@ impl P {
                     | Trigger::TurnedFaceUp(TriggerObj::This)
                     | Trigger::BecomesTapped(TriggerObj::This)
                     | Trigger::Transforms
+                    // "Whenever Kitsune enters or deals combat damage to a
+                    // player".
+                    | Trigger::DealsCombatDamageToPlayer(TriggerObj::This)
+                    | Trigger::DealsDamage {
+                        obj: TriggerObj::This,
+                        to: mtg_core::card::DamageTo::Player,
+                        combat: true,
+                    }
             ) {
-                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `becomes tapped`, `transforms`, or `is turned face up`");
+                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `becomes tapped`, `deals combat damage to a player`, `transforms`, or `is turned face up`");
             }
             return Ok(Trigger::Or {
                 first: Box::new(first),

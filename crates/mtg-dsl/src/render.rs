@@ -10575,6 +10575,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ..
         } => {
             let o = match what {
+                // "Whenever you activate an ability that targets ..., copy
+                // that ability." (Ertha Jo, Frontier Mentor).
+                Recipient::TriggeringObject
+                    if matches!(
+                        ctx.trigger,
+                        Some(Trigger::Activates {
+                            kind: mtg_core::card::ActivationKind::TargetsCreatureOrPlayer,
+                            ..
+                        })
+                    ) =>
+                {
+                    "that ability".to_string()
+                }
                 Recipient::TriggeringObject => "that spell".to_string(),
                 // "copy this spell" (a creature spell's own trigger).
                 Recipient::Source => {
@@ -16447,6 +16460,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "{} {subject} becomes the target of {what}{whose}",
                 if *whenever { "whenever" } else { "when" },
             )
+        }
+        Trigger::TargetedByYourAbility => {
+            "whenever a player or permanent becomes the target of an ability you control"
+                .to_string()
         }
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",

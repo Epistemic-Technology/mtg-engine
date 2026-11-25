@@ -2729,6 +2729,7 @@ impl Decompiler<'_> {
                 or_spell: *or_spell,
             },
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::TargetedByYourAbility => Trigger::TargetedByYourAbility,
             TriggerSpec::TargetedFirstTime => Trigger::TargetedFirstTime,
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),

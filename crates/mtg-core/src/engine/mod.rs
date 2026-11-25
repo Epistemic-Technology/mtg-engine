@@ -287,6 +287,7 @@ impl Engine {
                 state.spent_watchers += u32::from(def.flags().watches_spent());
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
                 state.object_first_watchers += u32::from(def.flags().has_object_firsts());
+                state.player_target_watchers += u32::from(def.flags().watches_player_targets());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 state.mark_sources += u32::from(def.flags().has_marks());
                 state.banding_sources += u32::from(def.flags().has_banding());
@@ -685,6 +686,7 @@ impl GameState {
             spent_watchers: 0,
             valiant_watchers: 0,
             object_first_watchers: 0,
+            player_target_watchers: 0,
             object_events: Vec::new(),
             targeted_by_controller: Vec::new(),
             pending_triggers: Vec::new(),

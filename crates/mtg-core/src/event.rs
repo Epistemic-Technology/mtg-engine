@@ -342,6 +342,13 @@ pub enum Event {
         target: ObjId,
         by: ObjId,
     },
+    /// A player became the target of spell or ability `by` (CR 115),
+    /// reported only while a permanent with
+    /// `TriggerSpec::TargetedByYourAbility` is on the battlefield.
+    PlayerTargeted {
+        player: PlayerId,
+        by: ObjId,
+    },
     /// A delayed triggered ability was created (CR 603.7) about `about`.
     DelayedTriggerCreated {
         source: ObjId,
@@ -443,7 +450,9 @@ impl Event {
             Event::Damage { .. } => WATCH_DAMAGE,
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
             Event::Cast { .. } | Event::SpellCopied { .. } => WATCH_CAST,
-            Event::Targeted { .. } | Event::CommittedCrime { .. } => WATCH_TARGETED,
+            Event::Targeted { .. }
+            | Event::PlayerTargeted { .. }
+            | Event::CommittedCrime { .. } => WATCH_TARGETED,
             Event::Tapped { .. }
             | Event::Untapped { .. }
             | Event::TappedForMana { .. }

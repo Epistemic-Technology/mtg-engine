@@ -1026,6 +1026,7 @@ impl GameState {
             self.spent_watchers += d(flags.watches_spent());
             self.valiant_watchers += d(flags.has_valiant());
             self.object_first_watchers += d(flags.has_object_firsts());
+            self.player_target_watchers += d(flags.watches_player_targets());
             self.state_trigger_sources += d(flags.has_state_trigger());
             self.mark_sources += d(flags.has_marks());
             self.banding_sources += d(flags.has_banding());
@@ -1053,6 +1054,7 @@ impl GameState {
             self.spent_watchers -= d(flags.watches_spent());
             self.valiant_watchers -= d(flags.has_valiant());
             self.object_first_watchers -= d(flags.has_object_firsts());
+            self.player_target_watchers -= d(flags.watches_player_targets());
             self.state_trigger_sources -= d(flags.has_state_trigger());
             self.mark_sources -= d(flags.has_marks());
             self.banding_sources -= d(flags.has_banding());

@@ -6013,6 +6013,7 @@ pub fn activates_words(whose: Who, kind: mtg_core::card::ActivationKind) -> Stri
         K::Exhaust => "an exhaust ability",
         K::Loyalty => "a loyalty ability",
         K::Ninjutsu => "a ninjutsu ability",
+        K::TargetsCreatureOrPlayer => "an ability that targets a creature or player",
     };
     format!("{who} {what}")
 }
@@ -6351,6 +6352,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         .trim_end()
         .to_string(),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
+        Trigger::TargetedByYourAbility => {
+            "whenever a player or permanent becomes targeted by your ability".to_string()
+        }
         Trigger::TargetedFirstTime => {
             "whenever this becomes targeted first time each turn".to_string()
         }

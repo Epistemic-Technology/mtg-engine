@@ -6208,6 +6208,7 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::TargetedByYourAbility => TriggerSpec::TargetedByYourAbility,
             Trigger::TargetedBy {
                 obj,
                 spells,

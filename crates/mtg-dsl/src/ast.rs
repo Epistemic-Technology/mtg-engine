@@ -4349,6 +4349,10 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
+    /// `whenever a player or permanent becomes targeted by your ability`:
+    /// "Whenever a player or permanent becomes the target of an ability
+    /// you control" (Loki, God of Mischief).
+    TargetedByYourAbility,
     /// `whenever this becomes targeted first time each turn`: "Whenever
     /// this creature becomes the target of a spell or ability for the first
     /// time each turn" (the spell or ability is `that spell`).

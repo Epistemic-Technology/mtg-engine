@@ -2560,6 +2560,9 @@ pub struct GameState {
     /// Battlefield permanents with `DefFlags::has_object_firsts`: while
     /// nonzero, `object_events` is kept.
     pub object_first_watchers: u32,
+    /// Battlefield permanents with `DefFlags::watches_player_targets`:
+    /// while nonzero, targeting a player emits `Event::PlayerTargeted`.
+    pub player_target_watchers: u32,
     /// How many times each object became tapped or had counters put on it
     /// this turn ("if it's the first time that creature has become tapped
     /// this turn", `Condition::FirstTime`).

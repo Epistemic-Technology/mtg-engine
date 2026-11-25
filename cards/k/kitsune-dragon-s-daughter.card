@@ -1,0 +1,8 @@
+card "Kitsune, Dragon's Daughter" {
+  oracle_id 9be19bdf-db1e-433e-8be4-8b985a568211
+  cost {4}{U}{U}
+  type Legendary Creature — Fox Warlock Avatar
+  pt 6/6
+  keywords vigilance
+  triggered whenever this enters or deals combat damage to a player: you may exchange control of 2 another target creature controlled by different players
+}

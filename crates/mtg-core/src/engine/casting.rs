@@ -7183,6 +7183,21 @@ impl GameState {
 
     /// The permanents a stack object targets become its targets.
     fn emit_targeted_objects(&mut self, obj: ObjId) {
+        // "Whenever a player or permanent becomes the target of an ability
+        // you control" (Loki): players too, only while one watches.
+        if self.player_target_watchers > 0 {
+            let players: SmallVec<[PlayerId; 2]> = self.objects[obj]
+                .targets
+                .iter()
+                .filter_map(|t| match t {
+                    Target::Player(p) => Some(*p),
+                    Target::Object(_) => None,
+                })
+                .collect();
+            for player in players {
+                self.emit(Event::PlayerTargeted { player, by: obj });
+            }
+        }
         let targets: SmallVec<[ObjId; 2]> = self.objects[obj]
             .targets
             .iter()

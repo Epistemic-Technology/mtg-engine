@@ -1776,6 +1776,23 @@ impl GameState {
                 }
                 Some((Some(*target), Some(by_ctl)))
             }
+            // "... becomes the target of an ability you control" (CR
+            // 115.1b-c: an activated or triggered ability).
+            (TriggerSpec::TargetedByYourAbility, Event::Targeted { target, by }) => {
+                let b = self.objects.get(*by)?;
+                (b.kind == crate::state::ObjKind::Ability
+                    && b.controller == w.controller
+                    && self
+                        .objects
+                        .get(*target)
+                        .is_some_and(|t| t.zone == Zone::Battlefield))
+                .then_some((Some(*target), Some(w.controller)))
+            }
+            (TriggerSpec::TargetedByYourAbility, Event::PlayerTargeted { player, by }) => {
+                let b = self.objects.get(*by)?;
+                (b.kind == crate::state::ObjKind::Ability && b.controller == w.controller)
+                    .then_some((None, Some(*player)))
+            }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source && by_ctl != w.controller).then_some((Some(*by), Some(by_ctl)))
@@ -2307,6 +2324,20 @@ impl GameState {
                         .characteristics(*source)
                         .or_else(|| self.lki.get(source).map(|l| l.characteristics))
                         .is_some_and(|c| c.is_creature()),
+                    // "Whenever you activate an ability that targets a
+                    // creature or player, copy that ability.": the ability.
+                    crate::card::ActivationKind::TargetsCreatureOrPlayer => {
+                        let targets = o.targets.iter().any(|t| match t {
+                            Target::Player(_) => true,
+                            Target::Object(id) => {
+                                self.objects
+                                    .get(*id)
+                                    .is_some_and(|x| x.zone == Zone::Battlefield)
+                                    && self.characteristics(*id).is_some_and(|c| c.is_creature())
+                            }
+                        });
+                        return targets.then_some((Some(*obj), Some(activator)));
+                    }
                 };
                 ok.then_some((Some(*source), Some(activator)))
             }

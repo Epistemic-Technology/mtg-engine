@@ -8488,6 +8488,11 @@ pub enum TriggerSpec {
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
     TargetedByOpponent,
+    /// "Whenever a player or permanent becomes the target of an ability
+    /// you control" (Loki, God of Mischief): an activated or triggered
+    /// ability its controller controls targets a permanent (the
+    /// triggering object) or a player (the triggering player).
+    TargetedByYourAbility,
     /// "Whenever this creature becomes the target of a spell or ability
     /// for the first time each turn" (Shimmering Glasskite): any
     /// controller's; the spell or ability is the triggering object. The
@@ -8845,6 +8850,11 @@ pub enum ActivationKind {
     /// "a ninjutsu ability" (CR 702.49), the card's own or one a
     /// permanent gives it (Satoru Umezawa).
     Ninjutsu,
+    /// "an ability that targets a creature or player" (Ertha Jo, Frontier
+    /// Mentor): one of its targets, as activated, is a creature on the
+    /// battlefield or a player. The ability itself, not its source, is the
+    /// triggering object ("copy that ability").
+    TargetsCreatureOrPlayer,
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -9054,6 +9064,7 @@ impl TriggerSpec {
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedBy { .. }
             | TriggerSpec::TargetedByOpponent
+            | TriggerSpec::TargetedByYourAbility
             | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
@@ -11368,6 +11379,10 @@ impl DefFlags {
     /// battlefield, taps and counters put are counted per object
     /// (`GameState::object_events`).
     const OBJECT_FIRSTS: u64 = 1 << 32;
+    /// A `TriggerSpec::TargetedByYourAbility` trigger: while one is on the
+    /// battlefield, players becoming targets are reported
+    /// (`Event::PlayerTargeted`).
+    const PLAYER_TARGETED: u64 = 1 << 33;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11500,6 +11515,10 @@ impl DefFlags {
 
     pub const fn has_object_firsts(self) -> bool {
         self.has(DefFlags::OBJECT_FIRSTS)
+    }
+
+    pub const fn watches_player_targets(self) -> bool {
+        self.has(DefFlags::PLAYER_TARGETED)
     }
 
     pub const fn has_top_static(self) -> bool {
@@ -11724,6 +11743,12 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.is_valiant())),
+        );
+        flags.set(
+            DefFlags::PLAYER_TARGETED,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Triggered(t) if t.trigger == TriggerSpec::TargetedByYourAbility)
+            }),
         );
         flags.set(
             DefFlags::OBJECT_FIRSTS,
