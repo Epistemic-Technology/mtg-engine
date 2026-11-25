@@ -1,0 +1,10 @@
+card "Fighter Class" {
+  oracle_id 8a280ba8-6b7b-46dd-9c2b-6d0027cfff30
+  cost {R}{W}
+  type Enchantment — Class
+  triggered when this enters: search Equipment card reveal to hand
+  level 2 {1}{R}{W}
+  equip abilities you activate cost {2} less
+  level 3 {3}{R}{W}
+  triggered whenever creature you control attacks: up to 1 target creature blocks it if able until end of combat
+}

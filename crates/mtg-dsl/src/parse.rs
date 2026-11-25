@@ -11357,7 +11357,20 @@ impl P {
                     && !self.at_words(&["this", "turn"])
                     && !self.at_words(&["each", "combat"]) =>
             {
-                let attacker = self.recipient()?;
+                // "Whenever a creature you control attacks, up to one
+                // target creature blocks it this combat if able." (Fighter
+                // Class): `it` is the attacker, the triggering object, not
+                // the target just named (a creature can't block itself).
+                let attacker = if self.in_trigger
+                    && !self.in_delayed
+                    && matches!(subject, Recipient::Target(_))
+                    && self.at_word("it")
+                {
+                    self.pos += 1;
+                    Recipient::TriggeringIt
+                } else {
+                    self.recipient()?
+                };
                 let _ = self.eat_words(&["this", "turn"]);
                 self.expect_words(&["if", "able"])?;
                 Ok(Effect::BlocksIfAble {

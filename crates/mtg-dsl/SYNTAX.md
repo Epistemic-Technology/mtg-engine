@@ -2941,7 +2941,10 @@ combat" in place of "this turn": `this gets +2/+0 until end of combat`
 ("it gets +2/+0 until end of combat"), `that creature can't block until
 end of combat` ("That creature can't block this combat."), `target
 creature defending player controls blocks this if able until end of
-combat` ("... blocks it this combat if able").
+combat` ("... blocks it this combat if able"). In a triggered ability
+`blocks it` after a target names the triggering object (`whenever
+creature you control attacks: up to 1 target creature blocks it if able
+until end of combat`: the attacker, Fighter Class).
 
 `indefinitely` after a sentence whose clauses would last until end of
 turn makes them last for good, printing no duration (CR 611.2a): `target
