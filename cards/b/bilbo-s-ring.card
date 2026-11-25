@@ -1,0 +1,9 @@
+card "Bilbo's Ring" {
+  oracle_id a7cc0f6b-6b17-4e76-b2a6-6a6ee2519b61
+  cost {3}
+  type Legendary Artifact — Equipment
+  static during your turn, enchanted: has hexproof, has can't be blocked
+  triggered whenever enchanted creature attacks alone: you draw 1 card, and you lose 1 life
+  equip Halfling {1}
+  equip {4}
+}

@@ -1,0 +1,7 @@
+card "Wandermare" {
+  oracle_id 7c25470c-7be0-495c-b756-6a4fc230d660
+  cost {1}{G}{W}
+  type Creature — Horse
+  pt 3/3
+  triggered whenever you cast creature spell that has adventure: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,6 @@
+card "Sanctum of Stone Fangs" {
+  oracle_id a1d8fcb9-26b2-4d09-9db7-e644294749f8
+  cost {1}{B}
+  type Legendary Enchantment — Shrine
+  triggered at beginning of your first main: each opponent loses count where Shrine you control life and you gain count where Shrine you control life
+}

@@ -1,0 +1,7 @@
+card "Tireless Provisioner" {
+  oracle_id ab8d5f5c-1976-4f77-8ed2-8d28ee666741
+  cost {2}{G}
+  type Creature — Elf Scout
+  pt 3/2
+  label "Landfall" triggered whenever land you control enters: create 1 "Food" or create 1 "Treasure"
+}

@@ -1,0 +1,7 @@
+card "Moriok Rigger" {
+  oracle_id 9364b5bc-3e78-4b9d-9993-0081bbe2eef6
+  cost {2}{B}
+  type Creature — Human Rogue Rigger
+  pt 2/2
+  triggered whenever artifact dies: you may put 1 +1/+1 counter on this
+}

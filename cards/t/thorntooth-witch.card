@@ -1,0 +1,7 @@
+card "Thorntooth Witch" {
+  oracle_id 942eefa3-6775-428b-84aa-48c3bd78d3b8
+  cost {5}{B}
+  type Creature — Treefolk Shaman
+  pt 3/4
+  triggered whenever you cast Treefolk spell: you may target creature gets +3/-3
+}

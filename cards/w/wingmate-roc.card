@@ -1,0 +1,9 @@
+card "Wingmate Roc" {
+  oracle_id 5badc2e8-a7d6-48c7-b594-65db953d9d57
+  cost {3}{W}{W}
+  type Creature — Bird
+  pt 3/4
+  keywords flying
+  label "Raid" triggered when this enters if attacked this turn: create 1 "3/4 white Bird creature with flying"
+  triggered whenever this attacks: you gain count each attacking creature on battlefield life
+}

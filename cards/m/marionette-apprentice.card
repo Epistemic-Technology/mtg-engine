@@ -1,0 +1,8 @@
+card "Marionette Apprentice" {
+  oracle_id 726d9d2c-736a-4852-9938-a0f50d8fd89f
+  cost {1}{B}
+  type Creature — Human Artificer
+  pt 1/2
+  fabricate 1
+  triggered whenever other creature or artifact you control is put into a graveyard from the battlefield: each opponent loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Season of Growth" {
+  oracle_id 3f4e300a-ec5c-42f3-a97b-d58e62abe22b
+  cost {1}{G}
+  type Enchantment
+  triggered whenever creature you control enters: scry 1
+  triggered whenever you cast permanent spell that targets a creature you control: draw 1 card
+}

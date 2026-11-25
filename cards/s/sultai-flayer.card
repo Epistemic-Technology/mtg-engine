@@ -1,0 +1,7 @@
+card "Sultai Flayer" {
+  oracle_id df621822-c811-40fa-99c1-ea9920bcd2e2
+  cost {3}{G}
+  type Creature — Snake Shaman
+  pt 3/4
+  triggered whenever a creature with toughness 4 or greater you control dies: you gain 4 life
+}

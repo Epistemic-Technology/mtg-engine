@@ -1,0 +1,8 @@
+card "Hopeful Initiate" {
+  oracle_id 317169b8-9014-48e6-862b-ca21b706846e
+  cost {W}
+  type Creature — Human Warlock
+  pt 1/2
+  training
+  activated {2}{W}, remove 2 +1/+1 counters from among creature you control: destroy target artifact or enchantment
+}

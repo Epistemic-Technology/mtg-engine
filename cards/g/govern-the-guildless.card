@@ -1,0 +1,7 @@
+card "Govern the Guildless" {
+  oracle_id a9a0605d-295a-47e6-9f49-3c82a7ef1e7b
+  cost {5}{U}
+  type Sorcery
+  spell: gain control of target monocolored creature indefinitely
+  label "Forecast" activated {1}{U}, reveal this: target creature becomes colors of choice
+}

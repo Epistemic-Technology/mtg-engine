@@ -1,0 +1,8 @@
+card "Ledger Shredder" {
+  oracle_id e9117015-1050-44dd-a46b-e7ffe2085fae
+  cost {1}{U}
+  type Creature — Bird Advisor
+  pt 1/3
+  keywords flying
+  triggered whenever a player casts their second spell each turn: this connives
+}

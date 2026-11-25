@@ -1,0 +1,8 @@
+card "Illusory Demon" {
+  oracle_id 91d0a557-7a80-46d5-b823-392a84a6be44
+  cost {1}{U}{B}
+  type Creature — Demon Illusion
+  pt 4/3
+  keywords flying
+  triggered when you cast a spell: sacrifice this
+}

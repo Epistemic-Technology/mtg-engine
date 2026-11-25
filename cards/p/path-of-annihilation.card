@@ -1,0 +1,9 @@
+card "Path of Annihilation" {
+  oracle_id eca6ffeb-463c-40b0-90b4-7e09e5579c10
+  cost {3}{G}
+  type Enchantment
+  keywords devoid
+  triggered when this enters: create 2 "Eldrazi Spawn"
+  static Eldrazi you control: has ability { mana any }
+  triggered whenever you cast creature with mana value 7 or greater spell: you gain 4 life
+}

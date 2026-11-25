@@ -1,0 +1,7 @@
+card "Blightcaster" {
+  oracle_id b40e2aae-3a1d-4bc2-bf67-e821ec800434
+  cost {3}{B}
+  type Creature — Human Wizard
+  pt 2/3
+  triggered whenever you cast enchantment spell: you may target creature gets -2/-2
+}

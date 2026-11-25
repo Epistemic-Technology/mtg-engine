@@ -10029,6 +10029,142 @@ fn corpus_statement(
     }
 }
 
+/// A triggered or activated line as its head (the trigger or the cost) and
+/// its effect: "Whenever you scry, put a +1/+1 counter on target
+/// creature." is "Whenever you scry" and "put a +1/+1 counter on target
+/// creature." A trigger whose effect opens with a condition ("..., if you
+/// control ...") isn't split: the DSL puts the condition in the head.
+fn oracle_split(line: &str) -> Option<(bool, &str, &str)> {
+    if line.contains('"') {
+        return None;
+    }
+    let trigger = cached_regex(r"^(?:[A-Z][A-Za-z' ]+ — )?(?:Whenever|When|At) ")
+        .unwrap()
+        .is_match(line);
+    let (head, body) = if trigger {
+        line.split_once(", ")?
+    } else {
+        line.split_once(": ")?
+    };
+    let restricted = [
+        "Activate only",
+        "Activate no more",
+        "Any player may",
+        "Only your opponents",
+        "This ability triggers only",
+        "Do this only",
+    ];
+    if body.starts_with("if ") || restricted.iter().any(|r| body.contains(r)) {
+        return None;
+    }
+    Some((trigger, head, body))
+}
+
+/// A statement as its head (`triggered ...`, `activated ...`, `loyalty
+/// +1`) and its effect, split at the first `: ` outside braces and quotes.
+fn dsl_split(st: &str) -> Option<(&str, &str)> {
+    if st.contains('\n') {
+        return None;
+    }
+    let (mut depth, mut quoted) = (0i32, false);
+    for (i, ch) in st.char_indices() {
+        match ch {
+            '"' => quoted = !quoted,
+            '{' if !quoted => depth += 1,
+            '}' if !quoted => depth -= 1,
+            ':' if !quoted && depth == 0 && st[i + 1..].starts_with(' ') => {
+                return Some((&st[..i], &st[i + 2..]));
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// An effect that means the same after any trigger or cost: none of the
+/// words that name what the trigger saw ("that player", "it", "they",
+/// "that many"), only its own objects and the source.
+fn context_free(body: &str) -> bool {
+    let body = body
+        .replace("its owner's", "")
+        .replace("their owner's", "")
+        .replace("their owners'", "");
+    !cached_regex(
+        r"(?i)\b(that|those|it|its|they|them|their|this way|defending|chosen|triggering|each of)\b",
+    )
+    .unwrap()
+    .is_match(&body)
+}
+
+/// A line no template and no corpus line writes, put together from a
+/// corpus line printing the same trigger or cost and another printing the
+/// same effect, amounts put in as `numbers_into` does: "Whenever you scry,
+/// put a +1/+1 counter on target creature." from a line beginning
+/// "Whenever you scry, ..." and one ending "..., put a +1/+1 counter on
+/// target creature." Only an effect that reads nothing from its trigger
+/// (`context_free`) moves to another; the card it goes into is rendered
+/// and checked against its Oracle text as usual.
+fn corpus_recombine(corpus: &[Card], line: &str) -> Option<String> {
+    use std::collections::HashMap;
+    use std::sync::OnceLock;
+    /// Oracle parts by shape, each with the DSL that prints it.
+    type Parts = HashMap<String, Vec<(String, String)>>;
+    static PARTS: OnceLock<(Parts, Parts)> = OnceLock::new();
+    let (heads, bodies) = PARTS.get_or_init(|| {
+        let (mut heads, mut bodies) = (Parts::new(), Parts::new());
+        let mut lines: Vec<(&String, &String)> = corpus_lines(corpus).iter().collect();
+        lines.sort();
+        for (l, st) in lines {
+            let (Some((trigger, oh, ob)), Some((dh, db))) = (oracle_split(l), dsl_split(st))
+            else {
+                continue;
+            };
+            // The DSL's head is a trigger exactly when Oracle's is. A head
+            // that works from another zone (`triggered from graveyard`,
+            // `activated ..., from graveyard`) does so for its effect
+            // ("return this card from your graveyard"), not its trigger.
+            if trigger != dh.contains("triggered")
+                || db.starts_with("if ")
+                || dh.contains("from graveyard")
+                || dh.contains("from hand")
+                || dh.contains("from exile")
+            {
+                continue;
+            }
+            heads
+                .entry(line_shape(oh).0)
+                .or_default()
+                .push((oh.to_string(), dh.to_string()));
+            // An activated ability's effect begins with a capital, a
+            // trigger's doesn't: the key is the lowercase form.
+            let ob = lowercase_first(ob);
+            if context_free(&ob) {
+                bodies
+                    .entry(line_shape(&ob).0)
+                    .or_default()
+                    .push((ob, db.to_string()));
+            }
+        }
+        (heads, bodies)
+    });
+    let (_, oh, ob) = oracle_split(line)?;
+    if !context_free(ob) {
+        return None;
+    }
+    let put_in = |parts: &Parts, ours: &str| -> Option<String> {
+        parts.get(&line_shape(ours).0)?.iter().find_map(|(theirs, dsl)| {
+            if theirs == ours {
+                Some(dsl.clone())
+            } else {
+                numbers_into(theirs, dsl, ours)
+            }
+        })
+    };
+    let head = put_in(heads, oh)?;
+    let body = put_in(bodies, &lowercase_first(ob))?;
+    Some(format!("{head}: {body}"))
+}
+
 /// The header lines of the file `author_card` writes for `s` (name, cost,
 /// type, power and toughness, loyalty, short name), and the names its
 /// text calls it by, which the author reads as `~`.
@@ -11730,7 +11866,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             b.spell_paragraphs.truncate(mark.2);
             b.spell_at = mark.3;
             b.spell_targets = mark.4;
-            let Some(st) = corpus_statement(corpus, line, b.frame.as_ref()) else {
+            let Some(st) = corpus_statement(corpus, line, b.frame.as_ref())
+                .or_else(|| corpus_recombine(corpus, line))
+            else {
                 // `MTG_AUTHOR_MISS=1`: print each line neither a template
                 // nor the corpus index writes.
                 if std::env::var_os("MTG_AUTHOR_MISS").is_some() {

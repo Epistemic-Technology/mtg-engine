@@ -1,0 +1,7 @@
+card "Shrine of Boundless Growth" {
+  oracle_id 6047a38c-ec03-428d-9f4f-15d767f8176e
+  cost {3}
+  type Artifact
+  triggered at beginning of your upkeep step and whenever you cast green permanent spell: put 1 charge counter on this
+  activated {T}, sacrifice this: add {C} count each charge counters on this
+}

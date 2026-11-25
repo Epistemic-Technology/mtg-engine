@@ -1,0 +1,7 @@
+card "Edgewall Innkeeper" {
+  oracle_id e3d7cea4-0d4c-4320-966d-17ef69b5e433
+  cost {G}
+  type Creature — Human Peasant
+  pt 1/1
+  triggered whenever you cast creature spell that has adventure: draw 1 card
+}

@@ -1,0 +1,583 @@
+# Cards the corpus line index writes by putting a trigger or cost one
+# corpus line prints together with an effect another prints
+# (`corpus_recombine`, eighteenth wave): only effects that read nothing
+# from their trigger move.
+
+scenario "Marsh Flitter: two Goblin Rogues; sacrificing a Goblin makes it a base 3/3 this turn" {
+  battlefield A: 4 "Swamp"
+  hand A: "Marsh Flitter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Marsh Flitter"
+  turn 1 postcombat_main A: activate "Marsh Flitter" sacrificing "Goblin Rogue"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Goblin Rogue"
+  assert power "Marsh Flitter" 3
+  assert toughness "Marsh Flitter" 3
+  run_to turn 2 precombat_main
+  assert power "Marsh Flitter" 1
+}
+
+scenario "Slaughter-Priest of Mogis: a sacrifice pumps it, and the cost's sacrifice gives first strike" {
+  battlefield A: "Slaughter-Priest of Mogis", "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Slaughter-Priest of Mogis" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Slaughter-Priest of Mogis" 4
+  assert has "Slaughter-Priest of Mogis" first_strike
+  run_to turn 2 precombat_main
+  assert power "Slaughter-Priest of Mogis" 2
+  assert has not "Slaughter-Priest of Mogis" first_strike
+}
+
+scenario "Hamlet Captain: attacking gives other Humans +1/+1" {
+  battlefield A: "Hamlet Captain", "Elite Vanguard", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hamlet Captain"
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 3
+  assert power "Grizzly Bears" 2
+  assert power "Hamlet Captain" 2
+  assert life B 18
+}
+
+scenario "Eater of Hope: {2}{B} and two other creatures destroy target creature" {
+  battlefield A: "Eater of Hope", 2 "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Eater of Hope" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains 2 "Grizzly Bears"
+  assert battlefield A contains "Eater of Hope"
+}
+
+scenario "Eater of Hope: {B} and another creature regenerate it" {
+  battlefield A: "Eater of Hope", "Grizzly Bears", "Swamp"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Eater of Hope"
+  turn 2 A: activate "Eater of Hope" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Eater of Hope"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Hopeful Initiate: removing two +1/+1 counters destroys an artifact or enchantment" {
+  battlefield A: "Hopeful Initiate" with 2 +1/+1, 3 "Plains"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hopeful Initiate" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert counters "Hopeful Initiate" +1/+1 0
+}
+
+scenario "Hopeful Initiate: one counter isn't enough" {
+  battlefield A: "Hopeful Initiate" with 1 +1/+1, 3 "Plains"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Hopeful Initiate" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "Season of Growth: a spell targeting your creature draws a card" {
+  battlefield A: "Season of Growth", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Season of Growth: a spell targeting an opponent's creature doesn't" {
+  battlefield A: "Season of Growth", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Season of Growth: a creature entering scries 1" {
+  battlefield A: "Season of Growth", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: scry "Island"
+  run_to turn 2 precombat_main
+  assert hand A count 0
+  assert library A contains "Island"
+  run_to turn 3 precombat_main
+  assert hand A contains "Swamp"
+}
+
+scenario "Kroxa and Kunoros: exiling five graveyard cards returns a creature card" {
+  battlefield A: 3 "Mountain", "Plains", 2 "Swamp"
+  hand A: "Kroxa and Kunoros"
+  graveyard A: 5 "Forest", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kroxa and Kunoros"
+  turn 1 A: trigger "Kroxa and Kunoros" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert exile A contains 5 "Forest"
+}
+
+scenario "Kroxa and Kunoros: with fewer than five other cards, nothing returns" {
+  battlefield A: 3 "Mountain", "Plains", 2 "Swamp"
+  hand A: "Kroxa and Kunoros"
+  graveyard A: 3 "Forest", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kroxa and Kunoros"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Wingmate Roc: 1 life for each attacking creature" {
+  battlefield A: "Wingmate Roc", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wingmate Roc", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 15
+}
+
+scenario "Wingmate Roc: raid makes a 3/4 Bird" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  hand A: "Wingmate Roc"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Wingmate Roc"
+  run_to turn 1 end
+  assert battlefield A contains "Bird"
+  assert toughness "Bird" 4
+  assert has "Bird" flying
+}
+
+scenario "Arwen Undómiel: scrying puts a +1/+1 counter on target creature" {
+  battlefield A: "Arwen Undómiel", "Grizzly Bears", "Island"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  turn 1 A: trigger "Arwen Undómiel" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Arwen Undómiel: {4}{G}{U} scries 2, and that scry triggers it" {
+  battlefield A: "Arwen Undómiel", 3 "Forest", 3 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Arwen Undómiel"
+  turn 1 A: trigger "Arwen Undómiel" targeting "Arwen Undómiel"
+  run_to turn 1 postcombat_main
+  assert counters "Arwen Undómiel" +1/+1 1
+}
+
+scenario "Shrine of Boundless Growth: a counter at upkeep and for each green permanent spell" {
+  battlefield A: "Shrine of Boundless Growth", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Shrine of Boundless Growth" charge 2
+}
+
+scenario "Shrine of Boundless Growth: sacrificed, {C} for each charge counter" {
+  battlefield A: "Shrine of Boundless Growth" with 4 charge
+  hand A: "Juggernaut"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Juggernaut"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Juggernaut"
+  assert graveyard A contains "Shrine of Boundless Growth"
+}
+
+scenario "Marionette Apprentice: another creature of yours dying drains each opponent 1" {
+  battlefield A: "Marionette Apprentice", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Marionette Apprentice: an opponent's creature dying doesn't" {
+  battlefield A: "Marionette Apprentice", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Tenured Inkcaster: a creature with a +1/+1 counter attacking drains 1" {
+  battlefield A: "Tenured Inkcaster", "Grizzly Bears" with 1 +1/+1, "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert life B 13
+}
+
+scenario "Tenured Inkcaster: enters putting a +1/+1 counter on target creature" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Tenured Inkcaster"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tenured Inkcaster"
+  turn 1 A: trigger "Tenured Inkcaster" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Archpriest of Shadows: combat damage to a player returns a creature card" {
+  battlefield A: "Archpriest of Shadows"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Archpriest of Shadows"
+  turn 1 A: trigger "Archpriest of Shadows" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Wandermare: a creature spell with an Adventure puts a counter on it" {
+  battlefield A: "Wandermare", 4 "Island"
+  hand A: "Aquatic Alchemist // Bubble Up", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aquatic Alchemist"
+  run_to turn 1 postcombat_main
+  assert counters "Wandermare" +1/+1 1
+}
+
+scenario "Wandermare: a creature spell without one doesn't" {
+  battlefield A: "Wandermare", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Wandermare" +1/+1 0
+}
+
+scenario "Edgewall Innkeeper: a creature spell with an Adventure draws a card" {
+  battlefield A: "Edgewall Innkeeper", 2 "Island"
+  hand A: "Aquatic Alchemist // Bubble Up"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aquatic Alchemist"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Edgewall Innkeeper: casting the Adventure doesn't" {
+  battlefield A: "Edgewall Innkeeper", 3 "Island"
+  hand A: "Aquatic Alchemist // Bubble Up"
+  graveyard A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bubble Up" targeting "Opt"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Opt"
+}
+
+scenario "Erkenbrand, Lord of Westfold: a Human entering gives creatures you control +1/+0" {
+  battlefield A: "Erkenbrand, Lord of Westfold", "Grizzly Bears", "Plains"
+  hand A: "Elite Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Elite Vanguard" 3
+  assert power "Erkenbrand, Lord of Westfold" 4
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Erkenbrand, Lord of Westfold: a non-Human entering doesn't" {
+  battlefield A: "Erkenbrand, Lord of Westfold", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Caustic Crawler: landfall may give target creature -1/-1" {
+  battlefield A: "Caustic Crawler"
+  battlefield B: "Raging Goblin"
+  hand A: "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: play "Swamp"
+  turn 1 A: trigger "Caustic Crawler" targeting "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+}
+
+scenario "Illusory Demon: casting a spell sacrifices it" {
+  battlefield A: "Illusory Demon", "Island"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Illusory Demon"
+}
+
+scenario "Moriok Rigger: an artifact going to a graveyard may put a counter on it" {
+  battlefield A: "Moriok Rigger"
+  battlefield B: "Ornithopter", "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert counters "Moriok Rigger" +1/+1 1
+}
+
+scenario "Thorntooth Witch: a Treefolk spell gives target creature +3/-3" {
+  battlefield A: "Thorntooth Witch", 5 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Argothian Treefolk"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Argothian Treefolk"
+  turn 1 A: trigger "Thorntooth Witch" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Attended Healer: a Cat the first time you gain life each turn" {
+  battlefield A: "Attended Healer", 2 "Plains"
+  hand A: "Healing Salve", "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert battlefield A contains 1 "Cat"
+}
+
+scenario "Attended Healer: {2}{W} gives another Cleric lifelink" {
+  battlefield A: "Attended Healer", "Evangel of Heliod", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Attended Healer" targeting "Evangel of Heliod"
+  run_to turn 1 postcombat_main
+  assert has "Evangel of Heliod" lifelink
+  assert has not "Attended Healer" lifelink
+}
+
+scenario "Anax and Cymede: heroic gives creatures you control +1/+1 and trample" {
+  battlefield A: "Anax and Cymede", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Anax and Cymede"
+  run_to turn 1 postcombat_main
+  assert power "Anax and Cymede" 7
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert power "Hill Giant" 3
+}
+
+scenario "Anax and Cymede: a spell targeting another creature doesn't" {
+  battlefield A: "Anax and Cymede", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Anax and Cymede" 3
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "Sanctum of Stone Fangs: drains X at your first main phase, X the Shrines you control" {
+  battlefield A: "Sanctum of Stone Fangs", "Sanctum of Fruitful Harvest"
+  start turn 2 B precombat_main
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Bilbo's Ring: attacking alone draws a card and loses 1 life" {
+  battlefield A: "Bilbo's Ring" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 19
+  assert life B 18
+  assert has "Grizzly Bears" hexproof
+}
+
+scenario "Bilbo's Ring: attacking with another creature doesn't draw" {
+  battlefield A: "Bilbo's Ring" on "Grizzly Bears", "Grizzly Bears", "Elite Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Govern the Guildless: gain control of a monocolored creature" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Govern the Guildless"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Govern the Guildless" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Govern the Guildless: forecast in your upkeep makes a creature the colors you choose" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Govern the Guildless"
+  start turn 2 B precombat_main
+  turn 3 upkeep A: activate "Govern the Guildless" targeting "Grizzly Bears"
+  turn 3 upkeep A: choose blue
+  turn 3 upkeep A: choose done
+  run_to turn 3 precombat_main
+  assert is "Grizzly Bears" blue
+  assert is not "Grizzly Bears" green
+  assert hand A contains "Govern the Guildless"
+}
+
+scenario "Flamespeaker Adept: scrying gives it +2/+0 and first strike" {
+  battlefield A: "Flamespeaker Adept", "Island"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert power "Flamespeaker Adept" 4
+  assert has "Flamespeaker Adept" first_strike
+}
+
+scenario "Tireless Provisioner: landfall makes a Food or a Treasure" {
+  battlefield A: "Tireless Provisioner"
+  hand A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Food"
+}
+
+scenario "Tireless Provisioner: the second choice is a Treasure" {
+  battlefield A: "Tireless Provisioner"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert battlefield A lacks "Food"
+}
+
+scenario "Blightcaster: an enchantment spell may give target creature -2/-2" {
+  battlefield A: "Blightcaster", 2 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Pacifism"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Hill Giant"
+  turn 1 A: trigger "Blightcaster" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Sultai Flayer: a creature of yours with toughness 4 or greater dying gains 4 life" {
+  battlefield A: "Sultai Flayer", "Argothian Treefolk", "Grizzly Bears"
+  battlefield B: 6 "Swamp"
+  hand B: "Murder", "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Argothian Treefolk"
+  turn 2 B: wait
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 24
+}
+
+scenario "Bident of Thassa: combat damage to a player may draw a card" {
+  battlefield A: "Bident of Thassa", "Grizzly Bears", "Elite Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Bident of Thassa: {1}{U}, {T} makes the opponent's creatures attack" {
+  battlefield A: "Bident of Thassa", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 upkeep A: activate "Bident of Thassa"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Théoden, King of Rohan: a Human entering gives target creature double strike" {
+  battlefield A: "Théoden, King of Rohan", "Grizzly Bears", "Plains"
+  hand A: "Elite Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elite Vanguard"
+  turn 1 A: trigger "Théoden, King of Rohan" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Ledger Shredder: the second spell of a turn makes it connive" {
+  battlefield A: "Ledger Shredder", 2 "Island"
+  hand A: "Opt", "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Plains"
+  assert counters "Ledger Shredder" +1/+1 0
+}
+
+scenario "Ledger Shredder: one spell doesn't" {
+  battlefield A: "Ledger Shredder", "Island"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A lacks "Plains"
+}
+
+scenario "Path of Annihilation: two Spawn, and a creature spell of mana value 7 or more gains 4" {
+  battlefield A: 12 "Forest"
+  hand A: "Path of Annihilation", "Ulamog's Crusher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Path of Annihilation"
+  turn 1 A: wait
+  turn 1 A: cast "Ulamog's Crusher"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Eldrazi Spawn"
+  assert battlefield A contains "Ulamog's Crusher"
+  assert life A 24
+}
+
+scenario "Path of Annihilation: a smaller creature spell gains nothing" {
+  battlefield A: "Path of Annihilation", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Dreamtide Whale: the second spell of a turn proliferates" {
+  battlefield A: "Dreamtide Whale" with 2 time, 2 "Island"
+  hand A: "Opt", "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert counters "Dreamtide Whale" time 3
+}

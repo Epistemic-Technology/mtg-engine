@@ -1,0 +1,7 @@
+card "Hamlet Captain" {
+  oracle_id 1a60dc0f-e387-4d28-8ff0-c3f1883d0c5d
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever this attacks or blocks: all other Human you control gets +1/+1
+}
