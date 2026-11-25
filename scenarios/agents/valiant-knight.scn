@@ -1,0 +1,10 @@
+scenario "knights get lord bonus and double_strike" {
+  battlefield A: "Valiant Knight", "Silver Knight", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Valiant Knight"
+  run_to turn 1 declare_attackers
+  assert power "Silver Knight" 3
+  assert power "Valiant Knight" 3
+  assert has "Silver Knight" double_strike
+  assert has "Valiant Knight" double_strike
+}

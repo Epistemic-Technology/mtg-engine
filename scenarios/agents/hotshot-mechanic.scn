@@ -1,0 +1,15 @@
+scenario "crews crew 4 alone as power 4" {
+  battlefield A: "Hotshot Mechanic", "Dependable Quinjet"
+  start turn 1 A
+  turn 1 precombat_main A: activate "Dependable Quinjet"
+  run_to turn 1 begin_combat
+  assert tapped "Hotshot Mechanic"
+  assert is "Dependable Quinjet" creature
+}
+scenario "a plain 2-power creature cannot crew 4" {
+  battlefield A: "Grizzly Bears", "Dependable Quinjet"
+  start turn 1 A
+  illegal turn 1 precombat_main A: activate "Dependable Quinjet"
+  run_to turn 1 begin_combat
+  assert untapped "Grizzly Bears"
+}

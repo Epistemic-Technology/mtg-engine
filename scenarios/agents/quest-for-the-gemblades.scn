@@ -1,0 +1,20 @@
+scenario "quest for the gemblades counts creature damage and pumps" {
+  battlefield A: "Quest for the Gemblades", "Hill Giant", "Serra Angel"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 postcombat_main A: activate "Quest for the Gemblades" targeting "Serra Angel"
+  run_to turn 1 end
+  assert power "Serra Angel" 8
+  assert toughness "Serra Angel" 8
+  assert graveyard A contains "Quest for the Gemblades"
+  assert graveyard B contains "Grizzly Bears"
+}
+scenario "quest for the gemblades no counter for player damage" {
+  battlefield A: "Quest for the Gemblades", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Quest for the Gemblades" quest 0
+}

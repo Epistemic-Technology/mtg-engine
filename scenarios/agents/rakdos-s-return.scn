@@ -1,0 +1,21 @@
+scenario "Rakdos's Return deals X and makes the opponent discard X" {
+  battlefield A: "Swamp", "Mountain", 3 "Plains"
+  hand A: "Rakdos's Return"
+  hand B: 5 "Forest"
+  start turn 1 A
+  turn 1 A: cast "Rakdos's Return" x 3 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand B count 2
+}
+
+scenario "Rakdos's Return with X of 0 does nothing" {
+  battlefield A: "Swamp", "Mountain"
+  hand A: "Rakdos's Return"
+  hand B: 5 "Forest"
+  start turn 1 A
+  turn 1 A: cast "Rakdos's Return" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert hand B count 5
+}

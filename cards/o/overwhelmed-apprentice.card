@@ -1,0 +1,7 @@
+card "Overwhelmed Apprentice" {
+  oracle_id e68d6459-2f32-4320-a062-6d33f85348f9
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/2
+  triggered when this enters: each opponent mills 2 cards; then you scry 2
+}

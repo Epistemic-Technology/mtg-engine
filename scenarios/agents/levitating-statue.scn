@@ -1,0 +1,15 @@
+scenario "Levitating Statue grows and becomes a creature" {
+  battlefield A: "Levitating Statue", 2 "Mountain", 2 "Island"
+  hand A: "Shock"
+  start turn 1 A
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: activate "Levitating Statue"
+  run_to turn 1 combat_damage
+  assert counters "Levitating Statue" +1/+1 1
+  assert is "Levitating Statue" creature
+  assert power "Levitating Statue" 2
+  assert toughness "Levitating Statue" 2
+  assert has "Levitating Statue" flying
+  run_to turn 2 upkeep
+  assert is not "Levitating Statue" creature
+}

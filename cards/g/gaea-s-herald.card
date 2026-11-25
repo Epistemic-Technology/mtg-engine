@@ -1,0 +1,7 @@
+card "Gaea's Herald" {
+  oracle_id f21c3d22-6149-475f-ae6e-37a25ef020e5
+  cost {1}{G}
+  type Creature — Elf
+  pt 1/1
+  spells creature can't be countered
+}

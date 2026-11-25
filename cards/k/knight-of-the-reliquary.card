@@ -1,0 +1,8 @@
+card "Knight of the Reliquary" {
+  oracle_id 393e5331-4456-4ba3-b410-bb630bb053db
+  cost {1}{G}{W}
+  type Creature — Human Knight
+  pt 2/2
+  static this: +1/+1 count each graveyard land
+  activated {T}, sacrifice Forest or Plains: search land card to battlefield
+}

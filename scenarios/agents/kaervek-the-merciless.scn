@@ -1,0 +1,22 @@
+scenario "Kaervek deals damage equal to opponent's spell mana value" {
+  battlefield A: "Kaervek the Merciless"
+  battlefield B: "Island", "Island", "Island"
+  hand B: "Divination"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Divination"
+  turn 2 precombat_main A: trigger "Kaervek the Merciless" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+}
+scenario "Kaervek ignores my own spells and can hit creatures" {
+  battlefield A: "Kaervek the Merciless", "Mountain"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Shock"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting player A
+  turn 2 precombat_main A: trigger "Kaervek the Merciless" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert damage "Hill Giant" 1
+  assert life A 17
+}

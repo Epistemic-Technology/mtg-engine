@@ -1,0 +1,32 @@
+scenario "ironclad revolutionary sacrifices an artifact for counters and life loss" {
+  battlefield A: 6 "Swamp", "Ornithopter"
+  hand A: "Ironclad Revolutionary"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Ironclad Revolutionary"
+  turn 1 precombat_main A: accept "Ironclad Revolutionary"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Ornithopter"
+  assert counters "Ironclad Revolutionary" +1/+1 2
+  assert power "Ironclad Revolutionary" 6
+  assert life B 18
+}
+scenario "ironclad revolutionary declined" {
+  battlefield A: 6 "Swamp", "Ornithopter"
+  hand A: "Ironclad Revolutionary"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Ironclad Revolutionary"
+  turn 1 precombat_main A: decline "Ironclad Revolutionary"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Ornithopter"
+  assert power "Ironclad Revolutionary" 4
+  assert life B 20
+}
+scenario "ironclad revolutionary with no artifact does nothing" {
+  battlefield A: 6 "Swamp"
+  hand A: "Ironclad Revolutionary"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Ironclad Revolutionary"
+  run_to turn 1 begin_combat
+  assert power "Ironclad Revolutionary" 4
+  assert life B 20
+}

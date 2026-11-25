@@ -1,0 +1,25 @@
+scenario "drc: delirium gives +2/+2 and flying" {
+  battlefield A: "Dragon's Rage Channeler"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Plains", "Divination"
+  start turn 1 A precombat_main
+  assert power "Dragon's Rage Channeler" 3
+  assert toughness "Dragon's Rage Channeler" 3
+  assert has "Dragon's Rage Channeler" flying
+}
+scenario "drc: no delirium, plain 1/1" {
+  battlefield A: "Dragon's Rage Channeler"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Plains"
+  start turn 1 A precombat_main
+  assert power "Dragon's Rage Channeler" 1
+  assert has not "Dragon's Rage Channeler" flying
+}
+scenario "drc: noncreature spell surveils 1" {
+  battlefield A: "Dragon's Rage Channeler", "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: surveil "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+}

@@ -1,0 +1,21 @@
+scenario "sage loots for non-Human only" {
+  battlefield A: "Sage of the Falls", "Hill Giant", 2 "Forest", 2 "Island"
+  hand A: "Grizzly Bears", "Shock", "Giant Growth"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  turn 1 precombat_main A: discard "Giant Growth"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Giant Growth"
+  assert hand A count 2
+}
+scenario "sage does not loot for a Human" {
+  battlefield A: "Sage of the Falls", 2 "Plains"
+  hand A: "Elite Vanguard", "Giant Growth"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A lacks "Giant Growth"
+}

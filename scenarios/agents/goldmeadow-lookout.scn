@@ -1,0 +1,21 @@
+scenario "Lookout makes a Harrier that taps" {
+  battlefield A: "Goldmeadow Lookout", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Goldmeadow Lookout"
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Goldmeadow Harrier"
+  assert graveyard A contains "Grizzly Bears"
+  assert power "Goldmeadow Harrier" 1
+  assert is "Goldmeadow Harrier" "Kithkin"
+  assert tapped "Goldmeadow Lookout"
+}
+
+scenario "Harrier taps target creature" {
+  battlefield A: "Goldmeadow Harrier", 1 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Goldmeadow Harrier" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}

@@ -1,0 +1,27 @@
+scenario "plus one counter and vigilance" {
+  battlefield A: "Basri, Devoted Paladin", "Grizzly Bears"
+  turn 1 precombat_main A: activate "Basri, Devoted Paladin" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" vigilance
+  assert counters "Basri, Devoted Paladin" loyalty 5
+}
+scenario "minus one puts counter on each attacker" {
+  battlefield A: "Basri, Devoted Paladin", "Grizzly Bears", "Hill Giant"
+  turn 1 precombat_main A: activate "Basri, Devoted Paladin" ability 2
+  turn 1 declare_attackers A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 combat_damage
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert life B 13
+}
+scenario "minus six pumps and gives flying" {
+  battlefield A: "Basri, Devoted Paladin" with 10 loyalty, "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  turn 1 precombat_main A: activate "Basri, Devoted Paladin" ability 3
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 4
+  assert has "Hill Giant" flying
+  assert counters "Basri, Devoted Paladin" loyalty 4
+}

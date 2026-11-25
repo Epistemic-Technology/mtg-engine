@@ -1,0 +1,27 @@
+scenario "incursion specialist: second spell gives +2/+0 and unblockable" {
+  battlefield A: "Incursion Specialist", 2 "Mountain"
+  hand A: 2 "Shock"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  assert power "Incursion Specialist" 1
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Incursion Specialist"
+  illegal turn 1 B: block "Incursion Specialist" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Incursion Specialist" 3
+  assert life B 13
+}
+scenario "incursion specialist: one spell is not enough" {
+  battlefield A: "Incursion Specialist", 2 "Mountain"
+  hand A: "Shock"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Incursion Specialist"
+  turn 1 B: block "Incursion Specialist" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Incursion Specialist" 1
+  assert life B 18
+}

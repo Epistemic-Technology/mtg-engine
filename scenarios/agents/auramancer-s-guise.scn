@@ -1,0 +1,13 @@
+scenario "Auramancer's Guise counts itself and other Auras" {
+  battlefield A: "Grizzly Bears", "Auramancer's Guise" on "Grizzly Bears"
+  battlefield B: "Hill Giant", "Flight" on "Hill Giant"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" vigilance
+  assert power "Hill Giant" 3
+}
+scenario "Two Auras" {
+  battlefield A: "Grizzly Bears", "Auramancer's Guise" on "Grizzly Bears", "Flight" on "Grizzly Bears"
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+}

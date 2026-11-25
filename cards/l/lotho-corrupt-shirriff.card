@@ -1,0 +1,7 @@
+card "Lotho, Corrupt Shirriff" {
+  oracle_id 135cc078-1c45-465e-b0b9-7168c89f56f4
+  cost {W}{B}
+  type Legendary Creature — Halfling Rogue
+  pt 2/1
+  triggered whenever a player casts their second spell each turn: you lose 1 life and create 1 "Treasure"
+}

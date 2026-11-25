@@ -1,0 +1,9 @@
+card "Falcon, Winged Wonder" {
+  oracle_id 92e222c2-28e6-4d43-8b48-480ebcd88495
+  cost {4}{U}
+  type Legendary Creature — Human Hero
+  pt 3/4
+  short_name "Falcon"
+  keywords flying
+  label "Avian Telepathy" triggered whenever this enters: create 1 "Redwing, a legendary 1/1 blue Bird Scout creature with flying and surveil"
+}

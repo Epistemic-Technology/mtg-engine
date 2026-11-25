@@ -1,0 +1,23 @@
+scenario "Alpha Authority gives hexproof to the enchanted creature" {
+  battlefield A: "Grizzly Bears", "Alpha Authority" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Alpha Authority stops a double block" {
+  battlefield A: "Hill Giant", "Alpha Authority" on "Hill Giant"
+  battlefield B: 2 "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert graveyard B contains 1 "Grizzly Bears"
+}

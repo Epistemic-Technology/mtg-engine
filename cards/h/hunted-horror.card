@@ -1,0 +1,8 @@
+card "Hunted Horror" {
+  oracle_id 3469463e-ed4d-44bb-81f3-42bbe09d34ad
+  cost {B}{B}
+  type Creature — Horror
+  pt 7/7
+  keywords trample
+  triggered whenever this enters: target opponent creates 2 "3/3 green Centaur creature with protection from black"
+}

@@ -1,0 +1,7 @@
+card "Outrage Shaman" {
+  oracle_id 08d77e5b-7de1-4b0a-a5a7-75e60d452d27
+  cost {3}{R}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  label "Chroma" triggered when this enters: deal count equal red mana symbols damage to target creature
+}

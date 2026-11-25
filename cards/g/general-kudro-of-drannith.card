@@ -1,0 +1,10 @@
+card "General Kudro of Drannith" {
+  oracle_id a5a024a5-16a8-4083-9157-5905c5e96d76
+  cost {1}{W}{B}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  short_name "General Kudro"
+  static other Human you control: +1/+1
+  triggered whenever this or Human you control enters: exile target card from an opponent's graveyard
+  activated {2}, sacrifice 2 Human: destroy target creature with power 4 or greater
+}

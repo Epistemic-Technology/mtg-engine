@@ -1,0 +1,23 @@
+scenario "Domestication steals a small creature and keeps it" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Domestication"
+  turn 1 A: cast "Domestication" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Domestication"
+}
+
+scenario "Domestication is sacrificed when the creature's power reaches 4" {
+  battlefield A: 4 "Island", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Domestication", "Giant Growth"
+  turn 1 A: cast "Domestication" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Domestication"
+  assert battlefield B contains "Hill Giant"
+}

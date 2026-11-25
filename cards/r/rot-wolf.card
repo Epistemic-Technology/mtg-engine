@@ -1,0 +1,9 @@
+card "Rot Wolf" {
+  oracle_id 7409906d-7111-48fa-bfea-8b95e0fdb7dc
+  cost {2}{G}
+  type Creature — Phyrexian Wolf
+  pt 2/2
+  short_name "Rot Wolf"
+  keywords infect
+  triggered whenever creature dealt damage by this this turn dies: you may draw 1 card
+}

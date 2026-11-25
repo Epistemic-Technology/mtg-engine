@@ -1,0 +1,29 @@
+scenario "Kheru Bloodsucker drains when a big creature dies" {
+  battlefield A: "Kheru Bloodsucker", "Serra Angel", "Hill Giant", "Swamp", "Swamp", "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert life A 22
+  assert life B 18
+}
+
+scenario "Kheru Bloodsucker ignores small creatures" {
+  battlefield A: "Kheru Bloodsucker", "Hill Giant", "Swamp", "Swamp", "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 20
+}
+
+scenario "Kheru Bloodsucker grows by sacrificing another creature" {
+  battlefield A: "Kheru Bloodsucker", "Grizzly Bears", "Swamp", "Swamp", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kheru Bloodsucker" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Kheru Bloodsucker" +1/+1 1
+  assert power "Kheru Bloodsucker" 3
+  assert graveyard A contains "Grizzly Bears"
+}

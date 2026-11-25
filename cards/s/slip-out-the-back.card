@@ -1,0 +1,6 @@
+card "Slip Out the Back" {
+  oracle_id 82506e51-3fe1-446f-83c9-69e67583cefc
+  cost {U}
+  type Instant
+  spell: put 1 +1/+1 counter on target creature; it phases out
+}

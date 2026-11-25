@@ -1,0 +1,18 @@
+scenario "Morbid Bloom exiles a creature card and makes Saprolings equal to its toughness" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  graveyard B: "Serra Angel"
+  hand A: "Morbid Bloom"
+  turn 1 A: cast "Morbid Bloom" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B lacks "Serra Angel"
+  assert battlefield A contains 4 "Saproling"
+}
+scenario "Morbid Bloom works on own graveyard with toughness 2" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Morbid Bloom"
+  turn 1 A: cast "Morbid Bloom" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Grizzly Bears"
+  assert battlefield A contains 2 "Saproling"
+}

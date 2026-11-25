@@ -1,0 +1,6 @@
+card "Skyclave Plunder" {
+  oracle_id d2d5f9b8-7caf-42c8-934b-3f4b81468914
+  cost {4}{U}
+  type Sorcery
+  spell: dig count where plus three party take 3 card rest bottom random
+}

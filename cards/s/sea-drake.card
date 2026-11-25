@@ -1,0 +1,8 @@
+card "Sea Drake" {
+  oracle_id 44d1029f-604e-44d6-89f6-bd18344f5d79
+  cost {2}{U}
+  type Creature — Drake
+  pt 4/3
+  keywords flying
+  triggered when this enters: return 2 target land you control to owner's hand
+}

@@ -1,0 +1,8 @@
+card "Merfolk Trickster" {
+  oracle_id f712aed5-d6e0-45d3-ae20-518b765ce9da
+  cost {U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  keywords flash
+  triggered when this enters: tap target creature an opponent controls; target 1 loses all abilities until end of turn
+}

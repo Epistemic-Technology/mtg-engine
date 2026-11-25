@@ -1,0 +1,9 @@
+card "Scourge of Valkas" {
+  oracle_id 0a147009-a57c-4ac1-ab81-d8bd8b737631
+  cost {2}{R}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever this or Dragon you control enters: it deals count where Dragon you control damage to any target
+  activated {R}: this gets +1/+0 until end of turn
+}

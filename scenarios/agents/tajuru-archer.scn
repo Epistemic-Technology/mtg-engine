@@ -1,0 +1,22 @@
+scenario "Tajuru Archer deals damage equal to Allies" {
+  battlefield A: "Ondu Cleric", 3 "Forest"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  hand A: "Tajuru Archer"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Tajuru Archer"
+  turn 3 A: trigger "Tajuru Archer" targeting "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+scenario "Tajuru Archer alone deals 1" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Tajuru Archer"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Tajuru Archer"
+  turn 3 A: trigger "Tajuru Archer" targeting "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert damage "Wind Drake" 1
+}

@@ -1,0 +1,8 @@
+card "Nim Deathmantle" {
+  oracle_id 66d41377-626d-4ae6-ba86-17bf0c8b3362
+  cost {2}
+  type Artifact — Equipment
+  static equipped: +2/+2, has intimidate, set color black, set subtype Zombie
+  triggered whenever nontoken creature is put into your graveyard from battlefield: you may pay {4}; if you do, return triggering card to battlefield and attach this to it
+  equip {4}
+}

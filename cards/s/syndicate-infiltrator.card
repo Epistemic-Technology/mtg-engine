@@ -1,0 +1,8 @@
+card "Syndicate Infiltrator" {
+  oracle_id 0d6be8a4-b05b-40fb-a653-5aabf71809e0
+  cost {2}{U}{B}
+  type Creature — Vampire Wizard
+  pt 3/3
+  keywords flying
+  static as long as 5 mana values in your graveyard, this: +2/+2
+}

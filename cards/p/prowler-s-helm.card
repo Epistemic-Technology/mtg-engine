@@ -1,0 +1,7 @@
+card "Prowler's Helm" {
+  oracle_id 603ef53f-6191-4229-b85f-adad6f4503ce
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has ability { can't be blocked except by Wall }
+  equip {2}
+}

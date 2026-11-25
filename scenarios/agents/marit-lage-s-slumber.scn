@@ -1,0 +1,27 @@
+scenario "slumber scries when it enters" {
+  hand A: "Marit Lage's Slumber"
+  battlefield A: 2 "Island"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 precombat_main A: cast "Marit Lage's Slumber"
+  turn 1 precombat_main A: scry "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Marit Lage's Slumber"
+  assert library A count 3
+}
+scenario "slumber makes Marit Lage with ten snow permanents" {
+  battlefield A: "Marit Lage's Slumber", 9 "Snow-Covered Island"
+  start turn 1 A upkeep
+  run_to turn 1 precombat_main
+  assert battlefield A lacks "Marit Lage's Slumber"
+  assert battlefield A contains "Marit Lage"
+  assert power "Marit Lage" 20
+  assert has "Marit Lage" flying
+  assert has "Marit Lage" indestructible
+}
+scenario "slumber does nothing with nine snow permanents" {
+  battlefield A: "Marit Lage's Slumber", 8 "Snow-Covered Island"
+  start turn 1 A upkeep
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Marit Lage's Slumber"
+  assert battlefield A lacks "Marit Lage"
+}

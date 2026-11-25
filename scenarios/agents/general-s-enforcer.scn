@@ -1,0 +1,29 @@
+scenario "General's Enforcer exiles a creature card and makes a Human Soldier" {
+  battlefield A: "General's Enforcer", 2 "Plains", 2 "Swamp"
+  graveyard B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "General's Enforcer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield A contains "Human Soldier"
+}
+
+scenario "General's Enforcer makes nothing for a noncreature card" {
+  battlefield A: "General's Enforcer", 2 "Plains", 2 "Swamp"
+  graveyard B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "General's Enforcer" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Lightning Bolt"
+  assert battlefield A lacks "Human Soldier"
+}
+
+scenario "Legendary Humans are indestructible" {
+  battlefield A: "General's Enforcer", "Barktooth Warbeard"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Barktooth Warbeard"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Barktooth Warbeard"
+}

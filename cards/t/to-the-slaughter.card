@@ -1,0 +1,9 @@
+card "To the Slaughter" {
+  oracle_id 518cf9ce-14aa-4f51-81bf-f8c2692a4244
+  cost {2}{B}
+  type Instant
+  spell {
+  target player sacrifices 1 creature or planeswalker
+  label "Delirium" if 4 card types in your graveyard, instead that target 1 sacrifices 1 creature and 1 planeswalker
+  }
+}

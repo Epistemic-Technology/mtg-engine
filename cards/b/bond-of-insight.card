@@ -1,0 +1,6 @@
+card "Bond of Insight" {
+  oracle_id 3a877718-ff90-4d6e-9f95-47b06adad7f8
+  cost {3}{U}
+  type Sorcery
+  spell: each player mills 4 cards; return up to 2 andor instant or sorcery card from your graveyard to hand chosen; exile this
+}

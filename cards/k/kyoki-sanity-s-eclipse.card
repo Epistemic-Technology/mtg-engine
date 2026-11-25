@@ -1,0 +1,7 @@
+card "Kyoki, Sanity's Eclipse" {
+  oracle_id f5240f9a-597b-43e7-9876-74559df1354e
+  cost {4}{B}{B}
+  type Legendary Creature — Demon Spirit
+  pt 6/4
+  triggered whenever you cast Spirit or Arcane spell: target opponent exiles 1 card from hand
+}

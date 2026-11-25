@@ -1,0 +1,22 @@
+scenario "throwing knife sacrifices to deal 2" {
+  battlefield A: "Grizzly Bears", "Throwing Knife" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Throwing Knife" targeting B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Throwing Knife"
+  assert power "Grizzly Bears" 2
+  assert life B 18
+}
+scenario "throwing knife declined" {
+  battlefield A: "Grizzly Bears", "Throwing Knife" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: decline "Throwing Knife"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Throwing Knife"
+  assert power "Grizzly Bears" 4
+  assert life B 16
+}

@@ -1,0 +1,8 @@
+card "Cryptbreaker" {
+  oracle_id 16f75a65-d067-4f79-81b9-833c373cf4d2
+  cost {B}
+  type Creature — Zombie
+  pt 1/1
+  activated {1}{B}, {T}, discard 1 card: create 1 "2/2 black Zombie creature"
+  activated tap 3 untapped Zombie you control: you draw 1 card and you lose 1 life
+}

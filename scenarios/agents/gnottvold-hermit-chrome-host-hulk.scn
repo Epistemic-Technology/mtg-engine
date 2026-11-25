@@ -1,0 +1,20 @@
+scenario "Hermit transforms and Hulk sets base 5/5" {
+  battlefield A: "Gnottvold Hermit // Chrome Host Hulk", 5 "Forest", "Island"
+  battlefield B: "Grizzly Bears"
+  turn 1 precombat_main A: activate "Gnottvold Hermit"
+  turn 1 declare_attackers A: attack "Chrome Host Hulk"
+  turn 1 declare_attackers A: trigger "Chrome Host Hulk" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Chrome Host Hulk" 5
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+scenario "Hermit transform with life" {
+  battlefield A: "Gnottvold Hermit // Chrome Host Hulk", 5 "Forest"
+  turn 1 precombat_main A: activate "Gnottvold Hermit" paying_life 1
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert power "Chrome Host Hulk" 5
+}

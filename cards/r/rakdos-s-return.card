@@ -1,0 +1,6 @@
+card "Rakdos's Return" {
+  oracle_id 52d1d575-3e7f-4df1-8c89-aee0cac03aca
+  cost {X}{B}{R}
+  type Sorcery
+  spell: deal X damage to target opponent or planeswalker; controller of that target 1 discards X cards
+}

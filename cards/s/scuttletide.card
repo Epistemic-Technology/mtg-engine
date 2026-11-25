@@ -1,0 +1,7 @@
+card "Scuttletide" {
+  oracle_id 2be9c1e6-0226-497a-b548-21bf1cfbc286
+  cost {1}{U}
+  type Enchantment
+  activated {1}, discard 1 card: create 1 "0/3 blue Crab creature"
+  label "Delirium" static Crab you control: +1/+1 as long as delirium
+}

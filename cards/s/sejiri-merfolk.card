@@ -1,0 +1,7 @@
+card "Sejiri Merfolk" {
+  oracle_id 74231a46-7e2d-497f-ae66-b40f8989551c
+  cost {1}{U}
+  type Creature — Merfolk Soldier
+  pt 2/1
+  static as long as you control Plains, this: has first strike, lifelink
+}

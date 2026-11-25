@@ -1,0 +1,18 @@
+scenario "Containment Construct exiles a discarded card and lets you play it" {
+  battlefield A: "Containment Construct", 2 "Mountain"
+  hand A: "Tormenting Voice", "Forest"
+  turn 1 A: cast "Tormenting Voice" discarding "Forest"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert graveyard A lacks "Forest"
+}
+scenario "Containment Construct: declined, the card stays in the graveyard" {
+  battlefield A: "Containment Construct", 2 "Mountain"
+  hand A: "Tormenting Voice", "Forest"
+  turn 1 A: cast "Tormenting Voice" discarding "Forest"
+  turn 1 A: decline "Containment Construct"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+}

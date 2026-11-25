@@ -1,0 +1,8 @@
+card "Prompto Argentum" {
+  oracle_id e13d7600-0924-42eb-9d65-aa18548624a7
+  cost {1}{R}
+  type Legendary Creature — Human Scout
+  pt 2/2
+  keywords haste
+  label "Selfie Shot" triggered whenever you cast a noncreature spell if that spell spent 4 mana: create 1 "Treasure"
+}

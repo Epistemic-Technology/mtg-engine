@@ -1,0 +1,22 @@
+scenario "Panicked Bystander gains life on deaths and transforms at 3 life gained" {
+  battlefield A: "Panicked Bystander", 3 "Grizzly Bears", 4 "Swamp"
+  hand A: "Murder"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Murder" targeting oldest A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert graveyard A contains "Grizzly Bears"
+}
+scenario "Transforms after gaining 3 life, then deathtouch ability" {
+  battlefield A: "Panicked Bystander", 3 "Grizzly Bears", 2 "Swamp", 3 "Mountain"
+  hand A: "Shock", "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting oldest A "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting oldest A "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting oldest A "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert life A 23
+  assert power "Cackling Culprit" 3
+  assert toughness "Cackling Culprit" 5
+}

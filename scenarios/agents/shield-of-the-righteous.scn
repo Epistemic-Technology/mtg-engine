@@ -1,0 +1,19 @@
+scenario "shield gives toughness vigilance and freezes attacker" {
+  battlefield A: "Shield of the Righteous", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: activate "Shield of the Righteous" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: wait
+  run_to turn 1 end
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" vigilance
+  assert attached "Shield of the Righteous" to "Grizzly Bears"
+}
+scenario "shield blocker freezes attacker" {
+  battlefield A: "Grizzly Bears", "Shield of the Righteous" on "Grizzly Bears"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 declare_attackers B: attack "Hill Giant"
+  turn 2 declare_blockers A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 4 upkeep
+  assert tapped "Hill Giant"
+}

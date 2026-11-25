@@ -1,0 +1,7 @@
+card "Silvanus's Invoker" {
+  oracle_id 4a25fab1-cabb-44b9-8a69-01fc1fc46bd4
+  cost {2}{G}
+  type Creature — Dragon Druid
+  pt 3/2
+  label "Conjure Elemental" activated {8}: untap target land you control; target 1 becomes 8/8 Elemental creature with trample, haste
+}

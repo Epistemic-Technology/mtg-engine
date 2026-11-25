@@ -1,0 +1,7 @@
+card "Ghitu Encampment" {
+  oracle_id 9cc02c16-8cf9-4ac7-9475-231c27121968
+  type Land
+  enters tapped
+  mana {R}
+  activated {1}{R}: this becomes 2/1 red Warrior creature with first strike until end of turn
+}

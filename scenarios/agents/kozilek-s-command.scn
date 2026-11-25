@@ -1,0 +1,34 @@
+scenario "Kozilek's Command: Eldrazi Spawn and exile a creature with mana value X or less" {
+  battlefield A: 2 "Wastes", 2 "Plains"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  hand A: "Kozilek's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kozilek's Command" mode 2 x 2 targeting player A, B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Eldrazi Spawn"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Kozilek's Command: X too small does not reach a larger creature" {
+  battlefield A: 2 "Wastes", 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Kozilek's Command"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Kozilek's Command" mode 6 x 2 targeting B "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Kozilek's Command: scry X then draw and exile graveyard cards" {
+  battlefield A: 2 "Wastes", "Plains"
+  graveyard B: "Lightning Bolt", "Shock", "Murder"
+  library A: "Forest", "Island", "Swamp"
+  hand A: "Kozilek's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kozilek's Command" mode 5 x 1 targeting player A, "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard B lacks "Lightning Bolt"
+  assert graveyard B contains "Shock"
+}

@@ -1,0 +1,7 @@
+card "Bubbling Cauldron" {
+  oracle_id ca9dde44-fdee-4bc1-a2ea-ef171737b9e4
+  cost {2}
+  type Artifact
+  activated {1}, {T}, sacrifice creature: you gain 4 life
+  activated {1}, {T}, sacrifice creature named "Festering Newt": each opponent loses 4 life; you gain count equal life lost this way life
+}

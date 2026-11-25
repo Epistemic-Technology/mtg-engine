@@ -1,0 +1,8 @@
+card "Trophy Hunter" {
+  oracle_id d2c68c15-761e-4aea-89d8-f7fe8f44905c
+  cost {2}{G}
+  type Creature — Human Archer
+  pt 2/3
+  activated {1}{G}: deal 1 damage to target creature with flying
+  triggered whenever creature with flying dealt damage by this this turn dies: put 1 +1/+1 counter on this
+}

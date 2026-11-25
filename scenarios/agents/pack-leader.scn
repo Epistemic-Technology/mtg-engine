@@ -1,0 +1,15 @@
+scenario "pack leader buffs other dogs and prevents damage to dogs" {
+  battlefield A: "Pack Leader", "Alpine Watchdog", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  assert power "Pack Leader" 2
+  assert power "Alpine Watchdog" 3
+  assert power "Grizzly Bears" 2
+  turn 1 A: attack "Pack Leader", "Alpine Watchdog"
+  turn 1 B: block "Pack Leader" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Pack Leader"
+  assert battlefield A contains "Alpine Watchdog"
+  assert damage "Hill Giant" 2
+  assert life B 17
+}

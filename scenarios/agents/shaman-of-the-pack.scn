@@ -1,0 +1,16 @@
+scenario "Shaman of the Pack drains per Elf, counting itself" {
+  battlefield A: "Llanowar Elves", "Swamp", "Forest", "Forest"
+  hand A: "Shaman of the Pack"
+  turn 1 precombat_main A: cast "Shaman of the Pack"
+  turn 1 precombat_main A: trigger "Shaman of the Pack" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+scenario "Shaman alone" {
+  battlefield A: "Swamp", "Forest", "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shaman of the Pack"
+  turn 1 precombat_main A: cast "Shaman of the Pack"
+  run_to turn 1 end
+  assert life B 19
+}

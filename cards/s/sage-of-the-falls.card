@@ -1,0 +1,7 @@
+card "Sage of the Falls" {
+  oracle_id 852621bf-9ab7-4027-89fb-b438e4080684
+  cost {4}{U}
+  type Creature — Merfolk Wizard
+  pt 2/5
+  triggered whenever this or non-Human creature you control enters: you may draw 1 card; if you do, discard 1 card
+}

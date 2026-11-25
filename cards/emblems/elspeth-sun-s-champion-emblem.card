@@ -1,0 +1,3 @@
+emblem "Elspeth, Sun's Champion emblem" {
+  static creature you control: +2/+2, has flying
+}

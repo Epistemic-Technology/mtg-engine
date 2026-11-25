@@ -1,0 +1,9 @@
+card "Descend upon the Sinful" {
+  oracle_id 9cbf95f4-3510-420b-9355-645450f4493d
+  cost {4}{W}{W}
+  type Sorcery
+  spell {
+    exile all creature
+    label "Delirium" create 1 "4/4 white Angel creature with flying" if 4 card types in your graveyard
+  }
+}

@@ -1,0 +1,26 @@
+scenario "prototype is 3/3 white flyer" {
+  hand A: "Steel Seraph"
+  battlefield A: 3 "Plains"
+  turn 1 precombat_main A: cast "Steel Seraph" prototyped
+  run_to turn 1 combat_damage
+  assert power "Steel Seraph" 3
+  assert toughness "Steel Seraph" 3
+  assert is "Steel Seraph" white
+}
+scenario "combat trigger grants chosen ability" {
+  battlefield A: "Steel Seraph", "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Steel Seraph" targeting "Grizzly Bears"
+  turn 1 begin_combat A: choose "2"
+  run_to turn 1 declare_attackers
+  assert has "Grizzly Bears" vigilance
+  assert has not "Grizzly Bears" flying
+  assert has not "Grizzly Bears" lifelink
+}
+scenario "full cost is 5/4 colorless" {
+  hand A: "Steel Seraph"
+  battlefield A: 6 "Plains"
+  turn 1 precombat_main A: cast "Steel Seraph"
+  run_to turn 1 combat_damage
+  assert power "Steel Seraph" 5
+  assert has "Steel Seraph" flying
+}

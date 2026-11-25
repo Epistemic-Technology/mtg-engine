@@ -1,0 +1,6 @@
+card "Feudkiller's Verdict" {
+  oracle_id 4dacd89b-5983-4905-9f6c-43aa6a12149d
+  cost {4}{W}{W}
+  type Kindred Sorcery — Giant
+  spell: you gain 10 life; then if your life more than opponent, create 1 "5/5 white Giant Warrior creature"
+}

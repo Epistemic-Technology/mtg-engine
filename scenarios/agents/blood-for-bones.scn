@@ -1,0 +1,25 @@
+scenario "Blood for Bones: one creature to the battlefield, another to hand" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  graveyard A: "Hill Giant", "Serra Angel"
+  hand A: "Blood for Bones"
+  turn 1 A: cast "Blood for Bones" sacrificing "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard A lacks "Serra Angel"
+}
+
+scenario "Blood for Bones: can return the sacrificed creature to hand" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Blood for Bones"
+  turn 1 A: cast "Blood for Bones" sacrificing "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+}

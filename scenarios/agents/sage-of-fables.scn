@@ -1,0 +1,28 @@
+scenario "Sage of Fables: another Wizard enters with a +1/+1 counter; remove one to draw" {
+  battlefield A: "Sage of Fables", 3 "Island"
+  hand A: "Fugitive Wizard"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Fugitive Wizard"
+  turn 1 A: wait
+  turn 1 A: activate "Sage of Fables"
+  run_to turn 1 postcombat_main
+  assert counters "Fugitive Wizard" +1/+1 0
+  assert power "Fugitive Wizard" 1
+  assert hand A contains "Forest"
+}
+
+scenario "Sage of Fables: a non-Wizard enters without a counter" {
+  battlefield A: "Sage of Fables", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Sage of Fables: no counter, no draw" {
+  battlefield A: "Sage of Fables", 3 "Island"
+  library A: "Forest", "Island"
+  illegal turn 1 A: activate "Sage of Fables"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

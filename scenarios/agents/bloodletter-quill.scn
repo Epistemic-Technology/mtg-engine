@@ -1,0 +1,16 @@
+scenario "Bloodletter Quill loses life per counter" {
+  battlefield A: "Bloodletter Quill", 4 "Plains", "Island", "Swamp"
+  turn 1 precombat_main A: activate "Bloodletter Quill"
+  run_to turn 1 postcombat_main
+  assert counters "Bloodletter Quill" blood 1
+  assert life A 19
+}
+scenario "Bloodletter Quill counters accumulate then removal" {
+  battlefield A: "Bloodletter Quill" with 2 blood, 3 "Plains", "Island", "Swamp"
+  turn 1 precombat_main A: activate "Bloodletter Quill" ability 2
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: activate "Bloodletter Quill"
+  run_to turn 1 postcombat_main
+  assert counters "Bloodletter Quill" blood 2
+  assert life A 18
+}

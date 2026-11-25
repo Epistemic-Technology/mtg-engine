@@ -1,0 +1,11 @@
+scenario "amass equal to instants and sorceries" {
+  hand A: "Invade the City"
+  graveyard A: "Shock", "Lightning Bolt", "Divination", "Grizzly Bears", "Forest"
+  battlefield A: 2 "Island", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Invade the City"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie Army"
+  assert power "Zombie Army" 3
+  assert is "Zombie Army" "Zombie"
+}

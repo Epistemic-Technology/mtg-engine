@@ -1,0 +1,25 @@
+scenario "merfolk trickster taps target and strips abilities until end of turn" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Merfolk Trickster"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Merfolk Trickster"
+  turn 1 precombat_main A: trigger "Merfolk Trickster" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert tapped "Serra Angel"
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+  assert battlefield A contains "Merfolk Trickster"
+  run_to turn 2 precombat_main
+  assert has "Serra Angel" flying
+}
+scenario "merfolk trickster has flash" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Merfolk Trickster"
+  start turn 2 B declare_attackers
+  turn 2 declare_attackers A: cast "Merfolk Trickster"
+  turn 2 declare_attackers A: trigger "Merfolk Trickster" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert tapped "Serra Angel"
+}

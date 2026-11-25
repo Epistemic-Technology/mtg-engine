@@ -1,0 +1,36 @@
+scenario "Wandering Fumarole becomes a 1/4 Elemental" {
+  battlefield A: "Wandering Fumarole", 2 "Island", 2 "Mountain"
+  turn 1 A: activate "Wandering Fumarole"
+  run_to turn 1 postcombat_main
+  assert is "Wandering Fumarole" creature
+  assert is "Wandering Fumarole" land
+  assert is "Wandering Fumarole" Elemental
+  assert is "Wandering Fumarole" blue
+  assert is "Wandering Fumarole" red
+  assert power "Wandering Fumarole" 1
+  assert toughness "Wandering Fumarole" 4
+}
+
+scenario "Wandering Fumarole switches power and toughness" {
+  battlefield A: "Wandering Fumarole", 2 "Island", 2 "Mountain"
+  turn 1 A: activate "Wandering Fumarole"
+  turn 1 A: activate "Wandering Fumarole" ability 3
+  run_to turn 1 postcombat_main
+  assert power "Wandering Fumarole" 4
+  assert toughness "Wandering Fumarole" 1
+}
+
+scenario "Wandering Fumarole enters tapped" {
+  hand A: "Wandering Fumarole"
+  turn 1 A: play "Wandering Fumarole"
+  run_to turn 1 postcombat_main
+  assert tapped "Wandering Fumarole"
+}
+
+scenario "Wandering Fumarole taps for U or R" {
+  battlefield A: "Wandering Fumarole"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

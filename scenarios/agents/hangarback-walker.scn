@@ -1,0 +1,21 @@
+scenario "Hangarback Walker enters with X counters" {
+  hand A: "Hangarback Walker"
+  battlefield A: 4 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hangarback Walker" x 2
+  run_to turn 1 postcombat_main
+  assert counters "Hangarback Walker" +1/+1 2
+  assert power "Hangarback Walker" 2
+}
+
+scenario "Hangarback Walker grows and leaves Thopters per counter" {
+  battlefield A: "Hangarback Walker" with 2 +1/+1, 4 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hangarback Walker"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Hangarback Walker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Thopter"
+  assert graveyard A contains "Hangarback Walker"
+}

@@ -1,0 +1,17 @@
+scenario "Dormant Sliver draws when it enters and gives defender to Slivers" {
+  battlefield A: "Metallic Sliver", 2 "Forest", 2 "Island"
+  hand A: "Dormant Sliver"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dormant Sliver"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dormant Sliver"
+  assert hand A count 1
+}
+
+scenario "Slivers can't attack with Dormant Sliver out" {
+  battlefield A: "Dormant Sliver", "Metallic Sliver"
+  start turn 1 A
+  illegal turn 1 A: attack "Metallic Sliver"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

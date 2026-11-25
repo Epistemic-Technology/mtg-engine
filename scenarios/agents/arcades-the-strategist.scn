@@ -1,0 +1,24 @@
+scenario "Arcades: a defender attacks and deals damage equal to its toughness" {
+  battlefield A: "Arcades, the Strategist", "Academy Wall"
+  start turn 3 A
+  turn 3 A: attack "Academy Wall"
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Arcades: a defender entering draws a card" {
+  battlefield A: "Arcades, the Strategist", 4 "Island"
+  hand A: "Academy Wall"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Academy Wall"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+}
+
+scenario "Arcades: without it a defender can't attack" {
+  battlefield A: "Academy Wall"
+  start turn 3 A
+  illegal turn 3 A: attack "Academy Wall"
+  run_to turn 3 postcombat_main
+  assert life B 20
+}

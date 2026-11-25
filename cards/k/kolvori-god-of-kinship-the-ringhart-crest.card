@@ -1,0 +1,15 @@
+card "Kolvori, God of Kinship // The Ringhart Crest" {
+  oracle_id 490ac985-79b5-438d-a2e7-f47683b29683
+  layout modal_dfc
+  cost {2}{G}{G}
+  type Legendary Creature — God
+  pt 2/4
+  static as long as you control 3 legendary creature, this: +4/+2, has vigilance
+  activated {1}{G}, {T}: dig 6 take legendary creature card may revealing rest bottom random
+  face "The Ringhart Crest" {
+    cost {1}{G}
+    type Legendary Artifact
+    as this enters choose creature type
+    mana {G} only to cast creature of chosen type spell or legendary creature spell
+  }
+}

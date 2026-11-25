@@ -1,0 +1,8 @@
+card "Jiang Yanggu, Wildcrafter" {
+  oracle_id 04f2c320-dfcc-440a-9e24-3c2083d74e7c
+  cost {2}{G}
+  type Legendary Planeswalker — Yanggu
+  loyalty 3
+  static each creature you control with +1/+1 counter: has ability { activated {T}: add any }
+  loyalty -1: put 1 +1/+1 counter on target creature
+}

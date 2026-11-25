@@ -1,0 +1,10 @@
+scenario "Infested Fleshcutter pumps and makes a Mite on attack" {
+  battlefield A: "Infested Fleshcutter", "Grizzly Bears", 3 "Plains"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Infested Fleshcutter" targeting "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert battlefield A contains 1 "Phyrexian Mite"
+  assert life B 16
+}

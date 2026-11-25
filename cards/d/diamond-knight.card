@@ -1,0 +1,9 @@
+card "Diamond Knight" {
+  oracle_id 29ae4471-c28f-4e43-8afb-fee5023e4d08
+  cost {3}
+  type Artifact Creature — Knight
+  pt 1/1
+  keywords vigilance
+  as this enters choose color
+  triggered whenever you cast of chosen color spell: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,10 @@
+card "Skemfar Shadowsage" {
+  oracle_id 496ecb73-f508-4ac7-b101-23e03404580f
+  cost {3}{B}
+  type Creature — Elf Cleric
+  pt 2/5
+  triggered when this enters: choose one {
+    mode: each opponent loses count where most sharing type creature you control life
+    mode: you gain count where most sharing type creature you control life
+  }
+}

@@ -1,0 +1,9 @@
+card "Tezzeret, Master of Metal" {
+  oracle_id 3fba19a9-44c6-4771-9587-9d2c4009e996
+  cost {4}{U}{B}
+  type Legendary Planeswalker — Tezzeret
+  loyalty 5
+  loyalty +1: reveal until artifact card; put that card into hand and the rest on bottom of library random
+  loyalty -3: target opponent loses count equal artifact you control life
+  loyalty -8: gain control of all artifact or creature target opponent controls indefinitely
+}

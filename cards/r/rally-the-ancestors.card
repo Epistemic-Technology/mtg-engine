@@ -1,0 +1,6 @@
+card "Rally the Ancestors" {
+  oracle_id 9d612686-2d7f-49a3-b9c4-1e99a30134f6
+  cost {X}{W}{W}
+  type Instant
+  spell: return each creature with mana value x or less card from your graveyard to battlefield; delayed those creatures: exile those creatures at beginning of your next upkeep; exile this
+}

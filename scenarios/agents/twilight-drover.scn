@@ -1,0 +1,21 @@
+scenario "drover cannot activate without a counter" {
+  battlefield A: "Twilight Drover", 3 "Plains", "Soldier"
+  battlefield B: "Soldier"
+  hand A: "Lightning Bolt"
+  graveyard A: "Shock"
+  illegal turn 1 precombat_main A: activate "Twilight Drover"
+  run_to turn 1 postcombat_main
+  assert counters "Twilight Drover" +1/+1 0
+}
+scenario "drover counter from token dying" {
+  battlefield A: "Twilight Drover", "Mountain", "Plains", "Plains", "Plains"
+  battlefield B: "Soldier"
+  hand A: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Soldier"
+  run_to turn 1 postcombat_main
+  assert counters "Twilight Drover" +1/+1 1
+  turn 1 postcombat_main A: activate "Twilight Drover"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Spirit"
+  assert counters "Twilight Drover" +1/+1 0
+}

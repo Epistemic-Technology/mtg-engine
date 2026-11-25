@@ -1,0 +1,8 @@
+card "Mournwillow" {
+  oracle_id 742f6478-7c9e-43a4-81c1-09383fe65dad
+  cost {1}{B}{G}
+  type Creature — Plant Skeleton
+  pt 3/2
+  keywords haste
+  label "Delirium" triggered whenever this enters if 4 card types in your graveyard: each creature with power 2 or less can't block this turn
+}

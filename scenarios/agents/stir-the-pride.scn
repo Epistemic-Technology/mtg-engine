@@ -1,0 +1,32 @@
+scenario "mode 1 pumps my creatures only" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Stir the Pride"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Stir the Pride" mode 1
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+}
+scenario "mode 2 gains life when my creatures deal damage" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  hand A: "Stir the Pride"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Stir the Pride" mode 2
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert power "Grizzly Bears" 2
+}
+scenario "entwined does both" {
+  battlefield A: "Grizzly Bears", 7 "Plains"
+  hand A: "Stir the Pride"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Stir the Pride" mode 3
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 24
+}

@@ -1,0 +1,7 @@
+card "Bloodletter Quill" {
+  oracle_id 79cf9c52-56e0-4237-a595-ec07824e5eed
+  cost {3}
+  type Artifact
+  activated {2}, {T}, put 1 blood counter on this: draw 1 card, then you lose count each blood counter on this life
+  activated {U}{B}: remove 1 blood counter from this
+}

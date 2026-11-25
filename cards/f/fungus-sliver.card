@@ -1,0 +1,7 @@
+card "Fungus Sliver" {
+  oracle_id 885c47cb-64fb-4c83-a9ca-4f2eecb7d3e5
+  cost {3}{G}
+  type Creature — Fungus Sliver
+  pt 2/2
+  static all Sliver creature: has ability { triggered whenever this is dealt damage: put 1 +1/+1 counter on this }
+}

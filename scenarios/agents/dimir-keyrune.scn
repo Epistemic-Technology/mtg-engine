@@ -1,0 +1,20 @@
+scenario "keyrune becomes unblockable creature" {
+  battlefield A: "Dimir Keyrune", "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Dimir Keyrune"
+  turn 1 declare_attackers A: attack "Dimir Keyrune"
+  illegal turn 1 declare_blockers B: block "Dimir Keyrune" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Dimir Keyrune" creature
+  assert is "Dimir Keyrune" artifact
+  assert is "Dimir Keyrune" blue
+  assert is "Dimir Keyrune" black
+  assert power "Dimir Keyrune" 2
+  assert toughness "Dimir Keyrune" 2
+  assert life B 18
+}
+scenario "keyrune is not a creature before activation" {
+  battlefield A: "Dimir Keyrune"
+  assert is not "Dimir Keyrune" creature
+}

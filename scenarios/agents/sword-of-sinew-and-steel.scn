@@ -1,0 +1,25 @@
+scenario "Sword of Sinew and Steel pumps and destroys a planeswalker and an artifact" {
+  battlefield A: "Sword of Sinew and Steel", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Jace Beleren", "Ornithopter", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sword of Sinew and Steel" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "Sword of Sinew and Steel" targeting "Jace Beleren", "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 16
+  assert battlefield B lacks "Jace Beleren"
+  assert battlefield B lacks "Ornithopter"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Sword of Sinew and Steel"
+}
+
+scenario "Sword of Sinew and Steel gives protection from red" {
+  battlefield A: "Sword of Sinew and Steel" , "Grizzly Bears", 2 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sword of Sinew and Steel" targeting "Grizzly Bears"
+  illegal turn 1 declare_attackers B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

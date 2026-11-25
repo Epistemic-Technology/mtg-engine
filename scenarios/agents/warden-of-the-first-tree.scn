@@ -1,0 +1,49 @@
+scenario "Warden becomes a 3/3 Human Warrior" {
+  battlefield A: "Warden of the First Tree", 2 "Plains"
+  turn 1 A: activate "Warden of the First Tree" ability 1
+  run_to turn 1 postcombat_main
+  assert power "Warden of the First Tree" 3
+  assert toughness "Warden of the First Tree" 3
+  assert is "Warden of the First Tree" Warrior
+  assert is "Warden of the First Tree" Human
+}
+
+scenario "Warden becomes a Spirit Warrior with trample and lifelink" {
+  battlefield A: "Warden of the First Tree", 6 "Plains"
+  turn 1 A: activate "Warden of the First Tree" ability 1
+  turn 1 A: wait
+  turn 1 A: activate "Warden of the First Tree" ability 2
+  run_to turn 1 postcombat_main
+  assert is "Warden of the First Tree" Spirit
+  assert is "Warden of the First Tree" Warrior
+  assert has "Warden of the First Tree" trample
+  assert has "Warden of the First Tree" lifelink
+  assert power "Warden of the First Tree" 3
+}
+
+scenario "Second ability does nothing unless Warrior" {
+  battlefield A: "Warden of the First Tree", 4 "Plains"
+  turn 1 A: activate "Warden of the First Tree" ability 2
+  run_to turn 1 postcombat_main
+  assert has not "Warden of the First Tree" trample
+  assert power "Warden of the First Tree" 1
+}
+
+scenario "Third ability puts five counters if Spirit" {
+  battlefield A: "Warden of the First Tree", 12 "Plains"
+  turn 1 A: activate "Warden of the First Tree" ability 1
+  turn 1 A: wait
+  turn 1 A: activate "Warden of the First Tree" ability 2
+  turn 1 A: wait
+  turn 1 A: activate "Warden of the First Tree" ability 3
+  run_to turn 1 postcombat_main
+  assert counters "Warden of the First Tree" +1/+1 5
+  assert power "Warden of the First Tree" 8
+}
+
+scenario "Third ability does nothing unless Spirit" {
+  battlefield A: "Warden of the First Tree", 6 "Plains"
+  turn 1 A: activate "Warden of the First Tree" ability 3
+  run_to turn 1 postcombat_main
+  assert counters "Warden of the First Tree" +1/+1 0
+}

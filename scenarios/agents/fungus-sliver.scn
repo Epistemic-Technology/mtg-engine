@@ -1,0 +1,22 @@
+scenario "Fungus Sliver grows when dealt damage" {
+  battlefield A: "Fungus Sliver", "Mountain", "Forest"
+  hand A: "Shock", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Fungus Sliver"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Fungus Sliver"
+  run_to turn 1 postcombat_main
+  assert counters "Fungus Sliver" +1/+1 1
+  assert damage "Fungus Sliver" 2
+}
+
+scenario "Fungus Sliver gives the ability to an opponent's Sliver, not a Bear" {
+  battlefield A: "Fungus Sliver", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Fungus Sliver" +1/+1 0
+}

@@ -1,0 +1,23 @@
+scenario "Feldon exiles that many cards and one may be played" {
+  battlefield A: "Feldon, Ronom Excavator", "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Feldon, Ronom Excavator"
+  turn 1 A: choose "Forest"
+  turn 1 postcombat_main A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert exile A contains "Island"
+  assert library A contains "Swamp"
+}
+
+scenario "Feldon can't block" {
+  battlefield A: "Feldon, Ronom Excavator"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Feldon, Ronom Excavator"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

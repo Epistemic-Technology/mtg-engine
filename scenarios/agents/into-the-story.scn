@@ -1,0 +1,30 @@
+scenario "Into the Story costs three less with seven cards in an opponent's graveyard" {
+  battlefield A: 4 "Island"
+  graveyard B: 7 "Forest"
+  hand A: "Into the Story"
+  start turn 1 A
+  turn 1 A: cast "Into the Story"
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert graveyard A contains "Into the Story"
+}
+
+scenario "Into the Story costs full price with six cards in an opponent's graveyard" {
+  battlefield A: 4 "Island"
+  graveyard B: 6 "Forest"
+  hand A: "Into the Story"
+  start turn 1 A
+  illegal turn 1 A: cast "Into the Story"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Into the Story"
+}
+
+scenario "Into the Story ignores cards in your own graveyard" {
+  battlefield A: 4 "Island"
+  graveyard A: 7 "Forest"
+  hand A: "Into the Story"
+  start turn 1 A
+  illegal turn 1 A: cast "Into the Story"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Into the Story"
+}

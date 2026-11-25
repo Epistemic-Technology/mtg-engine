@@ -1,0 +1,16 @@
+scenario "haunting hymn in main phase discards four" {
+  battlefield A: 6 "Swamp"
+  hand A: "Haunting Hymn"
+  hand B: 6 "Plains"
+  turn 1 precombat_main A: cast "Haunting Hymn" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+}
+scenario "haunting hymn outside main phase discards two" {
+  battlefield A: 6 "Swamp"
+  hand A: "Haunting Hymn"
+  hand B: 6 "Plains"
+  turn 1 end A: cast "Haunting Hymn" targeting player B
+  run_to turn 2 upkeep
+  assert hand B count 4
+}

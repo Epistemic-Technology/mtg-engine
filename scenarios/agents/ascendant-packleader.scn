@@ -1,0 +1,20 @@
+scenario "Ascendant Packleader enters bare without a big permanent" {
+  battlefield A: "Forest"
+  hand A: "Ascendant Packleader"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ascendant Packleader"
+  run_to turn 1 postcombat_main
+  assert power "Ascendant Packleader" 2
+  assert toughness "Ascendant Packleader" 1
+}
+
+scenario "Ascendant Packleader enters with a counter and grows on big spells" {
+  battlefield A: "Serra Angel", "Forest", 5 "Plains"
+  hand A: "Ascendant Packleader", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ascendant Packleader"
+  turn 1 A: cast "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Ascendant Packleader" 4
+  assert toughness "Ascendant Packleader" 3
+}

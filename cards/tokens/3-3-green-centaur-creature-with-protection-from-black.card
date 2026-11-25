@@ -1,0 +1,7 @@
+token "3/3 green Centaur creature with protection from black" {
+  name "Centaur"
+  type Creature — Centaur
+  pt 3/3
+  color green
+  keywords protection from black
+}

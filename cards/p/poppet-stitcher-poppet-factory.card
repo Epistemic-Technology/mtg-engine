@@ -1,0 +1,15 @@
+card "Poppet Stitcher // Poppet Factory" {
+  oracle_id bc2d0702-b140-4b78-8a8f-3a6d19073b59
+  layout transform
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  triggered whenever you cast instant or sorcery spell: create 1 "2/2 black Zombie creature with decayed"
+  triggered at beginning of your upkeep if you control 3 creature token: you may transform this
+  face "Poppet Factory" {
+    type Artifact
+    color blue
+    static creature token you control: loses all abilities, base 3/3
+    triggered at beginning of your upkeep: you may transform this
+  }
+}

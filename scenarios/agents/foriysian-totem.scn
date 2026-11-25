@@ -1,0 +1,32 @@
+scenario "Foriysian Totem becomes a 4/4 trampling Giant creature" {
+  battlefield A: "Foriysian Totem", 5 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Foriysian Totem" ability 2
+  run_to turn 1 begin_combat
+  assert is "Foriysian Totem" creature
+  assert is "Foriysian Totem" Giant
+  assert power "Foriysian Totem" 4
+  assert toughness "Foriysian Totem" 4
+  assert has "Foriysian Totem" trample
+  run_to turn 2 upkeep
+  assert is not "Foriysian Totem" creature
+}
+scenario "Foriysian Totem blocks two attackers when a creature" {
+  battlefield A: "Foriysian Totem", 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B begin_combat
+  turn 2 begin_combat A: activate "Foriysian Totem" ability 2
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 A: block "Grizzly Bears" with "Foriysian Totem"
+  turn 2 A: block "Hill Giant" with "Foriysian Totem"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Foriysian Totem"
+}
+scenario "Foriysian Totem taps for red" {
+  battlefield A: "Foriysian Totem"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}

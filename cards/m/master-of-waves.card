@@ -1,0 +1,9 @@
+card "Master of Waves" {
+  oracle_id 07d40173-53e7-4328-a3b0-6214d93855b6
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  keywords protection from red
+  static Elemental creature you control: +1/+1
+  triggered when this enters: create count equal devotion blue "1/0 blue Elemental creature"
+}

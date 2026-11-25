@@ -1,0 +1,8 @@
+card "Emissary of Hope" {
+  oracle_id 62a6dbdb-70fc-43ab-8e63-367a609ecdeb
+  cost {1}{W}{W}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: you gain count each artifact that player controls life
+}

@@ -1,0 +1,8 @@
+card "Atzocan Archer" {
+  oracle_id aed10a6c-ef93-46a7-a5d7-c9cd2a4fd91a
+  cost {2}{G}
+  type Creature — Human Archer
+  pt 1/4
+  keywords reach
+  triggered when this enters: you may this fights another target creature
+}

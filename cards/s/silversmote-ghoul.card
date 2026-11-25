@@ -1,0 +1,8 @@
+card "Silversmote Ghoul" {
+  oracle_id 67d55b4f-944e-4376-93ed-1a240bca1eae
+  cost {2}{B}
+  type Creature — Zombie Vampire
+  pt 3/1
+  triggered from graveyard at beginning of your end step if gained 3 life this turn: return this to battlefield tapped
+  activated {1}{B}, sacrifice this: draw 1 card
+}

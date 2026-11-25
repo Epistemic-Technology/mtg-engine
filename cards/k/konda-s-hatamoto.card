@@ -1,0 +1,8 @@
+card "Konda's Hatamoto" {
+  oracle_id 6c076776-f497-4abf-ab06-f551768cffae
+  cost {1}{W}
+  type Creature — Human Samurai
+  pt 1/2
+  bushido 1
+  static as long as you control legendary Samurai, this: +1/+2, has vigilance
+}

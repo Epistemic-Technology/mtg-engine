@@ -1,0 +1,37 @@
+scenario "Taborax grows when a nontoken creature dies" {
+  battlefield A: "Taborax, Hope's Demise", "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert counters "Taborax, Hope's Demise" +1/+1 1
+  assert power "Taborax, Hope's Demise" 3
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Taborax draws and loses life when a Cleric dies" {
+  battlefield A: "Taborax, Hope's Demise", "Abbey Matron", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A
+  turn 1 A: cast "Murder" targeting "Abbey Matron"
+  run_to turn 1 combat_damage
+  assert counters "Taborax, Hope's Demise" +1/+1 1
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "Taborax has lifelink with five counters" {
+  battlefield A: "Taborax, Hope's Demise" with 5 +1/+1
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert has "Taborax, Hope's Demise" lifelink
+}
+
+scenario "Taborax has no lifelink with four counters" {
+  battlefield A: "Taborax, Hope's Demise" with 4 +1/+1
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert has not "Taborax, Hope's Demise" lifelink
+}

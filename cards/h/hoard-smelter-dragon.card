@@ -1,0 +1,8 @@
+card "Hoard-Smelter Dragon" {
+  oracle_id cf9db2be-3c95-45a2-ab85-694e3bd3bf1d
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  activated {3}{R}: destroy target artifact; this gets +1/+0 count equal mana value of that destroyed artifact until end of turn
+}

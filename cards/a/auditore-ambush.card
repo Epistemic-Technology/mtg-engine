@@ -1,0 +1,9 @@
+card "Auditore Ambush" {
+  oracle_id 72075231-e3b3-46cc-b994-2d95b24cf904
+  cost {2}{U}{B}
+  type Sorcery
+  choose one or both {
+    mode: return target creature to owner's hand
+    mode: target player searches library or graveyard card named "Ezio, Blade of Vengeance" reveal to hand
+  }
+}

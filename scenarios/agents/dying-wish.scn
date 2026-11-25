@@ -1,0 +1,10 @@
+scenario "Dying Wish drains by the creature's power" {
+  battlefield A: "Hill Giant", "Dying Wish" on "Hill Giant", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  turn 1 A: trigger "Dying Wish" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 23
+  assert life B 17
+}

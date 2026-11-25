@@ -1,0 +1,16 @@
+scenario "cavalry master has flanking" {
+  battlefield A: "Cavalry Master"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Cavalry Master"
+  turn 1 B: block "Cavalry Master" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Cavalry Master" flanking
+  assert damage "Cavalry Master" 2
+  assert graveyard B contains "Hill Giant"
+}
+scenario "creature without flanking does not gain it" {
+  battlefield A: "Cavalry Master", "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert has not "Grizzly Bears" flanking
+  assert has "Cavalry Master" flanking
+}

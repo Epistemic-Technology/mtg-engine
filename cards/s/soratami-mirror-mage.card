@@ -1,0 +1,8 @@
+card "Soratami Mirror-Mage" {
+  oracle_id 03e1cdd5-b687-4dc0-967e-244b70f5ed15
+  cost {3}{U}
+  type Creature — Moonfolk Wizard
+  pt 2/1
+  keywords flying
+  activated {3}, return 3 land you control: return target creature to hand
+}

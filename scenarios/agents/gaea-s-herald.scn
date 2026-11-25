@@ -1,0 +1,11 @@
+scenario "Creature spells can't be countered" {
+  battlefield A: "Gaea's Herald", 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears", "Divination"
+  hand B: "Counterspell", "Counterspell"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Counterspell"
+}

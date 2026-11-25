@@ -1,0 +1,8 @@
+card "Pine Walker" {
+  oracle_id 4c92b862-34c7-4195-bee3-bcc0cafad140
+  cost {3}{G}{G}
+  type Creature — Elemental
+  pt 5/5
+  morph {4}{G}
+  triggered whenever this or creature you control is turned face up: untap that creature
+}

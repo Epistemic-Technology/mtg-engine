@@ -1,0 +1,26 @@
+scenario "Tezzeret -3 drains per artifact" {
+  battlefield A: "Tezzeret, Master of Metal", "Ornithopter", "Sol Ring"
+  battlefield B: "Ornithopter"
+  turn 1 precombat_main A: activate "Tezzeret, Master of Metal" ability 2 targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert counters "Tezzeret, Master of Metal" loyalty 2
+}
+scenario "Tezzeret +1 finds an artifact" {
+  battlefield A: "Tezzeret, Master of Metal"
+  library A: "Forest", "Grizzly Bears", "Sol Ring", "Plains"
+  turn 1 precombat_main A: activate "Tezzeret, Master of Metal" ability 1
+  run_to turn 1 end
+  assert hand A contains "Sol Ring"
+  assert hand A count 1
+  assert counters "Tezzeret, Master of Metal" loyalty 6
+}
+scenario "Tezzeret -8 steals artifacts and creatures" {
+  battlefield A: "Tezzeret, Master of Metal" with 8 loyalty
+  battlefield B: "Ornithopter", "Hill Giant", "Forest"
+  turn 1 precombat_main A: activate "Tezzeret, Master of Metal" ability 3 targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Forest"
+}

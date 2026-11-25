@@ -1,0 +1,7 @@
+card "Goblin King" {
+  oracle_id d236b3fc-0d3f-4d99-875d-e32a33fe5767
+  cost {1}{R}{R}
+  type Creature — Goblin
+  pt 2/2
+  static other Goblin: +1/+1, has mountainwalk
+}

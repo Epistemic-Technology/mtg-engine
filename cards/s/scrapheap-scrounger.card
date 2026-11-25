@@ -1,0 +1,8 @@
+card "Scrapheap Scrounger" {
+  oracle_id d309e1e9-26e6-4a10-a3f4-352c7ba3f2ff
+  cost {2}
+  type Artifact Creature — Construct
+  pt 3/2
+  keywords can't block
+  activated {1}{B}, exile other creature card from graveyard, from graveyard: return this to battlefield
+}

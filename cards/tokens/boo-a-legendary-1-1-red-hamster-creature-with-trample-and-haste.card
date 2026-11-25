@@ -1,0 +1,7 @@
+token "Boo, a legendary 1/1 red Hamster creature with trample and haste" {
+  name "Boo"
+  type Legendary Creature — Hamster
+  pt 1/1
+  color red
+  keywords trample, haste
+}

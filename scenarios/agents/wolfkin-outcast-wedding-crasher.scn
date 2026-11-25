@@ -1,0 +1,33 @@
+scenario "Wolfkin Outcast costs two less with a Wolf" {
+  battlefield A: "Arlinn's Wolf", 4 "Forest"
+  hand A: "Wolfkin Outcast // Wedding Crasher"
+  start turn 1 A
+  turn 1 A: cast "Wolfkin Outcast"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wolfkin Outcast"
+  assert power "Wolfkin Outcast" 5
+}
+
+scenario "Wolfkin Outcast costs full price without a Wolf or Werewolf" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  hand A: "Wolfkin Outcast // Wedding Crasher"
+  start turn 1 A
+  illegal turn 1 A: cast "Wolfkin Outcast"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Wolfkin Outcast"
+}
+
+scenario "Wedding Crasher draws a card when another Wolf dies" {
+  battlefield A: "Wolfkin Outcast", "Arlinn's Wolf", "Mountain", "Swamp", "Swamp"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 2 B
+  run_to turn 3 precombat_main
+  assert daynight night
+  assert power "Wedding Crasher" 6
+  assert hand A count 1
+  turn 4 B: cast "Murder" targeting "Arlinn's Wolf"
+  run_to turn 4 postcombat_main
+  assert graveyard A contains "Arlinn's Wolf"
+  assert hand A count 2
+}

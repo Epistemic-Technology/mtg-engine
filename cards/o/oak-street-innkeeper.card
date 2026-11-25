@@ -1,0 +1,7 @@
+card "Oak Street Innkeeper" {
+  oracle_id 1fa94925-04e5-4073-91af-1857dbc09991
+  cost {2}{G}
+  type Creature — Elf
+  pt 1/2
+  static during turns other than yours, tapped creature you control: has hexproof
+}

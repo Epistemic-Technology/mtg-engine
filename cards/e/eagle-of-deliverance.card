@@ -1,0 +1,8 @@
+card "Eagle of Deliverance" {
+  oracle_id 4446e59c-29f7-4722-92be-2625c1d3dab9
+  cost {4}{W}{W}
+  type Creature — Bird Soldier
+  pt 5/5
+  keywords flying
+  triggered whenever this enters: put 1 indestructible counter on another target creature you control; draw 1 card if that target 1 is with power 2 or less
+}

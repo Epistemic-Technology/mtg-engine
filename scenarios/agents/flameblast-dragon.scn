@@ -1,0 +1,29 @@
+scenario "pay X and R for X damage" {
+  battlefield A: "Flameblast Dragon", 4 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 declare_attackers A: attack "Flameblast Dragon"
+  turn 1 declare_attackers A: trigger "Flameblast Dragon" targeting "Hill Giant"
+  turn 1 declare_attackers A: choose "3"
+  run_to turn 1 combat_damage
+  assert graveyard B contains "Hill Giant"
+  assert tapped oldest A "Mountain"
+}
+scenario "decline leaves lands untapped" {
+  battlefield A: "Flameblast Dragon", 4 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 declare_attackers A: attack "Flameblast Dragon"
+  turn 1 declare_attackers A: decline "Flameblast Dragon"
+  run_to turn 1 combat_damage
+  assert battlefield B contains "Hill Giant"
+  assert untapped oldest A "Mountain"
+}
+scenario "X of 2 deals only 2" {
+  battlefield A: "Flameblast Dragon", 4 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 declare_attackers A: attack "Flameblast Dragon"
+  turn 1 declare_attackers A: trigger "Flameblast Dragon" targeting "Hill Giant"
+  turn 1 declare_attackers A: choose "2"
+  run_to turn 1 combat_damage
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}

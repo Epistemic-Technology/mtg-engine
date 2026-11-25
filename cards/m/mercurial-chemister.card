@@ -1,0 +1,8 @@
+card "Mercurial Chemister" {
+  oracle_id 4243baf6-9ac2-4f87-988d-3ebf5e177f3b
+  cost {3}{U}{R}
+  type Creature — Human Wizard
+  pt 2/3
+  activated {U}, {T}: draw 2 cards
+  activated {R}, {T}, discard 1 card: this deals count equal mana value of the discarded card damage to target creature
+}

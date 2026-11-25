@@ -1,0 +1,20 @@
+scenario "colossal heroics two targets pumps and untaps both" {
+  hand A: "Colossal Heroics"
+  battlefield A: 5 "Forest", "Grizzly Bears" tapped, "Hill Giant" tapped, "Serra Angel" tapped
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Colossal Heroics" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Hill Giant" 5
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert tapped "Serra Angel"
+  assert power "Serra Angel" 4
+}
+scenario "colossal heroics cannot afford two targets with three mana" {
+  hand A: "Colossal Heroics"
+  battlefield A: 3 "Forest", "Grizzly Bears", "Hill Giant"
+  illegal turn 1 precombat_main A: cast "Colossal Heroics" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}

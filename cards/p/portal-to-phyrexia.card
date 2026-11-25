@@ -1,0 +1,7 @@
+card "Portal to Phyrexia" {
+  oracle_id 301d1d8e-d3fc-4010-8b29-4724fa0b31cd
+  cost {9}
+  type Artifact
+  triggered when this enters: each opponent sacrifices 3 creature
+  triggered at beginning of your upkeep: return target creature card from a graveyard to battlefield under your control; it is Phyrexian in addition
+}

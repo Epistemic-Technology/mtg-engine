@@ -1,0 +1,8 @@
+card "Sunseed Nurturer" {
+  oracle_id 3518e273-bd92-46bc-b361-da52c670dfe1
+  cost {2}{W}
+  type Creature — Human Druid Wizard
+  pt 1/1
+  triggered at beginning of your end step if you control creature with power 5 or greater: you may you gain 2 life
+  activated {T}: add {C}
+}

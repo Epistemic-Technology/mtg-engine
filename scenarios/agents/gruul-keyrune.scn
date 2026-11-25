@@ -1,0 +1,14 @@
+scenario "Gruul Keyrune becomes a 3/2 trampling Beast" {
+  battlefield A: "Gruul Keyrune", "Mountain", "Forest"
+  turn 1 precombat_main A: activate "Gruul Keyrune" ability 2
+  run_to turn 1 begin_combat
+  assert is "Gruul Keyrune" creature
+  assert is "Gruul Keyrune" "Beast"
+  assert is "Gruul Keyrune" red
+  assert is "Gruul Keyrune" green
+  assert power "Gruul Keyrune" 3
+  assert toughness "Gruul Keyrune" 2
+  assert has "Gruul Keyrune" trample
+  run_to turn 2 upkeep
+  assert is not "Gruul Keyrune" creature
+}

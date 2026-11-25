@@ -1,0 +1,21 @@
+scenario "phalanx with spell mastery" {
+  battlefield A: 7 "Plains", "Grizzly Bears"
+  graveyard A: "Lightning Bolt", "Shock"
+  hand A: "Gideon's Phalanx"
+  turn 1 precombat_main A: cast "Gideon's Phalanx"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Knight"
+  assert has "Grizzly Bears" indestructible
+  assert has newest A "Knight" indestructible
+  assert has newest A "Knight" vigilance
+  assert power newest A "Knight" 2
+}
+scenario "phalanx without spell mastery" {
+  battlefield A: 7 "Plains", "Grizzly Bears"
+  graveyard A: "Lightning Bolt"
+  hand A: "Gideon's Phalanx"
+  turn 1 precombat_main A: cast "Gideon's Phalanx"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Knight"
+  assert has not "Grizzly Bears" indestructible
+}

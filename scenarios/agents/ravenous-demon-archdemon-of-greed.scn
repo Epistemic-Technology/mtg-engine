@@ -1,0 +1,21 @@
+scenario "Archdemon taps and burns you with no Human" {
+  battlefield A: "Ravenous Demon", "Skarrgan Pit-Skulk"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ravenous Demon" sacrificing "Skarrgan Pit-Skulk"
+  run_to turn 1 postcombat_main
+  assert power "Archdemon of Greed" 9
+  assert has "Archdemon of Greed" flying
+  run_to turn 3 draw
+  assert life A 11
+  assert tapped "Archdemon of Greed"
+}
+
+scenario "Archdemon eats a Human each upkeep" {
+  battlefield A: "Ravenous Demon", "Skarrgan Pit-Skulk", "Skarrgan Pit-Skulk"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ravenous Demon" sacrificing "Skarrgan Pit-Skulk"
+  run_to turn 3 draw
+  assert life A 20
+  assert untapped "Archdemon of Greed"
+  assert graveyard A contains 2 "Skarrgan Pit-Skulk"
+}

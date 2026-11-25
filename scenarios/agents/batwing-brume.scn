@@ -1,0 +1,19 @@
+scenario "white spent prevents combat damage" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Batwing Brume"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Batwing Brume"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+scenario "black spent costs life per attacker" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Swamp"
+  battlefield B: "Wind Drake"
+  hand A: "Batwing Brume"
+  turn 1 declare_attackers A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 declare_blockers A: cast "Batwing Brume"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 15
+}

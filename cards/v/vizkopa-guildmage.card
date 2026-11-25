@@ -1,0 +1,8 @@
+card "Vizkopa Guildmage" {
+  oracle_id f19e7c5c-67fa-4ae4-89b8-afa0e08a6c48
+  cost {W}{B}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {1}{W}{B}: target creature gains lifelink
+  activated {1}{W}{B}: delayed this: whenever you gain life this turn, each opponent loses that much life
+}

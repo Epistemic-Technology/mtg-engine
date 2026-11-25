@@ -1,0 +1,8 @@
+card "Gladehart Cavalry" {
+  oracle_id 4d937ea3-bfd4-4cdf-b722-08f2b99ea2a5
+  cost {5}{G}{G}
+  type Creature — Elf Knight
+  pt 6/6
+  triggered when this enters: support 6
+  triggered whenever creature you control with +1/+1 counter dies: you gain 2 life
+}

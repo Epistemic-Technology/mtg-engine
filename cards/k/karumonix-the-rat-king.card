@@ -1,0 +1,9 @@
+card "Karumonix, the Rat King" {
+  oracle_id c017f54c-e4c0-411e-b8c1-eb20b1b86c56
+  cost {1}{B}{B}
+  type Legendary Creature — Phyrexian Rat
+  pt 3/3
+  toxic 1
+  static other Rat you control: has toxic 1
+  triggered whenever this enters: dig 5 take any Rat card may revealing rest bottom random
+}

@@ -1,0 +1,7 @@
+card "Rogue Refiner" {
+  oracle_id b2f09e41-0a91-4fb6-8804-874b3a5166b0
+  cost {1}{G}{U}
+  type Creature — Human Rogue
+  pt 3/2
+  triggered when this enters: draw 1 cards and you get 2 energy
+}

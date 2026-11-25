@@ -1,0 +1,8 @@
+card "Kaervek the Merciless" {
+  oracle_id c7b72d38-0aa0-4e17-9dd5-9276d7cb21ec
+  cost {5}{B}{R}
+  short_name "Kaervek"
+  type Legendary Creature — Human Shaman
+  pt 5/4
+  triggered whenever an opponent casts spell: deal damage equal mana value of that spell to any target
+}

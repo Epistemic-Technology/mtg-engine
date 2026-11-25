@@ -1,0 +1,8 @@
+card "Twilight Drover" {
+  oracle_id b0d60856-80f9-4c64-9768-28a0a690ecb1
+  cost {2}{W}
+  type Creature — Spirit
+  pt 1/1
+  triggered whenever creature token leaves the battlefield: put 1 +1/+1 counter on this
+  activated {2}{W}, remove 1 +1/+1 counter from this: create 2 "1/1 white Spirit creature with flying"
+}

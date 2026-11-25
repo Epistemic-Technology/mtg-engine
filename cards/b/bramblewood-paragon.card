@@ -1,0 +1,8 @@
+card "Bramblewood Paragon" {
+  oracle_id be455184-c57d-4504-8c34-3be42bc3f04b
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  replace each other Warrior creature you control enters: with 1 +1/+1 counter
+  static each creature with +1/+1 counter you control: has trample
+}

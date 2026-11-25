@@ -1,0 +1,6 @@
+card "Shapers' Sanctuary" {
+  oracle_id 15bd8fa1-0858-4029-9973-e24c86e45af3
+  cost {G}
+  type Enchantment
+  triggered whenever creature you control becomes targeted by opponent: you may draw 1 card
+}

@@ -1,0 +1,14 @@
+scenario "gain 1 life per vigilant creature" {
+  battlefield A: "Alert Heedbonder", "Serra Angel", "Grizzly Bears"
+  life A 10
+  run_to turn 1 postcombat_main
+  assert life A 10
+  run_to turn 2 upkeep
+  assert life A 12
+}
+scenario "gains nothing without vigilance" {
+  battlefield A: "Grizzly Bears", "Hill Giant"
+  life A 10
+  run_to turn 2 upkeep
+  assert life A 10
+}

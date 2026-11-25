@@ -1,0 +1,7 @@
+card "Goldmeadow Lookout" {
+  oracle_id 28b2d31f-1ff7-4374-8ea3-0dd4a96c4a32
+  cost {3}{W}
+  type Creature — Kithkin Spellshaper
+  pt 2/2
+  activated {W}, {T}, discard 1 card: create 1 "1/1 white Kithkin Soldier creature named Goldmeadow Harrier with {W}, {T}: tap target creature" it has
+}

@@ -1,0 +1,19 @@
+scenario "Ghostfire Slice costs less against a multicolored permanent" {
+  battlefield A: "Mountain"
+  battlefield B: "Vizkopa Guildmage"
+  hand A: "Ghostfire Slice"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Ghostfire Slice" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Ghostfire Slice"
+}
+scenario "Ghostfire Slice full cost without a multicolored permanent" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Ghostfire Slice"
+  start turn 3 A precombat_main
+  illegal turn 3 A: cast "Ghostfire Slice" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 20
+}

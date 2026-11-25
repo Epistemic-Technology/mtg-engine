@@ -1,0 +1,7 @@
+card "Showdown of the Skalds" {
+  oracle_id 6107f9aa-3373-4166-b4b8-a26fd6d69c72
+  cost {2}{R}{W}
+  type Enchantment — Saga
+  triggered chapter 1: impulse 4 next turn first
+  triggered chapter 2, 3: delayed this: whenever you cast spell this turn, put 1 +1/+1 counter on target creature you control
+}

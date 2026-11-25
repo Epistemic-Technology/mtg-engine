@@ -1,0 +1,15 @@
+scenario "Olivia's Attendants makes a Blood per damage dealt in combat" {
+  battlefield A: "Olivia's Attendants"
+  turn 1 A: attack "Olivia's Attendants"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains 6 "Blood"
+}
+scenario "Olivia's Attendants ping makes one Blood" {
+  battlefield A: "Olivia's Attendants", 3 "Mountain"
+  turn 1 A: activate "Olivia's Attendants" targeting "Hill Giant"
+  battlefield B: "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert battlefield A contains 1 "Blood"
+}

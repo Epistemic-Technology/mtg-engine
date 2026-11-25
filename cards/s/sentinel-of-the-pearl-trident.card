@@ -1,0 +1,8 @@
+card "Sentinel of the Pearl Trident" {
+  oracle_id 2bddbd7d-9b6b-4166-88de-368d91c7fe4f
+  cost {4}{U}
+  type Creature — Merfolk Soldier
+  pt 3/3
+  keywords flash
+  triggered whenever this enters: you may exile target historic you control; if you do, delayed target 1: return that card to battlefield at beginning of the next end step
+}

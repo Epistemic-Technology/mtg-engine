@@ -1,0 +1,13 @@
+scenario "Pheres-Band Warchief pumps other Centaurs only" {
+  battlefield A: "Pheres-Band Warchief", "Centaur Veteran", "Grizzly Bears"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert power "Pheres-Band Warchief" 3
+  assert power "Centaur Veteran" 4
+  assert toughness "Centaur Veteran" 4
+  assert has "Centaur Veteran" vigilance
+  assert has "Centaur Veteran" trample
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+  assert has "Pheres-Band Warchief" vigilance
+}

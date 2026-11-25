@@ -1,0 +1,23 @@
+scenario "Trickster's Elk bestowed makes a 3/3 Elk without abilities" {
+  battlefield A: "Serra Angel", 3 "Forest"
+  hand A: "Trickster's Elk"
+  start turn 1 A
+  turn 1 A: cast "Trickster's Elk" bestowed targeting "Serra Angel"
+  run_to turn 1 combat_damage
+  assert attached "Trickster's Elk" to "Serra Angel"
+  assert power "Serra Angel" 3
+  assert toughness "Serra Angel" 3
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" green
+  assert is "Serra Angel" Elk
+}
+
+scenario "Trickster's Elk cast as a creature is a 3/3" {
+  battlefield A: 3 "Forest"
+  hand A: "Trickster's Elk"
+  start turn 1 A
+  turn 1 A: cast "Trickster's Elk"
+  run_to turn 1 combat_damage
+  assert power "Trickster's Elk" 3
+  assert is "Trickster's Elk" creature
+}

@@ -1,0 +1,10 @@
+scenario "Invocation of Saint Traft makes an attacking angel exiled at end of combat" {
+  battlefield A: "Grizzly Bears", "Invocation of Saint Traft" on "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 combat_damage
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A lacks "Angel"
+  assert battlefield A contains "Grizzly Bears"
+}

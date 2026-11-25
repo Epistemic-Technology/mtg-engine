@@ -1,0 +1,8 @@
+card "Volition Reins" {
+  oracle_id bda496f9-5362-46f2-ad4f-cd96410c3c61
+  cost {3}{U}{U}{U}
+  type Enchantment — Aura
+  enchant permanent
+  triggered whenever this enters if attached is tapped: untap attached
+  static enchanted permanent: control
+}

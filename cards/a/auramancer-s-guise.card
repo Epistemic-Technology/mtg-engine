@@ -1,0 +1,7 @@
+card "Auramancer's Guise" {
+  oracle_id b761f6d9-1063-40f8-a3f1-25b1f9b46963
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2 count each Aura attached to attached, has vigilance
+}

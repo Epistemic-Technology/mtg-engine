@@ -1,0 +1,7 @@
+card "Emmara Tandris" {
+  oracle_id 38a71429-e673-4de4-80a8-f59e5cf98acc
+  cost {5}{G}{W}
+  type Legendary Creature — Elf Shaman
+  pt 5/7
+  replace damage to creature token you control: prevent
+}

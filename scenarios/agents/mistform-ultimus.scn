@@ -1,0 +1,17 @@
+scenario "Mistform Ultimus is every creature type" {
+  battlefield A: "Mistform Ultimus"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert is "Mistform Ultimus" Elf
+  assert is "Mistform Ultimus" Goblin
+  assert is "Mistform Ultimus" Illusion
+  assert is "Mistform Ultimus" legendary
+}
+
+scenario "a Kor Blademaster equipped Mistform Ultimus counts as a Warrior" {
+  battlefield A: "Mistform Ultimus", "Kor Blademaster", "Bonesplitter", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bonesplitter" targeting "Mistform Ultimus"
+  run_to turn 1 begin_combat
+  assert has "Mistform Ultimus" double_strike
+}

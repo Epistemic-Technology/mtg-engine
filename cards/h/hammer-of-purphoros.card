@@ -1,0 +1,7 @@
+card "Hammer of Purphoros" {
+  oracle_id 212d058b-69c6-4dc2-8c93-bdfe26dc2ffe
+  cost {1}{R}{R}
+  type Legendary Enchantment Artifact
+  static creature you control: has haste
+  activated {2}{R}, {T}, sacrifice land: create 1 "3/3 colorless Golem enchantment artifact creature"
+}

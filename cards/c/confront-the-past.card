@@ -1,0 +1,9 @@
+card "Confront the Past" {
+  oracle_id a92c1ffe-88b0-467c-883c-6ca3564a39e3
+  cost {X}{B}
+  type Sorcery — Lesson
+  choose one {
+    mode: return target planeswalker card with mana value X or less from your graveyard to battlefield
+    mode: remove 2 times X loyalty counters from target planeswalker an opponent controls
+  }
+}

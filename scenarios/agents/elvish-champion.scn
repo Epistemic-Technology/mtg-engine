@@ -1,0 +1,16 @@
+scenario "elvish champion buffs other elves of both players, forestwalk" {
+  battlefield A: "Elvish Champion", "Elvish Warrior", "Grizzly Bears"
+  battlefield B: "Elvish Warrior", "Forest", "Hill Giant"
+  start turn 1 A
+  assert power "Elvish Champion" 2
+  assert power A "Elvish Warrior" 3
+  assert power B "Elvish Warrior" 3
+  assert power "Grizzly Bears" 2
+  assert has A "Elvish Warrior" forestwalk
+  assert has not "Grizzly Bears" forestwalk
+  assert has not "Elvish Champion" forestwalk
+  turn 1 A: attack "Elvish Warrior"
+  illegal turn 1 B: block "Elvish Warrior" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

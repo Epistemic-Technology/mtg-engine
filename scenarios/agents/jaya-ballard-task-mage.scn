@@ -1,0 +1,44 @@
+scenario "Jaya destroys a blue permanent" {
+  battlefield A: "Jaya Ballard, Task Mage", "Mountain"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  hand A: "Forest"
+  turn 1 A: activate "Jaya Ballard, Task Mage" discarding "Forest" targeting "Wind Drake"
+  run_to turn 1 end
+  assert graveyard B contains "Wind Drake"
+  assert graveyard A contains "Forest"
+  assert battlefield B contains "Grizzly Bears"
+}
+scenario "Jaya cannot destroy a nonblue permanent" {
+  battlefield A: "Jaya Ballard, Task Mage", "Mountain"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  hand A: "Forest"
+  illegal turn 1 A: activate "Jaya Ballard, Task Mage" discarding "Forest" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+scenario "Jaya deals 3 damage to a player" {
+  battlefield A: "Jaya Ballard, Task Mage", 2 "Mountain"
+  hand A: "Forest"
+  turn 1 A: activate "Jaya Ballard, Task Mage" ability 2 discarding "Forest" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+scenario "Jaya deals 3 damage to a creature" {
+  battlefield A: "Jaya Ballard, Task Mage", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Forest"
+  turn 1 A: activate "Jaya Ballard, Task Mage" ability 2 discarding "Forest" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+scenario "Jaya's big ability hits each creature and each player for 6" {
+  battlefield A: "Jaya Ballard, Task Mage", 7 "Mountain", "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Forest"
+  turn 1 A: activate "Jaya Ballard, Task Mage" ability 3 discarding "Forest"
+  run_to turn 1 end
+  assert life A 14
+  assert life B 14
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Serra Angel"
+  assert graveyard A contains "Jaya Ballard, Task Mage"
+}

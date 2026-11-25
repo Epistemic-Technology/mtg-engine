@@ -1,0 +1,7 @@
+card "Increasing Savagery" {
+  oracle_id 616c7f45-5295-4b8c-a828-ff3a5ba4d917
+  cost {2}{G}{G}
+  type Sorcery
+  flashback {5}{G}{G}
+  spell: put 5 +1/+1 counters on target creature; if cast from graveyard, put 10 +1/+1 counters on that target 1 instead
+}

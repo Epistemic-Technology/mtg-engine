@@ -1,0 +1,9 @@
+card "Thassa's Emissary" {
+  oracle_id fcb97d06-e0b8-4a13-ab7c-1304ccb7ace2
+  cost {3}{U}
+  type Enchantment Creature — Crab
+  pt 3/3
+  bestow {5}{U}
+  triggered whenever this or enchanted deals combat damage to a player: draw 1 card
+  static enchanted: +3/+3
+}

@@ -1,0 +1,21 @@
+scenario "retriever counters on enter" {
+  battlefield A: 5 "Plains", "Soldier", "Grizzly Bears"
+  hand A: "Rescue Retriever"
+  turn 1 precombat_main A: cast "Rescue Retriever"
+  run_to turn 1 postcombat_main
+  assert counters "Soldier" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Rescue Retriever" +1/+1 0
+}
+scenario "retriever prevents damage to attacking soldier" {
+  battlefield A: "Rescue Retriever", "Soldier", "Grizzly Bears"
+  battlefield B: 2 "Hill Giant"
+  turn 1 declare_attackers A: attack "Soldier", "Grizzly Bears"
+  turn 1 declare_blockers B: block "Soldier" with "Hill Giant"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soldier"
+  assert damage "Soldier" 0
+  assert graveyard A lacks "Soldier"
+  assert graveyard A contains "Grizzly Bears"
+}

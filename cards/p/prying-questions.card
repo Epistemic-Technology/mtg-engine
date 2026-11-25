@@ -1,0 +1,6 @@
+card "Prying Questions" {
+  oracle_id f33ef275-632e-46c8-a735-042dee340a12
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent loses 3 life and target 1 puts 1 card from hand on top of library
+}

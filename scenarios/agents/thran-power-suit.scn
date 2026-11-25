@@ -1,0 +1,13 @@
+scenario "Thran Power Suit counts Auras and Equipment" {
+  battlefield A: "Grizzly Bears", "Thran Power Suit" on "Grizzly Bears", "Flight" on "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+scenario "Equip" {
+  battlefield A: "Grizzly Bears", "Thran Power Suit", 2 "Plains"
+  turn 1 precombat_main A: activate "Thran Power Suit" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert attached "Thran Power Suit" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}

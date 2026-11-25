@@ -1,0 +1,8 @@
+card "Thopter Assembly" {
+  oracle_id 007c110d-4364-41e5-a8bc-6ac05ecbbd00
+  cost {6}
+  type Artifact Creature — Thopter
+  pt 5/5
+  keywords flying
+  triggered at beginning of your upkeep if you control no Thopter other than this: return this to its owner's hand and create 5 "1/1 colorless Thopter artifact creature with flying"
+}

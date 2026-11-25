@@ -1,0 +1,20 @@
+scenario "Feast of Blood with two Vampires destroys and gains 4" {
+  battlefield A: "Bloodrage Vampire", "Barony Vampire", "Swamp", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Feast of Blood"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Feast of Blood" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert life A 24
+}
+
+scenario "Feast of Blood needs two Vampires" {
+  battlefield A: "Bloodrage Vampire", "Grizzly Bears", "Swamp", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Feast of Blood"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Feast of Blood" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Hill Giant"
+}

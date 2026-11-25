@@ -1,0 +1,19 @@
+scenario "Chulane draws and puts a land onto the battlefield on a creature cast" {
+  battlefield A: "Chulane, Teller of Tales", 2 "Forest"
+  hand A: "Grizzly Bears", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert hand A count 1
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Chulane bounces a creature" {
+  battlefield A: "Chulane, Teller of Tales", "Grizzly Bears", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chulane, Teller of Tales" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Chulane, Teller of Tales"
+}

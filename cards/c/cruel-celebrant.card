@@ -1,0 +1,7 @@
+card "Cruel Celebrant" {
+  oracle_id 3ee78cfc-0e9e-4737-a7e2-b42f94228040
+  cost {W}{B}
+  type Creature — Vampire
+  pt 1/2
+  triggered whenever this or creature or planeswalker you control dies: each opponent loses 1 life and you gain 1 life
+}

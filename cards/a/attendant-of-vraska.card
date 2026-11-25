@@ -1,0 +1,7 @@
+card "Attendant of Vraska" {
+  oracle_id 9a639f82-24b6-4b54-8b9e-1fbc0f0094bf
+  cost {1}{B}{G}
+  type Creature — Zombie Soldier
+  pt 3/3
+  triggered whenever this dies if you control Vraska planeswalker: you gain count equal power life
+}

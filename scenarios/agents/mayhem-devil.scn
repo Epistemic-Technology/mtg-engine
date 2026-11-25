@@ -1,0 +1,14 @@
+scenario "Mayhem Devil pings when a player sacrifices a permanent" {
+  battlefield A: "Mayhem Devil", "Phyrexian Altar", "Grizzly Bears", "Hill Giant"
+  start turn 1 A
+  turn 1 A: activate "Phyrexian Altar" sacrificing "Grizzly Bears"
+  turn 1 A: trigger "Mayhem Devil" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Phyrexian Altar" sacrificing "Hill Giant"
+  turn 1 A: trigger "Mayhem Devil" targeting "Mayhem Devil"
+  run_to turn 1 combat_damage
+  assert life B 19
+  assert damage "Mayhem Devil" 1
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}

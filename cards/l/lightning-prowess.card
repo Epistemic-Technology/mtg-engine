@@ -1,0 +1,7 @@
+card "Lightning Prowess" {
+  oracle_id 85f40ced-a065-470a-a686-faaca17fa40c
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has haste, has ability { activated {T}: deal 1 damage to any target }
+}

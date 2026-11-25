@@ -1,0 +1,29 @@
+scenario "Myojin of Life's Web enters with a counter and puts creatures onto the battlefield" {
+  battlefield A: 9 "Forest"
+  hand A: "Myojin of Life's Web", "Grizzly Bears", "Hill Giant", "Shock"
+  start turn 1 A
+  turn 1 A: cast "Myojin of Life's Web"
+  turn 1 A: wait
+  turn 1 A: activate "Myojin of Life's Web"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert hand A count 1
+  assert counters "Myojin of Life's Web" divinity 0
+  assert has not "Myojin of Life's Web" indestructible
+}
+
+scenario "Myojin of Life's Web is indestructible while it has the counter" {
+  battlefield A: 9 "Forest"
+  hand A: "Myojin of Life's Web"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A
+  turn 1 A: cast "Myojin of Life's Web"
+  turn 1 begin_combat B: cast "Murder" targeting "Myojin of Life's Web"
+  run_to turn 1 end_combat
+  assert battlefield A contains "Myojin of Life's Web"
+  assert counters "Myojin of Life's Web" divinity 1
+}

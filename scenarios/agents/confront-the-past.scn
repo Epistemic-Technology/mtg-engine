@@ -1,0 +1,19 @@
+scenario "confront the past mode 1: return planeswalker with mana value X or less" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Jace Beleren"
+  hand A: "Confront the Past"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Confront the Past" mode 1 x 3 targeting "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Jace Beleren"
+  assert counters "Jace Beleren" loyalty 3
+}
+scenario "confront the past mode 2: remove twice X loyalty" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Jace Beleren" with 4 loyalty
+  hand A: "Confront the Past"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Confront the Past" mode 2 x 1 targeting "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert counters "Jace Beleren" loyalty 2
+}

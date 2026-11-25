@@ -1,0 +1,8 @@
+card "Rage Forger" {
+  oracle_id 669830ea-f55c-447a-aa3a-8965fa6d2a33
+  cost {2}{R}
+  type Creature — Elemental Shaman
+  pt 2/2
+  triggered whenever this enters: put 1 +1/+1 counter on each other Shaman creature you control
+  triggered whenever creature you control with +1/+1 counter attacks: you may that creature deals 1 damage to target player or planeswalker
+}

@@ -1,0 +1,6 @@
+card "Bond of Passion" {
+  oracle_id 826f9f42-f2ff-4b9e-be79-a9de6b5b7b38
+  cost {4}{R}{R}
+  type Sorcery
+  spell: gain control of target creature until end of turn; untap that target 1; target 1 gains haste until end of turn; deal 2 damage to another target any target
+}

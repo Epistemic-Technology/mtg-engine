@@ -1,0 +1,19 @@
+scenario "Joint Exploration: kicked puts a land from hand onto the battlefield" {
+  battlefield A: 2 "Island", "Forest"
+  hand A: "Joint Exploration", "Mountain"
+  library A: "Plains", "Plains", "Swamp"
+  turn 1 A: cast "Joint Exploration" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert hand A count 1
+}
+
+scenario "Joint Exploration: unkicked does not put a land" {
+  battlefield A: 2 "Island", "Forest"
+  hand A: "Joint Exploration", "Mountain"
+  library A: "Plains", "Plains", "Swamp"
+  turn 1 A: cast "Joint Exploration"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Mountain"
+  assert hand A count 2
+}

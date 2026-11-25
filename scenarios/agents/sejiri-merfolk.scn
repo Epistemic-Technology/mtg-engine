@@ -1,0 +1,17 @@
+scenario "sejiri merfolk with a plains has first strike and lifelink" {
+  battlefield A: "Sejiri Merfolk", "Plains"
+  turn 1 A: attack "Sejiri Merfolk"
+  run_to turn 1 postcombat_main
+  assert has "Sejiri Merfolk" first_strike
+  assert has "Sejiri Merfolk" lifelink
+  assert life A 22
+  assert life B 18
+}
+scenario "without a plains it has neither" {
+  battlefield A: "Sejiri Merfolk", "Island"
+  turn 1 A: attack "Sejiri Merfolk"
+  run_to turn 1 postcombat_main
+  assert has not "Sejiri Merfolk" first_strike
+  assert has not "Sejiri Merfolk" lifelink
+  assert life A 20
+}

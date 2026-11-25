@@ -1,0 +1,26 @@
+scenario "hunter kills a flyer and grows" {
+  battlefield A: "Trophy Hunter", 4 "Forest"
+  battlefield B: "Wind Drake"
+  turn 1 A: activate "Trophy Hunter" targeting "Wind Drake"
+  turn 1 A: wait
+  turn 1 A: activate "Trophy Hunter" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert counters "Trophy Hunter" +1/+1 1
+  assert power "Trophy Hunter" 3
+}
+scenario "hunter cannot hit a creature without flying" {
+  battlefield A: "Trophy Hunter", 2 "Forest"
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "Trophy Hunter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+scenario "flyer killed by other means gives no counter" {
+  battlefield A: "Trophy Hunter", "Forest", "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Wind Drake"
+  turn 1 A: cast "Lightning Bolt" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert power "Trophy Hunter" 2
+}

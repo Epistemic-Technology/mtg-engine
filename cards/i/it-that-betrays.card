@@ -1,0 +1,8 @@
+card "It That Betrays" {
+  oracle_id b11187ab-f8a8-422b-b550-4495f96de0f2
+  cost {12}
+  type Creature — Eldrazi
+  pt 11/11
+  annihilator 2
+  triggered whenever an opponent sacrifices nontoken permanent: put triggering card onto battlefield under your control
+}

@@ -1,0 +1,7 @@
+card "Argivian Avenger" {
+  oracle_id d215cd4a-412c-4632-ab2d-de51103e6a7d
+  cost {6}
+  type Artifact Creature — Shapeshifter
+  pt 5/5
+  activated {1}: until end of turn, this gets -1/-1 and this gains choice of flying or vigilance or deathtouch or haste
+}

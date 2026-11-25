@@ -1,0 +1,27 @@
+scenario "scrapheap scrounger returns from graveyard exiling another creature card" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Scrapheap Scrounger", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scrapheap Scrounger"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Scrapheap Scrounger"
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A lacks "Scrapheap Scrounger"
+}
+scenario "scrapheap scrounger can't block" {
+  battlefield A: "Scrapheap Scrounger"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Scrapheap Scrounger"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+scenario "scrapheap scrounger needs another creature card" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Scrapheap Scrounger"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Scrapheap Scrounger"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Scrapheap Scrounger"
+}

@@ -1,0 +1,7 @@
+card "Hotshot Mechanic" {
+  oracle_id 8576201b-186d-4e28-97d4-deb344f14436
+  cost {W}
+  type Artifact Creature — Fox Pilot
+  pt 2/1
+  crews plus 2
+}

@@ -1,0 +1,7 @@
+card "Runebound Wolf" {
+  oracle_id 955e4c54-14c4-49bb-94e1-c6cc800c6d91
+  cost {1}{R}
+  type Creature — Wolf
+  pt 2/2
+  activated {3}{R}, {T}: deal damage equal Wolf or Werewolf you control to target opponent
+}

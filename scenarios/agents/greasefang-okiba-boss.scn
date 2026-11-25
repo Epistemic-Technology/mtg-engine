@@ -1,0 +1,19 @@
+scenario "Greasefang returns a Vehicle with haste and sends it home at end step" {
+  battlefield A: "Greasefang, Okiba Boss"
+  graveyard A: "Smuggler's Copter"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Smuggler's Copter"
+  assert has "Smuggler's Copter" haste
+  run_to turn 1 cleanup
+  assert hand A contains "Smuggler's Copter"
+  assert battlefield A lacks "Smuggler's Copter"
+}
+
+scenario "Greasefang ignores non-Vehicle cards" {
+  battlefield A: "Greasefang, Okiba Boss"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

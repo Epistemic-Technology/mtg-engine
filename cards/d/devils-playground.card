@@ -1,0 +1,6 @@
+card "Devils' Playground" {
+  oracle_id ab9e2045-860a-40ab-bec1-0dffced003ef
+  cost {4}{R}{R}
+  type Sorcery
+  spell: create 4 "1/1 red Devil creature that pings" it has
+}

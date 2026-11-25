@@ -1,0 +1,39 @@
+scenario "Disciple sacrifices Hill Giant for 3 life and 3 cards" {
+  battlefield A: "Hill Giant", 6 "Forest"
+  hand A: "Disciple of Freyalise"
+  turn 1 A: cast "Disciple of Freyalise"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 23
+  assert hand A count 3
+  assert battlefield A contains "Disciple of Freyalise"
+}
+
+scenario "Disciple may decline the sacrifice" {
+  battlefield A: "Hill Giant", 6 "Forest"
+  hand A: "Disciple of Freyalise"
+  turn 1 A: cast "Disciple of Freyalise"
+  turn 1 A: decline "Disciple of Freyalise"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life A 20
+  assert hand A count 0
+}
+
+scenario "Garden of Freyalise untapped for 3 life" {
+  hand A: "Garden of Freyalise"
+  turn 1 A: play "Garden of Freyalise"
+  turn 1 A: accept "Garden of Freyalise"
+  run_to turn 1 postcombat_main
+  assert untapped "Garden of Freyalise"
+  assert life A 17
+}
+
+scenario "Garden of Freyalise tapped if life not paid" {
+  hand A: "Garden of Freyalise"
+  turn 1 A: play "Garden of Freyalise"
+  turn 1 A: decline "Garden of Freyalise"
+  run_to turn 1 postcombat_main
+  assert tapped "Garden of Freyalise"
+  assert life A 20
+}

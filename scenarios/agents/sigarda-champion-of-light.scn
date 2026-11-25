@@ -1,0 +1,20 @@
+scenario "Sigarda pumps Humans and coven finds a Human" {
+  battlefield A: "Sigarda, Champion of Light", "Elite Vanguard", "Grizzly Bears"
+  library A: "Forest", "Forest", "Elite Vanguard", "Forest", "Forest", "Forest"
+  start turn 1 A
+  turn 1 A: attack "Sigarda, Champion of Light"
+  run_to turn 1 combat_damage
+  assert power "Elite Vanguard" 3
+  assert power "Grizzly Bears" 2
+  assert hand A contains "Elite Vanguard"
+  assert life B 16
+}
+
+scenario "Sigarda without three different powers does not look" {
+  battlefield A: "Sigarda, Champion of Light", "Grizzly Bears"
+  library A: "Forest", "Forest", "Elite Vanguard", "Forest", "Forest", "Forest"
+  start turn 1 A
+  turn 1 A: attack "Sigarda, Champion of Light"
+  run_to turn 1 combat_damage
+  assert hand A count 0
+}

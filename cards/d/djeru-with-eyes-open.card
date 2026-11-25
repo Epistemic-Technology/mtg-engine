@@ -1,0 +1,9 @@
+card "Djeru, With Eyes Open" {
+  oracle_id 5d520dd4-7986-41fa-ab94-9226da751668
+  cost {3}{W}{W}
+  type Legendary Creature — Human Warrior
+  pt 4/3
+  keywords vigilance
+  triggered whenever this enters: you may search planeswalker card reveal to hand
+  replace damage to planeswalker you control: prevent next 1
+}

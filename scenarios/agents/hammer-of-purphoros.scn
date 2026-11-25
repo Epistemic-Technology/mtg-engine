@@ -1,0 +1,24 @@
+scenario "Hammer of Purphoros gives haste and makes a Golem for a land" {
+  battlefield A: "Hammer of Purphoros", 3 "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hammer of Purphoros" sacrificing "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Golem"
+  assert battlefield A lacks "Forest"
+  assert power "Golem" 3
+  assert toughness "Golem" 3
+  assert is "Golem" artifact
+  assert is "Golem" enchantment
+  assert has "Golem" haste
+}
+
+scenario "Hammer of Purphoros lets a fresh creature attack" {
+  battlefield A: "Hammer of Purphoros"
+  hand A: "Grizzly Bears"
+  battlefield A: 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

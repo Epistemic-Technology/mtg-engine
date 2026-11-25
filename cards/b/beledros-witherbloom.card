@@ -1,0 +1,9 @@
+card "Beledros Witherbloom" {
+  oracle_id 90194ff1-db61-463f-b5a3-15cd85311d0e
+  cost {5}{B}{G}
+  type Legendary Creature — Elder Dragon
+  pt 4/4
+  keywords flying
+  triggered at beginning of every upkeep: create 1 "1/1 black and green Pest creature that gains life"
+  activated pay 10 life, once each turn: untap all land you control
+}

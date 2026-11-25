@@ -1,0 +1,25 @@
+scenario "elemental appeal unkicked: 7/1 token exiled at end" {
+  battlefield A: 4 "Mountain"
+  hand A: "Elemental Appeal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elemental Appeal"
+  run_to turn 1 declare_attackers
+  assert power "Elemental" 7
+  assert toughness "Elemental" 1
+  turn 1 A: attack "Elemental"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  run_to turn 2 upkeep
+  assert not game_over
+}
+scenario "elemental appeal kicked: token gets +7/+0" {
+  battlefield A: 9 "Mountain"
+  hand A: "Elemental Appeal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elemental Appeal" kicked
+  run_to turn 1 declare_attackers
+  assert power "Elemental" 14
+  turn 1 A: attack "Elemental"
+  run_to turn 1 postcombat_main
+  assert life B 6
+}

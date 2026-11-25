@@ -1,0 +1,8 @@
+card "Throwing Knife" {
+  oracle_id c3973121-ed59-48b3-8efa-754a1b2c704d
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +2/+0
+  triggered whenever equipped creature attacks: you may sacrifice this; if you do, this equipment deals 2 damage to any target
+  equip {2}
+}

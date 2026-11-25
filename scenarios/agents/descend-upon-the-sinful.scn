@@ -1,0 +1,25 @@
+scenario "Descend upon the Sinful with delirium" {
+  battlefield A: "Grizzly Bears", 6 "Plains"
+  battlefield B: "Hill Giant"
+  graveyard A: "Forest", "Shock", "Divination", "Serra Angel"
+  hand A: "Descend upon the Sinful"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Descend upon the Sinful"
+  run_to turn 3 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains 1 "Angel"
+  assert power "Angel" 4
+  assert has "Angel" flying
+}
+scenario "Descend upon the Sinful without delirium" {
+  battlefield A: "Grizzly Bears", 6 "Plains"
+  battlefield B: "Hill Giant"
+  graveyard A: "Forest", "Shock", "Divination"
+  hand A: "Descend upon the Sinful"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Descend upon the Sinful"
+  run_to turn 3 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains 0 "Angel"
+}

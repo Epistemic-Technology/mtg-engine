@@ -1,0 +1,7 @@
+token "6/12 colorless Construct artifact creature with trample" {
+  name "Construct"
+  type Artifact Creature — Construct
+  pt 6/12
+  color
+  keywords trample
+}

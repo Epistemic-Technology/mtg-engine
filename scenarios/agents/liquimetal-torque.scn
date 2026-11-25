@@ -1,0 +1,19 @@
+scenario "Liquimetal Torque makes a permanent an artifact until end of turn" {
+  battlefield A: "Liquimetal Torque", "Plains"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Liquimetal Torque" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" artifact
+  assert is "Grizzly Bears" creature
+  run_to turn 2 upkeep
+  assert is not "Grizzly Bears" artifact
+}
+
+scenario "Liquimetal Torque can't target a land" {
+  battlefield A: "Liquimetal Torque", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Liquimetal Torque" targeting "Plains"
+  run_to turn 1 begin_combat
+  assert untapped "Liquimetal Torque"
+}

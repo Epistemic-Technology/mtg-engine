@@ -1,0 +1,7 @@
+card "Scuttling Butler" {
+  oracle_id 2b51d6e5-a4cd-4f2f-9762-6ad2cfd8b084
+  cost {3}
+  type Artifact Creature — Construct
+  pt 4/1
+  triggered at beginning of your combat step if you control 2 multicolored permanent: this gains double strike until end of turn
+}

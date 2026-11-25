@@ -1,0 +1,30 @@
+scenario "Cruel Celebrant drains when another creature you control dies" {
+  life A 10
+  battlefield A: "Cruel Celebrant", "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 11
+  assert life B 19
+}
+scenario "Cruel Celebrant drains when it dies itself" {
+  life A 10
+  battlefield A: "Cruel Celebrant", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Cruel Celebrant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Cruel Celebrant"
+  assert life A 11
+  assert life B 19
+}
+scenario "Cruel Celebrant ignores an opponent's creature dying" {
+  life A 10
+  battlefield A: "Cruel Celebrant", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 10
+  assert life B 20
+}

@@ -1,0 +1,23 @@
+scenario "frenzy shrinks everything and gains life per death" {
+  hand A: "Death Frenzy"
+  battlefield A: 3 "Swamp", 2 "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Death Frenzy"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert power "Serra Angel" 2
+}
+scenario "creature dying later this turn still gains life" {
+  hand A: "Death Frenzy", "Lightning Bolt"
+  battlefield A: 3 "Swamp", 2 "Forest", "Mountain", "Hill Giant"
+  turn 1 A: cast "Death Frenzy"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 21
+}

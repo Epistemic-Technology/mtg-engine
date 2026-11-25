@@ -1,0 +1,29 @@
+scenario "Breya's Apprentice: enters with a Thopter; mode 1 plays the exiled card" {
+  battlefield A: "Breya's Apprentice", "Ornithopter", "Mountain"
+  library A: "Mountain", "Forest"
+  turn 1 A: activate "Breya's Apprentice" mode 1 sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Mountain"
+  assert tapped "Breya's Apprentice"
+  assert graveyard A contains "Ornithopter"
+  turn 1 main2 A: play "Mountain"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Mountain"
+}
+
+scenario "Breya's Apprentice: mode 2 gives +2/+0" {
+  battlefield A: "Breya's Apprentice", "Ornithopter", "Grizzly Bears"
+  turn 1 A: activate "Breya's Apprentice" mode 2 sacrificing "Ornithopter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Breya's Apprentice: enter trigger makes a Thopter" {
+  battlefield A: 3 "Mountain"
+  hand A: "Breya's Apprentice"
+  turn 1 A: cast "Breya's Apprentice"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Thopter"
+  assert has "Thopter" flying
+}

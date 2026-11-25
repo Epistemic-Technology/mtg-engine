@@ -1,0 +1,9 @@
+card "Elspeth, Sun's Champion" {
+  oracle_id 05e6b243-48a6-4a42-bc5f-413441de9c33
+  cost {4}{W}{W}
+  type Legendary Planeswalker — Elspeth
+  loyalty 4
+  loyalty +1: create 3 "Soldier"
+  loyalty -3: destroy all creature with power 4 or greater
+  loyalty -7: emblem "Elspeth, Sun's Champion emblem"
+}

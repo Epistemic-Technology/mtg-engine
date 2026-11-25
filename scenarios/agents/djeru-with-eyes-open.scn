@@ -1,0 +1,29 @@
+scenario "Djeru searches a planeswalker" {
+  battlefield A: 5 "Plains"
+  hand A: "Djeru, With Eyes Open"
+  library A: "Forest", "Jace Beleren", "Forest"
+  turn 1 A: cast "Djeru, With Eyes Open"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Jace Beleren"
+  assert battlefield A contains "Djeru, With Eyes Open"
+}
+
+scenario "Djeru prevents 1 damage to a planeswalker" {
+  battlefield A: "Djeru, With Eyes Open", "Jace Beleren"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert counters "Jace Beleren" loyalty 2
+}
+
+scenario "Without Djeru damage is full" {
+  battlefield A: "Jace Beleren"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert counters "Jace Beleren" loyalty 1
+}

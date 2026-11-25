@@ -1,0 +1,9 @@
+card "Orgg" {
+  oracle_id f6ea2b1b-1403-4ccd-a23c-48e0e81ceb91
+  cost {3}{R}{R}
+  type Creature — Orgg
+  pt 6/6
+  keywords trample
+  can't attack if defending player controls untapped creature with power 3 or greater
+  can't block creature with power 3 or greater
+}

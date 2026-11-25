@@ -1,0 +1,13 @@
+scenario "troubadour ventures after a land enters" {
+  battlefield A: "Wandering Troubadour"
+  hand A: "Forest"
+  turn 1 A: play "Forest"
+  turn 1 A: choose "1"
+  run_to turn 2 upkeep
+  assert dungeon A "Lost Mine of Phandelver" "Cave Entrance"
+}
+scenario "troubadour no venture without land" {
+  battlefield A: "Wandering Troubadour"
+  run_to turn 2 upkeep
+  assert dungeon A none
+}

@@ -1,0 +1,25 @@
+scenario "Righteous Valkyrie gains life equal to toughness of an entering Angel" {
+  battlefield A: "Righteous Valkyrie", 5 "Plains"
+  hand A: "Serra Angel"
+  turn 1 A: cast "Serra Angel"
+  run_to turn 1 end
+  assert life A 24
+}
+scenario "Righteous Valkyrie ignores a non-Angel non-Cleric" {
+  battlefield A: "Righteous Valkyrie", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 20
+}
+scenario "Righteous Valkyrie gives +2/+2 at 27 life" {
+  life A 27
+  battlefield A: "Righteous Valkyrie", "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert power "Righteous Valkyrie" 4
+}
+scenario "Righteous Valkyrie gives no bonus at 26 life" {
+  life A 26
+  battlefield A: "Righteous Valkyrie", "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}

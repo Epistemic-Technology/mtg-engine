@@ -1,0 +1,9 @@
+card "Taborax, Hope's Demise" {
+  oracle_id 955abada-aba2-41c2-96ff-58e3679ad7e5
+  cost {2}{B}
+  type Legendary Creature — Demon Cleric
+  pt 2/2
+  keywords flying
+  static this: has lifelink as long as this has 5 or more +1/+1 counters
+  triggered whenever other nontoken creature you control dies: put 1 +1/+1 counter on this; if that creature was Cleric, you may draw 1 card; if you do, you lose 1 life
+}

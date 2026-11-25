@@ -1,0 +1,15 @@
+card "Ravenous Demon // Archdemon of Greed" {
+  oracle_id 18932bb9-e054-4ad6-80c8-d2f177312da0
+  layout transform
+  cost {3}{B}{B}
+  type Creature — Demon
+  pt 4/4
+  activated sacrifice Human, sorcery: transform this
+  face "Archdemon of Greed" {
+    type Creature — Demon
+    pt 9/9
+    color black
+    keywords flying, trample
+    triggered at beginning of your upkeep: you sacrifice 1 Human; if you can't, tap this and deal 9 damage to you
+  }
+}

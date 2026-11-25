@@ -1,0 +1,7 @@
+scenario "companion of the trials cannot activate without a Gideon planeswalker" {
+  battlefield A: "Companion of the Trials", 2 "Plains", "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Companion of the Trials" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert tapped "Grizzly Bears"
+}

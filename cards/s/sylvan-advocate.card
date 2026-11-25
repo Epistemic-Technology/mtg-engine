@@ -1,0 +1,8 @@
+card "Sylvan Advocate" {
+  oracle_id beaf7a85-426a-4a33-80c8-33ad01614ad3
+  cost {1}{G}
+  type Creature — Elf Druid Ally
+  pt 2/3
+  keywords vigilance
+  static as long as you control 6 land, this and land creature you control: +2/+2
+}

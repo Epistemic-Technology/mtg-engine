@@ -1,0 +1,23 @@
+scenario "Argivian Avenger shrinks and gains the chosen deathtouch" {
+  battlefield A: "Argivian Avenger", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Argivian Avenger"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert power "Argivian Avenger" 4
+  assert toughness "Argivian Avenger" 4
+  assert has "Argivian Avenger" deathtouch
+  assert has not "Argivian Avenger" flying
+}
+
+scenario "Argivian Avenger activated twice and gains flying" {
+  battlefield A: "Argivian Avenger", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Argivian Avenger"
+  turn 1 A: choose "1"
+  turn 1 A: activate "Argivian Avenger"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert power "Argivian Avenger" 3
+  assert has "Argivian Avenger" flying
+}

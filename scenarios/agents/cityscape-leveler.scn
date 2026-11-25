@@ -1,0 +1,30 @@
+scenario "cityscape leveler attack trigger" {
+  battlefield A: "Cityscape Leveler"
+  battlefield B: "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Cityscape Leveler"
+  turn 1 declare_attackers A: trigger "Cityscape Leveler" targeting B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Powerstone"
+  assert tapped "Powerstone"
+  assert life B 12
+}
+scenario "cityscape leveler cast trigger" {
+  hand A: "Cityscape Leveler"
+  battlefield A: 8 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: cast "Cityscape Leveler"
+  turn 1 precombat_main A: trigger "Cityscape Leveler" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Powerstone"
+  assert battlefield A contains "Cityscape Leveler"
+}
+scenario "cityscape leveler can target own permanent" {
+  battlefield A: "Cityscape Leveler", "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Cityscape Leveler"
+  turn 1 declare_attackers A: trigger "Cityscape Leveler" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Powerstone"
+}

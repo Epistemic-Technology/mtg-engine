@@ -1,0 +1,11 @@
+scenario "Horobi's Whisper with a Swamp destroys a nonblack creature" {
+  battlefield A: 2 "Swamp", "Mountain"
+  battlefield B: "Hill Giant", "Drudge Skeletons"
+  hand A: "Horobi's Whisper"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Horobi's Whisper" targeting "Drudge Skeletons"
+  turn 1 A: cast "Horobi's Whisper" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Drudge Skeletons"
+}

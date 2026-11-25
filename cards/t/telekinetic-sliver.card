@@ -1,0 +1,7 @@
+card "Telekinetic Sliver" {
+  oracle_id 31ec6a73-f742-4dc6-809d-28d3c461c2a0
+  cost {2}{U}{U}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver: has ability { activated {T}: tap target permanent }
+}

@@ -1,0 +1,10 @@
+card "Basri, Devoted Paladin" {
+  oracle_id 1601e553-31c2-4e04-9f0c-bc17e49eeff7
+  cost {4}{W}{W}
+  type Legendary Planeswalker — Basri
+  loyalty 4
+  short_name "Basri"
+  loyalty +1: put 1 +1/+1 counters on up to 1 target creature; target 1 gains vigilance until end of turn
+  loyalty -1: delayed this: whenever creature attacks this turn, put 1 +1/+1 counters on it
+  loyalty -6: each creature you control gets +2/+2 and gains flying until end of turn
+}

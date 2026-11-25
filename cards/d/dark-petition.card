@@ -1,0 +1,9 @@
+card "Dark Petition" {
+  oracle_id 79acdb37-8d52-4bc8-a7be-a7e92b6166e5
+  cost {3}{B}{B}
+  type Sorcery
+  spell {
+    search card to hand that card
+    label "Spell mastery" if 2 instant or sorcery cards in your graveyard, add {B}{B}{B}
+  }
+}

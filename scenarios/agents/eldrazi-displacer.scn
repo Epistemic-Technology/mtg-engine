@@ -1,0 +1,15 @@
+scenario "displacer flickers a creature tapped" {
+  battlefield A: "Eldrazi Displacer", 2 "Plains", "Wastes"
+  battlefield B: "Hill Giant" with 2 +1/+1
+  turn 1 A: activate "Eldrazi Displacer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert power "Hill Giant" 3
+  assert untapped "Eldrazi Displacer"
+}
+scenario "displacer cannot target itself" {
+  battlefield A: "Eldrazi Displacer", 2 "Plains", "Wastes"
+  illegal turn 1 A: activate "Eldrazi Displacer" targeting "Eldrazi Displacer"
+  run_to turn 1 postcombat_main
+}

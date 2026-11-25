@@ -1,0 +1,6 @@
+card "Psychic Spiral" {
+  oracle_id 5f928e54-3027-4f2f-9fef-d63b9ca416aa
+  cost {4}{U}
+  type Instant
+  spell: shuffle all card from graveyard into library; target player mills count that many shuffled this way cards
+}

@@ -1,0 +1,10 @@
+card "Ghastly Death Tyrant" {
+  oracle_id ccd248ec-1029-47cd-b6b4-876505efd9dd
+  cost {4}{B}{B}
+  type Creature — Beholder Skeleton
+  pt 6/5
+  triggered whenever this enters: choose one {
+    mode "Disintegration Ray": destroy target enchantment an opponent controls; you lose count equal mana value of target 1 life
+    mode "Death Ray": each creature you control gain deathtouch until end of turn
+  }
+}

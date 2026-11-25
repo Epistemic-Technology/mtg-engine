@@ -1,0 +1,7 @@
+card "Ironclad Revolutionary" {
+  oracle_id 382109c5-fd08-4e82-b898-2a387181b470
+  cost {4}{B}{B}
+  type Creature — Aetherborn Artificer
+  pt 4/4
+  triggered when this enters: you may sacrifice 1 artifact chosen; if you do, put 2 +1/+1 counters on this and each opponent loses 2 life
+}

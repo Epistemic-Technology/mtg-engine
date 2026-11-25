@@ -1,0 +1,21 @@
+scenario "Tezzeret's Touch animates a noncreature artifact as a 5/5" {
+  battlefield A: "Sol Ring", 3 "Island", "Swamp"
+  hand A: "Tezzeret's Touch"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tezzeret's Touch" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert is "Sol Ring" creature
+  assert is "Sol Ring" artifact
+  assert power "Sol Ring" 5
+  assert toughness "Sol Ring" 5
+}
+
+scenario "Tezzeret's Touch returns the artifact to its owner's hand when it dies" {
+  battlefield A: "Tezzeret's Touch" on "Ornithopter", "Ornithopter", "Swamp", "Swamp", "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ornithopter"
+  assert battlefield A lacks "Tezzeret's Touch"
+}

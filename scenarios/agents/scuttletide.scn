@@ -1,0 +1,28 @@
+scenario "Scuttletide makes a Crab by discarding" {
+  battlefield A: "Scuttletide", "Island"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scuttletide" discarding "Shock"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Crab"
+  assert power "Crab" 0
+  assert toughness "Crab" 3
+  assert graveyard A contains "Shock"
+}
+
+scenario "Scuttletide delirium pumps Crabs" {
+  battlefield A: "Scuttletide", "Crab"
+  graveyard A: "Shock", "Forest", "Grizzly Bears", "Divination", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Crab" 1
+  assert toughness "Crab" 4
+}
+
+scenario "Scuttletide without delirium gives no bonus" {
+  battlefield A: "Scuttletide", "Crab"
+  graveyard A: "Shock", "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Crab" 0
+}

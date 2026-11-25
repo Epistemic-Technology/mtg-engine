@@ -1,0 +1,7 @@
+token "Marit Lage, a legendary 20/20 black Avatar creature with flying and indestructible" {
+  name "Marit Lage"
+  type Legendary Creature — Avatar
+  pt 20/20
+  color black
+  keywords flying, indestructible
+}

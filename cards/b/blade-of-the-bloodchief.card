@@ -1,0 +1,7 @@
+card "Blade of the Bloodchief" {
+  oracle_id 8985e545-07c3-45f9-9058-fe3c1f50de04
+  cost {1}
+  type Artifact — Equipment
+  triggered whenever creature dies: put 1 +1/+1 counter on attached; if attached is Vampire, put 2 +1/+1 counters on attached instead
+  equip {1}
+}

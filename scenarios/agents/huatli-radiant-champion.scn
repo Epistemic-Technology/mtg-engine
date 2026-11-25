@@ -1,0 +1,25 @@
+scenario "huatli plus adds loyalty per creature" {
+  battlefield A: "Huatli, Radiant Champion" with 3 loyalty, "Grizzly Bears", "Hill Giant"
+  turn 1 precombat_main A: activate "Huatli, Radiant Champion" ability 1
+  run_to turn 1 postcombat_main
+  assert counters "Huatli, Radiant Champion" loyalty 6
+}
+scenario "huatli minus one pumps by creature count" {
+  battlefield A: "Huatli, Radiant Champion" with 3 loyalty, "Grizzly Bears", "Hill Giant"
+  turn 1 precombat_main A: activate "Huatli, Radiant Champion" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert counters "Huatli, Radiant Champion" loyalty 2
+}
+scenario "huatli emblem draws on creature entering" {
+  battlefield A: "Huatli, Radiant Champion" with 8 loyalty, 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: "Island", "Plains"
+  turn 1 precombat_main A: activate "Huatli, Radiant Champion" ability 3
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert graveyard A contains "Huatli, Radiant Champion"
+}

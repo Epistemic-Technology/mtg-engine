@@ -1,0 +1,22 @@
+scenario "landfall adds a quest counter" {
+  battlefield A: "Quest for the Necropolis"
+  hand A: "Swamp"
+  turn 1 precombat_main A: play "Swamp"
+  run_to turn 1 combat_damage
+  assert counters "Quest for the Necropolis" quest 1
+}
+scenario "two counters make it cost {4}{B}" {
+  battlefield A: "Quest for the Necropolis" with 2 quest, 5 "Swamp"
+  graveyard B: "Grizzly Bears"
+  turn 1 precombat_main A: activate "Quest for the Necropolis" targeting B "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Quest for the Necropolis"
+  assert graveyard B lacks "Grizzly Bears"
+}
+scenario "no counters needs six mana" {
+  battlefield A: "Quest for the Necropolis", 5 "Swamp"
+  graveyard B: "Grizzly Bears"
+  illegal turn 1 precombat_main A: activate "Quest for the Necropolis" targeting B "Grizzly Bears"
+  run_to turn 1 combat_damage
+}

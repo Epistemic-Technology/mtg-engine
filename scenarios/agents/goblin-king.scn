@@ -1,0 +1,15 @@
+scenario "goblin king buffs other goblins and gives mountainwalk" {
+  battlefield A: "Goblin King", "Goblin Brawler", "Grizzly Bears"
+  battlefield B: "Mountain", "Hill Giant"
+  start turn 1 A
+  assert power "Goblin King" 2
+  assert power "Goblin Brawler" 3
+  assert power "Grizzly Bears" 2
+  assert has "Goblin Brawler" mountainwalk
+  assert has not "Grizzly Bears" mountainwalk
+  assert has not "Goblin King" mountainwalk
+  turn 1 A: attack "Goblin Brawler"
+  illegal turn 1 B: block "Goblin Brawler" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

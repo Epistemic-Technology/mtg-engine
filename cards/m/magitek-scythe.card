@@ -1,0 +1,8 @@
+card "Magitek Scythe" {
+  oracle_id 0d5bbde7-6f33-4708-b3ab-34d4528af649
+  cost {4}
+  type Artifact — Equipment
+  label "A Test of Your Reflexes!" triggered whenever this enters: you may attach this to target creature you control; if you do, that target 1 gains first strike until end of turn and must be blocked if able
+  static equipped: +2/+1
+  equip {2}
+}

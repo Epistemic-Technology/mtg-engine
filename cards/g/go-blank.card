@@ -1,0 +1,6 @@
+card "Go Blank" {
+  oracle_id 60186579-285b-4034-a782-431f79df5b07
+  cost {2}{B}
+  type Sorcery
+  spell: target player discards 2 cards; then exile graveyard of that target 1
+}

@@ -1,0 +1,12 @@
+scenario "Silence stops the opponent casting, not the caster" {
+  battlefield A: "Plains", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Silence", "Lightning Bolt"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Silence"
+  illegal turn 1 declare_attackers B: cast "Lightning Bolt" targeting player A
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

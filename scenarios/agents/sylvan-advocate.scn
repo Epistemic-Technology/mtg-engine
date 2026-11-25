@@ -1,0 +1,14 @@
+scenario "five lands no bonus" {
+  battlefield A: "Sylvan Advocate", 5 "Forest"
+  run_to turn 1 precombat_main
+  assert power "Sylvan Advocate" 2
+}
+scenario "six lands pump self and land creatures" {
+  battlefield A: "Sylvan Advocate", 6 "Forest", "Dryad Arbor"
+  battlefield B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert power "Sylvan Advocate" 4
+  assert toughness "Sylvan Advocate" 5
+  assert power "Dryad Arbor" 3
+  assert power B "Hill Giant" 3
+}

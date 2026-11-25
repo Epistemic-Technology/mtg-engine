@@ -1,0 +1,6 @@
+card "Tavern Brawler" {
+  oracle_id 7c5cd912-eddb-47c8-a31b-8ad2af46abd3
+  cost {2}{R}
+  type Legendary Enchantment — Background
+  static commander creature you own: has ability { triggered at beginning of your upkeep step: exile top 1 card; this gets +1/+0 count equal mana value of that card until end of turn; may play that card this turn }
+}

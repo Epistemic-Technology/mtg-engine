@@ -1,0 +1,6 @@
+card "Wild Ricochet" {
+  oracle_id 8c35fd11-be45-4984-bd83-6e4f3fbc47a9
+  cost {2}{R}{R}
+  type Instant
+  spell: choose new targets for target instant or sorcery spell; then copy that target 1 new targets
+}

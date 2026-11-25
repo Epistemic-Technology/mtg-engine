@@ -1,0 +1,7 @@
+card "Golgari Keyrune" {
+  oracle_id ec970eba-230a-4c41-874a-4a74abf3214e
+  cost {3}
+  type Artifact
+  mana {B} or {G}
+  activated {B}{G}: this becomes 2/2 black green Insect artifact creature with deathtouch until end of turn
+}

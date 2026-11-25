@@ -1,0 +1,29 @@
+scenario "realmwright makes plains tap for black" {
+  hand A: "Realmwright", "Murder"
+  battlefield A: "Island", 3 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: cast "Realmwright"
+  turn 1 precombat_main A: choose Swamp
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert is oldest "Plains" swamp
+  assert graveyard B contains "Hill Giant"
+}
+scenario "without realmwright plains can't make black" {
+  hand A: "Murder"
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  illegal turn 1 precombat_main A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+scenario "realmwright's lands keep their types" {
+  hand A: "Realmwright"
+  battlefield A: "Island", "Plains"
+  turn 1 precombat_main A: cast "Realmwright"
+  turn 1 precombat_main A: choose Swamp
+  run_to turn 1 postcombat_main
+  assert is oldest "Plains" plains
+  assert is oldest "Plains" swamp
+}

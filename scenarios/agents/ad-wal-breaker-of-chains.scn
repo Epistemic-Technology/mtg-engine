@@ -1,0 +1,22 @@
+scenario "Adewale finds a Vehicle among the top six" {
+  battlefield A: "Island", "Swamp", "Plains"
+  hand A: "Adéwalé, Breaker of Chains"
+  library A: "Grizzly Bears", "Hill Giant", "Smuggler's Copter", "Forest", "Forest", "Forest", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Adéwalé, Breaker of Chains"
+  run_to turn 1 begin_combat
+  assert hand A contains "Smuggler's Copter"
+  assert hand A count 1
+  assert library A count 7
+}
+
+scenario "Adewale returns from graveyard when a Vehicle connects" {
+  battlefield A: "Smuggler's Copter", "Grizzly Bears"
+  graveyard A: "Adéwalé, Breaker of Chains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Smuggler's Copter"
+  turn 1 A: attack "Smuggler's Copter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Adéwalé, Breaker of Chains"
+  assert graveyard A lacks "Adéwalé, Breaker of Chains"
+}

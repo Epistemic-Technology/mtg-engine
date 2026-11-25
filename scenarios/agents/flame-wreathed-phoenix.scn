@@ -1,0 +1,35 @@
+scenario "tribute declined gives haste and return" {
+  hand A: "Flame-Wreathed Phoenix"
+  battlefield A: 3 "Mountain", 2 "Plains"
+  
+  
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Flame-Wreathed Phoenix"
+  turn 1 precombat_main B: decline "Flame-Wreathed Phoenix"
+  turn 1 declare_attackers A: attack "Flame-Wreathed Phoenix"
+  run_to turn 1 postcombat_main
+  assert has "Flame-Wreathed Phoenix" haste
+  assert power "Flame-Wreathed Phoenix" 3
+  assert life B 17
+}
+scenario "tribute paid gives counters, no haste" {
+  hand A: "Flame-Wreathed Phoenix"
+  battlefield A: 3 "Mountain", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Flame-Wreathed Phoenix"
+  turn 1 precombat_main B: accept "Flame-Wreathed Phoenix"
+  run_to turn 1 postcombat_main
+  assert power "Flame-Wreathed Phoenix" 5
+  assert has not "Flame-Wreathed Phoenix" haste
+}
+scenario "tribute declined: dies and returns to hand" {
+  hand A: "Flame-Wreathed Phoenix", "Lightning Bolt"
+  battlefield A: 6 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Flame-Wreathed Phoenix"
+  turn 1 precombat_main B: decline "Flame-Wreathed Phoenix"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Flame-Wreathed Phoenix"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Flame-Wreathed Phoenix"
+}

@@ -1,0 +1,10 @@
+card "Orzhov Charm" {
+  oracle_id 26f8626a-ce64-450c-bda5-833df2fbb4fb
+  cost {W}{B}
+  type Instant
+  choose one {
+    mode: return target creature you control and all Aura you control attached to target 1 to owner's hand
+    mode: destroy target creature and you lose count equal toughness of target 1 life
+    mode: return target creature card with mana value 1 or less from your graveyard to battlefield
+  }
+}

@@ -1,0 +1,7 @@
+card "Inexorable Blob" {
+  oracle_id bddf0772-503c-42f1-bb86-1dfeeedf4a7e
+  cost {2}{G}
+  type Creature — Ooze
+  pt 3/3
+  label "Delirium" triggered whenever this attacks if 4 card types in your graveyard: create 1 tapped and attacking "3/3 green Ooze creature"
+}

@@ -1,0 +1,7 @@
+card "Kederekt Parasite" {
+  oracle_id fc7b46af-6c07-455a-99c7-f1bccaa2a5f4
+  cost {B}
+  type Creature — Horror
+  pt 1/1
+  triggered whenever an opponent draws a card if you control red permanent: you may deal 1 damage to that player
+}

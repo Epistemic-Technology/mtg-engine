@@ -1,0 +1,15 @@
+scenario "overload sizes weird, returns a spell, exiles itself" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  graveyard A: "Shock", "Lightning Bolt", "Giant Growth", "Grizzly Bears"
+  hand A: "Experimental Overload"
+  turn 1 precombat_main A: cast "Experimental Overload"
+  turn 1 precombat_main A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Weird"
+  assert power "Weird" 3
+  assert toughness "Weird" 3
+  assert hand A contains "Shock"
+  assert graveyard A lacks "Shock"
+  assert exile A contains "Experimental Overload"
+  assert graveyard A lacks "Experimental Overload"
+}

@@ -1,0 +1,18 @@
+scenario "Artifacts you control have hexproof" {
+  battlefield A: "Leonin Abunas", "Ornithopter"
+  battlefield B: "Mountain", "Ornithopter"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting A "Ornithopter"
+  turn 2 B: cast "Shock" targeting B "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "Hexproof does not stop the controller" {
+  battlefield A: "Leonin Abunas", "Ornithopter", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+}

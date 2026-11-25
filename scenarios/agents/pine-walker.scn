@@ -1,0 +1,18 @@
+scenario "Pine Walker untaps itself when turned face up" {
+  hand A: "Pine Walker"
+  battlefield A: 5 "Forest"
+  turn 1 precombat_main A: cast "Pine Walker" face_down
+  turn 3 declare_attackers A: attack "face-down creature"
+  turn 3 postcombat_main A: unmorph "Pine Walker"
+  run_to turn 3 end
+  assert untapped "Pine Walker"
+  assert power "Pine Walker" 5
+}
+scenario "Pine Walker stays tapped if never turned face up" {
+  hand A: "Pine Walker"
+  battlefield A: 5 "Forest"
+  turn 1 precombat_main A: cast "Pine Walker" face_down
+  turn 3 declare_attackers A: attack "face-down creature"
+  run_to turn 3 end
+  assert tapped "face-down creature"
+}

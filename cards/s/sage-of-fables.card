@@ -1,0 +1,8 @@
+card "Sage of Fables" {
+  oracle_id f53da056-97be-41ad-8cfc-0d92e17dcd7b
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  replace each other Wizard creature you control enters: with 1 +1/+1 counter
+  activated {2}, remove 1 +1/+1 counter from creature you control: draw 1 card
+}

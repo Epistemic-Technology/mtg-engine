@@ -1,0 +1,9 @@
+card "Sigarda, Champion of Light" {
+  oracle_id 24919141-82d2-42ad-963c-e53511a868b3
+  cost {1}{G}{W}{W}
+  type Legendary Creature — Angel
+  pt 4/4
+  keywords flying, trample
+  static Human you control: +1/+1
+  label "Coven" triggered whenever this attacks if 3 different powers: dig 5 take Human creature card may revealing rest bottom random
+}

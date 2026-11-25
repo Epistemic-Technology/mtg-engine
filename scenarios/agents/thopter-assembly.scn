@@ -1,0 +1,15 @@
+scenario "Thopter Assembly bounces and makes five Thopters" {
+  battlefield A: "Thopter Assembly"
+  start turn 1 A upkeep
+  run_to turn 1 precombat_main
+  assert hand A contains "Thopter Assembly"
+  assert battlefield A contains 5 "Thopter"
+}
+
+scenario "Thopter Assembly stays when another Thopter is present" {
+  battlefield A: "Thopter Assembly", "Ornithopter"
+  start turn 1 A upkeep
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Thopter Assembly"
+  assert battlefield A contains "Ornithopter"
+}

@@ -1,0 +1,8 @@
+card "Shield of the Righteous" {
+  oracle_id 6d9aaa70-b2cc-424c-8095-a0b2fa272db3
+  cost {W}{U}
+  type Artifact — Equipment
+  static equipped: +0/+2, has vigilance
+  triggered whenever equipped creature blocks a creature: that creature doesn't untap next untap step
+  equip {2}
+}

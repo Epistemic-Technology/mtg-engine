@@ -1,0 +1,8 @@
+card "Barbed Shocker" {
+  oracle_id ae5cf0da-bea8-4ba7-9fb3-0fcb076257ae
+  cost {3}{R}
+  type Creature — Insect
+  pt 2/2
+  keywords trample, haste
+  triggered whenever this deals damage to a player: that player discards all cards in hand then draws count that many discarded this way cards
+}

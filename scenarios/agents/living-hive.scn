@@ -1,0 +1,8 @@
+scenario "hive makes tokens equal to damage" {
+  battlefield A: "Living Hive"
+  start turn 1 A
+  turn 1 A: attack "Living Hive"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains 6 "Insect"
+}

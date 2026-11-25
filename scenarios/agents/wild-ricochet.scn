@@ -1,0 +1,11 @@
+scenario "wild ricochet copies a spell" {
+  battlefield A: "Mountain"
+  battlefield B: 4 "Mountain"
+  hand A: "Shock"
+  hand B: "Wild Ricochet"
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  turn 1 precombat_main B: cast "Wild Ricochet" targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Wild Ricochet"
+}

@@ -1,0 +1,23 @@
+scenario "minsc creates Boo" {
+  battlefield A: "Mountain", "Forest", "Plains"
+  hand A: "Minsc, Beloved Ranger"
+  turn 1 precombat_main A: cast "Minsc, Beloved Ranger"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Boo"
+  assert power "Boo" 1
+  assert has "Boo" trample
+  assert has "Boo" haste
+  assert is "Boo" "Hamster"
+}
+scenario "minsc X makes a Giant" {
+  battlefield A: "Minsc, Beloved Ranger", 5 "Forest", "Grizzly Bears"
+  turn 1 precombat_main A: activate "Minsc, Beloved Ranger" x 4 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert is "Grizzly Bears" "Giant"
+  assert is "Grizzly Bears" "Bear"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert is not "Grizzly Bears" "Giant"
+}

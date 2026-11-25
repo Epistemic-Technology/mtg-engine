@@ -1,0 +1,14 @@
+scenario "Ferocity of the Wilds boosts attacking non-Humans only" {
+  battlefield A: "Ferocity of the Wilds", "Grizzly Bears", "Zhur-Taa Druid", "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears", "Zhur-Taa Druid"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert power "Zhur-Taa Druid" 1
+  assert has not "Zhur-Taa Druid" trample
+  assert power "Hill Giant" 3
+  assert has not "Hill Giant" trample
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

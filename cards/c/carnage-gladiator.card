@@ -1,0 +1,8 @@
+card "Carnage Gladiator" {
+  oracle_id 7d8e20e5-6456-43f5-9188-263b54c0a923
+  cost {2}{B}{R}
+  type Creature — Skeleton Warrior
+  pt 4/2
+  triggered whenever creature blocks: controller of that creature loses 1 life
+  activated {1}{B}{R}: regenerate this
+}

@@ -1,0 +1,13 @@
+scenario "corpse explosion deals exiled card's power to creatures" {
+  hand A: "Corpse Explosion"
+  battlefield A: "Swamp", "Mountain", "Mountain", "Serra Angel", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Corpse Explosion"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert damage "Serra Angel" 3
+}

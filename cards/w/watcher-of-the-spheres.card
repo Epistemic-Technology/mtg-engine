@@ -1,0 +1,9 @@
+card "Watcher of the Spheres" {
+  oracle_id d43463d2-4395-4616-acc3-c4f80ebe3242
+  cost {W}{U}
+  type Creature — Bird Wizard
+  pt 2/2
+  keywords flying
+  spells creature with flying you cast cost {1} less
+  triggered whenever other creature with flying you control enters: this gets +1/+1 until end of turn
+}

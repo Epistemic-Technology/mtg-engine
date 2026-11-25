@@ -1,0 +1,8 @@
+card "Domestication" {
+  oracle_id 86da33ac-f8ac-48c8-a50b-22fd761dff8f
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  triggered at beginning of your end step if attached is with power 4 or greater: sacrifice this
+}

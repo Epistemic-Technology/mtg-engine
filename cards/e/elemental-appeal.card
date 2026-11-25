@@ -1,0 +1,7 @@
+card "Elemental Appeal" {
+  oracle_id 3bcfc82c-3523-40e3-b236-78ece8a8d69f
+  cost {R}{R}{R}{R}
+  type Sorcery
+  kicker {5}
+  spell: create 1 "7/1 red Elemental creature with trample and haste"; delayed that token: exile it at beginning of the next end step; if kicked, that created creature gets +7/+0 until end of turn
+}

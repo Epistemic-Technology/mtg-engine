@@ -1,0 +1,8 @@
+card "Vizier of the Scorpion" {
+  oracle_id 61897e1b-dea0-44c2-9e38-6e2627647e17
+  cost {2}{B}
+  type Creature — Zombie Wizard
+  pt 1/1
+  triggered whenever this enters: amass Zombies 1
+  static Zombie token you control: has deathtouch
+}

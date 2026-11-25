@@ -1,0 +1,7 @@
+scenario "noble purpose gains life per creature" {
+  battlefield A: "Noble Purpose", "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 25
+  assert life B 15
+}

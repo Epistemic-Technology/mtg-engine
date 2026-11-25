@@ -1,0 +1,12 @@
+scenario "psychic spiral mills as many as shuffled" {
+  hand A: "Psychic Spiral"
+  battlefield A: 5 "Island"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  library A: "Forest"
+  library B: "Mountain", "Mountain", "Mountain", "Mountain", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Psychic Spiral" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert graveyard A count 1
+}

@@ -1,0 +1,7 @@
+card "Horobi's Whisper" {
+  oracle_id 2447f1f4-3569-4afb-a119-2ad9778eaf39
+  cost {1}{B}{B}
+  type Instant — Arcane
+  spell: if you control Swamp, destroy target nonblack creature
+  splice exile 4 card from graveyard
+}

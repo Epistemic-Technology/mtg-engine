@@ -1,0 +1,7 @@
+card "Broodwarden" {
+  oracle_id 14537413-3628-4152-b23f-78b0e9c416ac
+  cost {3}{G}{G}
+  type Creature — Eldrazi Drone
+  pt 4/4
+  static Eldrazi Spawn creature you control: +2/+1
+}

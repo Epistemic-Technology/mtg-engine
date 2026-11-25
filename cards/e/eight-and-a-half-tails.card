@@ -1,0 +1,8 @@
+card "Eight-and-a-Half-Tails" {
+  oracle_id 01c8d29f-4924-4d55-80bc-0c0c06bcb733
+  cost {W}{W}
+  type Legendary Creature — Fox Cleric
+  pt 2/2
+  activated {1}{W}: target permanent you control gains protection from white until end of turn
+  activated {1}: target spell or permanent becomes white until end of turn
+}

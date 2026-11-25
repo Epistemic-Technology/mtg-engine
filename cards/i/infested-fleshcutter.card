@@ -1,0 +1,8 @@
+card "Infested Fleshcutter" {
+  oracle_id e9c03ed6-34dd-46f7-ab41-8004348328cc
+  cost {1}{W}
+  type Artifact — Equipment
+  static equipped creature: +2/+0
+  triggered whenever equipped creature attacks: create 1 "Phyrexian Mite"
+  equip {2}{W}
+}

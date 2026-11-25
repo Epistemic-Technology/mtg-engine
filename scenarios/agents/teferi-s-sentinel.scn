@@ -1,0 +1,11 @@
+scenario "Teferi's Sentinel gets +4/+0 with a Teferi planeswalker" {
+  battlefield A: "Teferi's Sentinel"
+  battlefield B: "Teferi, Timebender"
+  assert power "Teferi's Sentinel" 2
+  assert toughness "Teferi's Sentinel" 6
+}
+scenario "Teferi's Sentinel with own Teferi" {
+  battlefield A: "Teferi's Sentinel", "Teferi, Timebender"
+  assert power "Teferi's Sentinel" 6
+  assert toughness "Teferi's Sentinel" 6
+}

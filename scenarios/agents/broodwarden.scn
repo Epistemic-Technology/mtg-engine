@@ -1,0 +1,12 @@
+scenario "broodwarden pumps only Eldrazi Spawn" {
+  battlefield A: "Broodwarden", "Eldrazi Spawn", "Grizzly Bears"
+  battlefield B: "Eldrazi Spawn"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power A "Eldrazi Spawn" 2
+  assert toughness A "Eldrazi Spawn" 2
+  assert power "Grizzly Bears" 2
+  assert power B "Eldrazi Spawn" 0
+  assert power "Broodwarden" 4
+  assert toughness "Broodwarden" 4
+}

@@ -1,0 +1,16 @@
+scenario "sea drake returns two target lands you control" {
+  battlefield A: 3 "Island", "Forest", "Mountain"
+  hand A: "Sea Drake"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Sea Drake"
+  turn 1 precombat_main A: trigger "Sea Drake" targeting "Forest", "Mountain"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Sea Drake"
+  assert battlefield A lacks "Forest"
+  assert battlefield A lacks "Mountain"
+  assert hand A contains "Forest"
+  assert hand A contains "Mountain"
+  assert battlefield A contains 3 "Island"
+  assert power "Sea Drake" 4
+  assert has "Sea Drake" flying
+}

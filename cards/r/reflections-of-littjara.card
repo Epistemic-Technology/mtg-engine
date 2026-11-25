@@ -1,0 +1,7 @@
+card "Reflections of Littjara" {
+  oracle_id c3fdfb94-2d10-4743-864c-a59fdd57d8b7
+  cost {4}{U}
+  type Enchantment
+  as this enters choose creature type
+  triggered whenever you cast of chosen type spell: copy that spell
+}

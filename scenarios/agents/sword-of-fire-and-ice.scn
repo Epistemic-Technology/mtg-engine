@@ -1,0 +1,19 @@
+scenario "sword of fire and ice damage and draw" {
+  battlefield A: "Grizzly Bears", "Sword of Fire and Ice", 2 "Plains"
+  turn 1 A: activate "Sword of Fire and Ice" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "Sword of Fire and Ice" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 14
+  assert hand A count 1
+}
+scenario "sword of fire and ice protection from red" {
+  battlefield A: "Grizzly Bears", "Sword of Fire and Ice" , 2 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Sword of Fire and Ice" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

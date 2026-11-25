@@ -1,0 +1,10 @@
+scenario "prowler's helm: only walls can block" {
+  battlefield A: "Prowler's Helm", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Prowler's Helm" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

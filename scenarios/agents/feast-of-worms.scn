@@ -1,0 +1,20 @@
+scenario "Feast of Worms on a legendary land costs another land" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Shizo, Death's Storehouse", 2 "Swamp"
+  hand A: "Feast of Worms"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Feast of Worms" targeting "Shizo, Death's Storehouse"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Shizo, Death's Storehouse"
+  assert battlefield B contains 1 "Swamp"
+  assert graveyard B contains 1 "Swamp"
+}
+scenario "Feast of Worms on a nonlegendary land" {
+  battlefield A: 5 "Forest"
+  battlefield B: 3 "Swamp"
+  hand A: "Feast of Worms"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Feast of Worms" targeting B "Swamp"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains 2 "Swamp"
+}

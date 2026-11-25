@@ -1,0 +1,22 @@
+scenario "artifact becomes 4/4 while retrofitter remains" {
+  battlefield A: 3 "Island", "Sol Ring"
+  hand A: "Unctus's Retrofitter"
+  battlefield B: "Mountain"
+  turn 1 precombat_main A: cast "Unctus's Retrofitter"
+  turn 1 precombat_main A: trigger "Unctus's Retrofitter" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert is "Sol Ring" creature
+  assert power "Sol Ring" 4
+  assert toughness "Sol Ring" 4
+}
+scenario "effect ends when retrofitter leaves" {
+  battlefield A: 3 "Island", "Sol Ring", "Mountain"
+  hand A: "Unctus's Retrofitter", "Lightning Bolt"
+  turn 1 precombat_main A: cast "Unctus's Retrofitter"
+  turn 1 precombat_main A: trigger "Unctus's Retrofitter" targeting "Sol Ring"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Unctus's Retrofitter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Unctus's Retrofitter"
+  assert is not "Sol Ring" creature
+}

@@ -1,0 +1,12 @@
+scenario "damage to tokens is prevented, not to cards" {
+  battlefield A: "Emmara Tandris", "Soldier", "Hill Giant"
+  hand B: "Shock", "Shock"
+  battlefield B: 2 "Mountain"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Soldier"
+  turn 2 precombat_main B: cast "Shock" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert damage "Soldier" 0
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Soldier"
+}

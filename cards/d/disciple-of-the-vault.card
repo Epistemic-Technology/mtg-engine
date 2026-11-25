@@ -1,0 +1,7 @@
+card "Disciple of the Vault" {
+  oracle_id c8625113-0ce4-4454-83a1-25c31b8bfb9a
+  cost {B}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered whenever artifact is put into a graveyard from the battlefield: you may target opponent loses 1 life
+}

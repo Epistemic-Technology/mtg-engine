@@ -1,0 +1,28 @@
+scenario "Ambitious Farmhand fetches a Plains when it enters" {
+  battlefield A: 2 "Plains"
+  hand A: "Ambitious Farmhand // Seasoned Cathar"
+  library A: "Forest", "Plains", "Island"
+  start turn 1 A
+  turn 1 A: cast "Ambitious Farmhand"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ambitious Farmhand"
+  assert hand A contains "Plains"
+  assert hand A count 1
+}
+
+scenario "Ambitious Farmhand transforms with three different powers" {
+  battlefield A: "Ambitious Farmhand", "Grizzly Bears", "Hill Giant", 3 "Plains"
+  start turn 1 A
+  turn 1 A: activate "Ambitious Farmhand"
+  run_to turn 1 postcombat_main
+  assert power "Seasoned Cathar" 3
+  assert has "Seasoned Cathar" lifelink
+}
+
+scenario "Ambitious Farmhand cannot transform without three different powers" {
+  battlefield A: "Ambitious Farmhand", "Grizzly Bears", 3 "Plains"
+  start turn 1 A
+  illegal turn 1 A: activate "Ambitious Farmhand"
+  run_to turn 1 postcombat_main
+  assert power "Ambitious Farmhand" 1
+}

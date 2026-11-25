@@ -1,0 +1,7 @@
+card "Quest for the Gemblades" {
+  oracle_id c762361a-0b72-4db5-8b6f-715ca42d5067
+  cost {1}{G}
+  type Enchantment
+  triggered whenever creature you control deals combat damage to creature: you may put 1 quest counter on this
+  activated remove 1 quest counter from this, sacrifice this: put 4 +1/+1 counter on target creature
+}

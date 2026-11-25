@@ -1,0 +1,6 @@
+card "Root Maze" {
+  oracle_id 2f4abc5e-5aad-455e-b1ec-137d7ac4a10c
+  cost {G}
+  type Enchantment
+  replace andlist artifact or land enter: tapped
+}

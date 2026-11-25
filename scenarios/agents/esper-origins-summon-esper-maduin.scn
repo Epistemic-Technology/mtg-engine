@@ -1,0 +1,30 @@
+scenario "Esper Origins from hand surveils and gains life" {
+  hand A: "Esper Origins"
+  battlefield A: 2 "Forest"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Esper Origins"
+  turn 1 A: surveil "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A contains "Esper Origins"
+  assert graveyard A contains "Grizzly Bears"
+}
+scenario "Esper Origins from graveyard comes back as the Saga creature" {
+  graveyard A: "Esper Origins"
+  battlefield A: 4 "Forest"
+  turn 1 A: cast "Esper Origins" from graveyard
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert battlefield A contains "Summon: Esper Maduin"
+  assert counters "Summon: Esper Maduin" finality 1
+  assert counters "Summon: Esper Maduin" lore 1
+  assert power "Summon: Esper Maduin" 4
+}
+scenario "Esper Maduin chapter I puts a revealed permanent card into hand" {
+  graveyard A: "Esper Origins"
+  battlefield A: 4 "Forest"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Esper Origins" from graveyard
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

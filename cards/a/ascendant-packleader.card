@@ -1,0 +1,8 @@
+card "Ascendant Packleader" {
+  oracle_id 7e81853c-d0c0-40bc-80fc-13a5964878b2
+  cost {G}
+  type Creature — Wolf
+  pt 2/1
+  enters with 1 +1/+1 counter if you control permanent with mana value 4 or greater
+  triggered whenever you cast with mana value 4 or greater spell: put 1 +1/+1 counter on this
+}

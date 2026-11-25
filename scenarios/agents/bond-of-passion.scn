@@ -1,0 +1,23 @@
+scenario "bond of passion steals, hastes and damages another target" {
+  hand A: "Bond of Passion"
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant" tapped, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bond of Passion" targeting "Hill Giant", "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert life B 17
+}
+scenario "bond of passion damages player" {
+  hand A: "Bond of Passion"
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bond of Passion" targeting "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+}

@@ -1,0 +1,16 @@
+scenario "Arni Slays the Troll: fight, counters, then life" {
+  battlefield A: "Hill Giant", "Mountain", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Arni Slays the Troll"
+  turn 1 A: cast "Arni Slays the Troll"
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  run_to turn 3 postcombat_main
+  assert counters "Hill Giant" +1/+1 2
+  assert power "Hill Giant" 5
+  run_to turn 5 postcombat_main
+  assert life A 25
+  assert graveyard A contains "Arni Slays the Troll"
+}

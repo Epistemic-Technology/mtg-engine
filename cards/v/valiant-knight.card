@@ -1,0 +1,8 @@
+card "Valiant Knight" {
+  oracle_id b5c03abf-4297-4402-9107-539e92d41f2f
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 3/4
+  static other Knight you control: +1/+1
+  activated {3}{W}{W}: each Knight you control gain double strike
+}

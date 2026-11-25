@@ -1,0 +1,25 @@
+scenario "combat damage reanimates from their graveyard" {
+  battlefield A: "Ink-Eyes, Servant of Oni"
+  graveyard B: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  start turn 1 A
+  turn 1 declare_attackers A: attack "Ink-Eyes, Servant of Oni"
+  turn 1 combat_damage A: trigger "Ink-Eyes, Servant of Oni" targeting B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+scenario "regenerate" {
+  battlefield A: "Ink-Eyes, Servant of Oni", 2 "Swamp"
+  battlefield B: "Hill Giant" with 2 +1/+1
+  start turn 2 B
+  turn 2 declare_attackers B: attack "Hill Giant"
+  turn 2 declare_blockers A: block "Hill Giant" with "Ink-Eyes, Servant of Oni"
+  turn 2 declare_blockers A: activate "Ink-Eyes, Servant of Oni"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Ink-Eyes, Servant of Oni"
+  assert graveyard B contains "Hill Giant"
+  assert tapped "Ink-Eyes, Servant of Oni"
+}

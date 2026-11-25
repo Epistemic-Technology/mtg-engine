@@ -1,0 +1,12 @@
+scenario "go blank discards two and exiles graveyard" {
+  hand A: "Go Blank"
+  hand B: "Forest", "Island", "Plains"
+  graveyard B: "Grizzly Bears"
+  battlefield A: 2 "Swamp", "Swamp"
+  turn 1 A: cast "Go Blank" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B lacks "Grizzly Bears"
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Grizzly Bears"
+}

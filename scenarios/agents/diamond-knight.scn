@@ -1,0 +1,14 @@
+scenario "diamond knight counts only spells of the chosen color" {
+  battlefield A: 4 "Mountain", "Forest"
+  hand A: "Diamond Knight", "Lightning Bolt", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diamond Knight"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Diamond Knight"
+  run_to turn 1 postcombat_main
+  assert counters "Diamond Knight" +1/+1 1
+  assert power "Diamond Knight" 5
+}

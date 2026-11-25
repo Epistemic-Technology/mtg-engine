@@ -1,0 +1,15 @@
+scenario "golgari keyrune becomes a 2/2 deathtouch Insect until end of turn" {
+  battlefield A: "Golgari Keyrune", "Swamp", "Forest"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Golgari Keyrune"
+  run_to turn 1 begin_combat
+  assert is "Golgari Keyrune" creature
+  assert is "Golgari Keyrune" black
+  assert is "Golgari Keyrune" green
+  assert power "Golgari Keyrune" 2
+  assert toughness "Golgari Keyrune" 2
+  assert has "Golgari Keyrune" deathtouch
+  run_to turn 2 upkeep
+  assert has not "Golgari Keyrune" deathtouch
+  assert tapped "Swamp"
+}

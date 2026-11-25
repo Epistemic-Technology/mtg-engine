@@ -1,0 +1,15 @@
+card "Panicked Bystander // Cackling Culprit" {
+  oracle_id fc58a086-2743-4465-bf16-4a20701cd3b1
+  layout transform
+  cost {1}{W}
+  type Creature — Human Peasant
+  pt 2/2
+  triggered whenever this or creature you control dies: you gain 1 life
+  triggered at beginning of your end step if gained 3 life this turn: transform this
+  face "Cackling Culprit" {
+    type Creature — Human Rogue
+    pt 3/5
+    triggered whenever this or creature you control dies: you gain 1 life
+    activated {1}{B}: this gains deathtouch
+  }
+}

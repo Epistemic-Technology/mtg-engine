@@ -1,0 +1,33 @@
+scenario "Puppeteer Clique reanimates an opponent's creature with haste" {
+  battlefield A: 5 "Swamp"
+  graveyard B: "Grizzly Bears", "Hill Giant"
+  hand A: "Puppeteer Clique"
+  turn 1 A: cast "Puppeteer Clique"
+  turn 1 A: trigger "Puppeteer Clique" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" haste
+  assert life B 18
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Puppeteer Clique exiles the creature at the beginning of my next end step" {
+  battlefield A: 5 "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Puppeteer Clique"
+  turn 1 A: cast "Puppeteer Clique"
+  turn 1 A: trigger "Puppeteer Clique" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Puppeteer Clique persists" {
+  battlefield A: "Puppeteer Clique", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Puppeteer Clique"
+  run_to turn 1 postcombat_main
+  assert counters "Puppeteer Clique" -1/-1 1
+  assert power "Puppeteer Clique" 2
+}

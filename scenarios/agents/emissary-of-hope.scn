@@ -1,0 +1,10 @@
+scenario "Emissary of Hope gains life per artifact the player controls" {
+  battlefield A: "Emissary of Hope", "Sol Ring"
+  battlefield B: "Treasure", "Treasure", "Sol Ring"
+  life A 10
+  start turn 1 A
+  turn 1 A: attack "Emissary of Hope"
+  run_to turn 1 postcombat_main
+  assert life A 13
+  assert life B 18
+}

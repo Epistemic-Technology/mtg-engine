@@ -1,0 +1,9 @@
+scenario "outrage shaman counts red symbols" {
+  battlefield A: "Hill Giant", 5 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Outrage Shaman"
+  turn 1 A: cast "Outrage Shaman"
+  turn 1 A: trigger "Outrage Shaman" targeting "Serra Angel"
+  run_to turn 1 combat_damage
+  assert damage "Serra Angel" 3
+}

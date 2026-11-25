@@ -1,0 +1,7 @@
+card "Gruul Keyrune" {
+  oracle_id 98bdb1e1-7550-47e8-aa06-f81802b257a0
+  cost {3}
+  type Artifact
+  activated {T}: add {R} or {G}
+  activated {R}{G}: this becomes 3/2 red green Beast artifact creature with trample until end of turn
+}

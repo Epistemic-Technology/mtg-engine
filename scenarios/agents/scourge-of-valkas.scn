@@ -1,0 +1,23 @@
+scenario "scourge alone deals one" {
+  battlefield A: 5 "Mountain"
+  hand A: "Scourge of Valkas"
+  turn 1 A: cast "Scourge of Valkas"
+  turn 1 A: trigger "Scourge of Valkas" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+scenario "scourge two dragons" {
+  battlefield A: "Scourge of Valkas", 5 "Mountain"
+  hand A: "Scourge of Valkas"
+  turn 1 A: cast "Scourge of Valkas"
+  turn 1 A: trigger "Scourge of Valkas" targeting player B
+  turn 1 A: trigger "Scourge of Valkas" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+scenario "scourge firebreathing" {
+  battlefield A: "Scourge of Valkas", "Mountain"
+  turn 1 A: activate "Scourge of Valkas"
+  run_to turn 1 begin_combat
+  assert power "Scourge of Valkas" 5
+}

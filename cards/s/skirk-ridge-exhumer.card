@@ -1,0 +1,7 @@
+card "Skirk Ridge Exhumer" {
+  oracle_id 4ed9bccf-c655-426e-8192-65beab830fcd
+  cost {1}{B}
+  type Creature — Zombie Spellshaper
+  pt 1/1
+  activated {B}, {T}, discard 1 card: create 1 "1/1 black Zombie Goblin creature named Festering Goblin" it has
+}

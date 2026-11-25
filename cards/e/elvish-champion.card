@@ -1,0 +1,7 @@
+card "Elvish Champion" {
+  oracle_id 7e40f37c-9a0c-40e0-b195-7ea94b12f798
+  cost {1}{G}{G}
+  type Creature — Elf
+  pt 2/2
+  static other Elf creature: +1/+1, has forestwalk
+}

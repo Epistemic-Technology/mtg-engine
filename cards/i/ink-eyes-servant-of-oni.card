@@ -1,0 +1,10 @@
+card "Ink-Eyes, Servant of Oni" {
+  oracle_id 5d520476-740a-4005-801e-472b24fa6497
+  cost {4}{B}{B}
+  type Legendary Creature — Rat Ninja
+  pt 5/4
+  ninjutsu {3}{B}{B}
+  short_name "Ink-Eyes"
+  triggered whenever this deals combat damage to a player: you may put target creature card from that player's graveyard onto battlefield under your control
+  activated {1}{B}: regenerate this
+}

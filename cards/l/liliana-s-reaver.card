@@ -1,0 +1,8 @@
+card "Liliana's Reaver" {
+  oracle_id 97332d4e-a55c-4e4f-9040-bf426a7c8e39
+  cost {2}{B}{B}
+  type Creature — Zombie
+  pt 4/3
+  keywords deathtouch
+  triggered whenever this deals combat damage to a player: that player discards 1 card and you create 1 tapped "2/2 black Zombie creature"
+}

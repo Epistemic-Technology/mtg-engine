@@ -1,0 +1,8 @@
+scenario "Scourge of Geier Reach counts opponents' creatures only" {
+  battlefield A: "Scourge of Geier Reach", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel", "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Scourge of Geier Reach" 6
+  assert toughness "Scourge of Geier Reach" 6
+}

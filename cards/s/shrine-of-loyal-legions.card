@@ -1,0 +1,7 @@
+card "Shrine of Loyal Legions" {
+  oracle_id 9696ad3d-2e17-4ab7-88ee-3c56a632b7a8
+  cost {2}
+  type Artifact
+  triggered at beginning of your upkeep step and whenever you cast white spell: put 1 charge counter on this
+  activated {3}, {T}, sacrifice this: create count each charge counters on this "1/1 colorless Phyrexian Myr artifact creature"
+}

@@ -1,0 +1,18 @@
+scenario "Phyrexian Metamorph copies a creature and is also an artifact" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  hand A: "Phyrexian Metamorph"
+  turn 1 A: cast "Phyrexian Metamorph"
+  turn 1 A: copy "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert power newest A "Grizzly Bears" 2
+  assert is newest A "Grizzly Bears" artifact
+  assert is newest A "Grizzly Bears" creature
+}
+scenario "Phyrexian Metamorph with nothing to copy dies" {
+  battlefield A: 4 "Island"
+  hand A: "Phyrexian Metamorph"
+  turn 1 A: cast "Phyrexian Metamorph"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Phyrexian Metamorph"
+}

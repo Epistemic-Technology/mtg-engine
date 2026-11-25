@@ -1,0 +1,33 @@
+scenario "Mycoid Shepherd gains 5 when a power 5 creature you control dies" {
+  battlefield A: "Mycoid Shepherd", "Hill Giant" with 2 +1/+1, 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+  assert life A 25
+}
+scenario "Mycoid Shepherd gains 5 when it dies itself" {
+  battlefield A: "Mycoid Shepherd", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Mycoid Shepherd"
+  run_to turn 1 end
+  assert graveyard A contains "Mycoid Shepherd"
+  assert life A 25
+}
+scenario "Mycoid Shepherd ignores a small creature dying" {
+  battlefield A: "Mycoid Shepherd", "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 20
+}
+scenario "Mycoid Shepherd ignores an opponent's big creature dying" {
+  battlefield A: "Mycoid Shepherd", 3 "Swamp"
+  battlefield B: "Hill Giant" with 2 +1/+1
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}

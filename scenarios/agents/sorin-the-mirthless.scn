@@ -1,0 +1,32 @@
+scenario "Sorin the Mirthless +1 takes the top card and costs its mana value" {
+  battlefield A: "Sorin the Mirthless"
+  library A: "Serra Angel", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sorin the Mirthless" ability 1
+  run_to turn 1 begin_combat
+  assert hand A contains "Serra Angel"
+  assert life A 15
+  assert counters "Sorin the Mirthless" loyalty 5
+}
+
+scenario "Sorin the Mirthless -2 makes a lifelinking flier" {
+  battlefield A: "Sorin the Mirthless"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sorin the Mirthless" ability 2
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Vampire"
+  assert power "Vampire" 2
+  assert toughness "Vampire" 3
+  assert has "Vampire" flying
+  assert has "Vampire" lifelink
+  assert counters "Sorin the Mirthless" loyalty 2
+}
+
+scenario "Sorin the Mirthless -7 hits for 13 and gains 13" {
+  battlefield A: "Sorin the Mirthless" with 7 loyalty
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sorin the Mirthless" ability 3 targeting player B
+  run_to turn 1 begin_combat
+  assert life B 7
+  assert life A 33
+}

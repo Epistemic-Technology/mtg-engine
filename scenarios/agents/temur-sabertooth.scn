@@ -1,0 +1,23 @@
+scenario "Sabertooth returns a creature and survives" {
+  battlefield A: "Temur Sabertooth", "Grizzly Bears", 2 "Forest", 1 "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: activate "Temur Sabertooth"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Temur Sabertooth"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert has "Temur Sabertooth" indestructible
+}
+
+scenario "Sabertooth declining stays vulnerable" {
+  battlefield A: "Temur Sabertooth", "Grizzly Bears", 2 "Forest", 1 "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: activate "Temur Sabertooth"
+  turn 1 A: decline "Temur Sabertooth"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Temur Sabertooth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Temur Sabertooth"
+}

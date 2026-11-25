@@ -1,0 +1,23 @@
+scenario "Falcon creates Redwing" {
+  battlefield A: 5 "Island"
+  hand A: "Falcon, Winged Wonder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Falcon, Winged Wonder"
+  run_to turn 1 end
+  assert battlefield A contains "Falcon, Winged Wonder"
+  assert battlefield A contains "Redwing"
+  assert power "Redwing" 1
+  assert toughness "Redwing" 1
+  assert has "Redwing" flying
+  assert is "Redwing" "Scout"
+}
+scenario "Redwing surveils 1 when it attacks" {
+  battlefield A: "Redwing"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Redwing"
+  turn 1 A: surveil "Forest"
+  run_to turn 1 end
+  assert graveyard A contains "Forest"
+  assert life B 19
+}

@@ -1,0 +1,9 @@
+scenario "Cleric of Life's Bond gains life and grows once per turn" {
+  battlefield A: "Cleric of Life's Bond", "Plains", "Swamp"
+  hand A: "Cleric of Life's Bond"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cleric of Life's Bond"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert counters A "Cleric of Life's Bond" +1/+1 1
+}

@@ -1,0 +1,11 @@
+scenario "black dragon acid breath" {
+  battlefield A: 7 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Black Dragon"
+  turn 1 A: cast "Black Dragon"
+  turn 1 A: trigger "Black Dragon" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert has "Black Dragon" flying
+}

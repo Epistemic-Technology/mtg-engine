@@ -1,0 +1,18 @@
+scenario "voice of the vermin enters with a shield counter" {
+  hand A: "Voice of the Vermin"
+  battlefield A: 4 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Voice of the Vermin"
+  run_to turn 1 begin_combat
+  assert counters "Voice of the Vermin" shield 1
+}
+scenario "voice of the vermin attack trigger sets base 4/4" {
+  battlefield A: "Voice of the Vermin", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Voice of the Vermin"
+  turn 1 A: trigger "Voice of the Vermin" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Voice of the Vermin" 2
+}

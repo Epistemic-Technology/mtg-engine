@@ -1,0 +1,25 @@
+scenario "Mark of the Oni steals a creature and keeps it while you control a Demon" {
+  battlefield A: "Archfiend of Depravity", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Mark of the Oni"
+  start turn 1 A
+  turn 1 A: cast "Mark of the Oni" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+  assert battlefield A contains "Mark of the Oni"
+}
+
+scenario "Mark of the Oni is sacrificed at the end step without a Demon" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Mark of the Oni"
+  start turn 1 A
+  turn 1 A: cast "Mark of the Oni" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Mark of the Oni"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}

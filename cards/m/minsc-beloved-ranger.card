@@ -1,0 +1,8 @@
+card "Minsc, Beloved Ranger" {
+  oracle_id 2cd10c6c-f946-457e-9175-92501322f7a5
+  cost {R}{G}{W}
+  type Legendary Creature — Human Ranger
+  pt 3/3
+  triggered when this enters: create 1 "Boo, a legendary 1/1 red Hamster creature with trample and haste"
+  activated {X}, sorcery: until end of turn, target creature you control has base power and toughness X and becomes Giant in addition
+}

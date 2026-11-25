@@ -1,0 +1,8 @@
+token "Redwing, a legendary 1/1 blue Bird Scout creature with flying and surveil" {
+  name "Redwing"
+  type Legendary Creature — Bird Scout
+  pt 1/1
+  color blue
+  keywords flying
+  triggered whenever this attacks: surveil 1
+}

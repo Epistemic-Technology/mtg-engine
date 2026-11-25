@@ -1,0 +1,30 @@
+scenario "lotho triggers on any player's second spell" {
+  battlefield A: "Lotho, Corrupt Shirriff", 4 "Mountain"
+  hand A: "Shock", "Shock"
+  life A 20
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert battlefield A contains 1 "Treasure"
+  assert life B 16
+}
+scenario "lotho does not trigger on a first spell" {
+  battlefield A: "Lotho, Corrupt Shirriff", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield A lacks "Treasure"
+}
+scenario "lotho triggers on opponent's second spell" {
+  battlefield A: "Lotho, Corrupt Shirriff"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 15
+  assert battlefield A contains 1 "Treasure"
+}

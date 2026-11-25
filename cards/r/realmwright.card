@@ -1,0 +1,8 @@
+card "Realmwright" {
+  oracle_id bad869dd-e844-46ca-be53-73c4bc19d09c
+  cost {U}
+  type Creature — Vedalken Wizard
+  pt 1/1
+  as this enters choose land type
+  static plural land you control: add chosen type
+}

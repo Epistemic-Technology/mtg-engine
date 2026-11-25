@@ -1,0 +1,7 @@
+card "The Mycosynth Gardens" {
+  oracle_id 03f5c566-825c-4c46-9c01-a2f9b1e70a13
+  type Land — Sphere
+  mana {C}
+  activated {1}, {T}: add any
+  activated {X}, {T}: this becomes a copy of target nontoken artifact you control with mana value X
+}

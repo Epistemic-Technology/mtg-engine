@@ -1,0 +1,6 @@
+card "Leechridden Swamp" {
+  oracle_id d83c86c1-126d-49e9-9b13-9e55784c49c5
+  type Land — Swamp
+  enters tapped
+  activated {B}, {T}, if you control 2 black permanent: each opponent loses 1 life
+}

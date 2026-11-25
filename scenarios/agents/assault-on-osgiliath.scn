@@ -1,0 +1,12 @@
+scenario "assault amasses and grants double strike and haste to goblins and orcs" {
+  battlefield A: "Goblin Piker", "Grizzly Bears", 5 "Mountain"
+  hand A: "Assault on Osgiliath"
+  turn 1 A: cast "Assault on Osgiliath" x 2
+  run_to turn 1 postcombat_main
+  assert power "Orc Army" 2
+  assert has "Orc Army" double_strike
+  assert has "Orc Army" haste
+  assert has "Goblin Piker" double_strike
+  assert has "Goblin Piker" haste
+  assert has not "Grizzly Bears" haste
+}

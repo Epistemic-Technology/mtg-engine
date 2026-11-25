@@ -1,0 +1,7 @@
+card "Aetherflux Reservoir" {
+  oracle_id 5f15125e-ae89-471e-b055-226a783bc7c1
+  cost {4}
+  type Artifact
+  triggered whenever you cast a spell: you gain count each spells cast this turn life
+  activated pay 50 life: deal 50 damage to any target
+}

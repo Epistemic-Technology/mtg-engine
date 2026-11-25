@@ -1,0 +1,25 @@
+scenario "no damage to controller on own turn" {
+  battlefield A: "Personal Sanctuary", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+scenario "damage on opponent's turn is not prevented" {
+  battlefield A: "Personal Sanctuary"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+scenario "creature damage to controller on own turn" {
+  battlefield A: "Personal Sanctuary"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

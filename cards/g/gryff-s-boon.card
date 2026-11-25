@@ -1,0 +1,8 @@
+card "Gryff's Boon" {
+  oracle_id f62f3f4e-d506-43a9-91d8-bbc86e0a9167
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0, has flying
+  activated {3}{W}, from graveyard, sorcery: return this to battlefield attached to target creature
+}

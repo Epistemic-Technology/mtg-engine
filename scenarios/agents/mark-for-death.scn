@@ -1,0 +1,21 @@
+scenario "Mark for Death forces the target to block, untaps it, others can't block" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  battlefield B: "Hill Giant" tapped, "Wind Drake"
+  hand A: "Mark for Death"
+  turn 1 A: cast "Mark for Death" targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Mark for Death: without it the Wind Drake could block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

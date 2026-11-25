@@ -1,0 +1,22 @@
+scenario "damage and destroy artifact" {
+  battlefield A: "Island", "Mountain", "Mountain"
+  battlefield B: "Treasure"
+  hand A: "Prismari Command"
+  turn 1 precombat_main A: cast "Prismari Command" mode 3 targeting player B, "Treasure"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield B lacks "Treasure"
+}
+scenario "loot and treasure" {
+  battlefield A: "Island", "Mountain", "Mountain"
+  hand A: "Prismari Command", "Shock", "Giant Growth"
+  library A: "Forest", "Forest"
+  turn 1 precombat_main A: cast "Prismari Command" mode 4 targeting player A, player A
+  turn 1 precombat_main A: discard "Shock"
+  turn 1 precombat_main A: discard "Giant Growth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Giant Growth"
+  assert hand A count 2
+}

@@ -1,0 +1,8 @@
+card "Dragon's Rage Channeler" {
+  oracle_id 0c016ccc-a341-4b76-87ba-69c639d2746d
+  cost {R}
+  type Creature — Human Shaman
+  pt 1/1
+  triggered whenever you cast noncreature spell: surveil 1
+  label "Delirium" static as long as 4 card types in your graveyard, this: +2/+2, has flying, has attacks each combat if able
+}

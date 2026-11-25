@@ -1,0 +1,8 @@
+card "Sword of Kaldra" {
+  oracle_id 35f63c60-b0a1-459d-bf51-a8549fb06930
+  cost {4}
+  type Legendary Artifact — Equipment
+  static enchanted: +5/+5
+  triggered whenever enchanted creature deals damage to creature: exile that creature
+  equip {4}
+}

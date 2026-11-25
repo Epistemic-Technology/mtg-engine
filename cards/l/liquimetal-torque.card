@@ -1,0 +1,7 @@
+card "Liquimetal Torque" {
+  oracle_id b7d4b7dd-fbb1-4ca3-875f-ef13a95e66ad
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: target nonland permanent becomes artifact in addition until end of turn
+}

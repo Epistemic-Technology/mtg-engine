@@ -1,0 +1,9 @@
+card "Teferi, Hero of Dominaria" {
+  oracle_id f2f165b6-ef0a-42ad-9352-ba68be8248b0
+  cost {3}{W}{U}
+  type Legendary Planeswalker — Teferi
+  loyalty 4
+  loyalty +1: draw 1 cards; delayed you: at beginning of the next end step untap up to 2 land chosen
+  loyalty -3: put target nonland permanent into library 3 from top
+  loyalty -8: emblem "Teferi, Hero of Dominaria emblem"
+}

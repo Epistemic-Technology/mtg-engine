@@ -1,0 +1,10 @@
+scenario "Master of Waves makes Elementals equal to devotion to blue" {
+  battlefield A: "Wind Drake", 4 "Island"
+  hand A: "Master of Waves"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Master of Waves"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Elemental"
+  assert power oldest A "Elemental" 2
+  assert toughness oldest A "Elemental" 1
+}

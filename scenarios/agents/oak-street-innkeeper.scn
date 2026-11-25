@@ -1,0 +1,18 @@
+scenario "Oak Street Innkeeper: tapped creatures have hexproof on opponent's turn" {
+  battlefield A: "Oak Street Innkeeper", "Grizzly Bears" tapped, "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting A "Grizzly Bears"
+  turn 2 B: cast "Shock" targeting A "Hill Giant"
+  run_to turn 2 end
+  assert damage "Hill Giant" 2
+}
+
+scenario "Oak Street Innkeeper: no hexproof during your own turn" {
+  battlefield A: "Oak Street Innkeeper", "Grizzly Bears" tapped, 1 "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+}

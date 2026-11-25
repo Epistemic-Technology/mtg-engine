@@ -1,0 +1,16 @@
+scenario "pay two lands to keep" {
+  battlefield A: "Cosmic Larva", 3 "Mountain"
+  start turn 1 A upkeep
+  turn 1 upkeep A: choose "Mountain"
+  turn 1 upkeep A: choose "Mountain"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Cosmic Larva"
+  assert battlefield A contains 1 "Mountain"
+}
+scenario "cannot pay two lands" {
+  battlefield A: "Cosmic Larva", "Mountain"
+  start turn 1 A upkeep
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Cosmic Larva"
+  assert battlefield A contains 1 "Mountain"
+}

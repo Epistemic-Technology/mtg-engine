@@ -1,0 +1,8 @@
+card "Voice of the Vermin" {
+  oracle_id 73829ae3-c8de-4e6d-9607-4b2e980ff144
+  cost {3}{G}
+  type Creature — Human Citizen
+  pt 2/2
+  enters with 1 shield counter
+  triggered whenever this attacks: target creature you control has base power and toughness 4/4 until end of turn
+}

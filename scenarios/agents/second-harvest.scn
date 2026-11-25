@@ -1,0 +1,12 @@
+scenario "second harvest copies each token you control but not nontokens" {
+  hand A: "Second Harvest"
+  battlefield A: 4 "Forest", "Food", "Treasure", "Grizzly Bears"
+  battlefield B: "Food"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Second Harvest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Food"
+  assert battlefield A contains 2 "Treasure"
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield B contains 1 "Food"
+}

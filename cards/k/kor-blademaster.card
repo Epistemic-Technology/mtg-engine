@@ -1,0 +1,8 @@
+card "Kor Blademaster" {
+  oracle_id 194260af-aba5-4d18-a69b-eedb97ed4a4b
+  cost {1}{W}
+  type Creature — Kor Warrior
+  pt 1/1
+  keywords double strike
+  static Warrior with Equipment you control: has double strike
+}

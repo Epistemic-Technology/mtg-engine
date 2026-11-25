@@ -1,0 +1,8 @@
+card "Gatebreaker Ram" {
+  oracle_id 3b0a97e2-e125-4f91-8581-307e3fa6b048
+  cost {2}{G}
+  type Creature — Sheep
+  pt 2/2
+  static this: +1/+1 count each Gate you control
+  static as long as you control 2 Gate, this: has vigilance, trample
+}

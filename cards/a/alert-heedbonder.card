@@ -1,0 +1,8 @@
+card "Alert Heedbonder" {
+  oracle_id 683a06b6-af77-440f-81b9-8958597a7324
+  cost {1}{G/W}{G/W}
+  type Creature — Human Scout
+  pt 2/4
+  keywords vigilance
+  triggered at beginning of your end step: you gain count each creature with vigilance you control life
+}

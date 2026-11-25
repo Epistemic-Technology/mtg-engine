@@ -1,0 +1,7 @@
+card "Wandering Fumarole" {
+  oracle_id 741c51f1-cfbe-4c29-ac8f-ca6bcd2652f9
+  type Land
+  enters tapped
+  activated {T}: add {U} or {R}
+  activated {2}{U}{R}: until end of turn, this becomes 1/4 blue red Elemental creature with ability { activated {0}: switch pt of this until end of turn }
+}

@@ -1,0 +1,6 @@
+card "Takenuma, Abandoned Mire" {
+  oracle_id ac2dd694-d2f1-4025-8400-12332bdc882a
+  type Legendary Land
+  mana {B}
+  label "Channel" activated {3}{B}, discard this, reduced {1} each legendary creature you control: mill 3 cards then return 1 creature or planeswalker card from your graveyard to hand chosen
+}

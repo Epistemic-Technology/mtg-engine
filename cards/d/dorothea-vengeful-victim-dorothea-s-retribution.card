@@ -1,0 +1,17 @@
+card "Dorothea, Vengeful Victim // Dorothea's Retribution" {
+  oracle_id 2cef4171-8151-4ee9-83a7-bcb5116451bf
+  layout transform
+  cost {W}{U}
+  type Legendary Creature — Spirit
+  pt 4/4
+  keywords flying
+  triggered when this attacks or blocks: delayed this: sacrifice it at end of combat
+  disturb {1}{W}{U}
+  face "Dorothea's Retribution" {
+    type Enchantment — Aura
+    color blue white
+    enchant creature
+    static enchanted: has ability { triggered whenever this attacks: create 1 tapped and attacking "4/4 white Spirit creature with flying"; delayed that token: sacrifice that token at end of combat }
+    exiled instead of graveyard
+  }
+}

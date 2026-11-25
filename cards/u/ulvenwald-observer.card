@@ -1,0 +1,7 @@
+card "Ulvenwald Observer" {
+  oracle_id dff3cfff-69f9-4afd-af28-b75504d30ffa
+  cost {4}{G}{G}
+  type Creature — Treefolk
+  pt 6/6
+  triggered whenever a creature you control with toughness 4 or greater dies: draw 1 card
+}

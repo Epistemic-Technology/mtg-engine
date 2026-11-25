@@ -1,0 +1,15 @@
+scenario "leechridden swamp drains with two black permanents" {
+  battlefield A: "Leechridden Swamp", "Swamp", 2 "Typhoid Rats"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Leechridden Swamp"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Leechridden Swamp"
+}
+scenario "leechridden swamp needs two black permanents" {
+  battlefield A: "Leechridden Swamp", "Swamp", "Typhoid Rats"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Leechridden Swamp"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

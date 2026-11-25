@@ -1,0 +1,6 @@
+card "Invade the City" {
+  oracle_id 583a4744-89fb-4bd6-8d4c-c3d845e2e19c
+  cost {1}{U}{R}
+  type Sorcery
+  spell: amass Zombies count where graveyard instant or sorcery
+}

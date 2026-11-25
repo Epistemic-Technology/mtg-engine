@@ -1,0 +1,20 @@
+scenario "Root Maze makes lands enter tapped for both players" {
+  battlefield A: "Root Maze"
+  hand A: "Forest"
+  hand B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 2 B: play "Mountain"
+  run_to turn 2 postcombat_main
+  assert tapped "Forest"
+  assert tapped "Mountain"
+}
+
+scenario "Root Maze leaves creatures alone" {
+  battlefield A: "Root Maze", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}

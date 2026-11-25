@@ -1,0 +1,6 @@
+card "Unchecked Growth" {
+  oracle_id ea4052bc-cd37-467c-9fba-3f1ed537b781
+  cost {2}{G}
+  type Instant — Arcane
+  spell: target creature gets +4/+4; if target 1 is Spirit, target 1 gains trample
+}

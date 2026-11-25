@@ -1,0 +1,8 @@
+card "Satyr Nyx-Smith" {
+  oracle_id 3ad9d55d-02f7-412e-8756-6a026f8e68d7
+  cost {2}{R}
+  type Creature — Satyr Shaman
+  pt 2/1
+  keywords haste
+  label "Inspired" triggered whenever this becomes untapped: you may pay {2}{R}; if you do, create 1 "3/1 red Elemental enchantment creature with haste"
+}

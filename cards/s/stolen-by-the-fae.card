@@ -1,0 +1,6 @@
+card "Stolen by the Fae" {
+  oracle_id 5bafd0e0-8bf8-4e06-a54a-81cc6cc4bdb7
+  cost {X}{U}{U}
+  type Sorcery
+  spell: return target creature with mana value X to hand; you create X "1/1 blue Faerie creature with flying"
+}

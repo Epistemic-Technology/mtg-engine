@@ -1,0 +1,29 @@
+scenario "Kabira Takedown deals damage equal to creatures you control" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Serra Angel", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Kabira Takedown"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kabira Takedown" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert graveyard A contains "Kabira Takedown"
+}
+
+scenario "Kabira Takedown with fewer creatures than toughness does not kill" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Kabira Takedown"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kabira Takedown" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Kabira Plateau enters tapped" {
+  hand A: "Kabira Takedown"
+  start turn 1 A precombat_main
+  turn 1 A: play "Kabira Plateau"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kabira Plateau"
+  assert tapped "Kabira Plateau"
+}

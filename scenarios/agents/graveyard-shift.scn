@@ -1,0 +1,19 @@
+scenario "graveyard shift has flash with five mana values and returns a creature" {
+  hand A: "Graveyard Shift"
+  battlefield A: 5 "Swamp"
+  graveyard A: "Plains", "Lightning Bolt", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 2 B precombat_main
+  turn 2 precombat_main A: cast "Graveyard Shift" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Graveyard Shift"
+}
+scenario "graveyard shift has no flash with four mana values" {
+  hand A: "Graveyard Shift"
+  battlefield A: 5 "Swamp"
+  graveyard A: "Lightning Bolt", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: cast "Graveyard Shift" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Graveyard Shift"
+}

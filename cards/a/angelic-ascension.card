@@ -1,0 +1,6 @@
+card "Angelic Ascension" {
+  oracle_id 5a898412-5b1e-4217-ac78-5b4099ed8e16
+  cost {1}{W}
+  type Instant
+  spell: exile target creature or planeswalker; its controller creates 1 "4/4 white Angel creature with flying"
+}

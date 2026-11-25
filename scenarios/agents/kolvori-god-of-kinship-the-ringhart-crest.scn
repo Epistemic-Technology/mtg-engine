@@ -1,0 +1,23 @@
+scenario "Kolvori is 6/6 vigilance with three legendary creatures" {
+  battlefield A: "Kolvori, God of Kinship", "Jirina, Dauntless General", "Sram, Senior Edificer"
+  run_to turn 1 postcombat_main
+  assert power "Kolvori, God of Kinship" 6
+  assert toughness "Kolvori, God of Kinship" 6
+  assert has "Kolvori, God of Kinship" vigilance
+}
+scenario "Kolvori is 2/4 with fewer than three legendary creatures" {
+  battlefield A: "Kolvori, God of Kinship", "Jirina, Dauntless General"
+  run_to turn 1 postcombat_main
+  assert power "Kolvori, God of Kinship" 2
+  assert toughness "Kolvori, God of Kinship" 4
+  assert has not "Kolvori, God of Kinship" vigilance
+}
+scenario "Kolvori's ability finds a legendary creature" {
+  battlefield A: "Kolvori, God of Kinship", "Forest", "Forest"
+  library A: "Island", "Island", "Sram, Senior Edificer", "Island", "Island", "Island", "Swamp"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Kolvori, God of Kinship"
+  run_to turn 3 postcombat_main
+  assert library A count 6
+  assert hand A contains "Sram, Senior Edificer"
+}

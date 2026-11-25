@@ -1,0 +1,27 @@
+scenario "Titanic Ultimatum pumps my creatures only" {
+  battlefield A: "Grizzly Bears", "Serra Angel", 2 "Mountain", 3 "Forest", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Titanic Ultimatum"
+  turn 1 A: cast "Titanic Ultimatum"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 7
+  assert power "Serra Angel" 9
+  assert has "Grizzly Bears" first_strike
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" lifelink
+  assert power "Hill Giant" 3
+  assert has not "Hill Giant" trample
+  assert life B 13
+  assert life A 27
+}
+
+scenario "Titanic Ultimatum wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Mountain", 3 "Forest", 2 "Plains"
+  hand A: "Titanic Ultimatum"
+  turn 1 A: cast "Titanic Ultimatum"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" lifelink
+}

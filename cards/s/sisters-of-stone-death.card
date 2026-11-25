@@ -1,0 +1,9 @@
+card "Sisters of Stone Death" {
+  oracle_id 38e64b15-47c0-4453-a51e-a53c1aebc8d0
+  cost {4}{B}{B}{G}{G}
+  type Legendary Creature — Gorgon
+  pt 7/5
+  activated {G}: target creature blocks this this turn if able
+  activated {B}{G}: exile target creature blocking or blocked by this
+  activated {2}{B}: put 1 creature card exiled with this onto battlefield under your control
+}

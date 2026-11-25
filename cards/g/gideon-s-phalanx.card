@@ -1,0 +1,9 @@
+card "Gideon's Phalanx" {
+  oracle_id f9489831-a9a2-47ab-abae-2f389c9fae2c
+  cost {5}{W}{W}
+  type Instant
+  spell {
+    create 4 "2/2 white Knight creature with vigilance"
+    label "Spell mastery" if 2 instant or sorcery cards in your graveyard, each creature you control gain indestructible until end of turn
+  }
+}

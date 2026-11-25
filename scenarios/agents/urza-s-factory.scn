@@ -1,0 +1,9 @@
+scenario "Urza's Factory makes an Assembly-Worker" {
+  battlefield A: "Urza's Factory", 7 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Urza's Factory" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Assembly-Worker"
+  assert power "Assembly-Worker" 2
+  assert tapped "Urza's Factory"
+}

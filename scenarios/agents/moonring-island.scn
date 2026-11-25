@@ -1,0 +1,22 @@
+scenario "moonring island looks with two blue permanents" {
+  battlefield A: "Moonring Island", "Island", 2 "Wind Drake"
+  library B: "Forest", "Plains"
+  turn 1 precombat_main A: activate "Moonring Island" targeting player B
+  run_to turn 1 postcombat_main
+  assert known A "Forest"
+  assert tapped "Moonring Island"
+  assert tapped "Island"
+}
+scenario "moonring island needs two blue permanents" {
+  battlefield A: "Moonring Island", "Island", "Wind Drake"
+  library B: "Forest", "Plains"
+  illegal turn 1 precombat_main A: activate "Moonring Island" targeting player B
+  run_to turn 1 postcombat_main
+  assert unknown A "Forest"
+}
+scenario "moonring island enters tapped" {
+  hand A: "Moonring Island"
+  turn 1 precombat_main A: play "Moonring Island"
+  run_to turn 1 postcombat_main
+  assert tapped "Moonring Island"
+}

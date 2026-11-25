@@ -1,0 +1,6 @@
+card "Urza's Factory" {
+  oracle_id 5a620d20-f14e-43d0-8e57-c2a197e2ec51
+  type Land — Urza's
+  activated {T}: add {C}
+  activated {7}, {T}: create 1 "2/2 colorless Assembly-Worker artifact creature"
+}

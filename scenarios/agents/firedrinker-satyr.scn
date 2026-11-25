@@ -1,0 +1,16 @@
+scenario "firedrinker satyr pumps and hurts you" {
+  battlefield A: "Firedrinker Satyr", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Firedrinker Satyr"
+  run_to turn 1 begin_combat
+  assert power "Firedrinker Satyr" 3
+  assert life A 19
+}
+scenario "firedrinker satyr redirects damage dealt to it back at you" {
+  battlefield A: "Firedrinker Satyr", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Firedrinker Satyr"
+  run_to turn 1 postcombat_main
+  assert life A 17
+}

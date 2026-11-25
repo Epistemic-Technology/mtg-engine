@@ -1,0 +1,23 @@
+scenario "Whispers of Emrakul discards one without delirium" {
+  battlefield A: 2 "Swamp"
+  hand A: "Whispers of Emrakul"
+  hand B: "Forest", "Forest", "Forest"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Whispers of Emrakul" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert graveyard B count 1
+}
+
+scenario "Whispers of Emrakul discards two with delirium" {
+  battlefield A: 2 "Swamp"
+  hand A: "Whispers of Emrakul"
+  hand B: "Forest", "Forest", "Forest"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Forest", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Whispers of Emrakul" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B count 2
+}

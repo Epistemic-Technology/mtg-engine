@@ -1,0 +1,26 @@
+scenario "Culling Ritual destroys cheap nonland permanents and adds mana for each" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Swamp", 2 "Forest"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Culling Ritual", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: cast "Culling Ritual"
+  turn 1 A: choose green
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Forest"
+  assert battlefield A contains 2 "Swamp"
+}
+
+scenario "Culling Ritual adds no mana when nothing is destroyed" {
+  battlefield A: "Hill Giant", 2 "Swamp", 2 "Forest"
+  hand A: "Culling Ritual", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: cast "Culling Ritual"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

@@ -1,0 +1,10 @@
+scenario "scry pays two for 2 damage" {
+  battlefield A: "Knowledge and Power", 2 "Plains", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Opt"
+  turn 1 precombat_main A: trigger "Knowledge and Power" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}

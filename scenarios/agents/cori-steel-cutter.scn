@@ -1,0 +1,25 @@
+scenario "second spell makes a monk and attaches" {
+  battlefield A: "Cori-Steel Cutter", 2 "Mountain"
+  hand A: "Shock", "Shock"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Monk"
+  assert attached "Cori-Steel Cutter" to "Monk"
+  assert power "Monk" 2
+  assert has "Monk" haste
+  assert has "Monk" trample
+  assert has "Monk" prowess
+  assert life B 16
+}
+scenario "first spell makes no monk" {
+  battlefield A: "Cori-Steel Cutter", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Monk"
+}

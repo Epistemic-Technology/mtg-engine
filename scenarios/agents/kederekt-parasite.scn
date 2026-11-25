@@ -1,0 +1,19 @@
+scenario "kederekt parasite pings an opponent who draws while you control a red permanent" {
+  battlefield A: "Kederekt Parasite", "Hill Giant"
+  start turn 2 B upkeep
+  run_to turn 2 precombat_main
+  assert life B 19
+}
+scenario "kederekt parasite does nothing without a red permanent" {
+  battlefield A: "Kederekt Parasite", "Grizzly Bears"
+  start turn 2 B upkeep
+  run_to turn 2 precombat_main
+  assert life B 20
+}
+scenario "kederekt parasite may decline" {
+  battlefield A: "Kederekt Parasite", "Hill Giant"
+  start turn 2 B upkeep
+  turn 2 draw A: decline "Kederekt Parasite"
+  run_to turn 2 precombat_main
+  assert life B 20
+}

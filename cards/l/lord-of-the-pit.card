@@ -1,0 +1,8 @@
+card "Lord of the Pit" {
+  oracle_id ea152809-85a2-4fde-8251-3b1f267e4443
+  cost {4}{B}{B}{B}
+  type Creature — Demon
+  pt 7/7
+  keywords flying, trample
+  triggered at beginning of your upkeep step: you sacrifice 1 creature other than this; if you can't, this deals 7 damage to you
+}

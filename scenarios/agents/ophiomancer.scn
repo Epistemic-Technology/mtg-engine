@@ -1,0 +1,13 @@
+scenario "ophiomancer makes one snake each upkeep if none" {
+  battlefield A: "Ophiomancer"
+  start turn 1 A upkeep
+  run_to turn 2 draw
+  assert battlefield A contains 1 "Snake"
+  assert has "Snake" deathtouch
+}
+scenario "ophiomancer no second snake" {
+  battlefield A: "Ophiomancer", "Snake"
+  start turn 1 A upkeep
+  run_to turn 2 draw
+  assert battlefield A contains 1 "Snake"
+}

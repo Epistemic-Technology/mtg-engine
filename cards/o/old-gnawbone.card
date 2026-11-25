@@ -1,0 +1,8 @@
+card "Old Gnawbone" {
+  oracle_id dff3f4c7-f792-4ca3-9b0a-0738e70664d9
+  cost {5}{G}{G}
+  type Legendary Creature — Dragon
+  pt 7/7
+  keywords flying
+  triggered whenever creature you control deals combat damage to a player: create that much "Treasure"
+}

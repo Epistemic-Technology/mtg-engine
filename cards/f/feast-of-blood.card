@@ -1,0 +1,7 @@
+card "Feast of Blood" {
+  oracle_id fed05740-01b2-4c7a-8b97-55e64837c07f
+  cost {1}{B}
+  type Sorcery
+  cast only if you control 2 Vampire
+  spell: destroy target creature; you gain 4 life
+}

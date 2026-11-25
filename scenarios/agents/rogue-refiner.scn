@@ -1,0 +1,8 @@
+scenario "rogue refiner draws and gets energy" {
+  battlefield A: "Forest", "Island", "Island"
+  hand A: "Rogue Refiner"
+  turn 1 A: cast "Rogue Refiner"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert energy A 2
+}

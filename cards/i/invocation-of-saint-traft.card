@@ -1,0 +1,7 @@
+card "Invocation of Saint Traft" {
+  oracle_id cd6e9465-f4eb-482d-9c49-3a16b52c997c
+  cost {1}{W}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered whenever this attacks: create 1 tapped and attacking "4/4 white Angel creature with flying"; delayed that token: exile that token at end of combat }
+}

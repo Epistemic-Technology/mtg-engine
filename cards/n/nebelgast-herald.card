@@ -1,0 +1,8 @@
+card "Nebelgast Herald" {
+  oracle_id cf336e4c-a0d3-43aa-ad23-b98effb2b751
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords flash, flying
+  triggered whenever this or Spirit you control enters: tap target creature an opponent controls
+}

@@ -1,0 +1,14 @@
+scenario "jace's ruse bounces two creatures and fetches Jace from the library" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Jace's Ruse"
+  library A: "Plains", "Jace, Arcane Strategist", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jace's Ruse" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 A: choose "Jace, Arcane Strategist"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert hand A contains "Jace, Arcane Strategist"
+  assert battlefield B lacks "Hill Giant"
+}

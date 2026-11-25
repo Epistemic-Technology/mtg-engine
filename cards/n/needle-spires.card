@@ -1,0 +1,7 @@
+card "Needle Spires" {
+  oracle_id e7bb8160-0a4b-4e46-b196-7a19fb388d8e
+  type Land
+  enters tapped
+  activated {T}: add {R} or {W}
+  activated {2}{R}{W}: until end of turn, this becomes 2/1 red white Elemental creature with double strike
+}

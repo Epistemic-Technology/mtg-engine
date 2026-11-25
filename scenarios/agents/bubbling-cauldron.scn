@@ -1,0 +1,20 @@
+scenario "Bubbling Cauldron gains 4 on any creature" {
+  battlefield A: "Bubbling Cauldron", "Grizzly Bears", "Plains"
+  turn 1 A: activate "Bubbling Cauldron" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert graveyard A contains "Grizzly Bears"
+}
+scenario "Bubbling Cauldron drains 4 with Festering Newt" {
+  battlefield A: "Bubbling Cauldron", "Festering Newt", "Plains"
+  turn 1 A: activate "Bubbling Cauldron" ability 2 sacrificing "Festering Newt"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert life B 16
+}
+scenario "Bubbling Cauldron second ability needs the Newt" {
+  battlefield A: "Bubbling Cauldron", "Grizzly Bears", "Plains"
+  illegal turn 1 A: activate "Bubbling Cauldron" ability 2 sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

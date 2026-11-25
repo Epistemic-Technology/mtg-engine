@@ -1,0 +1,12 @@
+card "Kabira Takedown // Kabira Plateau" {
+  oracle_id 0bb73c07-0220-4ba9-8d85-3c357c223833
+  layout modal_dfc
+  cost {1}{W}
+  type Instant
+  spell: deal damage equal creature you control to target creature or planeswalker
+  face "Kabira Plateau" {
+    type Land
+    enters tapped
+    activated {T}: add {W}
+  }
+}

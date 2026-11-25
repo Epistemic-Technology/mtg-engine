@@ -1,0 +1,19 @@
+scenario "Salt Road Ambushers puts two counters on another creature turned face up" {
+  battlefield A: "Salt Road Ambushers", "Island", "Island", "Island", "Forest", "Forest", "Forest", "Forest", "Forest"
+  hand A: "Sagu Archer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sagu Archer" face_down
+  turn 1 A: unmorph "Sagu Archer"
+  run_to turn 1 begin_combat
+  assert counters "Sagu Archer" +1/+1 2
+}
+
+scenario "Salt Road Ambushers itself megamorphs for a counter" {
+  battlefield A: "Island", "Island", "Island", "Forest", "Forest", "Forest", "Forest", "Forest"
+  hand A: "Salt Road Ambushers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salt Road Ambushers" face_down
+  turn 1 A: unmorph "Salt Road Ambushers"
+  run_to turn 1 begin_combat
+  assert counters "Salt Road Ambushers" +1/+1 1
+}

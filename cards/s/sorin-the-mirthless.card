@@ -1,0 +1,10 @@
+card "Sorin the Mirthless" {
+  oracle_id fbffaf9f-40e7-4113-a037-533b733cebce
+  cost {2}{B}{B}
+  type Legendary Planeswalker — Sorin
+  loyalty 4
+  short_name "Sorin"
+  loyalty +1: look at top card; you may reveal that card and put it into hand; if you do, you lose count equal its mana value life
+  loyalty -2: create 1 "2/3 black Vampire creature with flying and lifelink"
+  loyalty -7: deal 13 damage to any target; you gain 13 life
+}

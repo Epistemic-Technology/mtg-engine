@@ -1,0 +1,3 @@
+emblem "Teferi, Hero of Dominaria emblem" {
+  triggered whenever you draw a card: exile target permanent an opponent controls
+}

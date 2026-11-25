@@ -1,0 +1,8 @@
+card "Salt Road Ambushers" {
+  oracle_id 2373e035-25f7-473a-9386-2093f77d3f94
+  cost {3}{G}
+  type Creature — Dog Warrior
+  pt 3/3
+  triggered whenever other permanent you control is turned face up: if it is creature, put 2 +1/+1 counters on it
+  megamorph {3}{G}{G}
+}

@@ -1,0 +1,8 @@
+card "Pheres-Band Warchief" {
+  oracle_id 79bc9b71-5b04-46b8-a9de-9e9f17936f29
+  cost {3}{G}
+  type Creature — Centaur Warrior
+  pt 3/3
+  keywords vigilance, trample
+  static other Centaur creature you control: +1/+1, has vigilance and trample
+}

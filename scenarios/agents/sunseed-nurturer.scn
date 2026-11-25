@@ -1,0 +1,20 @@
+scenario "sunseed nurturer gains life with power 5 creature" {
+  battlefield A: "Sunseed Nurturer", "Hill Giant" with 2 +1/+1
+  start turn 1 A precombat_main
+  turn 1 end A: accept "Sunseed Nurturer"
+  run_to turn 1 cleanup
+  assert life A 22
+}
+scenario "sunseed nurturer declined" {
+  battlefield A: "Sunseed Nurturer", "Hill Giant" with 2 +1/+1
+  start turn 1 A precombat_main
+  turn 1 end A: decline "Sunseed Nurturer"
+  run_to turn 1 cleanup
+  assert life A 20
+}
+scenario "sunseed nurturer no big creature" {
+  battlefield A: "Sunseed Nurturer", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert life A 20
+}

@@ -1,0 +1,15 @@
+card "Azusa's Many Journeys // Likeness of the Seeker" {
+  oracle_id 02c60b8b-f665-4279-a00f-ae03991df4a6
+  layout transform
+  cost {1}{G}
+  type Enchantment — Saga
+  triggered chapter 1: play additional land this turn
+  triggered chapter 2: you gain 3 life
+  triggered chapter 3: exile this then return this to battlefield transformed under your control
+  face "Likeness of the Seeker" {
+    type Enchantment Creature — Human Monk
+    pt 3/3
+    color green
+    triggered whenever this becomes blocked: untap up to 3 land you control chosen
+  }
+}

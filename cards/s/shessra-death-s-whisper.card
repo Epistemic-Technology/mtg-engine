@@ -1,0 +1,8 @@
+card "Shessra, Death's Whisper" {
+  oracle_id fb29737c-2dfa-4139-988b-29dc8b829c08
+  cost {2}{B}{G}
+  type Legendary Creature — Human Elf Warlock
+  pt 1/3
+  label "Bewitching Whispers" triggered whenever this enters: target creature blocks this turn if able
+  label "Whispers of the Grave" triggered at beginning of your end step if creature died this turn: you may pay 2 life; if you do, draw 1 card
+}

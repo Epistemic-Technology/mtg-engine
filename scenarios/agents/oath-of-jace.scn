@@ -1,0 +1,17 @@
+scenario "oath of jace loot and scry" {
+  battlefield A: 3 "Island"
+  hand A: "Oath of Jace"
+  library A: "Island", "Forest", "Plains", "Swamp", "Mountain", "Island"
+  turn 1 A: cast "Oath of Jace"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 2
+}
+scenario "oath of jace scry X from planeswalkers" {
+  battlefield A: "Oath of Jace", "Jace Beleren"
+  library A: "Island", "Forest", "Plains", "Swamp"
+  start turn 3 A
+  turn 3 upkeep A: scry "Island"
+  run_to turn 3 precombat_main
+  assert hand A count 1
+}

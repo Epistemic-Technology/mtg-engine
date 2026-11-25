@@ -1,0 +1,19 @@
+scenario "Mouth makes a Hippo" {
+  battlefield A: 3 "Forest"
+  hand A: "Mouth // Feed"
+  turn 1 A: cast "Mouth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hippo"
+  assert power "Hippo" 3
+  assert graveyard A contains "Mouth // Feed"
+}
+
+scenario "Feed draws per big creature and is exiled" {
+  battlefield A: 4 "Forest", "Hill Giant", "Serra Angel", "Grizzly Bears"
+  graveyard A: "Mouth // Feed"
+  turn 1 A: cast "Mouth // Feed" from graveyard
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A lacks "Mouth // Feed"
+  assert exile A contains "Mouth // Feed"
+}

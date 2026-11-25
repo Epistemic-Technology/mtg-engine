@@ -1,0 +1,25 @@
+scenario "give no ground: +2/+6 and blocks two attackers" {
+  battlefield A: "Serra Angel", 4 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Give No Ground"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Give No Ground" targeting "Serra Angel"
+  turn 2 declare_blockers A: block "Hill Giant" with "Serra Angel"
+  turn 2 declare_blockers A: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert battlefield A contains "Serra Angel"
+  assert damage "Serra Angel" 5
+  assert power "Serra Angel" 6
+  assert toughness "Serra Angel" 10
+}
+scenario "without give no ground, a creature can't block two attackers" {
+  battlefield A: "Serra Angel"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 declare_blockers A: block "Hill Giant" with "Serra Angel"
+  illegal turn 2 declare_blockers A: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 2 postcombat_main
+}

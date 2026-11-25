@@ -1,0 +1,8 @@
+card "Peacewalker Colossus" {
+  oracle_id f89f7c7d-6eb3-4335-b9df-0ccaa9c50558
+  cost {3}
+  type Artifact — Vehicle
+  pt 6/6
+  activated {1}{W}: another target Vehicle you control becomes artifact creature until end of turn
+  crew 4
+}

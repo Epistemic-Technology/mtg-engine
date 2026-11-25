@@ -1,0 +1,21 @@
+scenario "Rally the Ancestors returns creatures with mana value X or less" {
+  battlefield A: 4 "Plains"
+  hand A: "Rally the Ancestors"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Rally the Ancestors" x 2
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Serra Angel"
+  assert exile A contains "Rally the Ancestors"
+}
+scenario "Rally the Ancestors exiles the creatures at your next upkeep" {
+  battlefield A: 5 "Plains"
+  hand A: "Rally the Ancestors"
+  graveyard A: "Grizzly Bears", "Wind Drake"
+  turn 1 A: cast "Rally the Ancestors" x 3
+  run_to turn 3 draw
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Wind Drake"
+  assert battlefield A lacks "Wind Drake"
+}

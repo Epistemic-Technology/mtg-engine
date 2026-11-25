@@ -1,0 +1,11 @@
+scenario "vizier makes an army with deathtouch" {
+  hand A: "Vizier of the Scorpion"
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: cast "Vizier of the Scorpion"
+  run_to turn 1 postcombat_main
+  assert counters "Zombie Army" +1/+1 1
+  assert has "Zombie Army" deathtouch
+  assert has not "Vizier of the Scorpion" deathtouch
+  assert power "Zombie Army" 1
+}

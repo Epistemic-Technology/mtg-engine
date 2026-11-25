@@ -1,0 +1,7 @@
+card "Oath of Jace" {
+  oracle_id dc92b420-8ac7-4478-a287-3d897357be08
+  cost {2}{U}
+  type Legendary Enchantment
+  triggered when this enters: draw 3 cards, then discard 2 cards
+  triggered at beginning of your upkeep: scry count where planeswalker you control
+}

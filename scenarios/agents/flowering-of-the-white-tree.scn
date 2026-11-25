@@ -1,0 +1,11 @@
+scenario "flowering of the white tree buffs by legendary status" {
+  battlefield A: "Flowering of the White Tree", "Grizzly Bears", "Agent Phil Coulson"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Agent Phil Coulson" 4
+  assert toughness "Agent Phil Coulson" 3
+  assert power "Hill Giant" 3
+}

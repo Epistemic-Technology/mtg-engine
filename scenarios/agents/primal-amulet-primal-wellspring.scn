@@ -1,0 +1,41 @@
+scenario "primal amulet reduces instants and sorceries by one" {
+  battlefield A: "Primal Amulet // Primal Wellspring", 2 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+scenario "primal amulet transforms with four charge counters" {
+  battlefield A: "Primal Amulet // Primal Wellspring", 4 "Mountain"
+  hand A: "Shock", "Shock", "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 12
+  assert battlefield A contains "Primal Wellspring"
+  assert is "Primal Wellspring" land
+}
+scenario "primal wellspring copies an instant cast with its mana" {
+  battlefield A: "Primal Wellspring"
+  hand A: "Shock"
+  turn 1 A: activate "Primal Wellspring"
+  turn 1 A: choose red
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+scenario "primal wellspring mana spent on a creature spell copies nothing" {
+  battlefield A: "Primal Wellspring", "Mountain"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Primal Wellspring"
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+}

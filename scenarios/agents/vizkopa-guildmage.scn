@@ -1,0 +1,18 @@
+scenario "Vizkopa Guildmage lifelink and drain on life gain" {
+  battlefield A: "Vizkopa Guildmage", "Grizzly Bears", 3 "Plains", 3 "Swamp"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Vizkopa Guildmage" ability 1 targeting "Grizzly Bears"
+  turn 3 A: activate "Vizkopa Guildmage" ability 2
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life A 22
+  assert life B 16
+}
+scenario "Vizkopa Guildmage drain wears off next turn" {
+  battlefield A: "Vizkopa Guildmage", "Grizzly Bears", 3 "Plains", 3 "Swamp"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Vizkopa Guildmage" ability 2
+  run_to turn 3 end
+  assert life B 20
+  assert life A 20
+}

@@ -1,0 +1,27 @@
+scenario "Kick in the Door: counter, can't be blocked by Walls, venture" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Wall of Stone"
+  hand A: "Kick in the Door"
+  start turn 1 A
+  turn 1 precombat_main A: cast "Kick in the Door" targeting "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Wall of Stone"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert life B 17
+  assert dungeon A "Lost Mine of Phandelver" "Cave Entrance"
+}
+
+scenario "Kick in the Door: a non-Wall can still block" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Wall of Stone", "Serra Angel"
+  hand A: "Kick in the Door"
+  start turn 1 A
+  turn 1 precombat_main A: cast "Kick in the Door" targeting "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+}

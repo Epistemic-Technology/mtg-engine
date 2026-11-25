@@ -1,0 +1,21 @@
+scenario "Harnessed Lightning deals damage equal to energy paid" {
+  battlefield A: "Mountain", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Harnessed Lightning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Harnessed Lightning" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert energy A 0
+}
+
+scenario "Harnessed Lightning with a big target leaves damage marked" {
+  battlefield A: "Mountain", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Harnessed Lightning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Harnessed Lightning" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert damage "Serra Angel" 3
+  assert battlefield B contains "Serra Angel"
+}

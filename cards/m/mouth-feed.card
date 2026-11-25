@@ -1,0 +1,15 @@
+card "Mouth // Feed" {
+  oracle_id 980f6341-3c13-4405-8550-b838b228f788
+  layout split
+  face "Mouth" {
+    cost {2}{G}
+    type Sorcery
+    spell: create 1 "3/3 green Hippo creature"
+  }
+  face "Feed" {
+    cost {3}{G}
+    type Sorcery
+    keywords aftermath
+    spell: draw count each creature you control with power 3 or greater cards
+  }
+}

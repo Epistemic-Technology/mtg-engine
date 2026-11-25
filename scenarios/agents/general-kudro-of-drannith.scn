@@ -1,0 +1,20 @@
+scenario "anthem and enters exile" {
+  battlefield A: "General Kudro of Drannith", 3 "Plains"
+  hand A: "Elite Vanguard"
+  graveyard B: "Grizzly Bears"
+  turn 1 precombat_main A: cast "Elite Vanguard"
+  turn 1 precombat_main A: trigger "General Kudro of Drannith" targeting B "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Elite Vanguard" 3
+  assert power "General Kudro of Drannith" 3
+  assert exile B contains "Grizzly Bears"
+}
+scenario "sacrifice two humans to destroy big creature" {
+  battlefield A: "General Kudro of Drannith", 2 "Elite Vanguard", 2 "Plains"
+  battlefield B: "Hill Giant", "Serra Angel"
+  turn 1 precombat_main A: activate "General Kudro of Drannith" sacrificing "Elite Vanguard" targeting "Serra Angel"
+  run_to turn 1 combat_damage
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Elite Vanguard"
+}

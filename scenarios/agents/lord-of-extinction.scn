@@ -1,0 +1,9 @@
+scenario "Lord of Extinction counts cards in all graveyards" {
+  battlefield A: "Lord of Extinction"
+  graveyard A: "Forest", "Shock"
+  graveyard B: "Island", "Murder", "Hill Giant"
+  start turn 3 A precombat_main
+  run_to turn 3 postcombat_main
+  assert power "Lord of Extinction" 5
+  assert toughness "Lord of Extinction" 5
+}

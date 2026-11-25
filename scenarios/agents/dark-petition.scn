@@ -1,0 +1,11 @@
+scenario "dark petition tutors any card" {
+  battlefield A: 5 "Swamp"
+  hand A: "Dark Petition"
+  library A: "Lightning Bolt", "Serra Angel", "Island"
+  turn 1 A: cast "Dark Petition"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+  assert hand A count 1
+  assert graveyard A contains "Dark Petition"
+}

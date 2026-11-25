@@ -1,0 +1,8 @@
+card "Pack Leader" {
+  oracle_id 3701ed34-a97c-4d7b-a15a-4faec02ef24b
+  cost {1}{W}
+  type Creature — Dog
+  pt 2/2
+  static other Dog you control: +1/+1
+  triggered whenever this attacks: prevent all combat damage this turn to Dog you control
+}

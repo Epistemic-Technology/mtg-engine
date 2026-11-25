@@ -1,0 +1,9 @@
+card "Chulane, Teller of Tales" {
+  oracle_id ebf7ce9b-9e5e-4557-9e28-76556997f0ee
+  cost {2}{G}{W}{U}
+  type Legendary Creature — Human Druid
+  pt 2/4
+  keywords vigilance
+  triggered whenever you cast creature spell: draw 1 card then you may put land card from hand onto battlefield
+  activated {3}, {T}: return target creature you control to hand
+}

@@ -1,0 +1,19 @@
+scenario "opponent loses X" {
+  battlefield A: 2 "Llanowar Elves", "Grizzly Bears", 4 "Swamp"
+  hand A: "Skemfar Shadowsage"
+  turn 1 precombat_main A: cast "Skemfar Shadowsage"
+  turn 1 precombat_main A: trigger "Skemfar Shadowsage" mode 1
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 20
+}
+scenario "you gain X" {
+  battlefield A: 2 "Llanowar Elves", "Grizzly Bears", 4 "Swamp"
+  hand A: "Skemfar Shadowsage"
+  life A 10
+  turn 1 precombat_main A: cast "Skemfar Shadowsage"
+  turn 1 precombat_main A: trigger "Skemfar Shadowsage" mode 2
+  run_to turn 1 postcombat_main
+  assert life A 13
+  assert life B 20
+}

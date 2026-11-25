@@ -1,0 +1,8 @@
+card "Unctus's Retrofitter" {
+  oracle_id 998d8d8a-743d-43f9-8e9b-42460f170243
+  cost {2}{U}
+  type Creature — Phyrexian Artificer
+  pt 2/3
+  toxic 1
+  triggered when this enters: up to 1 target artifact you control becomes artifact creature base 4/4 for as long as this remains
+}

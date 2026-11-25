@@ -1,0 +1,33 @@
+scenario "G'raha Tia draws once each turn for creatures and artifacts" {
+  battlefield A: "G'raha Tia", "Grizzly Bears", "Sol Ring", 2 "Mountain", "Swamp"
+  hand A: "Shock", "Shatter"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shatter" targeting "Sol Ring"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Sol Ring"
+  assert hand A count 1
+}
+scenario "G'raha Tia does not trigger for itself" {
+  battlefield A: "G'raha Tia", "Mountain"
+  hand A: "Shock"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "G'raha Tia"
+  run_to turn 1 end
+  assert battlefield A contains "G'raha Tia"
+  assert hand A count 0
+}
+scenario "G'raha Tia draws for an artifact dying" {
+  battlefield A: "G'raha Tia", "Sol Ring", "Mountain", "Swamp"
+  hand A: "Shatter"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shatter" targeting "Sol Ring"
+  run_to turn 1 end
+  assert graveyard A contains "Sol Ring"
+  assert hand A count 1
+}

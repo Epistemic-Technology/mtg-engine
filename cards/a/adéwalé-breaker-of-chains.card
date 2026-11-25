@@ -1,0 +1,9 @@
+card "Adéwalé, Breaker of Chains" {
+  oracle_id e30d9e08-cf88-4e2d-95e1-7144d8fea5c7
+  cost {1}{U}{B}
+  type Legendary Creature — Human Assassin Pirate
+  pt 4/1
+  short_name "Adéwalé"
+  triggered when this enters: dig 6 reveal take Assassin or Pirate or Vehicle card rest bottom random
+  triggered from graveyard whenever Vehicle you control deals combat damage to a player: you may return this to hand
+}

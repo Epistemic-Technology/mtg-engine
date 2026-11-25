@@ -1,0 +1,25 @@
+scenario "Ghastly Death Tyrant disintegration ray" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Glorious Anthem", "Grizzly Bears"
+  hand A: "Ghastly Death Tyrant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ghastly Death Tyrant"
+  turn 1 A: trigger "Ghastly Death Tyrant" mode 1 targeting "Glorious Anthem"
+  run_to turn 1 end
+  assert graveyard B contains "Glorious Anthem"
+  assert life A 17
+  assert battlefield B contains "Grizzly Bears"
+}
+scenario "Ghastly Death Tyrant death ray" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  battlefield B: "Glorious Anthem"
+  hand A: "Ghastly Death Tyrant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ghastly Death Tyrant"
+  turn 1 A: trigger "Ghastly Death Tyrant" mode 2
+  run_to turn 1 end
+  assert has "Grizzly Bears" deathtouch
+  assert has "Ghastly Death Tyrant" deathtouch
+  assert battlefield B contains "Glorious Anthem"
+  assert life A 20
+}

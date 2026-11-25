@@ -1,0 +1,7 @@
+card "Sliver Hivelord" {
+  oracle_id e4fe33e7-b952-4152-8c83-81d948756d2f
+  cost {W}{U}{B}{R}{G}
+  type Legendary Creature — Sliver
+  pt 5/5
+  static Sliver creature you control: has indestructible
+}

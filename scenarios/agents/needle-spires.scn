@@ -1,0 +1,27 @@
+scenario "Needle Spires becomes a 2/1 double striker" {
+  battlefield A: "Needle Spires", 2 "Mountain", 2 "Plains"
+  turn 1 A: activate "Needle Spires"
+  run_to turn 1 postcombat_main
+  assert is "Needle Spires" creature
+  assert is "Needle Spires" land
+  assert power "Needle Spires" 2
+  assert toughness "Needle Spires" 1
+  assert has "Needle Spires" double_strike
+  assert is "Needle Spires" red
+  assert is "Needle Spires" white
+}
+
+scenario "Needle Spires enters tapped" {
+  hand A: "Needle Spires"
+  turn 1 A: play "Needle Spires"
+  run_to turn 1 postcombat_main
+  assert tapped "Needle Spires"
+}
+
+scenario "Needle Spires taps for R or W" {
+  battlefield A: "Needle Spires"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

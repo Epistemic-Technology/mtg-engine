@@ -1,0 +1,9 @@
+card "Emptiness" {
+  oracle_id dc5dd7f7-375e-4d51-85cb-1abf16ca3854
+  cost {4}{W/B}{W/B}
+  type Creature — Elemental Incarnation
+  pt 3/5
+  triggered when this enters if spent {W}{W}: return target creature card with mana value 3 or less from your graveyard to battlefield
+  triggered when this enters if spent {B}{B}: put 3 -1/-1 counters on up to 1 target creature
+  evoke {W/B}{W/B}
+}

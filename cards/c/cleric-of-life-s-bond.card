@@ -1,0 +1,8 @@
+card "Cleric of Life's Bond" {
+  oracle_id d7721c5e-b3c5-45c8-b757-935603dfe44b
+  cost {W}{B}
+  type Creature — Vampire Cleric
+  pt 2/2
+  triggered whenever another Cleric you control enters: you gain 1 life
+  triggered whenever you gain life first time each turn: put 1 +1/+1 counter on this
+}

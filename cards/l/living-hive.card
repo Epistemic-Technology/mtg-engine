@@ -1,0 +1,8 @@
+card "Living Hive" {
+  oracle_id 1aa5df06-a61d-47e8-b12d-34009854d088
+  cost {6}{G}{G}
+  type Creature — Elemental Insect
+  pt 6/6
+  keywords trample
+  triggered whenever this deals combat damage to a player: create that much "1/1 green Insect creature"
+}

@@ -1,0 +1,19 @@
+scenario "interpret the signs draws cards equal to the revealed mana value" {
+  battlefield A: 6 "Island"
+  hand A: "Interpret the Signs"
+  library A: "Serra Angel", "Plains", "Plains", "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Interpret the Signs"
+  run_to turn 1 postcombat_main
+  assert hand A count 5
+  assert hand A contains "Serra Angel"
+}
+scenario "interpret the signs: land reveals draws nothing" {
+  battlefield A: 6 "Island"
+  hand A: "Interpret the Signs"
+  library A: "Plains", "Serra Angel", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Interpret the Signs"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

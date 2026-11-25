@@ -1,0 +1,21 @@
+scenario "channel reduced by a legendary creature" {
+  battlefield A: 3 "Swamp", "Sakiko, Mother of Summer"
+  graveyard A: "Grizzly Bears", "Shock"
+  hand A: "Takenuma, Abandoned Mire"
+  library A: "Island", "Forest", "Mountain", "Plains"
+  turn 1 precombat_main A: activate "Takenuma, Abandoned Mire"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Mountain"
+  assert graveyard A contains "Takenuma, Abandoned Mire"
+  assert library A count 1
+}
+scenario "channel unreduced needs four mana" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Takenuma, Abandoned Mire"
+  illegal turn 1 precombat_main A: activate "Takenuma, Abandoned Mire"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Takenuma, Abandoned Mire"
+}

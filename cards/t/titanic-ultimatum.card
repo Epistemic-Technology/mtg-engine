@@ -1,0 +1,6 @@
+card "Titanic Ultimatum" {
+  oracle_id 0cd28580-d718-4d0b-96e3-a836c2911c27
+  cost {R}{R}{G}{G}{G}{W}{W}
+  type Sorcery
+  spell: until end of turn, each creature you control gets +5/+5 and gains first strike, trample, lifelink
+}

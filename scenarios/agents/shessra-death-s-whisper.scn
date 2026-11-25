@@ -1,0 +1,35 @@
+scenario "shessra forces a block" {
+  hand A: "Shessra, Death's Whisper"
+  battlefield A: 2 "Swamp", 2 "Forest", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  turn 1 precombat_main A: cast "Shessra, Death's Whisper"
+  turn 1 precombat_main A: trigger "Shessra, Death's Whisper" targeting B "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+scenario "shessra end step draw after a death" {
+  hand A: "Shessra, Death's Whisper", "Lightning Bolt"
+  battlefield A: 2 "Swamp", 2 "Mountain", 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  library A: "Island", "Plains"
+  turn 1 precombat_main A: cast "Shessra, Death's Whisper"
+  turn 1 precombat_main A: trigger "Shessra, Death's Whisper" targeting B "Grizzly Bears"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting B "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert life A 18
+  assert hand A contains "Island"
+}
+scenario "shessra no draw without a death" {
+  hand A: "Shessra, Death's Whisper"
+  battlefield A: 2 "Swamp", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  library A: "Island", "Plains"
+  turn 1 precombat_main A: cast "Shessra, Death's Whisper"
+  turn 1 precombat_main A: trigger "Shessra, Death's Whisper" targeting B "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert life A 20
+  assert hand A count 0
+}

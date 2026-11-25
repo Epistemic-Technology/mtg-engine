@@ -1,0 +1,7 @@
+card "Necromancer's Covenant" {
+  oracle_id 9103f01f-e60b-4cda-9102-edc4aef74cc3
+  cost {3}{W}{B}{B}
+  type Enchantment
+  triggered when this enters: exile all creature card from graveyard of target player then create count each 1 exiled this way "2/2 black Zombie creature"
+  static Zombie you control: has lifelink
+}

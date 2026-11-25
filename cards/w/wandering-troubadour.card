@@ -1,0 +1,7 @@
+card "Wandering Troubadour" {
+  oracle_id 1a304703-6b48-4f3f-bd41-7f10ce0a751c
+  cost {3}{G}
+  type Creature — Dragon Bard
+  pt 4/2
+  triggered at beginning of your end step if land entered this turn: venture
+}

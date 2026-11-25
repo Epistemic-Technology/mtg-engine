@@ -1,0 +1,26 @@
+scenario "alpine guide fetches a Mountain, sacrifices one on leaving" {
+  battlefield A: 3 "Mountain"
+  library A: "Mountain", "Forest"
+  hand A: "Alpine Guide", "Lightning Bolt"
+  turn 1 precombat_main A: cast "Alpine Guide"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Mountain"
+  assert tapped newest A "Mountain"
+  assert library A count 1
+}
+scenario "alpine guide leaves, sacrifice a Mountain" {
+  battlefield A: 3 "Mountain", "Alpine Guide"
+  hand A: "Lightning Bolt"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Alpine Guide"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Alpine Guide"
+  assert battlefield A contains 2 "Mountain"
+}
+scenario "alpine guide must attack" {
+  battlefield A: 3 "Mountain", "Alpine Guide"
+  start turn 1 A
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

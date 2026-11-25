@@ -1,0 +1,7 @@
+card "Stone Idol Trap" {
+  oracle_id 47cd98e2-0eaf-4292-a840-c5e8d035c83c
+  cost {5}{R}
+  type Instant — Trap
+  this spell costs {1} less count each attacking creature
+  spell: create 1 "6/12 colorless Construct artifact creature with trample"; delayed that token: exile it at beginning of your next end step
+}

@@ -1,0 +1,9 @@
+card "Armored Scrapgorger" {
+  oracle_id 0d3a4db2-df79-4946-8f87-b174cf9c293c
+  cost {1}{G}
+  type Creature — Phyrexian Beast
+  pt 0/3
+  static this: +3/+0 as long as this has 3 or more oil counters
+  activated {T}: add any
+  triggered whenever this becomes tapped: exile target card from a graveyard and put 1 oil counter on this creature
+}

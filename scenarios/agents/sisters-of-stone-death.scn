@@ -1,0 +1,20 @@
+scenario "exile a blocker then reanimate it" {
+  battlefield A: "Sisters of Stone Death", 2 "Swamp", 2 "Forest", "Plains"
+  battlefield B: "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Sisters of Stone Death"
+  turn 1 declare_blockers B: block "Sisters of Stone Death" with "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Sisters of Stone Death" ability 2 targeting "Grizzly Bears"
+  turn 1 postcombat_main A: activate "Sisters of Stone Death" ability 3
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert not game_over
+}
+scenario "force block" {
+  battlefield A: "Sisters of Stone Death", "Forest"
+  battlefield B: "Grizzly Bears"
+  turn 1 precombat_main A: activate "Sisters of Stone Death" targeting "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Sisters of Stone Death"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}

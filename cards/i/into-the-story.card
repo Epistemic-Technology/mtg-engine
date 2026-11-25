@@ -1,0 +1,7 @@
+card "Into the Story" {
+  oracle_id f290c2e4-ab52-44d4-bdeb-31aeb835b18d
+  cost {5}{U}{U}
+  type Instant
+  this spell costs {3} less if opponent graveyard 7 or more
+  spell: draw 4 cards
+}

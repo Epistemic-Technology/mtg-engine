@@ -1,0 +1,13 @@
+scenario "The Battle of Bywater: destroys power 3+, then a Food for each creature left" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Wind Drake", 3 "Plains"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "The Battle of Bywater"
+  turn 1 A: cast "The Battle of Bywater"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Wind Drake"
+  assert battlefield A contains 2 "Food"
+  assert battlefield B lacks "Food"
+}

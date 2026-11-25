@@ -1,0 +1,24 @@
+scenario "rage forger enters pumping other shamans only" {
+  battlefield A: 3 "Mountain", "Draconic Disciple", "Grizzly Bears"
+  hand A: "Rage Forger"
+  turn 1 A: cast "Rage Forger"
+  run_to turn 1 postcombat_main
+  assert counters "Draconic Disciple" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Rage Forger" +1/+1 0
+}
+scenario "creature with counter attacks and pings player" {
+  battlefield A: "Rage Forger", "Grizzly Bears" with 1 +1/+1, "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 A: trigger "Rage Forger" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 13
+}
+scenario "decline the ping" {
+  battlefield A: "Rage Forger", "Grizzly Bears" with 1 +1/+1
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: decline "Rage Forger"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

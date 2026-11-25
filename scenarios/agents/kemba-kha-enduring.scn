@@ -1,0 +1,19 @@
+scenario "Kemba moves Equipment to a new Cat and buffs equipped creatures" {
+  battlefield A: "Kemba, Kha Enduring", "Grizzly Bears", "Bonesplitter" on "Grizzly Bears", 5 "Plains"
+  turn 1 precombat_main A: activate "Kemba, Kha Enduring" ability 1
+  turn 1 precombat_main A: trigger "Kemba, Kha Enduring" targeting "Bonesplitter"
+  run_to turn 1 combat_damage
+  assert attached "Bonesplitter" to "Cat"
+  assert power "Cat" 5
+  assert toughness "Cat" 3
+  assert power "Grizzly Bears" 2
+}
+scenario "Equipped creatures you control get +1/+1" {
+  battlefield A: "Kemba, Kha Enduring", "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  battlefield B: "Hill Giant", "Bonesplitter" on "Hill Giant"
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 3
+  assert power "Kemba, Kha Enduring" 2
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 3
+}

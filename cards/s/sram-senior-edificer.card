@@ -1,0 +1,7 @@
+card "Sram, Senior Edificer" {
+  oracle_id 7e00b0cd-d212-4604-ba07-da21f4fe00b0
+  cost {1}{W}
+  type Legendary Creature — Dwarf Advisor
+  pt 2/2
+  triggered whenever you cast Aura or Equipment or Vehicle spell: draw 1 card
+}

@@ -1,0 +1,11 @@
+# No commanders in a scenario game (CR 903): the granted upkeep trigger
+# reaches no creature, so nothing is exiled and no creature grows.
+scenario "Tavern Brawler grants nothing without a commander" {
+  battlefield A: "Tavern Brawler", "Grizzly Bears"
+  library A: "Hill Giant", "Forest"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert library A count 1
+  assert power "Grizzly Bears" 2
+  assert hand A contains "Hill Giant"
+}

@@ -1,0 +1,6 @@
+card "Perilous Voyage" {
+  oracle_id 0ab090db-f8fc-42ff-95db-e9370796db97
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent you don't control to hand; if target 1 was with mana value 2 or less, scry 2
+}

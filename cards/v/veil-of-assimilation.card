@@ -1,0 +1,6 @@
+card "Veil of Assimilation" {
+  oracle_id 3dd81e3e-e57a-4b6f-9043-bba0cebb3e90
+  cost {1}{W}
+  type Artifact
+  triggered whenever this or artifact you control enters: target creature you control gets +1/+1 and target 1 gains vigilance
+}

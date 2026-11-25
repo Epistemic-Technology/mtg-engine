@@ -1,0 +1,17 @@
+scenario "gardens copies artifact with matching mana value" {
+  battlefield A: "The Mycosynth Gardens", "Sol Ring", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "The Mycosynth Gardens" ability 2 x 1 targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert is oldest A "Sol Ring" artifact
+  assert is not oldest A "Sol Ring" land
+  assert tapped "Mountain"
+}
+scenario "mana value 2 artifact needs X of 2" {
+  battlefield A: "The Mycosynth Gardens", "Mind Stone", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "The Mycosynth Gardens" ability 2 x 2 targeting "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert is oldest A "Mind Stone" artifact
+  assert is not oldest A "Mind Stone" land
+}

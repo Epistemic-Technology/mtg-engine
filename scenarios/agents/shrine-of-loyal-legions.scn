@@ -1,0 +1,18 @@
+scenario "Shrine of Loyal Legions counters on upkeep and white spell, then Myr per counter" {
+  battlefield A: "Shrine of Loyal Legions", 4 "Plains", 3 "Mountain"
+  hand A: "Serra Angel"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert counters "Shrine of Loyal Legions" charge 1
+  turn 3 A: cast "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert counters "Shrine of Loyal Legions" charge 2
+}
+scenario "Shrine of Loyal Legions makes a Myr for each counter" {
+  battlefield A: "Shrine of Loyal Legions" with 3 charge, 3 "Plains"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Shrine of Loyal Legions"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 3 "Phyrexian Myr"
+  assert battlefield A contains 0 "Shrine of Loyal Legions"
+}

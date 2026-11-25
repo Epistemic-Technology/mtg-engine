@@ -1,0 +1,9 @@
+card "Embodiment of Fury" {
+  oracle_id 0e8adf34-0834-4027-9cda-18df69239e2b
+  cost {3}{R}
+  type Creature — Elemental
+  pt 4/3
+  keywords trample
+  static land creature you control: has trample
+  label "Landfall" triggered whenever land you control enters: you may target land you control becomes 3/3 Elemental creature with haste until end of turn
+}

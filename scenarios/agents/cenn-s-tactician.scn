@@ -1,0 +1,27 @@
+scenario "cenn tactician counter on soldier" {
+  battlefield A: "Cenn's Tactician", "Plains"
+  turn 1 precombat_main A: activate "Cenn's Tactician" targeting "Cenn's Tactician"
+  run_to turn 1 postcombat_main
+  assert counters "Cenn's Tactician" +1/+1 1
+  assert power "Cenn's Tactician" 2
+}
+scenario "creature with counter blocks two attackers" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, "Cenn's Tactician"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 declare_blockers A: block "Grizzly Bears" with "Grizzly Bears"
+  turn 2 declare_blockers A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+scenario "creature without counter blocks only one" {
+  battlefield A: "Grizzly Bears", "Cenn's Tactician"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 declare_blockers A: block "Grizzly Bears" with "Grizzly Bears"
+  illegal turn 2 declare_blockers A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

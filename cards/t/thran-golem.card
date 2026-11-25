@@ -1,0 +1,7 @@
+card "Thran Golem" {
+  oracle_id fe55f366-2996-4a4f-9b30-fc494cc80f87
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  static as long as enchanted, this: +2/+2, has flying, first strike, trample
+}

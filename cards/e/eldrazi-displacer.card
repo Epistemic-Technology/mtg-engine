@@ -1,0 +1,8 @@
+card "Eldrazi Displacer" {
+  oracle_id 9b1f552a-bddc-4fcb-ac67-b4a65b2f48ba
+  cost {2}{W}
+  type Creature — Eldrazi
+  pt 3/3
+  keywords devoid
+  activated {2}{C}: exile another target creature then return it to battlefield tapped under its owner's control
+}

@@ -1,0 +1,8 @@
+card "Arni Slays the Troll" {
+  oracle_id 7cb47a7e-fe60-45a2-9c07-bd5c6ddca82d
+  cost {R}{G}
+  type Enchantment — Saga
+  triggered chapter 1: target creature you control fights up to one target creature you don't control
+  triggered chapter 2: add {R}; put 2 +1/+1 counters on up to one target creature you control
+  triggered chapter 3: you gain count equal greatest power creature you control life
+}

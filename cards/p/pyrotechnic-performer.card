@@ -1,0 +1,8 @@
+card "Pyrotechnic Performer" {
+  oracle_id 78f9ec0f-6015-4024-aca6-9a14cba373fa
+  cost {1}{R}
+  type Creature — Lizard Assassin
+  pt 3/2
+  disguise {R}
+  triggered whenever this or creature you control is turned face up: that creature bites each opponent
+}

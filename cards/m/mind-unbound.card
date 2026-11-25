@@ -1,0 +1,6 @@
+card "Mind Unbound" {
+  oracle_id 0f12aec9-5898-4261-bebd-1b545e0aea68
+  cost {4}{U}{U}
+  type Enchantment
+  triggered at beginning of your upkeep: put 1 lore counter on this, then draw count each lore counters on this cards
+}

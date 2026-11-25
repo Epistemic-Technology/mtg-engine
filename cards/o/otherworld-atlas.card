@@ -1,0 +1,7 @@
+card "Otherworld Atlas" {
+  oracle_id 8d907a1b-f301-46a3-aa1c-25fb7f29c949
+  cost {4}
+  type Artifact — Book
+  activated {T}: put 1 charge counter on this
+  activated {T}: each player draws count each charge counter on this cards
+}

@@ -1,0 +1,8 @@
+card "G'raha Tia" {
+  oracle_id 0c4603be-d71a-4d33-b62c-04ead1987dbe
+  cost {4}{W}
+  type Legendary Creature — Cat Archer
+  pt 3/5
+  keywords reach
+  label "The Allagan Eye" triggered once each turn whenever one or more andor other creature or artifact you control die: draw 1 card
+}

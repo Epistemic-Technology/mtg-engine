@@ -1,0 +1,12 @@
+card "Primal Amulet // Primal Wellspring" {
+  oracle_id 8e4d0da0-c7d8-4a20-9bfd-02c1331a7a49
+  layout transform
+  cost {4}
+  type Artifact
+  spells instant or sorcery you cast cost {1} less
+  triggered whenever you cast an instant or sorcery spell: put 1 charge counter on this; then if there are 4 or more charge counters on this, you may remove count where charge counters on this charge counters from this and transform this
+  face "Primal Wellspring" {
+    type Land
+    activated {T}: add any when spent on instant or sorcery spell: copy that spell and new targets
+  }
+}

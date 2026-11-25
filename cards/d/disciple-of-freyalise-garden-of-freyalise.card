@@ -1,0 +1,13 @@
+card "Disciple of Freyalise // Garden of Freyalise" {
+  oracle_id 2699005b-a471-429f-a9d8-fbf2077ee2fd
+  layout modal_dfc
+  cost {3}{G}{G}{G}
+  type Creature — Elf Druid
+  pt 3/3
+  triggered when this enters: you may sacrifice 1 another creature chosen; if you do, you gain count where power of that sacrificed creature life and draw count where power of that sacrificed creature cards
+  face "Garden of Freyalise" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {G}
+  }
+}

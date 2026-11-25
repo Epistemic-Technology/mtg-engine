@@ -1,0 +1,40 @@
+scenario "Commit puts a nonland permanent second from the top of its owner's library" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Commit // Memory"
+  library B: "Forest", "Plains", "Island"
+  start turn 1 A
+  turn 1 A: cast "Commit" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert hand B count 1
+  assert hand B contains "Forest"
+  run_to turn 4 precombat_main
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Commit // Memory"
+}
+
+scenario "Commit cannot target a land" {
+  battlefield A: 4 "Island"
+  battlefield B: "Mountain"
+  hand A: "Commit // Memory"
+  start turn 1 A
+  illegal turn 1 A: cast "Commit" targeting "Mountain"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Commit // Memory"
+}
+
+scenario "Memory is cast from the graveyard and shuffles hands and graveyards away" {
+  battlefield A: 6 "Island"
+  graveyard A: "Commit // Memory", "Shock"
+  hand A: "Forest"
+  hand B: "Plains", "Plains"
+  graveyard B: "Giant Growth"
+  start turn 1 A
+  turn 1 A: cast "Commit // Memory" from graveyard
+  run_to turn 1 postcombat_main
+  assert hand A count 7
+  assert hand B count 7
+  assert graveyard B lacks "Giant Growth"
+  assert exile A contains "Commit // Memory"
+}

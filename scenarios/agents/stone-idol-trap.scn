@@ -1,0 +1,36 @@
+scenario "Stone Idol Trap costs less per attacker and the token is exiled at end step" {
+  battlefield A: "Mountain", "Mountain", "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Stone Idol Trap"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 2 declare_attackers A: cast "Stone Idol Trap"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Construct"
+  assert power "Construct" 6
+  assert toughness "Construct" 12
+  assert has "Construct" trample
+  assert graveyard A contains "Stone Idol Trap"
+}
+
+scenario "Stone Idol Trap is full price with no attackers" {
+  battlefield A: 3 "Mountain"
+  hand A: "Stone Idol Trap"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Stone Idol Trap"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Stone Idol Trap"
+}
+
+scenario "Stone Idol Trap token is exiled at the beginning of the next end step" {
+  battlefield A: "Mountain", "Mountain", "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Stone Idol Trap"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 2 declare_attackers A: cast "Stone Idol Trap"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Construct"
+  run_to turn 4 upkeep
+  assert battlefield A lacks "Construct"
+}

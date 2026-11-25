@@ -1,0 +1,27 @@
+scenario "Undead Augur draws and loses life when another Zombie dies" {
+  battlefield A: "Undead Augur", "Zombie", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Zombie"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "Undead Augur triggers when it dies itself" {
+  battlefield A: "Undead Augur", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Undead Augur"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Undead Augur"
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "Undead Augur ignores a non-Zombie dying" {
+  battlefield A: "Undead Augur", "Grizzly Bears", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}

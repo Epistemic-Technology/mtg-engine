@@ -1,0 +1,30 @@
+scenario "Emptiness with WW returns a small creature" {
+  hand A: "Emptiness"
+  battlefield A: 6 "Plains"
+  graveyard A: "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Emptiness"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Emptiness"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A contains "Serra Angel"
+}
+scenario "Emptiness with BB puts three -1/-1 counters" {
+  hand A: "Emptiness"
+  battlefield A: 6 "Swamp"
+  battlefield B: "Serra Angel"
+  turn 1 A: cast "Emptiness"
+  turn 1 A: trigger "Emptiness" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Serra Angel" -1/-1 3
+  assert power "Serra Angel" 1
+}
+scenario "Emptiness evoked with WW" {
+  hand A: "Emptiness"
+  battlefield A: 2 "Plains"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Emptiness" evoked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Emptiness"
+}

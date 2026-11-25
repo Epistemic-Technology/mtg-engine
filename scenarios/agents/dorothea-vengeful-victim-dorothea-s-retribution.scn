@@ -1,0 +1,17 @@
+scenario "dorothea attacks and is sacrificed" {
+  battlefield A: "Dorothea, Vengeful Victim"
+  battlefield B: "Plains"
+  turn 1 declare_attackers A: attack "Dorothea, Vengeful Victim"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Dorothea, Vengeful Victim"
+}
+scenario "retribution grants a token attacker" {
+  battlefield A: "Grizzly Bears", "Plains", "Island", "Island"
+  graveyard A: "Dorothea, Vengeful Victim"
+  turn 1 precombat_main A: cast "Dorothea, Vengeful Victim" disturbed targeting "Grizzly Bears"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains 0 "Spirit"
+}

@@ -1,0 +1,22 @@
+scenario "knight of the reliquary counts only your graveyard lands and fetches after sacrificing" {
+  battlefield A: "Knight of the Reliquary", "Forest", "Mountain"
+  graveyard A: "Island", "Swamp", "Grizzly Bears"
+  graveyard B: "Plains"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  assert power "Knight of the Reliquary" 4
+  assert toughness "Knight of the Reliquary" 4
+  turn 1 A: activate "Knight of the Reliquary" sacrificing "Forest"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert battlefield A contains "Island"
+  assert power "Knight of the Reliquary" 5
+}
+scenario "knight of the reliquary cannot sacrifice a Mountain" {
+  battlefield A: "Knight of the Reliquary", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Knight of the Reliquary" sacrificing "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+}

@@ -1,0 +1,15 @@
+card "Commit // Memory" {
+  oracle_id 56fd8895-3be2-4591-86fa-87567d9cdc14
+  layout split
+  face "Commit" {
+    cost {3}{U}
+    type Instant
+    spell: put target spell or nonland permanent into library 2 from top
+  }
+  face "Memory" {
+    cost {4}{U}{U}
+    type Sorcery
+    keywords aftermath
+    spell: each player shuffles hand and graveyard into library then each player draws 7 cards
+  }
+}

@@ -1,0 +1,3 @@
+emblem "Huatli, Radiant Champion emblem" {
+  triggered whenever creature you control enters: you may draw 1 card
+}

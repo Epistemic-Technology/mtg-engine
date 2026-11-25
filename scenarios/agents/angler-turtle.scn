@@ -1,0 +1,7 @@
+scenario "angler turtle forces opponent creatures to attack" {
+  battlefield A: "Angler Turtle"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

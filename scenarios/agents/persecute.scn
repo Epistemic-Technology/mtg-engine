@@ -1,0 +1,12 @@
+scenario "Persecute discards every card of the chosen color" {
+  battlefield A: 4 "Swamp"
+  hand A: "Persecute"
+  hand B: "Lightning Bolt", "Shock", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Persecute" targeting player B
+  turn 1 A: choose red
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard B contains "Shock"
+  assert hand B count 2
+}

@@ -1,0 +1,11 @@
+scenario "Sram draws on Equipment and Aura but not creature spells" {
+  battlefield A: "Sram, Senior Edificer", 3 "Plains"
+  hand A: "Bonesplitter", "Pacifism", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  library A: "Island", "Swamp", "Forest", "Mountain"
+  turn 1 A: cast "Bonesplitter"
+  turn 1 A: wait
+  turn 1 A: cast "Pacifism" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}

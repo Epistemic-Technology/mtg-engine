@@ -1,0 +1,9 @@
+card "Jirina, Dauntless General" {
+  oracle_id fda76032-7e6f-416f-8874-2a0642837522
+  cost {W}{B}
+  type Legendary Creature — Human Soldier
+  pt 2/2
+  short_name "Jirina"
+  triggered when this enters: exile graveyard of target player
+  activated sacrifice this: each Human you control gains hexproof, indestructible
+}

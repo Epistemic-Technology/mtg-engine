@@ -1,0 +1,7 @@
+card "Joint Exploration" {
+  oracle_id 9eba1789-6e58-4d78-8a0d-b54a8be76ec5
+  cost {1}{U}
+  type Instant
+  kicker {G}
+  spell: scry 2 then draw 1 card; if kicked, you may put land card from hand onto battlefield
+}

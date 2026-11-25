@@ -1,0 +1,6 @@
+card "Silence" {
+  oracle_id 8aed54cb-d1bb-45ad-adbe-38e55d84ff31
+  cost {W}
+  type Instant
+  spell: each opponent can't cast spells this turn
+}

@@ -1,0 +1,21 @@
+scenario "Carnage Gladiator drains a blocker's controller" {
+  battlefield A: "Carnage Gladiator"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Carnage Gladiator"
+  turn 1 B: block "Carnage Gladiator" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 20
+}
+
+scenario "Carnage Gladiator drains its own controller when they block" {
+  battlefield A: "Carnage Gladiator"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Carnage Gladiator"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert life B 20
+}

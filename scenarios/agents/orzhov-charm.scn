@@ -1,0 +1,27 @@
+scenario "mode 2 destroys and loses life equal to toughness" {
+  hand A: "Orzhov Charm"
+  battlefield A: "Plains", "Swamp"
+  battlefield B: "Serra Angel"
+  turn 1 precombat_main A: cast "Orzhov Charm" mode 2 targeting "Serra Angel"
+  run_to turn 1 combat_damage
+  assert graveyard B contains "Serra Angel"
+  assert life A 16
+}
+scenario "mode 1 bounces creature and aura" {
+  hand A: "Orzhov Charm"
+  battlefield A: "Plains", "Swamp", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  turn 1 precombat_main A: cast "Orzhov Charm" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Holy Strength"
+  assert battlefield A lacks "Holy Strength"
+}
+scenario "mode 3 returns mana value 1" {
+  hand A: "Orzhov Charm"
+  battlefield A: "Plains", "Swamp"
+  graveyard A: "Grizzly Bears", "Mother of Runes"
+  turn 1 precombat_main A: cast "Orzhov Charm" mode 3 targeting "Mother of Runes"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Mother of Runes"
+  assert graveyard A contains "Grizzly Bears"
+}

@@ -1,0 +1,19 @@
+scenario "Watcher of the Spheres discounts flying creatures and grows" {
+  battlefield A: "Watcher of the Spheres", "Island", "Island"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Wind Drake"
+  assert power "Watcher of the Spheres" 3
+  assert toughness "Watcher of the Spheres" 3
+}
+
+scenario "Watcher of the Spheres does not discount a creature without flying" {
+  battlefield A: "Watcher of the Spheres", "Mountain", "Mountain", "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Watcher of the Spheres" 2
+}

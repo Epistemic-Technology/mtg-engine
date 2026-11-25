@@ -1,0 +1,10 @@
+card "Phyrexian Metamorph" {
+  oracle_id 340bbe8b-e987-4c3e-ab4e-9dee63e57d4f
+  cost {3}{U/P}
+  type Artifact Creature — Phyrexian Shapeshifter
+  pt 0/0
+  enters as copy of artifact or creature
+  except {
+    types artifact
+  }
+}

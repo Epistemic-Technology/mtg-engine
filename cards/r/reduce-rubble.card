@@ -1,0 +1,15 @@
+card "Reduce // Rubble" {
+  oracle_id cac993d5-28a1-48b6-9c2f-f216cb5f521d
+  layout split
+  face "Reduce" {
+    cost {2}{U}
+    type Instant
+    spell: counter target spell unless its controller pays {3}
+  }
+  face "Rubble" {
+    cost {2}{R}
+    type Sorcery
+    keywords aftermath
+    spell: up to 3 target land doesn't untap next untap step
+  }
+}

@@ -1,0 +1,16 @@
+scenario "Blinding Angel makes the damaged player skip their next combat" {
+  battlefield A: "Blinding Angel"
+  battlefield B: "Crazed Goblin"
+  turn 1 A: attack "Blinding Angel"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 20
+  assert not game_over
+}
+scenario "Without the hit the opponent's creature attacks" {
+  battlefield A: "Blinding Angel"
+  battlefield B: "Crazed Goblin"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert life B 20
+}

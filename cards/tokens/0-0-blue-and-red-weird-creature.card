@@ -1,0 +1,6 @@
+token "0/0 blue and red Weird creature" {
+  name "Weird"
+  type Creature — Weird
+  pt 0/0
+  color blue red
+}

@@ -1,0 +1,7 @@
+card "Marit Lage's Slumber" {
+  oracle_id a11d890e-38d4-467c-bc04-948979c142e0
+  cost {1}{U}
+  type Legendary Snow Enchantment
+  triggered whenever this or snow permanent you control enters: scry 1
+  triggered at beginning of your upkeep step if you control 10 snow permanent: sacrifice this; if you do, create 1 "Marit Lage, a legendary 20/20 black Avatar creature with flying and indestructible"
+}

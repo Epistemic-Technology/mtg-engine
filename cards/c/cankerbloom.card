@@ -1,0 +1,11 @@
+card "Cankerbloom" {
+  oracle_id d5b80895-621a-40df-bf48-6c7295658f21
+  cost {1}{G}
+  type Creature — Phyrexian Fungus
+  pt 3/2
+  activated {1}, sacrifice this: choose one {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: proliferate
+  }
+}

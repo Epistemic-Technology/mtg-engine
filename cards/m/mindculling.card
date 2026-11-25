@@ -1,0 +1,6 @@
+card "Mindculling" {
+  oracle_id 955a7f4d-7100-4d8b-818c-be8651d0ebe6
+  cost {5}{U}
+  type Sorcery
+  spell: you draw 2 cards and target opponent discards 2 cards
+}

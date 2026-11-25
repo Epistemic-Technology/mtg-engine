@@ -1,0 +1,29 @@
+scenario "Loran returns an artifact when another legendary creature enters" {
+  battlefield A: "Loran, Disciple of History", 3 "Plains"
+  hand A: "Isamaru, Hound of Konda"
+  graveyard A: "Sol Ring", "Grizzly Bears"
+  turn 1 precombat_main A: cast "Isamaru, Hound of Konda"
+  turn 1 precombat_main A: trigger "Loran, Disciple of History" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sol Ring"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Isamaru, Hound of Konda"
+}
+scenario "Loran triggers for itself" {
+  hand A: "Loran, Disciple of History"
+  battlefield A: 4 "Plains"
+  graveyard A: "Sol Ring"
+  turn 1 precombat_main A: cast "Loran, Disciple of History"
+  turn 1 precombat_main A: trigger "Loran, Disciple of History" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sol Ring"
+}
+scenario "nonlegendary creature does not trigger Loran" {
+  battlefield A: "Loran, Disciple of History", 2 "Forest"
+  hand A: "Grizzly Bears"
+  graveyard A: "Sol Ring"
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Sol Ring"
+  assert hand A count 0
+}

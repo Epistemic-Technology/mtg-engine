@@ -1,0 +1,9 @@
+card "Against All Odds" {
+  oracle_id f4a73cde-58bf-4719-8eb0-e039fdde4f62
+  cost {3}{W}
+  type Sorcery
+  spell: choose one or both {
+    mode: exile target artifact or creature you control then return it to battlefield
+    mode: return target artifact or creature card with mana value 3 or less from your graveyard to battlefield
+  }
+}

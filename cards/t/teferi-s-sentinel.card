@@ -1,0 +1,7 @@
+card "Teferi's Sentinel" {
+  oracle_id bf24c063-dd9a-4381-b94e-682b0cb0c03d
+  cost {5}
+  type Artifact Creature — Golem
+  pt 2/6
+  static as long as you control Teferi planeswalker, this: +4/+0
+}

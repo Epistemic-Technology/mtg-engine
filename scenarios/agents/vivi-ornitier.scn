@@ -1,0 +1,28 @@
+scenario "vivi grows and pings on noncreature spells" {
+  battlefield A: "Vivi Ornitier", "Mountain"
+  hand A: "Shock"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Vivi Ornitier" +1/+1 1
+  assert power "Vivi Ornitier" 1
+  assert life B 19
+}
+scenario "vivi mana equals power" {
+  battlefield A: "Vivi Ornitier" with 2 +1/+1
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 precombat_main A: activate "Vivi Ornitier"
+  turn 1 precombat_main A: choose red
+  turn 1 precombat_main A: choose red
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+scenario "vivi mana only once per turn" {
+  battlefield A: "Vivi Ornitier" with 2 +1/+1
+  hand A: "Divination"
+  turn 1 precombat_main A: activate "Vivi Ornitier"
+  illegal turn 1 precombat_main A: activate "Vivi Ornitier"
+  run_to turn 1 postcombat_main
+}

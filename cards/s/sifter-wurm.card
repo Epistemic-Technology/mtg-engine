@@ -1,0 +1,8 @@
+card "Sifter Wurm" {
+  oracle_id ed36b1f6-2922-46a9-b48d-b9ebedb9a142
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 7/7
+  keywords trample
+  triggered whenever this enters: scry 3 then reveal top card; you gain count equal mana value of that card life
+}

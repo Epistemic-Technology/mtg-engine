@@ -1,0 +1,6 @@
+card "Moonring Island" {
+  oracle_id cf620c66-7db1-4db8-ae56-ee4bc2f77d74
+  type Land — Island
+  enters tapped
+  activated {U}, {T}, if you control 2 blue permanent: look at top card of target player
+}

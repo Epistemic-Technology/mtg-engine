@@ -1,0 +1,24 @@
+scenario "perilous voyage scries 2 when the permanent's mana value was 2 or less" {
+  hand A: "Perilous Voyage"
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Perilous Voyage" targeting "Grizzly Bears"
+  turn 1 A: scry "Forest"
+  run_to turn 3 precombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand A contains "Island"
+  assert hand A lacks "Forest"
+}
+scenario "perilous voyage does not scry for mana value 3" {
+  hand A: "Perilous Voyage"
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Perilous Voyage" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand B contains "Hill Giant"
+  assert hand A contains "Forest"
+}

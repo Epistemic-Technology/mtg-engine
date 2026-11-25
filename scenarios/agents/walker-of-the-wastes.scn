@@ -1,0 +1,25 @@
+scenario "Walker of the Wastes grows with lands named Wastes" {
+  battlefield A: "Walker of the Wastes", 2 "Wastes", 3 "Plains"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Walker of the Wastes" 6
+  assert toughness "Walker of the Wastes" 6
+  assert has "Walker of the Wastes" trample
+}
+
+scenario "Walker of the Wastes ignores other lands and the opponent's Wastes" {
+  battlefield A: "Walker of the Wastes", "Plains", "Wastes"
+  battlefield B: 3 "Wastes"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Walker of the Wastes" 5
+}
+
+scenario "Walker of the Wastes can be cast with colorless mana" {
+  battlefield A: 1 "Wastes", 4 "Plains"
+  hand A: "Walker of the Wastes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Walker of the Wastes"
+  run_to turn 1 postcombat_main
+  assert power "Walker of the Wastes" 5
+}

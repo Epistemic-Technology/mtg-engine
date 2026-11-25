@@ -1,0 +1,7 @@
+token "3/1 red Elemental enchantment creature with haste" {
+  name "Elemental"
+  type Enchantment Creature — Elemental
+  pt 3/1
+  color red
+  keywords haste
+}

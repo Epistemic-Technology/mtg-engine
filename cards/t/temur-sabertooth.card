@@ -1,0 +1,7 @@
+card "Temur Sabertooth" {
+  oracle_id 8bf8e846-9d10-4dbc-a379-df37bb9fb6d4
+  cost {2}{G}{G}
+  type Creature — Cat
+  pt 4/3
+  activated {1}{G}: you may return 1 other creature you control chosen; if you do, this gains indestructible until end of turn
+}

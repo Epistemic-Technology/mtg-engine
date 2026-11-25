@@ -1,0 +1,7 @@
+card "Containment Construct" {
+  oracle_id 54d48e54-be4a-4a78-a778-b28e74ef7134
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/1
+  triggered whenever you discard a card: you may exile triggering card; if you do, may play that card this turn
+}

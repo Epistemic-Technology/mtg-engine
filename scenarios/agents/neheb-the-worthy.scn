@@ -1,0 +1,27 @@
+scenario "Neheb gets +2/+0 with one or fewer cards in hand" {
+  battlefield A: "Neheb, the Worthy"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Neheb, the Worthy" 4
+}
+
+scenario "Neheb has no bonus with two cards in hand" {
+  battlefield A: "Neheb, the Worthy"
+  hand A: "Shock", "Shock"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Neheb, the Worthy" 2
+}
+
+scenario "Neheb combat damage makes each player discard" {
+  battlefield A: "Neheb, the Worthy"
+  hand A: "Shock", "Shock"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 declare_attackers A: attack "Neheb, the Worthy"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 1
+  assert hand B count 1
+}

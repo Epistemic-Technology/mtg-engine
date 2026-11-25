@@ -1,0 +1,33 @@
+scenario "Inga draws three when three creatures died this turn" {
+  battlefield A: "Inga Rune-Eyes", "Grizzly Bears", "Hill Giant", 2 "Mountain", 3 "Swamp"
+  hand A: "Shock", "Lightning Bolt", "Murder"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Inga Rune-Eyes"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Inga Rune-Eyes"
+  assert hand A count 3
+}
+
+scenario "Inga draws nothing when only two creatures died" {
+  battlefield A: "Inga Rune-Eyes", "Grizzly Bears", 1 "Mountain", 3 "Swamp"
+  hand A: "Shock", "Murder"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Inga Rune-Eyes"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Inga Rune-Eyes"
+  assert hand A count 0
+}
+
+scenario "Inga scries 3 on entering" {
+  battlefield A: 4 "Island"
+  hand A: "Inga Rune-Eyes"
+  library A: "Forest", "Island", "Plains", "Swamp"
+  turn 1 A: cast "Inga Rune-Eyes"
+  turn 1 A: scry "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Inga Rune-Eyes"
+}

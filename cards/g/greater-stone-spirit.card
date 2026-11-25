@@ -1,0 +1,8 @@
+card "Greater Stone Spirit" {
+  oracle_id b36c66d3-24ae-4291-8f8b-8716e354975e
+  cost {4}{R}{R}
+  type Creature — Elemental Spirit
+  pt 4/4
+  can't be blocked by creature with flying
+  activated {2}{R}: until end of turn, target creature gets +0/+2 and gains ability { activated {R}: this gets +1/+0 until end of turn }
+}

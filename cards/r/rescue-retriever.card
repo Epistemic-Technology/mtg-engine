@@ -1,0 +1,9 @@
+card "Rescue Retriever" {
+  oracle_id 86f9897f-84aa-4c8d-8335-cfdb2f565311
+  cost {3}{W}{W}
+  type Creature — Dog Soldier
+  pt 3/3
+  keywords flash
+  triggered whenever this enters: put 1 +1/+1 counter on each other Soldier you control
+  replace damage to other attacking Soldier you control: prevent
+}

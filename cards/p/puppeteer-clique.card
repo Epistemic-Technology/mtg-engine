@@ -1,0 +1,9 @@
+card "Puppeteer Clique" {
+  oracle_id 00e0b103-892c-49b3-836d-867fff197bbd
+  cost {3}{B}{B}
+  type Creature — Faerie Wizard
+  pt 3/2
+  keywords flying
+  triggered when this enters: put target creature card from an opponent's graveyard onto battlefield under your control; target 1 gains haste indefinitely; delayed target 1: at beginning of your next end step, exile it
+  keywords persist
+}

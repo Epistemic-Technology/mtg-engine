@@ -1,0 +1,30 @@
+scenario "The Triumph of Anax chapter II gives trample and +2/+0" {
+  battlefield A: "The Triumph of Anax" with 1 lore, "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 A: trigger "The Triumph of Anax" targeting "Grizzly Bears"
+  run_to turn 3 begin_combat
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+}
+
+scenario "The Triumph of Anax chapter I gives +1/+0" {
+  hand A: "The Triumph of Anax"
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Triumph of Anax"
+  turn 1 A: trigger "The Triumph of Anax" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+}
+
+scenario "The Triumph of Anax chapter IV makes the creature fight" {
+  battlefield A: "The Triumph of Anax" with 3 lore, "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 5 A upkeep
+  turn 5 A: trigger "The Triumph of Anax" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 5 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "The Triumph of Anax"
+}

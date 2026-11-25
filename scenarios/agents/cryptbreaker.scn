@@ -1,0 +1,17 @@
+scenario "discard to make a zombie" {
+  battlefield A: "Cryptbreaker", "Swamp", "Swamp"
+  hand A: "Forest"
+  turn 1 precombat_main A: activate "Cryptbreaker" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert battlefield A contains 1 "Zombie"
+  assert tapped "Cryptbreaker"
+}
+scenario "tap three zombies to draw" {
+  battlefield A: "Cryptbreaker", 2 "Zombie"
+  library A: "Island", "Island"
+  turn 1 precombat_main A: activate "Cryptbreaker" ability 2
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert hand A count 1
+}

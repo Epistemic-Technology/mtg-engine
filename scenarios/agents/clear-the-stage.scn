@@ -1,0 +1,23 @@
+scenario "Clear the Stage returns a creature card with a power 4 creature" {
+  battlefield A: "Serra Angel", 4 "Swamp", "Island"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears"
+  hand A: "Clear the Stage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Clear the Stage" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Clear the Stage returns nothing without a power 4 creature" {
+  battlefield A: "Wind Drake", 4 "Swamp", "Island"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears"
+  hand A: "Clear the Stage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Clear the Stage" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}

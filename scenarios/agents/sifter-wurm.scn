@@ -1,0 +1,17 @@
+scenario "Sifter Wurm gains life equal to revealed card's mana value" {
+  hand A: "Sifter Wurm"
+  battlefield A: 7 "Forest"
+  library A: "Serra Angel", "Island"
+  turn 1 precombat_main A: cast "Sifter Wurm"
+  run_to turn 1 postcombat_main
+  assert life A 25
+  assert battlefield A contains "Sifter Wurm"
+}
+scenario "Sifter Wurm land reveals gain 0" {
+  hand A: "Sifter Wurm"
+  battlefield A: 7 "Forest"
+  library A: "Island", "Serra Angel"
+  turn 1 precombat_main A: cast "Sifter Wurm"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}

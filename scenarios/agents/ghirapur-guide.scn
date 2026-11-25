@@ -1,0 +1,10 @@
+scenario "ghirapur guide evasion vs small blockers" {
+  battlefield A: "Ghirapur Guide", "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  turn 1 A: activate "Ghirapur Guide" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Grizzly Bears" with "Savannah Lions"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

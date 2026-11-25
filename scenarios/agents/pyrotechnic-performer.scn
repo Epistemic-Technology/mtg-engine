@@ -1,0 +1,30 @@
+scenario "performer turned face up deals its own power" {
+  battlefield A: 4 "Mountain"
+  hand A: "Pyrotechnic Performer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pyrotechnic Performer" face_down
+  turn 1 A: unmorph "Pyrotechnic Performer"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Pyrotechnic Performer" 3
+}
+scenario "another creature turned face up deals its own power (Bubble Smuggler gets 4 counters, so 6)" {
+  battlefield A: "Pyrotechnic Performer", 9 "Island"
+  hand A: "Bubble Smuggler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bubble Smuggler" face_down
+  turn 1 A: unmorph "Bubble Smuggler"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+scenario "opponent's creature turned face up deals nothing" {
+  battlefield A: "Pyrotechnic Performer"
+  battlefield B: 9 "Island"
+  hand B: "Bubble Smuggler"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Bubble Smuggler" face_down
+  turn 2 B: unmorph "Bubble Smuggler"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert life A 20
+}

@@ -1,0 +1,21 @@
+scenario "reduce counters a spell" {
+  battlefield A: "Mountain"
+  battlefield B: 3 "Island"
+  hand A: "Shock"
+  hand B: "Reduce // Rubble"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Shock" targeting player B
+  turn 1 precombat_main B: cast "Reduce" targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Shock"
+}
+scenario "rubble from graveyard is cast from graveyard and exiled" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Forest" tapped, "Island" tapped, "Swamp" tapped
+  graveyard A: "Reduce // Rubble"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reduce // Rubble" from graveyard
+  run_to turn 2 precombat_main
+  assert exile A contains "Reduce // Rubble"
+}

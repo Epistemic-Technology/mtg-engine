@@ -1,0 +1,6 @@
+card "Ferocity of the Wilds" {
+  oracle_id c75bdc5f-22f2-4558-bb8f-5a53ff7ab1ac
+  cost {2}{R}
+  type Enchantment
+  static attacking non-Human creature you control: +1/+0, has trample
+}

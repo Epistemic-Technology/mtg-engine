@@ -1,0 +1,6 @@
+card "Death Frenzy" {
+  oracle_id 0842cc1d-de1e-4fb7-a54b-78a4c8f40d3e
+  cost {3}{B}{G}
+  type Sorcery
+  spell: all creatures get -2/-2 until end of turn; delayed this: whenever creature dies this turn, you gain 1 life
+}

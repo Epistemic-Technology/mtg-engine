@@ -1,0 +1,7 @@
+card "Kabira Evangel" {
+  oracle_id 83b480ea-77c5-4e00-99d0-bea2a60a1bfe
+  cost {2}{W}
+  type Creature — Human Cleric Ally
+  pt 2/3
+  triggered whenever this or Ally you control enters: you may choose color; if you do, each Ally you control gains protection from chosen color until end of turn
+}

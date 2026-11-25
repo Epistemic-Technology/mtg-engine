@@ -1,0 +1,6 @@
+card "Jace's Ruse" {
+  oracle_id 59cbed39-a07e-491e-a95a-adafe19eb652
+  cost {3}{U}{U}
+  type Sorcery
+  spell: return up to 2 target creature to owner's hand; you may search library or graveyard card named "Jace, Arcane Strategist" reveal to hand
+}

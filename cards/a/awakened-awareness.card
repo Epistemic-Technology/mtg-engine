@@ -1,0 +1,8 @@
+card "Awakened Awareness" {
+  oracle_id 6629e5f3-ac59-48f8-b09c-3b98f59b9922
+  cost {X}{U}{U}
+  type Enchantment — Aura
+  enchant artifact or creature
+  triggered when this enters: put X +1/+1 counters on enchanted permanent
+  static as long as attached is creature, enchanted: base 1/1
+}

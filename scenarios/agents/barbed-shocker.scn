@@ -1,0 +1,27 @@
+scenario "barbed shocker makes the player discard their hand and draw that many" {
+  battlefield A: "Barbed Shocker"
+  hand B: "Grizzly Bears", "Hill Giant", "Shock"
+  library B: "Forest", "Island", "Swamp", "Mountain"
+  start turn 1 A
+  turn 1 A: attack "Barbed Shocker"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand B count 3
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Shock"
+  assert hand B contains "Forest"
+  assert hand B contains "Island"
+  assert hand B contains "Swamp"
+  assert library B count 1
+}
+scenario "barbed shocker with an empty hand draws nothing" {
+  battlefield A: "Barbed Shocker"
+  library B: "Forest", "Island"
+  start turn 1 A
+  turn 1 A: attack "Barbed Shocker"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand B count 0
+  assert library B count 2
+}

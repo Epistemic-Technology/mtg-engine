@@ -1,0 +1,6 @@
+card "Batwing Brume" {
+  oracle_id fc8247f5-f7b2-4fc4-a9ea-90babad5fa42
+  cost {1}{W/B}
+  type Instant
+  spell: prevent all combat damage this turn if spent {W}; each player loses count each attacking creature they control life if spent {B}
+}

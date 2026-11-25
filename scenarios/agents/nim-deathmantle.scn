@@ -1,0 +1,23 @@
+scenario "nim deathmantle returns a nontoken creature and attaches" {
+  battlefield A: "Nim Deathmantle", "Grizzly Bears", "Mountain", 4 "Forest"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: accept "Nim Deathmantle"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert attached "Nim Deathmantle" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" intimidate
+  assert is "Grizzly Bears" "Zombie"
+  assert is "Grizzly Bears" black
+}
+scenario "decline leaves it in the graveyard" {
+  battlefield A: "Nim Deathmantle", "Grizzly Bears", "Mountain", 4 "Forest"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: decline "Nim Deathmantle"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}

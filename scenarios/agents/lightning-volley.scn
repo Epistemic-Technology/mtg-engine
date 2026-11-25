@@ -1,0 +1,23 @@
+scenario "Lightning Volley gives creatures a ping" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Mountain"
+  hand A: "Lightning Volley"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Volley"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears" targeting player B
+  turn 1 A: activate "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Lightning Volley ability is gone next turn" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Lightning Volley"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Volley"
+  run_to turn 3 precombat_main
+  illegal turn 3 A: activate "Grizzly Bears" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 20
+}

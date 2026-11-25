@@ -1,0 +1,7 @@
+card "Sakiko, Mother of Summer" {
+  oracle_id e4021e30-16bf-4178-9a3b-565bfdce4384
+  cost {4}{G}{G}
+  type Legendary Creature — Snake Shaman
+  pt 3/3
+  triggered whenever creature you control deals combat damage to player: keep mana add {G} that much
+}

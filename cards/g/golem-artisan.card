@@ -1,0 +1,8 @@
+card "Golem Artisan" {
+  oracle_id 8537fc2c-c027-4440-bff4-d046fc198428
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  activated {2}: target artifact creature gets +1/+1 until end of turn
+  activated {2}: target artifact creature gains choice of flying or trample or haste until end of turn
+}

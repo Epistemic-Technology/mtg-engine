@@ -1,0 +1,8 @@
+card "Vivien's Jaguar" {
+  oracle_id 32412a41-2929-4417-90bc-21c5659eeb72
+  cost {2}{G}
+  type Creature — Cat Spirit
+  pt 3/2
+  keywords reach
+  activated {2}{G}, from graveyard, if you control Vivien planeswalker: return this to hand
+}

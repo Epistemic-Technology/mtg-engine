@@ -1,0 +1,38 @@
+scenario "Magitek Scythe attaches, grants first strike, must be blocked" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Magitek Scythe"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magitek Scythe"
+  turn 1 A: trigger "Magitek Scythe" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Magitek Scythe" to "Grizzly Bears"
+  assert has "Grizzly Bears" first_strike
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+scenario "Magitek Scythe declined" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  hand A: "Magitek Scythe"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magitek Scythe"
+  turn 1 A: decline "Magitek Scythe"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" first_strike
+}
+scenario "Magitek Scythe forces a block" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Magitek Scythe"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magitek Scythe"
+  turn 1 A: trigger "Magitek Scythe" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

@@ -1,0 +1,7 @@
+card "Mayhem Devil" {
+  oracle_id 4709f11c-aef8-45ac-b2bf-e640c568dfac
+  cost {1}{B}{R}
+  type Creature — Devil
+  pt 3/3
+  triggered whenever a player sacrifices permanent: deal 1 damage to any target
+}

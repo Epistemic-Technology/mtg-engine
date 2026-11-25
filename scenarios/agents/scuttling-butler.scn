@@ -1,0 +1,15 @@
+scenario "Butler gains double strike with two multicolored permanents" {
+  battlefield A: "Scuttling Butler", "Azorius First-Wing", "Azorius First-Wing"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert has "Scuttling Butler" double_strike
+}
+
+scenario "Butler without enough multicolored permanents" {
+  battlefield A: "Scuttling Butler", "Azorius First-Wing", "Serra Angel"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert has not "Scuttling Butler" double_strike
+}

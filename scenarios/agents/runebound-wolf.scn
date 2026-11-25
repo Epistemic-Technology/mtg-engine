@@ -1,0 +1,7 @@
+scenario "runebound wolf counts wolves and werewolves" {
+  battlefield A: "Runebound Wolf", "Ambush Wolf", "Grizzly Bears", 4 "Mountain"
+  turn 1 A: activate "Runebound Wolf" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Runebound Wolf"
+}

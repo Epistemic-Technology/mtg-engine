@@ -1,0 +1,21 @@
+scenario "annihilated nontoken permanents become mine" {
+  battlefield A: "It That Betrays"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 1 A
+  turn 1 declare_attackers A: attack "It That Betrays"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+  assert life B 9
+}
+scenario "token sacrificed stays gone" {
+  battlefield A: "It That Betrays"
+  battlefield B: "Soldier", "Soldier"
+  start turn 1 A
+  turn 1 declare_attackers A: attack "It That Betrays"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Soldier"
+  assert battlefield B lacks "Soldier"
+}

@@ -1,0 +1,20 @@
+scenario "Skemfar Avenger draws when another Elf dies" {
+  battlefield A: "Skemfar Avenger", "Llanowar Elves", "Grizzly Bears", "Swamp"
+  hand A: "Murder"
+  battlefield A: "Swamp", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 19
+}
+
+scenario "Skemfar Avenger ignores a non-Elf" {
+  battlefield A: "Skemfar Avenger", "Grizzly Bears", "Swamp", "Swamp", "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life A 20
+}

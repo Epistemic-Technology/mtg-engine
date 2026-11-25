@@ -1,0 +1,30 @@
+scenario "Auditore Ambush bounces and tutors Ezio from library for target player" {
+  battlefield A: 4 "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Auditore Ambush"
+  library A: "Ezio, Blade of Vengeance", "Plains"
+  turn 1 A: cast "Auditore Ambush" mode 3 targeting "Grizzly Bears", player A
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert hand A contains "Ezio, Blade of Vengeance"
+}
+scenario "Auditore Ambush mode 2 only finds Ezio in graveyard" {
+  battlefield A: 4 "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Auditore Ambush"
+  graveyard A: "Ezio, Blade of Vengeance"
+  turn 1 A: cast "Auditore Ambush" mode 2 targeting player A
+  run_to turn 1 end
+  assert hand A contains "Ezio, Blade of Vengeance"
+  assert battlefield B contains "Grizzly Bears"
+}
+scenario "Auditore Ambush mode 1 only bounces" {
+  battlefield A: 4 "Island", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Auditore Ambush"
+  library A: "Ezio, Blade of Vengeance", "Plains"
+  turn 1 A: cast "Auditore Ambush" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert library A contains "Ezio, Blade of Vengeance"
+}

@@ -1,0 +1,8 @@
+card "Ash Zealot" {
+  oracle_id ab9f03b4-eb67-4709-904d-abf4d491f0ee
+  cost {R}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords first strike, haste
+  triggered whenever a player casts a spell from a graveyard: deal 3 damage to that player
+}

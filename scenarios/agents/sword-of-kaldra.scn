@@ -1,0 +1,13 @@
+scenario "sword of kaldra pumps and exiles damaged creature" {
+  battlefield A: "Sword of Kaldra", "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sword of Kaldra" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 7
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}

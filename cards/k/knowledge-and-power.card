@@ -1,0 +1,6 @@
+card "Knowledge and Power" {
+  oracle_id ed68b5ca-c52a-40e0-89ac-6276a3c4fdeb
+  cost {4}{R}
+  type Enchantment
+  triggered whenever you scry: you may pay {2}; if you do, deal 2 damage to any target
+}

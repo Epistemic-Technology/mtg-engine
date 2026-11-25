@@ -1,0 +1,21 @@
+scenario "Eight-and-a-Half-Tails gives protection from white" {
+  battlefield A: "Eight-and-a-Half-Tails", "Plains", "Plains"
+  battlefield B: "Savannah Lions"
+  start turn 2 B
+  turn 2 B: attack "Savannah Lions"
+  turn 2 A: block "Savannah Lions" with "Eight-and-a-Half-Tails"
+  turn 2 declare_blockers A: activate "Eight-and-a-Half-Tails" ability 1 targeting "Eight-and-a-Half-Tails"
+  run_to turn 2 postcombat_main
+  assert damage "Eight-and-a-Half-Tails" 0
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "Eight-and-a-Half-Tails turns a permanent white" {
+  battlefield A: "Eight-and-a-Half-Tails", "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  assert is not "Hill Giant" white
+  turn 1 A: activate "Eight-and-a-Half-Tails" ability 2 targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert is "Hill Giant" white
+}

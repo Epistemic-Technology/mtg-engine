@@ -1,0 +1,20 @@
+scenario "Jirina exiles a graveyard on entering" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  hand A: "Jirina, Dauntless General"
+  graveyard B: "Shock", "Grizzly Bears"
+  turn 1 A: cast "Jirina, Dauntless General"
+  turn 1 A: trigger "Jirina, Dauntless General" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B lacks "Shock"
+  assert graveyard B lacks "Grizzly Bears"
+  assert exile B contains "Shock"
+}
+scenario "Jirina sacrifices to give Humans hexproof and indestructible" {
+  battlefield A: "Jirina, Dauntless General", "Elite Vanguard", "Grizzly Bears"
+  turn 1 A: activate "Jirina, Dauntless General"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Jirina, Dauntless General"
+  assert has "Elite Vanguard" hexproof
+  assert has "Elite Vanguard" indestructible
+  assert has not "Grizzly Bears" hexproof
+}

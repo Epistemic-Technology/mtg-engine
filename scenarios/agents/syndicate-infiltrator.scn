@@ -1,0 +1,11 @@
+scenario "five mana values gives +2/+2" {
+  battlefield A: "Syndicate Infiltrator"
+  graveyard A: "Plains", "Shock", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  assert power "Syndicate Infiltrator" 5
+  assert toughness "Syndicate Infiltrator" 5
+}
+scenario "four mana values is not enough" {
+  battlefield A: "Syndicate Infiltrator"
+  graveyard A: "Plains", "Shock", "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  assert power "Syndicate Infiltrator" 3
+}

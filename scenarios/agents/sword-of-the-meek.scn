@@ -1,0 +1,26 @@
+scenario "sword returns from graveyard attached to entering 1/1" {
+  hand A: "Llanowar Elves"
+  battlefield A: "Forest"
+  graveyard A: "Sword of the Meek"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sword of the Meek"
+  assert attached "Sword of the Meek" to "Llanowar Elves"
+  assert power "Llanowar Elves" 2
+  assert toughness "Llanowar Elves" 3
+}
+scenario "sword stays in graveyard for a bigger creature" {
+  hand A: "Grizzly Bears"
+  battlefield A: "Forest", "Forest"
+  graveyard A: "Sword of the Meek"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Sword of the Meek"
+}
+scenario "equipped creature gets +1/+2" {
+  battlefield A: "Sword of the Meek", "Grizzly Bears", 2 "Plains"
+  turn 1 A: activate "Sword of the Meek" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 4
+}

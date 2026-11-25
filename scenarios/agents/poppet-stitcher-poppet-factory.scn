@@ -1,0 +1,33 @@
+scenario "Poppet Stitcher makes a decayed Zombie when you cast an instant" {
+  battlefield A: "Poppet Stitcher", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains 1 "Zombie"
+  assert power "Zombie" 2
+  assert life B 18
+}
+scenario "Poppet Stitcher does not trigger on a creature spell" {
+  battlefield A: "Poppet Stitcher", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert not game_over
+}
+scenario "Poppet Stitcher transforms with three tokens and Factory makes tokens 3/3" {
+  battlefield A: "Poppet Stitcher", 3 "Soldier"
+  start turn 3 A upkeep
+  turn 3 upkeep A: accept "Poppet Stitcher"
+  run_to turn 3 precombat_main
+  assert is "Poppet Factory" artifact
+  assert power newest A "Soldier" 3
+  assert toughness oldest A "Soldier" 3
+}
+scenario "Poppet Stitcher stays with two tokens" {
+  battlefield A: "Poppet Stitcher", 2 "Soldier"
+  start turn 3 A upkeep
+  run_to turn 3 precombat_main
+  assert is "Poppet Stitcher" creature
+  assert power newest A "Soldier" 1
+}

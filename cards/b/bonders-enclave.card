@@ -1,0 +1,6 @@
+card "Bonders' Enclave" {
+  oracle_id f33ce38a-34ec-4b65-a0fc-160484a02007
+  type Land
+  mana {C}
+  activated {3}, {T}, if you control creature with power 4 or greater: draw 1 card
+}

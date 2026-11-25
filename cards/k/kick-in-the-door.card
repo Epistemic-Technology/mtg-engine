@@ -1,0 +1,6 @@
+card "Kick in the Door" {
+  oracle_id d3278ddb-c198-450d-946e-8547e5c96dd1
+  cost {R}
+  type Sorcery
+  spell: put 1 +1/+1 counter on target creature; that target 1 gains haste until end of turn and that target 1 gains ability { can't be blocked by Wall } until end of turn; venture
+}

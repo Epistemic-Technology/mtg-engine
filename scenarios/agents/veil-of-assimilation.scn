@@ -1,0 +1,28 @@
+scenario "Veil of Assimilation: another artifact entering pumps a creature" {
+  battlefield A: "Veil of Assimilation", "Grizzly Bears", 2 "Plains"
+  hand A: "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: trigger "Veil of Assimilation" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Veil of Assimilation: entering itself triggers" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Veil of Assimilation"
+  turn 1 A: cast "Veil of Assimilation"
+  turn 1 A: trigger "Veil of Assimilation" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "Veil of Assimilation: a creature spell does not trigger it" {
+  battlefield A: "Veil of Assimilation", "Hill Giant", 2 "Plains", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+}

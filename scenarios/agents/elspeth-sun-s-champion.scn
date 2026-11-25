@@ -1,0 +1,37 @@
+scenario "Elspeth Sun's Champion +1 makes three Soldiers" {
+  battlefield A: "Elspeth, Sun's Champion"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Elspeth, Sun's Champion" ability 1
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 3 "Soldier"
+  assert power oldest A "Soldier" 1
+  assert counters "Elspeth, Sun's Champion" loyalty 5
+}
+scenario "Elspeth Sun's Champion -3 destroys power 4 or greater" {
+  battlefield A: "Elspeth, Sun's Champion", "Grizzly Bears", "Serra Angel"
+  battlefield B: "Hill Giant", "Phantom Tiger" 
+  start turn 3 A precombat_main
+  turn 3 A: activate "Elspeth, Sun's Champion" ability 2
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Serra Angel"
+  assert counters "Elspeth, Sun's Champion" loyalty 1
+}
+scenario "Elspeth Sun's Champion -3 kills a big creature" {
+  battlefield A: "Elspeth, Sun's Champion", "Grizzly Bears"
+  battlefield B: "Hill Giant" with 1 +1/+1
+  start turn 3 A precombat_main
+  turn 3 A: activate "Elspeth, Sun's Champion" ability 2
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+scenario "Elspeth Sun's Champion emblem" {
+  battlefield A: "Elspeth, Sun's Champion" with 7 loyalty, "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Elspeth, Sun's Champion" ability 3
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+}

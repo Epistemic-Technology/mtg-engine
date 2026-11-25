@@ -1,0 +1,8 @@
+card "Izzet Keyrune" {
+  oracle_id 8b8c0285-424f-4a82-bfb6-17752cfa71dd
+  cost {3}
+  type Artifact
+  activated {T}: add {U} or {R}
+  activated {U}{R}: until end of turn, this becomes 2/1 blue red Elemental artifact creature
+  triggered whenever this deals combat damage to a player: you may draw 1 card; if you do, discard 1 card
+}

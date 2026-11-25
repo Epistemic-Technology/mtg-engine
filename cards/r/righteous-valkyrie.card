@@ -1,0 +1,9 @@
+card "Righteous Valkyrie" {
+  oracle_id 891d2690-7144-4f87-b6ef-96f2469780a9
+  cost {2}{W}
+  type Creature — Angel Cleric
+  pt 2/4
+  keywords flying
+  triggered whenever other Angel or Cleric you control enters: you gain count equal toughness of that creature life
+  static as long as life 7 more than starting, creature you control: +2/+2
+}

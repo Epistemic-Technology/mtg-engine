@@ -1,0 +1,7 @@
+card "Ghirapur Guide" {
+  oracle_id 92d5bb7e-08ba-448e-8763-f47c89505e80
+  cost {2}{G}
+  type Creature — Elf Scout
+  pt 3/2
+  activated {2}{G}: target creature you control gains ability { can't be blocked by creature with power 2 or less } until end of turn
+}

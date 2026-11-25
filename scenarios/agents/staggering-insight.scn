@@ -1,0 +1,12 @@
+scenario "staggering insight gives lifelink and draw" {
+  battlefield A: "Grizzly Bears", "Plains", "Island"
+  hand A: "Staggering Insight"
+  life A 10
+  turn 1 A: cast "Staggering Insight" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert life B 17
+  assert life A 13
+  assert hand A count 1
+}

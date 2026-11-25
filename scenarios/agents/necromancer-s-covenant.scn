@@ -1,0 +1,14 @@
+scenario "covenant exiles creature cards and makes zombies" {
+  hand A: "Necromancer's Covenant"
+  battlefield A: 4 "Plains", 3 "Swamp"
+  graveyard B: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  turn 1 A: cast "Necromancer's Covenant"
+  turn 1 A: trigger "Necromancer's Covenant" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B lacks "Grizzly Bears"
+  assert graveyard B lacks "Hill Giant"
+  assert graveyard B contains "Lightning Bolt"
+  assert battlefield A contains 2 "Zombie"
+  assert power oldest A "Zombie" 2
+  assert has newest A "Zombie" lifelink
+}

@@ -1,0 +1,31 @@
+scenario "Aetherflux Reservoir: gain life for each spell cast this turn" {
+  battlefield A: "Aetherflux Reservoir", 3 "Mountain"
+  hand A: "Shock", "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert life B 13
+}
+
+scenario "Aetherflux Reservoir: opponent's spells before mine do not count" {
+  battlefield A: "Aetherflux Reservoir", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Shock"
+  hand B: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "Aetherflux Reservoir: pay 50 life for 50 damage" {
+  battlefield A: "Aetherflux Reservoir"
+  life A 60
+  turn 1 A: activate "Aetherflux Reservoir" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 10
+  assert life B -30
+}

@@ -1,0 +1,12 @@
+scenario "lightning prowess gives haste and a ping ability" {
+  hand A: "Lightning Prowess", "Hill Giant"
+  battlefield A: 8 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: cast "Lightning Prowess" targeting "Hill Giant"
+  turn 1 A: activate "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert has "Hill Giant" haste
+  assert tapped "Hill Giant"
+}

@@ -1,0 +1,11 @@
+scenario "Sentinel blinks a historic permanent at end step" {
+  battlefield A: "Infested Fleshcutter", 5 "Island"
+  hand A: "Sentinel of the Pearl Trident"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Sentinel of the Pearl Trident"
+  turn 3 A: trigger "Sentinel of the Pearl Trident" targeting "Infested Fleshcutter"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 0 "Infested Fleshcutter"
+  run_to turn 4 upkeep
+  assert battlefield A contains 1 "Infested Fleshcutter"
+}

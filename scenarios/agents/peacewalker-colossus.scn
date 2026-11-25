@@ -1,0 +1,26 @@
+scenario "Peacewalker Colossus animates another Vehicle" {
+  battlefield A: "Peacewalker Colossus", "Smuggler's Copter", "Plains", "Plains"
+  start turn 1 A precombat_main
+  assert is not "Smuggler's Copter" creature
+  turn 1 A: activate "Peacewalker Colossus" targeting "Smuggler's Copter"
+  run_to turn 1 begin_combat
+  assert is "Smuggler's Copter" creature
+  assert is not "Peacewalker Colossus" creature
+}
+
+scenario "Peacewalker Colossus can't target itself" {
+  battlefield A: "Peacewalker Colossus", "Plains", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Peacewalker Colossus" targeting "Peacewalker Colossus"
+  run_to turn 1 begin_combat
+  assert is not "Peacewalker Colossus" creature
+}
+
+scenario "Peacewalker Colossus crews with total power 4" {
+  battlefield A: "Peacewalker Colossus", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Peacewalker Colossus" ability 2
+  run_to turn 1 begin_combat
+  assert is "Peacewalker Colossus" creature
+  assert tapped "Hill Giant"
+}

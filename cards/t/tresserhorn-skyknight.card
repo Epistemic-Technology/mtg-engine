@@ -1,0 +1,8 @@
+card "Tresserhorn Skyknight" {
+  oracle_id df344469-1177-4168-91af-3621b2a65182
+  cost {5}{B}{B}
+  type Creature — Zombie Knight
+  pt 5/3
+  keywords flying
+  replace damage from creature with first strike to this: prevent
+}

@@ -1,0 +1,24 @@
+scenario "Delirium: small creatures can't block" {
+  battlefield A: "Swamp", "Forest", "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Mournwillow"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Divination", "Forest"
+  turn 1 A: cast "Mournwillow"
+  turn 1 A: attack "Mournwillow"
+  illegal turn 1 B: block "Mournwillow" with "Grizzly Bears"
+  turn 1 B: block "Mournwillow" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "No delirium: Bears can block" {
+  battlefield A: "Swamp", "Forest", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Mournwillow"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Divination"
+  turn 1 A: cast "Mournwillow"
+  turn 1 A: attack "Mournwillow"
+  turn 1 B: block "Mournwillow" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}

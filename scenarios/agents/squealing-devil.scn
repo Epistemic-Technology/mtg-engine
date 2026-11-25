@@ -1,0 +1,17 @@
+scenario "squealing devil pump with black mana" {
+  battlefield A: "Swamp", "Mountain", 2 "Mountain", "Grizzly Bears"
+  hand A: "Squealing Devil"
+  turn 1 A: cast "Squealing Devil"
+  turn 1 A: trigger "Squealing Devil" targeting "Grizzly Bears"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert battlefield A contains "Squealing Devil"
+}
+scenario "squealing devil sacrificed without black" {
+  battlefield A: 2 "Mountain"
+  hand A: "Squealing Devil"
+  turn 1 A: cast "Squealing Devil"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Squealing Devil"
+}

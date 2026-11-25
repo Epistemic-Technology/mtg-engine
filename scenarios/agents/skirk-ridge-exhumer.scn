@@ -1,0 +1,25 @@
+scenario "Skirk Ridge Exhumer makes a Festering Goblin by discarding a card" {
+  battlefield A: "Skirk Ridge Exhumer", "Swamp"
+  hand A: "Forest"
+  turn 1 A: activate "Skirk Ridge Exhumer" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert battlefield A contains 1 "Festering Goblin"
+  assert power "Festering Goblin" 1
+  assert is "Festering Goblin" "Zombie"
+  assert is "Festering Goblin" "Goblin"
+  assert tapped "Skirk Ridge Exhumer"
+}
+scenario "Festering Goblin dying shrinks a creature" {
+  battlefield A: "Skirk Ridge Exhumer", "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Forest", "Shock"
+  turn 1 A: activate "Skirk Ridge Exhumer" discarding "Forest"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Festering Goblin"
+  turn 1 A: trigger "Festering Goblin" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+  assert battlefield A lacks "Festering Goblin"
+}

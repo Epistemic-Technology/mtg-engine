@@ -1,0 +1,7 @@
+card "Tajuru Archer" {
+  oracle_id 5ef498fa-31d5-4eca-873d-6b2b1f7f9a3c
+  cost {2}{G}
+  type Creature — Elf Archer Ally
+  pt 1/2
+  triggered whenever this or Ally you control enters: you may deal count equal Ally you control damage to target creature with flying
+}

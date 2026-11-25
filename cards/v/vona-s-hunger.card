@@ -1,0 +1,7 @@
+card "Vona's Hunger" {
+  oracle_id da522912-1bc2-4d70-b426-94d10edb2afe
+  cost {2}{B}
+  type Instant
+  ascend
+  spell: each opponent sacrifices 1 creature; if city's blessing, instead each opponent sacrifices half up creature
+}

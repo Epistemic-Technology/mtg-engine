@@ -1,0 +1,7 @@
+card "Flowering of the White Tree" {
+  oracle_id 3cda958a-f777-433d-850e-a6c8f581db4e
+  cost {W}{W}
+  type Legendary Enchantment
+  static legendary creature you control: +2/+1, has ward {1}
+  static nonlegendary creature you control: +1/+1
+}

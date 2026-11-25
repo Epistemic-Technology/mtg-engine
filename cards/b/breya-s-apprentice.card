@@ -1,0 +1,11 @@
+card "Breya's Apprentice" {
+  oracle_id 8fb9ff2d-1e90-4a26-8397-bb981fda2f7b
+  cost {2}{R}
+  type Artifact Creature — Human Artificer
+  pt 2/3
+  triggered whenever this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+  activated {T}, sacrifice artifact: choose one {
+    mode: impulse 1 next turn first
+    mode: target creature gets +2/+0
+  }
+}

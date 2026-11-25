@@ -1,0 +1,8 @@
+card "Firedrinker Satyr" {
+  oracle_id bb107b33-ae2e-4d45-b537-1e6e25c66ec8
+  cost {R}
+  type Creature — Satyr Shaman
+  pt 2/1
+  triggered whenever this is dealt damage: deal that much damage to you
+  activated {1}{R}: this gets +1/+0 until end of turn and deal 1 damage to you
+}

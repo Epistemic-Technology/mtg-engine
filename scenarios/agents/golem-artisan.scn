@@ -1,0 +1,24 @@
+scenario "Golem Artisan pumps an artifact creature" {
+  battlefield A: "Golem Artisan", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Golem Artisan" targeting "Golem Artisan"
+  run_to turn 1 end
+  assert power "Golem Artisan" 4
+  assert toughness "Golem Artisan" 4
+}
+scenario "Golem Artisan gives a chosen keyword" {
+  battlefield A: "Golem Artisan", 2 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Golem Artisan" ability 2 targeting "Golem Artisan"
+  turn 1 A: choose "3"
+  run_to turn 1 end
+  assert has "Golem Artisan" haste
+  assert has not "Golem Artisan" flying
+  assert power "Golem Artisan" 3
+}
+scenario "Golem Artisan cannot target a nonartifact creature" {
+  battlefield A: "Golem Artisan", 2 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Golem Artisan" targeting "Grizzly Bears"
+  run_to turn 1 end
+}

@@ -1,0 +1,9 @@
+card "Alpine Guide" {
+  oracle_id 55b12241-2495-45e6-b618-3746d5521291
+  cost {2}{R}
+  type Snow Creature — Human Scout
+  pt 3/3
+  triggered when this enters: you may search Mountain card to battlefield tapped that card
+  keywords attacks each combat if able
+  triggered when this leaves the battlefield: sacrifice 1 Mountain chosen
+}

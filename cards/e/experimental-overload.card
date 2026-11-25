@@ -1,0 +1,6 @@
+card "Experimental Overload" {
+  oracle_id 7851e4c8-020c-4a3d-88ed-0c97609cdfed
+  cost {2}{U}{R}
+  type Sorcery
+  spell: create 1 "0/0 blue and red Weird creature" sized count where graveyard instant or sorcery; then you may return 1 instant or sorcery card from your graveyard to hand chosen; exile this
+}

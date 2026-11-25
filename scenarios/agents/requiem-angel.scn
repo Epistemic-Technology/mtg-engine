@@ -1,0 +1,17 @@
+scenario "non-Spirit death makes a spirit" {
+  battlefield A: "Requiem Angel", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 precombat_main A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains 1 "Spirit"
+  assert has "Spirit" flying
+}
+scenario "spirit death makes nothing" {
+  battlefield A: "Requiem Angel", "Drogskol Cavalry", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 precombat_main A: cast "Murder" targeting "Drogskol Cavalry"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Drogskol Cavalry"
+  assert battlefield A lacks "Spirit"
+}

@@ -1,0 +1,22 @@
+scenario "lord of the pit eats another creature" {
+  battlefield A: "Lord of the Pit", "Grizzly Bears"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Lord of the Pit"
+  assert life A 20
+}
+scenario "lord of the pit with no other creature deals 7 to you" {
+  battlefield A: "Lord of the Pit"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert battlefield A contains "Lord of the Pit"
+  assert life A 13
+}
+scenario "lord of the pit never sacrifices itself with other creature present" {
+  battlefield A: "Lord of the Pit", "Grizzly Bears", "Hill Giant"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert battlefield A contains "Lord of the Pit"
+  assert life A 20
+}

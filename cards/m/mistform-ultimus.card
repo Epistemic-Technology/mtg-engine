@@ -1,0 +1,7 @@
+card "Mistform Ultimus" {
+  oracle_id 7bf0e628-06b5-4e12-a526-a2bce08844f2
+  cost {3}{U}
+  type Legendary Creature — Illusion
+  pt 3/3
+  static this: add subtype every
+}

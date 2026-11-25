@@ -1,0 +1,7 @@
+card "Gigantomancer" {
+  oracle_id c4b5567a-f195-4638-94b5-0b933dba1850
+  cost {7}{G}
+  type Creature — Human Shaman
+  pt 1/1
+  activated {1}: target creature you control has base power and toughness 7/7 until end of turn
+}

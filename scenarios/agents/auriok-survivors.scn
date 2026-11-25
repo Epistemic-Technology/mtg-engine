@@ -1,0 +1,21 @@
+scenario "auriok survivors returns and attaches equipment" {
+  hand A: "Auriok Survivors"
+  graveyard A: "Bonesplitter"
+  battlefield A: 6 "Plains"
+  turn 1 precombat_main A: cast "Auriok Survivors"
+  turn 1 precombat_main A: trigger "Auriok Survivors" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bonesplitter"
+  assert attached "Bonesplitter" to "Auriok Survivors"
+  assert power "Auriok Survivors" 6
+}
+scenario "auriok survivors may decline" {
+  hand A: "Auriok Survivors"
+  graveyard A: "Bonesplitter"
+  battlefield A: 6 "Plains"
+  turn 1 precombat_main A: cast "Auriok Survivors"
+  turn 1 precombat_main A: trigger "Auriok Survivors" targeting "Bonesplitter"
+  turn 1 precombat_main A: decline "Auriok Survivors"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bonesplitter"
+}

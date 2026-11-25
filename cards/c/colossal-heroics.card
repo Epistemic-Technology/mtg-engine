@@ -1,0 +1,7 @@
+card "Colossal Heroics" {
+  oracle_id 5b01acaf-bcf4-4ac1-ac62-2f25a45c2589
+  cost {2}{G}
+  type Instant
+  strive {1}{G}
+  spell: any number of target creature each gets +2/+2 until end of turn; untap those targets
+}

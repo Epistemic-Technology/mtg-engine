@@ -1,0 +1,7 @@
+card "Reverent Hoplite" {
+  oracle_id 8cb6dbb5-9ea2-4c19-8173-148080fb898e
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  triggered whenever this enters: create count equal devotion white "1/1 white Human Soldier creature"
+}

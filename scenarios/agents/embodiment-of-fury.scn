@@ -1,0 +1,27 @@
+scenario "landfall animates a land with haste and trample" {
+  hand A: "Mountain"
+  battlefield A: "Embodiment of Fury", "Forest"
+  turn 1 A: play "Mountain"
+  turn 1 A: trigger "Embodiment of Fury" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert is "Forest" creature
+  assert is "Forest" land
+  assert is "Forest" "Elemental"
+  assert power "Forest" 3
+  assert toughness "Forest" 3
+  assert has "Forest" haste
+  assert has "Forest" trample
+}
+scenario "the animated land is gone at end of turn" {
+  hand A: "Mountain"
+  battlefield A: "Embodiment of Fury", "Forest"
+  turn 1 A: play "Mountain"
+  turn 1 A: trigger "Embodiment of Fury" targeting "Forest"
+  run_to turn 2 precombat_main
+  assert is not "Forest" creature
+}
+scenario "land creatures have trample" {
+  battlefield A: "Embodiment of Fury", "Forest"
+  run_to turn 1 postcombat_main
+  assert has "Embodiment of Fury" trample
+}

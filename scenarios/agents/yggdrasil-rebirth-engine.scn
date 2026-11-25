@@ -1,0 +1,23 @@
+scenario "Yggdrasil exiles creatures from graveyard and reanimates one with haste" {
+  hand A: "Yggdrasil, Rebirth Engine"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  battlefield A: 7 "Forest"
+  turn 1 precombat_main A: cast "Yggdrasil, Rebirth Engine"
+  turn 1 precombat_main A: wait
+  turn 1 precombat_main A: activate "Yggdrasil, Rebirth Engine" ability 2
+  run_to turn 1 combat_damage
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" haste
+}
+scenario "Yggdrasil tap exiles three" {
+  battlefield A: "Yggdrasil, Rebirth Engine"
+  library A: "Forest", "Island", "Plains", "Swamp"
+  turn 1 precombat_main A: activate "Yggdrasil, Rebirth Engine"
+  run_to turn 1 combat_damage
+  assert exile A contains "Forest"
+  assert exile A contains "Island"
+  assert exile A contains "Plains"
+  assert exile A lacks "Swamp"
+}

@@ -1,0 +1,36 @@
+scenario "Beledros makes a Pest each upkeep, both players'" {
+  battlefield A: "Beledros Witherbloom"
+  run_to turn 2 precombat_main
+  assert battlefield A contains 2 "Pest"
+}
+
+scenario "Beledros untaps lands for 10 life, once each turn" {
+  battlefield A: "Beledros Witherbloom", "Forest" tapped, "Island" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Beledros Witherbloom"
+  illegal turn 1 A: activate "Beledros Witherbloom"
+  run_to turn 1 postcombat_main
+  assert life A 10
+  assert untapped "Forest"
+  assert untapped "Island"
+}
+
+scenario "Beledros ability can be used again the next turn" {
+  battlefield A: "Beledros Witherbloom"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Beledros Witherbloom"
+  turn 3 A: activate "Beledros Witherbloom"
+  run_to turn 3 postcombat_main
+  assert life A 0
+  assert game_over
+}
+
+scenario "Pest token gains 1 life when it dies" {
+  battlefield A: "Beledros Witherbloom"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Pest"
+  run_to turn 2 postcombat_main
+  assert life A 21
+}

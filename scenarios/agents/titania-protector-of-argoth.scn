@@ -1,0 +1,19 @@
+scenario "titania returns land" {
+  hand A: "Titania, Protector of Argoth"
+  battlefield A: 5 "Forest"
+  graveyard A: "Mountain"
+  turn 1 precombat_main A: cast "Titania, Protector of Argoth"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Mountain"
+  assert graveyard A lacks "Mountain"
+}
+scenario "land dies makes 5/3 elemental" {
+  battlefield A: "Titania, Protector of Argoth", 3 "Mountain", "Forest"
+  hand A: "Stone Rain"
+  turn 1 precombat_main A: cast "Stone Rain" targeting "Forest"
+  run_to turn 1 combat_damage
+  assert graveyard A contains "Forest"
+  assert battlefield A contains "Elemental"
+  assert power "Elemental" 5
+  assert toughness "Elemental" 3
+}

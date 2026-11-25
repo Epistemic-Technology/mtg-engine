@@ -1,0 +1,6 @@
+card "Culling Ritual" {
+  oracle_id 15e5136e-ed15-49a8-b027-e09436673fb4
+  cost {2}{B}{G}
+  type Sorcery
+  spell: destroy each single nonland with mana value 2 or less; add {B} or {G} count each permanent destroyed this way
+}

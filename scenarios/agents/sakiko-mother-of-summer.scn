@@ -1,0 +1,14 @@
+scenario "sakiko adds that much green, kept to postcombat" {
+  battlefield A: "Sakiko, Mother of Summer", "Grizzly Bears"
+  hand A: 3 "Giant Growth"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: wait
+  turn 1 postcombat_main A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: wait
+  illegal turn 1 postcombat_main A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert power "Grizzly Bears" 8
+  assert hand A count 1
+}

@@ -1,0 +1,8 @@
+card "Tezzeret's Touch" {
+  oracle_id c6f2c767-3c8e-4113-b271-ea7c19583e6c
+  cost {1}{U}{B}
+  type Enchantment — Aura
+  enchant artifact
+  static enchanted: add type creature, base 5/5
+  triggered when enchanted artifact is put into a graveyard: return triggering card to hand
+}

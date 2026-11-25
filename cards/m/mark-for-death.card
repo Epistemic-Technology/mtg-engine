@@ -1,0 +1,6 @@
+card "Mark for Death" {
+  oracle_id ad2e4ab0-d990-472d-8788-3f85215da51c
+  cost {3}{R}
+  type Sorcery
+  spell: target creature an opponent controls blocks this turn if able; untap that target 1; each other creature that player 1 controls can't block this turn
+}

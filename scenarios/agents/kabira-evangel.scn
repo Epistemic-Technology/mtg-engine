@@ -1,0 +1,25 @@
+scenario "Kabira Evangel gives Allies protection from the chosen color" {
+  battlefield A: "Plains", "Plains", "Plains", "Mountain"
+  hand A: "Kabira Evangel", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kabira Evangel"
+  turn 1 A: choose red
+  turn 1 A: wait
+  illegal turn 1 A: cast "Shock" targeting "Kabira Evangel"
+  run_to turn 1 postcombat_main
+  assert damage "Kabira Evangel" 0
+}
+
+scenario "Kabira Evangel protection ends at end of turn" {
+  battlefield A: "Plains", "Plains", "Plains"
+  battlefield B: "Mountain"
+  hand A: "Kabira Evangel"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kabira Evangel"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 2 B: cast "Shock" targeting "Kabira Evangel"
+  run_to turn 2 postcombat_main
+  assert damage "Kabira Evangel" 2
+}

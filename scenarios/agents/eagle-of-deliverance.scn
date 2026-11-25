@@ -1,0 +1,19 @@
+scenario "small target draws" {
+  battlefield A: "Grizzly Bears", 6 "Plains"
+  hand A: "Eagle of Deliverance"
+  library A: "Island", "Island"
+  turn 1 precombat_main A: cast "Eagle of Deliverance"
+  turn 1 precombat_main A: trigger "Eagle of Deliverance" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" indestructible 1
+  assert hand A count 1
+}
+scenario "big target no draw" {
+  battlefield A: "Serra Angel", 6 "Plains"
+  hand A: "Eagle of Deliverance"
+  turn 1 precombat_main A: cast "Eagle of Deliverance"
+  turn 1 precombat_main A: trigger "Eagle of Deliverance" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert counters "Serra Angel" indestructible 1
+  assert hand A count 0
+}

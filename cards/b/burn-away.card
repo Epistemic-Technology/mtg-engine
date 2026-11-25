@@ -1,0 +1,6 @@
+card "Burn Away" {
+  oracle_id 65dcad6b-9a87-4313-bc71-682e1de262d0
+  cost {4}{R}
+  type Instant
+  spell: deal 6 damage to target creature; delayed target 1: when that creature dies this turn, exile graveyard of its controller
+}

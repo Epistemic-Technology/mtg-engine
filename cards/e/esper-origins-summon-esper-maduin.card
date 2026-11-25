@@ -1,0 +1,16 @@
+card "Esper Origins // Summon: Esper Maduin" {
+  oracle_id 947b40a2-e272-4ef6-85fb-3d767a21bc7a
+  layout transform
+  cost {1}{G}
+  type Sorcery
+  flashback {3}{G}
+  spell: surveil 2; you gain 2 life; if cast from graveyard, exile it then put it onto battlefield transformed with 1 finality counter
+  face "Summon: Esper Maduin" {
+    type Enchantment Creature — Saga Elemental
+    pt 4/4
+    color green
+    triggered chapter 1: reveal top card; if it is permanent card, put it into hand
+    triggered chapter 2: add {G}{G}
+    triggered chapter 3: each other creature you control gets +2/+2 and gains trample until end of turn
+  }
+}

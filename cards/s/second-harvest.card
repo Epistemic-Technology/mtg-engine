@@ -1,0 +1,6 @@
+card "Second Harvest" {
+  oracle_id 61a6341e-0d36-44b6-8026-9c87c8ef61cb
+  cost {2}{G}{G}
+  type Instant
+  spell: create token copy of each token you control
+}

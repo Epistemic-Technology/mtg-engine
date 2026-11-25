@@ -1,0 +1,7 @@
+card "Channeled Force" {
+  oracle_id e12ed186-01c1-4da5-b90f-cfbb77c4e8d0
+  cost {2}{U}{R}
+  type Instant
+  additional cost discard X cards
+  spell: target player draws X cards; deal X damage to up to 1 target creature or planeswalker
+}

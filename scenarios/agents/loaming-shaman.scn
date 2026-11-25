@@ -1,0 +1,22 @@
+scenario "Loaming Shaman shuffles chosen cards from a graveyard into the library" {
+  battlefield A: 3 "Forest"
+  graveyard B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Loaming Shaman"
+  turn 1 A: cast "Loaming Shaman"
+  turn 1 A: trigger "Loaming Shaman" targeting player B, "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B lacks "Grizzly Bears"
+  assert graveyard B lacks "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Loaming Shaman can target my own graveyard" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Loaming Shaman"
+  turn 1 A: cast "Loaming Shaman"
+  turn 1 A: trigger "Loaming Shaman" targeting player A, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}

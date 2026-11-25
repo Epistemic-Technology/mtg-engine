@@ -1,0 +1,6 @@
+card "Voices from the Void" {
+  oracle_id 8c5264d2-8544-4e83-8ebc-7261dde80f01
+  cost {4}{B}
+  type Sorcery
+  label "Domain" spell: target player discards count each domain card
+}

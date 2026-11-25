@@ -1,0 +1,9 @@
+card "Olivia's Attendants" {
+  oracle_id 6b384c3c-0d6b-4bba-b4c7-5af8b32bdf1c
+  cost {4}{R}{R}
+  type Creature — Vampire
+  pt 6/6
+  keywords menace
+  triggered whenever this deals damage: create that much "Blood"
+  activated {2}{R}: deal 1 damage to any target
+}

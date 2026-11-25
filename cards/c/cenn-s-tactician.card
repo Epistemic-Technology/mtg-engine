@@ -1,0 +1,8 @@
+card "Cenn's Tactician" {
+  oracle_id 9c4a3ca6-dcf9-4986-81da-bcfd46414bee
+  cost {W}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  activated {W}, {T}: put 1 +1/+1 counter on target Soldier creature
+  static each creature you control with +1/+1 counter: has can block an additional creature each combat
+}

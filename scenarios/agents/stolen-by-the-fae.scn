@@ -1,0 +1,19 @@
+scenario "Stolen by the Fae bounces a creature with mana value X and makes X Faeries" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Stolen by the Fae"
+  turn 1 A: cast "Stolen by the Fae" x 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert battlefield A contains 2 "Faerie"
+  assert has newest A "Faerie" flying
+  assert power newest A "Faerie" 1
+}
+scenario "Stolen by the Fae cannot target a creature with the wrong mana value" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Stolen by the Fae"
+  illegal turn 1 A: cast "Stolen by the Fae" x 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}

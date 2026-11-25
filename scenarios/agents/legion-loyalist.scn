@@ -1,0 +1,19 @@
+scenario "battalion grants first strike, trample, no token blocks" {
+  battlefield A: "Legion Loyalist", 2 "Grizzly Bears"
+  battlefield B: "Soldier", "Hill Giant"
+  start turn 1 A
+  turn 1 declare_attackers A: attack "Legion Loyalist", "Grizzly Bears", "Grizzly Bears"
+  illegal turn 1 declare_blockers B: block "Legion Loyalist" with "Soldier"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 end_combat
+  assert has oldest A "Grizzly Bears" first_strike
+  assert has oldest A "Grizzly Bears" trample
+  assert has "Legion Loyalist" first_strike
+}
+scenario "two attackers is not battalion" {
+  battlefield A: "Legion Loyalist", "Grizzly Bears"
+  start turn 1 A
+  turn 1 declare_attackers A: attack "Legion Loyalist", "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert has not "Grizzly Bears" first_strike
+}

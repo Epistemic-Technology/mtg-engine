@@ -1,0 +1,21 @@
+scenario "Disciple of the Vault drains when an artifact dies" {
+  battlefield A: "Disciple of the Vault", 3 "Swamp"
+  battlefield B: "Ornithopter"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life B 19
+}
+
+scenario "Disciple of the Vault ignores a nonartifact creature" {
+  battlefield A: "Disciple of the Vault", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}

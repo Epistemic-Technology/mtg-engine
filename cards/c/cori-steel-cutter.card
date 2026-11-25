@@ -1,0 +1,8 @@
+card "Cori-Steel Cutter" {
+  oracle_id 46b1a169-bc32-47bf-b379-fa0c3d13878f
+  cost {1}{R}
+  type Artifact — Equipment
+  static equipped: +1/+1, has trample and haste
+  label "Flurry" triggered whenever you cast your second spell each turn: create 1 "1/1 white Monk creature with prowess"; you may attach this to it
+  equip {1}{R}
+}

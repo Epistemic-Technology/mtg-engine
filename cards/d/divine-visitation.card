@@ -1,0 +1,6 @@
+card "Divine Visitation" {
+  oracle_id 5917216f-5b42-41fa-8976-401bdbeb782e
+  cost {3}{W}{W}
+  type Enchantment
+  replace creature tokens created under your control: that many "4/4 white Angel creature with flying and vigilance"
+}

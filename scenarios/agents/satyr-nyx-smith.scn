@@ -1,0 +1,18 @@
+scenario "satyr nyx-smith pays for a haste elemental when untapped" {
+  battlefield A: "Satyr Nyx-Smith" tapped, 3 "Mountain" tapped
+  start turn 3 A untap
+  turn 3 upkeep A: accept "Satyr Nyx-Smith"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Elemental"
+  assert power "Elemental" 3
+  assert toughness "Elemental" 1
+  assert has "Elemental" haste
+  assert is "Elemental" enchantment
+}
+scenario "satyr nyx-smith declined" {
+  battlefield A: "Satyr Nyx-Smith" tapped, 3 "Mountain" tapped
+  start turn 3 A untap
+  turn 3 upkeep A: decline "Satyr Nyx-Smith"
+  run_to turn 3 precombat_main
+  assert battlefield A contains 0 "Elemental"
+}

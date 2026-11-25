@@ -1,0 +1,6 @@
+card "Morbid Bloom" {
+  oracle_id aacec73f-9c60-4c3f-b323-6261eab342af
+  cost {4}{B}{G}
+  type Sorcery
+  spell: exile target creature card from a graveyard then create count where toughness of the exiled card "1/1 green Saproling creature"
+}

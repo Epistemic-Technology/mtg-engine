@@ -1,0 +1,6 @@
+card "Lightning Volley" {
+  oracle_id 93b6083b-f49a-4641-b76f-8ccbec22f91d
+  cost {3}{R}
+  type Instant
+  spell: until end of turn, each creature you control gains ability { activated {T}: deal 1 damage to any target }
+}

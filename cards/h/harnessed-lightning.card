@@ -1,0 +1,6 @@
+card "Harnessed Lightning" {
+  oracle_id d8dd7e7f-0053-44bb-bac0-1a08843d4c49
+  cost {1}{R}
+  type Instant
+  spell: choose target creature; you get 3 energy then you may pay any energy; this deals that much damage to that target 1
+}

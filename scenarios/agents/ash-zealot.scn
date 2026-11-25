@@ -1,0 +1,19 @@
+scenario "Ash Zealot punishes a spell cast from a graveyard" {
+  battlefield A: "Ash Zealot"
+  battlefield B: 5 "Mountain", "Hill Giant"
+  graveyard B: "Firebolt"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Firebolt" from graveyard targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 20
+}
+scenario "Ash Zealot ignores a spell cast from hand" {
+  battlefield A: "Ash Zealot"
+  battlefield B: "Mountain", "Hill Giant"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

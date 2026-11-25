@@ -1,0 +1,6 @@
+card "Give No Ground" {
+  oracle_id bae18a46-00e0-4b3e-8fdb-44cc61f30f8e
+  cost {3}{W}
+  type Instant
+  spell: target creature gets +2/+6 and gains can block any number of creatures until end of turn
+}

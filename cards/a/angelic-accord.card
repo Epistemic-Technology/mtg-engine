@@ -1,0 +1,6 @@
+card "Angelic Accord" {
+  oracle_id aa95501f-bb59-494a-bcae-b74ca10ad57e
+  cost {3}{W}
+  type Enchantment
+  triggered at beginning of every end if gained 4 life this turn: create 1 "4/4 white Angel creature with flying"
+}

@@ -1,0 +1,28 @@
+scenario "ghoul returns tapped after gaining 3" {
+  graveyard A: "Silversmote Ghoul"
+  hand A: "Healing Salve"
+  battlefield A: 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 23
+  run_to turn 1 cleanup
+  assert battlefield A contains "Silversmote Ghoul"
+  assert tapped "Silversmote Ghoul"
+}
+scenario "ghoul stays with only 2 life gained" {
+  graveyard A: "Silversmote Ghoul"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert graveyard A contains "Silversmote Ghoul"
+}
+scenario "ghoul sac draws" {
+  battlefield A: "Silversmote Ghoul", "Swamp", "Plains"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Silversmote Ghoul"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A contains "Silversmote Ghoul"
+}

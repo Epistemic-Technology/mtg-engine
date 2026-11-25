@@ -1,0 +1,25 @@
+scenario "Ascendant Spirit levels up through Warrior to Angel" {
+  battlefield A: "Ascendant Spirit", 9 "Snow-Covered Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ascendant Spirit" ability 1
+  turn 1 A: wait
+  turn 1 A: activate "Ascendant Spirit" ability 2
+  turn 1 A: wait
+  turn 1 A: activate "Ascendant Spirit" ability 3
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert power "Ascendant Spirit" 6
+  assert toughness "Ascendant Spirit" 6
+  assert has "Ascendant Spirit" flying
+  assert is "Ascendant Spirit" "Angel"
+  assert is "Ascendant Spirit" "Warrior"
+}
+
+scenario "Ascendant Spirit second ability needs a Warrior" {
+  battlefield A: "Ascendant Spirit", 3 "Snow-Covered Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ascendant Spirit" ability 2
+  run_to turn 1 postcombat_main
+  assert power "Ascendant Spirit" 1
+  assert counters "Ascendant Spirit" flying 0
+}

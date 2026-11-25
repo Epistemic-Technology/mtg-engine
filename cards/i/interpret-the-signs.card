@@ -1,0 +1,6 @@
+card "Interpret the Signs" {
+  oracle_id 834554f6-3b65-44fd-b1d1-8495b740dbfc
+  cost {5}{U}
+  type Sorcery
+  spell: scry 3 then reveal top card; draw count equal mana value of that card cards
+}

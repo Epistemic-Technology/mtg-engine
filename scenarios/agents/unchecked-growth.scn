@@ -1,0 +1,20 @@
+scenario "Unchecked Growth gives a Spirit trample" {
+  battlefield A: "Thousand-legged Kami", "Forest", "Forest", "Forest"
+  hand A: "Unchecked Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unchecked Growth" targeting "Thousand-legged Kami"
+  run_to turn 1 begin_combat
+  assert power "Thousand-legged Kami" 10
+  assert has "Thousand-legged Kami" trample
+}
+
+scenario "Unchecked Growth gives a non-Spirit only the bonus" {
+  battlefield A: "Grizzly Bears", "Forest", "Forest", "Forest"
+  hand A: "Unchecked Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unchecked Growth" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+  assert has not "Grizzly Bears" trample
+}

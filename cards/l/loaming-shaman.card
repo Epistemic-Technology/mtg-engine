@@ -1,0 +1,7 @@
+card "Loaming Shaman" {
+  oracle_id cf7352bf-3971-4bb7-88b9-65ab9a219289
+  cost {2}{G}
+  type Creature — Centaur Shaman
+  pt 3/2
+  triggered when this enters: target player shuffles any number of target card from their graveyard into library
+}

@@ -1,0 +1,21 @@
+scenario "Volition Reins steals and untaps a tapped permanent" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Volition Reins"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Volition Reins" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+}
+
+scenario "Volition Reins can take a land and leaves an untapped one" {
+  battlefield A: 6 "Island"
+  battlefield B: "Forest"
+  hand A: "Volition Reins"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Volition Reins" targeting "Forest"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Forest"
+  assert untapped "Forest"
+}

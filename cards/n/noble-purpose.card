@@ -1,0 +1,6 @@
+card "Noble Purpose" {
+  oracle_id 84528204-faf2-45cb-bce0-365b8adf5339
+  cost {3}{W}{W}
+  type Enchantment
+  triggered whenever creature you control deals combat damage: you gain that much life
+}

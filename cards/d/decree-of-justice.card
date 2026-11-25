@@ -1,0 +1,8 @@
+card "Decree of Justice" {
+  oracle_id 67a98359-6f02-4556-ad47-c01b643686d6
+  cost {X}{X}{2}{W}{W}
+  type Sorcery
+  spell: create x "4/4 white Angel creature with flying"
+  cycling {2}{W}
+  triggered when you cycle this: you may pay {X}; if you do, create x "1/1 white Soldier creature"
+}

@@ -1,0 +1,8 @@
+card "Black Dragon" {
+  oracle_id ad804712-18ba-49d7-9af2-4361edaa6cf8
+  cost {5}{B}{B}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  label "Acid Breath" triggered when this enters: target creature an opponent controls gets -3/-3 until end of turn
+}

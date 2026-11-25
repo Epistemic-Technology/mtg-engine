@@ -1,0 +1,9 @@
+card "Ascendant Spirit" {
+  oracle_id 784c039d-a9b2-4b22-a937-c8f7b475e96a
+  cost {U}
+  type Snow Creature — Spirit
+  pt 1/1
+  activated {S}{S}: this becomes Spirit Warrior base 2/3 indefinitely
+  activated {S}{S}{S}: if this is Warrior, put 1 flying counter on this and this becomes Spirit Warrior Angel base 4/4 indefinitely
+  activated {S}{S}{S}{S}: if this is Angel, put 2 +1/+1 counters on this and this gains ability { triggered whenever this deals combat damage to a player: draw 1 card } indefinitely
+}

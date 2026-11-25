@@ -1,0 +1,7 @@
+card "Undead Augur" {
+  oracle_id c26887e1-27f4-4550-921b-53460e43c079
+  cost {B}{B}
+  type Creature — Zombie Wizard
+  pt 2/2
+  triggered whenever this or Zombie you control dies: you draw 1 card and lose 1 life
+}

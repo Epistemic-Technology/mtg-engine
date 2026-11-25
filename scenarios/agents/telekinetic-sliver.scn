@@ -1,0 +1,17 @@
+scenario "telekinetic sliver taps a permanent" {
+  battlefield A: "Telekinetic Sliver"
+  battlefield B: "Hill Giant", "Forest"
+  turn 1 A: activate "Telekinetic Sliver" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Telekinetic Sliver"
+  assert untapped "Forest"
+}
+scenario "other sliver has the ability too" {
+  battlefield A: "Telekinetic Sliver", "Telekinetic Sliver"
+  battlefield B: "Hill Giant", "Forest"
+  turn 1 A: activate "Telekinetic Sliver" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert tapped "Forest"
+  assert untapped "Hill Giant"
+}

@@ -1,0 +1,20 @@
+scenario "encampment animates as a 2/1 first striker" {
+  battlefield A: "Ghitu Encampment", "Mountain", "Mountain"
+  battlefield B: "Grizzly Bears"
+  turn 1 precombat_main A: activate "Ghitu Encampment"
+  turn 1 declare_attackers A: attack "Ghitu Encampment"
+  turn 1 declare_blockers B: block "Ghitu Encampment" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Ghitu Encampment" 2
+  assert toughness "Ghitu Encampment" 1
+  assert is "Ghitu Encampment" land
+  assert is "Ghitu Encampment" creature
+  assert has "Ghitu Encampment" first_strike
+  assert graveyard B contains "Grizzly Bears"
+}
+scenario "enters tapped" {
+  hand A: "Ghitu Encampment"
+  turn 1 precombat_main A: play "Ghitu Encampment"
+  run_to turn 1 begin_combat
+  assert tapped "Ghitu Encampment"
+}

@@ -1,0 +1,25 @@
+scenario "ethereal absolution anthem and shrink" {
+  battlefield A: "Ethereal Absolution", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}
+scenario "ethereal absolution exiles creature card and makes spirit" {
+  battlefield A: "Ethereal Absolution", 4 "Plains", 4 "Swamp"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 precombat_main A: activate "Ethereal Absolution" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield A contains "Spirit"
+  assert power "Spirit" 2
+}
+scenario "ethereal absolution no spirit for noncreature" {
+  battlefield A: "Ethereal Absolution", 4 "Plains", 4 "Swamp"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 precombat_main A: activate "Ethereal Absolution" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert battlefield A lacks "Spirit"
+}

@@ -1,0 +1,9 @@
+card "Whispers of Emrakul" {
+  oracle_id cf8bc2e3-2f22-45d3-9810-bc039202f41c
+  cost {1}{B}
+  type Sorcery
+  spell {
+    target opponent discards 1 cards at random
+    label "Delirium" if 4 card types in your graveyard, that player discards 2 cards at random instead
+  }
+}

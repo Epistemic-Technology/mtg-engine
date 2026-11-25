@@ -1,0 +1,20 @@
+scenario "no gates" {
+  battlefield A: "Gatebreaker Ram"
+  run_to turn 1 precombat_main
+  assert power "Gatebreaker Ram" 2
+  assert has not "Gatebreaker Ram" vigilance
+}
+scenario "one gate pumps" {
+  battlefield A: "Gatebreaker Ram", "Simic Guildgate"
+  run_to turn 1 precombat_main
+  assert power "Gatebreaker Ram" 3
+  assert toughness "Gatebreaker Ram" 3
+  assert has not "Gatebreaker Ram" trample
+}
+scenario "two gates pump and grant" {
+  battlefield A: "Gatebreaker Ram", "Simic Guildgate", "Selesnya Guildgate"
+  run_to turn 1 precombat_main
+  assert power "Gatebreaker Ram" 4
+  assert has "Gatebreaker Ram" vigilance
+  assert has "Gatebreaker Ram" trample
+}

@@ -1,0 +1,17 @@
+scenario "equipped Warrior gets double strike" {
+  battlefield A: "Kor Blademaster", "Skarrgan Pit-Skulk", "Bonesplitter", "Plains"
+  start turn 1 A precombat_main
+  assert has not "Skarrgan Pit-Skulk" double_strike
+  turn 1 A: activate "Bonesplitter" targeting "Skarrgan Pit-Skulk"
+  run_to turn 1 begin_combat
+  assert has "Skarrgan Pit-Skulk" double_strike
+}
+
+scenario "equipped non-Warrior does not" {
+  battlefield A: "Kor Blademaster", "Grizzly Bears", "Bonesplitter", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" double_strike
+}

@@ -1,0 +1,7 @@
+card "Staggering Insight" {
+  oracle_id 09071f5f-c9cb-43a9-b41d-faf6caf3beff
+  cost {W}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has lifelink, has ability { triggered whenever this deals combat damage to a player: draw 1 cards }
+}

@@ -1,0 +1,6 @@
+card "Feast of Worms" {
+  oracle_id 905889fb-a123-4f7a-afc6-b4c6ccac9105
+  cost {3}{G}{G}
+  type Sorcery — Arcane
+  spell: destroy target land; if target 1 was legendary, its controller sacrifices 1 another land
+}

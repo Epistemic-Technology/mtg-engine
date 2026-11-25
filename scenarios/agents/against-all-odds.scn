@@ -1,0 +1,35 @@
+scenario "Against All Odds mode 1 blinks, dropping counters" {
+  battlefield A: "Hill Giant" with 2 +1/+1, 4 "Plains"
+  hand A: "Against All Odds"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Against All Odds" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+  assert graveyard A contains "Grizzly Bears"
+}
+scenario "Against All Odds mode 2 reanimates a cheap creature only" {
+  battlefield A: 4 "Plains"
+  hand A: "Against All Odds"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  illegal turn 1 A: cast "Against All Odds" mode 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+scenario "Against All Odds mode 2 returns a Grizzly Bears" {
+  battlefield A: 4 "Plains"
+  hand A: "Against All Odds"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  turn 1 A: cast "Against All Odds" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+scenario "Against All Odds both modes" {
+  battlefield A: "Hill Giant" with 2 +1/+1, 4 "Plains"
+  hand A: "Against All Odds"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Against All Odds" mode 3 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+  assert battlefield A contains "Grizzly Bears"
+}

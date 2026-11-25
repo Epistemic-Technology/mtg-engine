@@ -1,0 +1,12 @@
+scenario "Liliana's Reaver makes B discard and creates a tapped Zombie" {
+  battlefield A: "Liliana's Reaver"
+  hand B: "Forest", "Island"
+  start turn 1 A
+  turn 1 A: attack "Liliana's Reaver"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand B count 1
+  assert battlefield A contains "Zombie"
+  assert tapped "Zombie"
+  assert power "Zombie" 2
+}

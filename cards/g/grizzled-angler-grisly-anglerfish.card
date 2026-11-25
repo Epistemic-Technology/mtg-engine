@@ -1,0 +1,13 @@
+card "Grizzled Angler // Grisly Anglerfish" {
+  oracle_id d37effd3-d194-4609-9994-6d70038a68f9
+  layout transform
+  cost {2}{U}
+  type Creature — Human
+  pt 2/3
+  activated {T}: mill 2 cards; then if there is colorless creature card in your graveyard, transform this
+  face "Grisly Anglerfish" {
+    type Creature — Eldrazi Fish
+    pt 4/5
+    activated {6}: each creature your opponents control attacks if able
+  }
+}

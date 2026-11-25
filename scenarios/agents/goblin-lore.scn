@@ -1,0 +1,12 @@
+scenario "Goblin Lore draws four and discards three at random" {
+  battlefield A: 2 "Mountain"
+  hand A: "Goblin Lore"
+  library A: "Forest", "Island", "Swamp", "Plains", "Mountain"
+  seed 3
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Lore"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 4
+  assert library A count 1
+}

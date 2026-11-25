@@ -1,0 +1,16 @@
+scenario "hoard-smelter destroys artifact and pumps by its mana value" {
+  battlefield A: "Hoard-Smelter Dragon", 4 "Mountain"
+  battlefield B: "Bloodtallow Candle"
+  turn 1 A: activate "Hoard-Smelter Dragon" targeting "Bloodtallow Candle"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Bloodtallow Candle"
+  assert power "Hoard-Smelter Dragon" 6
+  assert toughness "Hoard-Smelter Dragon" 5
+}
+scenario "hoard-smelter pumps by a larger mana value" {
+  battlefield A: "Hoard-Smelter Dragon", 4 "Mountain"
+  battlefield B: "Elven Lyre"
+  turn 1 A: activate "Hoard-Smelter Dragon" targeting "Elven Lyre"
+  run_to turn 1 postcombat_main
+  assert power "Hoard-Smelter Dragon" 7
+}

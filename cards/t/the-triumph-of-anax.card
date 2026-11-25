@@ -1,0 +1,7 @@
+card "The Triumph of Anax" {
+  oracle_id eea6ba94-8755-45c0-94ea-cde68e4a1e7c
+  cost {2}{R}
+  type Enchantment — Saga
+  triggered chapter 1, 2, 3: until end of turn, target creature gains trample and gets +1/+0 count where lore counters on this
+  triggered chapter 4: target creature you control fights up to one target creature you don't control
+}

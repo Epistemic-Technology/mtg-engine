@@ -1,0 +1,6 @@
+card "Repel Intruders" {
+  oracle_id 94a241bf-5709-4890-8f06-017833869d62
+  cost {3}{W/U}
+  type Instant
+  spell: create 2 "1/1 white Kithkin Soldier creature" if spent {W}; counter up to 1 target creature spell if spent {U}
+}

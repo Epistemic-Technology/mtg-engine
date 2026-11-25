@@ -1,0 +1,8 @@
+card "Kheru Bloodsucker" {
+  oracle_id 511e35cd-2e19-4803-a404-b790af0cea60
+  cost {2}{B}
+  type Creature — Vampire
+  pt 2/2
+  triggered whenever a creature you control with toughness 4 or greater dies: each opponent loses 2 life and you gain 2 life
+  activated {2}{B}, sacrifice another creature: put 1 +1/+1 counter on this
+}

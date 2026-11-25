@@ -1,0 +1,18 @@
+scenario "Vivien's Jaguar returns from the graveyard only with a Vivien" {
+  battlefield A: 3 "Forest", "Vivien Reid"
+  graveyard A: "Vivien's Jaguar"
+  start turn 1 A
+  turn 1 A: activate "Vivien's Jaguar"
+  run_to turn 1 combat_damage
+  assert hand A contains "Vivien's Jaguar"
+  assert graveyard A lacks "Vivien's Jaguar"
+}
+
+scenario "Vivien's Jaguar stays without a Vivien" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Vivien's Jaguar"
+  start turn 1 A
+  illegal turn 1 A: activate "Vivien's Jaguar"
+  run_to turn 1 combat_damage
+  assert graveyard A contains "Vivien's Jaguar"
+}

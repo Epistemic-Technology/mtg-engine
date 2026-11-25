@@ -1,0 +1,6 @@
+card "Assault on Osgiliath" {
+  oracle_id d2aa50d2-d22d-495e-afc9-23a51c8c8f32
+  cost {X}{R}{R}{R}
+  type Sorcery
+  spell: amass Orcs x then each Goblin or Orc you control gains double strike and haste until end of turn
+}

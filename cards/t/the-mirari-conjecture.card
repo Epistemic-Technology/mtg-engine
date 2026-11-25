@@ -1,0 +1,8 @@
+card "The Mirari Conjecture" {
+  oracle_id 56528234-46c0-4fba-972a-0c8011996f8d
+  cost {4}{U}
+  type Enchantment — Saga
+  triggered chapter 1: return target instant card from your graveyard to hand
+  triggered chapter 2: return target sorcery card from your graveyard to hand
+  triggered chapter 3: until end of turn, delayed this: whenever you cast instant or sorcery spell, copy triggering it new targets
+}

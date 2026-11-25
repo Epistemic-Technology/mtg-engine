@@ -1,0 +1,23 @@
+scenario "Angelic Accord makes an Angel after gaining 4 or more life" {
+  battlefield A: "Angelic Accord", 3 "Plains"
+  hand A: "Renewed Faith"
+  turn 1 A: cast "Renewed Faith"
+  run_to turn 1 cleanup
+  assert life A 26
+  assert battlefield A contains 1 "Angel"
+  assert power "Angel" 4
+  assert has "Angel" flying
+}
+scenario "Angelic Accord makes nothing after gaining less than 4 life" {
+  battlefield A: "Angelic Accord", 2 "Forest"
+  hand A: "Weather the Storm"
+  turn 1 A: cast "Weather the Storm"
+  run_to turn 1 cleanup
+  assert life A 23
+  assert battlefield A lacks "Angel"
+}
+scenario "Angelic Accord makes nothing with no life gained" {
+  battlefield A: "Angelic Accord"
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Angel"
+}

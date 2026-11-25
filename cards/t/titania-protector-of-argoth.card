@@ -1,0 +1,8 @@
+card "Titania, Protector of Argoth" {
+  oracle_id d0ade00d-a496-441d-9b7e-7dc033d3292c
+  cost {3}{G}{G}
+  type Legendary Creature — Elemental
+  pt 5/3
+  triggered whenever this enters: return target land card from your graveyard to battlefield
+  triggered whenever land you control is put into a graveyard from the battlefield: create 1 "5/3 green Elemental creature"
+}

@@ -1,0 +1,9 @@
+scenario "devour in shadow destroys and costs life equal to toughness" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Devour in Shadow"
+  turn 1 A: cast "Devour in Shadow" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life A 16
+}

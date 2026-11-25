@@ -1,0 +1,7 @@
+card "Skemfar Avenger" {
+  oracle_id 47c67df1-52f5-459f-b83e-6b971be9b294
+  cost {1}{B}
+  type Creature — Elf Berserker
+  pt 3/1
+  triggered whenever other nontoken Elf or Berserker you control dies: you draw 1 card, and you lose 1 life
+}

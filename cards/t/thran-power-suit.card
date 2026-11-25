@@ -1,0 +1,7 @@
+card "Thran Power Suit" {
+  oracle_id 3952c288-5633-4e40-abe6-18940d079644
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+1 count each Aura or Equipment attached to attached, has ward {2}
+  equip {2}
+}

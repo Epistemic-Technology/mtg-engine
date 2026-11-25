@@ -1,0 +1,22 @@
+scenario "To the Slaughter: one creature or planeswalker" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Jace Beleren"
+  hand A: "To the Slaughter"
+  turn 1 precombat_main A: cast "To the Slaughter" targeting player B
+  turn 1 precombat_main B: choose "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Jace Beleren"
+}
+scenario "To the Slaughter: delirium sacrifices both" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Jace Beleren", "Grizzly Bears"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Forest", "Sol Ring"
+  hand A: "To the Slaughter"
+  turn 1 precombat_main A: cast "To the Slaughter" targeting player B
+  turn 1 precombat_main B: choose "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard B contains "Jace Beleren"
+}

@@ -1,0 +1,30 @@
+scenario "Light of Sanction prevents damage from your own sources to your creatures" {
+  battlefield A: "Light of Sanction", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Light of Sanction does not stop an opponent's damage" {
+  battlefield A: "Light of Sanction", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Light of Sanction does not stop damage from the opponent's creature in combat" {
+  battlefield A: "Light of Sanction", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}

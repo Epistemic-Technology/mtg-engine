@@ -1,0 +1,7 @@
+scenario "mind unbound draws more each upkeep" {
+  battlefield A: "Mind Unbound"
+  start turn 3 A
+  run_to turn 5 precombat_main
+  assert counters "Mind Unbound" lore 2
+  assert hand A count 5
+}

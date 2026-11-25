@@ -1,0 +1,21 @@
+scenario "Feudkiller's Verdict makes a Giant when ahead" {
+  life A 15
+  battlefield A: 6 "Plains"
+  hand A: "Feudkiller's Verdict"
+  turn 1 A: cast "Feudkiller's Verdict"
+  run_to turn 1 postcombat_main
+  assert life A 25
+  assert battlefield A contains "Giant Warrior"
+  assert power "Giant Warrior" 5
+  assert toughness "Giant Warrior" 5
+}
+scenario "Feudkiller's Verdict makes nothing when behind" {
+  life A 15
+  life B 40
+  battlefield A: 6 "Plains"
+  hand A: "Feudkiller's Verdict"
+  turn 1 A: cast "Feudkiller's Verdict"
+  run_to turn 1 postcombat_main
+  assert life A 25
+  assert battlefield A lacks "Giant Warrior"
+}

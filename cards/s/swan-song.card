@@ -1,0 +1,6 @@
+card "Swan Song" {
+  oracle_id 8ddfc283-c9b4-41a5-af88-cf0068e986cc
+  cost {U}
+  type Instant
+  spell: counter target enchantment, instant, or sorcery spell; its controller creates 1 "2/2 blue Bird creature with flying"
+}

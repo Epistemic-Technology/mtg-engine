@@ -1,0 +1,7 @@
+token "1/1 white Kithkin Soldier creature named Goldmeadow Harrier with {W}, {T}: tap target creature" {
+  name "Goldmeadow Harrier"
+  type Creature — Kithkin Soldier
+  pt 1/1
+  color white
+  activated {W}, {T}: tap target creature
+}

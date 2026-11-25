@@ -1,0 +1,11 @@
+scenario "Thran Golem is plain when unenchanted" {
+  battlefield A: "Thran Golem"
+  assert power "Thran Golem" 3
+  assert toughness "Thran Golem" 3
+}
+
+scenario "Thran Golem gets +2/+2 when enchanted" {
+  battlefield A: "Thran Golem", "Flight" on "Thran Golem"
+  assert power "Thran Golem" 5
+  assert toughness "Thran Golem" 5
+}

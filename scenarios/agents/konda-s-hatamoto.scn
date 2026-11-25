@@ -1,0 +1,16 @@
+scenario "legendary Samurai boosts hatamoto" {
+  battlefield A: "Konda's Hatamoto", "Iizuka the Ruthless"
+  assert power "Konda's Hatamoto" 2
+  assert toughness "Konda's Hatamoto" 4
+  assert has "Konda's Hatamoto" vigilance
+}
+scenario "alone it is 1/2" {
+  battlefield A: "Konda's Hatamoto"
+  assert power "Konda's Hatamoto" 1
+  assert toughness "Konda's Hatamoto" 2
+  assert has not "Konda's Hatamoto" vigilance
+}
+scenario "non-legendary samurai does not count" {
+  battlefield A: "Konda's Hatamoto", "Indebted Samurai"
+  assert power "Konda's Hatamoto" 1
+}

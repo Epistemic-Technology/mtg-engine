@@ -1,0 +1,34 @@
+scenario "Ulvenwald Observer draws when a toughness 4 creature dies" {
+  battlefield A: "Ulvenwald Observer", "Serra Angel", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert hand A count 1
+}
+
+scenario "Ulvenwald Observer ignores toughness 3 creatures" {
+  battlefield A: "Ulvenwald Observer", "Hill Giant", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert hand A count 0
+}
+
+scenario "Ulvenwald Observer ignores an opponent's big creature dying" {
+  battlefield A: "Ulvenwald Observer", 3 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Ulvenwald Observer draws when it dies itself" {
+  battlefield A: "Ulvenwald Observer", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Ulvenwald Observer"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}

@@ -1,0 +1,16 @@
+card "Wolfkin Outcast // Wedding Crasher" {
+  oracle_id ac3d07cd-88c4-4e22-9d86-f92d34f406d4
+  layout transform
+  cost {5}{G}
+  type Creature — Human Werewolf
+  pt 5/4
+  this spell costs {2} less if you control Wolf or Werewolf
+  daybound
+  face "Wedding Crasher" {
+    type Creature — Werewolf
+    pt 6/5
+    color green
+    triggered whenever this or Wolf or Werewolf you control dies: draw 1 card
+    nightbound
+  }
+}

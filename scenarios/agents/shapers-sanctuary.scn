@@ -1,0 +1,31 @@
+scenario "shapers sanctuary draws when an opponent targets your creature" {
+  battlefield A: "Shapers' Sanctuary", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Island", "Swamp"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Hill Giant"
+  run_to turn 2 end
+  assert hand A count 1
+  assert hand A contains "Island"
+  assert damage "Hill Giant" 2
+}
+scenario "shapers sanctuary ignores your own targeting" {
+  battlefield A: "Shapers' Sanctuary", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 0
+}
+scenario "shapers sanctuary declined" {
+  battlefield A: "Shapers' Sanctuary", "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Hill Giant"
+  turn 2 precombat_main A: decline "Shapers' Sanctuary"
+  run_to turn 2 end
+  assert hand A count 0
+}

@@ -1,0 +1,7 @@
+card "Mycoid Shepherd" {
+  oracle_id c4a4e607-7f37-4dc6-8fc0-f77bdafeb919
+  cost {1}{G}{G}{W}
+  type Creature — Fungus
+  pt 5/4
+  triggered whenever this or creature with power 5 or greater you control dies: you may you gain 5 life
+}

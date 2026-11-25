@@ -1,0 +1,32 @@
+scenario "Wanderwine Prophets champions a Merfolk and takes an extra turn" {
+  battlefield A: "Darting Merfolk", 6 "Island"
+  hand A: "Wanderwine Prophets"
+  start turn 1 A
+  turn 1 A: cast "Wanderwine Prophets"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wanderwine Prophets"
+  assert battlefield A lacks "Darting Merfolk"
+  assert exile A contains "Darting Merfolk"
+}
+
+scenario "Wanderwine Prophets is sacrificed without another Merfolk to champion" {
+  battlefield A: 6 "Island"
+  hand A: "Wanderwine Prophets"
+  start turn 1 A
+  turn 1 A: cast "Wanderwine Prophets"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Wanderwine Prophets"
+  assert graveyard A contains "Wanderwine Prophets"
+}
+
+scenario "Wanderwine Prophets sacrifices a Merfolk for an extra turn" {
+  battlefield A: "Wanderwine Prophets", "Darting Merfolk", "Island"
+  start turn 1 A
+  turn 1 A: attack "Wanderwine Prophets"
+  turn 1 A: choose "Darting Merfolk"
+  run_to turn 2 postcombat_main
+  assert turn 2
+  assert hand A count 1
+  assert graveyard A contains "Darting Merfolk"
+  assert life B 16
+}

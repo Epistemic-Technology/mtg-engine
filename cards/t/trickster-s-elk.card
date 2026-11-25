@@ -1,0 +1,8 @@
+card "Trickster's Elk" {
+  oracle_id 5bca05c1-1c0a-45f4-aa20-69f68b99cd7e
+  cost {2}{G}
+  type Enchantment Creature — Elk
+  pt 3/3
+  bestow {1}{G}
+  static enchanted: loses all abilities, set color green, set subtype Elk, set type creature, base 3/3
+}

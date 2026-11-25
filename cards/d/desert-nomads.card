@@ -1,0 +1,8 @@
+card "Desert Nomads" {
+  oracle_id 3247fca3-7458-47ee-875b-c55f2a3e2962
+  cost {2}{R}
+  type Creature — Human Nomad
+  pt 2/2
+  landwalk Desert
+  replace damage from Desert to this: prevent
+}

@@ -1,0 +1,34 @@
+scenario "Atzocan Archer fights another creature" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Atzocan Archer"
+  turn 1 A: cast "Atzocan Archer"
+  turn 1 A: trigger "Atzocan Archer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert damage "Atzocan Archer" 3
+  assert battlefield A contains "Atzocan Archer"
+}
+
+scenario "Atzocan Archer fight can be declined" {
+  battlefield B: "Hill Giant"
+  battlefield A: 3 "Forest"
+  hand A: "Atzocan Archer"
+  turn 1 A: cast "Atzocan Archer"
+  turn 1 A: trigger "Atzocan Archer" targeting "Hill Giant"
+  turn 1 A: decline "Atzocan Archer"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+}
+
+scenario "Atzocan Archer kills a small creature" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Atzocan Archer"
+  turn 1 A: cast "Atzocan Archer"
+  turn 1 A: trigger "Atzocan Archer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Atzocan Archer" 2
+  assert damage "Grizzly Bears" 1
+  assert has "Atzocan Archer" reach
+}

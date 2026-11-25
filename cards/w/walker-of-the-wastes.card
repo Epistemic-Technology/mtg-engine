@@ -1,0 +1,8 @@
+card "Walker of the Wastes" {
+  oracle_id fb818376-6e87-4aa3-a050-4b5f82942593
+  cost {4}{C}
+  type Creature — Eldrazi
+  pt 4/4
+  keywords trample
+  static this: +1/+1 count each land you control named "Wastes"
+}

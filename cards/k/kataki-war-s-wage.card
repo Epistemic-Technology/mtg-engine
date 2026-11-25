@@ -1,0 +1,7 @@
+card "Kataki, War's Wage" {
+  oracle_id 27ffa6e9-c161-4f53-8b41-7fae5f199f41
+  cost {1}{W}
+  type Legendary Creature — Spirit
+  pt 2/1
+  static artifact: has ability { triggered at beginning of your upkeep step: sacrifice this unless you pay {1} }
+}

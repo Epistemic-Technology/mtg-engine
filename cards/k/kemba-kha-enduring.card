@@ -1,0 +1,9 @@
+card "Kemba, Kha Enduring" {
+  oracle_id 93c97e1a-bd7e-4307-8ada-58f53a887cf8
+  cost {1}{W}
+  type Legendary Creature — Cat Cleric
+  pt 2/2
+  triggered whenever this or Cat you control enters: attach up to 1 target Equipment you control to that creature
+  static creature you control with equipment: +1/+1
+  activated {3}{W}{W}: create 1 "2/2 white Cat creature"
+}

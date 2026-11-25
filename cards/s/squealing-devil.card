@@ -1,0 +1,9 @@
+card "Squealing Devil" {
+  oracle_id 9a5b404c-b55f-47ad-8f5d-322a1ec6650f
+  cost {1}{R}
+  type Creature — Devil
+  pt 2/1
+  keywords fear
+  triggered whenever this enters: you may pay {X}; if you do, target creature gets +1/+0 x until end of turn
+  triggered whenever this enters: sacrifice this unless spent {B}
+}

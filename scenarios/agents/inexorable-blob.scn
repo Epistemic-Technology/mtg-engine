@@ -1,0 +1,17 @@
+scenario "delirium makes a tapped attacking ooze" {
+  battlefield A: "Inexorable Blob"
+  graveyard A: "Forest", "Grizzly Bears", "Shock", "Divination"
+  turn 1 declare_attackers A: attack "Inexorable Blob"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Ooze"
+  assert tapped "Ooze"
+}
+scenario "no delirium no ooze" {
+  battlefield A: "Inexorable Blob"
+  graveyard A: "Forest", "Grizzly Bears", "Shock"
+  turn 1 declare_attackers A: attack "Inexorable Blob"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A lacks "Ooze"
+}

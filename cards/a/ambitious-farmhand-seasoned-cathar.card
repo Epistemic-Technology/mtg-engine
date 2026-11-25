@@ -1,0 +1,15 @@
+card "Ambitious Farmhand // Seasoned Cathar" {
+  oracle_id b85e7ab2-6f57-4b65-8c16-034b342996f0
+  layout transform
+  cost {1}{W}
+  type Creature — Human Peasant
+  pt 1/1
+  triggered whenever this enters: you may search basic Plains card reveal to hand
+  label "Coven" activated {1}{W}{W}, if 3 different powers: transform this
+  face "Seasoned Cathar" {
+    type Creature — Human Knight
+    pt 3/3
+    color white
+    keywords lifelink
+  }
+}

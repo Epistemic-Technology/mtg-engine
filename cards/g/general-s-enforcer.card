@@ -1,0 +1,8 @@
+card "General's Enforcer" {
+  oracle_id 8e953251-aa5c-4aa3-8e69-1ff1f609f3ff
+  cost {W}{B}
+  type Creature — Human Soldier
+  pt 2/3
+  static legendary Human you control: has indestructible
+  activated {2}{W}{B}: exile target card from a graveyard; if target 1 was creature, create 1 "1/1 white Human Soldier creature"
+}

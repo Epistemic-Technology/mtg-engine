@@ -1,0 +1,9 @@
+card "Unbreakable Formation" {
+  oracle_id 97435e03-2fff-4fe0-8fa9-69ab0a046a33
+  cost {2}{W}
+  type Instant
+  spell {
+    each creature you control gain indestructible until end of turn
+    label "Addendum" if cast during main phase, put 1 +1/+1 counter on those creatures and they gain vigilance until end of turn
+  }
+}

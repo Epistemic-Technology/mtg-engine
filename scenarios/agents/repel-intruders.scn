@@ -1,0 +1,18 @@
+scenario "repel intruders with white: two tokens, no counter" {
+  battlefield A: 4 "Plains"
+  hand A: "Repel Intruders"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Repel Intruders" targeting none
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Kithkin Soldier"
+}
+scenario "repel intruders with blue counters a creature spell, no tokens" {
+  battlefield A: 4 "Island", 2 "Forest"
+  hand A: "Repel Intruders", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Repel Intruders" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Kithkin Soldier"
+}

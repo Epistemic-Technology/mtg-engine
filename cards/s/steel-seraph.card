@@ -1,0 +1,9 @@
+card "Steel Seraph" {
+  oracle_id 7ff8940f-d798-41eb-b82e-a1eba2163fe7
+  cost {6}
+  type Artifact Creature — Angel
+  pt 5/4
+  prototype {1}{W}{W} 3/3
+  keywords flying
+  triggered at beginning of your combat step: target creature you control gains choice of flying or vigilance or lifelink until end of turn
+}

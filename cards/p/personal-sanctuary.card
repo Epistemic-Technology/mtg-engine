@@ -1,0 +1,6 @@
+card "Personal Sanctuary" {
+  oracle_id 20963cad-1c13-44a1-901a-bfc9930089e6
+  cost {2}{W}
+  type Enchantment
+  during your turn replace damage to you: prevent
+}

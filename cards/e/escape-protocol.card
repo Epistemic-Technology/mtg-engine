@@ -1,0 +1,6 @@
+card "Escape Protocol" {
+  oracle_id e875b468-b475-4573-adf6-312ca4ab6994
+  cost {1}{U}
+  type Enchantment
+  triggered whenever you cycle a card: you may pay {1}; when you do, exile target artifact or creature you control then return it to battlefield under its owner's control
+}

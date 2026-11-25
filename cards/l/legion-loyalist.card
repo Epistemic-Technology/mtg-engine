@@ -1,0 +1,8 @@
+card "Legion Loyalist" {
+  oracle_id 560a5452-0dc3-421d-bf16-8843a35dae6f
+  cost {R}
+  type Creature — Goblin Soldier
+  pt 1/1
+  keywords haste
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: each creature you control gain first strike, trample and each creature you control gains ability { can't be blocked by creature token }
+}

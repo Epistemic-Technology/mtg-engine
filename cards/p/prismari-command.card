@@ -1,0 +1,11 @@
+card "Prismari Command" {
+  oracle_id fa3e28b1-131c-4223-81e0-18dfbab22c26
+  cost {1}{U}{R}
+  type Instant
+  choose two {
+    mode: deal 2 damage to any target
+    mode: target player draws 2 cards then discards 2 cards
+    mode: target player creates 1 "Treasure"
+    mode: destroy target artifact
+  }
+}

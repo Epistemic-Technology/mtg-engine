@@ -1,0 +1,10 @@
+scenario "attendant of vraska without a Vraska planeswalker gains nothing" {
+  battlefield A: "Attendant of Vraska"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Attendant of Vraska"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Attendant of Vraska"
+  assert life A 20
+}

@@ -1,0 +1,10 @@
+card "Neheb, the Worthy" {
+  oracle_id 092847a7-a238-4acf-9dcd-be6f3e6a6b93
+  cost {1}{B}{R}
+  type Legendary Creature — Minotaur Warrior
+  pt 2/2
+  keywords first strike
+  static other Minotaur you control: has first strike
+  static as long as hand 1 or less, Minotaur you control: +2/+0
+  triggered whenever this deals combat damage to a player: each player discards 1 card
+}

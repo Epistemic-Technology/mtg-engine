@@ -1,0 +1,19 @@
+scenario "bloodline culling mode 1 -5/-5" {
+  hand A: "Bloodline Culling"
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  turn 1 precombat_main A: cast "Bloodline Culling" mode 1 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Grizzly Bears"
+}
+scenario "bloodline culling mode 2 shrinks tokens only" {
+  hand A: "Bloodline Culling"
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Soldier", "Hill Giant"
+  turn 1 precombat_main A: cast "Bloodline Culling" mode 2
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+  assert power "Grizzly Bears" 2
+  assert battlefield B lacks "Soldier"
+}

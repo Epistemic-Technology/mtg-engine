@@ -1,0 +1,7 @@
+card "Quest for the Necropolis" {
+  oracle_id 407d9d09-3db6-49b0-9e80-4e1538156e44
+  cost {B}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: put 1 quest counters on this
+  activated {5}{B}, sacrifice this, reduced {1} each quest counters on this, sorcery: return target creature card from a graveyard to battlefield under your control
+}

@@ -1,0 +1,19 @@
+scenario "glacial plating: +3/+3 per age counter, paid with snow mana" {
+  battlefield A: "Grizzly Bears", "Glacial Plating" on "Grizzly Bears", 2 "Snow-Covered Plains"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert counters "Glacial Plating" age 1
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert tapped oldest A "Snow-Covered Plains"
+  run_to turn 3 draw
+  assert counters "Glacial Plating" age 2
+  assert power "Grizzly Bears" 8
+}
+scenario "glacial plating: not paid, sacrificed" {
+  battlefield A: "Grizzly Bears", "Glacial Plating" on "Grizzly Bears", "Plains"
+  start turn 1 A upkeep
+  run_to turn 1 draw
+  assert graveyard A contains "Glacial Plating"
+  assert power "Grizzly Bears" 2
+}

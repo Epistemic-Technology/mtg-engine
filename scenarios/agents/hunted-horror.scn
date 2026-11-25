@@ -1,0 +1,14 @@
+scenario "Hunted Horror gives the opponent two Centaurs" {
+  battlefield A: 5 "Swamp"
+  hand A: "Hunted Horror", "Murder"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Hunted Horror"
+  turn 3 A: trigger "Hunted Horror" targeting player B
+  turn 3 A: wait
+  illegal turn 3 A: cast "Murder" targeting B "Centaur"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains 2 "Centaur"
+  assert battlefield A contains 0 "Centaur"
+  assert power B "Centaur" 3
+  assert has "Hunted Horror" trample
+}

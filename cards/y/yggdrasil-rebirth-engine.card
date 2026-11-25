@@ -1,0 +1,8 @@
+card "Yggdrasil, Rebirth Engine" {
+  oracle_id 7617a6f7-c83b-4ee5-a681-c7e164456526
+  cost {3}
+  type Legendary Artifact
+  triggered whenever this enters: exile all creature card from graveyard of you
+  activated {T}: exile top 3 cards
+  activated {4}, {T}, sorcery: put 1 creature card exiled with this onto battlefield under your control; that card gains haste until end of turn
+}

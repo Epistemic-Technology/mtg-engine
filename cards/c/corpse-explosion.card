@@ -1,0 +1,7 @@
+card "Corpse Explosion" {
+  oracle_id ab715312-0103-4681-b559-520026abd350
+  cost {1}{B}{R}
+  type Sorcery
+  additional cost exile creature card from graveyard
+  spell: deal damage equal power of the exiled card to each creature and each planeswalker
+}

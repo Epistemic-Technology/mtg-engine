@@ -1,0 +1,8 @@
+card "Requiem Angel" {
+  oracle_id 59f10ddb-8287-4d2c-8c60-1080b108fa78
+  cost {5}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flying
+  triggered whenever other non-Spirit creature you control dies: create 1 "1/1 white Spirit creature with flying"
+}

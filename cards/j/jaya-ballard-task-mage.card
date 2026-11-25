@@ -1,0 +1,9 @@
+card "Jaya Ballard, Task Mage" {
+  oracle_id cbbad3da-695e-4527-9678-0942f3751287
+  cost {1}{R}{R}
+  type Legendary Creature — Human Spellshaper
+  pt 2/2
+  activated {R}, {T}, discard 1 card: destroy target blue permanent
+  activated {1}{R}, {T}, discard 1 card: deal 3 damage to any target; creature dealt damage this way can't be regenerated
+  activated {5}{R}{R}, {T}, discard 1 card: deal 6 damage to each creature and each player
+}

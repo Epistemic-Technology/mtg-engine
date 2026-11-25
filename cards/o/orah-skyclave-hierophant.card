@@ -1,0 +1,8 @@
+card "Orah, Skyclave Hierophant" {
+  oracle_id fe348f31-4530-4c59-9ee2-6839eab973da
+  cost {2}{W}{B}
+  type Legendary Creature — Kor Cleric
+  pt 3/3
+  keywords lifelink
+  triggered whenever this or Cleric you control dies: return target Cleric card with lesser mana value from your graveyard to battlefield
+}

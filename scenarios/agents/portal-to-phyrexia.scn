@@ -1,0 +1,12 @@
+scenario "Portal to Phyrexia: sacrifice three, then reanimate in upkeep" {
+  battlefield A: 9 "Plains"
+  battlefield B: 4 "Grizzly Bears"
+  hand A: "Portal to Phyrexia"
+  graveyard B: "Serra Angel"
+  turn 1 A: cast "Portal to Phyrexia"
+  run_to turn 3 precombat_main
+  assert battlefield B contains 1 "Grizzly Bears"
+  assert battlefield A contains "Serra Angel"
+  assert is "Serra Angel" "Phyrexian"
+  assert graveyard B lacks "Serra Angel"
+}

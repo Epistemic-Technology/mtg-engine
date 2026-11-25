@@ -1,0 +1,7 @@
+card "Loran, Disciple of History" {
+  oracle_id 9d1f232c-e904-46f6-a4b7-24ca2ede711c
+  cost {3}{W}
+  type Legendary Creature — Human Artificer
+  pt 3/3
+  triggered whenever this or legendary creature you control enters: return target artifact card from your graveyard to hand
+}

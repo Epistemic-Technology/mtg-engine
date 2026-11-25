@@ -1,0 +1,34 @@
+scenario "Bestowed Thassa's Emissary gives +3/+3 and draws on damage" {
+  battlefield A: "Grizzly Bears", 6 "Island"
+  hand A: "Thassa's Emissary"
+  turn 1 A: cast "Thassa's Emissary" bestowed targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert life B 15
+  assert hand A count 1
+  assert attached "Thassa's Emissary" to "Grizzly Bears"
+}
+
+scenario "Unattached Thassa's Emissary draws when it deals combat damage" {
+  battlefield A: "Thassa's Emissary"
+  library A: "Island", "Forest"
+  turn 1 A: attack "Thassa's Emissary"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 1
+  assert hand A count 1
+}
+
+scenario "Thassa's Emissary falls off as a creature when its host dies" {
+  battlefield A: "Grizzly Bears", 6 "Island", 3 "Swamp"
+  hand A: "Thassa's Emissary", "Murder"
+  turn 1 A: cast "Thassa's Emissary" bestowed targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert is "Thassa's Emissary" creature
+  assert power "Thassa's Emissary" 3
+}

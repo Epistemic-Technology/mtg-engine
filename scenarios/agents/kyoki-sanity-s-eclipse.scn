@@ -1,0 +1,20 @@
+scenario "Kyoki makes the opponent exile a card when I cast an Arcane spell" {
+  battlefield A: "Kyoki, Sanity's Eclipse", "Island"
+  hand A: "Reach Through Mists"
+  hand B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Reach Through Mists"
+  turn 1 B: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert hand B count 1
+}
+
+scenario "Kyoki ignores a non-Spirit non-Arcane spell" {
+  battlefield A: "Kyoki, Sanity's Eclipse", "Mountain"
+  hand A: "Shock"
+  hand B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+}

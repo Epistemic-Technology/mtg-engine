@@ -1,0 +1,13 @@
+scenario "Silvanus's Invoker animates and untaps a land" {
+  battlefield A: "Silvanus's Invoker", 9 "Forest", "Mountain" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Silvanus's Invoker" targeting "Mountain"
+  run_to turn 1 begin_combat
+  assert untapped "Mountain"
+  assert is "Mountain" creature
+  assert is "Mountain" land
+  assert power "Mountain" 8
+  assert toughness "Mountain" 8
+  assert has "Mountain" trample
+  assert has "Mountain" haste
+}

@@ -1,0 +1,27 @@
+scenario "Armored Scrapgorger exiles a graveyard card and gains an oil counter when tapped" {
+  battlefield A: "Armored Scrapgorger"
+  graveyard B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Armored Scrapgorger"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert counters "Armored Scrapgorger" oil 1
+  assert power "Armored Scrapgorger" 0
+}
+
+scenario "Armored Scrapgorger gets +3/+0 with three oil counters" {
+  battlefield A: "Armored Scrapgorger" with 3 oil
+  assert power "Armored Scrapgorger" 3
+  assert toughness "Armored Scrapgorger" 3
+}
+
+scenario "Armored Scrapgorger taps for any color" {
+  battlefield A: "Armored Scrapgorger"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: choose red
+  turn 1 A: activate "Armored Scrapgorger"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

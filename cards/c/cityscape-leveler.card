@@ -1,0 +1,9 @@
+card "Cityscape Leveler" {
+  oracle_id d4d65797-2b92-4265-9169-133120c86c7f
+  cost {8}
+  type Artifact Creature — Construct
+  pt 8/8
+  keywords trample
+  triggered when you cast this and whenever this attacks: destroy up to 1 target nonland; its controller creates 1 tapped "Powerstone"
+  unearth {8}
+}

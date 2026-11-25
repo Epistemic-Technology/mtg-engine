@@ -1,0 +1,7 @@
+card "Scourge of Geier Reach" {
+  oracle_id 1e02f371-5dce-415a-8563-1f93c35401d5
+  cost {3}{R}{R}
+  type Creature — Elemental
+  pt 3/3
+  static this: +1/+1 count each creature your opponents control
+}

@@ -1,0 +1,8 @@
+card "Cosmic Larva" {
+  oracle_id 97428d25-d850-4a98-8852-9440e06a9091
+  cost {1}{R}{R}
+  type Creature — Beast
+  pt 7/6
+  keywords trample
+  triggered at beginning of your upkeep step: sacrifice this unless you sacrifice 2 land chosen
+}

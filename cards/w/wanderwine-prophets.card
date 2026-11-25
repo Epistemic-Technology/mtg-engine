@@ -1,0 +1,8 @@
+card "Wanderwine Prophets" {
+  oracle_id 9ab36915-b600-4970-961a-403f5da0dba1
+  cost {4}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 4/4
+  champion Merfolk
+  triggered whenever this deals combat damage to a player: you may sacrifice 1 Merfolk chosen; if you do, you take extra turn
+}

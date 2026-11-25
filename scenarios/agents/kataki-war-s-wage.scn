@@ -1,0 +1,20 @@
+scenario "kataki: artifacts need upkeep payment, either controller" {
+  battlefield A: "Kataki, War's Wage", "Ornithopter", "Plains"
+  battlefield B: "Sol Ring"
+  start turn 1 A upkeep
+  turn 1 A: decline "Ornithopter"
+  run_to turn 1 draw
+  assert graveyard A contains "Ornithopter"
+  assert battlefield B contains "Sol Ring"
+  turn 2 B: decline "Sol Ring"
+  run_to turn 2 draw
+  assert graveyard B contains "Sol Ring"
+}
+scenario "kataki: paying keeps the artifact" {
+  battlefield A: "Kataki, War's Wage", "Ornithopter", "Plains"
+  start turn 1 A upkeep
+  turn 1 A: accept "Ornithopter"
+  run_to turn 1 draw
+  assert battlefield A contains "Ornithopter"
+  assert tapped "Plains"
+}

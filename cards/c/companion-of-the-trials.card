@@ -1,0 +1,8 @@
+card "Companion of the Trials" {
+  oracle_id 3aa654cb-c0a0-48e7-901a-c690120b1510
+  cost {2}{W}
+  type Creature — Bird Soldier
+  pt 2/2
+  keywords flying
+  activated {1}{W}, if you control Gideon planeswalker: untap target creature
+}

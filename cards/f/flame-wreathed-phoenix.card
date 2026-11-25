@@ -1,0 +1,9 @@
+card "Flame-Wreathed Phoenix" {
+  oracle_id 24b9204f-ecc8-472e-9296-f999adf1ab1b
+  cost {2}{R}{R}
+  type Creature — Phoenix
+  pt 3/3
+  keywords flying
+  tribute 2
+  triggered when this enters if tribute not paid: this gains haste and this gains ability { triggered when this dies: return this to hand } indefinitely
+}

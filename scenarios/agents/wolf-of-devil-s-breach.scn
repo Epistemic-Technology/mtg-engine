@@ -1,0 +1,34 @@
+scenario "wolf damage equals discarded mana value (2)" {
+  battlefield A: "Wolf of Devil's Breach", 2 "Mountain"
+  hand A: "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  turn 1 declare_attackers A: attack "Wolf of Devil's Breach"
+  turn 1 declare_attackers A: trigger "Wolf of Devil's Breach" targeting "Serra Angel"
+  turn 1 declare_attackers A: discard "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Serra Angel" 2
+  assert tapped oldest "Mountain"
+}
+scenario "wolf damage equals discarded mana value (5) kills" {
+  battlefield A: "Wolf of Devil's Breach", 2 "Mountain"
+  hand A: "Serra Angel"
+  battlefield B: "Hill Giant"
+  turn 1 declare_attackers A: attack "Wolf of Devil's Breach"
+  turn 1 declare_attackers A: trigger "Wolf of Devil's Breach" targeting "Hill Giant"
+  turn 1 declare_attackers A: discard "Serra Angel"
+  run_to turn 1 end_combat
+  assert graveyard B contains "Hill Giant"
+}
+scenario "wolf declined" {
+  battlefield A: "Wolf of Devil's Breach", 2 "Mountain"
+  hand A: "Serra Angel"
+  battlefield B: "Hill Giant"
+  turn 1 declare_attackers A: attack "Wolf of Devil's Breach"
+  turn 1 declare_attackers A: trigger "Wolf of Devil's Breach" targeting "Hill Giant"
+  turn 1 declare_attackers A: decline "Wolf of Devil's Breach"
+  run_to turn 1 end_combat
+  assert battlefield B contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert untapped oldest "Mountain"
+}

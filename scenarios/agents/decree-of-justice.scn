@@ -1,0 +1,22 @@
+scenario "Decree of Justice makes X angels" {
+  battlefield A: 8 "Plains"
+  hand A: "Decree of Justice"
+  start turn 1 A
+  turn 1 A: cast "Decree of Justice" x 2
+  run_to turn 1 combat_damage
+  assert battlefield A contains 2 "Angel"
+  assert power oldest A "Angel" 4
+  assert has oldest A "Angel" flying
+}
+
+scenario "Decree of Justice cycled makes X soldiers when paid" {
+  battlefield A: 6 "Plains"
+  hand A: "Decree of Justice"
+  start turn 1 A
+  turn 1 A: activate "Decree of Justice"
+  turn 1 A: accept "Decree of Justice"
+  turn 1 A: choose "3"
+  run_to turn 1 combat_damage
+  assert battlefield A contains 3 "Soldier"
+  assert graveyard A contains "Decree of Justice"
+}

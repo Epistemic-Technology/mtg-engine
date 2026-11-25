@@ -1,0 +1,6 @@
+card "Lord of Extinction" {
+  oracle_id ea5e3401-bd6c-47bb-a52a-8eec5f09455d
+  cost {3}{B}{G}
+  type Creature — Elemental
+  static this: cda pt all graveyards
+}

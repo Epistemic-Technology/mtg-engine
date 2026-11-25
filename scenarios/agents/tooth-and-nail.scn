@@ -1,0 +1,40 @@
+scenario "Tooth and Nail mode 1 searches for two creatures" {
+  battlefield A: 7 "Forest"
+  hand A: "Tooth and Nail"
+  library A: "Island", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Tooth and Nail" mode 1
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Serra Angel"
+  assert hand A count 2
+}
+
+scenario "Tooth and Nail mode 2 puts two creatures onto the battlefield" {
+  battlefield A: 7 "Forest"
+  hand A: "Tooth and Nail", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Tooth and Nail" mode 2
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert hand A count 1
+}
+
+scenario "Entwined Tooth and Nail does both" {
+  battlefield A: 9 "Forest"
+  hand A: "Tooth and Nail", "Hill Giant"
+  library A: "Island", "Grizzly Bears", "Serra Angel", "Wind Drake"
+  turn 1 A: cast "Tooth and Nail" mode 3
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Serra Angel"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A contains "Serra Angel"
+}

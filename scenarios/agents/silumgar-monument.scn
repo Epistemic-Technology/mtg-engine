@@ -1,0 +1,14 @@
+scenario "Silumgar Monument becomes a 4/4 flying Dragon" {
+  battlefield A: "Silumgar Monument", 3 "Island", 3 "Swamp"
+  turn 1 precombat_main A: activate "Silumgar Monument" ability 2
+  run_to turn 1 begin_combat
+  assert is "Silumgar Monument" creature
+  assert is "Silumgar Monument" "Dragon"
+  assert is "Silumgar Monument" blue
+  assert is "Silumgar Monument" black
+  assert power "Silumgar Monument" 4
+  assert toughness "Silumgar Monument" 4
+  assert has "Silumgar Monument" flying
+  run_to turn 2 upkeep
+  assert is not "Silumgar Monument" creature
+}

@@ -1,0 +1,8 @@
+card "Vivi Ornitier" {
+  oracle_id 0452be2a-e97a-4269-a9e3-b616265ecb2e
+  cost {1}{U}{R}
+  type Legendary Creature — Wizard
+  pt 0/3
+  activated {0}, during your turn, once: add X mana any combination of {U}{R} count where power
+  triggered whenever you cast noncreature spell: put 1 +1/+1 counter on this and deal 1 damage to each opponent
+}

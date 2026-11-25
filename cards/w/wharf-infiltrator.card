@@ -1,0 +1,9 @@
+card "Wharf Infiltrator" {
+  oracle_id ac88975c-fb2c-441a-bdd4-e7de6ba865e7
+  cost {1}{U}
+  type Creature — Human Horror
+  pt 1/1
+  keywords skulk
+  triggered whenever this deals combat damage to a player: you may draw 1 card; if you do, discard 1 card
+  triggered whenever you discard creature card: you may pay {2}; if you do, create 1 "3/2 colorless Eldrazi Horror creature"
+}

@@ -1,0 +1,7 @@
+card "Greasefang, Okiba Boss" {
+  oracle_id 0129ffe2-389f-4e05-8a04-96461bac39a5
+  cost {1}{W}{B}
+  type Legendary Creature — Rat Pilot
+  pt 4/3
+  triggered at beginning of your combat: return target Vehicle card from your graveyard to battlefield; target 1 gains haste indefinitely; delayed target 1: return it to hand at beginning of your next end step
+}

@@ -1,0 +1,20 @@
+scenario "Devils' Playground makes four pinging Devils" {
+  battlefield A: 6 "Mountain"
+  hand A: "Devils' Playground"
+  turn 1 A: cast "Devils' Playground"
+  run_to turn 1 end
+  assert battlefield A contains 4 "Devil"
+  assert power newest A "Devil" 1
+}
+scenario "A Devil token dying deals 1 damage to any target" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Devils' Playground", "Shock"
+  turn 1 A: cast "Devils' Playground"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting newest A "Devil"
+  turn 1 A: trigger "Devil" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains 3 "Devil"
+  assert life B 19
+}

@@ -1,0 +1,22 @@
+scenario "Herald taps a creature when it enters" {
+  hand A: "Nebelgast Herald"
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  turn 1 precombat_main A: cast "Nebelgast Herald"
+  turn 1 precombat_main A: trigger "Nebelgast Herald" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+}
+scenario "Herald taps for another Spirit, not for a non-Spirit" {
+  battlefield A: "Nebelgast Herald", 3 "Island", 2 "Forest"
+  hand A: "Grizzly Bears", "Nebelgast Herald"
+  battlefield B: "Hill Giant", "Serra Angel"
+  turn 1 precombat_main A: cast "Grizzly Bears"
+  turn 1 precombat_main A: wait
+  assert untapped "Hill Giant"
+  assert untapped "Serra Angel"
+  turn 1 precombat_main A: cast "Nebelgast Herald"
+  turn 1 precombat_main A: trigger "Nebelgast Herald" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Serra Angel"
+}

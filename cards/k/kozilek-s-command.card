@@ -1,0 +1,11 @@
+card "Kozilek's Command" {
+  oracle_id 2f2c549d-0293-4b9d-b9a8-ff392800f3a5
+  cost {X}{C}{C}
+  type Kindred Instant — Eldrazi
+  choose two {
+    mode: target player creates X "Eldrazi Spawn"
+    mode: target player scries X then draws 1 card
+    mode: exile target creature with mana value X or less
+    mode: exile up to X target card from graveyards
+  }
+}

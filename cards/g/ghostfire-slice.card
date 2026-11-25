@@ -1,0 +1,8 @@
+card "Ghostfire Slice" {
+  oracle_id 986a7ad0-527a-4079-aa1b-c8acdf087020
+  cost {2}{R}
+  type Instant
+  keywords devoid
+  this spell costs {2} less if opponent controls multicolored permanent
+  spell: deal 4 damage to any target
+}

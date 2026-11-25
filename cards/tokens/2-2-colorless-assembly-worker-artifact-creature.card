@@ -1,0 +1,6 @@
+token "2/2 colorless Assembly-Worker artifact creature" {
+  name "Assembly-Worker"
+  type Artifact Creature — Assembly-Worker
+  pt 2/2
+  color
+}

@@ -1,0 +1,32 @@
+scenario "opponent spell targeting a countered creature makes an insect" {
+  battlefield A: "Swarm Shambler" with 1 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Swarm Shambler"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Insect"
+}
+scenario "own spell does not make an insect" {
+  battlefield A: "Swarm Shambler" with 1 +1/+1, "Forest"
+  hand A: "Giant Growth"
+  turn 1 precombat_main A: cast "Giant Growth" targeting "Swarm Shambler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 0 "Insect"
+  assert power "Swarm Shambler" 4
+}
+scenario "creature without a counter does not trigger" {
+  battlefield A: "Swarm Shambler", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 precombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 0 "Insect"
+}
+scenario "shambler grows" {
+  battlefield A: "Swarm Shambler" with 1 +1/+1, 1 "Forest", "Mountain"
+  turn 1 precombat_main A: activate "Swarm Shambler"
+  run_to turn 1 postcombat_main
+  assert counters "Swarm Shambler" +1/+1 2
+}

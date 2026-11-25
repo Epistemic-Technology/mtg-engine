@@ -1,0 +1,9 @@
+card "Arcades, the Strategist" {
+  oracle_id e7fc5ad6-f2f0-4b06-a61b-05022db9d93b
+  cost {1}{G}{W}{U}
+  type Legendary Creature — Elder Dragon
+  pt 3/5
+  keywords flying, vigilance
+  triggered whenever creature with defender you control enters: draw 1 card
+  static each creature with defender you control: has assigns combat damage equal to its toughness rather than its power and has can attack as though it didn't have defender
+}

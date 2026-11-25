@@ -1,0 +1,10 @@
+scenario "Voices from the Void discards one per basic land type" {
+  battlefield A: 3 "Swamp", "Plains", "Island"
+  hand A: "Voices from the Void"
+  hand B: "Shock", "Shock", "Shock", "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Voices from the Void" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert graveyard B contains 3 "Shock"
+}

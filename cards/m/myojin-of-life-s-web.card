@@ -1,0 +1,9 @@
+card "Myojin of Life's Web" {
+  oracle_id 8e3eafd7-5823-4cc1-bdb8-c456580e395a
+  cost {6}{G}{G}{G}
+  type Legendary Creature — Spirit
+  pt 8/8
+  enters with 1 divinity counter if cast from hand
+  static this: has indestructible as long as this has 1 or more divinity counters
+  activated remove 1 divinity counter from this: put any number creature card from hand onto battlefield chosen
+}

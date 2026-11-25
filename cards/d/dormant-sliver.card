@@ -1,0 +1,8 @@
+card "Dormant Sliver" {
+  oracle_id 2bc3d5b2-076f-4e01-87be-28d7eb70a2db
+  cost {2}{G}{U}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: has defender
+  static all Sliver: has ability { triggered when this enters: draw 1 cards }
+}

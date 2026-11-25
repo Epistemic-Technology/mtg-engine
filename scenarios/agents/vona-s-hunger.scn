@@ -1,0 +1,18 @@
+scenario "Vona's Hunger without the blessing" {
+  battlefield A: 3 "Swamp"
+  battlefield B: 5 "Grizzly Bears"
+  hand A: "Vona's Hunger"
+  turn 1 A: cast "Vona's Hunger"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 4 "Grizzly Bears"
+}
+
+scenario "Vona's Hunger with the blessing" {
+  battlefield A: 10 "Swamp"
+  battlefield B: 5 "Grizzly Bears"
+  hand A: "Vona's Hunger"
+  turn 1 A: cast "Vona's Hunger"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 2 "Grizzly Bears"
+  assert graveyard B contains 3 "Grizzly Bears"
+}

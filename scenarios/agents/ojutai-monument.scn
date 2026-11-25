@@ -1,0 +1,16 @@
+scenario "ojutai monument becomes a 4/4 flying Dragon" {
+  battlefield A: "Ojutai Monument", 3 "Plains", 3 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ojutai Monument" ability 2
+  run_to turn 1 begin_combat
+  assert is "Ojutai Monument" creature
+  assert power "Ojutai Monument" 4
+  assert toughness "Ojutai Monument" 4
+  assert has "Ojutai Monument" flying
+  assert is "Ojutai Monument" white
+  assert is "Ojutai Monument" blue
+  assert is "Ojutai Monument" "Dragon"
+  run_to turn 1 end
+  run_to turn 2 upkeep
+  assert is not "Ojutai Monument" creature
+}

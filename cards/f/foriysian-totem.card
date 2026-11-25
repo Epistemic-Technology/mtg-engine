@@ -1,0 +1,8 @@
+card "Foriysian Totem" {
+  oracle_id d053ea00-e727-4030-8c64-0d32ae57f169
+  cost {3}
+  type Artifact
+  activated {T}: add {R}
+  activated {4}{R}: this becomes 4/4 red Giant artifact creature with trample until end of turn
+  static as long as this is creature, this: has can block an additional creature each combat
+}

@@ -1,0 +1,11 @@
+scenario "tokens become angels" {
+  battlefield A: "Divine Visitation", "Grizzly Bears", 3 "Plains"
+  hand A: "Raise the Alarm"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Angel"
+  assert power oldest A "Angel" 4
+  assert has oldest A "Angel" flying
+  assert has oldest A "Angel" vigilance
+}

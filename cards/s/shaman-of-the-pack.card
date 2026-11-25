@@ -1,0 +1,7 @@
+card "Shaman of the Pack" {
+  oracle_id 39c7d2cc-4fd1-4f1a-be1a-a6ae56d2356d
+  cost {1}{B}{G}
+  type Creature — Elf Shaman
+  pt 3/2
+  triggered when this enters: target opponent loses count equal Elf you control life
+}

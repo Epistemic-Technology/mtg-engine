@@ -1,0 +1,6 @@
+token "0/0 black and green Hydra creature" {
+  name "Hydra"
+  type Creature — Hydra
+  pt 0/0
+  color black green
+}

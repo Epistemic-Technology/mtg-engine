@@ -1,0 +1,29 @@
+scenario "Grizzled Angler transforms when a colorless creature is milled" {
+  battlefield A: "Grizzled Angler"
+  library A: "Ornithopter", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzled Angler"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains "Grisly Anglerfish"
+  assert power "Grisly Anglerfish" 4
+}
+
+scenario "Grizzled Angler stays put without a colorless creature" {
+  battlefield A: "Grizzled Angler"
+  library A: "Forest", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Grizzled Angler"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 2
+  assert battlefield A contains "Grizzled Angler"
+}
+
+scenario "Grisly Anglerfish forces the opponent's creatures to attack" {
+  battlefield A: "Grisly Anglerfish", 6 "Island"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 begin_combat A: activate "Grisly Anglerfish"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

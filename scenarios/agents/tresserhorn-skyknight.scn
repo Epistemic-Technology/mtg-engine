@@ -1,0 +1,20 @@
+scenario "First strike damage is prevented" {
+  battlefield A: "Youthful Knight"
+  battlefield B: "Tresserhorn Skyknight"
+  start turn 1 A
+  turn 1 A: attack "Youthful Knight"
+  turn 1 B: block "Youthful Knight" with "Tresserhorn Skyknight"
+  run_to turn 1 postcombat_main
+  assert damage "Tresserhorn Skyknight" 0
+  assert graveyard A contains "Youthful Knight"
+}
+
+scenario "Other damage is not prevented" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Tresserhorn Skyknight"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Tresserhorn Skyknight"
+  run_to turn 1 postcombat_main
+  assert damage "Tresserhorn Skyknight" 2
+}

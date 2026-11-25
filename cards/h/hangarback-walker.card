@@ -1,0 +1,9 @@
+card "Hangarback Walker" {
+  oracle_id dde55256-5259-44e7-a267-fca45a7f0d04
+  cost {X}{X}
+  type Artifact Creature — Construct
+  pt 0/0
+  enters with X +1/+1 counters
+  triggered when this dies: create count each +1/+1 counters on this "1/1 colorless Thopter artifact creature with flying"
+  activated {1}, {T}: put 1 +1/+1 counter on this
+}

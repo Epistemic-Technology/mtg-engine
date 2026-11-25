@@ -1,0 +1,11 @@
+scenario "boon returns from graveyard attached" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  graveyard A: "Gryff's Boon"
+  start turn 1 A precombat_main
+  turn 1 precombat_main A: activate "Gryff's Boon" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert attached "Gryff's Boon" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" flying
+  assert graveyard A lacks "Gryff's Boon"
+}
