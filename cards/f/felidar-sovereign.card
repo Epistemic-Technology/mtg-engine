@@ -1,0 +1,8 @@
+card "Felidar Sovereign" {
+  oracle_id 5ae3cbb9-9f0c-4077-ae7c-fba660d7fb4b
+  cost {4}{W}{W}
+  type Creature — Cat Beast
+  pt 4/6
+  keywords vigilance, lifelink
+  triggered at beginning of your upkeep if your life 40 or more: you win game
+}

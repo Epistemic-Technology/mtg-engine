@@ -1,0 +1,6 @@
+card "Path to Exile" {
+  oracle_id d683d985-9888-4d21-8b5f-69e69ce4a03b
+  cost {W}
+  type Instant
+  spell: exile target creature; its controller may search basic land card to battlefield tapped that card
+}

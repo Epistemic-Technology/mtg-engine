@@ -1,0 +1,7 @@
+card "Providence" {
+  oracle_id 43b164d5-2bff-4a03-a4fa-16ffad7e3164
+  cost {5}{W}{W}
+  type Sorcery
+  opening hand reveal first upkeep: your life total becomes 26
+  spell: your life total becomes 26
+}

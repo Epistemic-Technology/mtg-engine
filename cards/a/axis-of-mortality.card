@@ -1,0 +1,6 @@
+card "Axis of Mortality" {
+  oracle_id 158cb888-a115-4d50-a82f-746622f0578e
+  cost {4}{W}{W}
+  type Enchantment
+  triggered at beginning of your upkeep: you may 2 target player exchange life totals
+}

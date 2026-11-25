@@ -1,0 +1,8 @@
+card "Soulless Jailer" {
+  oracle_id 7866ab01-22f3-4d87-bdb0-c0ae0e91ffc9
+  cost {2}
+  type Artifact Creature — Phyrexian Golem
+  pt 0/4
+  ban entering permanent card from graveyards
+  ban casting noncreature from graveyards or exile
+}

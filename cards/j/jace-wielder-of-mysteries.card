@@ -1,0 +1,9 @@
+card "Jace, Wielder of Mysteries" {
+  oracle_id 5277a68e-1ceb-4b40-8e10-3d0564f5d7be
+  cost {1}{U}{U}{U}
+  type Legendary Planeswalker — Jace
+  loyalty 4
+  replace you draw while your library has no cards in it: win
+  loyalty +1: target player mills 2 cards; draw 1 card
+  loyalty -8: draw 7 cards; then if library empty, you win game
+}

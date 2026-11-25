@@ -1,0 +1,6 @@
+card "Deafening Silence" {
+  oracle_id 6284ef01-d17d-4584-aecb-1b841ae638e5
+  cost {W}
+  type Enchantment
+  each player can't cast more than one noncreature spell each turn
+}

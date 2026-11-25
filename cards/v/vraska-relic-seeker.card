@@ -1,0 +1,9 @@
+card "Vraska, Relic Seeker" {
+  oracle_id 3c037103-5af0-40a8-bbbe-7f3f5958b6e9
+  cost {4}{B}{G}
+  type Legendary Planeswalker — Vraska
+  loyalty 6
+  loyalty +2: create 1 "2/2 black Pirate creature with menace"
+  loyalty -3: destroy target artifact or creature or enchantment; create 1 "Treasure"
+  loyalty -10: target player life total becomes 1
+}

@@ -1,0 +1,9 @@
+card "Hellkite Tyrant" {
+  oracle_id d9b066ff-9519-415c-ae17-bfea703c9889
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 6/5
+  keywords flying, trample
+  triggered whenever this deals combat damage to a player: gain control of all artifact that player controls indefinitely
+  triggered at beginning of your upkeep if you control 20 artifact: you win game
+}

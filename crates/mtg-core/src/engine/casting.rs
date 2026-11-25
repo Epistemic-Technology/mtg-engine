@@ -692,10 +692,11 @@ impl GameState {
         // with the chosen name can't be played" (Conjurer's Ban).
         if self.player_static_sources > 0 || !self.name_rules.is_empty() {
             let banned = |def: crate::card::CardRef| {
-                self.name_cant_be_cast(def, p) || self.spell_cant_be_cast(def)
+                self.name_cant_be_cast(def, p) || self.spell_cant_be_cast(def, p)
             };
+            let lands_banned = self.lands_banned(p);
             let unplayable = |def: crate::card::CardRef| {
-                !self.name_rules.is_empty() && self.name_cant_be_played(def, p)
+                lands_banned || !self.name_rules.is_empty() && self.name_cant_be_played(def, p)
             };
             options.retain(|c| match c {
                 Choice::PlayLand(id) => !self.objects.get(*id).is_some_and(|o| unplayable(o.def)),
@@ -708,6 +709,7 @@ impl GameState {
                             .is_some_and(|f| unplayable(*f))
                     })
                 }
+                Choice::CastFace { card, .. } if self.cast_from_banned(*card) => false,
                 Choice::CastFace { card, face } => !self.objects.get(*card).is_some_and(|o| {
                     self.pool
                         .get(o.def)
@@ -729,7 +731,9 @@ impl GameState {
                 | Choice::CastImpending(id)
                 | Choice::CastHarmonize { card: id, .. } => {
                     !self.objects.get(*id).is_some_and(|o| banned(o.def))
+                        && !self.cast_from_banned(*id)
                 }
+                Choice::CastDisturb(id) if self.cast_from_banned(*id) => false,
                 Choice::CastDisturb(id) => !self.objects.get(*id).is_some_and(|o| {
                     self.pool
                         .get(o.def)
@@ -13884,6 +13888,17 @@ impl GameState {
                         })
                         .collect()
                 };
+                // "Players can't search libraries." (Mindlock Orb): the
+                // library is still shuffled (its rulings).
+                if !*graveyard
+                    && (self.player_static_sources > 0 || !self.rules.is_empty())
+                    && self.rule_in_force(crate::card::RuleKind::NoSearch)
+                {
+                    for p in searchers {
+                        self.shuffle_library(p);
+                    }
+                    return;
+                }
                 for p in searchers {
                     self.search_library(
                         ctx,
@@ -14409,6 +14424,31 @@ impl GameState {
                         self.put_onto_battlefield(id, p);
                     }
                 }
+            }
+            Effect::ForEachMovedController {
+                verb,
+                filter,
+                effects,
+            } => {
+                let players: SmallVec<[PlayerId; 4]> = self
+                    .this_way
+                    .as_ref()
+                    .map(|log| {
+                        log.moved
+                            .iter()
+                            .filter(|m| m.is(*verb) && self.moved_matches(ctx, m, filter))
+                            .filter_map(|m| self.lki.get(&m.old).map(|l| l.object.controller))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                let me = ctx.controller;
+                for p in players {
+                    ctx.controller = p;
+                    for e in effects {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+                ctx.controller = me;
             }
             Effect::ForEachCouldnt(effects) => {
                 for _ in 0..ctx.couldnt {
@@ -18201,6 +18241,32 @@ impl GameState {
                 self.gain_life(gainer, diff.unsigned_abs());
                 ctx.did = loser == me;
             }
+            Effect::ExchangeLifeBetween { who } => {
+                let ps: SmallVec<[PlayerId; 2]> = self
+                    .recipients(ctx, *who)
+                    .into_iter()
+                    .filter_map(|t| match t {
+                        Target::Player(p) if self.player(p).lost.is_none() => Some(p),
+                        _ => None,
+                    })
+                    .collect();
+                let [a, b, ..] = ps[..] else {
+                    return;
+                };
+                if a == b {
+                    return;
+                }
+                // CR 701.12c: each gains or loses the life necessary to
+                // equal the other's former total.
+                let (la, lb) = (self.player(a).life, self.player(b).life);
+                let (loser, gainer, diff) = match la.cmp(&lb) {
+                    std::cmp::Ordering::Equal => return,
+                    std::cmp::Ordering::Greater => (a, b, la - lb),
+                    std::cmp::Ordering::Less => (b, a, lb - la),
+                };
+                self.change_life(loser, -diff);
+                self.gain_life(gainer, diff.unsigned_abs());
+            }
             Effect::GiveControl { of, to } => {
                 ctx.did = false;
                 let Some(p) = self.recipients(ctx, *to).into_iter().find_map(|t| match t {
@@ -18417,6 +18483,49 @@ impl GameState {
                         } else if life > half {
                             self.lose_life(p, (life - half).unsigned_abs());
                         }
+                    }
+                }
+            }
+            Effect::LifeBecomes { who, to } => {
+                // CR 119.5: the life gained or lost to reach the total.
+                let lives = || self.players_in_game().map(|p| self.player(p).life);
+                let fixed = match to {
+                    crate::card::LifeTo::Starting => Some(self.starting_life),
+                    crate::card::LifeTo::Highest => lives().max(),
+                    crate::card::LifeTo::Lowest => lives().min(),
+                    crate::card::LifeTo::Amount(_) => None,
+                };
+                let mut goals: SmallVec<[(PlayerId, i32); 4]> = SmallVec::new();
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        let goal = match (fixed, to) {
+                            (Some(g), _) => g,
+                            (None, crate::card::LifeTo::Amount(n)) => {
+                                self.set_acting(Some(p));
+                                i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX)
+                            }
+                            (None, _) => continue,
+                        };
+                        goals.push((p, goal));
+                    }
+                }
+                self.set_acting(None);
+                for (p, goal) in goals {
+                    let life = self.player(p).life;
+                    if life < goal {
+                        self.gain_life(p, (goal - life).unsigned_abs());
+                    } else if life > goal {
+                        self.lose_life(p, (life - goal).unsigned_abs());
+                    }
+                }
+            }
+            // CR 104.2b: "You win the game."
+            Effect::WinGame { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && self.player(p).lost.is_none()
+                    {
+                        self.win_game(p);
                     }
                 }
             }

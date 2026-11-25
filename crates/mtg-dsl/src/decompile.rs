@@ -746,6 +746,7 @@ impl Decompiler<'_> {
                 at_least: *at_least,
             },
             StaticCondition::AnyPlayerLifeAtMost(n) => StaticCond::AnyPlayerLifeAtMost(*n),
+            StaticCondition::YourLifeExactly(n) => StaticCond::YourLifeExactly(*n),
             StaticCondition::OpponentPoisonAtLeast(n) => StaticCond::OpponentPoisonAtLeast(*n),
             StaticCondition::SourceCounterParity { even } => StaticCond::SourceCounterParity(*even),
             StaticCondition::SourceCounters { kind, n, at_least } => StaticCond::SourceCounters {
@@ -970,6 +971,7 @@ impl Decompiler<'_> {
                 that: *that,
             },
             StaticCondition::ActivatedThisTurn(n) => StaticCond::ActivatedThisTurn(*n),
+            StaticCondition::HandExactly(n) => StaticCond::HandExactly(*n),
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -1948,6 +1950,15 @@ impl Decompiler<'_> {
                 who: Self::recipient(*who),
                 filter: self.filter(filter),
             },
+            CoreEffect::ForEachMovedController {
+                verb,
+                filter,
+                effects,
+            } => Effect::ForEachMovedController {
+                verb: *verb,
+                filter: self.filter(filter),
+                inner: self.sentences(effects),
+            },
             CoreEffect::ForEachCouldnt(inner) => Effect::ForEachCouldnt {
                 opponent: true,
                 inner: self.sentences(inner),
@@ -2226,6 +2237,11 @@ impl Decompiler<'_> {
             CoreEffect::LifeBecomesHalfStarting { who } => {
                 Effect::LifeBecomesHalfStarting { who: r(*who) }
             }
+            CoreEffect::LifeBecomes { who, to } => Effect::LifeBecomes {
+                who: r(*who),
+                to: *to,
+            },
+            CoreEffect::WinGame { who } => Effect::WinGame { who: r(*who) },
             CoreEffect::NoMaxHandSize { who } => Effect::NoMaxHandSize { who: r(*who) },
             CoreEffect::Earthbend { count, to } => Effect::Earthbend {
                 count: *count,
@@ -2254,6 +2270,7 @@ impl Decompiler<'_> {
                 what: std::iter::once(*a).chain(*b).map(r).collect(),
             },
             CoreEffect::ExchangeLife { with } => Effect::ExchangeLife { with: r(*with) },
+            CoreEffect::ExchangeLifeBetween { who } => Effect::ExchangeLifeBetween { who: r(*who) },
             CoreEffect::GiveControl { of, to } => Effect::GiveControl {
                 of: r(*of),
                 to: r(*to),
@@ -3463,6 +3480,35 @@ impl Decompiler<'_> {
                 kind: mtg_core::card::PlayerStaticKind::CantCast { spells },
                 ..
             } => Ability::CantBeCast(self.filter(self.pool.filter(*spells))),
+            AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CantEnterFrom { cards, zones },
+                ..
+            } => Ability::CantEnterFrom {
+                filter: self.filter(self.pool.filter(*cards)),
+                zones: *zones,
+            },
+            AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CantCastFrom { spells, zones },
+                ..
+            } => Ability::CantCastFrom {
+                filter: self.filter(self.pool.filter(*spells)),
+                zones: *zones,
+            },
+            AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CastLimitOf { players, spells },
+                ..
+            } => Ability::CastLimitOf {
+                players: *players,
+                filter: self.filter(self.pool.filter(*spells)),
+                additional: false,
+            },
+            AbilityDef::PlayerStatic {
+                kind: mtg_core::card::PlayerStaticKind::CantCastBy { players, spells },
+                ..
+            } => Ability::CantCastBy {
+                players: *players,
+                filter: self.filter(self.pool.filter(*spells)),
+            },
             AbilityDef::PlayerStatic {
                 kind:
                     mtg_core::card::PlayerStaticKind::CantAttackYou {

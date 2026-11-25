@@ -1,0 +1,6 @@
+card "Repay in Kind" {
+  oracle_id 24b8177f-5697-4465-9305-cb84307972ae
+  cost {5}{B}{B}
+  type Sorcery
+  spell: each player life total becomes lowest
+}

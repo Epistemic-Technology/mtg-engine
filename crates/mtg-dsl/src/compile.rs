@@ -2580,6 +2580,7 @@ impl Compiler<'_> {
                 at_least: *at_least,
             },
             StaticCond::AnyPlayerLifeAtMost(n) => StaticCondition::AnyPlayerLifeAtMost(*n),
+            StaticCond::YourLifeExactly(n) => StaticCondition::YourLifeExactly(*n),
             StaticCond::OpponentPoisonAtLeast(n) => StaticCondition::OpponentPoisonAtLeast(*n),
             StaticCond::SourceCounters { kind, n, at_least } => StaticCondition::SourceCounters {
                 kind: *kind,
@@ -2712,6 +2713,7 @@ impl Compiler<'_> {
                 at_most: true,
             },
             StaticCond::ActivatedThisTurn(n) => StaticCondition::ActivatedThisTurn(*n),
+            StaticCond::HandExactly(n) => StaticCondition::HandExactly(*n),
             StaticCond::CardsInHand { n, at_most, .. } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -4184,6 +4186,9 @@ impl Compiler<'_> {
                 }),
                 _ => return self.err("exchange control of two permanents"),
             },
+            Effect::ExchangeLifeBetween { who } => {
+                out.push(CoreEffect::ExchangeLifeBetween { who: r(*who) });
+            }
             Effect::ExchangeLife { with } => {
                 out.push(CoreEffect::ExchangeLife { with: r(*with) });
             }
@@ -4981,6 +4986,13 @@ impl Compiler<'_> {
             Effect::LifeBecomesHalfStarting { who } => {
                 out.push(CoreEffect::LifeBecomesHalfStarting { who: r(*who) });
             }
+            Effect::LifeBecomes { who, to } => {
+                out.push(CoreEffect::LifeBecomes {
+                    who: r(*who),
+                    to: *to,
+                });
+            }
+            Effect::WinGame { who } => out.push(CoreEffect::WinGame { who: r(*who) }),
             Effect::NoMaxHandSize { who } => out.push(CoreEffect::NoMaxHandSize { who: r(*who) }),
             Effect::EnterTappedAttacking => {
                 return self.err(
@@ -5297,6 +5309,18 @@ impl Compiler<'_> {
                 out.push(CoreEffect::EachPutsFromGraveyard {
                     who: r(*who),
                     filter: self.filter(filter),
+                });
+            }
+            Effect::ForEachMovedController {
+                verb,
+                filter,
+                inner,
+            } => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::ForEachMovedController {
+                    verb: *verb,
+                    filter: self.filter(filter),
+                    effects,
                 });
             }
             Effect::ForEachCouldnt { inner, .. } | Effect::IfTheyCant(inner, _) => {
@@ -7999,6 +8023,48 @@ impl Compiler<'_> {
                     kind: mtg_core::card::PlayerStaticKind::CantAttackYou {
                         attackers: self.pool.intern_filter(f),
                         planeswalkers: *planeswalkers,
+                    },
+                    condition: None,
+                }
+            }
+            Ability::CantEnterFrom { filter, zones } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CantEnterFrom {
+                        cards: self.pool.intern_filter(f),
+                        zones: *zones,
+                    },
+                    condition: None,
+                }
+            }
+            Ability::CantCastFrom { filter, zones } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CantCastFrom {
+                        spells: self.pool.intern_filter(f),
+                        zones: *zones,
+                    },
+                    condition: None,
+                }
+            }
+            Ability::CastLimitOf {
+                players, filter, ..
+            } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CastLimitOf {
+                        players: *players,
+                        spells: self.pool.intern_filter(f),
+                    },
+                    condition: None,
+                }
+            }
+            Ability::CantCastBy { players, filter } => {
+                let f = self.filter(filter);
+                AbilityDef::PlayerStatic {
+                    kind: mtg_core::card::PlayerStaticKind::CantCastBy {
+                        players: *players,
+                        spells: self.pool.intern_filter(f),
                     },
                     condition: None,
                 }

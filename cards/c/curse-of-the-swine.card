@@ -1,0 +1,6 @@
+card "Curse of the Swine" {
+  oracle_id 5669ea7c-c4fc-494c-896b-4bce9b494817
+  cost {X}{U}{U}
+  type Sorcery
+  spell: exile X target creatures; for each creature exiled this way its controller: create 1 "2/2 green Boar creature"
+}

@@ -2393,6 +2393,39 @@ pub enum Ability {
     /// number`: "Noncreature spells with mana value equal to the chosen
     /// number can't be cast." (`PlayerStaticKind::CantCast`).
     CantBeCast(Filter),
+    /// `you can't cast noncreature spell`, `opponents can't cast spell
+    /// with mana value 3 or less`: "You can't cast noncreature spells."
+    /// (`PlayerStaticKind::CantCastBy`).
+    CantCastBy {
+        players: mtg_core::card::RulePlayers,
+        filter: Filter,
+    },
+    /// `each player can't cast more than one noncreature spell each turn`
+    /// (Deafening Silence); `each player who has cast nonartifact spell
+    /// this turn can't cast additional` ("Each player who has cast a
+    /// nonartifact spell this turn can't cast additional nonartifact
+    /// spells.", Ethersworn Canonist; `additional` is the wording)
+    /// (`PlayerStaticKind::CastLimitOf`).
+    CastLimitOf {
+        players: mtg_core::card::RulePlayers,
+        filter: Filter,
+        additional: bool,
+    },
+    /// `ban entering creature from graveyards and libraries`: "Creature
+    /// cards in graveyards and libraries can't enter the battlefield."
+    /// (`PlayerStaticKind::CantEnterFrom`).
+    CantEnterFrom {
+        filter: Filter,
+        zones: mtg_core::card::LockZones,
+    },
+    /// `ban casting from graveyards or libraries`, `ban casting
+    /// noncreature from graveyards or exile`: "Players can't cast
+    /// [noncreature] spells from graveyards or libraries."
+    /// (`PlayerStaticKind::CantCastFrom`).
+    CantCastFrom {
+        filter: Filter,
+        zones: mtg_core::card::LockZones,
+    },
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
@@ -3447,6 +3480,8 @@ pub enum StaticCond {
         n: i32,
         at_least: bool,
     },
+    /// `your life exactly 1`: "you have exactly 1 life".
+    YourLifeExactly(i32),
     /// Your life total against your starting life total: `life above
     /// starting` ("your life total is greater than your starting life
     /// total"), `life at least starting` ("... greater than or equal to
@@ -3642,6 +3677,9 @@ pub enum StaticCond {
     /// `activated 4 times this turn`: "this ability has been activated
     /// four or more times this turn".
     ActivatedThisTurn(u32),
+    /// `hand exactly 13 your`: "you have exactly thirteen cards in your
+    /// hand".
+    HandExactly(u32),
     CardsInHand {
         n: u32,
         at_most: bool,
@@ -6547,6 +6585,17 @@ pub enum Effect {
     LifeBecomesHalfStarting {
         who: Recipient,
     },
+    /// `your life total becomes 26`, `each player life total becomes
+    /// count equal creature they control`, `... becomes starting`,
+    /// `... becomes highest`, `... becomes lowest` (CR 119.5).
+    LifeBecomes {
+        who: Recipient,
+        to: mtg_core::card::LifeTo,
+    },
+    /// `you win game`: "you win the game" (CR 104.2b).
+    WinGame {
+        who: Recipient,
+    },
     /// `create 3 "..."; if sneak paid, they enter tapped and attacking`
     /// (The Last Ronin's Technique, CR 508.4): only after a sentence
     /// creating tokens, inside `if <condition>,`: the tokens enter tapped
@@ -6740,6 +6789,15 @@ pub enum Effect {
     /// couldn't. `opponent` is the word printed ("opponent" or "player").
     ForEachCouldnt {
         opponent: bool,
+        inner: Vec<Sentence>,
+    },
+    /// `for each creature exiled this way its controller: create 1 "2/2
+    /// green Boar creature"`: "For each creature exiled this way, its
+    /// controller creates a 2/2 green Boar creature token." The sentence
+    /// is written for "you" and done by each object's controller.
+    ForEachMovedController {
+        verb: mtg_core::card::ThisWay,
+        filter: Filter,
         inner: Vec<Sentence>,
     },
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...";
@@ -7071,6 +7129,11 @@ pub enum Effect {
     /// following `if you do,` prints "If you lost life this way, ...".
     ExchangeLife {
         with: Recipient,
+    },
+    /// `2 target player exchange life totals`: "Two target players
+    /// exchange life totals." (CR 701.12c).
+    ExchangeLifeBetween {
+        who: Recipient,
     },
     /// `return all creature card from your graveyard to battlefield`:
     /// "Return all creature cards from your graveyard to the battlefield."

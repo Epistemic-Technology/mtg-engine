@@ -1,0 +1,6 @@
+card "Rampage of the Clans" {
+  oracle_id 5dc34e93-97e3-434b-9f12-f45c6d556f13
+  cost {3}{G}
+  type Instant
+  spell: destroy all artifact or enchantment; for each permanent destroyed this way its controller: create 1 "3/3 green Centaur creature"
+}

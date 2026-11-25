@@ -2753,6 +2753,26 @@ impl P {
 
     /// The rest of a player-level static ability: an optional `as long as
     /// <condition>`.
+    /// `graveyards and libraries`, `graveyards or exile`
+    /// (`LockZones`).
+    fn lock_zones(&mut self) -> R<mtg_core::card::LockZones> {
+        let mut z = mtg_core::card::LockZones::default();
+        loop {
+            if self.eat_word("graveyards") {
+                z.graveyard = true;
+            } else if self.eat_word("libraries") {
+                z.library = true;
+            } else if self.eat_word("exile") {
+                z.exile = true;
+            } else {
+                return self.unexpected("`graveyards`, `libraries` or `exile`");
+            }
+            if !self.eat_word("and") && !self.eat_word("or") {
+                return Ok(z);
+            }
+        }
+    }
+
     fn player_static(&mut self, kind: mtg_core::card::PlayerStaticKind) -> R<Ability> {
         let cond = if self.eat_words(&["as", "long", "as"]) {
             Some(self.static_cond()?)
@@ -3034,6 +3054,40 @@ impl P {
                 self.pos += 5;
                 self.player_static(mtg_core::card::PlayerStaticKind::ProtectionFromOpponents)
             }
+            // "You can't cast noncreature spells.", "You can't play
+            // lands." (CR 601.2, 305.1).
+            "you" | "opponents" | "players"
+                if self.word_at(1).as_deref() == Some("can't")
+                    && (self.word_at(2).as_deref() == Some("cast")
+                        && self.word_at(3).as_deref() != Some("more")
+                        && !self.at_words(&["opponents", "can't", "cast", "spells", "during"])
+                        || self.word_at(2).as_deref() == Some("play")
+                            && self.word_at(3).as_deref() == Some("lands")) =>
+            {
+                use mtg_core::card::RulePlayers;
+                let players = match w.as_str() {
+                    "you" => RulePlayers::You,
+                    "opponents" => RulePlayers::Opponents,
+                    _ => RulePlayers::Each,
+                };
+                self.pos += 2;
+                if self.eat_words(&["play", "lands"]) {
+                    return self
+                        .player_static(mtg_core::card::PlayerStaticKind::CantPlayLands(players));
+                }
+                self.expect_word("cast")?;
+                // `you can't cast creature spell`; `spell` alone: any.
+                let filter = if self.at_word("spell") || self.at_word("spells") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                if !self.eat_word("spell") {
+                    self.eat_word("spells");
+                }
+                self.end_stmt()?;
+                Ok(Ability::CantCastBy { players, filter })
+            }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
@@ -3142,6 +3196,21 @@ impl P {
                 use mtg_core::card::PlayerStaticKind as K;
                 let (players, n) = self.rule_players_ahead().expect("checked");
                 self.pos += n;
+                // "Each player can't cast more than one noncreature spell
+                // each turn." (Deafening Silence).
+                if self.at_words(&["cast", "more", "than", "one"])
+                    && self.word_at(4).as_deref() != Some("spell")
+                {
+                    self.pos += 4;
+                    let filter = self.filter()?;
+                    self.expect_words(&["spell", "each", "turn"])?;
+                    self.end_stmt()?;
+                    return Ok(Ability::CastLimitOf {
+                        players,
+                        filter,
+                        additional: false,
+                    });
+                }
                 let kind = if self
                     .eat_words(&["cast", "more", "than", "one", "spell", "each", "turn"])
                 {
@@ -3153,6 +3222,19 @@ impl P {
                     K::CantGainLife(players)
                 };
                 self.player_static(kind)
+            }
+            // "Each player who has cast a nonartifact spell this turn can't
+            // cast additional nonartifact spells." (Ethersworn Canonist).
+            "each" if self.at_words(&["each", "player", "who", "has", "cast"]) => {
+                self.pos += 5;
+                let filter = self.filter()?;
+                self.expect_words(&["spell", "this", "turn", "can't", "cast", "additional"])?;
+                self.end_stmt()?;
+                Ok(Ability::CastLimitOf {
+                    players: mtg_core::card::RulePlayers::Each,
+                    filter,
+                    additional: true,
+                })
             }
             // The "legend rule" (CR 704.5j).
             "legend" if self.at_words(&["legend", "rule", "doesn't", "apply"]) => {
@@ -3194,9 +3276,34 @@ impl P {
             // number can't be cast."
             "ban" if self.at_words(&["ban", "casting"]) => {
                 self.pos += 2;
-                let filter = self.filter()?;
+                // "Players can't cast spells from graveyards or
+                // libraries." (Grafdigger's Cage).
+                let filter = if self.at_word("from") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                if self.eat_word("from") {
+                    let zones = self.lock_zones()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::CantCastFrom { filter, zones });
+                }
                 self.end_stmt()?;
                 Ok(Ability::CantBeCast(filter))
+            }
+            // "Creature cards in graveyards and libraries can't enter the
+            // battlefield."
+            "ban" if self.at_words(&["ban", "entering"]) => {
+                self.pos += 2;
+                let filter = self.filter()?;
+                // `permanent card`: the filter leaves `card`.
+                if !self.eat_word("card") {
+                    self.eat_word("cards");
+                }
+                self.expect_word("from")?;
+                let zones = self.lock_zones()?;
+                self.end_stmt()?;
+                Ok(Ability::CantEnterFrom { filter, zones })
             }
             "ban" if self.at_words(&["ban", "attacking", "you"]) => {
                 self.pos += 3;
@@ -3216,6 +3323,12 @@ impl P {
                 self.pos += 4;
                 self.player_static(mtg_core::card::PlayerStaticKind::Rule(
                     mtg_core::card::RuleKind::NoLifeGain,
+                ))
+            }
+            "players" if self.at_words(&["players", "can't", "search", "libraries"]) => {
+                self.pos += 4;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::NoSearch,
                 ))
             }
             // "Cards in graveyards can't be the targets of spells or
@@ -6785,6 +6898,13 @@ impl P {
                 self.cards_word()?;
                 return Ok(StaticCond::NoCardInHand(f));
             }
+            // `hand exactly 13 your`: "you have exactly thirteen cards in
+            // your hand" (Triskaidekaphile).
+            if self.eat_word("exactly") {
+                let n = self.number()?;
+                self.expect_word("your")?;
+                return Ok(StaticCond::HandExactly(n));
+            }
             // `hand fewer than 10`: "you have fewer than ten cards in hand".
             if self.eat_words(&["fewer", "than"]) {
                 return Ok(StaticCond::HandFewerThan(self.number()?));
@@ -6983,6 +7103,10 @@ impl P {
                 wording,
             });
         }
+        if self.eat_words(&["your", "life", "exactly"]) {
+            let n = i32::try_from(self.number()?).unwrap_or(0);
+            return Ok(StaticCond::YourLifeExactly(n));
+        }
         if self.eat_words(&["your", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_word("or")?;
@@ -7080,6 +7204,10 @@ impl P {
             // "an artifact card is in your graveyard".
             let wording = if n == 1 && self.eat_words(&["card", "is", "in", "your", "graveyard"]) {
                 crate::ast::GraveyardWording::IsIn
+            } else if n > 1 && self.eat_words(&["cards", "are", "in", "your", "graveyard"]) {
+                // "twenty or more creature cards are in your graveyard"
+                // (Mortal Combat).
+                crate::ast::GraveyardWording::AreIn
             } else {
                 self.graveyard_cards_tail()?;
                 crate::ast::GraveyardWording::ThereAre
@@ -9912,6 +10040,24 @@ impl P {
             let inner = vec![self.sentence()?];
             return Ok(Effect::IfTheyCant(inner, player));
         }
+        // "For each creature exiled this way, its controller creates a
+        // 2/2 green Boar creature token."
+        if self.at_words(&["for", "each"]) && self.ahead_this_way_its_controller() {
+            self.pos += 2;
+            let filter = self.filter()?;
+            let w = self.word()?;
+            let Some(verb) = crate::ast::this_way_verb(&w) else {
+                return self.fail(format!("`{w}` is no `this way` verb"));
+            };
+            self.expect_words(&["this", "way", "its", "controller"])?;
+            self.expect(&Tok::Colon)?;
+            let inner = vec![self.sentence()?];
+            return Ok(Effect::ForEachMovedController {
+                verb,
+                filter,
+                inner,
+            });
+        }
         // "For each opponent who can't, you draw a card."
         if self.at_words(&["for", "each"])
             && matches!(self.word_at(2).as_deref(), Some("opponent" | "player"))
@@ -10112,6 +10258,32 @@ impl P {
     }
 
     /// A clause whose subject is known: "<subject> gains 3 life".
+    /// Whether `for each <filter> <verb> this way its controller:` is
+    /// ahead (`Effect::ForEachMovedController`).
+    fn ahead_this_way_its_controller(&self) -> bool {
+        (3..12).any(|i| {
+            self.word_at(i).as_deref() == Some("this")
+                && self.word_at(i + 1).as_deref() == Some("way")
+                && self.word_at(i + 2).as_deref() == Some("its")
+                && self.word_at(i + 3).as_deref() == Some("controller")
+        })
+    }
+
+    /// What a life total becomes (CR 119.5): `starting`, `highest`,
+    /// `lowest`, or an amount.
+    fn life_to(&mut self) -> R<mtg_core::card::LifeTo> {
+        use mtg_core::card::LifeTo;
+        Ok(if self.eat_word("starting") {
+            LifeTo::Starting
+        } else if self.eat_word("highest") {
+            LifeTo::Highest
+        } else if self.eat_word("lowest") {
+            LifeTo::Lowest
+        } else {
+            LifeTo::Amount(self.num()?)
+        })
+    }
+
     fn subject_verb(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let counts = self.counts.len();
         let e = self.subject_verb_inner(subject, explicit)?;
@@ -10137,6 +10309,7 @@ impl P {
             && matches!(
                 e,
                 Effect::LoseLife { .. }
+                    | Effect::LifeBecomes { .. }
                     | Effect::DrawCards { .. }
                     | Effect::Mill { .. }
                     | Effect::Discard { .. }
@@ -10863,6 +11036,17 @@ impl P {
                 }
             }
             "lose" | "loses" if self.eat_word("game") => Ok(Effect::LoseGame { who: subject }),
+            // CR 701.12c: "Two target players exchange life totals."
+            "exchange" if self.eat_words(&["life", "totals"]) => {
+                Ok(Effect::ExchangeLifeBetween { who: subject })
+            }
+            // CR 104.2b: "you win the game".
+            "win" | "wins" if self.eat_word("game") => Ok(Effect::WinGame { who: subject }),
+            // CR 119.5: "target player's life total becomes 10".
+            "life" if self.eat_words(&["total", "becomes"]) => Ok(Effect::LifeBecomes {
+                who: subject,
+                to: self.life_to()?,
+            }),
             // "loses half their life, rounded down".
             "lose" | "loses" if self.half_ahead() => {
                 let amount = self.half_count(crate::ast::CountExpr::Their(
@@ -11131,6 +11315,7 @@ impl P {
             "may"
                 if subject != Recipient::You
                     && (self.at_word("pay")
+                        || self.at_word("draw")
                         || self.at_word("discard")
                         || self.at_word("sacrifice")
                         || self.at_word("shuffle")
@@ -14297,6 +14482,10 @@ impl P {
                     who: Recipient::You,
                 })
             }
+            "your" if self.eat_words(&["life", "total", "becomes"]) => Ok(Effect::LifeBecomes {
+                who: Recipient::You,
+                to: self.life_to()?,
+            }),
             "exchange" if self.eat_words(&["life", "totals", "with"]) => Ok(Effect::ExchangeLife {
                 with: self.recipient()?,
             }),
@@ -15863,6 +16052,8 @@ impl P {
                     } else {
                         RuleKind::NoDraw
                     }
+                } else if self.eat_words(&["search", "libraries"]) {
+                    RuleKind::NoSearch
                 } else {
                     self.expect_words(&["gain", "life"])?;
                     RuleKind::NoLifeGain
@@ -20741,7 +20932,13 @@ impl P {
         // state trigger (CR 603.8).
         // "When there are nine or more incarnation counters on this
         // enchantment" (Nine Lives).
-        if !whenever && (self.at_words(&["you", "control"]) || self.at_words(&["there", "are"])) {
+        // "When this artifact has twenty or more charge counters on it"
+        // (Darksteel Reactor).
+        if !whenever
+            && (self.at_words(&["you", "control"])
+                || self.at_words(&["there", "are"])
+                || self.at_words(&["this", "has"]))
+        {
             return Ok(Trigger::State(self.static_cond()?));
         }
         if self.eat_words(&["you", "gain", "or", "lose", "life"]) {

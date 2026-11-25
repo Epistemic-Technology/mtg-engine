@@ -1,0 +1,7 @@
+card "Terastodon" {
+  oracle_id 17975a20-2c13-4325-be1e-0bcda5063a2d
+  cost {6}{G}{G}
+  type Creature — Elephant
+  pt 9/9
+  triggered when this enters: you may destroy up to 3 target noncreature permanents; for each permanent graveyarded this way its controller: create 1 "3/3 green Elephant creature"
+}

@@ -1,0 +1,74 @@
+# "For each creature exiled this way, its controller creates a ..." (CR
+# 608.2c, 608.2h): one token for each object the resolution moved that way,
+# created by that object's controller as it last existed.
+
+scenario "Curse of the Swine: X = 2, each exiled creature's controller gets a Boar" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Curse of the Swine"
+  turn 1 A: cast "Curse of the Swine" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains 1 "Boar"
+  assert battlefield B contains 1 "Boar"
+  assert battlefield B contains "Serra Angel"
+  assert power B "Boar" 2
+}
+
+scenario "Descent of the Dragons: two of the opponent's creatures, two Dragons for them" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Descent of the Dragons"
+  turn 1 A: cast "Descent of the Dragons" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains 2 "Dragon"
+  assert battlefield A lacks "Dragon"
+  assert has B "Dragon" flying
+}
+
+scenario "Descent of the Dragons: an indestructible creature isn't destroyed, so no Dragon" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Darksteel Myr", "Grizzly Bears"
+  hand A: "Descent of the Dragons"
+  turn 1 A: cast "Descent of the Dragons" targeting "Darksteel Myr", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Darksteel Myr"
+  assert battlefield B contains 1 "Dragon"
+}
+
+scenario "Rampage of the Clans: each destroyed artifact or enchantment, a Centaur for its controller" {
+  battlefield A: 4 "Forest", "Ornithopter"
+  battlefield B: "Sulfuric Vortex", "Rod of Ruin", "Grizzly Bears"
+  hand A: "Rampage of the Clans"
+  turn 1 A: cast "Rampage of the Clans"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Centaur"
+  assert battlefield B contains 2 "Centaur"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Hour of Need: one target, a Sphinx for its controller" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Hour of Need"
+  turn 1 A: cast "Hour of Need" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield B contains 1 "Sphinx"
+  assert power B "Sphinx" 4
+}
+
+scenario "Terastodon: destroyed noncreature permanents become Elephants for their controllers" {
+  battlefield A: 8 "Forest"
+  battlefield B: "Sulfuric Vortex", "Mountain"
+  hand A: "Terastodon"
+  turn 1 A: cast "Terastodon"
+  turn 1 A: trigger "Terastodon" targeting "Sulfuric Vortex", B "Mountain", A "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 2 "Elephant"
+  assert battlefield A contains 1 "Elephant"
+  assert graveyard B contains "Sulfuric Vortex"
+}

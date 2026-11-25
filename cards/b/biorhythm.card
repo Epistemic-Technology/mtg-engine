@@ -1,0 +1,6 @@
+card "Biorhythm" {
+  oracle_id 447de961-106c-4189-83ce-ca63d487e1cd
+  cost {6}{G}{G}
+  type Sorcery
+  spell: each player life total becomes count equal creature they control
+}

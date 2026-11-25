@@ -1,0 +1,6 @@
+card "Fecundity" {
+  oracle_id ffa64ac6-fe55-48b8-b015-849982cd7ad8
+  cost {2}{G}
+  type Enchantment
+  triggered whenever creature dies: controller of that creature may draw 1 card
+}

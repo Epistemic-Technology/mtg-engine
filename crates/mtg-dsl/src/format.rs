@@ -2377,6 +2377,9 @@ impl Fmt {
             Effect::ExchangeControl { what } => {
                 format!("exchange control of {}", self.recipients(what, t))
             }
+            Effect::ExchangeLifeBetween { who } => {
+                format!("{} exchange life totals", self.recipient(*who, t))
+            }
             Effect::ExchangeLife { with } => {
                 format!("exchange life totals with {}", self.recipient(*with, t))
             }
@@ -3638,6 +3641,28 @@ impl Fmt {
             Effect::LifeBecomesHalfStarting { .. } => {
                 "your life total becomes half starting".to_string()
             }
+            Effect::LifeBecomes { who, to } => {
+                let who = if *who == Recipient::You {
+                    "your".to_string()
+                } else {
+                    self.recipient(*who, t)
+                };
+                let to = match to {
+                    mtg_core::card::LifeTo::Amount(n) => num(*n),
+                    mtg_core::card::LifeTo::Starting => "starting".to_string(),
+                    mtg_core::card::LifeTo::Highest => "highest".to_string(),
+                    mtg_core::card::LifeTo::Lowest => "lowest".to_string(),
+                };
+                format!("{who} life total becomes {to}")
+            }
+            Effect::WinGame { who } => {
+                let v = if *who == Recipient::You {
+                    "win"
+                } else {
+                    "wins"
+                };
+                format!("{} {v} game", self.recipient(*who, t))
+            }
             Effect::DoubleLife { who } => {
                 if *who == Recipient::You {
                     "double your life total".to_string()
@@ -4012,6 +4037,16 @@ impl Fmt {
             Effect::IfTheyCant(inner, player) => format!(
                 "if {} can't, {}",
                 if *player { "the player" } else { "they" },
+                self.line(inner, t)
+            ),
+            Effect::ForEachMovedController {
+                verb,
+                filter: f,
+                inner,
+            } => format!(
+                "for each {} {} this way its controller: {}",
+                filter(f),
+                crate::ast::this_way_word(*verb),
                 self.line(inner, t)
             ),
             Effect::ForEachCouldnt { opponent, inner } => format!(
@@ -4747,6 +4782,9 @@ impl Fmt {
             },
             Effect::Rule(RuleKind::NoLifeGain) => "players can't gain life this turn".to_string(),
             Effect::Rule(RuleKind::NoDraw) => "players can't draw cards this turn".to_string(),
+            Effect::Rule(RuleKind::NoSearch) => {
+                "players can't search libraries this turn".to_string()
+            }
             Effect::Rule(RuleKind::NoDrawOrLifeGain) => {
                 "players can't draw cards or gain life this turn".to_string()
             }
@@ -4886,6 +4924,32 @@ fn ward_alts(alts: &[crate::ast::WardAlt]) -> String {
         })
         .collect::<Vec<_>>()
         .join(" or ")
+}
+
+/// `you`, `opponents`, `players`, `enchanted player` for a player-level
+/// "can't" (`RulePlayers`).
+/// "graveyards and libraries", "graveyards or exile" (`LockZones`).
+pub(crate) fn lock_zones_words(z: mtg_core::card::LockZones, join: &str) -> String {
+    let mut v = Vec::new();
+    if z.graveyard {
+        v.push("graveyards");
+    }
+    if z.library {
+        v.push("libraries");
+    }
+    if z.exile {
+        v.push("exile");
+    }
+    v.join(&format!(" {join} "))
+}
+
+fn cant_players_word(ps: mtg_core::card::RulePlayers) -> &'static str {
+    match ps {
+        mtg_core::card::RulePlayers::You => "you",
+        mtg_core::card::RulePlayers::Opponents => "opponents",
+        mtg_core::card::RulePlayers::Each => "players",
+        mtg_core::card::RulePlayers::Enchanted => "enchanted player",
+    }
 }
 
 fn num(n: Num) -> String {
@@ -8534,6 +8598,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
         StaticCond::ActivatedThisTurn(n) => format!("activated {n} times this turn"),
+        StaticCond::HandExactly(n) => format!("hand exactly {n} your"),
         StaticCond::CardsInHand { n, at_most, your } => {
             let your = if *your { " your" } else { "" };
             format!(
@@ -8552,6 +8617,7 @@ fn static_cond(c: &StaticCond) -> String {
             3 => format!("life {at_least} more than starting"),
             _ => "life below starting".to_string(),
         },
+        StaticCond::YourLifeExactly(n) => format!("your life exactly {n}"),
         StaticCond::YourLife { n, at_least } => {
             format!(
                 "your life {n} or {}",
@@ -8566,7 +8632,10 @@ fn static_cond(c: &StaticCond) -> String {
             use crate::ast::GraveyardWording as W;
             match wording {
                 W::ThereAre => format!("{at_least} {} cards in your graveyard", filter(fl)),
-                W::AreIn => format!("{at_least} cards are in your graveyard"),
+                W::AreIn if *fl == Filter::default() => {
+                    format!("{at_least} cards are in your graveyard")
+                }
+                W::AreIn => format!("{at_least} {} cards are in your graveyard", filter(fl)),
                 W::YouHave => {
                     format!("you have {at_least} {} cards in your graveyard", filter(fl))
                 }
@@ -10383,6 +10452,59 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::CantBeCast(f) => {
             let _ = writeln!(out, "{indent}ban casting {}", filter(f));
         }
+        Ability::CantEnterFrom { filter: f, zones } => {
+            let _ = writeln!(
+                out,
+                "{indent}ban entering {} from {}",
+                filter(f),
+                lock_zones_words(*zones, "and")
+            );
+        }
+        Ability::CantCastFrom { filter: f, zones } => {
+            let what = if *f == Filter::default() {
+                String::new()
+            } else {
+                format!("{} ", filter(f))
+            };
+            let _ = writeln!(
+                out,
+                "{indent}ban casting {what}from {}",
+                lock_zones_words(*zones, "or")
+            );
+        }
+        Ability::CastLimitOf {
+            players,
+            filter: f,
+            additional: true,
+        } if *players == mtg_core::card::RulePlayers::Each => {
+            let _ = writeln!(
+                out,
+                "{indent}each player who has cast {} spell this turn can't cast additional",
+                filter(f)
+            );
+        }
+        Ability::CastLimitOf {
+            players, filter: f, ..
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}{} can't cast more than one {} spell each turn",
+                rule_players_word(*players),
+                filter(f)
+            );
+        }
+        Ability::CantCastBy { players, filter: f } => {
+            let what = if *f == Filter::default() {
+                "spell".to_string()
+            } else {
+                format!("{} spell", filter(f))
+            };
+            let _ = writeln!(
+                out,
+                "{indent}{} can't cast {what}",
+                cant_players_word(*players)
+            );
+        }
         Ability::ActivationCost {
             sources,
             by,
@@ -10433,6 +10555,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let head = match kind {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
+                K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                K::CastLimitOf { .. } => unreachable!("Ability::CastLimitOf"),
+                K::CantEnterFrom { .. } => unreachable!("Ability::CantEnterFrom"),
+                K::CantCastFrom { .. } => unreachable!("Ability::CantCastFrom"),
+                K::CantPlayLands(ps) => format!("{} can't play lands", cant_players_word(*ps)),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::ProtectionFromOpponents => "you have protection from opponents".to_string(),
@@ -10485,6 +10612,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     "graveyard cards can't be targeted".to_string()
                 }
                 K::Rule(mtg_core::card::RuleKind::NoDraw) => "players can't draw cards".to_string(),
+                K::Rule(mtg_core::card::RuleKind::NoSearch) => {
+                    "players can't search libraries".to_string()
+                }
                 K::Rule(mtg_core::card::RuleKind::NoDrawOrLifeGain) => {
                     "players can't draw cards or gain life".to_string()
                 }

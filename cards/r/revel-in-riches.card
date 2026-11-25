@@ -1,0 +1,7 @@
+card "Revel in Riches" {
+  oracle_id cc3fcd26-c088-4335-9a35-0e11019e3d5b
+  cost {4}{B}
+  type Enchantment
+  triggered whenever creature an opponent controls dies: create 1 "Treasure"
+  triggered at beginning of your upkeep if you control 10 Treasure: you win game
+}

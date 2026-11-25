@@ -310,6 +310,9 @@ like the card; either half may still be cast alone.
 | `you don't lose unspent red mana` | "You don't lose unspent red mana as steps and phases end." (CR 500.4): its controller's red mana stays in their pool as each step and phase ends, the cleanup step included, while the source is on the battlefield. |
 | `you may play lands from your graveyard` | "You may play lands from your graveyard." (CR 305.1): its controller may play land cards from their graveyard, with their usual land plays. |
 | `you have hexproof`, `you have shroud`, `opponents can't cast spells during your turn`, `players can't gain life`, `damage can't be prevented`, `combat damage can't be prevented` | Static abilities about players: "You have hexproof." (CR 702.11c: spells and abilities your opponents control can't target you), "You have shroud." (CR 702.18c: no spell or ability can target you), "Your opponents can't cast spells during your turn." (the rule of the next row, `during your turn opponents can't cast spells`, printed in this order), "Players can't gain life.", "Damage can't be prevented." (CR 614.17), "Combat damage can't be prevented." (Frenzied Baloth: combat damage only; as an effect, `combat damage can't be prevented this turn`). Damage that can't be prevented isn't prevented by protection either (CR 615.12, 702.16d). `you can't lose the game` prints "You can't lose the game and your opponents can't win the game.": the controller doesn't lose for the state-based actions of CR 704.5a-c while it applies, and an effect that would make an opponent win does nothing. `you don't lose for zero life` prints "You don't lose the game for having 0 or less life." (CR 704.5a, Lich's Tomb): only that state-based action stops applying to the controller (ten poison counters or drawing from an empty library still lose); right after `hand size none` the two print as one sentence, "You have no maximum hand size and don't lose the game for having 0 or less life." (Marina Vendrell's Grimoire). `as long as <condition>` may follow any of them. |
+| `you can't cast creature spell`, `you can't cast noncreature spell`, `opponents can't cast with mana value 3 or less spell`, `players can't cast spell`, `you can't play lands` | "You can't cast creature spells.", "You can't cast noncreature spells." (Steel Golem, Nikya of the Old Ways; `opponents`: "Your opponents can't cast ..."; `players`: "Players can't cast ..."; any spell filter, `spell` alone for every spell): those players are offered no matching spell to cast (CR 601.2), judged as `ban casting` judges it. "You can't play lands." (Aggressive Mining, CR 305.1): no land play, from any zone; `as long as <condition>` may follow. |
+| `each player can't cast more than one noncreature spell each turn`, `each player who has cast nonartifact spell this turn can't cast additional` | "Each player can't cast more than one noncreature spell each turn." (Deafening Silence; any spell filter, and `you`, `opponents` as for `can't cast more than one spell each turn`), "Each player who has cast a nonartifact spell this turn can't cast additional nonartifact spells." (Ethersworn Canonist): once a player has cast a matching spell this turn (judged by printed characteristics; spells cast before the limiter arrived count, CR 101.2), no other matching spell is offered to them; spells outside the filter neither count nor are limited. |
+| `ban entering creature from graveyards and libraries`, `ban entering nonland permanent card from graveyards`, `ban casting from graveyards or libraries`, `ban casting noncreature from graveyards or exile`, `players can't search libraries` | "Creature cards in graveyards and libraries can't enter the battlefield." (Grafdigger's Cage; any card filter, by printed characteristics: a matching card in one of those zones stays there instead of entering, whatever puts it there; a land still enters unless the filter takes it), "Players can't cast spells from graveyards or libraries." (a filter first: "Players can't cast noncreature spells from graveyards or exile.", Soulless Jailer; flashback, disturb, harmonize and casting from the top of a library are refused), "Players can't search libraries." (Mindlock Orb, CR 701.19: a library search finds nothing; the library is still shuffled; as an effect, `players can't search libraries this turn`, Shadow of Doubt). |
 | `during combat players can't cast spells or activate nonmana abilities`, `during your turn opponents can't cast spells or activate abilities of artifacts creatures enchantments`, `during your turn opponents can't cast spells` | "During combat, players can't cast spells or activate abilities that aren't mana abilities." (Yuriko, Blade of the Mighty), "During your turn, your opponents can't cast spells or activate abilities of artifacts, creatures, or enchantments." (Grand Abolisher; CR 101.2): in the combat phase's steps, or during its controller's turn, those players (`players`: every player; `opponents`) can't cast spells by any route, and can't activate the abilities named: with `nonmana`, any ability that isn't a mana ability (CR 605.1a); with `of artifacts creatures enchantments`, any ability of such a permanent on the battlefield, mana abilities included (so automatic payment doesn't tap them either), but not cycling from a hand. The effect `each player can't cast spells this turn` prints "Players can't cast spells this turn." (Bilbo's Gambit). |
 | `you have protection from opponents` | "You have protection from each of your opponents." (CR 702.16j; Absolute Virtue): its controller can't be the target of spells or abilities an opponent controls, isn't dealt damage by sources an opponent controls (unless the damage can't be prevented), and can't stay enchanted by an Aura an opponent controls (state-based action, CR 704.5m). `as long as <condition>` may follow. |
 | `static you and other Hero you control: has hexproof`, `static during your turn, this and enchantment creature you control: has trample, lifelink, has ward {2}` | A static ability whose subject also names its controller or its source: "As long as ..., you and other Heroes you control have hexproof." (Captain America, Super-Soldier: the controller has hexproof or shroud too, the player-level `you have hexproof` with the same condition; other modifications are an error), "During your turn, Yuna and enchantment creatures you control have trample, lifelink, and ward {2}." (the source gets the same modifications as a second static ability). `static this and enchanted: +1/+1 count where all graveyards creature` prints "This creature and enchanted creature each get +X/+X, where X is ..." (Nighthowler). |
@@ -475,7 +478,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `delayed target 1: whenever creature you control deals combat damage to that player this turn, ...` | In a delayed trigger about a player (`choose target opponent; delayed target 1: ...`): "Choose target opponent. Whenever a creature you control deals combat damage to that player this turn, create a tapped Treasure token." (Great Train Heist): damage to that player only. Elsewhere `to that player` is an error. |
 | `whenever this deals combat damage to a player or planeswalker` | Either attack target; the player dealt damage, or the planeswalker's controller, is the triggering player. Damage to a blocker doesn't trigger it. |
-| `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"), or `when there are 9 or more incarnation counters on this` ("When there are nine or more incarnation counters on this enchantment, exile it.", Nine Lives: `it` in a state trigger is the source). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
+| `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"), or `when there are 9 or more incarnation counters on this` ("When there are nine or more incarnation counters on this enchantment, exile it.", Nine Lives: `it` in a state trigger is the source), or `when this has 20 or more charge counters` ("When this artifact has twenty or more charge counters on it, you win the game.", Darksteel Reactor). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | once per life-gaining event; the life gained is `that much` (`put that much +1/+1 counter on this`: "Whenever you gain life, put that many +1/+1 counters on this creature.", Ageless Entity; granted by an Aura, `static enchanted: has ability { triggered whenever you gain life: put that much +1/+1 counter on this }`, Sunbond) |
 | `whenever an opponent loses life`, `whenever a player loses life`, `whenever you lose life` | once per life-losing event (CR 119.3; damage too); the player is `that player`, the life lost `that much` ("you gain that much life") |
 | `whenever you gain or lose life`, `whenever you gain or lose life during your turn` | once per event that changes your life total (CR 119.9: a gain or a loss of any amount is one event), only on your turn with `during your turn` |
@@ -665,6 +668,7 @@ less` ("an opponent has 10 or less life"), `target player life exactly
 10` (after `if` in a spell: "If target player has exactly 10 life, ...
 that player", declaring the target; `... life 10 or less`, `... life 10
 or more`; judged as it resolves, not in a static ability), `your life 30 or more`,
+`your life exactly 1` ("you have exactly 1 life", Near-Death Experience),
 `life above starting` ("your life total is greater than your starting
 life total", CR 103.4: 20 here; the game's own in a configured game),
 `x 10 or more` and `x 2 or less` ("X is 10 or more", CR 107.3: in a spell
@@ -692,7 +696,8 @@ characteristics, checked again whenever the top card changes),
 `creature died this turn` (morbid), `hand 0 or less` ("you have no cards
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `hand 7 or more your` ("you have seven or more cards in your hand",
-Resonating Lute; wording only),
+Resonating Lute; wording only), `hand exactly 13 your` ("you have exactly
+thirteen cards in your hand", Triskaidekaphile),
 `hand has no land card` ("you have no land cards in hand"), and
 the shorthands `threshold`, `delirium`, `metalcraft`; also `land entered
 this turn` (landfall: "you had a land enter the battlefield under your
@@ -714,7 +719,11 @@ the ability triggers and again as it resolves (CR 603.4).
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `2 instant or sorcery cards in your graveyard` ("there are two or more
 instant and/or sorcery cards in your graveyard"; any card filter, `4 permanent
-cards in your graveyard` for descend), `you
+cards in your graveyard` for descend; `20 creature cards are in your
+graveyard`: "twenty or more creature cards are in your graveyard", Mortal
+Combat), `you control no permanent other than this and hand 0 or less`
+("you control no permanents other than this enchantment and have no cards
+in hand", Barren Glory), `you
 have 4 creature cards in your graveyard`, `there is land card in your
 graveyard` ("there is a land card in your graveyard"; `there's Lesson card
 in your graveyard` prints "there's a"), `1 artifact card is in your
@@ -1698,11 +1707,36 @@ triggering player).
 half your starting life total, rounded up" (CR 119.5: the controller gains
 or loses the life needed; The Endstone). Numbers of 1,000 or more print
 grouped ("each opponent loses 1,000 life").
+`your life total becomes 26` ("Your life total becomes 26.", Providence),
+`target player life total becomes 10` ("target player's life total
+becomes 10", any subject: `target opponent`, `each player`), `each player
+life total becomes count equal creature they control` ("Each player's
+life total becomes the number of creatures they control.", Biorhythm:
+each player's own count, read before any total changes), `your life total
+becomes starting` ("Your life total becomes equal to your starting life
+total."), `each player life total becomes highest` / `... lowest` ("...
+becomes the highest life total among all players", read once, before any
+total changes). CR 119.5: each player gains or loses the difference, so
+"can't gain life", life-gain triggers and replacements apply.
+`you win game` ("You win the game.", CR 104.2b): every opponent loses,
+unless one of them can't lose the game (Platinum Angel).
 `exchange life totals with target opponent` (CR 701.12c): each player
 gains or loses the life needed to reach the other's former total; a
 following `if you do,` prints "If you lost life this way, ..." and holds
 only if the controller lost life, and `count that many life lost this way`
 is that loss ("draw that many cards", Mister Negative).
+`for each creature exiled this way its controller: create 1 "2/2 green
+Boar creature"` ("For each creature exiled this way, its controller
+creates a 2/2 green Boar creature token.", Curse of the Swine; any `this
+way` verb, `destroyed`, `graveyarded` printed "put into a graveyard"):
+after the sentences before it, the sentence, written for "you", is done
+once for each object the resolution moved that way and that matched the
+filter as it last existed, by that object's controller then (CR 608.2h).
+`2 target player exchange life totals` ("Two target players exchange life
+totals.", Soul Conduit; `you may 2 target player exchange life totals`:
+"you may have two target players exchange life totals", Axis of
+Mortality): the two players each gain or lose the life needed (CR
+701.12c).
 `end the turn` (CR 724.1) prints "End the turn.": triggered abilities
 waiting to be put on the stack cease to exist, every object on the stack
 (the resolving spell or ability too) is exiled (an ability or a copy of a
@@ -3750,7 +3784,9 @@ targets this` ("that targets this
 creature"),
 `you may <clause>`, `pay {2}` / `pay 2 life` / `pay {W}{B} and 2 life` (after `you may`; the last "you may pay {W}{B} and 2 life", both or neither),
 `target opponent may sacrifice 2 nonland nontoken permanent chosen` ("Target opponent may sacrifice two nonland, nontoken permanents of their choice."; a following `if they don't, <clause>` prints "If they don't, ...": only if the player didn't, or couldn't), `target opponent may have you create 2 "Lander"` ("Target opponent may have you create two Lander tokens.": the player decides, and the effect's controller acts), `each player may shuffle hand and graveyard into library` ("Each player may shuffle their hand and graveyard into their library.", each in turn order) and after it the recipient `each player who does` ("Each player who does draws seven cards.", also joined with `then` in the same sentence: those who did, once all have decided), `each player who controls most creature investigates` ("Each player who controls the most creatures investigates.": ties included, counted as it happens), `you and all permanent you control gain hexproof` ("You and permanents you control gain hexproof until end of turn.": the controller and the group),
-`that player may pay {4}` / `that player may discard 1 card at random`
+`that player may pay {4}` / `that player may discard 1 card at random` /
+`target opponent may draw 1 card` / `controller of that creature may draw
+1 card` ("that creature's controller may draw a card", Fecundity)
 (another player decides and acts as it resolves, CR 608.2d; an act they
 can't complete isn't offered; a following `if they do,` prints "If the
 player does,"; `deal 3 damage to any target; then controller of that

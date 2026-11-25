@@ -1,0 +1,8 @@
+card "Darksteel Reactor" {
+  oracle_id bc483bab-14fb-498d-9310-9c070766c7ae
+  cost {4}
+  type Artifact
+  keyword indestructible
+  triggered at beginning of your upkeep: you may put 1 charge counter on this
+  triggered when this has 20 or more charge counters: you win game
+}

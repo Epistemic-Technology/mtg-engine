@@ -1,0 +1,8 @@
+card "Arbiter of Knollridge" {
+  oracle_id 62705a41-7c4d-4e6c-85b0-36a9d27ab5ae
+  cost {6}{W}
+  type Creature — Giant Wizard
+  pt 5/5
+  keyword vigilance
+  triggered when this enters: each player life total becomes highest
+}

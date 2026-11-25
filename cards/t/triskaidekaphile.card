@@ -1,0 +1,9 @@
+card "Triskaidekaphile" {
+  oracle_id ef238ba8-acf0-4e62-9abd-5291886a32e8
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  hand size none
+  triggered at beginning of your upkeep if hand exactly 13 your: you win game
+  activated {3}{U}: draw 1 card
+}

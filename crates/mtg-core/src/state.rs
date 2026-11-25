@@ -3384,6 +3384,15 @@ impl GameState {
                 })
     }
 
+    /// Whether `p` can't play lands: "You can't play lands." (CR 305.1).
+    pub fn lands_banned(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self.player_statics_of().any(|(who, kind, src)| {
+                matches!(kind, crate::card::PlayerStaticKind::CantPlayLands(ps)
+                    if self.rule_players_include(ps, who, src, p))
+            })
+    }
+
     /// Whether face-down permanent `id` can't be turned face up now (CR
     /// 702.37e): an Aura's "As long as enchanted creature is face down, it
     /// can't be turned face up.", or "Permanents your opponents control
@@ -3779,35 +3788,90 @@ impl GameState {
     /// "Noncreature spells with mana value equal
     /// to the chosen number can't be cast." (`PlayerStaticKind::CantCast`,
     /// CR 601.2), judged from `def`'s printed characteristics.
-    pub fn spell_cant_be_cast(&self, def: crate::card::CardRef) -> bool {
+    /// "You can't cast noncreature spells." (`CantCastBy`) for its
+    /// players: `p` is the player who would cast it.
+    pub fn spell_cant_be_cast(&self, def: crate::card::CardRef, p: PlayerId) -> bool {
         self.player_static_sources > 0
-            && self.player_statics_of().any(|(_, kind, src)| {
-                let crate::card::PlayerStaticKind::CantCast { spells } = kind else {
-                    return false;
-                };
-                let f = self.with_source_chosen_filter(self.pool.filter(spells), src);
-                let d = self.pool.get(def);
-                let c = self.printed(def);
-                // The mana value from the printed cost (X is 0 off the
-                // stack, CR 202.3e); the filter's other alternatives whole.
-                let side = |g: &crate::card::ObjFilter| {
-                    g.matches_characteristics(&c)
-                        && g.mana_value.is_none_or(|(cmp, n)| {
-                            cmp.holds(d.mana_cost.mana_value(), u32::from(n))
-                        })
-                };
-                let mut alt = Some(&*f);
-                let mut any = false;
-                while let Some(g) = alt {
-                    let mut one = g.clone();
-                    one.or = None;
-                    if side(&one) {
-                        any = true;
-                        break;
+            && self.player_statics_of().any(|(who, kind, src)| {
+                let spells = match kind {
+                    crate::card::PlayerStaticKind::CantCast { spells } => spells,
+                    crate::card::PlayerStaticKind::CantCastBy { players, spells }
+                        if self.rule_players_include(players, who, src, p) =>
+                    {
+                        spells
                     }
-                    alt = g.or.as_deref();
-                }
-                any
+                    // A second matching spell this turn.
+                    crate::card::PlayerStaticKind::CastLimitOf { players, spells }
+                        if self.rule_players_include(players, who, src, p) =>
+                    {
+                        return self.printed_matches(spells, def, src)
+                            && self
+                                .cast_this_turn
+                                .iter()
+                                .any(|(q, d)| *q == p && self.printed_matches(spells, *d, src));
+                    }
+                    _ => return false,
+                };
+                self.printed_matches(spells, def, src)
+            })
+    }
+
+    /// Whether card `def`'s printed characteristics match the pooled
+    /// filter `spells`, with source `src`'s choices filled in (a ban's
+    /// filter: the mana value from the printed cost, X as 0 off the stack,
+    /// CR 202.3e; the filter's other alternatives whole).
+    fn printed_matches(&self, spells: u16, def: crate::card::CardRef, src: ObjId) -> bool {
+        let f = self.with_source_chosen_filter(self.pool.filter(spells), src);
+        let d = self.pool.get(def);
+        let c = self.printed(def);
+        let side = |g: &crate::card::ObjFilter| {
+            g.matches_characteristics(&c)
+                && g.mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(d.mana_cost.mana_value(), u32::from(n)))
+        };
+        let mut alt = Some(&*f);
+        while let Some(g) = alt {
+            let mut one = g.clone();
+            one.or = None;
+            if side(&one) {
+                return true;
+            }
+            alt = g.or.as_deref();
+        }
+        false
+    }
+
+    /// Whether card `id` can't enter the battlefield from its zone:
+    /// "Creature cards in graveyards and libraries can't enter the
+    /// battlefield." (`PlayerStaticKind::CantEnterFrom`).
+    pub fn enter_banned(&self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        let zone = o.zone;
+        let def = o.def;
+        matches!(zone, Zone::Graveyard | Zone::Library)
+            && self.player_static_sources > 0
+            && self.player_statics_of().any(|(_, kind, src)| {
+                matches!(kind, crate::card::PlayerStaticKind::CantEnterFrom { cards, zones }
+                    if zones.has(zone) && self.printed_matches(cards, def, src))
+            })
+    }
+
+    /// Whether card `id` can't be cast from the zone it's in: "Players
+    /// can't cast spells from graveyards or libraries."
+    /// (`PlayerStaticKind::CantCastFrom`).
+    pub fn cast_from_banned(&self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        let zone = o.zone;
+        let def = o.def;
+        matches!(zone, Zone::Graveyard | Zone::Library | Zone::Exile)
+            && self.player_static_sources > 0
+            && self.player_statics_of().any(|(_, kind, src)| {
+                matches!(kind, crate::card::PlayerStaticKind::CantCastFrom { spells, zones }
+                    if zones.has(zone) && self.printed_matches(spells, def, src))
             })
     }
 
@@ -5637,6 +5701,7 @@ impl GameState {
                 let l = self.player(you).life;
                 if *at_least { l >= *n } else { l <= *n }
             }
+            C::YourLifeExactly(n) => self.player(you).life == *n,
             // CR 103.4: the starting life total.
             C::LifeVsStarting { at_least, below } => {
                 let d = self.player(you).life - self.starting_life;
@@ -5788,6 +5853,7 @@ impl GameState {
             C::LibraryAtMost(n) => self
                 .players_in_game()
                 .any(|p| self.player(p).library.len() <= *n as usize),
+            C::HandExactly(n) => self.player(you).hand.len() == *n as usize,
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {

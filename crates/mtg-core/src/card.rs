@@ -3658,6 +3658,8 @@ pub enum StaticCondition {
         n: i32,
         at_least: bool,
     },
+    /// "if you have exactly 1 life" (Near-Death Experience).
+    YourLifeExactly(i32),
     /// Your life total against your starting life total (CR 103.4): at
     /// least `at_least` more than it ("greater than": 1; "at least 10
     /// greater", "at least 7 life more": 10, 7; "greater than or equal
@@ -3742,6 +3744,8 @@ pub enum StaticCondition {
         n: u32,
         at_most: bool,
     },
+    /// "you have exactly thirteen cards in your hand" (Triskaidekaphile).
+    HandExactly(u32),
     /// "each player has no cards in hand" (Howltooth Hollow).
     EachHandEmpty,
     /// "a library has twenty or fewer cards in it" (Shelldock Isle): any
@@ -4037,6 +4041,7 @@ impl StaticCondition {
         match self {
             StaticCondition::OpponentLifeAtMost(_)
             | StaticCondition::YourLife { .. }
+            | StaticCondition::YourLifeExactly(_)
             | StaticCondition::LifeVsStarting { .. }
             | StaticCondition::MoreLifeThanOpponent
             | StaticCondition::AnyPlayerLifeAtMost(_)
@@ -4986,6 +4991,19 @@ pub enum CopyUntil {
     YourNextTurn,
 }
 
+/// What a life total becomes (`Effect::LifeBecomes`, CR 119.5).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum LifeTo {
+    /// "becomes 10", "becomes the number of creatures they control".
+    Amount(Num),
+    /// "becomes equal to your starting life total" (CR 103.4).
+    Starting,
+    /// "becomes the highest life total among all players".
+    Highest,
+    /// "becomes the lowest life total among all players".
+    Lowest,
+}
+
 /// A number in an effect's text: a constant, or X as chosen when the spell
 /// was cast (CR 107.3).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -5608,6 +5626,15 @@ pub enum Effect {
     /// for each player who couldn't do what the effect before asked
     /// (`Effect::Discard`: had too few cards to discard).
     ForEachCouldnt(Vec<Effect>),
+    /// "For each creature exiled this way, its controller creates a 2/2
+    /// green Boar creature token." (CR 608.2c): for each object the
+    /// resolution moved `verb` this way that matched `filter` as it last
+    /// existed, its controller then (CR 608.2h) does these as their own.
+    ForEachMovedController {
+        verb: ThisWay,
+        filter: ObjFilter,
+        effects: Vec<Effect>,
+    },
     /// A "can't" effect on each player `who` names, until end of turn:
     /// "Target player can't play lands this turn."
     PlayerRule {
@@ -6701,6 +6728,22 @@ pub enum Effect {
     LifeBecomesHalfStarting {
         who: Recipient,
     },
+    /// "Your life total becomes 26", "each player's life total becomes
+    /// the number of creatures they control", "... becomes the lowest
+    /// life total among all players" (CR 119.5): each recipient player
+    /// gains or loses the life needed to reach it, so replacement effects
+    /// and life triggers see a gain or a loss. A count is read for each
+    /// player in turn (`ThatPlayer::Acting`); the highest and lowest are
+    /// read once, before any total changes.
+    LifeBecomes {
+        who: Recipient,
+        to: LifeTo,
+    },
+    /// "You win the game." (CR 104.2b): each recipient player wins,
+    /// unless an opponent can't lose the game.
+    WinGame {
+        who: Recipient,
+    },
     /// "You have no maximum hand size for the rest of the game" (CR
     /// 402.2): each recipient player's maximum hand size is gone.
     NoMaxHandSize {
@@ -6818,6 +6861,12 @@ pub enum Effect {
     /// which the resolution's life-lost log then holds.
     ExchangeLife {
         with: Recipient,
+    },
+    /// "Two target players exchange life totals." (CR 701.12c): the first
+    /// two players `who` names each gain or lose the life needed to reach
+    /// the other's former total.
+    ExchangeLifeBetween {
+        who: Recipient,
     },
     /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
     /// discarded a nonland card this way, create a 1/1 white Human Soldier
@@ -7956,6 +8005,12 @@ pub enum PlayerStaticKind {
     /// can't ...", "Enchanted player can't ..." (CR 101.2): those players
     /// may cast no spell once they have cast one this turn.
     CastLimit(RulePlayers),
+    /// "Each player can't cast more than one noncreature spell each
+    /// turn.", "Each player who has cast a nonartifact spell this turn
+    /// can't cast additional nonartifact spells." (CR 101.2): those
+    /// players may cast no spell matching the pooled filter `spells` once
+    /// they have cast one this turn (judged by printed characteristics).
+    CastLimitOf { players: RulePlayers, spells: u16 },
     /// "Each player can't draw more than one card each turn.", "Each
     /// opponent can't ..." (CR 101.2, 121.1): a draw beyond the first in a
     /// turn doesn't happen.
@@ -7978,6 +8033,24 @@ pub enum PlayerStaticKind {
     /// so "the chosen number" is its choice; the card as it would be cast,
     /// X as 0).
     CantCast { spells: u16 },
+    /// "You can't cast noncreature spells.", "Your opponents can't cast
+    /// spells with mana value 3 or less." (CR 601.2, 101.2): those
+    /// `players` (relative to the source) may cast no spell matching the
+    /// pooled filter `spells`, judged as `CantCast` judges it.
+    CantCastBy { players: RulePlayers, spells: u16 },
+    /// "You can't play lands." (CR 305.1, 101.2): those players may not
+    /// play lands.
+    CantPlayLands(RulePlayers),
+    /// "Creature cards in graveyards and libraries can't enter the
+    /// battlefield." (Grafdigger's Cage, CR 101.2): a card matching the
+    /// pooled filter `cards` (by its printed characteristics) in one of
+    /// the `zones` stays where it is instead of entering.
+    CantEnterFrom { cards: u16, zones: LockZones },
+    /// "Players can't cast spells from graveyards or libraries.",
+    /// "Players can't cast noncreature spells from graveyards or exile."
+    /// (CR 601.2): no player may cast a spell matching the pooled filter
+    /// `spells` from one of the `zones`.
+    CantCastFrom { spells: u16, zones: LockZones },
     /// Permanents can't be turned face up (CR 702.37e, 708.7): "As long as
     /// enchanted creature is face down, it can't be turned face up.",
     /// "Permanents your opponents control can't be turned face up during
@@ -7994,6 +8067,28 @@ pub enum PlayerStaticKind {
         during: SilenceWhen,
         activate: ActivateBan,
     },
+}
+
+/// The zones a graveyard lock names (`PlayerStaticKind::CantEnterFrom`,
+/// `CantCastFrom`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct LockZones {
+    pub graveyard: bool,
+    pub library: bool,
+    pub exile: bool,
+}
+
+impl LockZones {
+    /// Whether `z` is one of these zones.
+    #[must_use]
+    pub fn has(self, z: crate::state::Zone) -> bool {
+        match z {
+            crate::state::Zone::Graveyard => self.graveyard,
+            crate::state::Zone::Library => self.library,
+            crate::state::Zone::Exile => self.exile,
+            _ => false,
+        }
+    }
 }
 
 /// When a `PlayerStaticKind::Silence` applies.
@@ -8329,6 +8424,9 @@ pub enum RuleKind {
     /// "Players can't draw cards or gain life." (Mornsong Aria): `NoDraw`
     /// and `NoLifeGain` both.
     NoDrawOrLifeGain,
+    /// "Players can't search libraries." (Mindlock Orb, CR 701.19): a
+    /// library search finds nothing; a "then shuffle" still shuffles.
+    NoSearch,
 }
 
 /// A "can't" effect on certain players until end of turn (CR 614.17):
@@ -14049,6 +14147,7 @@ impl CardPool {
                     if count.reads_hand()
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
+                    | StaticCondition::HandExactly(_)
                     | StaticCondition::MoreCardsInHand
                     | StaticCondition::PlayerHand { .. }
                     | StaticCondition::PlayerMoreHand(_)

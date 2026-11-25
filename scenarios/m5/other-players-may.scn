@@ -1,0 +1,60 @@
+# Another player's "may" (CR 608.2d): "Its controller may search their
+# library ...", "that creature's controller may draw a card", "Target
+# opponent may draw a card": that player decides and does it as their own.
+
+scenario "Path to Exile: the creature is exiled; its controller fetches a tapped basic" {
+  battlefield A: "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Path to Exile"
+  library B: "Grizzly Bears", "Mountain", "Island"
+  turn 1 A: cast "Path to Exile" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield B contains "Mountain"
+  assert tapped "Mountain"
+  assert battlefield A count 1
+}
+
+scenario "Fecundity: the dying creature's controller draws, not Fecundity's" {
+  battlefield A: "Fecundity", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  library B: "Island", "Forest"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert hand A count 0
+}
+
+scenario "Fecundity: the controller may decline" {
+  battlefield A: "Fecundity", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 B: decline "Fecundity"
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+}
+
+scenario "Fecundity: your own creature dying, you may draw" {
+  battlefield A: "Fecundity", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand B count 0
+}
+
+scenario "Soldevi Heretic: prevent 2 damage to the creature; the target opponent may draw" {
+  battlefield A: "Soldevi Heretic", "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library B: "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: activate "Soldevi Heretic" targeting "Grizzly Bears", player B
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert hand B count 1
+}

@@ -1,0 +1,7 @@
+card "Aggressive Mining" {
+  oracle_id ff321c13-03ae-4cb9-b371-1242290f8433
+  cost {3}{R}
+  type Enchantment
+  you can't play lands
+  activated sacrifice 1 land, once: draw 2 cards
+}

@@ -1,0 +1,7 @@
+card "Soldevi Heretic" {
+  oracle_id eed353a6-757d-47f6-a118-b951ccf95600
+  cost {2}{U}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {W}, {T}: prevent next 2 damage to target creature this turn; target opponent may draw 1 card
+}

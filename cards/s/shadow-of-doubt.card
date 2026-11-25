@@ -1,0 +1,9 @@
+card "Shadow of Doubt" {
+  oracle_id b4b724bb-4c1c-4002-8eb8-bc8dd3f88e62
+  cost {U/B}{U/B}
+  type Instant
+  spell {
+    players can't search libraries this turn
+    draw 1 card
+  }
+}

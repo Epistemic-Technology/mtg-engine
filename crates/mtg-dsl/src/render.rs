@@ -1347,6 +1347,17 @@ fn top_spells(f: &Filter, card: &Card) -> String {
     one(f)
 }
 
+/// "you", "your opponents", "players", "enchanted player" for a
+/// player-level "can't" (`RulePlayers`).
+fn rule_players_subject(ps: mtg_core::card::RulePlayers) -> &'static str {
+    match ps {
+        mtg_core::card::RulePlayers::You => "you",
+        mtg_core::card::RulePlayers::Opponents => "your opponents",
+        mtg_core::card::RulePlayers::Each => "players",
+        mtg_core::card::RulePlayers::Enchanted => "enchanted player",
+    }
+}
+
 fn spells_subject(f: &Filter, card: &Card) -> String {
     if *f == Filter::default() {
         return "Spells".to_string();
@@ -6095,6 +6106,10 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         Effect::DealDamage { amount, .. }
         | Effect::DealDamageDivided { amount, .. }
         | Effect::GainLife { amount, .. }
+        | Effect::LifeBecomes {
+            to: mtg_core::card::LifeTo::Amount(amount),
+            ..
+        }
         | Effect::LoseLife { amount, .. } => vec![*amount],
         Effect::DrawCards { count, .. }
         | Effect::Mill { count, .. }
@@ -7587,6 +7602,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     c.text = c.text.replacen("X cards", &phrase, 1);
                 }
             }
+            // "Each player's life total becomes the number of creatures
+            // they control." (Biorhythm).
+            CountStyle::Equal if matches!(e, Effect::LifeBecomes { .. }) => {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c
+                    .text
+                    .replacen("becomes X", &format!("becomes {phrase}"), 1);
+            }
             CountStyle::Equal => {
                 // "Create a number of 1/1 red Goblin creature tokens equal
                 // to ...", "put a number of +1/+1 counters on it equal to
@@ -8364,6 +8387,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             cards_phrase(filter, ctx.card, true),
             if *tapped { " tapped" } else { "" }
         )),
+        // "Two target players exchange life totals." (CR 701.12c).
+        Effect::ExchangeLifeBetween { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(*who, s, "exchange life totals".to_string())
+        }
         Effect::ExchangeLife { with } => {
             // "If you lost life this way, draw that many cards." (Mister
             // Negative).
@@ -13821,6 +13849,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::LifeBecomesHalfStarting { .. } => Clause::imperative(
             "your life total becomes half your starting life total, rounded up".to_string(),
         ),
+        // CR 119.5.
+        Effect::LifeBecomes { who, to } => {
+            let s = possessive(&ctx.subj(*who));
+            let to = match to {
+                mtg_core::card::LifeTo::Amount(n) => digits(*n),
+                mtg_core::card::LifeTo::Starting => {
+                    format!("equal to {s} starting life total")
+                }
+                mtg_core::card::LifeTo::Highest => {
+                    "the highest life total among all players".to_string()
+                }
+                mtg_core::card::LifeTo::Lowest => {
+                    "the lowest life total among all players".to_string()
+                }
+            };
+            Clause::imperative(format!("{s} life total becomes {to}"))
+        }
+        // CR 104.2b.
+        Effect::WinGame { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(*who, s, format!("{} the game", ctx.verb(*who, "wins", "win")))
+        }
         Effect::DoubleLife { who } => {
             let s = ctx.subj(*who);
             Clause::imperative(format!("double {} life total", possessive(&s)))
@@ -15494,6 +15544,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(body.trim_end_matches('.'))
             ))
         }
+        // "For each creature exiled this way, its controller creates a
+        // 2/2 green Boar creature token."
+        Effect::ForEachMovedController {
+            verb,
+            filter,
+            inner,
+        } => {
+            let body = lowercase_first(sentences(inner, ctx).trim_end_matches('.'));
+            let (first, rest) = body.split_once(' ').unwrap_or((&body, ""));
+            let third = match first {
+                "search" => "searches".to_string(),
+                w => format!("{w}s"),
+            };
+            let rest = rest.replace("your ", "their ");
+            let v = match verb {
+                mtg_core::card::ThisWay::PutInGraveyard => "put into a graveyard",
+                v => crate::ast::this_way_word(*v),
+            };
+            Clause::imperative(format!(
+                "for each {} {v} this way, its controller {third} {rest}",
+                filter_phrase(filter, ctx.card, false)
+            ))
+        }
         Effect::ForEachCouldnt { opponent, inner } => {
             let body = sentences(inner, ctx);
             Clause::imperative(format!(
@@ -15823,6 +15896,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "another target ",
                     "up to ",
                     "this ",
+                    // "you may have two target players exchange life
+                    // totals" (Axis of Mortality).
+                    "two target ",
                 ]
                 .iter()
                 .any(|p| body.starts_with(p));
@@ -16019,6 +16095,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Rule(RuleKind::NoDraw) => {
             Clause::imperative("players can't draw cards this turn".to_string())
+        }
+        Effect::Rule(RuleKind::NoSearch) => {
+            Clause::imperative("players can't search libraries this turn".to_string())
         }
         Effect::Rule(RuleKind::NoDrawOrLifeGain) => {
             Clause::imperative("players can't draw cards or gain life this turn".to_string())
@@ -21969,6 +22048,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 b.strip_prefix("there is ").and_then(|y| y.strip_suffix(gy)),
             ) {
                 format!("there is {x} and {y}{gy}")
+            } else if a.starts_with("you control ")
+                && let Some(y) = b.strip_prefix("you have no ")
+            {
+                // "if you control no permanents other than this
+                // enchantment and have no cards in hand" (Barren Glory).
+                format!("{a} and have no {y}")
             } else {
                 format!("{a} and {b}")
             }
@@ -22196,6 +22281,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "this ability has been activated {} times this turn",
             or_more(*n)
         ),
+        StaticCond::HandExactly(n) => format!(
+            "you have exactly {} cards in your hand",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::CardsInHand { n, at_most, your } => {
             let hand = if *your { "your hand" } else { "hand" };
             match (n, at_most) {
@@ -22269,6 +22358,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             3 => format!("you have at least {at_least} life more than your starting life total"),
             _ => "your life total is less than your starting life total".to_string(),
         },
+        StaticCond::YourLifeExactly(n) => format!("you have exactly {n} life"),
         StaticCond::YourLife { n, at_least } => format!(
             "you have {n} or {} life",
             if *at_least { "more" } else { "less" }
@@ -22284,8 +22374,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 W::ThereIs => return format!("there is {one} in your graveyard"),
                 W::Theres => return format!("there's {one} in your graveyard"),
                 W::IsIn => return format!("{one} is in your graveyard"),
-                W::AreIn => {
+                W::AreIn if *filter == Filter::default() => {
                     return format!("{} cards are in your graveyard", or_more(*at_least));
+                }
+                // "twenty or more creature cards are in your graveyard".
+                W::AreIn => {
+                    return format!(
+                        "{} {} cards are in your graveyard",
+                        or_more(*at_least),
+                        card_filter_phrase(filter, card)
+                    );
                 }
                 W::YouHave => true,
                 W::ThereAre => false,
@@ -25276,6 +25374,63 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         ),
         // "Noncreature spells with mana value equal to the chosen number
         // can't be cast." (CR 601.2).
+        // "Creature cards in graveyards and libraries can't enter the
+        // battlefield." (Grafdigger's Cage).
+        Ability::CantEnterFrom { filter, zones } => format!(
+            "{} cards in {} can't enter the battlefield.",
+            capitalize(&card_filter_phrase(filter, card)),
+            crate::format::lock_zones_words(*zones, "and")
+        ),
+        // "Players can't cast spells from graveyards or libraries."
+        Ability::CantCastFrom { filter, zones } => {
+            let s = spells_subject(filter, card);
+            let mut cs = s.chars();
+            let lower = cs.next().map_or_else(String::new, |c| {
+                c.to_lowercase().chain(cs).collect::<String>()
+            });
+            format!(
+                "Players can't cast {lower} from {}.",
+                crate::format::lock_zones_words(*zones, "or")
+            )
+        }
+        // "Each player can't cast more than one noncreature spell each
+        // turn." (CR 101.2).
+        Ability::CastLimitOf {
+            players,
+            filter,
+            additional,
+        } => {
+            let s = spells_subject(filter, card);
+            let mut cs = s.chars();
+            let lower = cs.next().map_or_else(String::new, |c| {
+                c.to_lowercase().chain(cs).collect::<String>()
+            });
+            let one = lower.strip_suffix(" spells").unwrap_or(&lower);
+            if *additional {
+                format!(
+                    "{} who has cast {} spell this turn can't cast additional {lower}.",
+                    capitalize(rule_players_text(*players, false)),
+                    with_article(one)
+                )
+            } else {
+                format!(
+                    "{} can't cast more than one {one} spell each turn.",
+                    capitalize(rule_players_text(*players, false))
+                )
+            }
+        }
+        // "You can't cast noncreature spells." (CR 601.2).
+        Ability::CantCastBy { players, filter } => {
+            let s = spells_subject(filter, card);
+            let mut cs = s.chars();
+            let lower = cs.next().map_or_else(String::new, |c| {
+                c.to_lowercase().chain(cs).collect::<String>()
+            });
+            format!(
+                "{} can't cast {lower}.",
+                capitalize(rule_players_subject(*players))
+            )
+        }
         Ability::CantBeCast(filter) => {
             let mut g = filter.clone();
             let eq = g.status.equal_chosen.take();
@@ -25345,6 +25500,12 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let s = match kind {
                 K::ActivationCost { .. } => unreachable!("Ability::ActivationCost"),
                 K::CantCast { .. } => unreachable!("Ability::CantBeCast"),
+                K::CantCastBy { .. } => unreachable!("Ability::CantCastBy"),
+                K::CastLimitOf { .. } => unreachable!("Ability::CastLimitOf"),
+                K::CantEnterFrom { .. } => unreachable!("Ability::CantEnterFrom"),
+                K::CantCastFrom { .. } => unreachable!("Ability::CantCastFrom"),
+                // CR 305.1.
+                K::CantPlayLands(ps) => format!("{} can't play lands", rule_players_subject(*ps)),
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::ProtectionFromOpponents => {
@@ -25416,6 +25577,9 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     "cards in graveyards can't be the targets of spells or abilities".to_string()
                 }
                 K::Rule(mtg_core::card::RuleKind::NoDraw) => "players can't draw cards".to_string(),
+                K::Rule(mtg_core::card::RuleKind::NoSearch) => {
+                    "players can't search libraries".to_string()
+                }
                 K::Rule(mtg_core::card::RuleKind::NoDrawOrLifeGain) => {
                     "players can't draw cards or gain life".to_string()
                 }
