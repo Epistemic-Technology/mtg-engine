@@ -11291,6 +11291,47 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 c.suffix = Some("this turn");
                 return c;
             }
+            // "Until end of turn, target creature with defender gains
+            // haste, can attack as though it didn't have defender, and
+            // assigns combat damage equal to its toughness rather than its
+            // power." (Walking Bulwark): keywords and rules printed as
+            // sentences, in one list; the keywords alone dropped the rest.
+            if !*each
+                && keywords.iter().any(|k| is_restriction(*k))
+                && keywords.iter().any(|k| !is_restriction(*k))
+            {
+                let mut parts: Vec<String> = Vec::new();
+                let mut plain: Vec<Keyword> = Vec::new();
+                let gains = ctx.verb(*to, "gains", "gain").to_string();
+                for k in keywords {
+                    if !is_restriction(*k) {
+                        plain.push(*k);
+                        continue;
+                    }
+                    if !plain.is_empty() {
+                        parts.push(format!("{gains} {}", keywords_list(&plain)));
+                        plain.clear();
+                    }
+                    parts.push(match k {
+                        Keyword::AttackDespiteDefender => format!(
+                            "can attack as though {} didn't have defender",
+                            ctx.verb(*to, "it", "they")
+                        ),
+                        Keyword::AssignsToughness => ctx
+                            .verb(
+                                *to,
+                                "assigns combat damage equal to its toughness rather than its power",
+                                "assign combat damage equal to their toughness rather than their power",
+                            )
+                            .to_string(),
+                        k => restriction_phrase(&[*k]),
+                    });
+                }
+                if !plain.is_empty() {
+                    parts.push(format!("{gains} {}", keywords_list(&plain)));
+                }
+                return Clause::with_subject(*to, s, list(&parts)).until_eot();
+            }
             // "Creatures you control get +2/+1 until end of turn. White
             // creatures you control also gain first strike ...": some of
             // the creatures just pumped.

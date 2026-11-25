@@ -1,0 +1,8 @@
+card "Walking Bulwark" {
+  oracle_id 8ad0d89b-beef-40f7-8ce8-65589e3970be
+  cost {1}
+  type Artifact Creature — Golem
+  pt 0/3
+  keywords defender
+  activated {2}, sorcery: until end of turn, target creature with defender gains haste, can attack as though it didn't have defender, and assigns combat damage equal to toughness
+}
