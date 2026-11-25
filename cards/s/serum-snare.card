@@ -1,0 +1,6 @@
+card "Serum Snare" {
+  oracle_id fbc7350c-d392-44bf-92f7-8dd4743a73b4
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to owner's hand; if that target 1 had with mana value 3 or less, proliferate
+}

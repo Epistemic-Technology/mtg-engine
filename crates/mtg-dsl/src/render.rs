@@ -2309,6 +2309,11 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
                     enchanted_noun(self.card)
+                } else if self.trigger_artifact_dies() {
+                    // "Whenever another artifact is put into a graveyard
+                    // from the battlefield, this artifact deals 2 damage to
+                    // that artifact's controller." (Magnetic Mine)
+                    "artifact"
                 } else {
                     "creature"
                 };
@@ -2403,6 +2408,8 @@ impl<'a> Ctx<'a> {
                 )
             }
             Recipient::DamagedThisWay => "a creature dealt damage this way".to_string(),
+            Recipient::DamagedThisWayEach => "each creature dealt damage this way".to_string(),
+            Recipient::DamagedThisWayPlural => "creatures dealt damage this way".to_string(),
             Recipient::Rest => "the rest".to_string(),
             Recipient::MostControl(i) => match self.card.groups.get(usize::from(i)) {
                 Some(f) => format!(
@@ -2647,6 +2654,21 @@ impl<'a> Ctx<'a> {
     /// "Whenever you sacrifice this artifact or another artifact, ...
     /// create a token that's a copy of that artifact": the sacrificed
     /// object's noun when the trigger's filter is artifacts only.
+    /// A dies trigger about artifacts only (CR 700.4: "put into a
+    /// graveyard from the battlefield").
+    fn trigger_artifact_dies(&self) -> bool {
+        matches!(
+            self.trigger,
+            Some(
+                Trigger::Dies(TriggerObj::Filter(f))
+                    | Trigger::PutInGraveyard {
+                        obj: TriggerObj::Filter(f),
+                        from_battlefield: true,
+                    }
+            ) if f.types == [CardType::Artifact]
+        )
+    }
+
     fn trigger_sacrificed_artifact(&self) -> bool {
         matches!(
             self.trigger,
@@ -3173,6 +3195,11 @@ fn target_noun(t: &Target) -> String {
                 "creature".to_string()
             } else if f.types.contains(&CardType::Land) {
                 "land".to_string()
+            } else if f.types == [CardType::Artifact] && f.or.is_none() && f.subtypes.is_empty() {
+                // "Choose target artifact you control. Each other artifact
+                // you control becomes a copy of that artifact" (Masterful
+                // Replication).
+                "artifact".to_string()
             } else {
                 "permanent".to_string()
             }
@@ -6820,6 +6847,21 @@ fn half_text(n: Num, ctx: &Ctx) -> Option<String> {
 fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
     use crate::ast::CountStyle;
     let mut c = clause_inner(e, ctx);
+    // "search their library for up to X creature cards, reveal those
+    // cards, put them into their hand" (Weird Harvest): `those` with the
+    // spell's X (a count's own `where` sentence is below).
+    if let Effect::Search {
+        those: true,
+        count: Num::X,
+        ..
+    } = e
+    {
+        c.text = c.text.replacen(
+            " cards, reveal them, put them ",
+            " cards, reveal those cards, put them ",
+            1,
+        );
+    }
     for n in nums_of(e) {
         let Num::Count(i) = n else { continue };
         let Some(count) = ctx.card.counts.get(usize::from(i)) else {
@@ -7060,6 +7102,25 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     crate::ast::CountExpr::SourcePower | crate::ast::CountExpr::SourceToughness
                 ) {
                     phrase = phrase.replacen("its", &format!("{}'s", ctx.source_name()), 1);
+                }
+                // "this creature deals damage to that creature's controller
+                // equal to this creature's power" (Meglonoth): "its" would
+                // be the other creature's.
+                if let Effect::DealDamage { to, .. } = e
+                    && to.as_slice() == [Recipient::TriggeringController { that: true }]
+                    && count.expr == crate::ast::CountExpr::SourcePower
+                    && phrase == "its power"
+                {
+                    phrase = format!("{}'s power", ctx.source_name());
+                }
+                // "deals damage to target player equal to the number of
+                // cards in that player's hand" (Gaze of Adamaro): the
+                // target the count declares, printed before it.
+                if let crate::ast::CountExpr::TargetHandDeclared { opponent, .. } = &count.expr {
+                    let who = if *opponent { "opponent" } else { "player" };
+                    if c.text.contains(&format!("target {who}")) {
+                        phrase = phrase.replacen(&format!("target {who}'s"), "that player's", 1);
+                    }
                 }
                 // "then its controller gains life equal to its mana value"
                 // (Expel the Unworthy).
@@ -14180,7 +14241,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let noun = ctx.target_noun[*n].clone();
             if !matches!(
                 check.tense,
-                TargetTense::Was | TargetTense::Had | TargetTense::ThatWas
+                TargetTense::Was | TargetTense::Had | TargetTense::ThatHad | TargetTense::ThatWas
             ) && !check.after
             {
                 ctx.target_mentioned[*n] = true;
@@ -14374,6 +14435,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     format!("that {was} had power {p}{}", cmp_words(cmp))
                 }
                 (TargetTense::Had, _) => format!("that {noun} had {pred}"),
+                // "If that permanent had mana value 3 or less" (Serum
+                // Snare): the noun it was targeted by, as it last existed.
+                (TargetTense::ThatHad, _) if let Some((cmp, mv)) = mana_value_only => {
+                    let was = target_noun(&ctx.targets[*n]);
+                    format!("that {was} had mana value {mv}{}", cmp_words(cmp))
+                }
+                (TargetTense::ThatHad, _) => {
+                    let was = target_noun(&ctx.targets[*n]);
+                    format!("that {was} had {pred}")
+                }
                 (TargetTense::Is, _) if let Some((cmp, n)) = power_only => {
                     format!("its power is {n}{}", cmp_words(cmp))
                 }
@@ -14509,7 +14580,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // Teamwork reads like kicker: "it deals 4 damage to that
             // creature instead".
             let kicked = match cond {
-                InsteadCond::Kicked => !has_gift(ctx.card),
+                InsteadCond::Kicked | InsteadCond::KickedIt => !has_gift(ctx.card),
                 InsteadCond::Static(
                     StaticCond::Teamwork
                     | StaticCond::AdditionalCostPaid
@@ -14517,8 +14588,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ) => true,
                 _ => false,
             };
+            // "If the discarded card was multicolored, this creature deals
+            // 4 damage instead." (Stormscale Anarch): after another object
+            // named by the condition, "it" would be that object.
+            let named_other = matches!(
+                cond,
+                InsteadCond::ThisWay(crate::ast::ThisWayCond {
+                    wording: crate::ast::ThisWayWording::The(_),
+                    ..
+                })
+            );
             let cond = match cond {
                 InsteadCond::Kicked => kicked_text(ctx.card),
+                InsteadCond::KickedIt => "it was kicked".to_string(),
                 InsteadCond::Static(c) => static_cond_text(c, ctx.card),
                 InsteadCond::ThisWay(c) => this_way_text(c, ctx.card),
                 InsteadCond::Target { n, that, filter } => {
@@ -14554,7 +14636,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // A spell names itself again unless the upgrade is for kicker
             // ("If this spell was kicked, it deals 4 damage instead";
             // "Metalcraft — Galvanic Blast deals 4 damage instead ...").
-            if is_spell(ctx.card) && !kicked {
+            if (is_spell(ctx.card) && !kicked) || named_other {
                 ctx.source_mentioned = false;
             }
             // "If ..., instead creatures you control get +2/+2": the group
@@ -15048,8 +15130,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = body.trim_end_matches('.').to_string();
             let t = if let Some(named) = named {
                 named
-            } else if *it {
+            } else if *it && crate::format::about_that_creature(trigger) {
                 crate::format::this_turn_trigger(trigger).replacen("that creature", "it", 1)
+            } else if *it {
+                // "Whenever it deals combat damage to a player this turn"
+                // (Fire Giant's Fury): the object it is about, as "it".
+                let t = trigger_text(trigger, ctx, true).replacen(&this_ref(ctx.card), "it", 1);
+                if *this_turn { format!("{t} this turn") } else { t }
             } else if *this_turn && !crate::format::about_that_creature(trigger) {
                 // "Until end of turn, whenever ...": the duration is
                 // printed first instead.
@@ -15214,6 +15301,7 @@ fn instead_cond_phrase(cond: &crate::ast::InsteadCond, ctx: &Ctx) -> String {
     use crate::ast::InsteadCond;
     match cond {
         InsteadCond::Kicked => kicked_text(ctx.card),
+        InsteadCond::KickedIt => "it was kicked".to_string(),
         InsteadCond::Static(c) => static_cond_text(c, ctx.card),
         InsteadCond::ThisWay(c) => this_way_text(c, ctx.card),
         InsteadCond::Target { filter, .. } => format!("it's {}", filter_a(filter, ctx.card)),
@@ -15444,6 +15532,23 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
                     filter_phrase(f, card, false)
                         .trim_end_matches(" permanent")
                         .to_string()
+                }
+                // "If the discarded card was multicolored" (Stormscale
+                // Anarch): a color count alone.
+                (Some(f), _)
+                    if matches!(
+                        f.color_count,
+                        Some(
+                            mtg_core::card::ColorCount::Multicolored
+                                | mtg_core::card::ColorCount::Monocolored
+                                | mtg_core::card::ColorCount::Colorless
+                        )
+                    ) && (Filter {
+                        color_count: None,
+                        ..f.clone()
+                    }) == Filter::default() =>
+                {
+                    format!("{:?}", f.color_count.expect("checked")).to_lowercase()
                 }
                 // "If the sacrificed creature was suspected" (Agency
                 // Coroner), "was tapped": a state alone.
@@ -15947,7 +16052,13 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         .map(|c| c.subject.as_ref().map(|(r, _)| *r))
         .collect::<Vec<_>>()
         .windows(2)
-        .any(|w| w[0] != w[1]);
+        .any(|w| w[0] != w[1])
+        // "attacking red creatures get +2/+0 and attacking white creatures
+        // get +0/+2 until end of turn" (Agrus Kos): groups share it.
+        && !clauses
+            .iter()
+            .filter(|c| c.text.starts_with("get"))
+            .all(|c| matches!(c.subject, Some((Recipient::Group(_), _))));
     // "this creature has base power and toughness 4/4 until end of turn
     // and gains flying until end of turn" (the Mimics): a base power and
     // toughness keeps its own duration, unless the duration comes first
@@ -16006,7 +16117,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 out = format!("{head}, shuffle");
             }
             out.push_str(match s.joins.get(i - 1) {
-                Some(Join::Then) => ", then ",
+                Some(Join::Then | Join::ThenRepeat) => ", then ",
                 Some(Join::Comma) => ", ",
                 // "discards two cards, mills a card, and loses 1 life".
                 // "each opponent loses 1 life, you gain 1 life, and you
@@ -16022,10 +16133,23 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 Some(Join::And) if matches!(c.subject, Some((Recipient::OtherTarget(_), _))) => {
                     ", and "
                 }
+                // "put a +1/+1 counter on another target creature you
+                // control, and that creature gains flying until end of
+                // turn" (Skyrider Patrol): a subject after an imperative.
+                Some(Join::AndRepeat)
+                    if clauses[i - 1].subject.is_none()
+                        && matches!(
+                            c.subject,
+                            Some((Recipient::ThatTarget(_) | Recipient::TriggeringObject, _))
+                        ) =>
+                {
+                    ", and "
+                }
                 _ => " and ",
             });
         }
-        let repeat = i > 0 && s.joins.get(i - 1) == Some(&Join::AndRepeat);
+        let repeat =
+            i > 0 && matches!(s.joins.get(i - 1), Some(Join::AndRepeat | Join::ThenRepeat));
         let mut same_subject = false;
         // "you draw that many cards, create that many tapped Treasure
         // tokens, then lose that much life" (Kain, Traitorous Dragoon): a
@@ -19561,6 +19685,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             // "Creature tokens get +1/+1." (Leyline of the Meek).
             && filter.status.token.is_none()
             && filter.status.commander.is_none()
+            // "Creatures with flying can block only creatures with flying."
+            // (Dense Canopy).
+            && filter.keywords.is_empty()
+            && filter.not_keywords.is_empty()
             && filter.relation == Relation::Any;
         let p = filter_phrase(filter, card, true);
         if bare || filter.all {
@@ -20501,6 +20629,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "{} has one or more {} counters on it",
             this_ref(card),
             kind.name()
+        ),
+        StaticCond::SourceHasNoCounters(kind) => format!(
+            "{} has no {} counters on {}",
+            this_ref(card),
+            kind.name(),
+            it_obj(card)
         ),
         // "Sab-Sunen has an even number of counters on it".
         StaticCond::SourceCounterParity(even) => format!(
@@ -21809,6 +21943,7 @@ fn conditional_static(
             c,
             StaticCond::SourceCounters { .. }
                 | StaticCond::SourceCountersOneOrMore(_)
+                | StaticCond::SourceHasNoCounters(_)
                 | StaticCond::SourceLacksCounter(_)
                 | StaticCond::SourceCounterParity(_)
         ) && body.starts_with(&this)
@@ -22514,6 +22649,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             c,
                             StaticCond::SourceCounters { .. }
                                 | StaticCond::SourceCountersOneOrMore(_)
+                                | StaticCond::SourceHasNoCounters(_)
                                 | StaticCond::SourceLacksCounter(_)
                                 | StaticCond::SourceCounterParity(_)
                                 | StaticCond::ManaSpent { that: false, .. }
@@ -23047,7 +23183,19 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::CondCost {
             delta,
             cond,
+            first: true,
+            ..
+        } => format!(
+            "If {}, this spell costs {{{}}} {} to cast.",
+            static_cond_text(cond, card),
+            delta.unsigned_abs(),
+            if *delta < 0 { "less" } else { "more" },
+        ),
+        Ability::CondCost {
+            delta,
+            cond,
             as_long_as,
+            ..
         } => format!(
             "This spell costs {{{}}} {} to cast {} {}.",
             delta.unsigned_abs(),

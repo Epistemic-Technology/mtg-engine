@@ -1,0 +1,6 @@
+card "Dense Canopy" {
+  oracle_id d182ab7d-77bd-49d1-9001-9b4016350181
+  cost {1}{G}
+  type Enchantment
+  static creature with flying: has ability { can block only creature with flying }
+}

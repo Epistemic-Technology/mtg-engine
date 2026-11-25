@@ -1,0 +1,11 @@
+card "Callous Bloodmage" {
+  oracle_id 96c12c12-140a-462d-bff0-0554d192b1f4
+  cost {2}{B}
+  type Creature — Vampire Warlock
+  pt 2/1
+  triggered when this enters: choose one {
+    mode: create 1 "1/1 black and green Pest creature that gains life"
+    mode: you draw 1 card, and you lose 1 life
+    mode: exile graveyard of target player
+  }
+}

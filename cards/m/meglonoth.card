@@ -1,0 +1,8 @@
+card "Meglonoth" {
+  oracle_id 92e287b1-7cb1-4536-8942-d1ad059bf9bc
+  cost {3}{R}{G}{W}
+  type Creature — Beast
+  pt 6/6
+  keywords vigilance, trample
+  triggered whenever this blocks a creature: this deals count equal power damage to controller of that creature
+}

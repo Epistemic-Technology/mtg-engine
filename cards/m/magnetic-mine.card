@@ -1,0 +1,6 @@
+card "Magnetic Mine" {
+  oracle_id bbb50cf5-cd07-4ae8-bfa8-d747e44fb1ef
+  cost {4}
+  type Artifact
+  triggered whenever other artifact is put into a graveyard from the battlefield: deal 2 damage to controller of that artifact
+}

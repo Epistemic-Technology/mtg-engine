@@ -1,0 +1,9 @@
+card "Slaying Fire" {
+  oracle_id 1e94e647-9150-4b22-aa9f-d195f64fb20a
+  cost {2}{R}
+  type Instant
+  spell {
+    deal 3 damage to any target
+    label "Adamant" if spent 3 red, it deals 4 damage instead
+  }
+}

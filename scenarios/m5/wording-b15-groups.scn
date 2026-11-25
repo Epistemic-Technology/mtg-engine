@@ -1,0 +1,110 @@
+# Wording near-misses, fifteenth wave (wording-b): groups, "this way", and
+# shared durations. Each card's amounts and targets.
+
+scenario "Huatli, Warrior Poet: creatures dealt damage this way can't block" {
+  battlefield A: "Huatli, Warrior Poet", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  turn 1 A: activate "Huatli, Warrior Poet" ability 3 x 2 targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert counters "Huatli, Warrior Poet" loyalty 1
+  assert life B 18
+}
+
+scenario "Huatli, Warrior Poet: a creature not dealt damage still blocks" {
+  battlefield A: "Huatli, Warrior Poet", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  turn 1 A: activate "Huatli, Warrior Poet" ability 3 x 2 targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Huatli, Warrior Poet: +2 gains the greatest power" {
+  battlefield A: "Huatli, Warrior Poet", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Huatli, Warrior Poet" ability 1
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert counters "Huatli, Warrior Poet" loyalty 5
+}
+
+scenario "Aggravate: 1 damage to each, and each attacks" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  battlefield A: "Wind Drake"
+  hand A: "Aggravate"
+  start turn 2 B
+  turn 2 upkeep A: cast "Aggravate" targeting player B
+  run_to turn 2 postcombat_main
+  assert damage "Hill Giant" 1
+  assert life A 15
+  assert battlefield A contains "Wind Drake"
+}
+
+scenario "Polymorphist's Jest: each creature target player controls becomes a 1/1 blue Frog" {
+  battlefield A: 3 "Island"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  battlefield A: "Wind Drake"
+  hand A: "Polymorphist's Jest"
+  turn 1 A: cast "Polymorphist's Jest" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" Frog
+  assert is "Grizzly Bears" blue
+  assert has "Wind Drake" flying
+  assert power "Wind Drake" 2
+  run_to turn 2 precombat_main
+  assert has "Serra Angel" flying
+}
+
+scenario "Mana Bloom: no charge counters, back to hand at upkeep" {
+  battlefield A: "Mana Bloom"
+  start turn 3 A
+  run_to turn 3 draw
+  assert hand A contains "Mana Bloom"
+}
+
+scenario "Mana Bloom: with a charge counter it stays" {
+  battlefield A: "Mana Bloom" with 1 charge
+  start turn 3 A
+  run_to turn 3 draw
+  assert battlefield A contains "Mana Bloom"
+}
+
+scenario "Weird Harvest: each player searches for up to X creature cards" {
+  battlefield A: 4 "Forest"
+  hand A: "Weird Harvest"
+  library A: "Forest", "Grizzly Bears", "Island"
+  library B: "Hill Giant", "Swamp"
+  turn 1 A: cast "Weird Harvest" x 1
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert library B count 1
+}
+
+scenario "Agrus Kos: attacking red and white creatures get their bonuses" {
+  battlefield A: "Agrus Kos, Wojek Veteran", "Goblin Piker", "Savannah Lions", "Grizzly Bears"
+  turn 1 A: attack "Agrus Kos, Wojek Veteran", "Goblin Piker", "Savannah Lions", "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Agrus Kos, Wojek Veteran" 5
+  assert toughness "Agrus Kos, Wojek Veteran" 5
+  assert power "Goblin Piker" 4
+  assert toughness "Savannah Lions" 3
+  assert power "Grizzly Bears" 2
+  run_to turn 2 untap
+  assert power "Goblin Piker" 2
+}
+
+scenario "Skyrider Patrol: paying puts a counter and grants flying" {
+  battlefield A: "Skyrider Patrol", "Grizzly Bears", "Forest", "Island"
+  run_to turn 1 declare_attackers
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" flying
+  assert counters "Skyrider Patrol" +1/+1 0
+}

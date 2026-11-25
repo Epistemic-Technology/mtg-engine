@@ -1,0 +1,7 @@
+card "Harness by Force" {
+  oracle_id 8c7e2596-6c21-4ce0-95dc-5b4dccb4090a
+  cost {1}{R}{R}
+  type Sorcery
+  strive {2}{R}
+  spell: gain control of any number of target creature until end of turn; untap those targets; they gain haste until end of turn
+}

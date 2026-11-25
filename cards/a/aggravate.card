@@ -1,0 +1,6 @@
+card "Aggravate" {
+  oracle_id 192aa7b2-a819-4ffd-bfbf-a270271898e6
+  cost {3}{R}{R}
+  type Instant
+  spell: deal 1 damage to each creature target player controls; each creature dealt damage this way attacks this turn if able
+}

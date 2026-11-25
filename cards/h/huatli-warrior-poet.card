@@ -1,0 +1,9 @@
+card "Huatli, Warrior Poet" {
+  oracle_id 3ec889bc-f4d7-492a-91c3-d3691eb90eac
+  cost {3}{R}{W}
+  type Legendary Planeswalker — Huatli
+  loyalty 3
+  loyalty +2: you gain count equal greatest power life
+  loyalty 0: create 1 "3/3 green Dinosaur creature with trample"
+  loyalty -X: deal X damage divided among any number of target creature; creatures dealt damage this way can't block this turn
+}

@@ -1,0 +1,6 @@
+card "Weird Harvest" {
+  oracle_id 76587fa5-29eb-480f-a865-480cd39b1da7
+  cost {X}{G}{G}
+  type Sorcery
+  spell: each player may search up to X creature card reveal to hand those
+}

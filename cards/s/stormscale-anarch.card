@@ -1,0 +1,7 @@
+card "Stormscale Anarch" {
+  oracle_id 819a7235-b61a-49d7-a0ad-3d8bbf83091e
+  cost {2}{R}{R}
+  type Creature — Lizard Shaman
+  pt 2/2
+  activated {2}{R}, discard 1 card at random: deal 2 damage to any target; if the discarded card was multicolored, this creature deals 4 damage instead
+}

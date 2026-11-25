@@ -1,0 +1,6 @@
+card "Fire Giant's Fury" {
+  oracle_id e5f83bfc-ff74-4bb9-82c8-a07fedc6e916
+  cost {1}{R}
+  type Sorcery
+  spell: target Giant you control gets +2/+2 and gains trample until end of turn; delayed target 1: whenever it deals combat damage to a player this turn, impulse that much next turn first
+}

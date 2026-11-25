@@ -1,0 +1,9 @@
+card "Masterful Replication" {
+  oracle_id cc6e6e16-da2b-4fc0-91ad-b76f0a101306
+  cost {5}{U}
+  type Instant
+  spell: choose one {
+    mode: create 2 "3/3 colorless Golem artifact creature"
+    mode: choose target artifact you control; each single other artifact you control becomes copy of that target 1 until end of turn
+  }
+}

@@ -1,0 +1,231 @@
+# Wording near-misses, fifteenth wave (wording-b): nouns and subjects named
+# again. Each card's amounts and targets.
+
+scenario "Slaying Fire: three red mana spent deals 4" {
+  battlefield A: 3 "Mountain"
+  hand A: "Slaying Fire"
+  turn 1 A: cast "Slaying Fire" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Slaying Fire: less red mana deals 3" {
+  battlefield A: "Mountain", 2 "Plains"
+  hand A: "Slaying Fire"
+  turn 1 A: cast "Slaying Fire" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Serum Snare: a permanent of mana value 3 or less proliferates" {
+  battlefield A: 2 "Island", "Hill Giant" with 1 +1/+1
+  battlefield B: "Grizzly Bears"
+  hand A: "Serum Snare"
+  turn 1 A: cast "Serum Snare" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert counters "Hill Giant" +1/+1 2
+}
+
+scenario "Serum Snare: a greater mana value doesn't proliferate" {
+  battlefield A: 2 "Island", "Hill Giant" with 1 +1/+1
+  battlefield B: "Serra Angel"
+  hand A: "Serum Snare"
+  turn 1 A: cast "Serum Snare" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Serra Angel"
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Magnetic Mine: another artifact's controller is dealt 2" {
+  battlefield A: "Magnetic Mine", 3 "Mountain"
+  battlefield B: "Ornithopter", "Grizzly Bears"
+  hand A: "Shatter", "Shock"
+  turn 1 A: cast "Shatter" targeting "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Desolation Giant: unkicked, only your other creatures" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Desolation Giant"
+  turn 1 A: cast "Desolation Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Desolation Giant"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Desolation Giant: kicked, every other creature" {
+  battlefield A: 4 "Mountain", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Desolation Giant"
+  turn 1 A: cast "Desolation Giant" kicked
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Desolation Giant"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Masterful Replication: each other artifact copies the chosen one" {
+  battlefield A: 6 "Island", "Ornithopter", "Darksteel Relic", "Memnite"
+  hand A: "Masterful Replication"
+  turn 1 A: cast "Masterful Replication" mode 2 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Ornithopter"
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Darksteel Relic"
+  assert battlefield A contains "Memnite"
+}
+
+scenario "Masterful Replication: two Golems" {
+  battlefield A: 6 "Island"
+  hand A: "Masterful Replication"
+  turn 1 A: cast "Masterful Replication" mode 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Golem"
+}
+
+scenario "Stormscale Anarch: a multicolored discard deals 4" {
+  battlefield A: "Stormscale Anarch", 3 "Mountain"
+  hand A: "Lightning Helix"
+  turn 1 A: activate "Stormscale Anarch" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Helix"
+  assert life B 16
+}
+
+scenario "Stormscale Anarch: a monocolored discard deals 2" {
+  battlefield A: "Stormscale Anarch", 3 "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Stormscale Anarch" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert life B 18
+}
+
+scenario "Flash Conscription: {W} spent, the creature gains life as it deals combat damage" {
+  battlefield A: 5 "Mountain", "Plains"
+  battlefield B: "Grizzly Bears" tapped
+  hand A: "Flash Conscription"
+  turn 1 A: cast "Flash Conscription" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Flash Conscription: without {W}, no life" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears" tapped
+  hand A: "Flash Conscription"
+  turn 1 A: cast "Flash Conscription" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Meglonoth: blocking deals its power to the attacker's controller" {
+  battlefield A: "Meglonoth"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Meglonoth"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert life A 20
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Gaze of Adamaro: damage equal to that player's hand" {
+  battlefield A: 4 "Mountain"
+  hand A: "Gaze of Adamaro"
+  hand B: "Shock", "Forest", "Island"
+  turn 1 A: cast "Gaze of Adamaro" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Siren of the Silent Song: untapping makes each opponent discard, then mill" {
+  battlefield A: "Siren of the Silent Song" tapped
+  hand B: "Shock"
+  library B: "Forest", "Island"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert graveyard B contains "Shock"
+  assert graveyard B contains "Forest"
+  assert library B count 1
+}
+
+scenario "Callous Bloodmage: you draw a card and you lose 1 life" {
+  battlefield A: 3 "Swamp"
+  hand A: "Callous Bloodmage"
+  turn 1 A: cast "Callous Bloodmage"
+  turn 1 A: trigger "Callous Bloodmage" mode 2
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert hand A count 1
+}
+
+scenario "Dense Canopy: a flyer can't block a creature without flying" {
+  battlefield A: "Dense Canopy", "Wind Drake"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "Dense Canopy: a flyer still blocks a flyer" {
+  battlefield A: "Dense Canopy", "Wind Drake"
+  battlefield B: "Serra Angel"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel"
+  turn 2 A: block "Serra Angel" with "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Wind Drake"
+}
+
+scenario "Oketra the True: attacks with three other creatures" {
+  battlefield A: "Oketra the True", "Grizzly Bears", "Hill Giant", "Wind Drake"
+  turn 1 A: attack "Oketra the True"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Oketra the True: can't attack with two" {
+  battlefield A: "Oketra the True", "Grizzly Bears", "Hill Giant"
+  illegal turn 1 A: attack "Oketra the True"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Avatar of Hope: costs {W}{W} at 3 life" {
+  life A 3
+  battlefield A: 2 "Plains"
+  hand A: "Avatar of Hope"
+  turn 1 A: cast "Avatar of Hope"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Avatar of Hope"
+}
+
+scenario "Avatar of Hope: full cost at 4 life" {
+  life A 4
+  battlefield A: 2 "Plains"
+  hand A: "Avatar of Hope"
+  illegal turn 1 A: cast "Avatar of Hope"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Avatar of Hope"
+}

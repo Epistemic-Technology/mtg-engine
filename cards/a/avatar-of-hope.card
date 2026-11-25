@@ -1,0 +1,9 @@
+card "Avatar of Hope" {
+  oracle_id e2f22cef-9494-4356-aa5c-619aecd7e74d
+  cost {6}{W}{W}
+  type Creature — Avatar
+  pt 4/9
+  this spell costs {6} less first if your life 3 or less
+  keywords flying
+  keyword can block any number of creatures
+}
