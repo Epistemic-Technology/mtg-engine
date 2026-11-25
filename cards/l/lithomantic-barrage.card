@@ -1,0 +1,7 @@
+card "Lithomantic Barrage" {
+  oracle_id 5e414dc2-d0ff-43e5-9aa2-cd9d96de6d89
+  cost {R}
+  type Sorcery
+  this spell can't be countered
+  spell: deal 1 damage to target creature or planeswalker; deal 5 damage instead if that target 1 is andor white or blue
+}

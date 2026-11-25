@@ -1,0 +1,6 @@
+card "Banishing Slash" {
+  oracle_id 2800830c-73c6-4097-be7b-d698c6813c38
+  cost {W}{W}
+  type Sorcery
+  spell: destroy up to 1 target artifact, enchantment, or tapped creature; then if you control artifact and enchantment, create 1 "2/2 white Samurai creature with vigilance"
+}

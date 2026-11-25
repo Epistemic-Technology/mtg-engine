@@ -2764,6 +2764,9 @@ impl GameState {
                                 u32::from(n),
                             )
                         }))
+                    // "each card returned to your hand this way" (CR 108.3,
+                    // Paradoxical Outcome): the card's owner.
+                    && (!one.status.you_own || m.owner == ctx.controller)
                 {
                     return true;
                 }
@@ -12924,6 +12927,13 @@ impl GameState {
                 }
             }
         }
+        // "Search your library for a Dragon permanent card and put it into
+        // your graveyard. If you do, ... becomes a copy of that card"
+        // (Scion of the Ur-Dragon): "if you do" is whether a card was put
+        // there, and "that card" the card.
+        if *to == SearchTo::Graveyard && more.slots.is_empty() {
+            ctx.did = !found.is_empty();
+        }
         for id in found {
             let to = match more.pick.as_ref() {
                 Some(pick) if picked.contains(&id) => &pick.chosen,
@@ -12975,7 +12985,8 @@ impl GameState {
                 }
                 SearchTo::TopOfLibrary => top.push(id),
                 SearchTo::Graveyard => {
-                    self.move_object(id, Zone::Graveyard, true);
+                    let new = self.move_object(id, Zone::Graveyard, true);
+                    ctx.created = Some(new);
                 }
                 SearchTo::Exile => {
                     self.move_object(id, Zone::Exile, true);

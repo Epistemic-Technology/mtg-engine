@@ -337,7 +337,8 @@ shown; "named" filters still compare the copied card), and with types or
 subtypes `legendary` joins them ("he's a legendary 4/4 Human Villain
 creature in addition to his other types"); `noun creature` (wording: a
 spell's token copies' abilities say "sacrifice this creature", Face
-Yourself, not "this token"). The template author writes the block from the
+Yourself, not "this token"; `noun permanent`: "sacrifice this permanent",
+an artifact's copy of a creature, Minion Reflector). The template author writes the block from the
 sentence ("Create a token that's a copy of target creature, except it's an
 artifact in addition to its other types."). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`; `if this isnt token` prints "if it isn't a token") is made as it last existed. |
 
@@ -2862,7 +2863,9 @@ spell's mana value is less than the number of Mountains you control");
 two spells from among the exiled cards without paying their mana
 costs.", Doom Reigns Supreme), `cast free any number spell from among
 them` ("You may cast any number of spells from among them ..."; `from
-among those cards`: "from among those cards", Etali; a filter first:
+among those cards`: "from among those cards", Etali; `from among cards
+exiled this way`: "from among cards exiled this way", Hellcarver Demon; a
+filter first:
 `any number andor instant or sorcery spell`, "any number of instant
 and/or sorcery spells"): each card the resolution exiled that is still
 in exile and could be cast is offered in turn (scenarios: `decline "X"`
@@ -3075,7 +3078,12 @@ player's graveyard"; `of each opponent`: "Exile each opponent's
 graveyard"; `exile all creature card from graveyard of target player`:
 "Exile all creature cards from target player's graveyard"), `put <what> on top of library` / `on bottom of
 library` / `into library 2 from top` ("Put target creature into its
-owner's library second from the top"; fewer cards, the bottom, CR 401.7),
+owner's library second from the top"; `4 from top` "fourth from the top",
+Lost to Legend; fewer cards, the bottom, CR 401.7; a target `you own`:
+"Put target permanent you own on the bottom of your library.", Tel-Jilad
+Stylus; from a graveyard ability, `put this into library 3 from top`
+"Put this card from your graveyard into your library third from the
+top.", Bookwurm),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
 owner's library"; `you may shuffle up to 1 target card from your
 graveyard into library`: "You may shuffle up to one target card from
@@ -3171,7 +3179,9 @@ additional combat phase, CR 500.8; the turn then goes on as it would
 have; land plays don't start over), and `that player gets additional
 upkeep step after this step` ("That player gets an additional upkeep step
 after this step.").
-`sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
+`sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]` (`you
+untap <what>` after another subject: "that player discards a card and you
+untap all lands you control", Sword of Feast and Famine),
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
 `attach it to <what>` (in a trigger about another object, that object:
 "Whenever an Equipment you control enters, you may attach it to target
@@ -3496,7 +3506,11 @@ one filter only, and any may be left unfound (`choose decline` in a
 scenario skips that one); named cards join with "and/or": `search card
 named "Alpine Watchdog" and card named "Igneous Cur" reveal to hand`
 ("for a card named Alpine Watchdog and/or a card named Igneous Cur,
-reveal them, put them into your hand, then shuffle."); `with different
+reveal them, put them into your hand, then shuffle."); `andor` before the
+second card joins them so too: `search Aura card andor Equipment card
+reveal to hand` ("for an Aura card and/or an Equipment card, reveal them,
+put them into your hand, then shuffle.", Axgard Armory: one of each at
+most); `with different
 names` after the cards (`search up to 2 basic land card or Town card
 with different names to battlefield tapped`: "... and/or Town cards with
 different names, put them ..."): no two found cards share a name (CR
@@ -3982,7 +3996,9 @@ next untap step`, is "Those creatures don't untap during their
 controller's next untap step", or with `next untap steps` "... during
 their controllers' next untap steps", and a group `each attacking creature
 doesn't untap next untap step` "Each attacking creature doesn't untap
-..."), `<who> sacrifices that creature` ("that player sacrifices that
+...", and `all land you control doesn't untap next untap step` "Lands you
+control don't untap during your next untap step", Kefnet's Last Word),
+`<who> sacrifices that creature` ("that player sacrifices that
 creature": a sacrifice of that one permanent, worded with its
 controller), `<what> gains ability { <ability line> }` ("Target creature
 gains \"...\" until end of turn."; after `gains deathtouch and`, the
@@ -4354,7 +4370,9 @@ card from your graveyard` / `from an opponent's graveyard` / `from that
 player's graveyard` (the triggering player's), `opponent`,
 `artifact or creature`, `attacking or blocking creature`, `attacking or
 blocking or tapped creature` ("target attacking, blocking, or tapped
-creature": any of the three), `attacking
+creature": any of the three), `artifact, enchantment, or tapped creature`
+(two types and a qualified alternative: "target artifact, enchantment, or
+tapped creature", Banishing Slash), `attacking
 creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker creature"), and any filter
 ("target nonblack creature", "target creature an opponent controls").
 Targets relative to a player: `target creature that player controls` (the
@@ -4643,7 +4661,10 @@ the objects as they last existed (CR 608.2h): `if creature card was exiled
 this way, ...`, `if artifact is destroyed this way, ...` ("If an artifact
 is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
-...` (cards you owned), `if you put Town card into hand this way, ...`,
+...` (cards you owned), `if that player discards artifact card this way,
+untap this` ("If that player discards an artifact card this way, untap
+this creature.", Lumengrid Augur: after `target player draws ... then
+target 1 discards ...`, any card discarded), `if you put Town card into hand this way, ...`,
 `if you put no cards into hand this way, ...` ("If you put no cards into
 your hand this way", Nashi), `if you returned Squirrel card to hand this
 way, ...` ("If you returned a Squirrel card to your hand this way"), `if
@@ -4683,7 +4704,9 @@ discarded card wasn't land card, ...`, and as an "instead": `if the
 sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
 each 2 enchantment destroyed this way` ("2 life for each enchantment
 destroyed this way"; `count each permanent returned this way` prints
-"for each permanent returned to its owner's hand this way"), `count equal
+"for each permanent returned to its owner's hand this way"; `count each
+permanent you own returned this way` "for each card returned to your hand
+this way", only those the controller owns, Paradoxical Outcome), `count equal
 life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
 many cards"; `discard up to 2 cards chosen then draw count that many
@@ -5291,6 +5314,13 @@ Forms that change only how Oracle words what an existing form does:
 | `cast only unless threshold` | "Threshold — You can't cast this spell unless there are seven or more cards in your graveyard." (other conditions print without the label) |
 | `flash named as long as you control Desert` | "Colossal Rattlewurm has flash as long as you control a Desert." |
 | `non-Faerie, nonland permanent` | A negated subtype written before a negated type prints first: "non-Faerie, nonland permanent". |
+| `nonSaga permanent card` | "a non-Saga permanent card" (The World Spell): a permanent card (no instant or sorcery, CR 110.4a) without that subtype. |
+| `static each other thatare Wolf creature or Werewolf creature you control: +1/+1` | "Each other creature you control that's a Wolf or a Werewolf gets +1/+1." (Immerwolf): two alternatives that differ in one subtype each, the subtypes after the noun. |
+| `static creature: has doesn't untap` | "Creatures don't untap during their controllers' untap steps." (Intruder Alarm): a group of anyone's permanents. |
+| `deal 5 damage instead if that target 1 is andor white or blue` | After a creature-or-planeswalker target: "It deals 5 damage instead if that target is white and/or blue." (Lithomantic Barrage). |
+| `static as long as any player controls creature with -1/-1 counter, this: ...` | "As long as a creature has a -1/-1 counter on it, ..." (Tenacious Hunter): any player's creature with such a counter. |
+| `can't block this: creature with power less than count each Island you control` | "Creatures with power less than the number of Islands you control can't block this creature." (Kraken of the Straits): `can't be blocked by` worded from the blockers' side; a count in the filter is the attacking creature's controller's (also for `can't be blocked by`). |
+| `search Dragon permanent card to graveyard unshuffled; if you do, this becomes a copy of that card until end of turn; then shuffle` | "Search your library for a Dragon permanent card and put it into your graveyard. If you do, Scion of the Ur-Dragon becomes a copy of that card until end of turn. Then shuffle." (CR 707.2): after a search into the graveyard, "if you do" is whether a card was found and `that card` is it. |
 | `this isnt token` | "it isn't a token" (`this is nontoken` prints "it's not a token") |
 | `if this isnt creature, this becomes 3/3 Angel creature with flying in addition` | "If this enchantment isn't a creature, it becomes a 3/3 Angel creature ..." (Answered Prayers; card types only, judged on the source as it resolves); `if this is Scout, this becomes ...` prints "If Kellan is a Scout, it becomes ..." |
 | `target creature you control gains firebending 4` | "Target creature you control gains firebending 4 until end of turn." (Fire Nation Palace; a granted keyword with a number, like `toxic 1`) |

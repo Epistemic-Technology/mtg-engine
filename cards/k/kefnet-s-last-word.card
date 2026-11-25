@@ -1,0 +1,6 @@
+card "Kefnet's Last Word" {
+  oracle_id 67cf6ba1-55ad-4008-ba1f-96c363a96b16
+  cost {2}{U}{U}
+  type Sorcery
+  spell: gain control of target artifact, creature, or enchantment indefinitely; all land you control doesn't untap next untap step
+}

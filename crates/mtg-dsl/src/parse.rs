@@ -1655,6 +1655,13 @@ impl P {
                             except.creature_noun = true;
                             self.end_stmt()?;
                         }
+                        // "... sacrifice this permanent" in an artifact's
+                        // copy of a creature (Minion Reflector).
+                        Some("noun") if self.word_at(1).as_deref() == Some("permanent") => {
+                            self.pos += 2;
+                            except.permanent_noun = true;
+                            self.end_stmt()?;
+                        }
                         // "except his name is Absorbing Man".
                         Some("named") if self.word_at(1).as_deref() == Some("this") => {
                             self.pos += 2;
@@ -5018,7 +5025,12 @@ impl P {
                         BlockRule::BlocksOnly(self.filter()?)
                     }
                 } else if self.eat_word("block") {
-                    BlockRule::CantBlock(self.filter()?)
+                    if self.at_word("this") && self.peek_at(1) == Some(&Tok::Colon) {
+                        self.pos += 2;
+                        BlockRule::NotByWorded(self.filter()?)
+                    } else {
+                        BlockRule::CantBlock(self.filter()?)
+                    }
                 } else {
                     self.expect_words(&["be", "blocked"])?;
                     if self.eat_words(&["by", "more", "than", "one", "creature"]) {
@@ -7349,6 +7361,8 @@ impl P {
                 AmongWords::Them
             } else if self.eat_words(&["those", "cards"]) {
                 AmongWords::Those
+            } else if self.eat_words(&["cards", "exiled", "this", "way"]) {
+                AmongWords::ThisWay
             } else {
                 self.expect_words(&["exiled", "cards"])?;
                 AmongWords::TheExiled
@@ -8867,6 +8881,18 @@ impl P {
                 wording: ThisWayWording::YouNow,
             }));
         }
+        // `that player discards artifact card this way` (Lumengrid Augur).
+        if self.eat_words(&["that", "player", "discards"]) {
+            let (filter, card) = self.this_way_what()?;
+            self.expect_words(&["this", "way"])?;
+            return Ok(Some(ThisWayCond {
+                verb: mtg_core::card::ThisWay::Discarded,
+                filter,
+                card,
+                negated: false,
+                wording: ThisWayWording::ThatPlayerNow,
+            }));
+        }
         // `you drew cards this way`: "If you draw one or more cards this
         // way".
         if self.eat_words(&["you", "drew", "cards", "this", "way"]) {
@@ -10042,6 +10068,12 @@ impl P {
     fn subject_verb_inner(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let w = self.word()?;
         match w.as_str() {
+            // `and you untap all lands you control` (Sword of Feast and
+            // Famine): the subject printed.
+            "untap" | "untaps" if subject == Recipient::You => {
+                let to = self.recipients()?;
+                Ok(Effect::Untap { to, you: true })
+            }
             // `this creature deals 3 damage to that player`, `it deals 2
             // damage to target creature`: the source named as written.
             "deal" | "deals"
@@ -14792,7 +14824,7 @@ impl P {
             }
             "untap" => {
                 let to = self.recipients()?;
-                Ok(Effect::Untap { to })
+                Ok(Effect::Untap { to, you: false })
             }
             "gain" => {
                 self.expect_word("control")?;
@@ -15039,8 +15071,15 @@ impl P {
                     filter.or = Some(Box::new(alt));
                 }
                 // `and green card and blue card`, `and card named "Thinking
-                // Cap"`: one card more for each.
-                while self.eat_word("and") {
+                // Cap"`: one card more for each; `andor Equipment card`
+                // prints "and/or".
+                while self.eat_word("and")
+                    || (more.slots.is_empty() && self.at_word("andor") && {
+                        more.and_or = true;
+                        self.pos += 1;
+                        true
+                    })
+                {
                     let mut f = if self.eat_word("card") {
                         Filter::default()
                     } else {
@@ -18726,7 +18765,9 @@ impl P {
                             || (f.types.is_empty()
                                 && f.not_types.is_empty()
                                 && f.any_types.is_empty()
-                                && !f.subtypes.is_empty())) =>
+                                // "a non-Saga permanent card" (The World
+                                // Spell).
+                                && (!f.subtypes.is_empty() || !f.not_subtypes.is_empty()))) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
                     self.pos += 1;

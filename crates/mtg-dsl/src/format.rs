@@ -199,6 +199,9 @@ fn format_inner(card: &Card) -> String {
         if x.creature_noun {
             out.push_str("    noun creature\n");
         }
+        if x.permanent_noun {
+            out.push_str("    noun permanent\n");
+        }
         if x.not_legendary && x.its_not {
             out.push_str("    its not legendary\n");
         } else if x.not_legendary {
@@ -1421,7 +1424,10 @@ impl Fmt {
                     AmongWords::It => s.push_str("it"),
                     AmongWords::ThatCard => s.push_str("that card"),
                     AmongWords::ExiledCard => s.push_str("exiled card"),
-                    AmongWords::Them | AmongWords::Those | AmongWords::TheExiled => {
+                    AmongWords::Them
+                    | AmongWords::Those
+                    | AmongWords::TheExiled
+                    | AmongWords::ThisWay => {
                         match count {
                             Some(n) => {
                                 let _ = write!(s, "up to {n} ");
@@ -1436,6 +1442,7 @@ impl Fmt {
                         s.push_str(match words {
                             AmongWords::Them => "them",
                             AmongWords::Those => "those cards",
+                            AmongWords::ThisWay => "cards exiled this way",
                             _ => "exiled cards",
                         });
                     }
@@ -2530,7 +2537,11 @@ impl Fmt {
                 if *spelled { "spelled " } else { "" },
                 self.recipient(*what, t)
             ),
-            Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
+            Effect::Untap { to, you } => format!(
+                "{}untap {}",
+                if *you { "you " } else { "" },
+                self.recipients(to, t)
+            ),
             Effect::RemoveFromCombat { what } => {
                 format!("remove {} from combat", self.recipient(*what, t))
             }
@@ -3481,10 +3492,11 @@ impl Fmt {
                         } else {
                             None
                         };
+                        let and = if m.and_or { "andor" } else { "and" };
                         if f == Filter::default() {
-                            t.push_str(" and card");
+                            let _ = write!(t, " {and} card");
                         } else {
-                            let _ = write!(t, " and {} card", filter(&f));
+                            let _ = write!(t, " {and} {} card", filter(&f));
                         }
                         if let Some((cmp, k)) = mv {
                             let _ = write!(t, " with mana value {k}{}", cmp_suffix(cmp));
@@ -4951,6 +4963,7 @@ fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
         ThisWayWording::Returned => format!("you returned {what} to hand this way"),
         ThisWayWording::Drew => "you drew cards this way".to_string(),
         ThisWayWording::YouNow => format!("you discard {what} this way"),
+        ThisWayWording::ThatPlayerNow => format!("that player discards {what} this way"),
         ThisWayWording::The(noun) => format!(
             "the {verb} {noun} {} {what}",
             if c.negated { "wasn't" } else { "was" }
@@ -5633,8 +5646,11 @@ pub fn filter(f: &Filter) -> String {
         return format!("andor {}", filter(&g));
     }
     if f.that_are {
+        // `each other thatare Wolf creature or ...` (Immerwolf): `each`
+        // stays first.
         let g = Filter {
             that_are: false,
+            each: false,
             ..f.clone()
         };
         // `each thatare Barbarian or Warrior creature` (Lovisa Coldeyes):
@@ -9206,6 +9222,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
                 crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),
+                crate::ast::BlockRule::NotByWorded(f) => format!("can't block this: {}", filter(f)),
                 crate::ast::BlockRule::MinBlockers(n) => {
                     format!("can't be blocked except by {n} or more creatures")
                 }

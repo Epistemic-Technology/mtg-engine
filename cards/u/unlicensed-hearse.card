@@ -1,0 +1,8 @@
+card "Unlicensed Hearse" {
+  oracle_id c640654c-487e-4a2c-aced-126ed835b78f
+  cost {2}
+  type Artifact — Vehicle
+  activated {T}: exile up to 2 target card from a graveyard
+  static this: cda pt exiled with this
+  crew 2
+}

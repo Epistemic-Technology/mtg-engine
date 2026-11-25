@@ -200,12 +200,18 @@ pub enum AmongWords {
     Those,
     /// `from among exiled cards`: "from among the exiled cards".
     TheExiled,
+    /// `from among cards exiled this way`: "from among cards exiled this
+    /// way" (Hellcarver Demon).
+    ThisWay,
 }
 
 impl AmongWords {
     /// Whether these words name the cards exiled, not the one card.
     pub const fn many(self) -> bool {
-        matches!(self, Self::Them | Self::Those | Self::TheExiled)
+        matches!(
+            self,
+            Self::Them | Self::Those | Self::TheExiled | Self::ThisWay
+        )
     }
 }
 
@@ -932,6 +938,9 @@ pub struct Except {
     /// `noun creature`: a spell's token copies' abilities call the token
     /// "this creature" (Face Yourself), not "this token". Wording only.
     pub creature_noun: bool,
+    /// `noun permanent`: "sacrifice this permanent" in a copy made by a
+    /// noncreature permanent (Minion Reflector). Wording only.
+    pub permanent_noun: bool,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -1567,6 +1576,7 @@ pub enum OrCard {
 
 /// The rarer parts of a search (`Effect::Search::more`).
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // independent wording flags
 pub struct SearchMore {
     /// `search black card and green card and blue card ...`, `card named
     /// "X" and card named "Y"`: one card more for each, by its own filter
@@ -1598,6 +1608,9 @@ pub struct SearchMore {
     /// battlefield tapped with a stun counter on it"; `with X additional
     /// +1/+1 counters` prints "additional" (the bool).
     pub counters: Option<(mtg_core::card::CounterKind, Num, bool)>,
+    /// `search Aura card andor Equipment card`: the slots joined with
+    /// "and/or" ("an Aura card and/or an Equipment card", Axgard Armory).
+    pub and_or: bool,
 }
 
 /// How a search's "different names" prints.
@@ -3108,6 +3121,10 @@ pub enum Mechanic {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum BlockRule {
     NotBy(Filter),
+    /// `can't block this: <filter>`: `NotBy` worded from the blockers'
+    /// side, "Creatures with power less than the number of Islands you
+    /// control can't block this creature." (Kraken of the Straits).
+    NotByWorded(Filter),
     OnlyBy(Filter),
     AtMostOne,
     BlocksOnly(Filter),
@@ -5781,8 +5798,11 @@ pub enum Effect {
         what: Recipient,
         spelled: bool,
     },
+    /// `you untap all lands you control`: "and you untap all lands you
+    /// control" (`you`, Sword of Feast and Famine: wording only).
     Untap {
         to: Vec<Recipient>,
+        you: bool,
     },
     /// `remove target 1 from combat`: "remove it from combat" (CR 506.4).
     RemoveFromCombat {
@@ -7818,6 +7838,11 @@ pub enum ThisWayWording {
     /// `you discard land card this way`: the present tense, "If you
     /// discard a land card this way" (Silvan Reveler).
     YouNow,
+    /// `that player discards artifact card this way`: "If that player
+    /// discards an artifact card this way" (Lumengrid Augur): the
+    /// discarding player is the target; any card this resolution
+    /// discarded counts.
+    ThatPlayerNow,
     /// `you returned Squirrel card to hand this way`: "returned a
     /// Squirrel card to your hand this way" (Cache Grab), put into the
     /// hand.

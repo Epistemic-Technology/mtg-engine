@@ -284,6 +284,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             and_is: false,
             own_name: x.own_name,
             creature_noun: false,
+            permanent_noun: false,
         }),
         mismatch: None,
         line: 0,
@@ -1380,7 +1381,10 @@ impl Decompiler<'_> {
                     spelled: false,
                 }
             }
-            CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
+            CoreEffect::Untap { to } => Effect::Untap {
+                to: vec![r(*to)],
+                you: false,
+            },
             CoreEffect::RemoveFromCombat { what } => Effect::RemoveFromCombat { what: r(*what) },
             CoreEffect::BecomeBlocked { what } => Effect::BecomeBlocked { what: r(*what) },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
@@ -1741,6 +1745,7 @@ impl Decompiler<'_> {
                         mana_value_last: false,
                         pick: m.pick.as_ref().map(|p| (p.n, p.by.map(r), p.chosen)),
                         counters: m.counters.map(|(k, n)| (k, n, false)),
+                        and_or: false,
                     })
                 }),
             },

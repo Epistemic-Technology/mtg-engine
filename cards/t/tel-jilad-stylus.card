@@ -1,0 +1,6 @@
+card "Tel-Jilad Stylus" {
+  oracle_id 75a7fdd4-046a-433b-b16f-a0424a05c904
+  cost {1}
+  type Artifact
+  activated {T}: put target permanent you own on bottom of library
+}

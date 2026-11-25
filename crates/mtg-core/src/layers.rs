@@ -778,6 +778,13 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                             Some(source),
                             Some(you),
                         )
+                        // "As long as a creature has a -1/-1 counter on
+                        // it" (Tenacious Hunter), as for `YouControl`.
+                        && filter
+                            .status
+                            .counter
+                            .is_none_or(|q| state.objects[**id].counters_match(q))
+                        && is_token_ok(state, filter, **id)
                 })
                 .count()
                 >= *at_least as usize

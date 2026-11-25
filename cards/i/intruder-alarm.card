@@ -1,0 +1,7 @@
+card "Intruder Alarm" {
+  oracle_id 1e943e04-e213-4781-b1a7-935aad8790e1
+  cost {2}{U}
+  type Enchantment
+  static creature: has doesn't untap
+  triggered whenever creature enters: untap all creature
+}

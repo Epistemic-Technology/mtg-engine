@@ -1,0 +1,7 @@
+card "Lumengrid Augur" {
+  oracle_id d5409a7c-b928-4819-a560-e80226cf61f0
+  cost {3}{U}
+  type Creature — Vedalken Wizard
+  pt 2/2
+  activated {1}, {T}: target player draws 1 card then target 1 discards 1 card; if that player discards artifact card this way, untap this
+}

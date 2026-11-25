@@ -4289,7 +4289,7 @@ impl Compiler<'_> {
             Effect::RemoveFromCombat { what } => {
                 out.push(CoreEffect::RemoveFromCombat { what: r(*what) });
             }
-            Effect::Untap { to } => {
+            Effect::Untap { to, .. } => {
                 for t in to {
                     out.push(CoreEffect::Untap { to: r(*t) });
                 }
@@ -7738,6 +7738,9 @@ impl Compiler<'_> {
                 crate::ast::BlockRule::BlocksOnly(f) => {
                     mtg_core::card::BlockRule::BlocksOnly(self.filter(f))
                 }
+                crate::ast::BlockRule::NotByWorded(f) => {
+                    mtg_core::card::BlockRule::NotBy(self.filter(f))
+                }
                 crate::ast::BlockRule::CantBlock(f) => {
                     mtg_core::card::BlockRule::CantBlock(self.filter(f))
                 }
@@ -9178,6 +9181,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: one(E::YouMay(vec![Sentence::new(vec![
                 E::Untap {
                     to: vec![Recipient::Target(0)],
+                    you: false,
                 },
                 E::BlocksIfAble {
                     blocker: Recipient::Target(0),
