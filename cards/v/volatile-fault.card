@@ -1,0 +1,6 @@
+card "Volatile Fault" {
+  oracle_id 95c44f28-f7fa-4785-83b9-0d81be0db0c8
+  type Land — Cave
+  mana {C}
+  activated {1}, {T}, sacrifice this: destroy target nonbasic land an opponent controls; that player may search basic land card to battlefield; you create 1 "Treasure"
+}

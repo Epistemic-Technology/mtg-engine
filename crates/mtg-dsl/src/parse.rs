@@ -13103,6 +13103,26 @@ impl P {
             }
             "destroy" => {
                 let to = self.recipients()?;
+                // "Destroy target nonbasic land an opponent controls. That
+                // player may search ..." (Volatile Fault): with no
+                // triggering player, "that player" is the destroyed
+                // permanent's (owner's, as after a return).
+                if (self.in_activated || self.in_spell)
+                    && let [Recipient::Target(i)] = to.as_slice()
+                    && self.targets.get(*i).is_some_and(|t| {
+                        !matches!(
+                            t.base(),
+                            Target::Spec(
+                                TargetSpec::Player
+                                    | TargetSpec::Opponent
+                                    | TargetSpec::PlayerOrPlaneswalker
+                                    | TargetSpec::OpponentOrPlaneswalker
+                            )
+                        )
+                    })
+                {
+                    self.returned = Some(*i);
+                }
                 let no_regen = self.eat_words(&["without", "regeneration"]);
                 let joined = no_regen && self.eat_word("joined");
                 Ok(Effect::Destroy {

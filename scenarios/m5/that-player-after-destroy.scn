@@ -1,0 +1,16 @@
+# "Destroy target ... That player may search ...": the destroyed land's
+# player, in an activated ability with no triggering player.
+
+scenario "Volatile Fault: the opponent searches for a basic land; you get a Treasure" {
+  battlefield A: "Volatile Fault", "Mountain"
+  battlefield B: "Volatile Fault"
+  library B: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Volatile Fault" ability 1 targeting B "Volatile Fault"
+  turn 1 B: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Volatile Fault"
+  assert battlefield B contains "Forest"
+  assert battlefield A contains "Treasure"
+  assert battlefield A lacks "Forest"
+}
