@@ -1408,6 +1408,7 @@ impl P {
                 } else if !self.at_words(&["may", "behold"])
                     && !self.at_words(&["may", "reveal"])
                     && !self.at_words(&["may", "sacrifice", "any"])
+                    && !self.at_words(&["may", "tap", "any"])
                     && self.eat_word("may")
                 {
                     // `additional cost may collect evidence 6` (CR 601.2b);
@@ -14092,7 +14093,13 @@ impl P {
             }
             "pay" => {
                 let (mana, life) = self.pay_amount()?;
-                Ok(Effect::Pay { mana, life })
+                // `pay {1}{G} any times`: "any number of times".
+                let any_times = life == 0 && self.eat_words(&["any", "times"]);
+                Ok(Effect::Pay {
+                    mana,
+                    life,
+                    any_times,
+                })
             }
             "proliferate" => {
                 // `proliferate X times`.
@@ -16067,7 +16074,15 @@ impl P {
             {
                 self.pos += 1;
             }
-            let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {
+            // `creature tapped this way`: those an additional cost tapped
+            // ("the number of creatures tapped this way").
+            let Some(verb) = self.word_at(0).and_then(|w| {
+                if w == "tapped" {
+                    Some(mtg_core::card::ThisWay::Tapped)
+                } else {
+                    crate::ast::this_way_verb(&w)
+                }
+            }) else {
                 return self.unexpected("`destroyed`, `exiled`, ...");
             };
             self.pos += 1;
@@ -17066,7 +17081,8 @@ impl P {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
             || (self.at_words(&["up", "to", "x"]) && target(3))
-            || (self.at_words(&["up", "to", "that", "much"]) && target(4))
+            || (self.at_words(&["up", "to", "that", "much"])
+                && (target(4) || (self.word_at(4).as_deref() == Some("another") && target(5))))
             || (self.at_words(&["any", "number", "of"])
                 && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
@@ -19407,7 +19423,11 @@ impl P {
                 // tapped "Robot"`: `tapped` before the token is the token's
                 // ("create a tapped ... token for each ..."), not the
                 // filter's.
-                "tapped" | "untapped" if !matches!(self.peek_at(1), Some(Tok::Str(_))) => {
+                // `creature tapped this way` is a count's verb.
+                "tapped" | "untapped"
+                    if !matches!(self.peek_at(1), Some(Tok::Str(_)))
+                        && !self.at_words(&["tapped", "this", "way"]) =>
+                {
                     f.tapped = Some(w == "tapped");
                     self.pos += 1;
                 }
@@ -21856,15 +21876,31 @@ impl P {
                 Some(Tok::Word(w)) => match w.to_ascii_lowercase().as_str() {
                     // `sacrifice any number creature`, `may sacrifice any
                     // number Spirit` (a spell's additional cost, CR 601.2b).
-                    "sacrifice" | "may"
-                        if (self.word_at(0).as_deref() == Some("sacrifice")
-                            && self.word_at(1).as_deref() == Some("any"))
-                            || (self.word_at(1).as_deref() == Some("sacrifice")
+                    // `tap any number untapped creature you control`, `may
+                    // tap any number ...`; `sacrifice X land`, `tap X
+                    // untapped artifact you control` (3: X worded).
+                    "sacrifice" | "may" | "tap"
+                        if (matches!(self.word_at(0).as_deref(), Some("sacrifice" | "tap"))
+                            && matches!(self.word_at(1).as_deref(), Some("any" | "x")))
+                            || (self.word_at(0).as_deref() == Some("may")
+                                && matches!(
+                                    self.word_at(1).as_deref(),
+                                    Some("sacrifice" | "tap")
+                                )
                                 && self.word_at(2).as_deref() == Some("any")) =>
                     {
-                        cost.sacrifice_any = if self.eat_word("may") { 2 } else { 1 };
-                        self.pos += 1;
-                        self.expect_words(&["any", "number"])?;
+                        let may = self.eat_word("may");
+                        if self.eat_word("tap") {
+                            cost.chosen = mtg_core::card::ChosenCost::Tap;
+                        } else {
+                            self.expect_word("sacrifice")?;
+                        }
+                        cost.sacrifice_any = if self.eat_word("x") {
+                            3
+                        } else {
+                            self.expect_words(&["any", "number"])?;
+                            if may { 2 } else { 1 }
+                        };
                         cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         cost.order.push(CostItem::Sacrifice);
                     }

@@ -243,7 +243,16 @@ impl GameState {
             || self.next_spell_less[b.p.index().min(3)] > 0
             || !self.turn_spell_changes.is_empty()
         {
-            adjust_generic(&mut req, self.cost_delta(b.p, def, b.id, changers));
+            // "This spell costs {1} less to cast for each creature tapped
+            // this way": X, the number tapped (CR 601.2b); an offer counts
+            // every permanent that could be.
+            let x = match &def.additional.sacrifice {
+                Some(SacCost::Filter(f)) if def.additional.sacrifice_any > 0 && !b.stack => {
+                    u32::try_from(self.sacrifice_candidates(b.p, f, b.id).len()).unwrap_or(0)
+                }
+                _ => b.x,
+            };
+            adjust_generic(&mut req, self.cost_delta(b.p, def, b.id, changers, x));
         }
         if let Some(tc) = &def.target_cost {
             if b.stack {

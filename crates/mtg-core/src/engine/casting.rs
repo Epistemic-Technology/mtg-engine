@@ -2732,6 +2732,21 @@ impl GameState {
         m: &crate::state::Moved,
         f: &crate::card::ObjFilter,
     ) -> bool {
+        // "the number of creatures tapped this way": tapped for a cost, it
+        // stayed where it was, with no last known information.
+        if m.is(crate::card::ThisWay::Tapped) && !self.lki.contains_key(&m.old) {
+            return self.objects.get(m.old).is_some_and(|o| {
+                self.characteristics(m.old).is_some_and(|c| {
+                    f.matches(
+                        m.old,
+                        o.controller,
+                        &c,
+                        Some(ctx.source),
+                        Some(ctx.controller),
+                    )
+                })
+            });
+        }
         // Each alternative on its own, with "token" (a status qualifier
         // `matches` leaves to the caller) judged as the object last
         // existed: "a permanent you controlled or a token".
@@ -4145,6 +4160,7 @@ impl GameState {
         def: &crate::card::CardDef,
         id: ObjId,
         changers: &[ObjId],
+        chosen_x: u32,
     ) -> i32 {
         let mut d = -i32::from(self.next_spell_less[p.index().min(3)]);
         if !self.turn_spell_changes.is_empty() {
@@ -4188,7 +4204,7 @@ impl GameState {
                 trigger_amount: 0,
                 created: None,
                 revealed: Vec::new(),
-                x: 0,
+                x: chosen_x,
                 did: true,
                 chosen: Chosen::None,
                 couldnt: 0,
@@ -4801,7 +4817,11 @@ impl GameState {
             req.add(&c.mana.requirements(0));
         }
         let ps = self.player(p);
-        if let (true, Some(SacCost::Filter(f))) = (c.taps_chosen(), &c.sacrifice) {
+        // "tap any number of untapped creatures you control": none is
+        // payable too (X 0).
+        if let (true, Some(SacCost::Filter(f))) = (c.taps_chosen(), &c.sacrifice)
+            && c.sacrifice_any == 0
+        {
             let pays = |picks: &SmallVec<[ObjId; 4]>| {
                 self.payable_tapping(p, &without(sources, picks), &req, None, picks)
             };
@@ -4959,6 +4979,12 @@ impl GameState {
         let Some(SacCost::Filter(f)) = &add.sacrifice else {
             return Vec::new();
         };
+        // "tap any number of untapped creatures you control": X of them.
+        let n = if add.sacrifice_any > 0 {
+            self.x_of(spell) as usize
+        } else {
+            add.chosen_count()
+        };
         let p = self.objects[spell].controller;
         let sources = self.spell_sources(spell);
         let req = self.spell_requirements(spell, self.x_of(spell));
@@ -4968,17 +4994,8 @@ impl GameState {
                 let pays = |picks: &SmallVec<[ObjId; 4]>| {
                     self.payable_tapping(p, &without(&sources, picks), &req, None, picks)
                 };
-                self.tap_picks_where(
-                    p,
-                    f,
-                    spell,
-                    false,
-                    add.chosen_count(),
-                    Some(*c),
-                    &sources,
-                    pays,
-                )
-                .is_some_and(|picks| pays(&picks))
+                self.tap_picks_where(p, f, spell, false, n, Some(*c), &sources, pays)
+                    .is_some_and(|picks| pays(&picks))
             })
             .collect()
     }
@@ -6065,6 +6082,10 @@ impl GameState {
                         g.into_iter().map(Some).collect()
                     }
                     None | Some(SacCost::This | SacCost::Granter) => vec![None],
+                    // "Sacrifice X Goats", "Tap X untapped artifacts you
+                    // control": X is announced after, and the engine
+                    // picks them as the cost is paid (CR 602.2b).
+                    Some(SacCost::Filter(_)) if ab.cost.sacrifice_any > 0 => vec![None],
                     Some(SacCost::Filter(_)) if ab.cost.taps_chosen() => {
                         self.tap_cost_options(p, ab, id, sources)
                     }
@@ -6724,11 +6745,12 @@ impl GameState {
             self.pool.ability(ability),
             AbilityDef::Activated(a) if ((a.cost.mana.has_x()
                 || a.cost.remove_x
+                || a.cost.sacrifice_any > 0
                 || a.cost.loyalty_x
                 || a.cost.behold.as_ref().is_some_and(|b| b.x)
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
                 && !a.is_mana_ability())
-                || (a.cost.remove_x && a.is_mana_ability())
+                || ((a.cost.remove_x || a.cost.sacrifice_any > 0) && a.is_mana_ability())
         );
         // CR 602.2b, 601.2b: a modal activated ability's mode is chosen
         // first.
@@ -6934,6 +6956,22 @@ impl GameState {
             }
             _ => max_x,
         };
+        // "Sacrifice X Goats", "Tap X untapped artifacts you control": no
+        // more than there are, the source not among them when its own {T}
+        // is paid.
+        let max_x = match ability {
+            Some((source, a)) if a.cost.sacrifice_any > 0 => match &a.cost.sacrifice {
+                Some(SacCost::Filter(f)) => {
+                    let mut c = self.sacrifice_candidates(caster, f, source);
+                    if a.cost.tap {
+                        c.retain(|c| *c != source);
+                    }
+                    max_x.min(u32::try_from(c.len()).unwrap_or(MAX_X))
+                }
+                _ => max_x,
+            },
+            _ => max_x,
+        };
         // "exile X cards from your graveyard": no more than there are (an
         // activated ability's cost, or a spell's additional cost).
         let exile = match ability {
@@ -6968,20 +7006,65 @@ impl GameState {
                     }
             })
             .collect();
-        (0..=max_x.min(MAX_X))
-            .take_while(|x| {
-                let req = match ability {
-                    Some((source, a)) => self.activation_mana_x(source, a, *x, caster),
-                    None => self.spell_requirements(spell, *x),
+        // "Tap X untapped artifacts you control", "tap any number of
+        // untapped creatures you control": X of them tapped before the mana
+        // is paid, so they don't also tap for it.
+        let tap_x = match ability {
+            Some((_, a)) if a.cost.sacrifice_any > 0 && a.cost.taps_chosen() => {
+                a.cost.sacrifice.as_ref()
+            }
+            None if add.sacrifice_any > 0 && add.taps_chosen() => add.sacrifice.as_ref(),
+            _ => None,
+        };
+        // "This spell costs {1} less to cast for each creature tapped this
+        // way": a greater X can be cheaper.
+        let reduces = ability.is_none()
+            && add.sacrifice_any > 0
+            && self
+                .pool
+                .get(self.objects[spell].def)
+                .self_cost
+                .as_ref()
+                .is_some_and(|c| c.times == crate::card::Num::X);
+        let pays_at = |x: u32| {
+            let req = match ability {
+                Some((source, a)) => self.activation_mana_x(source, a, x, caster),
+                None => self.spell_requirements(spell, x),
+            };
+            if let Some(SacCost::Filter(f)) = tap_x
+                && x > 0
+            {
+                let (src, skip) = ability.map_or((spell, false), |(s, a)| (s, a.cost.tap));
+                let pays = |picks: &SmallVec<[ObjId; 4]>| match ability {
+                    Some((s, a)) => self.tap_cost_pays(caster, a, s, &sources, &req, picks),
+                    None => {
+                        self.payable_tapping(caster, &without(&sources, picks), &req, None, picks)
+                    }
                 };
-                self.payable(
-                    caster,
-                    &sources,
-                    &pool,
-                    &req,
-                    self.player(caster).life,
-                    exclude,
-                )
+                return self
+                    .tap_picks_where(caster, f, src, skip, x as usize, None, &sources, pays)
+                    .is_some_and(|picks| picks.len() == x as usize && pays(&picks));
+            }
+            self.payable(
+                caster,
+                &sources,
+                &pool,
+                &req,
+                self.player(caster).life,
+                exclude,
+            )
+        };
+        let mut blocked = false;
+        (0..=max_x.min(MAX_X))
+            .filter(|x| {
+                if blocked {
+                    return false;
+                }
+                let ok = pays_at(*x);
+                if !ok && !reduces {
+                    blocked = true;
+                }
+                ok
             })
             .filter(|x| x_specs.iter().all(|s| self.x_fits(caster, *s, spell, *x)))
             // "X can't be 0."
@@ -7674,9 +7757,16 @@ impl GameState {
         // "Tap two untapped Beasts you control": before the mana.
         let mut sacrifice = sacrifice;
         let mut tapped_paid: SmallVec<[ObjId; 2]> = SmallVec::new();
-        if let (true, Some(SacCost::Filter(f))) = (ab.cost.taps_chosen(), &ab.cost.sacrifice) {
+        if let (true, Some(SacCost::Filter(f))) = (ab.cost.taps_chosen(), &ab.cost.sacrifice)
+            && (ab.cost.sacrifice_any == 0 || self.x_of(obj) > 0)
+        {
             let sources = self.ability_sources(controller, sa.source, ab);
-            let n = ab.cost.chosen_count();
+            // "Tap X untapped artifacts you control": X of them.
+            let n = if ab.cost.sacrifice_any > 0 {
+                self.x_of(obj) as usize
+            } else {
+                ab.cost.chosen_count()
+            };
             let req = self.activation_mana(sa.source, ab, controller);
             let pays = |picks: &SmallVec<[ObjId; 4]>| {
                 self.tap_cost_pays(controller, ab, sa.source, &sources, &req, picks)
@@ -7780,6 +7870,7 @@ impl GameState {
             // not the source's.
             if ab.cost.life_x
                 || ab.cost.remove_x
+                || ab.cost.sacrifice_any > 0
                 || ab.cost.loyalty_x
                 || ab.cost.behold.as_ref().is_some_and(|b| b.x)
                 || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
@@ -7801,6 +7892,14 @@ impl GameState {
                 }
                 if cost.loyalty_x {
                     cost.loyalty = -i32::try_from(s.x_of(obj)).unwrap_or(i32::MAX);
+                }
+                // "Sacrifice X Goats": X of them, the engine's pick (the
+                // tapped ones are tapped above).
+                if cost.sacrifice_any > 0 {
+                    cost.count = s.x_of(obj);
+                    if cost.count == 0 || cost.taps_chosen() {
+                        cost.sacrifice = None;
+                    }
                 }
                 if let Some(b) = &mut cost.behold
                     && b.x
@@ -8954,6 +9053,22 @@ impl GameState {
                     }
                 }
             }
+            // "Sacrifice X Goats" (an activated ability's, `sacrifice_any`):
+            // no first choice; the engine picks X.
+            Some(SacCost::Filter(ref f))
+                if sacrifice.is_none()
+                    && cost.sacrifice_any > 0
+                    && cost.chosen == crate::card::ChosenCost::Sacrifice =>
+            {
+                let picks: SmallVec<[ObjId; 4]> = self
+                    .sacrifice_candidates(p, f, this)
+                    .into_iter()
+                    .take(cost.count as usize)
+                    .collect();
+                for s in picks {
+                    self.sacrifice(s);
+                }
+            }
             Some(SacCost::Filter(ref f)) => {
                 if let Some(first) = sacrifice {
                     // "Sacrifice two Goblins": the chosen one, then the
@@ -9737,21 +9852,31 @@ impl GameState {
         // "Tap three untapped white creatures you control": tapped before
         // the mana is paid, so they don't also tap for it (CR 601.2h).
         let mut sacrifice = sacrifice;
+        let mut tapped_paid: SmallVec<[ObjId; 4]> = SmallVec::new();
         if let (true, Some(SacCost::Filter(f))) = (
             self.additional_of(spell).taps_chosen(),
             &self.additional_of(spell).sacrifice,
         ) {
-            let n = self.additional_of(spell).chosen_count();
+            // "tap any number of untapped creatures you control": X of
+            // them (CR 601.2b), none for 0.
+            let n = if self.additional_of(spell).sacrifice_any > 0 {
+                x as usize
+            } else {
+                self.additional_of(spell).chosen_count()
+            };
             let sources = self.spell_sources(spell);
             let f = f.clone();
             let pays = |picks: &SmallVec<[ObjId; 4]>| {
                 self.payable_tapping(caster, &without(&sources, picks), &req, None, picks)
             };
-            for c in self
-                .tap_picks_where(caster, &f, spell, false, n, sacrifice, &sources, pays)
-                .unwrap_or_default()
-            {
-                self.tap(c);
+            if n > 0 {
+                for c in self
+                    .tap_picks_where(caster, &f, spell, false, n, sacrifice, &sources, pays)
+                    .unwrap_or_default()
+                {
+                    self.tap(c);
+                    tapped_paid.push(c);
+                }
             }
             sacrifice = None;
         }
@@ -9914,6 +10039,10 @@ impl GameState {
             life_cost += self.targets_life(spell, None);
         }
         self.pay_costs_recorded(spell, |s| {
+            // "the number of creatures tapped this way".
+            for c in tapped_paid {
+                s.note_tapped_for_cost(c);
+            }
             if life_cost > 0 {
                 s.change_life(caster, -i32::try_from(life_cost).unwrap_or(i32::MAX));
             }
@@ -16300,7 +16429,7 @@ impl GameState {
                 for &p in &players {
                     ctx.controller = if *have_you { you } else { p };
                     let possible = effects.iter().all(|e| match e {
-                        Effect::Pay { mana, life } => {
+                        Effect::Pay { mana, life, .. } => {
                             (*life == 0
                                 || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
                                 && self.can_pay(p, &mana.requirements(0))
@@ -16350,7 +16479,7 @@ impl GameState {
                 for p in players {
                     ctx.controller = p;
                     let possible = effects.iter().all(|e| match e {
-                        Effect::Pay { mana, life } => {
+                        Effect::Pay { mana, life, .. } => {
                             (*life == 0
                                 || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
                                 && self.can_pay(p, &mana.requirements(0))
@@ -16395,7 +16524,43 @@ impl GameState {
                     ctx.did = false;
                 }
             }
-            Effect::Pay { mana, life } => {
+            // "You may pay {1}{G} any number of times.": the number
+            // chosen, as many as can be paid; it is the resolution's X, and
+            // nothing paid is not doing it.
+            Effect::Pay {
+                mana,
+                any_times: true,
+                ..
+            } => {
+                let p = ctx.controller;
+                let times = |n: u32| {
+                    let mut req = crate::mana::ManaRequirement::default();
+                    for _ in 0..n {
+                        req.add(&mana.requirements(0));
+                    }
+                    req
+                };
+                let max = (1u32..=30)
+                    .take_while(|&n| self.can_pay(p, &times(n)))
+                    .last()
+                    .unwrap_or(0);
+                let pick = self.choose_mid(
+                    p,
+                    DecisionKind::ChooseX { spell: ctx.source },
+                    (0..=max).map(Choice::X).collect(),
+                );
+                let n = u32::try_from(pick).unwrap_or(0).min(max);
+                if n > 0 {
+                    self.pay(p, &times(n));
+                    // "put that many +1/+1 counters on this creature" in
+                    // the reflexive ability: its amount.
+                    ctx.x = n;
+                    ctx.trigger_amount = n;
+                } else {
+                    ctx.did = false;
+                }
+            }
+            Effect::Pay { mana, life, .. } => {
                 let p = ctx.controller;
                 // "You may pay {X}. When you do, ...": the player chooses
                 // X as they pay (CR 107.1c, 107.3), any value they can

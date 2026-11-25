@@ -5288,7 +5288,19 @@ impl Compiler<'_> {
                     },
                     _ => effects,
                 };
-                let effects = self.sentences(effects)?;
+                // "then up to that many target lands you control become
+                // ...": a variable group among the reflexive ability's own
+                // targets is all of them.
+                let outer_many = self.many;
+                if let Some(m) = targets
+                    .iter()
+                    .position(|t| matches!(t, Target::Many { .. }))
+                {
+                    self.many = Some(m);
+                }
+                let effects = self.sentences(effects);
+                self.many = outer_many;
+                let effects = effects?;
                 // "When you do, Hankyu deals ...": the granter carries over
                 // to the reflexive ability (`CardPool::register`).
                 if !self.granting && effects.iter().any(CoreEffect::names_granter) {
@@ -5352,9 +5364,14 @@ impl Compiler<'_> {
                 return self.err("`instead` is a sentence of its own, after the one it replaces");
             }
             Effect::Waterbend(cost) => out.push(CoreEffect::Waterbend(cost.clone())),
-            Effect::Pay { mana, life } => out.push(CoreEffect::Pay {
+            Effect::Pay {
+                mana,
+                life,
+                any_times,
+            } => out.push(CoreEffect::Pay {
                 mana: mana.clone(),
                 life: *life,
+                any_times: *any_times,
             }),
             Effect::UnlessYou { act, effect } => {
                 let mut acts = Vec::new();
@@ -8906,6 +8923,7 @@ fn extort(i: u8) -> Ability {
     let pay = E::YouMay(vec![Sentence::new(vec![E::Pay {
         mana: mtg_core::mana::ManaCost::parse("{W/B}").expect("a mana cost"),
         life: 0,
+        any_times: false,
     }])]);
     let drain = Sentence {
         effects: vec![

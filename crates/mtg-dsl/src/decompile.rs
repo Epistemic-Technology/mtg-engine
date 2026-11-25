@@ -1984,9 +1984,14 @@ impl Decompiler<'_> {
                 }
             }
             CoreEffect::Waterbend(mana) => Effect::Waterbend(mana.clone()),
-            CoreEffect::Pay { mana, life } => Effect::Pay {
+            CoreEffect::Pay {
+                mana,
+                life,
+                any_times,
+            } => Effect::Pay {
                 mana: mana.clone(),
                 life: *life,
+                any_times: *any_times,
             },
             CoreEffect::UnlessYou { act, effects } => Effect::UnlessYou {
                 act: Box::new(

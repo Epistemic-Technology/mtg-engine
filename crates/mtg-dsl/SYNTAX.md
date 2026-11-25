@@ -402,7 +402,17 @@ additional cost to cast this spell, sacrifice any number of creatures." /
 "..., you may sacrifice any number of Spirits."; the number is X,
 announced as the spell is cast, at most the matching permanents; the
 caster chooses the first and the engine the rest; `count each creature
-sacrificed this way` counts them), `exert this` ("Exert this creature", "Exert
+sacrificed this way` counts them; `sacrifice X land` prints "sacrifice X
+lands", the same cost worded with X; `tap any number untapped creature you
+control` and `may tap any number ...` tap them instead, before the mana is
+paid, and `count each creature tapped this way` counts them, "the number
+of creatures tapped this way"; `this spell costs {1} less X` after one
+prints "This spell costs {1} less to cast for each creature tapped this
+way." in the same paragraph, X less; in an activated ability's cost,
+`sacrifice X Goat` and `tap X untapped artifact you control`, "{T},
+Sacrifice X Goats:", "Tap X untapped artifacts you control", are the
+ability's X, at most the matching permanents (not the source when its own
+{T} is paid), the engine picking them, CR 602.2b), `exert this` ("Exert this creature", "Exert
 Basri": it won't untap during its controller's next untap step, CR
 701.43a), `discard hand` ("Discard your hand"; payable with no cards in
 hand), `sorcery` (printed "Activate only as a sorcery."), `once` (activate
@@ -3719,7 +3729,13 @@ stack: `you may pay {2}{R}; when you do, this deals 3 damage to any
 target`; with {X}, `you may pay {X}; when you do, put X +1/+1 counters
 on this`, the player chooses X as they pay, any value they can pay, and
 X after it, in the same resolution or the reflexive ability, is that
-value; after `draw 1 card then discard 1 card` it prints "When you discard
+value; `you may pay {1}{G} any times; when you do, put that much +1/+1
+counters on this creature, then ...` prints "you may pay {1}{G} any
+number of times. When you pay this cost one or more times, put that many
+..." (the Adversaries): the number is chosen as the cost is paid, at most
+what can be paid; none paid is not doing it, and `that much` (also `up
+to that much target land you control`, all of them a variable group of
+the reflexive ability's) is the number; after `draw 1 card then discard 1 card` it prints "When you discard
 a card this way, ..."; `when you discard nonland card this way, ...` (any card filter)
 prints "When you discard a nonland card this way, ..." and triggers only
 if a card the resolution discarded matches (Glacial Dragonhunt, Teo,

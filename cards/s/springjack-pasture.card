@@ -1,0 +1,7 @@
+card "Springjack Pasture" {
+  oracle_id 9eaadbbc-818b-4c21-9d4b-1bba48504d38
+  type Land
+  activated {T}: add {C}
+  activated {4}, {T}: create 1 "0/1 white Goat creature"
+  activated {T}, sacrifice X Goat: add any X; you gain X life
+}

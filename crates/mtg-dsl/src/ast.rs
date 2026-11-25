@@ -6637,6 +6637,8 @@ pub enum Effect {
     Pay {
         mana: ManaCost,
         life: u32,
+        /// `pay {1}{G} any times`: "pay {1}{G} any number of times".
+        any_times: bool,
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),

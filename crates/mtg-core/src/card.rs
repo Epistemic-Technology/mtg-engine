@@ -5789,6 +5789,14 @@ pub enum Effect {
     Pay {
         mana: ManaCost,
         life: u32,
+        /// "you may pay {1}{G} any number of times" (the Adversaries):
+        /// the controller chooses how many times as they pay (CR 601.2b
+        /// by analogy: the number is chosen, then `mana` that many times
+        /// paid at once); the number is the resolution's X, so the
+        /// reflexive ability after ("When you pay this cost one or more
+        /// times, ...", only if it was paid at least once) sees it.
+        #[serde(default)]
+        any_times: bool,
     },
     /// "If you do, [these]": only if the optional action before happened
     /// (CR 608.2c).
@@ -9874,7 +9882,12 @@ pub struct Cost {
     /// announced as the spell is cast (CR 601.2b, 107.3), at most the
     /// matching permanents, and X permanents matching the `sacrifice`
     /// filter sacrificed (the caster chooses the first, the engine the
-    /// rest). 0: none.
+    /// rest). 0: none. 3: the same worded with X ("sacrifice X lands",
+    /// "{T}, Sacrifice X Goats:", "Tap X untapped artifacts you
+    /// control"). `chosen` says what is done to them: with
+    /// `ChosenCost::Tap` they are tapped ("tap any number of untapped
+    /// creatures you control"). On an activated ability X is the
+    /// ability's (CR 602.2b) and the engine picks them all.
     #[serde(default)]
     pub sacrifice_any: u8,
     /// "Remove X ki counters from this creature" (CR 107.3, 602.2b): the

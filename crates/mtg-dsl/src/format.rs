@@ -4493,7 +4493,15 @@ impl Fmt {
                     None => text,
                 }
             }
-            Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
+            Effect::Pay {
+                mana,
+                life,
+                any_times,
+            } => format!(
+                "pay {}{}",
+                pay_amount(mana, *life),
+                if *any_times { " any times" } else { "" }
+            ),
             Effect::Waterbend(mana) => format!("waterbend {mana}"),
             // No syntax of its own: written as the ward keyword.
             Effect::UnlessPaysCost { alts, effect, .. } => {
@@ -7410,8 +7418,18 @@ fn cost_text(c: &Cost) -> String {
             }
             CostItem::Sacrifice => match &c.sacrifice {
                 Some(SacCost::Filter(f)) if c.sacrifice_any > 0 => parts.push(format!(
-                    "{}sacrifice any number {}",
+                    "{}{} {} {}",
                     if c.sacrifice_any == 2 { "may " } else { "" },
+                    if c.chosen == mtg_core::card::ChosenCost::Tap {
+                        "tap"
+                    } else {
+                        "sacrifice"
+                    },
+                    if c.sacrifice_any == 3 {
+                        "X"
+                    } else {
+                        "any number"
+                    },
                     filter(f)
                 )),
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),

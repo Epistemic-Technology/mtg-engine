@@ -1,0 +1,136 @@
+# A cost that taps or sacrifices any number of permanents, or X of them
+# (CR 601.2b, 602.2b, 107.3): "As an additional cost to cast this spell,
+# tap any number of untapped creatures you control" and "sacrifice X
+# lands" announce the number as X (scripted `x N`); "{T}, Sacrifice X
+# Goats" and "Tap X untapped artifacts you control" in an activated
+# ability's cost are the ability's X, the engine picking the permanents.
+# "This spell costs {1} less to cast for each creature tapped this way":
+# X less.
+
+scenario "Burn at the Stake: three creatures tapped deal nine damage" {
+  battlefield A: 5 "Mountain", "Grizzly Bears", "Hill Giant", "Llanowar Elves"
+  start turn 1 A precombat_main
+  hand A: "Burn at the Stake"
+  turn 1 A: cast "Burn at the Stake" x 3 sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 11
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert tapped "Llanowar Elves"
+}
+
+scenario "Burn at the Stake: tapping none deals no damage" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  start turn 1 A precombat_main
+  hand A: "Burn at the Stake"
+  turn 1 A: cast "Burn at the Stake" x 0 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Grizzly Bears"
+  assert graveyard A contains "Burn at the Stake"
+}
+
+scenario "Explosive Singularity: four creatures tapped cost {4} less" {
+  battlefield A: 6 "Mountain", "Grizzly Bears", "Hill Giant", "Elvish Mystic", "Llanowar Elves"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  hand A: "Explosive Singularity"
+  turn 1 A: cast "Explosive Singularity" x 4 sacrificing "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert tapped "Elvish Mystic"
+  assert tapped "Hill Giant"
+  assert tapped "Llanowar Elves"
+}
+
+scenario "Explosive Singularity: too few creatures leaves it uncastable" {
+  battlefield A: 6 "Mountain", "Grizzly Bears", "Hill Giant", "Llanowar Elves"
+  hand A: "Explosive Singularity"
+  illegal turn 1 A: cast "Explosive Singularity" x 3 targeting player B
+  run_to turn 1 end
+}
+
+scenario "Devastating Summons: sacrifice two lands for two 2/2 Elementals" {
+  battlefield A: 3 "Mountain"
+  start turn 1 A precombat_main
+  hand A: "Devastating Summons"
+  turn 1 A: cast "Devastating Summons" x 2 sacrificing "Mountain"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains 2 "Mountain"
+  assert battlefield A contains 2 "Elemental"
+  assert power oldest "Elemental" 2
+  assert toughness newest "Elemental" 2
+}
+
+scenario "Eliminate the Competition: sacrifice two, destroy two" {
+  battlefield A: 5 "Swamp", "Grizzly Bears", "Llanowar Elves"
+  battlefield B: "Serra Angel", "Hill Giant", "Elvish Mystic"
+  start turn 1 A precombat_main
+  hand A: "Eliminate the Competition"
+  turn 1 A: cast "Eliminate the Competition" x 2 sacrificing "Grizzly Bears" targeting "Serra Angel", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Llanowar Elves"
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Elvish Mystic"
+}
+
+scenario "Secluded Starforge: tap two artifacts for +2/+0" {
+  battlefield A: "Secluded Starforge", 2 "Wastes", "Ornithopter", "Memnite", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Secluded Starforge" ability 2 x 2 targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert tapped "Ornithopter"
+  assert tapped "Memnite"
+}
+
+scenario "Merchant's Dockhand: tap two artifacts to look at two cards" {
+  battlefield A: "Merchant's Dockhand", 4 "Island", "Ornithopter", "Memnite"
+  library A: "Lightning Bolt", "Shock", "Opt"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Merchant's Dockhand" x 2
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert tapped "Ornithopter"
+  assert tapped "Memnite"
+  assert tapped "Merchant's Dockhand"
+}
+
+scenario "Champion of Stray Souls: sacrifice two, return two" {
+  battlefield A: "Champion of Stray Souls", 5 "Swamp", "Grizzly Bears", "Llanowar Elves"
+  graveyard A: "Hill Giant", "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Champion of Stray Souls" x 2 targeting "Hill Giant", "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Llanowar Elves"
+  assert battlefield A contains "Champion of Stray Souls"
+}
+
+scenario "Springjack Pasture: makes a Goat" {
+  battlefield A: "Springjack Pasture", 4 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Springjack Pasture" ability 2
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Goat"
+  assert power "Goat" 0
+  assert toughness "Goat" 1
+}
+
+scenario "Springjack Pasture: sacrifice two Goats for two mana and 2 life" {
+  battlefield A: "Springjack Pasture", 3 "Goat", "Forest"
+  hand A: "Centaur Courser"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Springjack Pasture" ability 3 x 2
+  turn 2 A: choose green
+  turn 2 A: cast "Centaur Courser"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Centaur Courser"
+  assert battlefield A contains 1 "Goat"
+  assert life A 22
+}

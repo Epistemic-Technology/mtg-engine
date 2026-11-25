@@ -1,0 +1,7 @@
+card "Burn at the Stake" {
+  oracle_id eb23bbb0-dd12-44f1-8645-d92f46cbe8ff
+  cost {2}{R}{R}{R}
+  type Sorcery
+  additional cost tap any number untapped creature you control
+  spell: deal count equal 3 creature tapped this way damage to any target
+}

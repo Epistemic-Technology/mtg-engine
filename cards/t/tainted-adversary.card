@@ -1,0 +1,8 @@
+card "Tainted Adversary" {
+  oracle_id 8bed92cc-b3f8-4201-bcbc-44535ff1bd96
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/3
+  keywords deathtouch
+  triggered when this enters: you may pay {2}{B} any times; when you do, put that much +1/+1 counters on this creature, then create 2 times that much "2/2 black Zombie creature with decayed"
+}
