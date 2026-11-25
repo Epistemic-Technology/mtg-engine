@@ -1,0 +1,9 @@
+card "Ajani Unyielding" {
+  oracle_id 8a70ddc5-bb51-45eb-96f2-8ecaecac0cc2
+  cost {4}{G}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 4
+  loyalty +2: dig 3 reveal take all nonland permanent card rest bottom
+  loyalty -2: exile target creature; its controller gains count equal power of target 1 life
+  loyalty -9: put 5 +1/+1 counters on each creature you control and put 5 loyalty counters on each other planeswalker you control
+}

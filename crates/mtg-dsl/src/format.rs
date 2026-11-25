@@ -470,6 +470,7 @@ impl Fmt {
                 "each creature card exiled this way".to_string()
             }
             Recipient::SameExiledCards => "the exiled cards".to_string(),
+            Recipient::SameExiledCard => "the exiled card".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::Those(t) => those_word(t).to_string(),
             Recipient::EachPlayer => "each player".to_string(),

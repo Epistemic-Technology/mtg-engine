@@ -2577,6 +2577,7 @@ impl<'a> Ctx<'a> {
                 "each creature card exiled this way".to_string()
             }
             Recipient::SameExiledCards | Recipient::ExiledCards => "the exiled cards".to_string(),
+            Recipient::SameExiledCard => "the exiled card".to_string(),
             Recipient::ThoseTargets(a, n) => format!("those {}", self.group_noun(a, n)),
         }
     }
@@ -4647,8 +4648,13 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
             card_filter_a(alt, card)
         );
     }
-    // "a permanent card", "a Rebel permanent card" (CR 110.4a).
-    if f.or.is_none() && f.not_types == [CardType::Instant, CardType::Sorcery] {
+    // "a permanent card", "a Rebel permanent card" (CR 110.4a); "all
+    // nonland permanent cards" (Ajani Unyielding).
+    if f.or.is_none()
+        && (f.not_types == [CardType::Instant, CardType::Sorcery]
+            || f.not_types == [CardType::Land, CardType::Instant, CardType::Sorcery])
+        && f.types.is_empty()
+    {
         return with_article(&format!("{} card", card_filter_phrase(f, card)));
     }
     let p = filter_phrase(f, card, false);
@@ -11385,6 +11391,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             {
                 o = format!("{head} card in your graveyard{tail}");
             }
+            // "you may exile another target nontoken creature. If you do,
+            // this creature becomes a copy of that creature" (Identity
+            // Thief): the exiled creature as it last existed.
+            if let Recipient::ThatTarget(i) = of
+                && o == "that card"
+                && ctx.targets.get(*i).is_some_and(|t| target_noun(t) == "creature")
+            {
+                o = "that creature".to_string();
+            }
             let mut text = format!("becomes a copy of {o}");
             match until {
                 mtg_core::card::CopyUntil::Permanent => {}
@@ -13551,11 +13566,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "Vehicles you control become artifact creatures until end of
             // turn" (Push the Limit): a group, plural, without an article.
             let group = matches!(to, Recipient::Group(_)) && pt.is_none();
-            let mut text = if plural && (*in_addition || group) {
+            // "up to three target lands you control each become 2/2 Warrior
+            // creatures until end of turn" (Anthousa, Setessan Hero).
+            let land_targets = matches!(*to, Recipient::Targets(a, _) if matches!(
+                ctx.targets.get(a).map(Target::base),
+                Some(Target::Filter(f)) if f.types == [CardType::Land]
+            ));
+            let mut text = if plural && (*in_addition || group || land_targets) {
                 if let Some(last) = words.pop() {
                     words.push(pluralize(&last));
                 }
-                format!("become {}", words.join(" "))
+                // "... target lands you control each become 2/2 Warrior
+                // creatures".
+                let each = if land_targets { "each " } else { "" };
+                format!("{each}become {}", words.join(" "))
             } else {
                 format!(
                     "{} {} {}",
@@ -13564,7 +13588,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     words.join(" ")
                 )
             };
-            if *loses_abilities {
+            // "becomes a blue Dragon Illusion with base power and toughness
+            // 4/4, loses all abilities, and gains flying" (Dance of the
+            // Skywise): the loss between the two.
+            let loses_between = *loses_abilities && *gains && *base && pt.is_some();
+            if *loses_abilities && !loses_between {
                 text = format!(
                     "{} all abilities and {text}",
                     ctx.verb(*to, "loses", "lose")
@@ -13574,7 +13602,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // toughness 5/5", "a 2/2 Gargoyle creature with flying".
             // "a Dragon with base power and toughness 4/4, flying, and
             // haste" (Bogardan Dragonheart): one list.
-            if let (Some((p, q)), true, true) = (pt, base, *gains) {
+            if let (Some((p, q)), true, true) = (pt, base, loses_between) {
+                let _ = write!(
+                    text,
+                    " with base power and toughness {p}/{q}, {} all abilities, and {} {}",
+                    ctx.verb(*to, "loses", "lose"),
+                    ctx.verb(*to, "gains", "gain"),
+                    keywords_list(keywords)
+                );
+            } else if let (Some((p, q)), true, true) = (pt, base, *gains) {
                 let _ = write!(
                     text,
                     " with base power and toughness {p}/{q} and gains {}",
@@ -13642,6 +13678,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Target::Filter(f) if f.types == [CardType::Land]
             ) || (types.contains(&CardType::Creature)
                 && matches!(ctx.targets[i].base(), Target::Spec(TargetSpec::Land))));
+            // "They're still lands." (Anthousa, Setessan Hero).
+            if land_targets && !types.contains(&CardType::Land) {
+                clause.tail.push_str(". They're still lands");
+                return clause;
+            }
             if (ctx.card.types.contains(&CardType::Land) || land_target)
                 && !types.contains(&CardType::Land)
             {

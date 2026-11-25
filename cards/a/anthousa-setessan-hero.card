@@ -1,0 +1,7 @@
+card "Anthousa, Setessan Hero" {
+  oracle_id 141f952b-9e9f-48c5-9c88-b1504dfa73bc
+  cost {3}{G}{G}
+  type Legendary Creature — Human Warrior
+  pt 4/5
+  label "Heroic" triggered whenever you cast a spell that targets this: up to 3 target land you control each become 2/2 Warrior creature until end of turn
+}

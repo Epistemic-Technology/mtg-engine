@@ -1,0 +1,121 @@
+# "becomes a blue Dragon Illusion with base power and toughness 4/4, loses
+# all abilities, and gains flying" (Dance of the Skywise), "Put all
+# enchantment cards from among them" (Marina Vendrell), "you may have it
+# assign no combat damage" (Cloak of Confusion), "all nonland permanent
+# cards" (Ajani Unyielding), "each become 2/2 Warrior creatures ... They're
+# still lands." (Anthousa, Setessan Hero), "a copy of that creature"
+# (Identity Thief).
+
+scenario "Dance of the Skywise: a 4/4 blue Dragon Illusion flier with no abilities" {
+  battlefield A: "Serra Angel", 2 "Island"
+  hand A: "Dance of the Skywise"
+  turn 1 A: cast "Dance of the Skywise" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 4
+  assert is "Serra Angel" Dragon
+  assert is "Serra Angel" Illusion
+  assert is "Serra Angel" blue
+  assert is not "Serra Angel" white
+  assert has "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+}
+
+scenario "Dance of the Skywise: it ends with the turn" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Dance of the Skywise"
+  turn 1 A: cast "Dance of the Skywise" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Marina Vendrell: enchantment cards among the top seven to hand" {
+  battlefield A: "Plains", "Island", "Swamp", "Mountain", "Forest"
+  hand A: "Marina Vendrell"
+  library A: "Pacifism", "Forest", "Rancor", "Island", "Shock", "Plains", "Oblivion Ring", "Swamp"
+  turn 1 A: cast "Marina Vendrell"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Pacifism"
+  assert hand A contains "Rancor"
+  assert hand A contains "Oblivion Ring"
+  assert hand A count 3
+  assert library A contains "Shock"
+}
+
+scenario "Cloak of Confusion: no combat damage, a random discard" {
+  battlefield A: "Hill Giant", "Cloak of Confusion" on "Hill Giant"
+  hand B: "Shock"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Shock"
+}
+
+scenario "Cloak of Confusion: declined, the damage is dealt" {
+  battlefield A: "Hill Giant", "Cloak of Confusion" on "Hill Giant"
+  hand B: "Shock"
+  turn 1 A: attack "Hill Giant"
+  turn 1 A: decline "Cloak of Confusion"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand B contains "Shock"
+}
+
+scenario "Ajani Unyielding: +2 takes the nonland permanent cards" {
+  battlefield A: "Ajani Unyielding"
+  library A: "Grizzly Bears", "Forest", "Shock", "Island"
+  turn 1 A: activate "Ajani Unyielding" ability 1
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert library A contains "Forest"
+  assert library A contains "Shock"
+  assert counters "Ajani Unyielding" loyalty 6
+}
+
+scenario "Ajani Unyielding: -2 exiles a creature; its controller gains its power" {
+  battlefield A: "Ajani Unyielding"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Ajani Unyielding" ability 2 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+  assert life B 24
+  assert life A 20
+}
+
+scenario "Ajani Unyielding: -9 counters on creatures and other planeswalkers" {
+  battlefield A: "Ajani Unyielding" with 9 loyalty, "Grizzly Bears", "Kaya, Geist Hunter"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Ajani Unyielding" ability 3
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 5
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Kaya, Geist Hunter" loyalty 8
+}
+
+scenario "Anthousa, Setessan Hero: heroic animates up to three lands" {
+  battlefield A: "Anthousa, Setessan Hero", "Forest", 2 "Plains"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Anthousa, Setessan Hero"
+  turn 1 A: trigger "Anthousa, Setessan Hero" targeting oldest A "Plains", newest A "Plains"
+  run_to turn 1 begin_combat
+  assert power oldest A "Plains" 2
+  assert toughness newest A "Plains" 2
+  assert power "Anthousa, Setessan Hero" 7
+  run_to turn 2 upkeep
+  assert battlefield A contains 2 "Plains"
+}
+
+scenario "Identity Thief: exile a creature, become its copy, it returns" {
+  battlefield A: "Identity Thief"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Identity Thief"
+  turn 1 A: trigger "Identity Thief" targeting "Serra Angel"
+  run_to turn 1 combat_damage
+  assert exile B contains "Serra Angel"
+  assert power "Serra Angel" 4
+  run_to turn 2 upkeep
+  assert battlefield B contains "Serra Angel"
+  assert battlefield A contains "Identity Thief"
+}

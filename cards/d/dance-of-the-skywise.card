@@ -1,0 +1,6 @@
+card "Dance of the Skywise" {
+  oracle_id 5ab0ab9b-c143-4315-8983-f645fb21f8b3
+  cost {1}{U}
+  type Instant
+  spell: until end of turn, target creature you control loses all abilities and becomes blue Dragon Illusion base 4/4 and gains flying
+}

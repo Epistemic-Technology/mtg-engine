@@ -17468,6 +17468,9 @@ impl P {
         if self.in_delayed && self.eat_words(&["the", "exiled", "cards"]) {
             return Ok(Recipient::SameExiledCards);
         }
+        if self.in_delayed && self.eat_words(&["the", "exiled", "card"]) {
+            return Ok(Recipient::SameExiledCard);
+        }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
                 return self.fail("`those cards` needs targets declared before it");

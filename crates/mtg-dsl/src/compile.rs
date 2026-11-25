@@ -3487,6 +3487,7 @@ impl Compiler<'_> {
             | Recipient::SameTokens
             | Recipient::SameCards
             | Recipient::SameExiledCards
+            | Recipient::SameExiledCard
             | Recipient::SameCreatures
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens

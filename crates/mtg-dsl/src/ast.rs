@@ -5312,6 +5312,11 @@ pub enum Recipient {
     /// the battlefield under their owners' control ...", Hide on the
     /// Ceiling).
     SameExiledCards,
+    /// `the exiled card` inside a delayed trigger about one target:
+    /// `SameCards` for it, printed "the exiled card" ("Return the exiled
+    /// card to the battlefield under its owner's control at the beginning
+    /// of the next end step.", Identity Thief).
+    SameExiledCard,
     /// `them` inside a delayed trigger about created tokens: those tokens
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").

@@ -1,0 +1,7 @@
+card "Identity Thief" {
+  oracle_id a200daec-983c-4ea6-ae98-1c963b50fbb1
+  cost {2}{U}{U}
+  type Creature — Shapeshifter
+  pt 0/3
+  triggered whenever this attacks: you may exile another target nontoken creature; if you do, this creature becomes a copy of that target 1 until end of turn; delayed target 1: return the exiled card to battlefield at beginning of the next end step
+}
