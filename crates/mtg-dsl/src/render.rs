@@ -17656,7 +17656,14 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 "If {this} would be put into a graveyard from anywhere, reveal {this} and shuffle it into its owner's library instead."
             )
         }
-        (Replaces::PlusCounters { on }, Outcome::Double) => format!(
+        // "Until end of turn, if you would put ..." (Prairie Dog) as an
+        // effect.
+        (Replaces::PlusCounters { on, you: true }, Outcome::PlusOne) => format!(
+            "{}f you would put one or more +1/+1 counters on {}, put that many plus one +1/+1 counters on it instead.",
+            if this_turn { "Until end of turn, i" } else { "I" },
+            filter_a(on, ctx.card)
+        ),
+        (Replaces::PlusCounters { on, .. }, Outcome::Double) => format!(
             "If one or more +1/+1 counters would be put on {}, twice that many +1/+1 counters are put on that {} instead.",
             filter_a(on, ctx.card),
             if on.types.contains(&CardType::Creature) {
@@ -17688,7 +17695,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 ),
             }
         }
-        (Replaces::PlusCounters { on }, Outcome::PlusOne) => format!(
+        (Replaces::PlusCounters { on, .. }, Outcome::PlusOne) => format!(
             "If one or more +1/+1 counters would be put on {}, that many plus one +1/+1 counters are put on it instead.",
             filter_a(on, ctx.card)
         ),

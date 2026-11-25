@@ -1401,7 +1401,12 @@ counters); `replace counters you put on permanent you control: plus one`
 prints "If you would put one or more counters on a permanent you control,
 put that many plus one of each of those kinds of counters on that
 permanent instead." (Doc Samson: counters the replacement's controller's
-spells, abilities, and costs put). Each also changes the counters a
+spells, abilities, and costs put). `replace +1/+1 counters you put on creature you
+control: plus one` likewise for +1/+1 counters only ("If you would put one
+or more +1/+1 counters on a creature you control, put that many plus one
++1/+1 counters on it instead."); as an effect, `this turn, replace +1/+1
+counters you put on creature you control: plus one` prints "Until end of
+turn, if you would put ..." (Prairie Dog). Each also changes the counters a
 permanent enters with, its own included (a planeswalker's loyalty, a
 Saga's lore counter, modular's, CR 122.6).
 Token creation (CR 111.1, 614.1a): `replace tokens created under your

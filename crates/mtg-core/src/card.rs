@@ -8053,6 +8053,11 @@ pub enum Replaces {
     /// as it enters (CR 122.6).
     PlusCounters {
         on: ObjFilter,
+        /// "If you would put one or more +1/+1 counters on ..." (Prairie
+        /// Dog): only the replacement's controller's putting (as
+        /// `CountersBy::You`).
+        #[serde(default)]
+        you: bool,
     },
     /// Counters of any kind would be put on a permanent matching `on`,
     /// including as it enters (CR 122.6): "If one or more counters would

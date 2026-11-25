@@ -3040,8 +3040,9 @@ impl Decompiler<'_> {
                     artifact: *artifact,
                     you: *you,
                 },
-                CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
+                CoreReplaces::PlusCounters { on, you } => Replaces::PlusCounters {
                     on: self.filter(on),
+                    you: *you,
                 },
                 CoreReplaces::AnyCounters { on, by } => Replaces::AnyCounters {
                     on: self.filter(on),

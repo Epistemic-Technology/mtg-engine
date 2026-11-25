@@ -4106,8 +4106,11 @@ pub enum Replaces {
     /// `this put into a graveyard`: "If ~ would be put into a graveyard
     /// from anywhere" (CR 113.6b).
     ThisToGraveyard,
+    /// `+1/+1 counters put on creature you control`; `+1/+1 counters you
+    /// put on ...` ("If you would put one or more +1/+1 counters on ...").
     PlusCounters {
         on: Filter,
+        you: bool,
     },
     /// `counters put on permanent you control` ("If one or more counters
     /// would be put on ..."), `counters put by effect on ...` ("If an

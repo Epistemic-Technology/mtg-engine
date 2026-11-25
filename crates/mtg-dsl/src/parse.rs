@@ -21078,8 +21078,15 @@ impl P {
             })
         ) {
             self.pos += 1;
-            self.expect_words(&["counters", "put", "on"])?;
-            return Ok(Replaces::PlusCounters { on: self.filter()? });
+            // `+1/+1 counters you put on ...` (Prairie Dog).
+            let you = self.eat_words(&["counters", "you", "put", "on"]);
+            if !you {
+                self.expect_words(&["counters", "put", "on"])?;
+            }
+            return Ok(Replaces::PlusCounters {
+                on: self.filter()?,
+                you,
+            });
         }
         // Counters of any kind (CR 122.6).
         if self.at_words(&["counters", "put", "on"])

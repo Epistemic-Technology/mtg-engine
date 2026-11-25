@@ -6461,8 +6461,9 @@ impl Compiler<'_> {
                 artifact: *artifact,
                 you: *you,
             },
-            Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
+            Replaces::PlusCounters { on, you } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
+                you: *you,
             },
             Replaces::AnyCounters { on, by } => CoreReplaces::AnyCounters {
                 on: self.filter(on),

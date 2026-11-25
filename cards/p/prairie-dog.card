@@ -1,0 +1,9 @@
+card "Prairie Dog" {
+  oracle_id 70987216-f84d-43b9-8d75-bb21ff37747b
+  cost {1}{W}
+  type Creature — Squirrel
+  pt 2/2
+  keywords lifelink
+  triggered at beginning of your end step if not cast from hand this turn: put 1 +1/+1 counter on this
+  activated {4}{W}: this turn, replace +1/+1 counters you put on creature you control: plus one
+}

@@ -846,7 +846,12 @@ impl Fmt {
                 if *artifact { "artifact " } else { "" },
                 if *effect { " by an effect" } else { "" }
             ),
-            Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
+            Replaces::PlusCounters { on, you: false } => {
+                format!("+1/+1 counters put on {}", filter(on))
+            }
+            Replaces::PlusCounters { on, you: true } => {
+                format!("+1/+1 counters you put on {}", filter(on))
+            }
             Replaces::AnyCounters { on, by } => format!(
                 "counters {} {}",
                 match by {
