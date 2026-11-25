@@ -463,7 +463,7 @@ impl GameState {
     /// permanents with the same name, that player chooses one to keep; the
     /// rest are returned, to go to their owners' graveyards.
     fn legend_rule_victims(&mut self) -> Vec<(ObjId, CardRef)> {
-        if self.legendary_count < 2 {
+        if self.legendary_count < 2 && !self.renamed {
             return Vec::new();
         }
         let mut out = Vec::new();
@@ -477,18 +477,23 @@ impl GameState {
             for id in self.permanents_of(p) {
                 // "Except it isn't legendary" (CR 707.9b): a copy
                 // exception can take the supertype away, or add it.
-                if self.legend_of(&self.objects[id])
-                    && (self.objects[id].except.is_none()
-                        || self.characteristics(id).is_some_and(|c| {
-                            c.supertypes.contains(crate::card::Supertype::Legendary)
-                        }))
-                {
+                // An effect can make a permanent legendary or name it
+                // ("becomes a legendary creature named Mileva, the
+                // Stalwart"): then its characteristics decide.
+                let legendary = if self.renamed {
+                    self.characteristics(id)
+                        .is_some_and(|c| c.supertypes.contains(crate::card::Supertype::Legendary))
+                } else {
+                    self.legend_of(&self.objects[id])
+                        && (self.objects[id].except.is_none()
+                            || self.characteristics(id).is_some_and(|c| {
+                                c.supertypes.contains(crate::card::Supertype::Legendary)
+                            }))
+                };
+                if legendary {
                     // "except his name is Chameleon, Master of Disguise":
                     // the copy's own name (CR 707.9b).
-                    by_name
-                        .entry(self.obj_name(&self.objects[id]))
-                        .or_default()
-                        .push(id);
+                    by_name.entry(self.name_of(id)).or_default().push(id);
                 }
             }
             let mut groups: Vec<Vec<ObjId>> =

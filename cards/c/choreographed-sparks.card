@@ -1,0 +1,14 @@
+card "Choreographed Sparks" {
+  oracle_id 61495793-b0c7-40a5-ad3e-9df8e2b8096b
+  cost {R}{R}
+  type Instant
+  this spell can't be copied
+  choose one or both {
+    mode: copy target instant or sorcery spell you control new targets
+    mode: copy target creature spell you control with exceptions
+  }
+  except {
+    keywords haste
+    triggered at beginning of the end step: sacrifice this
+  }
+}

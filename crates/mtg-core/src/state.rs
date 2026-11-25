@@ -1378,6 +1378,9 @@ pub struct Characteristics {
     pub toughness: i16,
     pub keywords: KeywordSet,
     pub abilities: AbilitySet,
+    /// A name an effect gave it (`Modification::SetName`); `None` keeps
+    /// the name of `def`.
+    pub name: Option<crate::card::NameId>,
 }
 
 /// `GameState::targets_of` for an object, from any handle on the pool (so
@@ -2417,6 +2420,16 @@ pub struct GameState {
     /// Legendary permanents on the battlefield, for the legend rule's
     /// snapshot gate (see `may_need_mid_decision`).
     pub legendary_count: u32,
+    /// An effect or static ability has named a permanent or made it
+    /// legendary in this game (`Modification::SetName`, `AddSupertype`;
+    /// `DefFlags::has_renames`): names and the legend rule then read
+    /// characteristics. Never cleared: such an effect can outlast its
+    /// source (Origin of Spider-Man).
+    pub renamed: bool,
+    /// Battlefield objects whose definition has a token-creation
+    /// replacement that may ask (`DefFlags::has_token_copies`): creating
+    /// tokens may then need a mid-event decision.
+    pub token_copy_sources: u32,
     /// Battlefield objects whose definition has an activated ability, so
     /// that listing a player's options costs nothing extra without any.
     pub activated_sources: u32,
@@ -2966,7 +2979,17 @@ impl GameState {
     }
 
     pub fn name_of(&self, id: ObjId) -> &str {
-        self.objects.get(id).map_or("?", |o| self.obj_name(o))
+        let Some(o) = self.objects.get(id) else {
+            return "?";
+        };
+        // "... named Legitimate Businessperson" (`Modification::SetName`).
+        if self.renamed
+            && o.zone == Zone::Battlefield
+            && let Some(n) = self.characteristics(id).and_then(|c| c.name)
+        {
+            return self.pool.name_text(n);
+        }
+        self.obj_name(o)
     }
 
     /// An object's name: its definition's, or, for a copy whose exception
@@ -3968,6 +3991,10 @@ impl GameState {
             || (!self.linked_exiles.is_empty() && self.linked_return_may_ask(replacers))
             || replacers >= 2
             || (self.legendary_count >= 2 && self.legends_may_meet())
+            // An effect can make a permanent legendary or name it at any
+            // time (CR 704.5j then asks which to keep).
+            || self.renamed
+            || self.token_copy_sources > 0
             // What is on the stack asks only as it resolves: not during an
             // action that leaves it be (`stack_stays`).
             || (!self.stack.is_empty() && !self.stack_stays(action) && self.stack.iter().any(|id| {

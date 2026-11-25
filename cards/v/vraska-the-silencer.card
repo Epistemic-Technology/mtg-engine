@@ -1,0 +1,8 @@
+card "Vraska, the Silencer" {
+  oracle_id e7c5a568-3855-4a20-9edf-01a8a6a4ba97
+  cost {1}{B}{G}
+  type Legendary Creature — Gorgon Assassin
+  pt 3/3
+  keywords deathtouch
+  triggered whenever nontoken creature an opponent controls dies: you may pay {1}; if you do, return triggering card to battlefield tapped under your control; it is Treasure artifact with ability { activated {T}, sacrifice this: add any } and loses other card types
+}

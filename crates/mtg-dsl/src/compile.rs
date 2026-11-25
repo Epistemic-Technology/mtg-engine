@@ -630,6 +630,9 @@ impl Compiler<'_> {
                 Ability::Uncounterable => {
                     b = b.uncounterable();
                 }
+                Ability::Uncopyable => {
+                    b = b.uncopyable();
+                }
                 Ability::UncounterableIf {
                     cond,
                     unpreventable,
@@ -1614,6 +1617,7 @@ impl Compiler<'_> {
                     | Ability::Companion(_)
                     | Ability::KeepsDamage
                     | Ability::Uncounterable
+                    | Ability::Uncopyable
                     | Ability::UncounterableIf { .. }
                     | Ability::EquipDiscount { .. }
                     | Ability::AuraStays
@@ -4567,6 +4571,8 @@ impl Compiler<'_> {
                 indefinite: true,
                 loses_abilities: false,
                 in_addition: false,
+                supertype: None,
+                name: None,
             }),
             // Layer 6 alone: an animation that only removes abilities.
             Effect::LoseAllAbilities { to, indefinite } => out.push(CoreEffect::Animate {
@@ -4579,6 +4585,8 @@ impl Compiler<'_> {
                 indefinite: *indefinite,
                 loses_abilities: true,
                 in_addition: false,
+                supertype: None,
+                name: None,
             }),
             Effect::Strip { keywords, to } => out.push(CoreEffect::Strip {
                 keywords: KeywordSet::of(keywords.iter().copied()),
@@ -4986,9 +4994,12 @@ impl Compiler<'_> {
                 loses_abilities,
                 in_addition,
                 ability,
+                supertype,
+                name,
                 ..
             } => {
                 let subtypes = self.subtypes(subtypes);
+                let name = name.as_deref().map(|n| self.pool.name_id(n));
                 out.push(CoreEffect::Animate {
                     to: r(*to),
                     types: TypeSet::of(types.iter().copied()),
@@ -4999,6 +5010,8 @@ impl Compiler<'_> {
                     indefinite: *indefinite,
                     loses_abilities: *loses_abilities,
                     in_addition: *in_addition,
+                    supertype: *supertype,
+                    name,
                 });
                 // "becomes a 2/4 Wizard creature with \"...\"": the
                 // ability for as long as the animation lasts (layer 6).
@@ -5041,9 +5054,14 @@ impl Compiler<'_> {
                 let kind = self.choice_kind(kind);
                 out.push(CoreEffect::Choose(kind));
             }
-            Effect::BecomeChosen { to, color } => out.push(CoreEffect::BecomeChosen {
+            Effect::BecomeChosen {
+                to,
+                color,
+                indefinite,
+            } => out.push(CoreEffect::BecomeChosen {
                 to: r(*to),
                 color: *color,
+                indefinite: *indefinite,
             }),
             Effect::ProtectionFromChosen { to } => {
                 out.push(CoreEffect::ProtectionFromChosen { to: r(*to) });
@@ -6991,6 +7009,7 @@ impl Compiler<'_> {
             Mod::AddChosenType { .. } => Modification::AddChosenType,
             Mod::AddSubtype(s) => Modification::AddSubtype(self.pool.subtype(s)),
             Mod::AddSupertype(s) => Modification::AddSupertype(*s),
+            Mod::SetName(n) => Modification::SetName(self.pool.name_id(n)),
             Mod::SetSubtype(s) => Modification::SetCreatureType(self.pool.subtype(s)),
             // A static ability compiles all five (`Ability::Static`).
             Mod::AddAllLandTypes => Modification::AddLandType(Color::White),
@@ -7167,6 +7186,9 @@ impl Compiler<'_> {
             }
             Ability::Uncounterable | Ability::UncounterableIf { .. } => {
                 return self.err("\"can't be countered\" is a property of the spell");
+            }
+            Ability::Uncopyable => {
+                return self.err("\"can't be copied\" is a property of the spell");
             }
             Ability::EquipDiscount { .. } => {
                 return self.err("an equip discount is a property of the card");
@@ -9650,6 +9672,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     in_addition: false,
                     is_word: false,
                     ability: None,
+                    supertype: None,
+                    name: None,
+                    gains: false,
                 }),
                 equip: false,
                 cycling: false,

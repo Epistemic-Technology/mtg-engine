@@ -1,0 +1,8 @@
+card "Honest Work" {
+  oracle_id 12956c07-e679-471b-8dcb-2a2d15b0be55
+  cost {U}
+  type Enchantment — Aura
+  enchant creature an opponent controls
+  triggered when this enters: tap enchanted creature and remove all counters from enchanted creature
+  static enchanted: loses all abilities, set subtype Citizen, base 1/1, has ability { activated {T}: add {C} }, named "Humble Merchant"
+}

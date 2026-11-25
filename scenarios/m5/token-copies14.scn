@@ -1,0 +1,76 @@
+# "The first time you would create one or more tokens each turn, you may
+# instead create that many tokens that are copies of enchanted permanent."
+# (CR 614.1a: the player's first token-creating event of the turn only;
+# "As long as this Equipment is attached to a creature ... equipped
+# creature", Mirrormind Crown).
+
+scenario "Moonlit Meditation: the first tokens of the turn are copies of the enchanted creature" {
+  battlefield A: 4 "Plains", 3 "Forest", 3 "Island", "Grizzly Bears"
+  hand A: "Moonlit Meditation", "Raise the Alarm", "Sprout"
+  turn 1 A: cast "Moonlit Meditation" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: accept "Moonlit Meditation"
+  turn 1 A: wait
+  turn 1 A: cast "Sprout"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Grizzly Bears"
+  assert battlefield A lacks "Soldier"
+  assert battlefield A contains "Saproling"
+}
+
+scenario "Moonlit Meditation: declined, the tokens are created as they are, and not later that turn" {
+  battlefield A: 4 "Plains", 3 "Forest", 3 "Island", "Grizzly Bears"
+  hand A: "Moonlit Meditation", "Raise the Alarm", "Sprout"
+  turn 1 A: cast "Moonlit Meditation" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: decline "Moonlit Meditation"
+  turn 1 A: wait
+  turn 1 A: cast "Sprout"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains 2 "Soldier"
+  assert battlefield A contains "Saproling"
+}
+
+scenario "Moonlit Meditation: tokens created earlier in the turn use up the first time" {
+  battlefield A: 4 "Plains", 3 "Forest", 3 "Island", "Grizzly Bears"
+  hand A: "Moonlit Meditation", "Raise the Alarm", "Sprout"
+  turn 1 A: cast "Sprout"
+  turn 1 A: wait
+  turn 1 A: cast "Moonlit Meditation" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert battlefield A contains 2 "Soldier"
+}
+
+scenario "Moonlit Meditation: it works again the next turn" {
+  battlefield A: "Plains", "Forest", "Grizzly Bears", "Moonlit Meditation" on "Grizzly Bears"
+  hand A: "Raise the Alarm"
+  library A: "Island", "Island"
+  start turn 3 A upkeep
+  turn 3 A: cast "Raise the Alarm"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 3 "Grizzly Bears"
+}
+
+scenario "Mirrormind Crown: copies of the equipped creature" {
+  battlefield A: "Plains", "Forest", "Hill Giant", "Mirrormind Crown" on "Hill Giant"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Hill Giant"
+  assert battlefield A lacks "Soldier"
+}
+
+scenario "Mirrormind Crown: unattached, nothing is replaced" {
+  battlefield A: "Plains", "Forest", "Hill Giant", "Mirrormind Crown"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Hill Giant"
+  assert battlefield A contains 2 "Soldier"
+}

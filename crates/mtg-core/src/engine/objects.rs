@@ -1015,6 +1015,9 @@ impl GameState {
     pub(super) fn count_sources(&mut self, flags: DefFlags, legendary: bool, add: bool) {
         let d = |on: bool| u32::from(on);
         if add {
+            // Sticky (`GameState::renamed`).
+            self.renamed |= flags.has_renames();
+            self.token_copy_sources += d(flags.has_token_copies());
             self.trigger_sources += d(flags.has_triggers());
             self.replacement_sources += d(flags.has_replacements());
             self.control_sources += d(flags.has_control_static());
@@ -1045,6 +1048,7 @@ impl GameState {
             self.foreign_activated_sources += d(flags.has_foreign_activated());
             self.mana_from_watchers += d(flags.watches_mana_from());
         } else {
+            self.token_copy_sources -= d(flags.has_token_copies());
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
             self.control_sources -= d(flags.has_control_static());

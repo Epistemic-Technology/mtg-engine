@@ -10166,6 +10166,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
                 _ => false,
             };
+            // "Return up to one target artifact card, up to one target land
+            // card, and up to one target non-Aura enchantment card from your
+            // graveyard to the battlefield" (Relive the Past): one graveyard
+            // for the list.
+            let o = if yours && matches!(what, Recipient::Targets(_, n) if *n > 1) {
+                format!(
+                    "{} from your graveyard",
+                    o.replace(" from your graveyard", "")
+                )
+            } else {
+                o
+            };
             // A card from another player's graveyard isn't "returned":
             // "put target creature card from a graveyard onto the
             // battlefield under your control".
@@ -11211,9 +11223,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let _ = write!(text, " {} times", count_words(*n, "one"));
                 }
             }
+            let x = except_text(ctx.card, ctx.current);
+            // "Copy target creature spell you control. The copy gains
+            // haste and \"At the beginning of the end step, sacrifice this
+            // token.\"" (Choreographed Sparks): what it only has more.
+            if *except && let Some(rest) = x.strip_prefix("it has ") {
+                let _ = write!(text, ". The copy gains {rest}");
+                return Clause::imperative(text);
+            }
             if *except {
                 // "except the copy isn't legendary".
-                let x = except_text(ctx.card, ctx.current)
+                let x = x
                     .replace("it isn't", "the copy isn't")
                     .replace("it's", "the copy is");
                 let _ = write!(text, ", except {x}");
@@ -13235,18 +13255,104 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             in_addition,
             is_word,
             ability,
+            supertype,
+            name,
+            gains,
         } => {
             let s = ctx.subj(*to);
+            // "it becomes a legendary creature named Mileva, the Stalwart,
+            // it has base power and toughness 5/5, and it gains \"...\""
+            // (Tenth District Hero): after a name, each change is a clause.
+            if let Some(n) = name {
+                let mut words: Vec<String> = Vec::new();
+                if supertype.is_some() {
+                    words.push("legendary".to_string());
+                }
+                words.extend(colors.iter().map(|c| color_name(*c).to_string()));
+                words.extend(subtypes.iter().cloned());
+                words.extend(types.iter().map(|t| type_noun(*t).to_string()));
+                let mut items = vec![format!(
+                    "{} {} named {n}",
+                    ctx.verb(*to, "becomes", "become"),
+                    with_article(&words.join(" "))
+                )];
+                if let (Some((p, q)), true) = (pt, base) {
+                    items.push(format!("it has base power and toughness {p}/{q}"));
+                }
+                if !keywords.is_empty() {
+                    items.push(format!("it gains {}", keywords_list(keywords)));
+                }
+                if let Some(a) = ability {
+                    let q = quoted(a, ctx.card, CardType::Creature, ctx.lookup);
+                    items.push(format!("it gains {q}"));
+                }
+                let text = if items.len() == 2 {
+                    items.join(" and ")
+                } else {
+                    list(&items)
+                };
+                let clause = Clause::with_subject(*to, s, text);
+                return if *indefinite {
+                    clause
+                } else {
+                    clause.until_eot()
+                };
+            }
             // "It's a Spirit in addition to its other types", "That
             // creature is a Hero ...", "It has flying and is an Angel ...",
             // "It's a Skeleton ... and has no abilities".
             if *is_word {
-                let noun = with_article(&subtypes.join(" "));
-                let rest = "in addition to its other types";
-                let text = if keywords.is_empty() {
-                    format!("is {noun} {rest}")
+                // "They are 5/5 Elemental creatures in addition to their
+                // other types" (Relive the Past).
+                let plural = ctx.verb(*to, "becomes", "become") == "become";
+                let mut words: Vec<String> = Vec::new();
+                if let Some((p, q)) = pt {
+                    words.push(format!("{p}/{q}"));
+                }
+                words.extend(subtypes.iter().cloned());
+                words.extend(types.iter().map(|t| type_noun(*t).to_string()));
+                let noun = if plural {
+                    let last = words.pop().unwrap_or_default();
+                    words.push(pluralize(&last));
+                    words.join(" ")
                 } else {
-                    format!("has {} and is {noun} {rest}", keywords_list(keywords))
+                    with_article(&words.join(" "))
+                };
+                let rest = if plural {
+                    "in addition to their other types"
+                } else {
+                    "in addition to its other types"
+                };
+                let be = if plural { "are" } else { "is" };
+                // "It's a Treasure artifact with \"{T}, Sacrifice this
+                // artifact: Add one mana of any color,\" and it loses all
+                // other card types."
+                if !*in_addition {
+                    let mut text = format!("{be} {noun}");
+                    if let Some(a) = ability {
+                        let q = quoted(a, ctx.card, CardType::Artifact, ctx.lookup);
+                        let q = match q.strip_suffix(".\"") {
+                            Some(h) => format!("{h},\""),
+                            None => format!("{q},"),
+                        };
+                        let _ = write!(text, " with {q}");
+                    }
+                    let they = if plural { "they lose" } else { "it loses" };
+                    let _ = write!(text, " and {they} all other card types");
+                    let (s, text) = match text.strip_prefix("is ") {
+                        Some(r) if s == "it" => ("it's".to_string(), r.to_string()),
+                        _ => (s, text),
+                    };
+                    return Clause::with_subject(*to, s, text);
+                }
+                let text = if keywords.is_empty() {
+                    format!("{be} {noun} {rest}")
+                } else {
+                    format!(
+                        "{} {} and {be} {noun} {rest}",
+                        if plural { "have" } else { "has" },
+                        keywords_list(keywords)
+                    )
                 };
                 let text = if *loses_abilities {
                     format!("{text} and has no abilities")
@@ -13303,6 +13409,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "up to two target creatures each ... become blue Illusions".
             let plural = ctx.verb(*to, "becomes", "become") == "become";
             let mut words = Vec::new();
+            // "becomes a legendary Spider Hero" (CR 205.4).
+            if supertype.is_some() {
+                words.push("legendary".to_string());
+            }
             if let (Some((p, q)), false) = (pt, base) {
                 words.push(format!("{p}/{q}"));
             }
@@ -13350,7 +13460,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // toughness 5/5", "a 2/2 Gargoyle creature with flying".
             // "a Dragon with base power and toughness 4/4, flying, and
             // haste" (Bogardan Dragonheart): one list.
-            if let (Some((p, q)), true) = (pt, base)
+            if let (Some((p, q)), true, true) = (pt, base, *gains) {
+                let _ = write!(
+                    text,
+                    " with base power and toughness {p}/{q} and gains {}",
+                    keywords_list(keywords)
+                );
+            } else if let (Some((p, q)), true) = (pt, base)
                 && !keywords.is_empty()
             {
                 let mut items = vec![format!("base power and toughness {p}/{q}")];
@@ -13556,7 +13672,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 .until_eot()
         }
         // "Each land you control becomes that type": a group is "each".
-        Effect::BecomeChosen { to, color } => {
+        Effect::BecomeChosen {
+            to,
+            color,
+            indefinite,
+        } => {
             let (s, verb) = match to {
                 Recipient::Group(_)
                 | Recipient::EachCreature
@@ -13565,6 +13685,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 _ => (ctx.subj(*to), ctx.verb(*to, "becomes", "become")),
             };
             let what = if *color { "color" } else { "type" };
+            // "This artifact becomes the chosen color." (Puca's Eye).
+            if *indefinite {
+                return Clause::with_subject(*to, s, format!("{verb} the chosen {what}"));
+            }
             Clause::with_subject(*to, s, format!("{verb} that {what}")).until_eot()
         }
         Effect::WhenYouDo {
@@ -18577,6 +18701,22 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 "If one or more {c}tokens would be created under your control, those tokens plus {desc} are created instead."
             )
         }
+        // "The first time you would create one or more tokens each turn,
+        // you may instead create that many tokens that are copies of
+        // enchanted permanent." (Moonlit Meditation); "As long as this
+        // Equipment is attached to a creature, ... equipped creature"
+        // (Mirrormind Crown).
+        (Replaces::CreateTokens { .. }, Outcome::CopiesOfAttached { creature }) => {
+            let rest = "the first time you would create one or more tokens each turn, you may instead create that many tokens that are copies of";
+            if *creature {
+                format!(
+                    "As long as {} is attached to a creature, {rest} equipped creature.",
+                    this_ref(ctx.card)
+                )
+            } else {
+                format!("{} enchanted permanent.", capitalize(rest))
+            }
+        }
         // "If one or more artifact tokens would be created under your
         // control, that many 5/5 red Dragon creature tokens with flying are
         // created instead." (Draconic Visitor).
@@ -19030,6 +19170,8 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             if plural_form { "their" } else { "its" }
         ),
         // "Enchanted land is snow."
+        // Joined to what it is (`mods_phrase`).
+        Mod::SetName(n) => format!("named {n}"),
         Mod::AddSupertype(s) => format!(
             "{} {}",
             v("is", "are"),
@@ -19711,6 +19853,15 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             t
         })
         .collect();
+    // "... with base power and toughness 1/1 named Legitimate
+    // Businessperson": the name follows the whole phrase (`body` below).
+    let mut name = None;
+    for (i, m) in mods.iter().enumerate() {
+        if let Mod::SetName(n) = m {
+            name = Some(n.clone());
+            parts[i] = "\u{2}".to_string();
+        }
+    }
     // "has defender, and loses all other abilities": abilities it gains
     // before losing the rest are kept (`compile` applies the loss first).
     for (i, m) in mods.iter().enumerate() {
@@ -19973,6 +20124,22 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             .replace(".\", ", ",\" ")
             .replace(".\" and ", "\" and ")
     };
+    if let Some(n) = name {
+        // "loses all abilities and is a Citizen with base power and
+        // toughness 1/1 and \"{T}: Add {C}\" named Humble Merchant".
+        if let [lose, is, has] = &parts[..]
+            && lose.starts_with("loses all ")
+            && is.contains(" with base power and toughness ")
+            && let Some(q) = has
+                .trim_start_matches('\u{1}')
+                .trim_start_matches("has ")
+                .strip_prefix('"')
+        {
+            let q = q.strip_suffix(".\"").unwrap_or(q);
+            body = format!("{subject} {lose} and {is} and \"{q}\"");
+        }
+        let _ = write!(body, " named {n}");
+    }
     if let Some(clause) = activation {
         // Oracle joins it with ", and", except after "doesn't untap during
         // its controller's untap step" (Encrust).
@@ -22244,6 +22411,19 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     out.push_str(", if ");
                     out.push_str(&text.replacen(" to cast that spell", " to cast it", 1));
                 }
+                // "When this creature dies, if it wasn't a Demon, ..."
+                // (Infernal Vessel): as it last existed (CR 603.10a).
+                Some(crate::ast::TrigCond::Static(StaticCond::Is(f)))
+                    if matches!(trigger, Trigger::Dies(TriggerObj::This))
+                        && f.not_subtypes.len() == 1
+                        && *f
+                            == Filter {
+                                not_subtypes: f.not_subtypes.clone(),
+                                ..Filter::default()
+                            } =>
+                {
+                    let _ = write!(out, ", if it wasn't {}", with_article(&f.not_subtypes[0]));
+                }
                 // "When Enduring Innocence dies, if it was a creature, ...":
                 // the permanent as it last existed (CR 603.10a).
                 Some(crate::ast::TrigCond::Static(c @ StaticCond::Is(f)))
@@ -23277,6 +23457,7 @@ fn ability_text_raw(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             this_ref(card)
         ),
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
+        Ability::Uncopyable => "This spell can't be copied.".to_string(),
         Ability::UncounterableIf {
             cond,
             unpreventable,

@@ -1,0 +1,7 @@
+card "Infernal Vessel" {
+  oracle_id 0e13c283-f462-441f-a8a5-0c75a59ff1d9
+  cost {2}{B}
+  type Creature — Human Cleric
+  pt 2/1
+  triggered when this dies if this is non-Demon: return this to battlefield with 2 +1/+1 counter; it is Demon in addition
+}

@@ -305,6 +305,8 @@ impl Engine {
                 state.exile_static_sources += u32::from(def.flags().has_exile_static());
                 state.foreign_activated_sources += u32::from(def.flags().has_foreign_activated());
                 state.mana_from_watchers += u32::from(def.flags().watches_mana_from());
+                state.renamed |= def.flags().has_renames();
+                state.token_copy_sources += u32::from(def.flags().has_token_copies());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -315,10 +317,13 @@ impl Engine {
                 .battlefield
                 .iter()
                 .copied()
-                .find(|id| *id != aura && state.name_of(*id) == name)
+                // The card's own name: a name an effect gives would read
+                // characteristics before the attachments are made.
+                .find(|id| *id != aura && state.obj_name(&state.objects[*id]) == name)
                 .unwrap_or_else(|| panic!("setup: no \"{name}\" on the battlefield to attach to"));
             state.objects[aura].attached_to = Some(target);
         }
+        state.cbump();
         state.turn_number = setup.turn_number;
         state.step = setup.step;
         // The turns each player has begun, taking turns in order with the
@@ -649,6 +654,8 @@ impl GameState {
             control_effects: 0,
             control_dirty: false,
             legendary_count: 0,
+            renamed: false,
+            token_copy_sources: 0,
             activated_sources: 0,
             life_cda_sources: 0,
             tap_static_sources: 0,

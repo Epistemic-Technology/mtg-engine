@@ -376,6 +376,18 @@ impl Fmt {
             Recipient::Targets(a, n) if self.mentioned[a] => {
                 format!("targets {} to {}", a + 1, a + n)
             }
+            // "up to 1 target artifact card ... and up to 1 target land
+            // card ...": different kinds, one at a time (Relive the Past).
+            Recipient::Targets(a, n)
+                if targets
+                    .get(a..a + n)
+                    .is_some_and(|ts| ts.iter().any(|t| *t != ts[0])) =>
+            {
+                let each: Vec<String> = (a..a + n)
+                    .map(|i| self.recipient(Recipient::Target(i), targets))
+                    .collect();
+                each.join(" and ")
+            }
             Recipient::Targets(a, n) => {
                 let first = self.recipient(Recipient::Target(a), targets);
                 for m in &mut self.mentioned[a..a + n] {
@@ -3681,18 +3693,40 @@ impl Fmt {
                 in_addition,
                 is_word,
                 ability,
+                supertype,
+                name,
+                gains,
             } => {
                 // `target 1 is Spirit in addition and has no abilities`.
                 if *is_word {
+                    let mut what: Vec<String> = Vec::new();
+                    if let Some((p, q)) = pt {
+                        what.push(format!("{p}/{q}"));
+                    }
+                    what.extend(subtypes.iter().cloned());
+                    what.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
+                    let with = match ability {
+                        Some(a) => format!(
+                            "{} ability {{ {} }}",
+                            if ks.is_empty() { " with" } else { " and" },
+                            nested(a, &self.groups)
+                        ),
+                        None => String::new(),
+                    };
                     let with = if ks.is_empty() {
-                        String::new()
+                        with
                     } else {
-                        format!(" with {}", keywords(ks))
+                        format!(" with {}{with}", keywords(ks))
                     };
                     return format!(
-                        "{} is {}{with} in addition{}",
+                        "{} is {}{with} {}{}",
                         self.recipient(*to, t),
-                        subtypes.join(" "),
+                        what.join(" "),
+                        if *in_addition {
+                            "in addition"
+                        } else {
+                            "and loses other card types"
+                        },
                         if *loses_abilities {
                             " and has no abilities"
                         } else {
@@ -3715,6 +3749,9 @@ impl Fmt {
                     );
                 }
                 let mut words: Vec<String> = Vec::new();
+                if supertype.is_some() {
+                    words.push("legendary".to_string());
+                }
                 if let (Some((p, q)), false) = (pt, base) {
                     words.push(format!("{p}/{q}"));
                 }
@@ -3729,10 +3766,16 @@ impl Fmt {
                         .cloned(),
                 );
                 words.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
+                if let Some(n) = name {
+                    words.push(format!("named \"{n}\""));
+                }
                 if let (Some((p, q)), true) = (pt, base) {
                     words.push(format!("base {p}/{q}"));
                 }
-                if !ks.is_empty() {
+                if *gains {
+                    let names: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
+                    words.push(format!("and gains {}", names.join(" and ")));
+                } else if !ks.is_empty() {
                     words.push(format!("with {}", keywords(ks)));
                 }
                 if let Some(a) = ability {
@@ -3824,7 +3867,15 @@ impl Fmt {
                 "{} gains protection from chosen color",
                 self.recipient(*to, t)
             ),
-            Effect::BecomeChosen { to, color } => format!(
+            Effect::BecomeChosen {
+                to,
+                indefinite: true,
+                ..
+            } => format!(
+                "{} becomes chosen color indefinitely",
+                self.recipient(*to, t)
+            ),
+            Effect::BecomeChosen { to, color, .. } => format!(
                 "{} becomes that {}",
                 self.recipient(*to, t),
                 if *color { "color" } else { "type" }
@@ -5194,6 +5245,10 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
         Outcome::Triple => "triple".to_string(),
+        Outcome::CopiesOfAttached { creature } => format!(
+            "first each turn may copies of attached{}",
+            if *creature { " creature" } else { "" }
+        ),
         Outcome::PlusToken { .. } => "plus \"\"".to_string(),
         Outcome::TokensInstead { .. } => "that many \"\"".to_string(),
         Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),
@@ -7499,6 +7554,7 @@ fn modification(m: &Mod) -> String {
         Mod::AddChosenType { creature: false } => "add chosen type".to_string(),
         Mod::AddChosenType { creature: true } => "add chosen creature type".to_string(),
         Mod::AddSubtype(s) => format!("add subtype {s}"),
+        Mod::SetName(n) => format!("named \"{n}\""),
         Mod::AddSupertype(s) => format!(
             "add supertype {}",
             match s {
@@ -9469,6 +9525,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");
+        }
+        Ability::Uncopyable => {
+            let _ = writeln!(out, "{indent}this spell can't be copied");
         }
         Ability::UncounterableIf {
             cond,

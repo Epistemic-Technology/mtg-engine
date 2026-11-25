@@ -1,0 +1,252 @@
+# A name set by a static ability or an effect (CR 201.1: "... named
+# Legitimate Businessperson"; its other names go), a supertype added by
+# an effect ("becomes a legendary Spider Hero", CR 205.4) and the legend
+# rule reading it (CR 704.5j), "It's a Demon in addition to its other
+# types" and "It's a Treasure artifact ... and it loses all other card
+# types" on a returned card, "They are 5/5 Elemental creatures in
+# addition to their other types", and "becomes the chosen color" with no
+# duration.
+
+scenario "Witness Protection: the creature is a 1/1 green and white Citizen named Legitimate Businessperson" {
+  battlefield A: "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Witness Protection"
+  turn 1 A: cast "Witness Protection" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Legitimate Businessperson"
+  assert battlefield B lacks "Serra Angel"
+  assert power "Legitimate Businessperson" 1
+  assert toughness "Legitimate Businessperson" 1
+  assert is "Legitimate Businessperson" green
+  assert is "Legitimate Businessperson" white
+  assert is "Legitimate Businessperson" citizen
+  assert is not "Legitimate Businessperson" angel
+  assert has not "Legitimate Businessperson" flying
+}
+
+scenario "Witness Protection: the name goes with the Aura" {
+  battlefield A: "Island", 2 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Witness Protection", "Naturalize"
+  turn 1 A: cast "Witness Protection" targeting "Serra Angel"
+  turn 1 A: wait
+  turn 1 A: cast "Naturalize" targeting "Witness Protection"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert battlefield B lacks "Legitimate Businessperson"
+  assert has "Serra Angel" flying
+}
+
+scenario "Honest Work: tap it, remove its counters; a 1/1 Citizen named Humble Merchant that taps for {C}" {
+  battlefield A: "Island"
+  battlefield B: "Serra Angel" with 2 +1/+1
+  hand A: "Honest Work"
+  turn 1 A: cast "Honest Work" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Humble Merchant"
+  assert tapped "Humble Merchant"
+  assert counters "Humble Merchant" +1/+1 0
+  assert power "Humble Merchant" 1
+  assert is "Humble Merchant" citizen
+  assert has not "Humble Merchant" flying
+}
+
+scenario "Honest Work: the Humble Merchant's mana pays for a spell" {
+  battlefield A: "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Honest Work"
+  hand B: "Sol Ring"
+  turn 1 A: cast "Honest Work" targeting "Serra Angel"
+  run_to turn 2 precombat_main
+  turn 2 B: cast "Sol Ring"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Sol Ring"
+  assert tapped "Humble Merchant"
+}
+
+scenario "Tenth District Hero: a 4/4 Human Detective with vigilance, then Mileva, the Stalwart" {
+  battlefield A: 6 "Plains", "Tenth District Hero", "Grizzly Bears"
+  graveyard A: "Serra Angel", "Hill Giant", "Shock"
+  turn 1 A: activate "Tenth District Hero" ability 1
+  run_to turn 1 begin_combat
+  assert power "Tenth District Hero" 4
+  assert is "Tenth District Hero" detective
+  assert has "Tenth District Hero" vigilance
+  turn 1 postcombat_main A: activate "Tenth District Hero" ability 2
+  run_to turn 1 end
+  assert battlefield A contains "Mileva, the Stalwart"
+  assert battlefield A lacks "Tenth District Hero"
+  assert is "Mileva, the Stalwart" legendary
+  assert power "Mileva, the Stalwart" 5
+  assert has "Mileva, the Stalwart" vigilance
+  assert has "Grizzly Bears" indestructible
+  assert has not "Mileva, the Stalwart" indestructible
+  run_to turn 3 upkeep
+  assert battlefield A contains "Mileva, the Stalwart"
+}
+
+scenario "Tenth District Hero: not a Detective, the second ability does nothing" {
+  battlefield A: 3 "Plains", "Tenth District Hero", "Grizzly Bears"
+  graveyard A: "Serra Angel"
+  turn 1 A: activate "Tenth District Hero" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Tenth District Hero"
+  assert power "Tenth District Hero" 2
+  assert is not "Tenth District Hero" legendary
+  assert has not "Grizzly Bears" indestructible
+  assert exile A contains "Serra Angel"
+}
+
+scenario "Origin of Spider-Man: chapter II makes the creature a legendary Spider Hero with a +1/+1 counter" {
+  battlefield A: "Origin of Spider-Man" with 1 lore, "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: trigger "Origin of Spider-Man" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert is "Grizzly Bears" legendary
+  assert is "Grizzly Bears" spider
+  assert is "Grizzly Bears" hero
+  assert is "Grizzly Bears" bear
+  run_to turn 5 upkeep
+  assert is "Grizzly Bears" legendary
+}
+
+scenario "Origin of Spider-Man: one of two Grizzly Bears made legendary, both stay" {
+  battlefield A: "Origin of Spider-Man" with 1 lore, "Grizzly Bears", "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: trigger "Origin of Spider-Man" targeting oldest "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+}
+
+scenario "Origin of Spider-Man: two Grizzly Bears made legendary are subject to the legend rule" {
+  battlefield A: 2 "Origin of Spider-Man" with 1 lore, "Grizzly Bears", "Grizzly Bears"
+  start turn 3 A upkeep
+  turn 3 precombat_main A: trigger "Origin of Spider-Man" targeting oldest "Grizzly Bears"
+  turn 3 precombat_main A: trigger "Origin of Spider-Man" targeting newest "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Infernal Vessel: it returns with two +1/+1 counters as a Demon, then stays dead" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Infernal Vessel"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting "Infernal Vessel"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Infernal Vessel"
+  assert counters "Infernal Vessel" +1/+1 2
+  assert is "Infernal Vessel" demon
+  assert is "Infernal Vessel" cleric
+  assert power "Infernal Vessel" 4
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Infernal Vessel"
+  run_to turn 1 end
+  assert graveyard B contains "Infernal Vessel"
+}
+
+scenario "Relive the Past: an artifact, a land and an enchantment return as 5/5 Elemental creatures" {
+  battlefield A: 6 "Forest", "Plains"
+  graveyard A: "Ornithopter", "Mountain", "Glorious Anthem", "Pacifism"
+  hand A: "Relive the Past"
+  turn 1 A: cast "Relive the Past" targeting "Ornithopter", "Mountain", "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Mountain"
+  assert battlefield A contains "Glorious Anthem"
+  assert graveyard A contains "Pacifism"
+  assert is "Mountain" creature
+  assert is "Mountain" land
+  assert is "Mountain" elemental
+  assert power "Mountain" 6
+  assert toughness "Glorious Anthem" 6
+  assert is "Glorious Anthem" enchantment
+  assert power "Ornithopter" 6
+  assert has "Ornithopter" flying
+}
+
+scenario "Vraska, the Silencer: the opponent's creature returns tapped as a Treasure, not a creature" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Vraska, the Silencer", "Forest"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert is "Grizzly Bears" artifact
+  assert is "Grizzly Bears" treasure
+  assert is not "Grizzly Bears" creature
+  assert is not "Grizzly Bears" bear
+}
+
+scenario "Vraska, the Silencer: declined, the card stays in the graveyard" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Vraska, the Silencer", "Forest"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 B: decline "Vraska, the Silencer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Vraska, the Silencer: the Treasure sacrifices for mana" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Vraska, the Silencer", "Forest"
+  hand A: "Shock"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Puca's Eye: it becomes the chosen color, and stays so" {
+  battlefield A: 2 "Island"
+  hand A: "Puca's Eye"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Puca's Eye"
+  turn 1 A: choose green
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert is "Puca's Eye" green
+  run_to turn 3 upkeep
+  assert is "Puca's Eye" green
+}
+
+# "This spell can't be copied." (CR 101.2) and a creature spell's copy
+# that gains haste and "At the beginning of the end step, sacrifice this
+# token." (Choreographed Sparks; the copy becomes a token, CR 707.10f).
+
+scenario "Choreographed Sparks: the creature spell's copy is a token with haste, sacrificed at the end step" {
+  battlefield A: 2 "Forest", 2 "Mountain"
+  hand A: "Grizzly Bears", "Choreographed Sparks"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Choreographed Sparks" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert has oldest A "Grizzly Bears" haste
+  assert has not newest A "Grizzly Bears" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "Choreographed Sparks: copies an instant spell you control" {
+  battlefield A: 3 "Mountain"
+  hand A: "Lightning Bolt", "Choreographed Sparks"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Choreographed Sparks" mode 1 targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Choreographed Sparks: it can't be copied" {
+  battlefield A: 5 "Mountain"
+  hand A: "Lightning Bolt", "Choreographed Sparks", "Choreographed Sparks"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Choreographed Sparks" mode 1 targeting "Lightning Bolt"
+  turn 1 A: cast "Choreographed Sparks" mode 1 targeting oldest "Choreographed Sparks"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}

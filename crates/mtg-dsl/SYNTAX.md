@@ -888,14 +888,24 @@ Dragon ... (It loses all other creature types.)"), `this becomes
 Shapeshifter artifact creature base 5/5` ("... with base power and
 toughness 5/5"), `this becomes artifact creature` (no new P/T), `this
 becomes 2/2 Gargoyle creature with flying indefinitely` (keywords after
-`with`; `indefinitely`: no duration, Opal Caryatid), `this becomes 2/4 Wizard creature with ability { triggered whenever you cast instant or sorcery spell: this gets +1/+0 } indefinitely` ("it becomes a 2/4 Wizard creature with \"Whenever ...\" It's still a land.", Great Hall of the Biblioplex; `with flying and ability { ... }`: "with flying and \"This creature gets ...\"", Iron Man Armor: it gains the ability for as long as the rest lasts), `this becomes 3/3 creature with vigilance and all creature types indefinitely` (Soulstone Sanctuary: every creature type, CR 205.3m; `with all creature types` without keywords), `until end of turn,
+`with`; `indefinitely`: no duration, Opal Caryatid), `it becomes legendary
+Spider Hero in addition indefinitely` ("It becomes a legendary Spider Hero
+in addition to its other types.": the supertype is added, CR 205.4, and the
+legend rule then reads it, CR 704.5j), `this becomes Human Detective base
+4/4 and gains vigilance indefinitely` ("This creature becomes a Human
+Detective with base power and toughness 4/4 and gains vigilance."), `this
+becomes legendary creature named "Mileva, the Stalwart" base 5/5 with
+ability { ... } indefinitely` ("it becomes a legendary creature named
+Mileva, the Stalwart, it has base power and toughness 5/5, and it gains
+\"...\"": the name replaces its own, CR 201.1, for the legend rule, the
+log, and "named" filters, which no longer see its card's name), `this becomes 2/4 Wizard creature with ability { triggered whenever you cast instant or sorcery spell: this gets +1/+0 } indefinitely` ("it becomes a 2/4 Wizard creature with \"Whenever ...\" It's still a land.", Great Hall of the Biblioplex; `with flying and ability { ... }`: "with flying and \"This creature gets ...\"", Iron Man Armor: it gains the ability for as long as the rest lasts), `this becomes 3/3 creature with vigilance and all creature types indefinitely` (Soulstone Sanctuary: every creature type, CR 205.3m; `with all creature types` without keywords), `until end of turn,
 target creature becomes Dragon base 4/4 and target 1 gains flying`;
 `return this to battlefield; it is now enchantment` prints "return it to
 the battlefield under its owner's control. It's an enchantment." (the
 Enduring cycle: its card types become those indefinitely, and a permanent
 that stops being a creature loses its creature types, CR 205.1a; with
 `pronoun they`, "return them to the battlefield. They're an artifact.");
-in a `when this dies` trigger, `if this is creature` prints "if it was a
+in a `when this dies` trigger, `if this is non-Demon` prints "if it wasn't a Demon" (Infernal Vessel) and `if this is creature` prints "if it was a
 creature" (as it last existed); a trigger condition `if this is enchantment` prints "if this permanent is
 an enchantment" and the source is "it" after it, `target creature becomes blue`, `this becomes colorless`, `that creature becomes green indefinitely` (no duration: "That creature becomes green."),
 `target land becomes Island` (all until end of turn), `this becomes all
@@ -925,7 +935,9 @@ your choice"), `target land becomes Plains or Island` (one of those),
 `enchanted creature becomes creature type of choice` (it loses its other
 creature types, CR 205.1b) and `target creature becomes creature type of
 choice except Wall` ("Choose a creature type other than Wall. Target
-creature becomes that type until end of turn."), `target creature becomes
+creature becomes that type until end of turn."), `this artifact becomes
+chosen color indefinitely` after `choose color` ("This artifact becomes the
+chosen color.", Puca's Eye: no duration), `target creature becomes
 colors of choice` ("the color or colors of your choice": one color at a
 time, then `done`), all until end of turn. `this becomes color of choice and gains
 hexproof from that color` prints "Until end of turn, Mondo Gecko becomes
@@ -1082,7 +1094,9 @@ cast` are the same condition, printed by the card's pronoun): the
 condition of `you cast it`.
 `this spell can't be countered`: "This spell can't be countered." (CR
 101.2: a spell or ability that would counter it, ward included, does
-nothing to it). `if x 5 or more, this spell can't be countered and the
+nothing to it). `this spell can't be copied`: "This spell can't be
+copied." (CR 101.2: an effect that would copy it makes no copy;
+Choreographed Sparks). `if x 5 or more, this spell can't be countered and the
 damage can't be prevented` prints "If X is 5 or more, this spell can't be
 countered and the damage can't be prevented." (Banefire; any static
 condition, `label "Hellbent" if hand 0 or less, ...`; without the `and`
@@ -1476,7 +1490,16 @@ artifact tokens would be created under your control, that many 5/5 red
 Dragon creature tokens with flying are created instead." (the covered
 tokens become as many of that token); `replace artifact tokens you create:
 plus "Map"` prints "If you would create one or more artifact tokens,
-instead create those tokens plus an additional Map token." Each applies
+instead create those tokens plus an additional Map token." `replace tokens
+you create: first each turn may copies of attached` prints "The first time
+you would create one or more tokens each turn, you may instead create that
+many tokens that are copies of enchanted permanent." (Moonlit Meditation;
+`attached creature`: "As long as this Equipment is attached to a creature,
+... copies of equipped creature.", Mirrormind Crown): only the player's
+first token-making event of the turn, counted whether or not the source
+was there (`TurnEvent::TokenEvents`), and only if they accept (`accept` /
+`decline` in scenarios); the copies are of the attached permanent's
+copiable values' card (a copy exception it has is not carried over). Each applies
 once to each token-making effect's tokens for one player (`create`, token
 copies, amass, fabricate, incubate, populate, endure, ...): tokens made
 instead come first, then tokens added, then doubling, so a doubler doubles
@@ -2426,7 +2449,13 @@ abilities" (Imprisoned in the Moon; `set subtype Food, set type artifact`
 in the middle, "a colorless Food artifact with \"...\"", Sugar Coat: an
 "Enchant creature or Food" Aura says "Enchanted permanent");
 colors, a creature type, and card types set together are one noun
-phrase, with the base P/T after it. `add subtype every` is "is every
+phrase, with the base P/T after it. `named "Legitimate Businessperson"`
+last prints "... with base power and toughness 1/1 named Legitimate
+Businessperson" (Witness Protection; CR 201.1: its other names go, for the
+legend rule, the log, and "named" filters); after `loses all abilities, set
+subtype Citizen, base 1/1, has ability { activated {T}: add {C} }` it
+prints "loses all abilities and is a Citizen with base power and toughness
+1/1 and \"{T}: Add {C}\" named Humble Merchant" (Honest Work). `add subtype every` is "is every
 creature type" and `add subtype all` "is all creature types" (layer 4,
 not changeling: it has no ability, and "loses all abilities" leaves it);
 `loses all creature types` removes them (a changeling's too). As effects,
@@ -3173,7 +3202,10 @@ ability's controller's, is not cast, keeps the spell's mode, X, and
 targets, and with `new targets` its controller may change them (CR
 707.10c; `choose "Hill Giant"` in scenarios); `with exceptions` applies
 the card's `except` block to the copy, "except the copy isn't
-legendary". A copy of a permanent spell becomes a token as it resolves,
+legendary"; a block of keywords and abilities alone prints "Copy target
+creature spell you control. The copy gains haste and \"At the beginning
+of the end step, sacrifice this token.\"" (Choreographed Sparks: the token
+it becomes has them). A copy of a permanent spell becomes a token as it resolves,
 CR 608.3f; a copy of a spell that has left the stack is made from it as
 it last existed). Abilities on the stack are copied the same way (CR
 707.10, 707.10b: the copy has the same source and isn't activated): `copy
@@ -5235,7 +5267,7 @@ Forms that change only how Oracle words what an existing form does:
 | `if at least one creature card was exiled this way, ...` | "If at least one creature card was exiled this way, ..." (the same check as `if creature card was exiled this way`) |
 | `if target 1 isnt creature, ...`, `if target 1 is not creature, ...` | "If it isn't a creature, ...", "If it's not a creature, ..." (the check `if target 1 is noncreature`; card types only) |
 | `at beginning of each player's end step` | "At the beginning of each player's end step" (`each end step` prints "the end step"; the same trigger) |
-| `target 1 is Spirit in addition`, `it is Angel with flying in addition`, `target 1 is Skeleton in addition and has no abilities` | "It's a Spirit in addition to its other types", "It has flying and is an Angel in addition to its other types", "It's a Skeleton in addition to its other types and has no abilities" (indefinitely, like `becomes ... in addition indefinitely`; "That creature is a Hero ..." after `that creature`) |
+| `target 1 is Spirit in addition`, `it is Angel with flying in addition`, `target 1 is Skeleton in addition and has no abilities` | "It's a Spirit in addition to its other types", "It has flying and is an Angel in addition to its other types", "It's a Skeleton in addition to its other types and has no abilities" (indefinitely, like `becomes ... in addition indefinitely`; "That creature is a Hero ..." after `that creature`). A P/T and card types may follow the subtypes: `targets 1 to 3 is 5/5 Elemental creature in addition` prints "They are 5/5 Elemental creatures in addition to their other types." (Relive the Past; base power and toughness, layer 7b). `and loses other card types` in place of `in addition` replaces its card types (a land keeps its own, as for `becomes`, and one no longer a creature loses its creature types, CR 205.1a): `it is Treasure artifact with ability { activated {T}, sacrifice this: add any } and loses other card types` prints "It's a Treasure artifact with \"{T}, Sacrifice this artifact: Add one mana of any color,\" and it loses all other card types." (Vraska, the Silencer: the returned card, indefinitely). |
 | `if you dont draw this way, ...`, `if you dont put into hand this way, ...`, `if you didnt put into hand this way, ...` | "If you don't draw a card this way, ...", "If you don't put a card into your hand this way, ...", "If you didn't put a card into your hand this way, ..." (`dont draw` is `if you dont, ...`; the two "put" forms check that no card was put into your hand by the effects before, so a search that finds nothing or a dig that takes nothing counts; the source is named again after them) |
 | `target 1 gets +1/+0 also if you control Mouse` | "It also gets +1/+0 until end of turn if you control a Mouse." (`... if <condition>` with "also" after the subject) |
 | `target player sacrifices 1 creature of their choice other than enchanted` | "target player sacrifices a creature of their choice other than enchanted creature" (never the enchanted creature) |

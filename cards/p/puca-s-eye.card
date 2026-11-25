@@ -1,0 +1,7 @@
+card "Puca's Eye" {
+  oracle_id 499b4cf9-2aaa-45a0-8362-77b727b7f7cc
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 card then choose color; this artifact becomes chosen color indefinitely
+  activated {3}, {T}, if count 5 colors among permanents: draw 1 card
+}

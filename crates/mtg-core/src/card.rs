@@ -892,6 +892,12 @@ impl fmt::Debug for KeywordSet {
     }
 }
 
+/// A name an effect gives an object ("... named Legitimate Businessperson",
+/// CR 201.1): interned in the pool (`CardPool::name_id`), since it is no
+/// card's. Kept to two bytes so `Characteristics` stays small.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct NameId(pub std::num::NonZeroU16);
+
 /// An interned subtype (creature type, land type, ...). The five basic land
 /// types are interned first, in WUBRG order, so `Subtype::basic(color)` is
 /// constant.
@@ -1989,8 +1995,9 @@ impl ObjFilter {
         if self.controlled_by.is_some_and(|p| p != obj_controller) {
             return false;
         }
+        // A name an effect gave it replaces its card's (CR 201.1).
         if let Some((def, named)) = self.named
-            && (c.def == def) != named
+            && (c.def == def && c.name.is_none()) != named
         {
             return false;
         }
@@ -2146,6 +2153,11 @@ pub enum Modification {
     /// "Enchanted land is snow." (layer 4, CR 205.4: a supertype added
     /// to its others).
     AddSupertype(Supertype),
+    /// "... named Legitimate Businessperson" (CR 201.1): the object's name
+    /// becomes this one, its others lost. Applied with the types (layer
+    /// 4); no layer is named for it, and nothing in this engine reads a
+    /// name in between.
+    SetName(NameId),
     /// "becomes an artifact creature" (layer 4): these card types replace
     /// its others (CR 205.1a), except land ("It's still a land", CR
     /// 205.1b; see `Effect::Animate`).
@@ -2269,6 +2281,7 @@ impl Modification {
             Modification::Control => Layer::L2Control,
             Modification::AddTypes(_)
             | Modification::AddSupertype(_)
+            | Modification::SetName(_)
             | Modification::BecomeTypes(_)
             | Modification::SetTypes(_)
             | Modification::AddLandType(_)
@@ -3309,11 +3322,15 @@ pub enum TurnEvent {
     /// owner ("the number of cards that were put into target player's
     /// graveyard from their library this turn"; tokens are no cards).
     LibraryToGraveyard,
+    /// Events in which the player would create one or more tokens (one per
+    /// token-making instruction, CR 614.1a; "the first time you would
+    /// create one or more tokens each turn", `Replacement::CopiesOfAttached`).
+    TokenEvents,
 }
 
 impl TurnEvent {
     /// The number of kinds: the turn log's rows.
-    pub const COUNT: usize = 41;
+    pub const COUNT: usize = 42;
 
     /// Whether a static ability reading this kind must be refreshed as it
     /// is counted (`CardDef::history_static`), the kinds counted without a
@@ -3344,7 +3361,8 @@ impl TurnEvent {
             | TurnEvent::LoyaltyActivated
             | TurnEvent::LegendaryCombatDamaged
             | TurnEvent::LibraryToGraveyard => true,
-            TurnEvent::CreatureEntered
+            TurnEvent::TokenEvents
+            | TurnEvent::CreatureEntered
             | TurnEvent::NonlandEntered
             | TurnEvent::LandEntered
             | TurnEvent::ArtifactEntered
@@ -5650,6 +5668,14 @@ pub enum Effect {
         /// types": the types, subtypes, and colors are added (layers 4 and
         /// 5) instead of replacing its others.
         in_addition: bool,
+        /// "becomes a legendary Spider Hero": a supertype added to its
+        /// others (layer 4, CR 205.4).
+        #[serde(default)]
+        supertype: Option<Supertype>,
+        /// "becomes a legendary creature named Mileva, the Stalwart": the
+        /// name it has instead of its own (CR 201.1).
+        #[serde(default)]
+        name: Option<NameId>,
     },
     /// "becomes blue until end of turn", "becomes colorless" (layer 5).
     BecomeColor {
@@ -5681,6 +5707,10 @@ pub enum Effect {
         /// color until end of turn."); wording only.
         #[serde(default)]
         color: bool,
+        /// No duration: "This artifact becomes the chosen color." (Puca's
+        /// Eye).
+        #[serde(default)]
+        indefinite: bool,
     },
     /// "Creatures you control gain protection from the chosen color until
     /// end of turn": the color chosen earlier in the resolution.
@@ -8433,6 +8463,14 @@ pub enum Replacement {
     /// instead" (Draconic Visitor): the tokens the event covers become as
     /// many of this token.
     TokensInstead { token: CardRef },
+    /// "The first time you would create one or more tokens each turn, you
+    /// may instead create that many tokens that are copies of enchanted
+    /// permanent." (Moonlit Meditation): only the controller's first
+    /// token-creating event of the turn (`TurnEvent::TokenEvents`), and
+    /// only if they choose; the tokens become copies of what the source is
+    /// attached to. `creature`: "As long as this Equipment is attached to
+    /// a creature, ... copies of equipped creature" (Mirrormind Crown).
+    CopiesOfAttached { creature: bool },
     /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
     /// prints "to that permanent or player" after it (rendering only).
     PlusN { n: u32, to_that: bool },
@@ -11215,6 +11253,10 @@ pub struct CardDef {
     /// that would counter it does nothing to it).
     #[serde(default)]
     pub uncounterable: bool,
+    /// "This spell can't be copied." (CR 101.2: an effect that would copy
+    /// it makes no copy; Choreographed Sparks).
+    #[serde(default)]
+    pub uncopyable: bool,
     /// "If X is 5 or more, this spell can't be countered and the damage
     /// can't be prevented." (Banefire), "Spell mastery — If there are two
     /// or more instant and/or sorcery cards in your graveyard, this spell
@@ -11823,6 +11865,14 @@ impl DefFlags {
     /// battlefield, players becoming targets are reported
     /// (`Event::PlayerTargeted`).
     const PLAYER_TARGETED: u64 = 1 << 33;
+    /// A static ability that names a permanent or makes it legendary
+    /// (`Modification::SetName`, `AddSupertype`): names and the legend
+    /// rule then read characteristics (`GameState::renamed`).
+    const RENAMES: u64 = 1 << 50;
+    /// A token-creation replacement that may ask its controller
+    /// (`Replacement::CopiesOfAttached`): creating tokens then may need a
+    /// mid-event decision (`GameState::token_copy_sources`).
+    const TOKEN_COPIES: u64 = 1 << 51;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u64 = DefFlags::MODIFIES_ENTERING;
 
@@ -11973,6 +12023,14 @@ impl DefFlags {
         self.has(DefFlags::EXILE_STATIC)
     }
 
+    pub const fn has_renames(self) -> bool {
+        self.has(DefFlags::RENAMES)
+    }
+
+    pub const fn has_token_copies(self) -> bool {
+        self.has(DefFlags::TOKEN_COPIES)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -12058,6 +12116,25 @@ impl DefFlags {
                         || ks.intersects(KeywordSet::TRIGGERED),
                     _ => false,
                 }))
+            }),
+        );
+        flags.set(
+            DefFlags::TOKEN_COPIES,
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replacement: Replacement::CopiesOfAttached { .. },
+                        ..
+                    })
+                )
+            }),
+        );
+        flags.set(
+            DefFlags::RENAMES,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m,
+                    Modification::SetName(_) | Modification::AddSupertype(Supertype::Legendary))))
             }),
         );
         flags.set(
@@ -12472,6 +12549,8 @@ pub struct CardPool {
     reserved: HashMap<String, CardRef>,
     subtypes: Vec<String>,
     subtype_ids: HashMap<String, Subtype>,
+    /// Names given by effects (`NameId`, from 1).
+    names: Vec<String>,
     abilities: Vec<AbilityDef>,
     /// Filters behind `TargetSpec::Filtered`.
     filters: Vec<ObjFilter>,
@@ -12623,6 +12702,7 @@ impl CardPool {
             reserved: HashMap::new(),
             subtypes: Vec::new(),
             subtype_ids: HashMap::new(),
+            names: Vec::new(),
             abilities: Vec::new(),
             filters: Vec::new(),
             up_to: Vec::new(),
@@ -13556,6 +13636,8 @@ impl CardPool {
                         indefinite: true,
                         loses_abilities: false,
                         in_addition: false,
+                        supertype: None,
+                        name: None,
                     });
                     break;
                 }
@@ -13817,6 +13899,7 @@ impl CardPool {
             toughness: crate::state::pt16(def.toughness.unwrap_or(0)),
             keywords: def.keywords,
             abilities: def.ability_ids,
+            name: None,
         });
         self.by_name.insert(def.name.clone(), r);
         if slot.is_some() {
@@ -14000,6 +14083,22 @@ impl CardPool {
                 d.flags.set(DefFlags::ROOM, true);
             }
         }
+    }
+
+    /// Intern a name an effect gives an object.
+    pub fn name_id(&mut self, name: &str) -> NameId {
+        let i = if let Some(i) = self.names.iter().position(|n| n == name) {
+            i
+        } else {
+            self.names.push(name.to_string());
+            self.names.len() - 1
+        };
+        let n = u16::try_from(i + 1).expect("too many names");
+        NameId(std::num::NonZeroU16::new(n).expect("from 1"))
+    }
+
+    pub fn name_text(&self, n: NameId) -> &str {
+        &self.names[usize::from(n.0.get()) - 1]
     }
 
     /// Intern a subtype name.
@@ -14225,6 +14324,7 @@ impl Builder {
             target_cost: None,
             target_cost_colors: crate::mana::ColorSet::default(),
             uncounterable: false,
+            uncopyable: false,
             uncounterable_if: None,
             cond_cost: None,
             madness: None,
@@ -14764,6 +14864,13 @@ impl Builder {
     #[must_use]
     pub fn uncounterable(mut self) -> Self {
         self.0.uncounterable = true;
+        self
+    }
+
+    /// "This spell can't be copied."
+    #[must_use]
+    pub fn uncopyable(mut self) -> Self {
+        self.0.uncopyable = true;
         self
     }
 

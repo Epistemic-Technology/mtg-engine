@@ -2565,6 +2565,8 @@ pub enum Ability {
     Companion(String),
     /// `this spell can't be countered`: "This spell can't be countered."
     Uncounterable,
+    /// `this spell can't be copied`: "This spell can't be copied."
+    Uncopyable,
     /// `if x 5 or more, this spell can't be countered and the damage can't
     /// be prevented`: "If X is 5 or more, this spell can't be countered and
     /// the damage can't be prevented." (Banefire); without the `and`
@@ -4995,6 +4997,9 @@ pub enum Mod {
     },
     /// `add supertype snow`: "is snow" (CR 205.4).
     AddSupertype(Supertype),
+    /// `named "Legitimate Businessperson"`: "... named Legitimate
+    /// Businessperson" after what it is (CR 201.1: its other names go).
+    SetName(String),
     AddSubtype(String),
     /// `set subtype Spirit`: "is a Spirit" (it loses its other creature
     /// types, CR 205.1b).
@@ -6408,6 +6413,15 @@ pub enum Effect {
         /// Hall of the Biblioplex): it gains the ability for as long as the
         /// rest lasts (layer 6).
         ability: Option<Box<Ability>>,
+        /// `becomes legendary Spider Hero`: "a legendary Spider Hero" (CR
+        /// 205.4: added to its supertypes).
+        supertype: Option<Supertype>,
+        /// `named "Mileva, the Stalwart"`: the name it has instead of its
+        /// own (CR 201.1).
+        name: Option<String>,
+        /// `base 4/4 and gains vigilance`: "with base power and toughness
+        /// 4/4 and gains vigilance" (Tenth District Hero); wording only.
+        gains: bool,
     },
     /// `this becomes blue`, `becomes colorless` (until end of turn).
     BecomeColor {
@@ -6433,6 +6447,9 @@ pub enum Effect {
         to: Recipient,
         /// `becomes that color`.
         color: bool,
+        /// `becomes chosen color indefinitely`: "becomes the chosen
+        /// color" (Puca's Eye), with no duration.
+        indefinite: bool,
     },
     /// `each creature you control gains protection from chosen color`
     /// (until end of turn).

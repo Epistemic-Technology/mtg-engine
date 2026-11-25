@@ -128,6 +128,7 @@ fn happened(count: &TurnCount, cmp: mtg_core::card::Cmp, n: u32) -> StaticCond {
         (TurnEvent::Attacked, ..) => StaticCond::AttackedThisTurn,
         (TurnEvent::Equipped, ..) => unreachable!("only the first equip ability"),
         (TurnEvent::AssassinDamage, ..) => unreachable!("only freerunning's alternative cost"),
+        (TurnEvent::TokenEvents, ..) => unreachable!("only a token replacement's \"first time\""),
         (TurnEvent::Entered, ..) => unreachable!("only with a filter"),
         (TurnEvent::Cast, _, Cmp::Exactly, n) => StaticCond::SpellNumber(n + 1),
         (TurnEvent::Cast, ..) => StaticCond::NoSpellsCastThisTurn { from_hand: false },
@@ -1805,6 +1806,8 @@ impl Decompiler<'_> {
                 indefinite,
                 loses_abilities: true,
                 in_addition: false,
+                supertype: None,
+                name: None,
             } if t.is_empty() && subtypes.is_empty() && kws.is_empty() => {
                 Effect::LoseAllAbilities {
                     to: r(*to),
@@ -1821,6 +1824,8 @@ impl Decompiler<'_> {
                 indefinite,
                 loses_abilities,
                 in_addition,
+                supertype,
+                name,
             } => Effect::Animate {
                 to: r(*to),
                 types: types(*t),
@@ -1837,6 +1842,9 @@ impl Decompiler<'_> {
                 in_addition: *in_addition,
                 is_word: false,
                 ability: None,
+                supertype: *supertype,
+                name: name.map(|n| self.pool.name_text(n).to_string()),
+                gains: false,
             },
             CoreEffect::BecomeColor {
                 to,
@@ -1857,9 +1865,14 @@ impl Decompiler<'_> {
                 indefinite: *indefinite,
             },
             CoreEffect::Choose(kind) => Effect::Choose(self.choice_kind(*kind)),
-            CoreEffect::BecomeChosen { to, color } => Effect::BecomeChosen {
+            CoreEffect::BecomeChosen {
+                to,
+                color,
+                indefinite,
+            } => Effect::BecomeChosen {
                 to: r(*to),
-                color: *color,
+                color: *color || *indefinite,
+                indefinite: *indefinite,
             },
             CoreEffect::ProtectionFromChosen { to } => Effect::ProtectionFromChosen { to: r(*to) },
             CoreEffect::OfChoice {
@@ -3240,6 +3253,7 @@ impl Decompiler<'_> {
             Modification::AddChosenType => Mod::AddChosenType { creature: false },
             Modification::AddSubtype(s) => Mod::AddSubtype(self.pool.subtype_name(*s).to_string()),
             Modification::AddSupertype(s) => Mod::AddSupertype(*s),
+            Modification::SetName(n) => Mod::SetName(self.pool.name_text(*n).to_string()),
             Modification::SetCreatureType(s) => {
                 Mod::SetSubtype(self.pool.subtype_name(*s).to_string())
             }
